@@ -1,0 +1,288 @@
+{% extends 'accounts/parent/base_parent.html' %}
+
+{% block title %}Bosh sahifa - Ota-ona paneli{% endblock %}
+
+{% block parent_content %}
+<div class="container-fluid py-4">
+    <!-- Child Selector (if multiple children) -->
+    {% if children|length > 1 %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-people me-2"></i>Farzand tanlash: {{ child.get_full_name }}
+                </button>
+                <ul class="dropdown-menu">
+                    {% for c in children %}
+                    <li>
+                        <a class="dropdown-item {% if c.id == child.id %}active{% endif %}" 
+                           href="?child_id={{ c.id }}">
+                            {{ c.get_full_name }} ({{ c.username }})
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Header Section - Child Info -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            {% if child.profile_photo %}
+                            <img src="{{ child.profile_photo.url }}" alt="{{ child.get_full_name }}" 
+                                 class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                            {% else %}
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col">
+                            <h3 class="mb-1">{{ child.get_full_name }}</h3>
+                            <p class="text-muted mb-2">
+                                <i class="bi bi-person me-1"></i>{{ child.username }}
+                            </p>
+                            {% if enrollments %}
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for enrollment in enrollments %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-mortarboard me-1"></i>{{ enrollment.profession.name }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {% if enrollments %}
+                            {% with enrollment=enrollments.0 %}
+                            <div class="text-end">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="bi bi-calendar me-1"></i>Ro'yxatdan o'tgan: {{ enrollment.enrolled_at|date:"d.m.Y" }}
+                                </small>
+                                <div class="mb-1 d-flex justify-content-between align-items-center">
+                                    <span class="small text-muted">Umumiy progress</span>
+                                    <span class="badge bg-success">{{ stats.overall_progress|default:0 }}%</span>
+                                </div>
+                                <div class="progress" style="height: 10px;">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ stats.overall_progress|default:0 }}%"></div>
+                                </div>
+                            </div>
+                            {% endwith %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-check-circle text-success fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.completed_lessons|default:0 }}</h3>
+                    <p class="text-muted mb-0">Tugatilgan darslar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-hourglass-split text-warning fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.remaining_lessons|default:0 }}</h3>
+                    <p class="text-muted mb-0">Qolgan darslar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-file-check text-primary fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.submitted_homework|default:0 }}</h3>
+                    <p class="text-muted mb-0">Topshirilgan vazifalar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-graph-up text-info fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.average_score|default:0|floatformat:1 }}%</h3>
+                    <p class="text-muted mb-0">O'rtacha ball</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity me-2"></i>So'nggi faollik
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                    <div class="list-group list-group-flush">
+                        {% for activity in recent_activities %}
+                        <div class="list-group-item px-0 border-0 d-flex align-items-center">
+                            <div class="me-3">
+                                {% if activity.type == 'login' %}
+                                <span class="badge bg-secondary rounded-circle p-2">
+                                    <i class="bi bi-box-arrow-in-right"></i>
+                                </span>
+                                {% elif activity.type == 'video_watched' %}
+                                <span class="badge bg-primary rounded-circle p-2">
+                                    <i class="bi bi-play-circle"></i>
+                                </span>
+                                {% elif activity.type == 'homework_submitted' %}
+                                <span class="badge bg-success rounded-circle p-2">
+                                    <i class="bi bi-file-check"></i>
+                                </span>
+                                {% elif activity.type == 'test_taken' %}
+                                <span class="badge bg-info rounded-circle p-2">
+                                    <i class="bi bi-clipboard-check"></i>
+                                </span>
+                                {% else %}
+                                <span class="badge bg-light text-dark rounded-circle p-2">
+                                    <i class="bi bi-dot"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">{{ activity.description }}</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>{{ activity.timestamp|timesince }} oldin
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <p class="mb-0">Hozircha faollik yo'q</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Activity Chart -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Haftalik faollik
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-end justify-content-between" style="height: 150px;">
+                        {% for day in stats.weekly_activity|default:"0,0,0,0,0,0,0"|make_list %}
+                        <div class="text-center flex-fill px-1">
+                            <div class="bg-primary rounded-top mx-auto" 
+                                 style="width: 100%; max-width: 40px; height: {{ day|default:0 }}%; min-height: 5px;"></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small class="text-muted">Du</small>
+                        <small class="text-muted">Se</small>
+                        <small class="text-muted">Ch</small>
+                        <small class="text-muted">Pa</small>
+                        <small class="text-muted">Ju</small>
+                        <small class="text-muted">Sha</small>
+                        <small class="text-muted">Ya</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Deadlines -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar-event me-2"></i>Yaqinlashayotgan muddatlar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_deadlines %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Vazifa</th>
+                                    <th>Dars</th>
+                                    <th>Muddat</th>
+                                    <th>Holat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for deadline in upcoming_deadlines %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-text me-2"></i>{{ deadline.title }}
+                                    </td>
+                                    <td>{{ deadline.lesson_title }}</td>
+                                    <td>
+                                        <i class="bi bi-clock me-1"></i>{{ deadline.due_date|date:"d.m.Y H:i" }}
+                                    </td>
+                                    <td>
+                                        {% if deadline.is_late %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Kechikkan
+                                        </span>
+                                        {% elif deadline.is_urgent %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock-history me-1"></i>Tez orada
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check me-1"></i>Vaqtida
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-calendar-check fs-1 d-block mb-2"></i>
+                        <p class="mb-0">Yaqinlashayotgan muddatlar yo'q</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
