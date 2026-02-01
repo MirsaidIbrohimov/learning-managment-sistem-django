@@ -13,7 +13,7 @@ from accounts.parent_views import (
 )
 
 urlpatterns = [
-    path('login/', parent_login_view, name='parent_login'),
+    path('parent/login/', parent_login_view, name='parent_login'),
     path('logout/', parent_logout_view, name='parent_logout'),
     path('', parent_dashboard, name='parent_dashboard'),
     path('children/', parent_children, name='parent_children'),

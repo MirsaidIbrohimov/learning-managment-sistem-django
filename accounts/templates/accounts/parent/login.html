@@ -1,131 +1,198 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}Ota-ona tizimiga kirish | IT Creative Zomin{% endblock %}
 
 {% block extra_css %}
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<style>
+/* ========== PAGE CENTER ========== */
+.page-center{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#6366f1,#0ea5e9);
+    padding:20px;
+}
+
+/* ========== CARD ========== */
+.auth-card{
+    width:100%;
+    max-width:420px;
+    background:#fff;
+    border-radius:18px;
+    padding:32px 28px;
+    box-shadow:0 30px 60px rgba(0,0,0,.25);
+    position:relative;
+    z-index:2;
+}
+[data-bs-theme="dark"] .auth-card{
+    background:#111;
+    color:#fff;
+}
+
+/* ========== LOGO ========== */
+.auth-logo{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    background:rgba(99,102,241,.15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:30px;
+    color:#6366f1;
+}
+
+/* ========== INPUTS ========== */
+.form-floating input{
+    padding-left:46px !important;
+    border-radius:14px;
+}
+.input-icon{
+    position:absolute;
+    left:14px;
+    top:50%;
+    transform:translateY(-50%);
+    color:#6b7280;
+    z-index:3;
+}
+.show-pass{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    border:none;
+    background:transparent;
+    color:#6b7280;
+}
+
+/* ========== BUTTON ========== */
+.btn-primary{
+    border-radius:14px;
+    font-size:16px;
+}
+
+/* ========== TOAST ========== */
+.toast-box{
+    position:fixed;
+    top:20px;
+    right:20px;
+    z-index:9999;
+}
+.toast-ios{
+    background:#111;
+    color:#fff;
+    padding:12px 18px;
+    border-radius:12px;
+    margin-bottom:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,.35);
+    animation:fadeIn .3s ease;
+}
+@keyframes fadeIn{
+    from{opacity:0;transform:translateY(-10px)}
+    to{opacity:1;transform:translateY(0)}
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="page-center">
 
-<div class="blob one"></div>
-<div class="blob two"></div>
-
 <div class="toast-box" id="toastBox"></div>
 
 <div class="auth-card">
 
-  <div class="text-center mb-4">
-    <div class="auth-logo mb-3 mx-auto">
-      <i class="bi bi-people"></i>
+    <!-- HEADER -->
+    <div class="text-center mb-4">
+        <div class="auth-logo mx-auto mb-3">
+            <i class="bi bi-people"></i>
+        </div>
+        <h4 class="fw-bold mb-1">Ota-ona tizimiga kirish</h4>
+        <p class="text-secondary small mb-0">
+            Farzandingiz ta'limini nazorat qiling
+        </p>
     </div>
-    <h4 class="fw-bold mb-1">Ota-ona tizimiga kirish</h4>
-    <p class="text-secondary small mb-0">Farzandingiz ta'limini kuzating</p>
-  </div>
 
-  <form method="POST" id="loginForm">
-    {% csrf_token %}
+    <!-- FORM -->
+    <form method="POST" novalidate>
+        {% csrf_token %}
 
-  <!-- ========== USERNAME ========== -->
-<div class="form-floating mb-3 position-relative ios-input">
+        <!-- USERNAME -->
+        <div class="form-floating mb-3 position-relative">
+            <span class="input-icon">
+                <i class="bi bi-person"></i>
+            </span>
+            {{ form.username }}
+            <label for="{{ form.username.id_for_label }}">Login</label>
+        </div>
 
-  <!-- icon -->
-  <span class="input-icon">
-    <i class="bi bi-person"></i>
-  </span>
+        <!-- PASSWORD -->
+        <div class="form-floating mb-4 position-relative">
+            <span class="input-icon">
+                <i class="bi bi-lock"></i>
+            </span>
+            {{ form.password }}
+            <button type="button" class="show-pass" onclick="togglePass()">
+                <i id="eyeIcon" class="bi bi-eye"></i>
+            </button>
+            <label for="{{ form.password.id_for_label }}">Parol</label>
+        </div>
 
-  <!-- input -->
-  {{ form.username }}
+        <button class="btn btn-primary w-100 py-3 fw-semibold">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+        </button>
+    </form>
 
-  <!-- label -->
-  <label for="{{ form.username.id_for_label }}">Login</label>
-
-</div>
-
-
-<!-- ========== PASSWORD ========== -->
-<div class="form-floating mb-4 position-relative ios-input">
-
-  <!-- icon -->
-  <span class="input-icon">
-    <i class="bi bi-lock"></i>
-  </span>
-
-  <!-- input -->
-  {{ form.password }}
-
-  <!-- show password -->
-  <button type="button" class="show-pass" onclick="togglePass()">
-    <i id="eyeIcon" class="bi bi-eye"></i>
-  </button>
-
-  <!-- label -->
-  <label for="{{ form.password.id_for_label }}">Parol</label>
-
-</div>
-
-
-    <button class="btn btn-primary w-100 py-3 fw-semibold">
-      <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
-    </button>
-  </form>
-
-  <div class="text-center small mt-3">
-    <a href="{% url 'login' %}" class="text-info fw-semibold text-decoration-none">
-      <i class="bi bi-arrow-left me-1"></i>Asosiy kirish sahifasiga qaytish
-    </a>
-  </div>
+    <!-- BACK -->
+    <div class="text-center mt-3 small">
+        <a href="{% url 'login' %}" class="text-white-50 text-decoration-none">
+            <i class="bi bi-arrow-left me-1"></i>Asosiy login sahifaga qaytish
+        </a>
+    </div>
 
 </div>
 </div>
 
-<!-- ================= JS ================= -->
 <script>
-
 function togglePass(){
-  const input = document.getElementById("{{ form.password.id_for_label }}");
-  const icon = document.getElementById("eyeIcon");
-  if(input.type === "password"){
-    input.type = "text";
-    icon.className = "bi bi-eye-slash";
-  }else{
-    input.type = "password";
-    icon.className = "bi bi-eye";
-  }
+    const input = document.getElementById("{{ form.password.id_for_label }}");
+    const icon = document.getElementById("eyeIcon");
+    if(input.type === "password"){
+        input.type = "text";
+        icon.className = "bi bi-eye-slash";
+    }else{
+        input.type = "password";
+        icon.className = "bi bi-eye";
+    }
 }
 
 function showToast(text){
-  const box = document.getElementById("toastBox");
-  const div = document.createElement("div");
-  div.className = "toast-ios";
-  div.innerHTML = `<i class="bi bi-exclamation-triangle me-2 text-danger"></i> ${text}`;
-  box.appendChild(div);
+    const box = document.getElementById("toastBox");
+    const div = document.createElement("div");
+    div.className = "toast-ios";
+    div.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i> ${text}`;
+    box.appendChild(div);
 
-  setTimeout(()=>{ div.style.opacity="0"; },4500);
-  setTimeout(()=>{ div.remove(); },5000);
+    setTimeout(()=>{div.style.opacity="0"},3500);
+    setTimeout(()=>{div.remove()},4000);
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
+    {% if messages %}
+        {% for message in messages %}
+            showToast("{{ message|escapejs }}");
+        {% endfor %}
+    {% endif %}
 
-  {% if messages %}
-    {% for message in messages %}
-      showToast("{{ message|escapejs }}");
-    {% endfor %}
-  {% endif %}
+    {% if form.username.errors %}
+        showToast("Login noto‘g‘ri kiritildi");
+    {% endif %}
 
-  {% if form.username.errors %}
-      showToast("Login noto'g'ri yoki mavjud emas");
-      document.getElementById("{{ form.username.id_for_label }}").classList.add("is-invalid");
-  {% endif %}
-
-  {% if form.password.errors %}
-      showToast("Parol noto'g'ri kiritildi!");
-      document.getElementById("{{ form.password.id_for_label }}").classList.add("is-invalid");
-  {% endif %}
-
+    {% if form.password.errors %}
+        showToast("Parol noto‘g‘ri kiritildi");
+    {% endif %}
 });
-
 </script>
 {% endblock %}

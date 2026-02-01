@@ -44,11 +44,11 @@ def parent_login_view(request):
                 parent.save(update_fields=['last_login'])
                 return redirect('parent_dashboard')
             else:
-                return render(request, 'parent/login.html', {'error': "Parol noto'g'ri"})
+                return render(request, 'accounts/parent/login.html', {'error': "Parol noto'g'ri"})
         except Parent.DoesNotExist:
-            return render(request, 'parent/login.html', {'error': "Foydalanuvchi topilmadi"})
+            return render(request, 'accounts/parent/login.html', {'error': "Foydalanuvchi topilmadi"})
     
-    return render(request, 'parent/login.html')
+    return render(request, 'accounts/parent/login.html')
 
 
 def parent_logout_view(request):
@@ -62,7 +62,7 @@ def parent_dashboard(request):
     children = parent.children.all()
     
     if not children.exists():
-        return render(request, 'parent/dashboard.html', {
+        return render(request, 'accounts/parent/dashboard.html', {
             'parent': parent,
             'children': [],
             'selected_child': None,
@@ -167,7 +167,7 @@ def parent_dashboard(request):
             'days_left': (hw.due_date - now).days
         })
     
-    return render(request, 'parent/dashboard.html', {
+    return render(request, 'accounts/parent/dashboard.html', {
         'parent': parent,
         'children': children,
         'selected_child': selected_child,
@@ -214,7 +214,7 @@ def parent_children(request):
             'last_activity': child.last_activity,
         })
     
-    return render(request, 'parent/children.html', {
+    return render(request, 'accounts/parent/children.html', {
         'parent': parent,
         'children_data': children_data,
     })
@@ -232,7 +232,7 @@ def parent_lessons(request):
         selected_child = children.first()
     
     if not selected_child:
-        return render(request, 'parent/lessons.html', {
+        return render(request, 'accounts/parent/lessons.html', {
             'parent': parent,
             'children': children,
             'selected_child': None,
@@ -323,7 +323,7 @@ def parent_lessons(request):
             'progress_percent': round((completed_lessons / total_lessons * 100) if total_lessons > 0 else 0, 1),
         })
     
-    return render(request, 'parent/lessons.html', {
+    return render(request, 'accounts/parent/lessons.html', {
         'parent': parent,
         'children': children,
         'selected_child': selected_child,
@@ -343,7 +343,7 @@ def parent_homework(request):
         selected_child = children.first()
     
     if not selected_child:
-        return render(request, 'parent/homework.html', {
+        return render(request, 'accounts/parent/homework.html', {
             'parent': parent,
             'children': children,
             'selected_child': None,
@@ -390,7 +390,7 @@ def parent_homework(request):
         'avg_grade': round(avg_grade, 1),
     }
     
-    return render(request, 'parent/homework.html', {
+    return render(request, 'accounts/parent/homework.html', {
         'parent': parent,
         'children': children,
         'selected_child': selected_child,
@@ -411,7 +411,7 @@ def parent_tests(request):
         selected_child = children.first()
     
     if not selected_child:
-        return render(request, 'parent/tests.html', {
+        return render(request, 'accounts/parent/tests.html', {
             'parent': parent,
             'children': children,
             'selected_child': None,
@@ -446,7 +446,7 @@ def parent_tests(request):
         'total_questions': aggregates['total_questions'] or 0,
     }
     
-    return render(request, 'parent/tests.html', {
+    return render(request, 'accounts/parent/tests.html', {
         'parent': parent,
         'children': children,
         'selected_child': selected_child,
@@ -467,7 +467,7 @@ def parent_achievements(request):
         selected_child = children.first()
     
     if not selected_child:
-        return render(request, 'parent/achievements.html', {
+        return render(request, 'accounts/parent/achievements.html', {
             'parent': parent,
             'children': children,
             'selected_child': None,
@@ -485,7 +485,7 @@ def parent_achievements(request):
         'courses_completed': certificates.values('profession').distinct().count(),
     }
     
-    return render(request, 'parent/achievements.html', {
+    return render(request, 'accounts/parent/achievements.html', {
         'parent': parent,
         'children': children,
         'selected_child': selected_child,
@@ -531,7 +531,7 @@ def parent_messages(request):
     
     unread_count = messages.filter(reply__isnull=False, is_read=False).count()
     
-    return render(request, 'parent/messages.html', {
+    return render(request, 'accounts/parent/messages.html', {
         'parent': parent,
         'children': children,
         'messages': messages,
