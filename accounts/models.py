@@ -804,4 +804,72 @@ class SystemReport(models.Model):
         return f"{self.title} ({self.date_from} - {self.date_to})"
 
 
+class Parent(models.Model):
+    """Ota-ona modeli - farzandlarini kuzatish uchun"""
+    first_name = models.CharField(max_length=100, verbose_name="Ism")
+    last_name = models.CharField(max_length=100, verbose_name="Familiya")
+    phone = models.CharField(max_length=20, unique=True, verbose_name="Telefon raqam")
+    email = models.EmailField(blank=True, null=True, verbose_name="Email")
+    username = models.CharField(max_length=150, unique=True, verbose_name="Login")
+    password = models.CharField(max_length=255, verbose_name="Parol (hash)")
+    
+    children = models.ManyToManyField(
+        'CustomUser',
+        related_name='parents',
+        limit_choices_to={'role': 'student'},
+        verbose_name="Farzandlar"
+    )
+    
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    last_login = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi kirish")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Ota-ona"
+        verbose_name_plural = "Ota-onalar"
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}".strip()
+    
+    def get_initials(self):
+        first = self.first_name[0] if self.first_name else ''
+        last = self.last_name[0] if self.last_name else ''
+        return f"{first}{last}".upper()
+    
+    def check_password(self, raw_password):
+        from django.contrib.auth.hashers import check_password
+        return check_password(raw_password, self.password)
+    
+    def set_password(self, raw_password):
+        from django.contrib.auth.hashers import make_password
+        self.password = make_password(raw_password)
+
+
+class ParentMessage(models.Model):
+    """Ota-ona va mentor o'rtasidagi xabarlar"""
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='messages')
+    child = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='parent_messages')
+    subject = models.CharField(max_length=200, verbose_name="Mavzu")
+    message = models.TextField(verbose_name="Xabar")
+    reply = models.TextField(blank=True, null=True, verbose_name="Javob")
+    replied_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='parent_replies')
+    replied_at = models.DateTimeField(null=True, blank=True)
+    is_read = models.BooleanField(default=False, verbose_name="O'qilgan")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Ota-ona xabari"
+        verbose_name_plural = "Ota-ona xabarlari"
+    
+    def __str__(self):
+        return f"{self.parent.full_name} - {self.subject}"
+
+
 
