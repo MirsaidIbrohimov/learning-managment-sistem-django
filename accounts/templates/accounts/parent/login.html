@@ -1,0 +1,131 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Ota-ona tizimiga kirish | IT Creative Zomin{% endblock %}
+
+{% block extra_css %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-center">
+
+<div class="blob one"></div>
+<div class="blob two"></div>
+
+<div class="toast-box" id="toastBox"></div>
+
+<div class="auth-card">
+
+  <div class="text-center mb-4">
+    <div class="auth-logo mb-3 mx-auto">
+      <i class="bi bi-people"></i>
+    </div>
+    <h4 class="fw-bold mb-1">Ota-ona tizimiga kirish</h4>
+    <p class="text-secondary small mb-0">Farzandingiz ta'limini kuzating</p>
+  </div>
+
+  <form method="POST" id="loginForm">
+    {% csrf_token %}
+
+  <!-- ========== USERNAME ========== -->
+<div class="form-floating mb-3 position-relative ios-input">
+
+  <!-- icon -->
+  <span class="input-icon">
+    <i class="bi bi-person"></i>
+  </span>
+
+  <!-- input -->
+  {{ form.username }}
+
+  <!-- label -->
+  <label for="{{ form.username.id_for_label }}">Login</label>
+
+</div>
+
+
+<!-- ========== PASSWORD ========== -->
+<div class="form-floating mb-4 position-relative ios-input">
+
+  <!-- icon -->
+  <span class="input-icon">
+    <i class="bi bi-lock"></i>
+  </span>
+
+  <!-- input -->
+  {{ form.password }}
+
+  <!-- show password -->
+  <button type="button" class="show-pass" onclick="togglePass()">
+    <i id="eyeIcon" class="bi bi-eye"></i>
+  </button>
+
+  <!-- label -->
+  <label for="{{ form.password.id_for_label }}">Parol</label>
+
+</div>
+
+
+    <button class="btn btn-primary w-100 py-3 fw-semibold">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+    </button>
+  </form>
+
+  <div class="text-center small mt-3">
+    <a href="{% url 'login' %}" class="text-info fw-semibold text-decoration-none">
+      <i class="bi bi-arrow-left me-1"></i>Asosiy kirish sahifasiga qaytish
+    </a>
+  </div>
+
+</div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+
+function togglePass(){
+  const input = document.getElementById("{{ form.password.id_for_label }}");
+  const icon = document.getElementById("eyeIcon");
+  if(input.type === "password"){
+    input.type = "text";
+    icon.className = "bi bi-eye-slash";
+  }else{
+    input.type = "password";
+    icon.className = "bi bi-eye";
+  }
+}
+
+function showToast(text){
+  const box = document.getElementById("toastBox");
+  const div = document.createElement("div");
+  div.className = "toast-ios";
+  div.innerHTML = `<i class="bi bi-exclamation-triangle me-2 text-danger"></i> ${text}`;
+  box.appendChild(div);
+
+  setTimeout(()=>{ div.style.opacity="0"; },4500);
+  setTimeout(()=>{ div.remove(); },5000);
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  {% if messages %}
+    {% for message in messages %}
+      showToast("{{ message|escapejs }}");
+    {% endfor %}
+  {% endif %}
+
+  {% if form.username.errors %}
+      showToast("Login noto'g'ri yoki mavjud emas");
+      document.getElementById("{{ form.username.id_for_label }}").classList.add("is-invalid");
+  {% endif %}
+
+  {% if form.password.errors %}
+      showToast("Parol noto'g'ri kiritildi!");
+      document.getElementById("{{ form.password.id_for_label }}").classList.add("is-invalid");
+  {% endif %}
+
+});
+
+</script>
+{% endblock %}
