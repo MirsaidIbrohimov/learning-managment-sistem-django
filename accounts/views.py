@@ -11,13 +11,13 @@ from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
     AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm,
     HomeworkSubmissionForm, HomeworkGradeForm, TestForm, TestQuestionForm, CertificateForm,
-    SectionForm
+    SectionForm, PasswordResetRequestForm
 )
 from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, HelpRequest, Discount,
-    UserDevice, UserSession, HTMLDeploy, SystemReport
+    UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest
 )
 from coin.models import ActivityLog, CoinTransaction
 
@@ -3887,5 +3887,136 @@ def reject_enrollment_request(request, pk):
         messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
     
     return redirect('admin_enrollment_requests')
+
+
+def password_reset_request_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = PasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            new_password = form.cleaned_data['new_password1']
+            
+            try:
+                user = CustomUser.objects.get(username=username)
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Bunday username topilmadi!")
+                return render(request, 'accounts/password_reset_request.html', {'form': form})
+            
+            existing_request = PasswordResetRequest.objects.filter(user=user, status='pending').first()
+            if existing_request:
+                messages.warning(request, "Sizning parol tiklash so'rovingiz allaqachon yuborilgan va ko'rib chiqilmoqda!")
+                return redirect('login')
+            
+            from django.contrib.auth.hashers import make_password
+            hashed_password = make_password(new_password)
+            
+            PasswordResetRequest.objects.create(
+                user=user,
+                new_password=hashed_password
+            )
+            
+            messages.success(request, "Parol tiklash so'rovi yuborildi! Admin tasdiqlashini kuting.")
+            return redirect('login')
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        form = PasswordResetRequestForm()
+    
+    return render(request, 'accounts/password_reset_request.html', {'form': form})
+
+
+@login_required
+def admin_password_reset_requests(request):
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+    
+    status_filter = request.GET.get('status', '')
+    search = request.GET.get('q', '')
+    
+    requests_qs = PasswordResetRequest.objects.select_related('user', 'reviewed_by')
+    
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+    
+    if search:
+        requests_qs = requests_qs.filter(
+            Q(user__username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__phone__icontains=search)
+        )
+    
+    pending_count = PasswordResetRequest.objects.filter(status='pending').count()
+    
+    context = {
+        'password_requests': requests_qs,
+        'pending_count': pending_count,
+        'status_filter': status_filter,
+        'search': search,
+    }
+    
+    return render(request, 'accounts/admin/password_reset_requests.html', context)
+
+
+@login_required
+def approve_password_reset(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    reset_request = get_object_or_404(PasswordResetRequest, pk=pk, status='pending')
+    
+    if request.method == 'POST':
+        user = reset_request.user
+        user.password = reset_request.new_password
+        user.save()
+        
+        reset_request.status = 'approved'
+        reset_request.reviewed_by = request.user
+        reset_request.save()
+        
+        Message.objects.create(
+            title="Parolingiz o'zgartirildi",
+            content="Sizning parol tiklash so'rovingiz tasdiqlandi. Endi yangi parol bilan tizimga kirishingiz mumkin.",
+            message_type='security',
+            recipient=user,
+            sender=request.user
+        )
+        
+        messages.success(request, f"{user.full_name} uchun parol muvaffaqiyatli o'zgartirildi!")
+    
+    return redirect('admin_password_reset_requests')
+
+
+@login_required
+def reject_password_reset(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    reset_request = get_object_or_404(PasswordResetRequest, pk=pk, status='pending')
+    
+    if request.method == 'POST':
+        admin_message = request.POST.get('admin_message', "Sizning parol tiklash so'rovingiz rad etildi.")
+        
+        reset_request.status = 'rejected'
+        reset_request.admin_message = admin_message
+        reset_request.reviewed_by = request.user
+        reset_request.save()
+        
+        Message.objects.create(
+            title="Parol tiklash so'rovi rad etildi",
+            content=f"Sizning parol tiklash so'rovingiz rad etildi.\n\nSabab: {admin_message}",
+            message_type='security',
+            recipient=reset_request.user,
+            sender=request.user
+        )
+        
+        messages.warning(request, f"{reset_request.user.full_name} ning parol tiklash so'rovi rad etildi!")
+    
+    return redirect('admin_password_reset_requests')
 
 

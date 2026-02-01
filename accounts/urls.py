@@ -143,4 +143,10 @@ urlpatterns = [
     path('dashboard/enrollment-requests/', views.admin_enrollment_requests, name='admin_enrollment_requests'),
     path('dashboard/enrollment-requests/<int:pk>/approve/', views.approve_enrollment_request, name='approve_enrollment_request'),
     path('dashboard/enrollment-requests/<int:pk>/reject/', views.reject_enrollment_request, name='reject_enrollment_request'),
+    
+    # Parol tiklash
+    path('password-reset-request/', views.password_reset_request_view, name='password_reset_request'),
+    path('dashboard/password-reset-requests/', views.admin_password_reset_requests, name='admin_password_reset_requests'),
+    path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
+    path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),
 ]
