@@ -288,7 +288,8 @@ def parent_lessons(request):
                         ).order_by('-completed_at').first()
                         if result:
                             is_completed = result.passed
-                            progress_detail = f"{result.score}% - {'O\'tdi' if result.passed else 'O\'tmadi'}"
+                            status_text = "O'tdi" if result.passed else "O'tmadi"
+                            progress_detail = f"{result.score}% - {status_text}"
                         else:
                             progress_detail = "Ishlanmagan"
                     except Test.DoesNotExist:
