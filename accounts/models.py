@@ -198,6 +198,31 @@ class CourseEnrollment(models.Model):
         return f"{self.user.full_name} - {self.profession.name}"
 
 
+class CourseEnrollmentRequest(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Qabul qilindi'),
+        ('rejected', 'Rad etildi'),
+    )
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrollment_requests')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='enrollment_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    admin_message = models.TextField(blank=True, null=True, verbose_name="Admin xabari")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_requests')
+    
+    class Meta:
+        unique_together = ['user', 'profession']
+        ordering = ['-created_at']
+        verbose_name = "Kursga yozilish so'rovi"
+        verbose_name_plural = "Kursga yozilish so'rovlari"
+    
+    def __str__(self):
+        return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
+
+
 class Lesson(models.Model):
     LESSON_TYPES = (
         ('video', 'Video darslik'),
