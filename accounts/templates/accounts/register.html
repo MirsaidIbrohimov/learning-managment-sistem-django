@@ -200,9 +200,19 @@
                 </div>
             </div>
 
-            <div class="form-floating mb-3">
-                {{ form.username }}
-                <label for="{{ form.username.id_for_label }}">Username</label>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.username }}
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.email }}
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                    </div>
+                </div>
             </div>
 
             <div class="row g-3 mb-3">
@@ -212,7 +222,17 @@
                         <label for="{{ form.phone.id_for_label }}">Telefon</label>
                     </div>
                 </div>
-                <!-- role removed from UI; backend will receive hidden input "role=student" -->
+                <div class="col-md-6">
+                    <div class="form-floating">
+                        {{ form.birth_date }}
+                        <label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Yo'nalish</label>
+                {{ form.profession }}
             </div>
 
             <div class="row g-3 mb-4">

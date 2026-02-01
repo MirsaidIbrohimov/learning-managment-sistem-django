@@ -299,6 +299,22 @@
                 <a href="{% url 'classmates' profession.pk %}" class="btn btn-outline-primary w-100 ios-btn mb-3">
                     <i class="bi bi-people me-2"></i>Kursdoshlar
                 </a>
+            {% elif enrollment_request %}
+                {% if enrollment_request.status == 'pending' %}
+                    <div class="alert alert-warning py-2 mb-3">
+                        <i class="bi bi-clock-history me-1"></i> So'rovingiz ko'rib chiqilmoqda
+                        <small class="d-block text-muted mt-1">Admin tasdiqlashini kuting</small>
+                    </div>
+                {% elif enrollment_request.status == 'rejected' %}
+                    <div class="alert alert-danger py-2 mb-3">
+                        <i class="bi bi-x-circle me-1"></i> So'rovingiz rad etildi
+                        {% if enrollment_request.admin_message %}
+                        <small class="d-block mt-1">{{ enrollment_request.admin_message }}</small>
+                        {% else %}
+                        <small class="d-block mt-1">Sizga ushbu kursni o'qish imkoniyati berilmadi.</small>
+                        {% endif %}
+                    </div>
+                {% endif %}
             {% else %}
                 <a href="{% url 'enroll_course' profession.pk %}" class="btn btn-primary w-100 ios-btn mb-3">
                     <i class="bi bi-play-circle me-2"></i>O'qishni boshlash

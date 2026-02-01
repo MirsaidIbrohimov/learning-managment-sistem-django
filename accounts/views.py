@@ -14,7 +14,7 @@ from .forms import (
     SectionForm
 )
 from .models import (
-    Profession, Section, CustomUser, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
+    Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport
@@ -175,8 +175,12 @@ def professions_view(request):
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     is_enrolled = False
+    enrollment_request = None
+    
     if request.user.is_student:
         is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
+        if not is_enrolled:
+            enrollment_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
     
     sections = []
     lessons_without_section = []
@@ -231,6 +235,7 @@ def profession_detail(request, pk):
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
+        'enrollment_request': enrollment_request,
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
@@ -246,10 +251,28 @@ def enroll_course(request, pk):
     
     profession = get_object_or_404(Profession, pk=pk)
     
+    # Allaqachon yozilganmi?
+    if CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
+        messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
+        return redirect('profession_detail', pk=pk)
+    
+    # Mavjud so'rovni tekshirish
+    existing_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
+    
+    if existing_request:
+        if existing_request.status == 'pending':
+            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz admin tomonidan ko'rib chiqilmoqda.")
+            return redirect('profession_detail', pk=pk)
+        elif existing_request.status == 'rejected':
+            # Rad etilgan bo'lsa, xabarni ko'rsatish
+            admin_msg = existing_request.admin_message or "Sizga ushbu kursni o'qish imkoniyati berilmadi."
+            messages.error(request, admin_msg)
+            return redirect('profession_detail', pk=pk)
+    
     if request.method == 'POST':
-        enrollment, created = CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
-        if created:
-            messages.success(request, f"Siz '{profession.name}' kursiga muvaffaqiyatli yozildingiz!")
+        # Yangi so'rov yaratish
+        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
+        messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
         return redirect('profession_detail', pk=pk)
     
     return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
@@ -3757,5 +3780,112 @@ def view_report(request, pk):
     
     report = get_object_or_404(SystemReport, pk=pk)
     return render(request, 'accounts/admin/view_report.html', {'report': report})
+
+
+# ============ KURSGA YOZILISH SO'ROVLARI ============
+
+@login_required
+def admin_enrollment_requests(request):
+    """Admin: Kursga yozilish so'rovlarini ko'rish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+    
+    status_filter = request.GET.get('status', 'pending')
+    profession_filter = request.GET.get('profession')
+    search = request.GET.get('q')
+    
+    requests_qs = CourseEnrollmentRequest.objects.select_related('user', 'profession')
+    
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+    
+    if profession_filter:
+        requests_qs = requests_qs.filter(profession_id=profession_filter)
+    
+    if search:
+        requests_qs = requests_qs.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__phone__icontains=search)
+        )
+    
+    professions = Profession.objects.all()
+    pending_count = CourseEnrollmentRequest.objects.filter(status='pending').count()
+    
+    context = {
+        'enrollment_requests': requests_qs,
+        'professions': professions,
+        'status_filter': status_filter,
+        'profession_filter': profession_filter,
+        'search': search,
+        'pending_count': pending_count,
+    }
+    return render(request, 'accounts/admin/enrollment_requests.html', context)
+
+
+@login_required
+def approve_enrollment_request(request, pk):
+    """Admin: So'rovni qabul qilish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+    
+    enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
+    
+    if request.method == 'POST':
+        enrollment_request.status = 'approved'
+        enrollment_request.reviewed_by = request.user
+        enrollment_request.save()
+        
+        # Kursga yozish
+        CourseEnrollment.objects.get_or_create(
+            user=enrollment_request.user,
+            profession=enrollment_request.profession
+        )
+        
+        # Foydalanuvchiga xabar yuborish
+        Message.objects.create(
+            title=f"Kursga qabul qilindingiz!",
+            content=f"Sizning '{enrollment_request.profession.name}' kursiga yozilish so'rovingiz qabul qilindi. Endi o'qishni boshlashingiz mumkin!",
+            message_type='student',
+            recipient=enrollment_request.user,
+            sender=request.user
+        )
+        
+        messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
+    
+    return redirect('admin_enrollment_requests')
+
+
+@login_required
+def reject_enrollment_request(request, pk):
+    """Admin: So'rovni rad etish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+    
+    enrollment_request = get_object_or_404(CourseEnrollmentRequest, pk=pk)
+    
+    if request.method == 'POST':
+        admin_message = request.POST.get('admin_message', "Sizga ushbu kursni o'qish imkoniyati berilmadi.")
+        
+        enrollment_request.status = 'rejected'
+        enrollment_request.admin_message = admin_message
+        enrollment_request.reviewed_by = request.user
+        enrollment_request.save()
+        
+        # Foydalanuvchiga xabar yuborish
+        Message.objects.create(
+            title=f"Kursga yozilish so'rovi rad etildi",
+            content=f"Sizning '{enrollment_request.profession.name}' kursiga yozilish so'rovingiz rad etildi.\n\nSabab: {admin_message}",
+            message_type='student',
+            recipient=enrollment_request.user,
+            sender=request.user
+        )
+        
+        messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
+    
+    return redirect('admin_enrollment_requests')
 
 

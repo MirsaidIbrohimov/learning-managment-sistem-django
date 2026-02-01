@@ -19,9 +19,23 @@ class RegisterForm(UserCreationForm):
         max_length=150,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
     )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'})
+    )
     phone = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998 90 123 45 67'})
+    )
+    birth_date = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+    )
+    profession = forms.ModelChoiceField(
+        queryset=Profession.objects.all(),
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        empty_label="Yo'nalishni tanlang"
     )
     role = forms.ChoiceField(
         choices=[('student', 'O\'quvchi'), ('teacher', 'O\'qituvchi')],
@@ -36,7 +50,7 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'username', 'phone', 'role', 'password1', 'password2']
+        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'profession', 'role', 'password1', 'password2']
 
 
 class LoginForm(forms.Form):

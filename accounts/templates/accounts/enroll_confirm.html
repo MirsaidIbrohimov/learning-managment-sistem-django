@@ -16,15 +16,20 @@
                 <p style="color: var(--text-color);" class="mb-4">{{ profession.description|truncatewords:30 }}</p>
                 
                 <div class="alert alert-info">
-                    <i class="bi bi-question-circle me-2"></i>
-                    Siz haqiqatdan ham <strong>"{{ profession.name }}"</strong> kursini o'qishni boshlamoqchimisiz?
+                    <i class="bi bi-info-circle me-2"></i>
+                    Siz <strong>"{{ profession.name }}"</strong> kursiga yozilish uchun so'rov yubormoqchimisiz?
+                </div>
+                
+                <div class="alert alert-warning">
+                    <i class="bi bi-clock me-2"></i>
+                    <strong>Eslatma:</strong> So'rovingiz admin tomonidan ko'rib chiqiladi. Qabul qilingandan so'ng kursga kirish mumkin bo'ladi.
                 </div>
                 
                 <form method="POST">
                     {% csrf_token %}
                     <div class="d-flex justify-content-center gap-3">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-check-lg me-2"></i>Ha, boshlash
+                            <i class="bi bi-send me-2"></i>So'rov yuborish
                         </button>
                         <a href="{% url 'professions' %}" class="btn btn-outline-secondary btn-lg">
                             <i class="bi bi-x-lg me-2"></i>Bekor qilish

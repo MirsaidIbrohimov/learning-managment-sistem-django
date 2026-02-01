@@ -138,4 +138,9 @@ urlpatterns = [
     path('dashboard/reports/<int:pk>/', views.view_report, name='view_report'),
     path('dashboard/reports/<int:pk>/download/', views.download_report, name='download_report'),
     path('dashboard/reports/<int:pk>/delete/', views.delete_report, name='delete_report'),
+    
+    # Admin: Kursga yozilish so'rovlari
+    path('dashboard/enrollment-requests/', views.admin_enrollment_requests, name='admin_enrollment_requests'),
+    path('dashboard/enrollment-requests/<int:pk>/approve/', views.approve_enrollment_request, name='approve_enrollment_request'),
+    path('dashboard/enrollment-requests/<int:pk>/reject/', views.reject_enrollment_request, name='reject_enrollment_request'),
 ]
