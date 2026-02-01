@@ -73,9 +73,15 @@
   </form>
 
   <div class="text-center small mt-3">
+    <a href="{% url 'password_reset_request' %}" class="text-warning fw-semibold text-decoration-none">
+      <i class="bi bi-key me-1"></i>Parolni unutdingizmi?
+    </a>
+  </div>
+
+  <div class="text-center small mt-2">
     Akkauntingiz mavjud bo'lmasa
     <a href="{% url 'register' %}" class="text-info fw-semibold text-decoration-none">
-      Ro‘yxatdan o‘ting →
+      Ro'yxatdan o'ting &rarr;
     </a>
   </div>
 
@@ -117,12 +123,12 @@ document.addEventListener("DOMContentLoaded",()=>{
   {% endif %}
 
   {% if form.username.errors %}
-      showToast("Username noto‘g‘ri yoki mavjud emas");
+      showToast("Username noto'g'ri yoki mavjud emas");
       document.getElementById("{{ form.username.id_for_label }}").classList.add("is-invalid");
   {% endif %}
 
   {% if form.password.errors %}
-      showToast("Parol noto‘g‘ri kiritildi!");
+      showToast("Parol noto'g'ri kiritildi!");
       document.getElementById("{{ form.password.id_for_label }}").classList.add("is-invalid");
   {% endif %}
 
