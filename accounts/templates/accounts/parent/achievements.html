@@ -1,0 +1,246 @@
+{% extends 'accounts/parent/base_parent.html' %}
+
+{% block title %}Yutuqlar va sertifikatlar - {{ child.get_full_name }} - Ota-ona paneli{% endblock %}
+
+{% block parent_content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="bi bi-trophy me-2 text-warning"></i>Yutuqlar va sertifikatlar
+                    </h2>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-person me-1"></i>{{ child.get_full_name }}
+                    </p>
+                </div>
+                <a href="{% url 'parent_dashboard' %}?child_id={{ child.id }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Orqaga
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-award text-warning fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total_badges|default:0 }}</h3>
+                    <p class="text-muted mb-0">Jami nishonlar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-file-earmark-check text-success fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.total_certificates|default:0 }}</h3>
+                    <p class="text-muted mb-0">Jami sertifikatlar</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-coin text-primary fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.coins_balance|default:0 }}</h3>
+                    <p class="text-muted mb-0">Coin balansi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 60px; height: 60px;">
+                        <i class="bi bi-fire text-danger fs-3"></i>
+                    </div>
+                    <h3 class="mb-1">{{ stats.streak_days|default:0 }}</h3>
+                    <p class="text-muted mb-0">Ketma-ket kunlar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bar-chart-line me-2"></i>Reyting
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center mb-3 mb-md-0">
+                            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-warning text-dark"
+                                 style="width: 100px; height: 100px; font-size: 2.5rem; font-weight: bold;">
+                                #{{ ranking.position|default:"-" }}
+                            </div>
+                            <p class="mt-2 mb-0 text-muted">Umumiy o'rin</p>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3 text-center">
+                                        <h4 class="mb-1 text-primary">{{ ranking.total_coins|default:0 }}</h4>
+                                        <small class="text-muted">Jami yig'ilgan coinlar</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="border rounded p-3 text-center">
+                                        <h4 class="mb-1 text-info">{{ ranking.average_coins|default:0 }}</h4>
+                                        <small class="text-muted">O'rtacha (barcha o'quvchilar)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if ranking.total_coins > ranking.average_coins %}
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-emoji-smile me-2"></i>
+                                Farzandingiz o'rtachadan <strong>{{ ranking.difference|default:0 }}</strong> coin yuqori!
+                            </div>
+                            {% elif ranking.total_coins < ranking.average_coins %}
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-lightbulb me-2"></i>
+                                O'rtachaga yetish uchun yana <strong>{{ ranking.difference|default:0 }}</strong> coin kerak
+                            </div>
+                            {% else %}
+                            <div class="alert alert-secondary mb-0">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Farzandingiz o'rtacha darajada
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Badges Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-award me-2"></i>Nishonlar (Badges)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if badges %}
+                    <div class="row">
+                        {% for badge in badges %}
+                        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <div class="card h-100 border text-center">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <span class="badge-icon rounded-circle d-inline-flex align-items-center justify-content-center"
+                                              style="width: 80px; height: 80px; font-size: 2.5rem; background-color: {{ badge.color|default:'#ffc107' }}20;">
+                                            <i class="bi bi-{{ badge.icon|default:'star-fill' }}" style="color: {{ badge.color|default:'#ffc107' }};"></i>
+                                        </span>
+                                    </div>
+                                    <h6 class="card-title mb-2">{{ badge.title }}</h6>
+                                    <p class="card-text text-muted small mb-2">{{ badge.description }}</p>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="bi bi-calendar-check me-1"></i>{{ badge.earned_date|date:"d.m.Y" }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-award fs-1 d-block mb-3"></i>
+                        <h5>Hozircha nishonlar yo'q</h5>
+                        <p class="mb-0">Farzandingiz darslarni tugatib, topshiriqlarni bajargan sari nishonlar oladi</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificates Section -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-medical me-2"></i>Sertifikatlar
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if certificates %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Sertifikat nomi</th>
+                                    <th>Kurs</th>
+                                    <th>Berilgan sana</th>
+                                    <th>Kim tomonidan</th>
+                                    <th class="text-end">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cert in certificates %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-success rounded-circle p-2">
+                                            <i class="bi bi-patch-check-fill"></i>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ cert.title }}</strong>
+                                    </td>
+                                    <td>{{ cert.course_name }}</td>
+                                    <td>
+                                        <i class="bi bi-calendar3 me-1 text-muted"></i>
+                                        {{ cert.issue_date|date:"d.m.Y" }}
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-person-badge me-1 text-muted"></i>
+                                        {{ cert.issued_by }}
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ cert.pdf_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>Ko'rish
+                                        </a>
+                                        <a href="{{ cert.pdf_url }}" download class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-download me-1"></i>Yuklab olish
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-file-earmark-x fs-1 d-block mb-3"></i>
+                        <h5>Hozircha sertifikatlar yo'q</h5>
+                        <p class="mb-0">Farzandingiz kursni muvaffaqiyatli tugatgandan so'ng sertifikat oladi</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

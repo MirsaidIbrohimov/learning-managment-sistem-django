@@ -1,0 +1,240 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Ota-onalar - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+    --bg:#f5f5f7;
+    --card:#ffffff;
+    --text:#111;
+    --muted:#6b7280;
+    --border:rgba(0,0,0,.08);
+    --primary:#0a84ff;
+    --success:#28a745;
+    --danger:#dc3545;
+    --warning:#f0ad4e;
+}
+@media (prefers-color-scheme: dark){
+    :root{
+        --bg:#0b0b0c;
+        --card:#1c1c1e;
+        --text:#f5f5f7;
+        --muted:#9ca3af;
+        --border:rgba(255,255,255,.08);
+    }
+}
+
+.admin-ios{
+    background:var(--bg);
+    min-height:100vh;
+    padding:1rem;
+    color:var(--text);
+}
+
+.page-title{
+    font-size:1.4rem;
+    font-weight:700;
+    margin-bottom:1rem;
+}
+
+.card{
+    background:var(--card)!important;
+    border-radius:14px;
+    border:1px solid var(--border);
+}
+.card-header{
+    background:transparent!important;
+    border-bottom:1px solid var(--border);
+    font-weight:600;
+}
+
+.form-label{font-weight:600;color:var(--text);}
+.form-select,.form-control{
+    background:transparent;
+    color:var(--text);
+    border:1px solid var(--border);
+    border-radius:10px;
+}
+.form-select:focus,.form-control:focus{
+    border-color:var(--primary);
+    box-shadow:none;
+}
+.btn-primary{background:var(--primary);border:none;border-radius:10px;}
+.btn-outline-secondary{border-radius:10px;border-color:var(--border);color:var(--text);}
+
+.table{margin:0;color:var(--text);}
+.table th{
+    color:var(--muted);
+    font-weight:600;
+    border-bottom:1px solid var(--border);
+}
+.table td{border-top:1px solid var(--border);vertical-align:middle;}
+
+.user-avatar-sm{
+    width:36px;height:36px;border-radius:50%;object-fit:cover;
+}
+.user-avatar-placeholder{
+    width:36px;height:36px;border-radius:50%;
+    background:#6366f1;color:white;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+}
+
+.badge{border-radius:999px;padding:.35rem .6rem;}
+.action-btns .btn{border-radius:10px;}
+
+@media(max-width:768px){
+    table thead{display:none;}
+    table tr{display:block;padding:1rem;border-bottom:1px solid var(--border);}
+    table td{display:flex;justify-content:space-between;border:none;padding:.35rem 0;}
+    table td::before{
+        content:attr(data-label);
+        font-weight:600;
+        color:var(--muted);
+    }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="admin-ios">
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="page-title mb-0">
+        <i class="bi bi-people-fill me-2"></i>Ota-onalar
+        <span class="badge bg-primary ms-2">{{ parents.count }}</span>
+    </h1>
+    <a href="{% url 'admin_parent_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Qo'shish
+    </a>
+</div>
+
+<!-- FILTERS -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label">Qidirish</label>
+                <input type="text" name="search" class="form-control" 
+                       placeholder="Ism, telefon yoki login..." 
+                       value="{{ search_query|default:'' }}">
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Holat</label>
+                <select name="status" class="form-select">
+                    <option value="">Barchasi</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Nofaol</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="{% url 'admin_parents' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- LIST -->
+<div class="card">
+    <div class="card-header">
+        Ota-onalar ro'yxati ({{ parents.count }})
+    </div>
+
+    <div class="card-body p-0">
+    {% if parents %}
+    <div class="table-responsive">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>F.I.Sh</th>
+                    <th>Login</th>
+                    <th>Telefon</th>
+                    <th class="text-center">Farzandlar soni</th>
+                    <th>Oxirgi kirish</th>
+                    <th class="text-center">Holat</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for parent in parents %}
+            <tr>
+                <td data-label="#">{{ forloop.counter }}</td>
+
+                <td data-label="F.I.Sh">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="user-avatar-placeholder">
+                            {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
+                        </div>
+                        <div>
+                            <strong>{{ parent.get_full_name|default:parent.username }}</strong>
+                        </div>
+                    </div>
+                </td>
+
+                <td data-label="Login">
+                    <small class="text-muted">@{{ parent.username }}</small>
+                </td>
+
+                <td data-label="Telefon">{{ parent.phone|default:"-" }}</td>
+
+                <td data-label="Farzandlar" class="text-center">
+                    <span class="badge bg-info">{{ parent.children.count }}</span>
+                </td>
+
+                <td data-label="Oxirgi kirish">
+                    {% if parent.last_login %}
+                        {{ parent.last_login|timesince }} oldin
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+
+                <td data-label="Holat" class="text-center">
+                    {% if parent.is_active %}
+                    <span class="badge bg-success">Faol</span>
+                    {% else %}
+                    <span class="badge bg-danger">Nofaol</span>
+                    {% endif %}
+                </td>
+
+                <td data-label="Amallar" class="action-btns">
+                    <a href="{% url 'admin_parent_edit' parent.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'admin_parent_view' parent.pk %}" class="btn btn-sm btn-outline-info" title="Farzandlarni ko'rish">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'admin_parent_toggle' parent.pk %}" class="btn btn-sm btn-outline-warning" title="{% if parent.is_active %}Nofaol qilish{% else %}Faol qilish{% endif %}">
+                        <i class="bi bi-{% if parent.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
+                    </a>
+                    <a href="{% url 'admin_parent_delete' parent.pk %}" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people" style="font-size:2.5rem;"></i>
+        <p class="mt-2 mb-0">Ota-onalar topilmadi</p>
+        <a href="{% url 'admin_parent_add' %}" class="btn btn-primary mt-3">
+            <i class="bi bi-plus-lg me-1"></i>Ota-ona qo'shish
+        </a>
+    </div>
+    {% endif %}
+    </div>
+</div>
+
+</div>
+{% endblock %}

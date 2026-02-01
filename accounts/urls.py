@@ -1,5 +1,9 @@
 from django.urls import path
 from . import views
+from .parent_views import (
+    parent_login_view, parent_logout_view, parent_dashboard, parent_children,
+    parent_lessons, parent_homework, parent_tests, parent_achievements, parent_messages
+)
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -149,4 +153,23 @@ urlpatterns = [
     path('dashboard/password-reset-requests/', views.admin_password_reset_requests, name='admin_password_reset_requests'),
     path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
     path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),
+    
+    # Ota-ona portali
+    path('parent/login/', parent_login_view, name='parent_login'),
+    path('parent/logout/', parent_logout_view, name='parent_logout'),
+    path('parent/', parent_dashboard, name='parent_dashboard'),
+    path('parent/children/', parent_children, name='parent_children'),
+    path('parent/lessons/', parent_lessons, name='parent_lessons'),
+    path('parent/homework/', parent_homework, name='parent_homework'),
+    path('parent/tests/', parent_tests, name='parent_tests'),
+    path('parent/achievements/', parent_achievements, name='parent_achievements'),
+    path('parent/messages/', parent_messages, name='parent_messages'),
+    
+    # Admin: Ota-onalar boshqaruvi
+    path('dashboard/parents/', views.admin_parents, name='admin_parents'),
+    path('dashboard/parents/add/', views.admin_parent_add, name='admin_parent_add'),
+    path('dashboard/parents/<int:pk>/', views.admin_parent_view, name='admin_parent_view'),
+    path('dashboard/parents/<int:pk>/edit/', views.admin_parent_edit, name='admin_parent_edit'),
+    path('dashboard/parents/<int:pk>/toggle/', views.admin_parent_toggle, name='admin_parent_toggle'),
+    path('dashboard/parents/<int:pk>/delete/', views.admin_parent_delete, name='admin_parent_delete'),
 ]
