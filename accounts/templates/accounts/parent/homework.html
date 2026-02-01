@@ -1,0 +1,153 @@
+{% extends 'accounts/parent/base_parent.html' %}
+
+{% block title %}Uyga vazifalar - {{ child.get_full_name }} - Ota-ona paneli{% endblock %}
+
+{% block parent_content %}
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-file-check me-2"></i>Uyga vazifalar
+            </h4>
+            <p class="text-muted mb-0">{{ child.get_full_name }} - uyga vazifalar holati</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-list-task text-primary fs-4"></i>
+                    </div>
+                    <h4 class="mb-0">{{ stats.total|default:0 }}</h4>
+                    <small class="text-muted">Jami vazifalar</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-check-circle text-success fs-4"></i>
+                    </div>
+                    <h4 class="mb-0">{{ stats.submitted|default:0 }}</h4>
+                    <small class="text-muted">Topshirilgan</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-star text-info fs-4"></i>
+                    </div>
+                    <h4 class="mb-0">{{ stats.graded|default:0 }}</h4>
+                    <small class="text-muted">Baholangan</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-graph-up text-warning fs-4"></i>
+                    </div>
+                    <h4 class="mb-0">{{ stats.average_grade|default:"-"|floatformat:1 }}</h4>
+                    <small class="text-muted">O'rtacha baho</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md col-sm-6 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
+                         style="width: 50px; height: 50px;">
+                        <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
+                    </div>
+                    <h4 class="mb-0">{{ stats.late|default:0 }}</h4>
+                    <small class="text-muted">Kechikkan</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pb-0">
+            <ul class="nav nav-tabs card-header-tabs" id="homeworkTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
+                            type="button" role="tab" aria-controls="all" aria-selected="true">
+                        <i class="bi bi-list-ul me-1"></i>Barchasi
+                        <span class="badge bg-secondary ms-1">{{ stats.total|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="submitted-tab" data-bs-toggle="tab" data-bs-target="#submitted" 
+                            type="button" role="tab" aria-controls="submitted" aria-selected="false">
+                        <i class="bi bi-check-circle me-1"></i>Topshirilgan
+                        <span class="badge bg-success ms-1">{{ stats.submitted|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
+                            type="button" role="tab" aria-controls="pending" aria-selected="false">
+                        <i class="bi bi-clock me-1"></i>Topshirilmagan
+                        <span class="badge bg-warning text-dark ms-1">{{ stats.pending|default:0 }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" 
+                            type="button" role="tab" aria-controls="late" aria-selected="false">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Kechikkan
+                        <span class="badge bg-danger ms-1">{{ stats.late|default:0 }}</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="homeworkTabsContent">
+                <!-- All Homework Tab -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    {% include 'accounts/parent/partials/homework_table.html' with homework_list=homeworks filter='all' %}
+                </div>
+                <!-- Submitted Tab -->
+                <div class="tab-pane fade" id="submitted" role="tabpanel" aria-labelledby="submitted-tab">
+                    {% include 'accounts/parent/partials/homework_table.html' with homework_list=homeworks filter='submitted' %}
+                </div>
+                <!-- Pending Tab -->
+                <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+                    {% include 'accounts/parent/partials/homework_table.html' with homework_list=homeworks filter='pending' %}
+                </div>
+                <!-- Late Tab -->
+                <div class="tab-pane fade" id="late" role="tabpanel" aria-labelledby="late-tab">
+                    {% include 'accounts/parent/partials/homework_table.html' with homework_list=homeworks filter='late' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.feedback-text {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.feedback-full {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.table-warning-light {
+    background-color: rgba(255, 193, 7, 0.1) !important;
+}
+</style>
+{% endblock %}
