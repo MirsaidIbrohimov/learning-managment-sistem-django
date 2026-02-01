@@ -1,0 +1,122 @@
+{% if homework_list %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th><i class="bi bi-file-text me-1"></i>Vazifa nomi</th>
+                <th><i class="bi bi-calendar me-1"></i>Deadline sana</th>
+                <th><i class="bi bi-flag me-1"></i>Holat</th>
+                <th><i class="bi bi-star me-1"></i>Baho</th>
+                <th><i class="bi bi-chat-left-text me-1"></i>Mentor izohi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hw in homework_list %}
+            {% with submission=submissions|get_item:hw.id %}
+            {% if filter == 'all' or filter == 'submitted' and submission and submission.status != 'pending' or filter == 'pending' and not submission or submission.status == 'pending' or filter == 'late' and hw.is_late %}
+            <tr class="{% if hw.is_late and not submission %}table-warning-light{% endif %}">
+                <td>
+                    <div class="fw-semibold">{{ hw.title }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-book me-1"></i>{{ hw.lesson.title }}
+                    </small>
+                </td>
+                <td>
+                    <div class="{% if hw.is_late %}text-danger fw-semibold{% endif %}">
+                        <i class="bi bi-clock me-1"></i>{{ hw.deadline|date:"d.m.Y H:i" }}
+                    </div>
+                    {% if hw.is_late and not submission %}
+                    <small class="text-danger">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Muddat o'tgan
+                    </small>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not submission or submission.status == 'pending' %}
+                        {% if hw.is_late %}
+                        <span class="badge bg-danger">
+                            <i class="bi bi-x-circle me-1"></i>Kechikkan
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-hourglass-split me-1"></i>Kutilmoqda
+                        </span>
+                        {% endif %}
+                    {% elif submission.status == 'submitted' %}
+                        <span class="badge bg-info">
+                            <i class="bi bi-send-check me-1"></i>Topshirilgan
+                        </span>
+                        {% if submission.is_late %}
+                        <br><small class="text-warning">
+                            <i class="bi bi-clock-history me-1"></i>Kechikib topshirilgan
+                        </small>
+                        {% endif %}
+                    {% elif submission.status == 'graded' %}
+                        <span class="badge bg-success">
+                            <i class="bi bi-check-circle me-1"></i>Baholangan
+                        </span>
+                        {% if submission.is_late %}
+                        <br><small class="text-warning">
+                            <i class="bi bi-clock-history me-1"></i>Kechikib topshirilgan
+                        </small>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if submission and submission.grade is not None %}
+                        {% if submission.grade >= 80 %}
+                        <span class="badge bg-success fs-6">{{ submission.grade }}</span>
+                        {% elif submission.grade >= 60 %}
+                        <span class="badge bg-warning text-dark fs-6">{{ submission.grade }}</span>
+                        {% else %}
+                        <span class="badge bg-danger fs-6">{{ submission.grade }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if submission and submission.feedback %}
+                    <div class="d-flex align-items-center">
+                        <span class="feedback-text" id="feedback-short-{{ hw.id }}">
+                            {{ submission.feedback|truncatechars:50 }}
+                        </span>
+                        {% if submission.feedback|length > 50 %}
+                        <button class="btn btn-sm btn-link p-0 ms-2" type="button" 
+                                data-bs-toggle="collapse" data-bs-target="#feedback-{{ hw.id }}" 
+                                aria-expanded="false" aria-controls="feedback-{{ hw.id }}">
+                            <i class="bi bi-chevron-down"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% if submission.feedback|length > 50 %}
+                    <div class="collapse mt-2" id="feedback-{{ hw.id }}">
+                        <div class="card card-body bg-light py-2 px-3 feedback-full">
+                            {{ submission.feedback }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            {% endwith %}
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-0">Vazifalar topilmadi</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+    <p class="text-muted mb-0">Vazifalar topilmadi</p>
+</div>
+{% endif %}
