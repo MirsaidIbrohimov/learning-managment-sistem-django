@@ -872,4 +872,86 @@ class ParentMessage(models.Model):
         return f"{self.parent.full_name} - {self.subject}"
 
 
+class Book(models.Model):
+    """Kutubxona kitoblari"""
+    title = models.CharField(max_length=300, verbose_name="Kitob nomi")
+    author = models.CharField(max_length=200, verbose_name="Muallif")
+    isbn = models.CharField(max_length=50, blank=True, null=True, verbose_name="ISBN")
+    description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
+    cover_image = models.ImageField(upload_to='books/', blank=True, null=True, verbose_name="Muqova rasmi")
+    total_copies = models.IntegerField(default=1, verbose_name="Jami nusxalar")
+    available_copies = models.IntegerField(default=1, verbose_name="Mavjud nusxalar")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['title']
+        verbose_name = "Kitob"
+        verbose_name_plural = "Kitoblar"
+    
+    def __str__(self):
+        return f"{self.title} - {self.author}"
+    
+    @property
+    def is_available(self):
+        return self.available_copies > 0
+
+
+class BookRental(models.Model):
+    """Kitob ijarasi"""
+    STATUS_CHOICES = (
+        ('active', 'Faol'),
+        ('returned', 'Qaytarilgan'),
+        ('overdue', 'Muddati o\'tgan'),
+    )
+    
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='rentals', verbose_name="Kitob")
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='book_rentals', verbose_name="O'quvchi")
+    given_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, related_name='books_given', verbose_name="Kim berdi")
+    given_date = models.DateField(auto_now_add=True, verbose_name="Berilgan sana")
+    return_date = models.DateField(verbose_name="Qaytarish sanasi")
+    actual_return_date = models.DateField(null=True, blank=True, verbose_name="Haqiqiy qaytarilgan sana")
+    returned_to = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='books_received', verbose_name="Kim qabul qildi")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Holat")
+    notes = models.TextField(blank=True, null=True, verbose_name="Izoh")
+    reminder_sent_3days = models.BooleanField(default=False, verbose_name="3 kun oldin eslatma yuborildi")
+    reminder_sent_today = models.BooleanField(default=False, verbose_name="Bugun eslatma yuborildi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Kitob ijarasi"
+        verbose_name_plural = "Kitob ijaralari"
+    
+    def __str__(self):
+        return f"{self.book.title} - {self.student.full_name}"
+    
+    @property
+    def is_overdue(self):
+        if self.status == 'returned':
+            return False
+        from datetime import date
+        return date.today() > self.return_date
+    
+    @property
+    def days_until_return(self):
+        if self.status == 'returned':
+            return None
+        from datetime import date
+        delta = self.return_date - date.today()
+        return delta.days
+    
+    def mark_returned(self, user):
+        """Kitobni qaytarilgan deb belgilash"""
+        from datetime import date
+        self.status = 'returned'
+        self.actual_return_date = date.today()
+        self.returned_to = user
+        self.save()
+        
+        # Kitob nusxasini qaytarish
+        self.book.available_copies += 1
+        self.book.save()
+
+
 
