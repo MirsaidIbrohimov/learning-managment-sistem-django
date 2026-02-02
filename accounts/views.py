@@ -1747,6 +1747,10 @@ def admin_dashboard(request):
     inactive_deploys = HTMLDeploy.objects.filter(is_active=False).count()
     total_deploy_views = HTMLDeploy.objects.aggregate(total=Sum('views_count'))['total'] or 0
     
+    # Ota-onalar statistikasi
+    total_parents = Parent.objects.count()
+    active_parents = Parent.objects.filter(is_active=True).count()
+    
     # Oxirgi harakatlar
     recent_activities = ActivityLog.objects.select_related('user').order_by('-created_at')[:10]
     
@@ -1799,6 +1803,8 @@ def admin_dashboard(request):
         'inactive_deploys': inactive_deploys,
         'total_deploy_views': total_deploy_views,
         'recent_activities': recent_activities,
+        'total_parents': total_parents,
+        'active_parents': active_parents,
     }
     return render(request, 'accounts/admin/dashboard.html', context)
 
@@ -4092,7 +4098,8 @@ def admin_parent_add(request):
             return redirect('admin_parents')
     
     context = {
-        'students': students,
+        'children': students,
+        'selected_children': [],
         'title': "Ota-ona qo'shish",
     }
     
@@ -4138,7 +4145,8 @@ def admin_parent_edit(request, pk):
     
     context = {
         'parent': parent,
-        'students': students,
+        'children': students,
+        'selected_children': list(parent.children.values_list('id', flat=True)),
         'title': "Ota-onani tahrirlash",
     }
     

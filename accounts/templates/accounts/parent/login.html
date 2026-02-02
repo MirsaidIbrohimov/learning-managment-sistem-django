@@ -73,34 +73,11 @@
     border-radius:14px;
     font-size:16px;
 }
-
-/* ========== TOAST ========== */
-.toast-box{
-    position:fixed;
-    top:20px;
-    right:20px;
-    z-index:9999;
-}
-.toast-ios{
-    background:#111;
-    color:#fff;
-    padding:12px 18px;
-    border-radius:12px;
-    margin-bottom:10px;
-    box-shadow:0 10px 25px rgba(0,0,0,.35);
-    animation:fadeIn .3s ease;
-}
-@keyframes fadeIn{
-    from{opacity:0;transform:translateY(-10px)}
-    to{opacity:1;transform:translateY(0)}
-}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="page-center">
-
-<div class="toast-box" id="toastBox"></div>
 
 <div class="auth-card">
 
@@ -115,6 +92,13 @@
         </p>
     </div>
 
+    <!-- ERROR MESSAGE -->
+    {% if error %}
+    <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-circle me-2"></i>{{ error }}
+    </div>
+    {% endif %}
+
     <!-- FORM -->
     <form method="POST" novalidate>
         {% csrf_token %}
@@ -124,8 +108,9 @@
             <span class="input-icon">
                 <i class="bi bi-person"></i>
             </span>
-            {{ form.username }}
-            <label for="{{ form.username.id_for_label }}">Login</label>
+            <input type="text" name="username" id="username" class="form-control" 
+                   placeholder="Login" required autofocus>
+            <label for="username">Login</label>
         </div>
 
         <!-- PASSWORD -->
@@ -133,11 +118,12 @@
             <span class="input-icon">
                 <i class="bi bi-lock"></i>
             </span>
-            {{ form.password }}
+            <input type="password" name="password" id="password" class="form-control" 
+                   placeholder="Parol" required>
             <button type="button" class="show-pass" onclick="togglePass()">
                 <i id="eyeIcon" class="bi bi-eye"></i>
             </button>
-            <label for="{{ form.password.id_for_label }}">Parol</label>
+            <label for="password">Parol</label>
         </div>
 
         <button class="btn btn-primary w-100 py-3 fw-semibold">
@@ -147,7 +133,7 @@
 
     <!-- BACK -->
     <div class="text-center mt-3 small">
-        <a href="{% url 'login' %}" class="text-white-50 text-decoration-none">
+        <a href="{% url 'login' %}" class="text-muted text-decoration-none">
             <i class="bi bi-arrow-left me-1"></i>Asosiy login sahifaga qaytish
         </a>
     </div>
@@ -157,7 +143,7 @@
 
 <script>
 function togglePass(){
-    const input = document.getElementById("{{ form.password.id_for_label }}");
+    const input = document.getElementById("password");
     const icon = document.getElementById("eyeIcon");
     if(input.type === "password"){
         input.type = "text";
@@ -167,32 +153,5 @@ function togglePass(){
         icon.className = "bi bi-eye";
     }
 }
-
-function showToast(text){
-    const box = document.getElementById("toastBox");
-    const div = document.createElement("div");
-    div.className = "toast-ios";
-    div.innerHTML = `<i class="bi bi-exclamation-circle me-2"></i> ${text}`;
-    box.appendChild(div);
-
-    setTimeout(()=>{div.style.opacity="0"},3500);
-    setTimeout(()=>{div.remove()},4000);
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-    {% if messages %}
-        {% for message in messages %}
-            showToast("{{ message|escapejs }}");
-        {% endfor %}
-    {% endif %}
-
-    {% if form.username.errors %}
-        showToast("Login noto‘g‘ri kiritildi");
-    {% endif %}
-
-    {% if form.password.errors %}
-        showToast("Parol noto‘g‘ri kiritildi");
-    {% endif %}
-});
 </script>
 {% endblock %}
