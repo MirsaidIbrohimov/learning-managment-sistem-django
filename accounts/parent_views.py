@@ -377,6 +377,7 @@ def parent_homework(request):
     submitted_count = sum(1 for h in homeworks_data if h['submission'])
     graded_count = sum(1 for h in homeworks_data if h['submission'] and h['submission'].status == 'graded')
     pending_count = sum(1 for h in homeworks_data if h['submission'] and h['submission'].status == 'pending')
+    late_count = sum(1 for h in homeworks_data if h['is_late'] or (h['is_deadline_passed'] and not h['submission']))
     
     grades = [h['grade'] for h in homeworks_data if h['grade'] is not None]
     avg_grade = sum(grades) / len(grades) if grades else 0
@@ -387,6 +388,7 @@ def parent_homework(request):
         'not_submitted': total_homeworks - submitted_count,
         'graded': graded_count,
         'pending': pending_count,
+        'late': late_count,
         'avg_grade': round(avg_grade, 1),
     }
     

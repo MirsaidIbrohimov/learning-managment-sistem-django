@@ -1,16 +1,31 @@
 {% extends 'accounts/parent/base_parent.html' %}
 
-{% block title %}Uyga vazifalar - {{ child.get_full_name }} - Ota-ona paneli{% endblock %}
+{% block title %}Uyga vazifalar - Ota-ona paneli{% endblock %}
 
 {% block parent_content %}
 <div class="container-fluid py-4">
+    <!-- Child Selector -->
+    {% if children|length > 1 %}
+    <div class="card border-0 shadow-sm p-3 mb-4">
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <span class="text-muted me-2"><i class="bi bi-people me-1"></i>Farzand:</span>
+            {% for c in children %}
+            <a href="?child_id={{ c.id }}" 
+               class="btn {% if c.id == selected_child.id %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
+                {{ c.full_name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-1">
                 <i class="bi bi-file-check me-2"></i>Uyga vazifalar
             </h4>
-            <p class="text-muted mb-0">{{ child.get_full_name }} - uyga vazifalar holati</p>
+            <p class="text-muted mb-0">{% if selected_child %}{{ selected_child.full_name }}{% endif %} - uyga vazifalar holati</p>
         </div>
     </div>
 
@@ -59,7 +74,7 @@
                          style="width: 50px; height: 50px;">
                         <i class="bi bi-graph-up text-warning fs-4"></i>
                     </div>
-                    <h4 class="mb-0">{{ stats.average_grade|default:"-"|floatformat:1 }}</h4>
+                    <h4 class="mb-0">{{ stats.avg_grade|default:"-"|floatformat:1 }}</h4>
                     <small class="text-muted">O'rtacha baho</small>
                 </div>
             </div>
