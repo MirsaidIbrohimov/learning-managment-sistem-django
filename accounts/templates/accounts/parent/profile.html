@@ -1,0 +1,142 @@
+{% extends 'accounts/parent/base_parent.html' %}
+
+{% block title %}Profil - Ota-ona paneli{% endblock %}
+
+{% block parent_content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                         style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
+                    </div>
+                    <h4 class="mb-1">{{ parent.full_name }}</h4>
+                    <p class="text-muted mb-3">@{{ parent.username }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge {% if parent.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if parent.is_active %}Faol{% else %}Nofaol{% endif %}
+                        </span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <small class="text-muted d-block"><i class="bi bi-telephone me-2"></i>Telefon</small>
+                            <span>{{ parent.phone|default:"-" }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block"><i class="bi bi-envelope me-2"></i>Email</small>
+                            <span>{{ parent.email|default:"-" }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <small class="text-muted d-block"><i class="bi bi-calendar me-2"></i>Ro'yxatdan o'tgan</small>
+                            <span>{{ parent.created_at|date:"d.m.Y" }}</span>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block"><i class="bi bi-clock me-2"></i>Oxirgi kirish</small>
+                            <span>{% if parent.last_login %}{{ parent.last_login|date:"d.m.Y H:i" }}{% else %}-{% endif %}</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'parent_profile_edit' %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Profilni tahrirlash
+                        </a>
+                        <a href="{% url 'parent_change_password' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-key me-2"></i>Parolni o'zgartirish
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Children & Info -->
+        <div class="col-lg-8">
+            <!-- Children List -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>Farzandlarim ({{ children|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if children %}
+                    <div class="row g-3">
+                        {% for child in children %}
+                        <div class="col-md-6">
+                            <div class="border rounded p-3 d-flex align-items-center">
+                                {% if child.photo %}
+                                <img src="{{ child.photo.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                     style="width: 50px; height: 50px;">
+                                    {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">{{ child.full_name }}</h6>
+                                    <small class="text-muted">@{{ child.username }}</small>
+                                </div>
+                                <div>
+                                    {% if child.is_online %}
+                                    <span class="badge bg-success">Online</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Offline</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+                        <p class="mb-0">Farzandlar topilmadi</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Tezkor havolalar</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6 col-md-3">
+                            <a href="{% url 'parent_dashboard' %}" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-house d-block fs-4 mb-1"></i>
+                                <small>Bosh sahifa</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{% url 'parent_children' %}" class="btn btn-outline-info w-100 py-3">
+                                <i class="bi bi-people d-block fs-4 mb-1"></i>
+                                <small>Farzandlar</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{% url 'parent_messages' %}" class="btn btn-outline-warning w-100 py-3">
+                                <i class="bi bi-chat-dots d-block fs-4 mb-1"></i>
+                                <small>Xabarlar</small>
+                            </a>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <a href="{% url 'parent_settings' %}" class="btn btn-outline-secondary w-100 py-3">
+                                <i class="bi bi-gear d-block fs-4 mb-1"></i>
+                                <small>Sozlamalar</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
