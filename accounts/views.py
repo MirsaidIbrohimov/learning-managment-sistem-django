@@ -4255,3 +4255,313 @@ def admin_parent_delete(request, pk):
     return redirect('admin_parents')
 
 
+# ============ KITOBXONA / BOOK RENTAL ============
+
+from .models import Book, BookRental
+
+@login_required
+def admin_books(request):
+    """Kitoblar ro'yxati"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    books = Book.objects.all()
+    
+    # Qidiruv
+    search = request.GET.get('search', '')
+    if search:
+        books = books.filter(
+            Q(title__icontains=search) | Q(author__icontains=search)
+        )
+    
+    context = {
+        'books': books,
+        'search': search,
+    }
+    return render(request, 'accounts/admin/books.html', context)
+
+
+@login_required
+def admin_book_add(request):
+    """Yangi kitob qo'shish"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author = request.POST.get('author')
+        isbn = request.POST.get('isbn', '')
+        description = request.POST.get('description', '')
+        total_copies = int(request.POST.get('total_copies', 1))
+        cover_image = request.FILES.get('cover_image')
+        
+        book = Book.objects.create(
+            title=title,
+            author=author,
+            isbn=isbn,
+            description=description,
+            total_copies=total_copies,
+            available_copies=total_copies,
+            cover_image=cover_image
+        )
+        
+        messages.success(request, f"'{book.title}' kitobi muvaffaqiyatli qo'shildi!")
+        return redirect('admin_books')
+    
+    return render(request, 'accounts/admin/book_form.html', {'action': 'add'})
+
+
+@login_required
+def admin_book_edit(request, pk):
+    """Kitobni tahrirlash"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        book.title = request.POST.get('title')
+        book.author = request.POST.get('author')
+        book.isbn = request.POST.get('isbn', '')
+        book.description = request.POST.get('description', '')
+        new_total = int(request.POST.get('total_copies', 1))
+        
+        # Mavjud nusxalarni yangilash
+        difference = new_total - book.total_copies
+        book.total_copies = new_total
+        book.available_copies = max(0, book.available_copies + difference)
+        
+        if request.FILES.get('cover_image'):
+            book.cover_image = request.FILES.get('cover_image')
+        
+        book.save()
+        messages.success(request, f"'{book.title}' kitobi yangilandi!")
+        return redirect('admin_books')
+    
+    context = {
+        'book': book,
+        'action': 'edit'
+    }
+    return render(request, 'accounts/admin/book_form.html', context)
+
+
+@login_required
+def admin_book_delete(request, pk):
+    """Kitobni o'chirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        title = book.title
+        book.delete()
+        messages.success(request, f"'{title}' kitobi o'chirildi!")
+    
+    return redirect('admin_books')
+
+
+@login_required
+def admin_book_rentals(request):
+    """Kitob ijaralari ro'yxati"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    rentals = BookRental.objects.select_related('book', 'student', 'given_by').all()
+    
+    # Filter
+    status = request.GET.get('status', '')
+    if status:
+        rentals = rentals.filter(status=status)
+    
+    search = request.GET.get('search', '')
+    if search:
+        rentals = rentals.filter(
+            Q(book__title__icontains=search) |
+            Q(student__first_name__icontains=search) |
+            Q(student__last_name__icontains=search)
+        )
+    
+    # Statistikalar
+    from datetime import date
+    today = date.today()
+    stats = {
+        'total': BookRental.objects.filter(status='active').count(),
+        'overdue': BookRental.objects.filter(status='active', return_date__lt=today).count(),
+        'returned_today': BookRental.objects.filter(actual_return_date=today).count(),
+    }
+    
+    context = {
+        'rentals': rentals,
+        'stats': stats,
+        'status': status,
+        'search': search,
+    }
+    return render(request, 'accounts/admin/book_rentals.html', context)
+
+
+@login_required
+def admin_give_book(request):
+    """O'quvchiga kitob berish"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        student_id = request.POST.get('student_id')
+        return_date = request.POST.get('return_date')
+        notes = request.POST.get('notes', '')
+        
+        book = get_object_or_404(Book, pk=book_id)
+        student = get_object_or_404(CustomUser, pk=student_id, role='student')
+        
+        if not book.is_available:
+            messages.error(request, f"'{book.title}' kitobi hozirda mavjud emas!")
+            return redirect('admin_give_book')
+        
+        # Ijara yaratish
+        rental = BookRental.objects.create(
+            book=book,
+            student=student,
+            given_by=request.user,
+            return_date=return_date,
+            notes=notes
+        )
+        
+        # Mavjud nusxani kamaytirish
+        book.available_copies -= 1
+        book.save()
+        
+        # O'quvchiga xabar yuborish
+        Message.objects.create(
+            sender=request.user,
+            recipient=student,
+            title="📚 Kitob ijarasi",
+            content=f"Sizga '{book.title}' ({book.author}) kitobi ijaraga berildi.\n\nQaytarish sanasi: {return_date}\n\nIltimos, kitobni o'z vaqtida qaytaring!",
+            message_type='system'
+        )
+        
+        messages.success(request, f"'{book.title}' kitobi {student.full_name}ga berildi!")
+        return redirect('admin_book_rentals')
+    
+    books = Book.objects.filter(available_copies__gt=0)
+    students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
+    
+    context = {
+        'books': books,
+        'students': students,
+    }
+    return render(request, 'accounts/admin/give_book.html', context)
+
+
+@login_required
+def admin_return_book(request, pk):
+    """Kitobni qaytarilgan deb belgilash"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    rental = get_object_or_404(BookRental, pk=pk)
+    
+    if request.method == 'POST':
+        rental.mark_returned(request.user)
+        
+        # O'quvchiga xabar
+        Message.objects.create(
+            sender=request.user,
+            recipient=rental.student,
+            title="✅ Kitob qaytarildi",
+            content=f"'{rental.book.title}' ({rental.book.author}) kitobi muvaffaqiyatli qaytarildi. Rahmat!",
+            message_type='system'
+        )
+        
+        messages.success(request, f"'{rental.book.title}' qaytarildi!")
+    
+    return redirect('admin_book_rentals')
+
+
+# O'quvchi uchun
+@login_required
+def my_book_rentals(request):
+    """O'quvchining ijaradagi kitoblari"""
+    rentals = BookRental.objects.filter(student=request.user).select_related('book', 'given_by')
+    
+    active_rentals = rentals.filter(status='active')
+    returned_rentals = rentals.filter(status='returned')
+    
+    context = {
+        'active_rentals': active_rentals,
+        'returned_rentals': returned_rentals,
+    }
+    return render(request, 'accounts/my_book_rentals.html', context)
+
+
+def send_book_reminders():
+    """Kitob qaytarish eslatmalari - cron job yoki management command orqali chaqiriladi"""
+    from datetime import date, timedelta
+    
+    today = date.today()
+    three_days_later = today + timedelta(days=3)
+    
+    # 3 kun oldin eslatma
+    rentals_3days = BookRental.objects.filter(
+        status='active',
+        return_date=three_days_later,
+        reminder_sent_3days=False
+    )
+    
+    for rental in rentals_3days:
+        # O'quvchiga xabar
+        Message.objects.create(
+            recipient=rental.student,
+            title="⏰ Kitob qaytarish eslatmasi",
+            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini qaytarish muddati 3 kun qoldi.\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, kitobni o'z vaqtida kutubxonaga qaytaring!",
+            message_type='system'
+        )
+        
+        # Ota-onaga xabar
+        for parent in rental.student.parents.filter(is_active=True):
+            ParentMessage.objects.create(
+                parent=parent,
+                child=rental.student,
+                subject="⏰ Kitob qaytarish eslatmasi",
+                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini 3 kun ichida qaytarishi kerak.\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, farzandingizga eslatib qo'ying!"
+            )
+        
+        rental.reminder_sent_3days = True
+        rental.save()
+    
+    # Bugungi eslatma
+    rentals_today = BookRental.objects.filter(
+        status='active',
+        return_date=today,
+        reminder_sent_today=False
+    )
+    
+    for rental in rentals_today:
+        # O'quvchiga xabar
+        Message.objects.create(
+            recipient=rental.student,
+            title="🚨 Kitobni bugun qaytaring!",
+            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarishingiz kerak!\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!",
+            message_type='system'
+        )
+        
+        # Ota-onaga xabar
+        for parent in rental.student.parents.filter(is_active=True):
+            ParentMessage.objects.create(
+                parent=parent,
+                child=rental.student,
+                subject="🚨 Kitobni bugun qaytaring!",
+                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarishi kerak!\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb aytib qo'ying!"
+            )
+        
+        rental.reminder_sent_today = True
+        rental.save()
+    
+    # Muddati o'tganlarni belgilash
+    BookRental.objects.filter(
+        status='active',
+        return_date__lt=today
+    ).update(status='overdue')
+
+
