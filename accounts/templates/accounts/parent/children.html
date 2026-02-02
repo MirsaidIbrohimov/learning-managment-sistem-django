@@ -8,103 +8,61 @@
         <h2 class="mb-0">
             <i class="bi bi-people me-2"></i>Farzandlarim
         </h2>
-        <span class="badge bg-primary fs-6">{{ children|length }} farzand</span>
+        <span class="badge bg-primary fs-6">{{ children_data|length }} farzand</span>
     </div>
 
-    {% if children|length > 1 %}
-    <!-- Quick Comparison Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-transparent border-0">
-            <h5 class="mb-0">
-                <i class="bi bi-bar-chart-line me-2"></i>Tezkor taqqoslash
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="d-flex align-items-center p-3 bg-success bg-opacity-10 rounded">
-                        <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center me-3"
-                             style="width: 50px; height: 50px;">
-                            <i class="bi bi-trophy fs-5"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block">Eng yuqori progress</small>
-                            {% with best_progress=children|dictsort:"progress"|last %}
-                            <strong>{{ best_progress.get_full_name }}</strong>
-                            <span class="badge bg-success ms-2">{{ best_progress.progress|default:0 }}%</span>
-                            {% endwith %}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center p-3 bg-info bg-opacity-10 rounded">
-                        <div class="rounded-circle bg-info text-white d-flex align-items-center justify-content-center me-3"
-                             style="width: 50px; height: 50px;">
-                            <i class="bi bi-clock-history fs-5"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted d-block">So'nggi kirgan</small>
-                            {% with recent_login=children|dictsort:"last_login"|last %}
-                            <strong>{{ recent_login.get_full_name }}</strong>
-                            {% if recent_login.last_login %}
-                            <span class="text-muted small ms-2">{{ recent_login.last_login|timesince }} oldin</span>
-                            {% endif %}
-                            {% endwith %}
-                        </div>
-                    </div>
-                </div>
-            </div>
+    {% if children_data|length == 0 %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
+            <h5 class="text-muted">Farzandlar topilmadi</h5>
+            <p class="text-muted mb-0">Hozircha sizga bog'langan farzandlar yo'q.</p>
         </div>
     </div>
-    {% endif %}
+    {% else %}
 
     <!-- Children Cards Grid -->
     <div class="row">
-        {% for child in children %}
-        <div class="{% if children|length == 1 %}col-12{% else %}col-lg-6 col-xl-4{% endif %} mb-4">
-            <div class="card border-0 shadow-sm h-100 {% if children|length == 1 %}border-start border-4 border-primary{% endif %}">
-                <div class="card-body {% if children|length == 1 %}p-4{% else %}p-3{% endif %}">
+        {% for item in children_data %}
+        <div class="col-lg-6 col-xl-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
                     <!-- Avatar and Basic Info -->
-                    <div class="{% if children|length == 1 %}d-flex align-items-center{% else %}text-center{% endif %} mb-4">
-                        {% if child.profile_photo %}
-                        <img src="{{ child.profile_photo.url }}" alt="{{ child.get_full_name }}" 
-                             class="rounded-circle {% if children|length == 1 %}me-4{% else %}mb-3 mx-auto d-block{% endif %}"
-                             style="width: {% if children|length == 1 %}120px{% else %}100px{% endif %}; height: {% if children|length == 1 %}120px{% else %}100px{% endif %}; object-fit: cover;">
+                    <div class="text-center mb-4">
+                        {% if item.child.photo %}
+                        <img src="{{ item.child.photo.url }}" alt="{{ item.child.full_name }}" 
+                             class="rounded-circle mb-3 mx-auto d-block"
+                             style="width: 100px; height: 100px; object-fit: cover;">
                         {% else %}
-                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center {% if children|length == 1 %}me-4{% else %}mb-3 mx-auto{% endif %}"
-                             style="width: {% if children|length == 1 %}120px{% else %}100px{% endif %}; height: {% if children|length == 1 %}120px{% else %}100px{% endif %}; font-size: {% if children|length == 1 %}3rem{% else %}2.5rem{% endif %};">
-                            {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mb-3 mx-auto"
+                             style="width: 100px; height: 100px; font-size: 2.5rem;">
+                            {{ item.child.first_name.0|upper }}{{ item.child.last_name.0|upper }}
                         </div>
                         {% endif %}
                         
-                        <div class="{% if children|length == 1 %}{% else %}{% endif %}">
-                            <h4 class="mb-1">{{ child.get_full_name }}</h4>
-                            <p class="text-muted mb-2">
-                                <i class="bi bi-person me-1"></i>{{ child.username }}
-                            </p>
-                            {% if child.current_profession %}
-                            <span class="badge bg-info">
-                                <i class="bi bi-mortarboard me-1"></i>{{ child.current_profession }}
-                            </span>
-                            {% endif %}
-                        </div>
+                        <h4 class="mb-1">{{ item.child.full_name }}</h4>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-person me-1"></i>{{ item.child.username }}
+                        </p>
+                        {% for enrollment in item.enrollments %}
+                        <span class="badge bg-info me-1 mb-1">
+                            <i class="bi bi-mortarboard me-1"></i>{{ enrollment.profession.name }}
+                        </span>
+                        {% endfor %}
                     </div>
 
                     <!-- Overall Progress -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span class="text-muted">Umumiy progress</span>
-                            <span class="badge bg-{% if child.progress >= 70 %}success{% elif child.progress >= 40 %}warning{% else %}secondary{% endif %}">
-                                {{ child.progress|default:0 }}%
+                            <span class="badge bg-{% if item.progress_percent >= 70 %}success{% elif item.progress_percent >= 40 %}warning{% else %}secondary{% endif %}">
+                                {{ item.progress_percent }}%
                             </span>
                         </div>
                         <div class="progress" style="height: 12px;">
-                            <div class="progress-bar bg-{% if child.progress >= 70 %}success{% elif child.progress >= 40 %}warning{% else %}secondary{% endif %}" 
+                            <div class="progress-bar bg-{% if item.progress_percent >= 70 %}success{% elif item.progress_percent >= 40 %}warning{% else %}secondary{% endif %}" 
                                  role="progressbar" 
-                                 style="width: {{ child.progress|default:0 }}%"
-                                 aria-valuenow="{{ child.progress|default:0 }}" 
-                                 aria-valuemin="0" 
-                                 aria-valuemax="100">
+                                 style="width: {{ item.progress_percent }}%">
                             </div>
                         </div>
                     </div>
@@ -112,11 +70,11 @@
                     <!-- Last Activity -->
                     <div class="mb-4 p-3 bg-light rounded">
                         <div class="d-flex align-items-center">
-                            <i class="bi bi-clock text-muted me-2"></i>
+                            <i class="bi bi-clock text-muted me-2 fs-4"></i>
                             <div>
                                 <small class="text-muted d-block">So'nggi faollik</small>
-                                {% if child.last_activity %}
-                                <span>{{ child.last_activity|timesince }} oldin</span>
+                                {% if item.last_activity %}
+                                <span>{{ item.last_activity|timesince }} oldin</span>
                                 {% else %}
                                 <span class="text-muted">Ma'lumot yo'q</span>
                                 {% endif %}
@@ -128,52 +86,37 @@
                     <div class="row g-2 mb-4">
                         <div class="col-4">
                             <div class="text-center p-2 border rounded">
-                                <div class="d-flex align-items-center justify-content-center mb-1">
-                                    <i class="bi bi-coin text-warning me-1"></i>
-                                    <strong class="fs-5">{{ child.coins|default:0 }}</strong>
-                                </div>
+                                <i class="bi bi-coin text-warning"></i>
+                                <div class="fw-bold">{{ item.child.coins|default:0 }}</div>
                                 <small class="text-muted">Tangalar</small>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="text-center p-2 border rounded">
-                                <div class="d-flex align-items-center justify-content-center mb-1">
-                                    <i class="bi bi-check-circle text-success me-1"></i>
-                                    <strong class="fs-5">{{ child.completed_lessons|default:0 }}</strong>
-                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                                <div class="fw-bold">{{ item.completed_lessons }}</div>
                                 <small class="text-muted">Darslar</small>
                             </div>
                         </div>
                         <div class="col-4">
                             <div class="text-center p-2 border rounded">
-                                <div class="d-flex align-items-center justify-content-center mb-1">
-                                    <i class="bi bi-clipboard-check text-primary me-1"></i>
-                                    <strong class="fs-5">{{ child.tests_passed|default:0 }}</strong>
-                                </div>
-                                <small class="text-muted">Testlar</small>
+                                <i class="bi bi-graph-up text-primary"></i>
+                                <div class="fw-bold">{{ item.avg_test_score }}%</div>
+                                <small class="text-muted">O'rtacha</small>
                             </div>
                         </div>
                     </div>
 
                     <!-- Action Button -->
-                    <a href="{% url 'parent_dashboard' %}?child_id={{ child.id }}" 
+                    <a href="{% url 'parent_dashboard' %}?child_id={{ item.child.id }}" 
                        class="btn btn-primary w-100">
                         <i class="bi bi-eye me-2"></i>Batafsil ko'rish
                     </a>
                 </div>
             </div>
         </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-people fs-1 text-muted d-block mb-3"></i>
-                    <h5 class="text-muted">Farzandlar topilmadi</h5>
-                    <p class="text-muted mb-0">Hozircha sizga bog'langan farzandlar yo'q.</p>
-                </div>
-            </div>
-        </div>
         {% endfor %}
     </div>
+    {% endif %}
 </div>
 {% endblock %}
