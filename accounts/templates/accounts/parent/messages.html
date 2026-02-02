@@ -12,9 +12,7 @@
                     <h4 class="mb-1">
                         <i class="bi bi-chat-dots me-2"></i>Xabarlar
                     </h4>
-                    {% if children|length == 1 %}
-                    <p class="text-muted mb-0">{{ children.0.get_full_name }} uchun xabarlar</p>
-                    {% endif %}
+                    <p class="text-muted mb-0">Mentorlar bilan aloqa</p>
                 </div>
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
                     <i class="bi bi-plus-lg me-2"></i>Yangi xabar
@@ -23,129 +21,136 @@
         </div>
     </div>
 
+    <!-- Children Stats Cards -->
+    {% if children %}
+    <div class="row mb-4">
+        {% for child in children %}
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        {% if child.photo %}
+                        <img src="{{ child.photo.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                        {% else %}
+                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                             style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="mb-0">{{ child.full_name }}</h6>
+                            <small class="text-muted">@{{ child.username }}</small>
+                        </div>
+                    </div>
+                    <div class="row g-2 text-center">
+                        <div class="col-4">
+                            <div class="bg-light rounded p-2">
+                                <i class="bi bi-coin text-warning"></i>
+                                <div class="fw-bold">{{ child.coins }}</div>
+                                <small class="text-muted">Coin</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light rounded p-2">
+                                <i class="bi bi-clock text-info"></i>
+                                <div class="fw-bold small">
+                                    {% if child.last_activity %}
+                                    {{ child.last_activity|timesince|truncatewords:2 }}
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">Faollik</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-light rounded p-2">
+                                {% if child.is_online %}
+                                <i class="bi bi-circle-fill text-success"></i>
+                                <div class="fw-bold text-success small">Online</div>
+                                {% else %}
+                                <i class="bi bi-circle text-secondary"></i>
+                                <div class="fw-bold text-secondary small">Offline</div>
+                                {% endif %}
+                                <small class="text-muted">Holat</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Messages List -->
     <div class="row">
         <div class="col-12">
-            {% if messages_list %}
-            {% for message in messages_list %}
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <h6 class="mb-1">
-                                <i class="bi bi-envelope me-2"></i>{{ message.subject }}
-                            </h6>
-                            <small class="text-muted">
-                                <i class="bi bi-person me-1"></i>{{ message.child.get_full_name }}
-                                <span class="mx-2">|</span>
-                                <i class="bi bi-calendar me-1"></i>{{ message.created_at|date:"d.m.Y H:i" }}
-                            </small>
-                        </div>
-                        <div>
-                            {% if message.is_replied %}
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i>Javob berilgan
-                            </span>
-                            {% else %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-hourglass-split me-1"></i>Kutilmoqda
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <p class="text-muted mb-3">{{ message.content|truncatewords:30 }}</p>
-                    
-                    {% if message.is_replied %}
-                    <div class="bg-success bg-opacity-10 border-start border-success border-4 rounded p-3 mb-3">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <small class="text-success fw-bold">
-                                <i class="bi bi-reply me-1"></i>Javob - {{ message.replied_by.get_full_name }}
-                            </small>
-                            <small class="text-muted">{{ message.replied_at|date:"d.m.Y H:i" }}</small>
-                        </div>
-                        <p class="mb-0 text-dark">{{ message.reply|truncatewords:20 }}</p>
-                    </div>
-                    {% endif %}
-                    
-                    <button class="btn btn-sm btn-outline-primary" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#messageDetailModal{{ message.id }}">
-                        <i class="bi bi-eye me-1"></i>Batafsil ko'rish
-                    </button>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>Xabarlar tarixi</h5>
                 </div>
-            </div>
-
-            <!-- Message Detail Modal -->
-            <div class="modal fade" id="messageDetailModal{{ message.id }}" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">
-                                <i class="bi bi-envelope-open me-2"></i>{{ message.subject }}
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="text-muted">
-                                        <i class="bi bi-person me-1"></i>Farzand: {{ message.child.get_full_name }}
-                                    </span>
-                                    <span class="text-muted">
-                                        <i class="bi bi-calendar me-1"></i>{{ message.created_at|date:"d.m.Y H:i" }}
-                                    </span>
+                <div class="card-body p-0">
+                    {% if messages %}
+                    <div class="list-group list-group-flush">
+                        {% for msg in messages %}
+                        <div class="list-group-item p-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="bi bi-envelope{% if msg.reply %}-open{% endif %} me-2"></i>{{ msg.subject }}
+                                    </h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-person me-1"></i>{{ msg.child.full_name }}
+                                        <span class="mx-2">•</span>
+                                        <i class="bi bi-calendar me-1"></i>{{ msg.created_at|date:"d.m.Y H:i" }}
+                                    </small>
                                 </div>
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <p class="mb-0">{{ message.content }}</p>
-                                    </div>
+                                <div>
+                                    {% if msg.reply %}
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check-circle me-1"></i>Javob berilgan
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-hourglass-split me-1"></i>Kutilmoqda
+                                    </span>
+                                    {% endif %}
                                 </div>
                             </div>
                             
-                            {% if message.is_replied %}
-                            <hr>
-                            <div class="bg-success bg-opacity-10 border-start border-success border-4 rounded p-3">
+                            <p class="text-muted mb-2">{{ msg.message|truncatewords:30 }}</p>
+                            
+                            {% if msg.reply %}
+                            <div class="bg-success bg-opacity-10 border-start border-success border-3 rounded p-3 mt-2">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="text-success mb-0">
+                                    <small class="text-success fw-bold">
                                         <i class="bi bi-reply me-1"></i>Mentor javobi
-                                    </h6>
-                                    <span class="text-muted">
-                                        <i class="bi bi-calendar me-1"></i>{{ message.replied_at|date:"d.m.Y H:i" }}
-                                    </span>
+                                        {% if msg.replied_by %} - {{ msg.replied_by.full_name }}{% endif %}
+                                    </small>
+                                    {% if msg.replied_at %}
+                                    <small class="text-muted">{{ msg.replied_at|date:"d.m.Y H:i" }}</small>
+                                    {% endif %}
                                 </div>
-                                <p class="text-muted small mb-2">
-                                    <i class="bi bi-person-badge me-1"></i>{{ message.replied_by.get_full_name }}
-                                </p>
-                                <p class="mb-0">{{ message.reply }}</p>
-                            </div>
-                            {% else %}
-                            <div class="alert alert-info mb-0">
-                                <i class="bi bi-info-circle me-2"></i>
-                                Hali javob berilmagan. Mentor tez orada javob beradi.
+                                <p class="mb-0">{{ msg.reply }}</p>
                             </div>
                             {% endif %}
                         </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
-                        </div>
+                        {% endfor %}
                     </div>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
+                        <h5 class="mt-3 mb-2">Xabarlar yo'q</h5>
+                        <p class="text-muted mb-4">Hozircha hech qanday xabar yo'q. Mentorga yangi xabar yuborishingiz mumkin.</p>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                            <i class="bi bi-plus-lg me-2"></i>Yangi xabar yuborish
+                        </button>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endfor %}
-            {% else %}
-            <!-- Empty State -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
-                    <h5 class="mt-3 mb-2">Xabarlar yo'q</h5>
-                    <p class="text-muted mb-4">Hozircha hech qanday xabar yo'q. Mentorga yangi xabar yuborishingiz mumkin.</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
-                        <i class="bi bi-plus-lg me-2"></i>Yangi xabar yuborish
-                    </button>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </div>
 </div>
@@ -160,22 +165,18 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'parent_send_message' %}">
+            <form method="post">
                 {% csrf_token %}
                 <div class="modal-body">
-                    {% if children|length > 1 %}
                     <div class="mb-3">
                         <label for="child" class="form-label">Farzandni tanlang</label>
                         <select class="form-select" id="child" name="child_id" required>
                             <option value="">Farzandni tanlang...</option>
                             {% for child in children %}
-                            <option value="{{ child.id }}">{{ child.get_full_name }}</option>
+                            <option value="{{ child.id }}">{{ child.full_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    {% else %}
-                    <input type="hidden" name="child_id" value="{{ children.0.id }}">
-                    {% endif %}
                     
                     <div class="mb-3">
                         <label for="subject" class="form-label">Mavzu</label>
@@ -184,8 +185,8 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="content" class="form-label">Xabar matni</label>
-                        <textarea class="form-control" id="content" name="content" rows="5" 
+                        <label for="message" class="form-label">Xabar matni</label>
+                        <textarea class="form-control" id="message" name="message" rows="5" 
                                   placeholder="Xabaringizni yozing..." required></textarea>
                     </div>
                 </div>
