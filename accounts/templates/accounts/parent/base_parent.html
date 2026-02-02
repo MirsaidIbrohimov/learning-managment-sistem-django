@@ -79,17 +79,21 @@
             <div class="dropdown">
                 <button class="btn profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <div class="profile-avatar">
-                        {{ user.first_name.0 }}{{ user.last_name.0 }}
+                        {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
                     </div>
                     <span class="profile-name d-none d-md-inline">
-                        {{ user.first_name }} {{ user.last_name }}
+                        {{ parent.first_name }} {{ parent.last_name }}
                     </span>
                 </button>
 
                 <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li class="px-3 py-2">
+                        <strong>{{ parent.first_name }} {{ parent.last_name }}</strong>
+                        <br><small class="text-muted">@{{ parent.username }}</small>
+                    </li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
-                        <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                        <a class="dropdown-item text-danger" href="{% url 'parent_logout' %}">
                             <i class="bi bi-box-arrow-right me-2"></i>Chiqish
                         </a>
                     </li>
