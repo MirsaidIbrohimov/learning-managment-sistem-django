@@ -1,0 +1,101 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{% if action == 'add' %}Yangi kitob{% else %}Kitobni tahrirlash{% endif %}{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <a href="{% url 'admin_books' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Kitoblarga qaytish
+        </a>
+        <h4 class="mt-2 mb-0">
+            <i class="bi bi-book me-2"></i>
+            {% if action == 'add' %}Yangi kitob qo'shish{% else %}'{{ book.title }}' ni tahrirlash{% endif %}
+        </h4>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kitob nomi *</label>
+                            <input type="text" name="title" class="form-control" required
+                                   value="{{ book.title|default:'' }}" placeholder="Masalan: Python asoslari">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Muallif *</label>
+                            <input type="text" name="author" class="form-control" required
+                                   value="{{ book.author|default:'' }}" placeholder="Masalan: Abdullayev Vohid">
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">ISBN (ixtiyoriy)</label>
+                                <input type="text" name="isbn" class="form-control"
+                                       value="{{ book.isbn|default:'' }}" placeholder="978-3-16-148410-0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nusxalar soni *</label>
+                                <input type="number" name="total_copies" class="form-control" min="1" required
+                                       value="{{ book.total_copies|default:1 }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Tavsif</label>
+                            <textarea name="description" class="form-control" rows="3" 
+                                      placeholder="Kitob haqida qisqacha ma'lumot...">{{ book.description|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Muqova rasmi</label>
+                            <input type="file" name="cover_image" class="form-control" accept="image/*">
+                            {% if book.cover_image %}
+                            <small class="text-muted mt-1 d-block">
+                                Joriy rasm: {{ book.cover_image.name }}
+                            </small>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-lg me-2"></i>
+                                {% if action == 'add' %}Qo'shish{% else %}Saqlash{% endif %}
+                            </button>
+                            <a href="{% url 'admin_books' %}" class="btn btn-secondary">Bekor qilish</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Yordam</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">
+                        <strong>Kitob nomi:</strong> To'liq kitob nomini kiriting
+                    </p>
+                    <p class="text-muted small mb-2">
+                        <strong>Muallif:</strong> Kitob muallifining ismi va familiyasi
+                    </p>
+                    <p class="text-muted small mb-2">
+                        <strong>Nusxalar soni:</strong> Kutubxonada nechta nusxa mavjudligini belgilang
+                    </p>
+                    <p class="text-muted small mb-0">
+                        <strong>Muqova rasmi:</strong> Kitobning old tomonini surat qilib yuklang
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
