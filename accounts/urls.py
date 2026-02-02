@@ -172,4 +172,16 @@ urlpatterns = [
     path('dashboard/parents/<int:pk>/edit/', views.admin_parent_edit, name='admin_parent_edit'),
     path('dashboard/parents/<int:pk>/toggle/', views.admin_parent_toggle, name='admin_parent_toggle'),
     path('dashboard/parents/<int:pk>/delete/', views.admin_parent_delete, name='admin_parent_delete'),
+    
+    # Kutubxona / Kitoblar
+    path('dashboard/books/', views.admin_books, name='admin_books'),
+    path('dashboard/books/add/', views.admin_book_add, name='admin_book_add'),
+    path('dashboard/books/<int:pk>/edit/', views.admin_book_edit, name='admin_book_edit'),
+    path('dashboard/books/<int:pk>/delete/', views.admin_book_delete, name='admin_book_delete'),
+    path('dashboard/book-rentals/', views.admin_book_rentals, name='admin_book_rentals'),
+    path('dashboard/book-rentals/give/', views.admin_give_book, name='admin_give_book'),
+    path('dashboard/book-rentals/<int:pk>/return/', views.admin_return_book, name='admin_return_book'),
+    
+    # O'quvchi: Ijaradagi kitoblar
+    path('my-books/', views.my_book_rentals, name='my_book_rentals'),
 ]
