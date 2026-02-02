@@ -3,90 +3,73 @@
 {% block title %}Test natijalari - {{ child.get_full_name }} - Ota-ona paneli{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid py-4">
+<div class="container-fluid px-0">
     <!-- Page Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex align-items-center">
-                <a href="{% url 'parent_children' %}" class="btn btn-outline-secondary me-3">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-                <div>
-                    <h4 class="mb-1">
-                        <i class="bi bi-clipboard-check me-2"></i>Test natijalari
-                    </h4>
-                    <p class="text-muted mb-0">{{ child.get_full_name }}</p>
-                </div>
-            </div>
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h3 class="mb-1 fw-bold">
+                <i class="bi bi-ui-checks me-2 text-primary"></i>Test natijalari
+            </h3>
+            <p class="text-muted mb-0">{{ child.get_full_name }} - test natijalari va statistikasi</p>
         </div>
+        <a href="{% url 'parent_children' %}" class="btn-back">
+            <i class="bi bi-arrow-left"></i>
+        </a>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-list-check text-primary fs-3"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.total_tests|default:0 }}</h3>
-                    <p class="text-muted mb-0">Jami testlar</p>
+    <div class="row g-4 mb-4">
+        <div class="col-6 col-xl-3">
+            <div class="stat-card stat-primary h-100">
+                <div class="stat-icon-wrapper bg-primary-soft">
+                    <i class="bi bi-list-check"></i>
                 </div>
+                <div class="stat-number">{{ stats.total_tests|default:0 }}</div>
+                <div class="stat-label">Jami testlar</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-check-circle text-success fs-3"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.passed_tests|default:0 }}</h3>
-                    <p class="text-muted mb-0">O'tgan testlar</p>
+        <div class="col-6 col-xl-3">
+            <div class="stat-card stat-success h-100">
+                <div class="stat-icon-wrapper bg-success-soft">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
+                <div class="stat-number">{{ stats.passed_tests|default:0 }}</div>
+                <div class="stat-label">O'tgan testlar</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-graph-up text-info fs-3"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.average_score|default:0|floatformat:1 }}%</h3>
-                    <p class="text-muted mb-0">O'rtacha ball</p>
+        <div class="col-6 col-xl-3">
+            <div class="stat-card stat-info h-100">
+                <div class="stat-icon-wrapper bg-info-soft">
+                    <i class="bi bi-graph-up-arrow"></i>
                 </div>
+                <div class="stat-number">{{ stats.average_score|default:0|floatformat:1 }}%</div>
+                <div class="stat-label">O'rtacha ball</div>
             </div>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
-                         style="width: 60px; height: 60px;">
-                        <i class="bi bi-trophy text-warning fs-3"></i>
-                    </div>
-                    <h3 class="mb-1">{{ stats.best_score|default:0|floatformat:0 }}%</h3>
-                    <p class="text-muted mb-0">Eng yaxshi natija</p>
+        <div class="col-6 col-xl-3">
+            <div class="stat-card stat-warning h-100">
+                <div class="stat-icon-wrapper bg-warning-soft">
+                    <i class="bi bi-trophy-fill"></i>
                 </div>
+                <div class="stat-number">{{ stats.best_score|default:0|floatformat:0 }}%</div>
+                <div class="stat-label">Eng yaxshi natija</div>
             </div>
         </div>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Test Results Table -->
-        <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0">
-                        <i class="bi bi-table me-2"></i>Test natijalari ro'yxati
-                    </h5>
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-table me-2 text-primary"></i>
+                    <h5 class="mb-0">Test natijalari ro'yxati</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-0">
                     {% if test_results %}
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                        <table class="table table-modern mb-0">
+                            <thead>
                                 <tr>
                                     <th>Test nomi</th>
                                     <th>Sana</th>
@@ -105,22 +88,23 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <small>
-                                            <i class="bi bi-calendar me-1"></i>{{ result.completed_at|date:"d.m.Y" }}
-                                        </small>
-                                        <br>
-                                        <small class="text-muted">
-                                            <i class="bi bi-clock me-1"></i>{{ result.completed_at|time:"H:i" }}
-                                        </small>
+                                        <div class="d-flex flex-column">
+                                            <span class="small">
+                                                <i class="bi bi-calendar3 me-1 text-primary"></i>{{ result.completed_at|date:"d.m.Y" }}
+                                            </span>
+                                            <span class="text-muted small">
+                                                <i class="bi bi-clock me-1"></i>{{ result.completed_at|time:"H:i" }}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td>
                                         {% with score=result.score|default:0 %}
-                                        <div class="d-flex align-items-center">
-                                            <div class="progress flex-grow-1 me-2" style="height: 8px; width: 60px;">
-                                                <div class="progress-bar {% if score >= 80 %}bg-success{% elif score >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
-                                                     role="progressbar" style="width: {{ score }}%"></div>
+                                        <div class="score-cell">
+                                            <div class="score-bar">
+                                                <div class="score-fill {% if score >= 80 %}success{% elif score >= 60 %}warning{% else %}danger{% endif %}" 
+                                                     style="width: {{ score }}%"></div>
                                             </div>
-                                            <span class="fw-bold {% if score >= 80 %}text-success{% elif score >= 60 %}text-warning{% else %}text-danger{% endif %}">
+                                            <span class="score-value {% if score >= 80 %}text-success{% elif score >= 60 %}text-warning{% else %}text-danger{% endif %}">
                                                 {{ score|floatformat:0 }}%
                                             </span>
                                         </div>
@@ -128,17 +112,17 @@
                                     </td>
                                     <td>
                                         {% if result.passed %}
-                                        <span class="badge bg-success">
+                                        <span class="badge-soft-success">
                                             <i class="bi bi-check-circle me-1"></i>O'tdi
                                         </span>
                                         {% else %}
-                                        <span class="badge bg-danger">
+                                        <span class="badge-soft-danger">
                                             <i class="bi bi-x-circle me-1"></i>O'tmadi
                                         </span>
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <span class="badge bg-secondary">
+                                        <span class="badge-soft-primary">
                                             {{ result.correct_answers|default:0 }}/{{ result.total_questions|default:0 }}
                                         </span>
                                     </td>
@@ -148,8 +132,8 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="text-center text-muted py-5">
-                        <i class="bi bi-clipboard-x fs-1 d-block mb-3"></i>
+                    <div class="empty-state py-5">
+                        <i class="bi bi-clipboard-x"></i>
                         <h5>Test natijalari topilmadi</h5>
                         <p class="mb-0">Farzandingiz hali test yechmagan</p>
                     </div>
@@ -159,88 +143,77 @@
         </div>
 
         <!-- Visual Summary -->
-        <div class="col-lg-4 mb-4">
-            <!-- Pass Rate Pie Chart -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0">
-                        <i class="bi bi-pie-chart me-2"></i>O'tish ko'rsatkichi
-                    </h5>
+        <div class="col-lg-4">
+            <!-- Pass Rate -->
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-pie-chart-fill me-2 text-primary"></i>
+                    <h5 class="mb-0">O'tish ko'rsatkichi</h5>
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body">
                     {% with pass_rate=stats.pass_rate|default:0 %}
-                    <div class="position-relative d-inline-block" style="width: 150px; height: 150px;">
-                        <!-- CSS Pie Chart -->
-                        <div class="rounded-circle position-absolute" 
-                             style="width: 100%; height: 100%; 
-                                    background: conic-gradient(
-                                        #198754 0deg {{ pass_rate|default:0 }}%, 
-                                        #dc3545 {{ pass_rate|default:0 }}% 100%
-                                    );">
-                        </div>
-                        <!-- Inner circle for donut effect -->
-                        <div class="rounded-circle position-absolute bg-white d-flex align-items-center justify-content-center"
-                             style="width: 100px; height: 100px; top: 25px; left: 25px;">
-                            <div>
-                                <h4 class="mb-0">{{ pass_rate|floatformat:0 }}%</h4>
-                                <small class="text-muted">O'tdi</small>
-                            </div>
+                    <div class="donut-chart mx-auto">
+                        <svg viewBox="0 0 120 120">
+                            <circle class="donut-bg" cx="60" cy="60" r="50"/>
+                            <circle class="donut-fill success" cx="60" cy="60" r="50"
+                                    stroke-dasharray="{% widthratio pass_rate 100 314 %} 314"/>
+                            <circle class="donut-fill danger" cx="60" cy="60" r="50"
+                                    stroke-dasharray="{% widthratio stats.failed_tests|default:0 stats.total_tests|default:1 314 %} 314"
+                                    stroke-dashoffset="-{% widthratio pass_rate 100 314 %}"/>
+                        </svg>
+                        <div class="donut-text">
+                            <span class="donut-value">{{ pass_rate|floatformat:0 }}%</span>
+                            <span class="donut-label">O'tdi</span>
                         </div>
                     </div>
                     {% endwith %}
-                    <div class="mt-3">
-                        <div class="d-flex justify-content-center gap-4">
-                            <div>
-                                <span class="badge bg-success">&nbsp;</span>
-                                <small class="text-muted ms-1">O'tgan ({{ stats.passed_tests|default:0 }})</small>
-                            </div>
-                            <div>
-                                <span class="badge bg-danger">&nbsp;</span>
-                                <small class="text-muted ms-1">O'tmagan ({{ stats.failed_tests|default:0 }})</small>
-                            </div>
+                    <div class="d-flex justify-content-center gap-4 mt-4">
+                        <div class="legend-item">
+                            <span class="legend-dot success"></span>
+                            <span>O'tgan ({{ stats.passed_tests|default:0 }})</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot danger"></span>
+                            <span>O'tmagan ({{ stats.failed_tests|default:0 }})</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Score Distribution -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent border-0">
-                    <h5 class="mb-0">
-                        <i class="bi bi-bar-chart me-2"></i>Ball taqsimoti
-                    </h5>
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-bar-chart-fill me-2 text-primary"></i>
+                    <h5 class="mb-0">Ball taqsimoti</h5>
                 </div>
                 <div class="card-body">
-                    <!-- Excellent (80-100) -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted">A'lo (80-100%)</small>
-                            <small class="fw-bold text-success">{{ stats.score_excellent|default:0 }}</small>
+                    <div class="distribution-item">
+                        <div class="distribution-header">
+                            <span class="distribution-label">A'lo (80-100%)</span>
+                            <span class="distribution-value text-success">{{ stats.score_excellent|default:0 }}</span>
                         </div>
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-success" role="progressbar" 
+                        <div class="distribution-bar">
+                            <div class="distribution-fill success" 
                                  style="width: {% widthratio stats.score_excellent|default:0 stats.total_tests|default:1 100 %}%"></div>
                         </div>
                     </div>
-                    <!-- Good (60-79) -->
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted">Yaxshi (60-79%)</small>
-                            <small class="fw-bold text-warning">{{ stats.score_good|default:0 }}</small>
+                    <div class="distribution-item">
+                        <div class="distribution-header">
+                            <span class="distribution-label">Yaxshi (60-79%)</span>
+                            <span class="distribution-value text-warning">{{ stats.score_good|default:0 }}</span>
                         </div>
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-warning" role="progressbar" 
+                        <div class="distribution-bar">
+                            <div class="distribution-fill warning" 
                                  style="width: {% widthratio stats.score_good|default:0 stats.total_tests|default:1 100 %}%"></div>
                         </div>
                     </div>
-                    <!-- Needs Improvement (0-59) -->
-                    <div class="mb-0">
-                        <div class="d-flex justify-content-between mb-1">
-                            <small class="text-muted">Yaxshilash kerak (0-59%)</small>
-                            <small class="fw-bold text-danger">{{ stats.score_poor|default:0 }}</small>
+                    <div class="distribution-item">
+                        <div class="distribution-header">
+                            <span class="distribution-label">Yaxshilash kerak (0-59%)</span>
+                            <span class="distribution-value text-danger">{{ stats.score_poor|default:0 }}</span>
                         </div>
-                        <div class="progress" style="height: 10px;">
-                            <div class="progress-bar bg-danger" role="progressbar" 
+                        <div class="distribution-bar">
+                            <div class="distribution-fill danger" 
                                  style="width: {% widthratio stats.score_poor|default:0 stats.total_tests|default:1 100 %}%"></div>
                         </div>
                     </div>
@@ -251,8 +224,183 @@
 </div>
 
 <style>
-    [data-bs-theme="dark"] .card-body .bg-white {
-        background-color: var(--bs-card-bg) !important;
-    }
+.btn-back {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.25s ease;
+}
+
+.btn-back:hover {
+    background: var(--gradient-primary);
+    color: white;
+    border-color: transparent;
+}
+
+.table-modern {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-modern thead th {
+    background: var(--hover-bg);
+    border: none;
+    padding: 16px 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+}
+
+.table-modern tbody td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.table-modern tbody tr:hover {
+    background: var(--hover-bg);
+}
+
+.score-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-bar {
+    width: 60px;
+    height: 6px;
+    background: var(--hover-bg);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.score-fill {
+    height: 100%;
+    border-radius: 3px;
+}
+
+.score-fill.success { background: #10b981; }
+.score-fill.warning { background: #f59e0b; }
+.score-fill.danger { background: #ef4444; }
+
+.score-value {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.donut-chart {
+    width: 150px;
+    height: 150px;
+    position: relative;
+}
+
+.donut-chart svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+
+.donut-bg {
+    fill: none;
+    stroke: var(--hover-bg);
+    stroke-width: 12;
+}
+
+.donut-fill {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.8s ease;
+}
+
+.donut-fill.success { stroke: #10b981; }
+.donut-fill.danger { stroke: #ef4444; }
+
+.donut-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.donut-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.donut-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend-dot.success { background: #10b981; }
+.legend-dot.danger { background: #ef4444; }
+
+.distribution-item {
+    margin-bottom: 16px;
+}
+
+.distribution-item:last-child {
+    margin-bottom: 0;
+}
+
+.distribution-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.distribution-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.distribution-value {
+    font-weight: 700;
+}
+
+.distribution-bar {
+    height: 8px;
+    background: var(--hover-bg);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.distribution-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.distribution-fill.success { background: #10b981; }
+.distribution-fill.warning { background: #f59e0b; }
+.distribution-fill.danger { background: #ef4444; }
 </style>
 {% endblock %}

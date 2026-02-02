@@ -3,54 +3,73 @@
 {% block title %}Profil - Ota-ona paneli{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid py-4">
-    <div class="row">
+<div class="container-fluid px-0">
+    <div class="row g-4">
         <!-- Profile Card -->
-        <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center p-4">
-                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
-                         style="width: 100px; height: 100px; font-size: 2.5rem;">
-                        {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
+        <div class="col-lg-4">
+            <div class="card profile-card">
+                <div class="profile-header"></div>
+                <div class="card-body text-center profile-body">
+                    <div class="profile-avatar-wrapper">
+                        <div class="profile-avatar-large">
+                            {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
+                        </div>
                     </div>
-                    <h4 class="mb-1">{{ parent.full_name }}</h4>
+                    <h4 class="fw-bold mb-1">{{ parent.full_name }}</h4>
                     <p class="text-muted mb-3">@{{ parent.username }}</p>
                     
-                    <div class="d-flex justify-content-center gap-2 mb-3">
-                        <span class="badge {% if parent.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <span class="status-badge {% if parent.is_active %}active{% else %}inactive{% endif %}">
+                            <span class="status-dot"></span>
                             {% if parent.is_active %}Faol{% else %}Nofaol{% endif %}
                         </span>
                     </div>
                     
-                    <hr>
-                    
-                    <div class="text-start">
-                        <div class="mb-3">
-                            <small class="text-muted d-block"><i class="bi bi-telephone me-2"></i>Telefon</small>
-                            <span>{{ parent.phone|default:"-" }}</span>
+                    <div class="profile-info">
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="bi bi-telephone-fill"></i>
+                            </div>
+                            <div class="profile-info-content">
+                                <span class="profile-info-label">Telefon</span>
+                                <span class="profile-info-value">{{ parent.phone|default:"-" }}</span>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted d-block"><i class="bi bi-envelope me-2"></i>Email</small>
-                            <span>{{ parent.email|default:"-" }}</span>
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="bi bi-envelope-fill"></i>
+                            </div>
+                            <div class="profile-info-content">
+                                <span class="profile-info-label">Email</span>
+                                <span class="profile-info-value">{{ parent.email|default:"-" }}</span>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <small class="text-muted d-block"><i class="bi bi-calendar me-2"></i>Ro'yxatdan o'tgan</small>
-                            <span>{{ parent.created_at|date:"d.m.Y" }}</span>
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="bi bi-calendar-check-fill"></i>
+                            </div>
+                            <div class="profile-info-content">
+                                <span class="profile-info-label">Ro'yxatdan o'tgan</span>
+                                <span class="profile-info-value">{{ parent.created_at|date:"d.m.Y" }}</span>
+                            </div>
                         </div>
-                        <div>
-                            <small class="text-muted d-block"><i class="bi bi-clock me-2"></i>Oxirgi kirish</small>
-                            <span>{% if parent.last_login %}{{ parent.last_login|date:"d.m.Y H:i" }}{% else %}-{% endif %}</span>
+                        <div class="profile-info-item">
+                            <div class="profile-info-icon">
+                                <i class="bi bi-clock-fill"></i>
+                            </div>
+                            <div class="profile-info-content">
+                                <span class="profile-info-label">Oxirgi kirish</span>
+                                <span class="profile-info-value">{% if parent.last_login %}{{ parent.last_login|date:"d.m.Y H:i" }}{% else %}-{% endif %}</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <hr>
-                    
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'parent_profile_edit' %}" class="btn btn-primary">
-                            <i class="bi bi-pencil me-2"></i>Profilni tahrirlash
+                    <div class="profile-actions">
+                        <a href="{% url 'parent_profile_edit' %}" class="btn-profile-action primary">
+                            <i class="bi bi-pencil-fill me-2"></i>Profilni tahrirlash
                         </a>
-                        <a href="{% url 'parent_change_password' %}" class="btn btn-outline-secondary">
-                            <i class="bi bi-key me-2"></i>Parolni o'zgartirish
+                        <a href="{% url 'parent_change_password' %}" class="btn-profile-action secondary">
+                            <i class="bi bi-key-fill me-2"></i>Parolni o'zgartirish
                         </a>
                     </div>
                 </div>
@@ -60,33 +79,37 @@
         <!-- Children & Info -->
         <div class="col-lg-8">
             <!-- Children List -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-transparent">
-                    <h5 class="mb-0"><i class="bi bi-people me-2"></i>Farzandlarim ({{ children|length }})</h5>
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-people-fill me-2 text-primary"></i>
+                    <h5 class="mb-0">Farzandlarim</h5>
+                    <span class="badge-soft-primary ms-auto">{{ children|length }} farzand</span>
                 </div>
                 <div class="card-body">
                     {% if children %}
                     <div class="row g-3">
                         {% for child in children %}
                         <div class="col-md-6">
-                            <div class="border rounded p-3 d-flex align-items-center">
+                            <div class="child-card-mini">
                                 {% if child.photo %}
-                                <img src="{{ child.photo.url }}" class="rounded-circle me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                <img src="{{ child.photo.url }}" class="child-mini-avatar">
                                 {% else %}
-                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3"
-                                     style="width: 50px; height: 50px;">
+                                <div class="child-mini-avatar-placeholder">
                                     {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
                                 </div>
                                 {% endif %}
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-0">{{ child.full_name }}</h6>
+                                <div class="child-mini-info">
+                                    <h6 class="mb-0 fw-semibold">{{ child.full_name }}</h6>
                                     <small class="text-muted">@{{ child.username }}</small>
                                 </div>
-                                <div>
+                                <div class="child-mini-status">
                                     {% if child.is_online %}
-                                    <span class="badge bg-success">Online</span>
+                                    <span class="status-online-mini">
+                                        <span class="pulse-dot"></span>
+                                        Online
+                                    </span>
                                     {% else %}
-                                    <span class="badge bg-secondary">Offline</span>
+                                    <span class="status-offline-mini">Offline</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -94,8 +117,8 @@
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="text-center py-4 text-muted">
-                        <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+                    <div class="empty-state py-4">
+                        <i class="bi bi-people"></i>
                         <p class="mb-0">Farzandlar topilmadi</p>
                     </div>
                     {% endif %}
@@ -103,34 +126,35 @@
             </div>
 
             <!-- Quick Links -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent">
-                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Tezkor havolalar</h5>
+            <div class="card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-lightning-fill me-2 text-warning"></i>
+                    <h5 class="mb-0">Tezkor havolalar</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-6 col-md-3">
-                            <a href="{% url 'parent_dashboard' %}" class="btn btn-outline-primary w-100 py-3">
-                                <i class="bi bi-house d-block fs-4 mb-1"></i>
-                                <small>Bosh sahifa</small>
+                            <a href="{% url 'parent_dashboard' %}" class="quick-link-btn link-primary w-100 h-100">
+                                <i class="bi bi-grid-1x2-fill"></i>
+                                <span>Bosh sahifa</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="{% url 'parent_children' %}" class="btn btn-outline-info w-100 py-3">
-                                <i class="bi bi-people d-block fs-4 mb-1"></i>
-                                <small>Farzandlar</small>
+                            <a href="{% url 'parent_children' %}" class="quick-link-btn link-info w-100 h-100">
+                                <i class="bi bi-people-fill"></i>
+                                <span>Farzandlar</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="{% url 'parent_messages' %}" class="btn btn-outline-warning w-100 py-3">
-                                <i class="bi bi-chat-dots d-block fs-4 mb-1"></i>
-                                <small>Xabarlar</small>
+                            <a href="{% url 'parent_messages' %}" class="quick-link-btn link-warning w-100 h-100">
+                                <i class="bi bi-chat-square-dots-fill"></i>
+                                <span>Xabarlar</span>
                             </a>
                         </div>
                         <div class="col-6 col-md-3">
-                            <a href="{% url 'parent_settings' %}" class="btn btn-outline-secondary w-100 py-3">
-                                <i class="bi bi-gear d-block fs-4 mb-1"></i>
-                                <small>Sozlamalar</small>
+                            <a href="{% url 'parent_settings' %}" class="quick-link-btn link-secondary w-100 h-100">
+                                <i class="bi bi-gear-fill"></i>
+                                <span>Sozlamalar</span>
                             </a>
                         </div>
                     </div>
@@ -139,4 +163,247 @@
         </div>
     </div>
 </div>
+
+<style>
+.profile-card {
+    overflow: hidden;
+}
+
+.profile-header {
+    height: 100px;
+    background: var(--gradient-primary);
+    position: relative;
+}
+
+.profile-header::after {
+    content: '';
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 120px;
+    background: var(--card-bg);
+    border-radius: 50%;
+    border: 4px solid var(--card-bg);
+}
+
+.profile-body {
+    padding-top: 70px !important;
+}
+
+.profile-avatar-wrapper {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.profile-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-badge.inactive {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.profile-info {
+    text-align: left;
+    margin: 24px 0;
+}
+
+.profile-info-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-info-item:last-child {
+    border-bottom: none;
+}
+
+.profile-info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--hover-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6366f1;
+}
+
+.profile-info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-info-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.profile-info-value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn-profile-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-profile-action.primary {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.btn-profile-action.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-profile-action.secondary {
+    background: var(--hover-bg);
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+}
+
+.btn-profile-action.secondary:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+}
+
+.child-card-mini {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px;
+    background: var(--hover-bg);
+    border-radius: 14px;
+    transition: all 0.25s ease;
+}
+
+.child-card-mini:hover {
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.child-mini-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    object-fit: cover;
+}
+
+.child-mini-avatar-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    background: var(--gradient-info);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+}
+
+.child-mini-info {
+    flex-grow: 1;
+}
+
+.status-online-mini {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: pulse-online 2s infinite;
+}
+
+@keyframes pulse-online {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+.status-offline-mini {
+    padding: 6px 12px;
+    background: var(--hover-bg);
+    color: var(--text-muted);
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.link-secondary:hover {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+}
+
+.quick-link-btn {
+    padding: 20px 16px;
+}
+
+.quick-link-btn i {
+    font-size: 1.75rem;
+}
+</style>
 {% endblock %}

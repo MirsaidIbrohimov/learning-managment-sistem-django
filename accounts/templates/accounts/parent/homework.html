@@ -3,131 +3,118 @@
 {% block title %}Uyga vazifalar - Ota-ona paneli{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid py-4">
+<div class="container-fluid px-0">
     <!-- Child Selector -->
     {% if children|length > 1 %}
-    <div class="card border-0 shadow-sm p-3 mb-4">
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            <span class="text-muted me-2"><i class="bi bi-people me-1"></i>Farzand:</span>
-            {% for c in children %}
-            <a href="?child_id={{ c.id }}" 
-               class="btn {% if c.id == selected_child.id %}btn-primary{% else %}btn-outline-primary{% endif %} btn-sm">
-                {{ c.full_name }}
-            </a>
-            {% endfor %}
+    <div class="card mb-4 p-3">
+        <div class="d-flex align-items-center flex-wrap gap-3">
+            <span class="text-muted fw-medium">
+                <i class="bi bi-people-fill me-2"></i>Farzand:
+            </span>
+            <div class="child-selector">
+                {% for c in children %}
+                <a href="?child_id={{ c.id }}" 
+                   class="child-btn {% if c.id == selected_child.id %}active{% endif %}">
+                    {{ c.full_name }}
+                </a>
+                {% endfor %}
+            </div>
         </div>
     </div>
     {% endif %}
 
     <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1">
-                <i class="bi bi-file-check me-2"></i>Uyga vazifalar
-            </h4>
-            <p class="text-muted mb-0">{% if selected_child %}{{ selected_child.full_name }}{% endif %} - uyga vazifalar holati</p>
-        </div>
+    <div class="mb-4">
+        <h3 class="mb-1 fw-bold">
+            <i class="bi bi-journal-check me-2 text-primary"></i>Uyga vazifalar
+        </h3>
+        <p class="text-muted mb-0">{% if selected_child %}{{ selected_child.full_name }}{% endif %} - uyga vazifalar holati</p>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                         style="width: 50px; height: 50px;">
-                        <i class="bi bi-list-task text-primary fs-4"></i>
-                    </div>
-                    <h4 class="mb-0">{{ stats.total|default:0 }}</h4>
-                    <small class="text-muted">Jami vazifalar</small>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md">
+            <div class="stat-card stat-primary h-100">
+                <div class="stat-icon-wrapper bg-primary-soft">
+                    <i class="bi bi-list-task"></i>
                 </div>
+                <div class="stat-number">{{ stats.total|default:0 }}</div>
+                <div class="stat-label">Jami vazifalar</div>
             </div>
         </div>
-        <div class="col-md col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                         style="width: 50px; height: 50px;">
-                        <i class="bi bi-check-circle text-success fs-4"></i>
-                    </div>
-                    <h4 class="mb-0">{{ stats.submitted|default:0 }}</h4>
-                    <small class="text-muted">Topshirilgan</small>
+        <div class="col-6 col-md">
+            <div class="stat-card stat-success h-100">
+                <div class="stat-icon-wrapper bg-success-soft">
+                    <i class="bi bi-check-circle-fill"></i>
                 </div>
+                <div class="stat-number">{{ stats.submitted|default:0 }}</div>
+                <div class="stat-label">Topshirilgan</div>
             </div>
         </div>
-        <div class="col-md col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                         style="width: 50px; height: 50px;">
-                        <i class="bi bi-star text-info fs-4"></i>
-                    </div>
-                    <h4 class="mb-0">{{ stats.graded|default:0 }}</h4>
-                    <small class="text-muted">Baholangan</small>
+        <div class="col-6 col-md">
+            <div class="stat-card stat-info h-100">
+                <div class="stat-icon-wrapper bg-info-soft">
+                    <i class="bi bi-star-fill"></i>
                 </div>
+                <div class="stat-number">{{ stats.graded|default:0 }}</div>
+                <div class="stat-label">Baholangan</div>
             </div>
         </div>
-        <div class="col-md col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                         style="width: 50px; height: 50px;">
-                        <i class="bi bi-graph-up text-warning fs-4"></i>
-                    </div>
-                    <h4 class="mb-0">{{ stats.avg_grade|default:"-"|floatformat:1 }}</h4>
-                    <small class="text-muted">O'rtacha baho</small>
+        <div class="col-6 col-md">
+            <div class="stat-card stat-warning h-100">
+                <div class="stat-icon-wrapper bg-warning-soft">
+                    <i class="bi bi-graph-up-arrow"></i>
                 </div>
+                <div class="stat-number">{{ stats.avg_grade|default:"-"|floatformat:1 }}</div>
+                <div class="stat-label">O'rtacha baho</div>
             </div>
         </div>
-        <div class="col-md col-sm-6 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center py-3">
-                    <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2"
-                         style="width: 50px; height: 50px;">
-                        <i class="bi bi-exclamation-triangle text-danger fs-4"></i>
-                    </div>
-                    <h4 class="mb-0">{{ stats.late|default:0 }}</h4>
-                    <small class="text-muted">Kechikkan</small>
+        <div class="col-6 col-md">
+            <div class="stat-card h-100" style="border-top: 4px solid #ef4444;">
+                <div class="stat-icon-wrapper" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
                 </div>
+                <div class="stat-number">{{ stats.late|default:0 }}</div>
+                <div class="stat-label">Kechikkan</div>
             </div>
         </div>
     </div>
 
     <!-- Filter Tabs -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0 pb-0">
-            <ul class="nav nav-tabs card-header-tabs" id="homeworkTabs" role="tablist">
+    <div class="card">
+        <div class="card-header p-0 border-0">
+            <ul class="nav nav-tabs homework-tabs" id="homeworkTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
                             type="button" role="tab" aria-controls="all" aria-selected="true">
-                        <i class="bi bi-list-ul me-1"></i>Barchasi
-                        <span class="badge bg-secondary ms-1">{{ stats.total|default:0 }}</span>
+                        <i class="bi bi-list-ul me-2"></i>Barchasi
+                        <span class="tab-badge">{{ stats.total|default:0 }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="submitted-tab" data-bs-toggle="tab" data-bs-target="#submitted" 
                             type="button" role="tab" aria-controls="submitted" aria-selected="false">
-                        <i class="bi bi-check-circle me-1"></i>Topshirilgan
-                        <span class="badge bg-success ms-1">{{ stats.submitted|default:0 }}</span>
+                        <i class="bi bi-check-circle me-2"></i>Topshirilgan
+                        <span class="tab-badge success">{{ stats.submitted|default:0 }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
                             type="button" role="tab" aria-controls="pending" aria-selected="false">
-                        <i class="bi bi-clock me-1"></i>Topshirilmagan
-                        <span class="badge bg-warning text-dark ms-1">{{ stats.pending|default:0 }}</span>
+                        <i class="bi bi-clock me-2"></i>Topshirilmagan
+                        <span class="tab-badge warning">{{ stats.pending|default:0 }}</span>
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" 
                             type="button" role="tab" aria-controls="late" aria-selected="false">
-                        <i class="bi bi-exclamation-triangle me-1"></i>Kechikkan
-                        <span class="badge bg-danger ms-1">{{ stats.late|default:0 }}</span>
+                        <i class="bi bi-exclamation-triangle me-2"></i>Kechikkan
+                        <span class="tab-badge danger">{{ stats.late|default:0 }}</span>
                     </button>
                 </li>
             </ul>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             <div class="tab-content" id="homeworkTabsContent">
                 <!-- All Homework Tab -->
                 <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
@@ -151,18 +138,84 @@
 </div>
 
 <style>
+.homework-tabs {
+    padding: 16px 24px 0;
+    border-bottom: 1px solid var(--border-color);
+    gap: 8px;
+}
+
+.homework-tabs .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 12px 12px 0 0;
+    background: transparent;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.25s ease;
+}
+
+.homework-tabs .nav-link:hover {
+    background: var(--hover-bg);
+    color: var(--text-color);
+}
+
+.homework-tabs .nav-link.active {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.tab-badge {
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.homework-tabs .nav-link.active .tab-badge {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.tab-badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.tab-badge.warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.tab-badge.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.homework-tabs .nav-link.active .tab-badge.success,
+.homework-tabs .nav-link.active .tab-badge.warning,
+.homework-tabs .nav-link.active .tab-badge.danger {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
 .feedback-text {
     max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
 .feedback-full {
     white-space: pre-wrap;
     word-break: break-word;
 }
-.table-warning-light {
-    background-color: rgba(255, 193, 7, 0.1) !important;
+
+.stat-icon-wrapper.bg-warning-soft {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
 }
 </style>
 {% endblock %}
