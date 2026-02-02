@@ -10,6 +10,10 @@ from accounts.parent_views import (
     parent_tests,
     parent_achievements,
     parent_messages,
+    parent_profile,
+    parent_profile_edit,
+    parent_change_password,
+    parent_settings,
 )
 
 urlpatterns = [
@@ -22,4 +26,8 @@ urlpatterns = [
     path('tests/', parent_tests, name='parent_tests'),
     path('achievements/', parent_achievements, name='parent_achievements'),
     path('messages/', parent_messages, name='parent_messages'),
+    path('profile/', parent_profile, name='parent_profile'),
+    path('profile/edit/', parent_profile_edit, name='parent_profile_edit'),
+    path('profile/password/', parent_change_password, name='parent_change_password'),
+    path('settings/', parent_settings, name='parent_settings'),
 ]

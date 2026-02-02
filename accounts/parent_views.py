@@ -539,3 +539,97 @@ def parent_messages(request):
         'messages': messages,
         'unread_count': unread_count,
     })
+
+
+@parent_required
+def parent_profile(request):
+    """Ota-ona profili"""
+    parent = request.parent
+    children = parent.children.all()
+    
+    return render(request, 'accounts/parent/profile.html', {
+        'parent': parent,
+        'children': children,
+    })
+
+
+@parent_required
+def parent_profile_edit(request):
+    """Ota-ona profilini tahrirlash"""
+    from django.contrib.auth.hashers import make_password
+    
+    parent = request.parent
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip() or None
+        
+        if Parent.objects.filter(phone=phone).exclude(pk=parent.pk).exists():
+            return render(request, 'accounts/parent/profile_edit.html', {
+                'parent': parent,
+                'error': "Bu telefon raqam allaqachon mavjud!",
+            })
+        
+        parent.first_name = first_name
+        parent.last_name = last_name
+        parent.phone = phone
+        parent.email = email
+        parent.save()
+        
+        return redirect('parent_profile')
+    
+    return render(request, 'accounts/parent/profile_edit.html', {
+        'parent': parent,
+    })
+
+
+@parent_required
+def parent_change_password(request):
+    """Ota-ona parolini o'zgartirish"""
+    from django.contrib.auth.hashers import make_password, check_password
+    
+    parent = request.parent
+    
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        if not check_password(current_password, parent.password):
+            return render(request, 'accounts/parent/change_password.html', {
+                'parent': parent,
+                'error': "Joriy parol noto'g'ri!",
+            })
+        
+        if new_password != confirm_password:
+            return render(request, 'accounts/parent/change_password.html', {
+                'parent': parent,
+                'error': "Yangi parollar mos kelmadi!",
+            })
+        
+        if len(new_password) < 6:
+            return render(request, 'accounts/parent/change_password.html', {
+                'parent': parent,
+                'error': "Parol kamida 6 ta belgidan iborat bo'lishi kerak!",
+            })
+        
+        parent.password = make_password(new_password)
+        parent.save()
+        
+        return redirect('parent_profile')
+    
+    return render(request, 'accounts/parent/change_password.html', {
+        'parent': parent,
+    })
+
+
+@parent_required
+def parent_settings(request):
+    """Ota-ona sozlamalari"""
+    parent = request.parent
+    
+    return render(request, 'accounts/parent/settings.html', {
+        'parent': parent,
+    })
