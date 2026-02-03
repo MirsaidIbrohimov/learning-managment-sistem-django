@@ -1,4 +1,5 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
 
 {% block title %}Kitob ijaralari{% endblock %}
 
@@ -135,7 +136,7 @@
                                 <i class="bi bi-calendar-check me-1"></i>{{ rental.return_date|date:"d.m.Y" }}
                                 {% if rental.status == 'active' %}
                                     {% if rental.days_until_return < 0 %}
-                                    <br><span class="badge bg-danger">{{ rental.days_until_return|abs }} kun kechikdi</span>
+                                    <br><span class="badge bg-danger">{{ rental.days_until_return|abs_value }} kun kechikdi</span>
                                     {% elif rental.days_until_return == 0 %}
                                     <br><span class="badge bg-warning text-dark">Bugun!</span>
                                     {% elif rental.days_until_return <= 3 %}
