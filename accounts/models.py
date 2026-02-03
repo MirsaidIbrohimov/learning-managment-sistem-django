@@ -328,6 +328,13 @@ class VideoLesson(models.Model):
         if url and ('youtube.com' in url or 'youtu.be' in url):
             return url
         return None
+
+    def get_vimeo_url(self):
+        """Original Vimeo URL for 'Watch on Vimeo' button"""
+        url = (self.video_url or '').strip()
+        if url and 'vimeo.com' in url:
+            return url
+        return None
     
     def get_thumbnail(self):
         video_id = self.get_video_id()
