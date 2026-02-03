@@ -225,6 +225,39 @@ def profession_detail(request, pk):
                     'type': 'homework',
                     'graded': hw['grade'] is not None
                 }
+        
+        # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
+        section_is_locked = {}
+        if request.user.is_student and not (request.user.is_teacher or request.user.is_admin):
+            completed_lesson_ids = set(lesson_progress.keys())
+            for i, section in enumerate(sections):
+                if i == 0:
+                    section_is_locked[section.id] = False  # 1-bo'lim har doim ochiq
+                else:
+                    # Oldingi barcha bo'limlardagi darslarni tekshirish
+                    prev_sections = list(sections)[:i]
+                    all_prev_completed = True
+                    for prev_section in prev_sections:
+                        for lesson in prev_section.lessons.all():
+                            if lesson.pk not in completed_lesson_ids:
+                                all_prev_completed = False
+                                break
+                        if not all_prev_completed:
+                            break
+                    section_is_locked[section.id] = not all_prev_completed
+            # Bo'limsiz darslar - oxirgi bo'limdan keyin ochiladi
+            if lessons_without_section:
+                all_sections_completed = all(
+                    lesson.pk in completed_lesson_ids
+                    for section in sections
+                    for lesson in section.lessons.all()
+                )
+                section_is_locked['no_section'] = not all_sections_completed
+        else:
+            # Admin va o'qituvchi uchun barcha bo'limlar ochiq
+            for section in sections:
+                section_is_locked[section.id] = False
+            section_is_locked['no_section'] = False
     
     # Kursdoshlar - shu kursga yozilgan o'quvchilar
     classmates = []
@@ -241,6 +274,7 @@ def profession_detail(request, pk):
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
+        'section_is_locked': section_is_locked if (is_enrolled or request.user.is_teacher or request.user.is_admin) else {},
         'classmates': classmates,
     })
 
