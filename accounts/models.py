@@ -7,6 +7,7 @@ class Profession(models.Model):
     name = models.CharField(max_length=200, verbose_name="Kasb nomi")
     photo = models.ImageField(upload_to='professions/', verbose_name="Rasm")
     description = models.TextField(verbose_name="Kasb haqida")
+    is_paid = models.BooleanField(default=True, verbose_name="Pullik kurs")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

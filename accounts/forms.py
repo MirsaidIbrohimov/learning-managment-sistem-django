@@ -79,10 +79,16 @@ class ProfessionForm(forms.ModelForm):
     description = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Kasb haqida ma\'lumot', 'rows': 4})
     )
+    is_paid = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Pullik kurs (so'rov keladi)"
+    )
 
     class Meta:
         model = Profession
-        fields = ['name', 'photo', 'description']
+        fields = ['name', 'photo', 'description', 'is_paid']
 
 
 class UserProfileForm(forms.ModelForm):
