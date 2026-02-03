@@ -2,7 +2,8 @@ from django.urls import path
 from . import views
 from .parent_views import (
     parent_login_view, parent_logout_view, parent_dashboard, parent_children,
-    parent_lessons, parent_homework, parent_tests, parent_achievements, parent_messages
+    parent_lessons, parent_homework, parent_tests, parent_achievements,
+    parent_books, parent_messages
 )
 
 urlpatterns = [
@@ -163,6 +164,7 @@ urlpatterns = [
     path('parent/homework/', parent_homework, name='parent_homework'),
     path('parent/tests/', parent_tests, name='parent_tests'),
     path('parent/achievements/', parent_achievements, name='parent_achievements'),
+    path('parent/books/', parent_books, name='parent_books'),
     path('parent/messages/', parent_messages, name='parent_messages'),
     
     # Admin: Ota-onalar boshqaruvi

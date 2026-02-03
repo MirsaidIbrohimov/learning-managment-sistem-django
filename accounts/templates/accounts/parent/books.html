@@ -1,0 +1,128 @@
+{% extends 'accounts/parent/base_parent.html' %}
+
+{% block title %}Ijaradagi kitoblar - Ota-ona paneli{% endblock %}
+
+{% block parent_content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1"><i class="bi bi-book-half me-2"></i>Farzandlarning ijaradagi kitoblari</h4>
+            <p class="text-muted mb-0">Farzandingiz ijaraga olgan kitoblari va qaytarish sanalari</p>
+        </div>
+        {% if children|length > 1 %}
+        <div>
+            <form method="get" class="d-inline">
+                <select name="child_id" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto;">
+                    {% for c in children %}
+                    <option value="{{ c.id }}" {% if selected_child and selected_child.id == c.id %}selected{% endif %}>
+                        {{ c.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if selected_child %}
+    <!-- Ijarada (faol) kitoblar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-book me-2"></i>{{ selected_child.full_name }}ning ijaradagi kitoblari</h5>
+        </div>
+        <div class="card-body">
+            {% if active_rentals %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Kitob</th>
+                            <th>Muallif</th>
+                            <th>Berilgan sana</th>
+                            <th>Qaytarish sanasi</th>
+                            <th>Holat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in active_rentals %}
+                        <tr class="{% if rental.is_overdue %}table-danger{% endif %}">
+                            <td>
+                                <strong>{{ rental.book.title }}</strong>
+                            </td>
+                            <td>{{ rental.book.author }}</td>
+                            <td>{{ rental.given_date|date:"d.m.Y" }}</td>
+                            <td>
+                                <strong class="{% if rental.is_overdue %}text-danger{% endif %}">
+                                    {{ rental.return_date|date:"d.m.Y" }}
+                                </strong>
+                                {% if rental.is_overdue %}
+                                <br><span class="badge bg-danger">{{ rental.days_until_return|abs }} kun kechikdi</span>
+                                {% elif rental.days_until_return <= 3 and rental.days_until_return >= 0 %}
+                                <br><span class="badge bg-warning text-dark">{{ rental.days_until_return }} kun qoldi</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rental.is_overdue %}
+                                <span class="badge bg-danger">Muddati o'tgan</span>
+                                {% else %}
+                                <span class="badge bg-primary">Ijarada</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Farzandingiz hozirda ijarada kitobi yo'q
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Qaytarilgan kitoblar -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Qaytarib berilgan kitoblar</h5>
+        </div>
+        <div class="card-body">
+            {% if returned_rentals %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Kitob</th>
+                            <th>Muallif</th>
+                            <th>Qaytarilgan sana</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rental in returned_rentals %}
+                        <tr>
+                            <td><strong>{{ rental.book.title }}</strong></td>
+                            <td>{{ rental.book.author }}</td>
+                            <td>{{ rental.actual_return_date|date:"d.m.Y" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Hali qaytarilgan kitoblar yo'q
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-people-fill text-muted" style="font-size: 4rem;"></i>
+            <h5 class="mt-3 mb-2">Farzandlar topilmadi</h5>
+            <p class="text-muted mb-0">Sizga hali farzand biriktirilmagan. Admin bilan bog'laning.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
