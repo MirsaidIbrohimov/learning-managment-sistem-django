@@ -292,7 +292,13 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Mavjud so'rovni tekshirish
+    # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
+    if not profession.is_paid:
+        CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
+        messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! O'qishni boshlashingiz mumkin.")
+        return redirect('profession_detail', pk=pk)
+    
+    # Pullik kurs - so'rov yuborish
     existing_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
     
     if existing_request:
@@ -300,13 +306,11 @@ def enroll_course(request, pk):
             messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz admin tomonidan ko'rib chiqilmoqda.")
             return redirect('profession_detail', pk=pk)
         elif existing_request.status == 'rejected':
-            # Rad etilgan bo'lsa, xabarni ko'rsatish
             admin_msg = existing_request.admin_message or "Sizga ushbu kursni o'qish imkoniyati berilmadi."
             messages.error(request, admin_msg)
             return redirect('profession_detail', pk=pk)
     
     if request.method == 'POST':
-        # Yangi so'rov yaratish
         CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
         messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
         return redirect('profession_detail', pk=pk)
