@@ -315,6 +315,37 @@ def enroll_course(request, pk):
 
 
 # Lesson views
+def _is_section_locked_for_student(user, section, profession):
+    """O'quvchi uchun bo'lim qulflanganmi - oldingi bo'limdagi barcha darslar bajarilganmi"""
+    if not user.is_student or user.is_teacher or user.is_admin:
+        return False
+    sections = profession.sections.filter(is_active=True).prefetch_related('lessons').order_by('order')
+    sections_list = list(sections)
+    try:
+        section_idx = next(i for i, s in enumerate(sections_list) if s.id == section.id)
+    except StopIteration:
+        return False
+    if section_idx == 0:
+        return False
+    # Oldingi bo'limlardagi barcha darslarni tekshirish
+    watched_videos = set(VideoProgress.objects.filter(
+        user=user, watched=True,
+        video__lesson__profession=profession
+    ).values_list('video__lesson_id', flat=True))
+    completed_tests = set(TestResult.objects.filter(
+        student=user, test__lesson__profession=profession
+    ).values_list('test__lesson_id', flat=True))
+    submitted_homeworks = set(HomeworkSubmission.objects.filter(
+        student=user, homework__lesson__profession=profession
+    ).values_list('homework__lesson_id', flat=True))
+    completed_lesson_ids = watched_videos | completed_tests | submitted_homeworks
+    for prev_section in sections_list[:section_idx]:
+        for prev_lesson in prev_section.lessons.all():
+            if prev_lesson.pk not in completed_lesson_ids:
+                return True
+    return False
+
+
 @login_required
 def lesson_view(request, pk):
     lesson = get_object_or_404(Lesson, pk=pk)
@@ -324,6 +355,31 @@ def lesson_view(request, pk):
         if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
             messages.error(request, "Avval kursga yoziling!")
             return redirect('profession_detail', pk=profession.pk)
+        # Qulflangan bo'limdagi darsga kirishni bloklash
+        if lesson.section and _is_section_locked_for_student(request.user, lesson.section, profession):
+            messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) tugating!")
+            return redirect('profession_detail', pk=profession.pk)
+        # Bo'limsiz darslar - barcha bo'limlar tugatilgandan keyin
+        if not lesson.section:
+            sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
+            watched_videos = set(VideoProgress.objects.filter(
+                user=request.user, watched=True,
+                video__lesson__profession=profession
+            ).values_list('video__lesson_id', flat=True))
+            completed_tests = set(TestResult.objects.filter(
+                student=request.user, test__lesson__profession=profession
+            ).values_list('test__lesson_id', flat=True))
+            submitted_homeworks = set(HomeworkSubmission.objects.filter(
+                student=request.user, homework__lesson__profession=profession
+            ).values_list('homework__lesson_id', flat=True))
+            completed_lesson_ids = watched_videos | completed_tests | submitted_homeworks
+            all_sections_done = all(
+                l.pk in completed_lesson_ids
+                for s in sections for l in s.lessons.all()
+            )
+            if not all_sections_done:
+                messages.warning(request, "Barcha bo'limlarni tugatgandan so'ng bu darsga kirish mumkin!")
+                return redirect('profession_detail', pk=profession.pk)
     
     context = {'lesson': lesson, 'profession': profession}
     

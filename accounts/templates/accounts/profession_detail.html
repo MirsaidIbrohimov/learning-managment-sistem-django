@@ -41,6 +41,15 @@
     transition: all 0.3s;
 }
 
+.section-card.section-locked {
+    opacity: 0.9;
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+.section-card.section-locked .section-header {
+    cursor: default;
+}
+
 .section-header {
     padding: 16px 20px;
     cursor: pointer;
@@ -355,26 +364,42 @@
         
         <!-- Sections -->
         {% for section in sections %}
-        <div class="section-card">
-            <div class="section-header {% if forloop.first %}active{% endif %}" onclick="toggleSection(this)">
+        {% with section_locked=section_is_locked|get_item:section.id %}
+        <div class="section-card {% if section_locked %}section-locked{% endif %}">
+            <div class="section-header {% if forloop.first and not section_locked %}active{% endif %}" onclick="{% if not section_locked %}toggleSection(this){% endif %}">
                 <h6 class="section-title">
-                    <div class="section-icon">
+                    <div class="section-icon {% if section_locked %}opacity-50{% endif %}">
+                        {% if section_locked %}
+                        <i class="bi bi-lock-fill text-warning"></i>
+                        {% else %}
                         <i class="bi bi-folder2"></i>
+                        {% endif %}
                     </div>
                     <div>
                         {{ section.title }}
-                        {% if section.description %}
+                        {% if section_locked %}
+                        <small class="d-block text-warning fw-normal" style="font-size: 0.8rem;">Avval 1-bo'limdagi video, test va uyga vazifani tugating</small>
+                        {% elif section.description %}
                         <small class="d-block text-muted fw-normal" style="font-size: 0.8rem;">{{ section.description|truncatechars:50 }}</small>
                         {% endif %}
                     </div>
                 </h6>
                 <div class="section-meta">
+                    {% if section_locked %}
+                    <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>Qulflangan</span>
+                    {% else %}
                     <span class="section-count">{{ section.lessons.count }} dars</span>
+                    {% endif %}
                     <i class="bi bi-chevron-down section-arrow"></i>
                 </div>
             </div>
-            <div class="section-body {% if forloop.first %}show{% endif %}">
-                {% if section.lessons.all %}
+            <div class="section-body {% if forloop.first and not section_locked %}show{% endif %}">
+                {% if section_locked %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Bu bo'lim ochilishi uchun avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) bajarishingiz kerak</p>
+                </div>
+                {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
                     <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
                         <div class="lesson-icon {{ lesson.lesson_type }}">
@@ -439,12 +464,14 @@
                 {% endif %}
             </div>
         </div>
+        {% endwith %}
         {% endfor %}
         
         <!-- Lessons without section -->
         {% if lessons_without_section %}
-        <div class="section-card">
-            <div class="section-header" onclick="toggleSection(this)">
+        {% with no_section_locked=section_is_locked|get_item:'no_section' %}
+        <div class="section-card {% if no_section_locked %}section-locked{% endif %}">
+            <div class="section-header {% if not no_section_locked %}active{% endif %}" onclick="{% if not no_section_locked %}toggleSection(this){% endif %}">
                 <h6 class="section-title">
                     <div class="section-icon" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
                         <i class="bi bi-collection"></i>
@@ -452,11 +479,21 @@
                     Boshqa darslar
                 </h6>
                 <div class="section-meta">
+                    {% if no_section_locked %}
+                    <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>Qulflangan</span>
+                    {% else %}
                     <span class="section-count">{{ lessons_without_section|length }} dars</span>
+                    {% endif %}
                     <i class="bi bi-chevron-down section-arrow"></i>
                 </div>
             </div>
             <div class="section-body">
+                {% if no_section_locked %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Barcha bo'limlarni tugatgandan so'ng ochiladi</p>
+                </div>
+                {% else %}
                 {% for lesson in lessons_without_section %}
                 <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
                     <div class="lesson-icon {{ lesson.lesson_type }}">
@@ -487,8 +524,10 @@
                     </div>
                 </a>
                 {% endfor %}
+                {% endif %}
             </div>
         </div>
+        {% endwith %}
         {% endif %}
         
         {% else %}
