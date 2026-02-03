@@ -260,16 +260,16 @@ class VideoLesson(models.Model):
     
     @property
     def is_vimeo(self):
-        url = self.video_url or ''
-        return 'vimeo.com' in url
+        url = (self.video_url or '').strip()
+        return bool(url and 'vimeo.com' in url)
     
     @property
     def is_youtube(self):
-        url = self.video_url or self.youtube_url or ''
-        return 'youtube.com' in url or 'youtu.be' in url
+        url = (self.youtube_url or self.video_url or '').strip()
+        return bool(url and ('youtube.com' in url or 'youtu.be' in url))
     
     def get_video_id(self):
-        url = self.video_url or self.youtube_url or ''
+        url = (self.video_url or self.youtube_url or '').strip()
         
         # Vimeo: https://vimeo.com/123456789 or https://vimeo.com/123456789?share=copy
         # or https://player.vimeo.com/video/123456789
@@ -318,13 +318,14 @@ class VideoLesson(models.Model):
         
         if self.is_vimeo:
             return f"https://player.vimeo.com/video/{video_id}?autoplay=1&title=0&byline=0&portrait=0"
-        else:
+        elif self.is_youtube:
             return f"https://www.youtube-nocookie.com/embed/{video_id}?autoplay=1&rel=0&modestbranding=1"
+        return None
     
     def get_youtube_url(self):
         """Original YouTube URL for 'Watch on YouTube' button"""
-        url = self.youtube_url or self.video_url or ''
-        if 'youtube.com' in url or 'youtu.be' in url:
+        url = (self.youtube_url or self.video_url or '').strip()
+        if url and ('youtube.com' in url or 'youtu.be' in url):
             return url
         return None
     

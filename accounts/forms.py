@@ -157,9 +157,21 @@ class VideoLessonForm(forms.Form):
         max_length=300,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dars nomi'})
     )
-    video_url = forms.URLField(
-        required=True,
-        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'YouTube yoki Vimeo havolasi'})
+    vimeo_url = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'https://vimeo.com/123456789'
+        }),
+        label="Vimeo havolasi"
+    )
+    youtube_url = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'https://www.youtube.com/watch?v=VIDEO_ID'
+        }),
+        label="YouTube havolasi"
     )
     duration = forms.IntegerField(
         min_value=1,
@@ -167,6 +179,23 @@ class VideoLessonForm(forms.Form):
         widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Davomiyligi (daqiqa)'}),
         help_text="Video davomiyligi (daqiqada). O'quvchi shu vaqtning yarmini ko'rishi kerak."
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        vimeo_url = (cleaned_data.get('vimeo_url') or '').strip()
+        youtube_url = (cleaned_data.get('youtube_url') or '').strip()
+
+        if vimeo_url and youtube_url:
+            raise forms.ValidationError("Faqat bitta havola kiriting: Vimeo YOKI YouTube.")
+        if not vimeo_url and not youtube_url:
+            raise forms.ValidationError("Vimeo yoki YouTube havolasini kiriting.")
+
+        if vimeo_url and 'vimeo.com' not in vimeo_url:
+            raise forms.ValidationError("Vimeo havolasi vimeo.com dan bo'lishi kerak.")
+        if youtube_url and 'youtube.com' not in youtube_url and 'youtu.be' not in youtube_url:
+            raise forms.ValidationError("YouTube havolasi youtube.com yoki youtu.be dan bo'lishi kerak.")
+
+        return cleaned_data
 
 
 class HomeworkForm(forms.Form):

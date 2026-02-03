@@ -1246,11 +1246,12 @@ def add_lesson(request, pk):
                     lesson_type='video',
                     created_by=request.user
                 )
-                video_url = form.cleaned_data.get('video_url') or ''
+                vimeo_url = form.cleaned_data.get('vimeo_url') or ''
+                youtube_url = form.cleaned_data.get('youtube_url') or ''
                 VideoLesson.objects.create(
                     lesson=lesson,
-                    video_url=video_url,
-                    youtube_url=video_url if ('youtube.com' in video_url or 'youtu.be' in video_url) else '',
+                    video_url=vimeo_url or None,
+                    youtube_url=youtube_url or None,
                     duration=form.cleaned_data.get('duration') or 0
                 )
                 # Xabar yuborish
@@ -1345,7 +1346,8 @@ def edit_lesson(request, pk):
             if form.is_valid():
                 lesson.title = form.cleaned_data['title']
                 lesson.save()
-                lesson.video.youtube_url = form.cleaned_data['youtube_url']
+                lesson.video.video_url = form.cleaned_data.get('vimeo_url') or None
+                lesson.video.youtube_url = form.cleaned_data.get('youtube_url') or None
                 lesson.video.duration = form.cleaned_data.get('duration') or 0
                 lesson.video.save()
                 # Xabar yuborish
@@ -1377,7 +1379,8 @@ def edit_lesson(request, pk):
         if lesson.lesson_type == 'video':
             form = VideoLessonForm(initial={
                 'title': lesson.title,
-                'youtube_url': lesson.video.youtube_url,
+                'vimeo_url': lesson.video.video_url or '',
+                'youtube_url': lesson.video.youtube_url or '',
                 'duration': lesson.video.duration,
             })
         elif lesson.lesson_type == 'homework':

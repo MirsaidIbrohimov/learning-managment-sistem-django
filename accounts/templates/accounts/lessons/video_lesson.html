@@ -285,7 +285,9 @@ if (placeholder) {
 
         /* ===== YOUTUBE ===== */
         if (isYouTube) {
-            iframe.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1&rel=0";
+            iframe.src = "https://www.youtube-nocookie.com/embed/" + videoId + "?autoplay=1&rel=0&modestbranding=1";
+            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
+            iframe.setAttribute('allowfullscreen', '');
             isVideoPlaying = true;
             resumeTimer();
         }

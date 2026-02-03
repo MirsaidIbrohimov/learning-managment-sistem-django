@@ -44,7 +44,13 @@
                 <div class="card-body p-4">
                     <form method="POST">
                         {% csrf_token %}
-                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}<p class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</p>{% endfor %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         <div class="mb-3">
                             <label class="form-label" style="color: var(--text-color);">Bo'lim</label>
                             <select name="section" class="form-select">
@@ -64,12 +70,17 @@
                         
                         {% if lesson_type == 'video' %}
                         <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Video havolasi *</label>
-                            {{ form.video_url }}
-                            <div class="mt-2">
-                                <small class="text-muted d-block"><i class="bi bi-youtube text-danger me-1"></i>YouTube: https://www.youtube.com/watch?v=abc123</small>
-                                <small class="text-muted d-block"><i class="bi bi-vimeo text-info me-1"></i>Vimeo: https://vimeo.com/123456789</small>
-                            </div>
+                            <label class="form-label" style="color: var(--text-color);"><i class="bi bi-vimeo text-info me-1"></i>Vimeo havolasi</label>
+                            {{ form.vimeo_url }}
+                            <small class="text-muted d-block mt-1">Masalan: https://vimeo.com/123456789</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-color);"><i class="bi bi-youtube text-danger me-1"></i>YouTube havolasi</label>
+                            {{ form.youtube_url }}
+                            <small class="text-muted d-block mt-1">Masalan: https://www.youtube.com/watch?v=VIDEO_ID yoki https://youtu.be/VIDEO_ID</small>
+                        </div>
+                        <div class="alert alert-info py-2 mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Vimeo YOKI YouTube havolasidan birini kiriting
                         </div>
                         <div class="mb-3">
                             <label class="form-label" style="color: var(--text-color);">Davomiyligi (daqiqa) *</label>
