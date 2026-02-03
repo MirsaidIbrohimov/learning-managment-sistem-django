@@ -8,7 +8,7 @@ from datetime import timedelta
 from accounts.models import (
     Parent, ParentMessage, CustomUser, Profession, Section, Lesson,
     VideoLesson, VideoProgress, Homework, HomeworkSubmission,
-    Test, TestResult, Certificate, CourseEnrollment
+    Test, TestResult, Certificate, CourseEnrollment, BookRental
 )
 
 
@@ -493,6 +493,40 @@ def parent_achievements(request):
         'selected_child': selected_child,
         'certificates': certificates,
         'stats': stats,
+    })
+
+
+@parent_required
+def parent_books(request):
+    """Farzandlarning ijaradagi kitoblari va qaytarish sanalari"""
+    parent = request.parent
+    children = parent.children.all()
+    
+    child_id = request.GET.get('child_id')
+    if child_id:
+        selected_child = get_object_or_404(children, id=child_id)
+    else:
+        selected_child = children.first()
+    
+    if not selected_child:
+        return render(request, 'accounts/parent/books.html', {
+            'parent': parent,
+            'children': children,
+            'selected_child': None,
+            'active_rentals': [],
+            'returned_rentals': [],
+        })
+    
+    rentals = BookRental.objects.filter(student=selected_child).select_related('book', 'given_by')
+    active_rentals = rentals.filter(status__in=['active', 'overdue'])
+    returned_rentals = rentals.filter(status='returned')
+    
+    return render(request, 'accounts/parent/books.html', {
+        'parent': parent,
+        'children': children,
+        'selected_child': selected_child,
+        'active_rentals': active_rentals,
+        'returned_rentals': returned_rentals,
     })
 
 

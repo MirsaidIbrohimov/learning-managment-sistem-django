@@ -1,0 +1,118 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Ijaradagi kitoblarim{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h4 class="mb-4"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</h4>
+        </div>
+    </div>
+
+    <!-- Ijarada (faol) kitoblar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-book me-2"></i>Ijaraga olingan kitoblar</h5>
+        </div>
+        <div class="card-body">
+            {% if active_rentals %}
+            <div class="row">
+                {% for rental in active_rentals %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card border h-100 {% if rental.is_overdue %}border-danger{% endif %}">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-2">
+                                {% if rental.book.cover_image %}
+                                <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }}"
+                                     class="rounded me-3" style="width: 50px; height: 65px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
+                                     style="width: 50px; height: 65px;">
+                                    <i class="bi bi-book text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">{{ rental.book.title }}</h6>
+                                    <p class="text-muted small mb-0">{{ rental.book.author }}</p>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Berilgan sana:</small>
+                                <span>{{ rental.given_date|date:"d.m.Y" }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Qaytarish sanasi:</small>
+                                <strong class="{% if rental.is_overdue %}text-danger{% endif %}">
+                                    {{ rental.return_date|date:"d.m.Y" }}
+                                </strong>
+                                {% if rental.is_overdue %}
+                                <br><span class="badge bg-danger">{{ rental.days_until_return|abs }} kun kechikdi</span>
+                                {% elif rental.days_until_return <= 3 and rental.days_until_return >= 0 %}
+                                <br><span class="badge bg-warning text-dark">{{ rental.days_until_return }} kun qoldi</span>
+                                {% endif %}
+                            </div>
+                            <p class="small text-muted mb-0">
+                                <i class="bi bi-info-circle me-1"></i>Kitobni kutubxonaga qaytarib berishingiz mumkin
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Hozirda ijarada kitobingiz yo'q
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Qaytarilgan kitoblar -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="bi bi-check-circle me-2"></i>Qaytarib berilgan kitoblar</h5>
+        </div>
+        <div class="card-body">
+            {% if returned_rentals %}
+            <div class="row">
+                {% for rental in returned_rentals %}
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card border h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-2">
+                                {% if rental.book.cover_image %}
+                                <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }}"
+                                     class="rounded me-3" style="width: 50px; height: 65px; object-fit: cover;">
+                                {% else %}
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
+                                     style="width: 50px; height: 65px;">
+                                    <i class="bi bi-book text-muted"></i>
+                                </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="fw-bold mb-1">{{ rental.book.title }}</h6>
+                                    <p class="text-muted small mb-0">{{ rental.book.author }}</p>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">Qaytarilgan sana:</small>
+                                <span>{{ rental.actual_return_date|date:"d.m.Y" }}</span>
+                            </div>
+                            <span class="badge bg-success">
+                                <i class="bi bi-check-lg me-1"></i>Qaytarib berilgan
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>Hali qaytarilgan kitoblar yo'q
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

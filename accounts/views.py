@@ -4432,14 +4432,25 @@ def admin_give_book(request):
         book.available_copies -= 1
         book.save()
         
-        # O'quvchiga xabar yuborish
+        # O'quvchiga xabar yuborish: "Ijaraga shu kitob berildi, qaytarish sanasi kelmoqda"
+        from datetime import datetime
+        return_date_str = datetime.strptime(return_date, '%Y-%m-%d').strftime('%d.%m.%Y')
         Message.objects.create(
             sender=request.user,
             recipient=student,
             title="📚 Kitob ijarasi",
-            content=f"Sizga '{book.title}' ({book.author}) kitobi ijaraga berildi.\n\nQaytarish sanasi: {return_date}\n\nIltimos, kitobni o'z vaqtida qaytaring!",
+            content=f"Sizga '{book.title}' ({book.author}) kitobi ijaraga berildi. Qaytarish sanasi kelmoqda: {return_date_str}\n\nIltimos, kitobni o'z vaqtida kutubxonaga qaytaring!",
             message_type='system'
         )
+        
+        # Ota-onalarga xabar: farzandining ijaradagi kitobi va qaytarish sanasi
+        for parent in student.parents.filter(is_active=True):
+            ParentMessage.objects.create(
+                parent=parent,
+                child=student,
+                subject="📚 Farzandingiz kitob oldi",
+                message=f"Farzandingiz {student.full_name} '{book.title}' ({book.author}) kitobini ijaraga oldi.\n\nQaytarish sanasi: {return_date_str}\n\nIltimos, farzandingizga kitobni o'z vaqtida qaytarishni eslatib qo'ying!"
+            )
         
         messages.success(request, f"'{book.title}' kitobi {student.full_name}ga berildi!")
         return redirect('admin_book_rentals')
@@ -4447,9 +4458,11 @@ def admin_give_book(request):
     books = Book.objects.filter(available_copies__gt=0)
     students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
     
+    from datetime import date
     context = {
         'books': books,
         'students': students,
+        'today': date.today(),
     }
     return render(request, 'accounts/admin/give_book.html', context)
 
@@ -4485,7 +4498,8 @@ def my_book_rentals(request):
     """O'quvchining ijaradagi kitoblari"""
     rentals = BookRental.objects.filter(student=request.user).select_related('book', 'given_by')
     
-    active_rentals = rentals.filter(status='active')
+    # Faol va muddati o'tgan (hali qaytarilmagan) kitoblar
+    active_rentals = rentals.filter(status__in=['active', 'overdue'])
     returned_rentals = rentals.filter(status='returned')
     
     context = {
@@ -4510,21 +4524,21 @@ def send_book_reminders():
     )
     
     for rental in rentals_3days:
-        # O'quvchiga xabar
+        # O'quvchiga xabar: "Iltimos ushbu yozuvchini shu nomli kitobini kutubxonaga qaytaring"
         Message.objects.create(
             recipient=rental.student,
             title="⏰ Kitob qaytarish eslatmasi",
-            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini qaytarish muddati 3 kun qoldi.\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, kitobni o'z vaqtida kutubxonaga qaytaring!",
+            content=f"Hurmatli {rental.student.full_name}!\n\n'{rental.book.title}' ({rental.book.author}) kitobini qaytarish muddati 3 kun qoldi.\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring!\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}",
             message_type='system'
         )
         
-        # Ota-onaga xabar
+        # Ota-onaga xabar: farzandining ijaradagi kitobi qaytarish sanasi
         for parent in rental.student.parents.filter(is_active=True):
             ParentMessage.objects.create(
                 parent=parent,
                 child=rental.student,
-                subject="⏰ Kitob qaytarish eslatmasi",
-                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini 3 kun ichida qaytarishi kerak.\n\nQaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, farzandingizga eslatib qo'ying!"
+                subject="⏰ Kitob qaytarish eslatmasi (3 kun qoldi)",
+                message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini ijaraga olgan. Qaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb farzandingizga aytib qo'ying!"
             )
         
         rental.reminder_sent_3days = True
@@ -4538,7 +4552,7 @@ def send_book_reminders():
     )
     
     for rental in rentals_today:
-        # O'quvchiga xabar
+        # O'quvchiga xabar: "Iltimos ushbu yozuvchini shu nomli kitobini kutubxonaga qaytaring"
         Message.objects.create(
             recipient=rental.student,
             title="🚨 Kitobni bugun qaytaring!",
@@ -4546,7 +4560,7 @@ def send_book_reminders():
             message_type='system'
         )
         
-        # Ota-onaga xabar
+        # Ota-onaga xabar: farzandining ijaradagi kitobi bugun qaytarish kerak
         for parent in rental.student.parents.filter(is_active=True):
             ParentMessage.objects.create(
                 parent=parent,
