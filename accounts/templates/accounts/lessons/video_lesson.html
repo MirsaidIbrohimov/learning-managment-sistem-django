@@ -139,6 +139,22 @@
     font-size: 0.8rem;
     font-weight: 600;
 }
+
+.vimeo-btn {
+    background: linear-gradient(135deg, #1ab7ea, #0d95c7);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.vimeo-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 183, 234, 0.3);
+    color: white;
+}
 </style>
 {% endblock %}
 
@@ -201,11 +217,17 @@
                 {% endif %}
             </div>
 
-            <!-- YouTube button -->
+            <!-- YouTube / Vimeo button -->
             {% if video.get_youtube_url %}
             <div class="text-center mb-4">
                 <a href="{{ video.get_youtube_url }}" target="_blank" class="youtube-btn">
                     <i class="bi bi-youtube me-2"></i>YouTubeda ko'rish
+                </a>
+            </div>
+            {% elif video.get_vimeo_url %}
+            <div class="text-center mb-4">
+                <a href="{{ video.get_vimeo_url }}" target="_blank" class="btn vimeo-btn">
+                    <i class="bi bi-vimeo me-2"></i>Vimeoda ko'rish
                 </a>
             </div>
             {% endif %}
