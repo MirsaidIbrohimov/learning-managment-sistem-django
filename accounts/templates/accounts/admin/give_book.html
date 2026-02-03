@@ -1,0 +1,92 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Kitob berish - Kutubxona{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <a href="{% url 'admin_book_rentals' %}" class="text-decoration-none text-muted">
+            <i class="bi bi-arrow-left me-1"></i>Ijaralarga qaytish
+        </a>
+        <h4 class="mt-2 mb-0">
+            <i class="bi bi-book-half me-2"></i>O'quvchiga kitob berish
+        </h4>
+        <p class="text-muted mb-0">Berilgan sana avtomatik bugungi sana olinadi</p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Kitob *</label>
+                            <select name="book_id" class="form-select" required>
+                                <option value="">Kitobni tanlang...</option>
+                                {% for book in books %}
+                                <option value="{{ book.pk }}">
+                                    {{ book.title }} — {{ book.author }} ({{ book.available_copies }} mavjud)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">O'quvchi *</label>
+                            <select name="student_id" class="form-select" required>
+                                <option value="">O'quvchini tanlang...</option>
+                                {% for student in students %}
+                                <option value="{{ student.pk }}">{{ student.full_name }} ({{ student.phone|default:student.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Berilgan sana</label>
+                            <input type="text" class="form-control bg-light" value="{{ today|date:'d.m.Y' }}" readonly disabled>
+                            <small class="text-muted">Avtomatik bugungi sana</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Qaytarish sanasi *</label>
+                            <input type="date" name="return_date" class="form-control" required min="{{ today|date:'Y-m-d' }}">
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Izoh (ixtiyoriy)</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Qo'shimcha izoh..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-book-half me-2"></i>Kitobni berish
+                        </button>
+                        <a href="{% url 'admin_book_rentals' %}" class="btn btn-secondary">Bekor qilish</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ma'lumot</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">
+                        Kitob berilgach, o'quvchiga xabar yuboriladi: "Ijaraga shu kitob berildi, qaytarish sanasi kelmoqda"
+                    </p>
+                    <p class="text-muted small mb-2">
+                        3 kun oldin va qaytarish kuni eslatma xabarlari avtomatik yuboriladi
+                    </p>
+                    <p class="text-muted small mb-0">
+                        Ota-onalarga ham farzandlarining ijaradagi kitoblari haqida xabar boradi
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
