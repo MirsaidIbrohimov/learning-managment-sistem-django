@@ -33,7 +33,16 @@
                         <h5 class="card-title" style="color: var(--primary-blue);">{{ profession.name }}</h5>
                         <p class="card-text" style="color: var(--text-color);">{{ profession.description|truncatewords:15 }}</p>
                         
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+                            {% if profession.is_paid %}
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-currency-dollar me-1"></i>Pullik
+                            </span>
+                            {% else %}
+                            <span class="badge bg-success">
+                                <i class="bi bi-gift me-1"></i>Bepul
+                            </span>
+                            {% endif %}
                             <span class="badge bg-primary">
                                 <i class="bi bi-people me-1"></i>{{ profession.student_count }} o'quvchi
                             </span>

@@ -291,7 +291,16 @@
         <h4 class="fw-bold mb-2">{{ profession.name }}</h4>
         <p class="text-muted small mb-3">{{ profession.description|truncatechars:150 }}</p>
         
-        <div class="d-flex justify-content-center gap-3 mb-3">
+        <div class="d-flex justify-content-center gap-3 mb-3 flex-wrap">
+            {% if profession.is_paid %}
+            <span class="badge bg-warning bg-opacity-25 text-warning px-3 py-2">
+                <i class="bi bi-currency-dollar me-1"></i>Pullik
+            </span>
+            {% else %}
+            <span class="badge bg-success bg-opacity-25 text-success px-3 py-2">
+                <i class="bi bi-gift me-1"></i>Bepul
+            </span>
+            {% endif %}
             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
                 <i class="bi bi-people me-1"></i>{{ profession.student_count }} o'quvchi
             </span>
@@ -326,7 +335,11 @@
                 {% endif %}
             {% else %}
                 <a href="{% url 'enroll_course' profession.pk %}" class="btn btn-primary w-100 ios-btn mb-3">
+                    {% if profession.is_paid %}
+                    <i class="bi bi-send me-2"></i>Kursga yozilish so'rov yuborish
+                    {% else %}
                     <i class="bi bi-play-circle me-2"></i>O'qishni boshlash
+                    {% endif %}
                 </a>
             {% endif %}
         {% endif %}
