@@ -4354,7 +4354,7 @@ def admin_parent_delete(request, pk):
 
 # ============ KITOBXONA / BOOK RENTAL ============
 
-from .models import Book, BookRental
+from .models import Book, BookRental, ParentPasswordResetRequest
 
 @login_required
 def admin_books(request):
@@ -4675,4 +4675,66 @@ def send_book_reminders():
         return_date__lt=today
     ).update(status='overdue')
 
+
+# ============ OTA-ONA PAROL TIKLASH SO'ROVLARI ============
+
+@login_required
+def admin_parent_password_requests(request):
+    """Ota-ona parol tiklash so'rovlari"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    requests_list = ParentPasswordResetRequest.objects.select_related('parent').all()
+    
+    # Filter by status
+    status = request.GET.get('status', 'pending')
+    if status:
+        requests_list = requests_list.filter(status=status)
+    
+    context = {
+        'requests': requests_list,
+        'status': status,
+        'pending_count': ParentPasswordResetRequest.objects.filter(status='pending').count(),
+    }
+    return render(request, 'accounts/admin/parent_password_requests.html', context)
+
+
+@login_required
+def approve_parent_password_reset(request, pk):
+    """Ota-ona parol tiklash so'rovini tasdiqlash"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
+    
+    if request.method == 'POST':
+        reset_request.parent.password = reset_request.new_password
+        reset_request.parent.save()
+        
+        reset_request.status = 'approved'
+        reset_request.reviewed_by = request.user
+        reset_request.save()
+        
+        messages.success(request, f"{reset_request.parent.full_name} uchun parol muvaffaqiyatli o'zgartirildi!")
+    
+    return redirect('admin_parent_password_requests')
+
+
+@login_required
+def reject_parent_password_reset(request, pk):
+    """Ota-ona parol tiklash so'rovini rad etish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
+    
+    if request.method == 'POST':
+        reset_request.status = 'rejected'
+        reset_request.reviewed_by = request.user
+        reset_request.admin_message = request.POST.get('admin_message', '')
+        reset_request.save()
+        
+        messages.info(request, f"{reset_request.parent.full_name} so'rovi rad etildi!")
+    
+    return redirect('admin_parent_password_requests')
 

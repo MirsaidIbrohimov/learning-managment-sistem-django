@@ -158,6 +158,7 @@ urlpatterns = [
     # Ota-ona portali
     path('parent/login/', parent_login_view, name='parent_login'),
     path('parent/logout/', parent_logout_view, name='parent_logout'),
+    path('parent/password-reset/', parent_password_reset_request, name='parent_password_reset_request'),
     path('parent/', parent_dashboard, name='parent_dashboard'),
     path('parent/children/', parent_children, name='parent_children'),
     path('parent/lessons/', parent_lessons, name='parent_lessons'),
@@ -186,4 +187,9 @@ urlpatterns = [
     
     # O'quvchi: Ijaradagi kitoblar
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),
+    
+    # Admin: Ota-ona parol tiklash so'rovlari
+    path('dashboard/parent-password-requests/', views.admin_parent_password_requests, name='admin_parent_password_requests'),
+    path('dashboard/parent-password-requests/<int:pk>/approve/', views.approve_parent_password_reset, name='approve_parent_password_reset'),
+    path('dashboard/parent-password-requests/<int:pk>/reject/', views.reject_parent_password_reset, name='reject_parent_password_reset'),
 ]
