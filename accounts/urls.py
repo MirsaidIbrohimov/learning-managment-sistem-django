@@ -3,7 +3,7 @@ from . import views
 from .parent_views import (
     parent_login_view, parent_logout_view, parent_dashboard, parent_children,
     parent_lessons, parent_homework, parent_tests, parent_achievements,
-    parent_books, parent_messages
+    parent_books, parent_messages, parent_password_reset_request
 )
 
 urlpatterns = [
