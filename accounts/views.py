@@ -2770,6 +2770,10 @@ def create_deploy(request):
                 
                 # Papka yaratish
                 deploy_folder = os.path.join(settings.MEDIA_ROOT, 'deploys', request.user.username, folder_name)
+                
+                # Eski papkani o'chirish
+                if os.path.exists(deploy_folder):
+                    shutil.rmtree(deploy_folder)
                 os.makedirs(deploy_folder, exist_ok=True)
                 
                 # ZIP ni ochish
@@ -2781,31 +2785,69 @@ def create_deploy(request):
                         tmp_path = tmp.name
                     
                     with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
+                        # Barcha fayllarni olish (__MACOSX dan boshqa)
+                        all_files = [f for f in zip_ref.namelist() if not f.startswith('__MACOSX') and not f.startswith('._')]
+                        
                         # HTML fayllarni topish
-                        html_files = [f for f in zip_ref.namelist() if f.endswith('.html') and not f.startswith('__MACOSX')]
+                        html_files = [f for f in all_files if f.lower().endswith('.html')]
                         
                         if not html_files:
                             messages.error(request, "ZIP ichida HTML fayl topilmadi!")
                             os.unlink(tmp_path)
                             return redirect('create_deploy')
                         
-                        # Agar entry_file ko'rsatilmagan bo'lsa
-                        if not entry_file or entry_file == 'index.html':
-                            # index.html ni izlash
-                            for hf in html_files:
-                                if 'index.html' in hf.lower():
-                                    entry_file = os.path.basename(hf)
-                                    break
+                        # Fayllarni chiqarish
+                        for file_info in zip_ref.infolist():
+                            if file_info.filename.startswith('__MACOSX') or file_info.filename.startswith('._'):
+                                continue
+                            
+                            # Fayl nomini tozalash (papka prefiksini olib tashlash)
+                            original_name = file_info.filename
+                            
+                            # Agar bitta asosiy papka ichida bo'lsa, uni olib tashlash
+                            parts = original_name.split('/')
+                            if len(parts) > 1 and parts[0] and not parts[0].endswith('.html'):
+                                # Birinchi papkani olib tashlash
+                                clean_name = '/'.join(parts[1:])
                             else:
-                                # Birinchi HTML ni olish
-                                entry_file = os.path.basename(html_files[0])
+                                clean_name = original_name
+                            
+                            if not clean_name or clean_name.endswith('/'):
+                                continue
+                            
+                            # Fayl yo'lini yaratish
+                            target_path = os.path.join(deploy_folder, clean_name)
+                            target_dir = os.path.dirname(target_path)
+                            
+                            if target_dir and not os.path.exists(target_dir):
+                                os.makedirs(target_dir, exist_ok=True)
+                            
+                            # Faylni yozish
+                            with zip_ref.open(file_info) as source, open(target_path, 'wb') as target:
+                                target.write(source.read())
                         
-                        zip_ref.extractall(deploy_folder)
+                        # Entry file ni aniqlash
+                        if not entry_file or entry_file == 'index.html':
+                            # Deploy papkasida index.html bormi?
+                            if os.path.exists(os.path.join(deploy_folder, 'index.html')):
+                                entry_file = 'index.html'
+                            else:
+                                # Birinchi HTML faylni olish
+                                for root, dirs, files in os.walk(deploy_folder):
+                                    for f in files:
+                                        if f.lower().endswith('.html'):
+                                            rel_path = os.path.relpath(os.path.join(root, f), deploy_folder)
+                                            entry_file = rel_path.replace('\\', '/')
+                                            break
+                                    if entry_file != 'index.html':
+                                        break
                     
                     os.unlink(tmp_path)
                     
                 except Exception as e:
                     messages.error(request, f"ZIP faylni ochishda xato: {str(e)}")
+                    if os.path.exists(deploy_folder):
+                        shutil.rmtree(deploy_folder)
                     return redirect('create_deploy')
             
             # HTML fayl
@@ -2954,28 +2996,53 @@ def view_deployed_page(request, username, folder_name, filepath=None):
     if not filepath:
         filepath = deploy.entry_file
     
+    # filepath ni tozalash (/ va \ ni to'g'rilash)
+    filepath = filepath.replace('\\', '/').lstrip('/')
+    
     # Fayl yo'lini tuzish
-    file_path = os.path.join(deploy.get_folder_path(), filepath)
+    deploy_folder = deploy.get_folder_path()
+    file_path = os.path.join(deploy_folder, filepath.replace('/', os.sep))
     
     # Xavfsizlik tekshiruvi - papkadan tashqariga chiqmaslik
-    real_path = os.path.realpath(file_path)
-    deploy_folder = os.path.realpath(deploy.get_folder_path())
-    if not real_path.startswith(deploy_folder):
-        return HttpResponse("Ruxsat berilmagan", status=403)
+    try:
+        real_path = os.path.realpath(file_path)
+        real_deploy_folder = os.path.realpath(deploy_folder)
+        if not real_path.startswith(real_deploy_folder):
+            return HttpResponse("Ruxsat berilmagan", status=403)
+    except:
+        return HttpResponse("Xato yo'l", status=400)
     
     if not os.path.exists(file_path):
-        return HttpResponse("Fayl topilmadi", status=404)
+        # index.html ni izlash
+        possible_index = os.path.join(deploy_folder, 'index.html')
+        if os.path.exists(possible_index):
+            file_path = possible_index
+        else:
+            return HttpResponse(f"Fayl topilmadi: {filepath}", status=404)
     
     # MIME turini aniqlash
     mime_type, _ = mimetypes.guess_type(file_path)
     if not mime_type:
-        mime_type = 'application/octet-stream'
+        if file_path.endswith('.css'):
+            mime_type = 'text/css'
+        elif file_path.endswith('.js'):
+            mime_type = 'application/javascript'
+        elif file_path.endswith('.html') or file_path.endswith('.htm'):
+            mime_type = 'text/html'
+        elif file_path.endswith('.json'):
+            mime_type = 'application/json'
+        elif file_path.endswith('.svg'):
+            mime_type = 'image/svg+xml'
+        else:
+            mime_type = 'application/octet-stream'
     
     # Faylni o'qish va qaytarish
-    with open(file_path, 'rb') as f:
-        content = f.read()
-    
-    return HttpResponse(content, content_type=mime_type)
+    try:
+        with open(file_path, 'rb') as f:
+            content = f.read()
+        return HttpResponse(content, content_type=mime_type)
+    except Exception as e:
+        return HttpResponse(f"Faylni o'qishda xato: {str(e)}", status=500)
 
 
 # ==================== ADMIN: HTML DEPLOYS ====================
