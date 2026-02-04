@@ -60,9 +60,14 @@
                 <span>Foydalanuvchilar</span>
             </a>
             <a href="{% url 'admin_parents' %}"
-                class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'admin_parents' or request.resolver_match.url_name == 'admin_parent_add' or request.resolver_match.url_name == 'admin_parent_view' or request.resolver_match.url_name == 'admin_parent_edit' %}active{% endif %}">
                 <i class="bi bi-people-fill"></i>
                 <span>Ota-onalar</span>
+            </a>
+            <a href="{% url 'admin_parent_password_requests' %}"
+                class="nav-link {% if 'parent_password' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-key-fill"></i>
+                <span>Ota-ona parol</span>
             </a>
             <a href="{% url 'admin_statistics' %}"
                 class="nav-link {% if request.resolver_match.url_name == 'admin_statistics' %}active{% endif %}">
