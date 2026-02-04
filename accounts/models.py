@@ -8,6 +8,8 @@ class Profession(models.Model):
     photo = models.ImageField(upload_to='professions/', verbose_name="Rasm")
     description = models.TextField(verbose_name="Kasb haqida")
     is_paid = models.BooleanField(default=True, verbose_name="Pullik kurs")
+    is_blocked = models.BooleanField(default=False, verbose_name="Vaqtincha bloklangan")
+    blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
