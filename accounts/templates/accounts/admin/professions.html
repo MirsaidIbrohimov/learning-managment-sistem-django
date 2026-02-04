@@ -139,6 +139,9 @@
 
 <td data-label="Kasb">
     <strong>{{ profession.name }}</strong>
+    {% if profession.is_blocked %}
+    <span class="badge bg-danger ms-1"><i class="bi bi-lock-fill"></i> Bloklangan</span>
+    {% endif %}
 </td>
 
 <td data-label="Tavsif">
@@ -172,6 +175,52 @@
             <i class="bi bi-journal-text"></i>
         </a>
 
+        <!-- Bloklash/Blokdan chiqarish -->
+        <button type="button" class="btn btn-sm {% if profession.is_blocked %}btn-success{% else %}btn-outline-secondary{% endif %}" 
+                data-bs-toggle="modal" data-bs-target="#blockModal{{ profession.pk }}"
+                title="{% if profession.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
+            <i class="bi {% if profession.is_blocked %}bi-unlock{% else %}bi-lock{% endif %}"></i>
+        </button>
+
+    </div>
+
+    <!-- Block Modal -->
+    <div class="modal fade" id="blockModal{{ profession.pk }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="POST" action="{% url 'admin_profession_toggle_block' profession.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            {% if profession.is_blocked %}
+                            <i class="bi bi-unlock text-success me-2"></i>Blokdan chiqarish
+                            {% else %}
+                            <i class="bi bi-lock text-danger me-2"></i>Kursni bloklash
+                            {% endif %}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>{{ profession.name }}</strong></p>
+                        {% if profession.is_blocked %}
+                        <p class="text-muted">Bu kursni blokdan chiqarmoqchimisiz? O'quvchilar kursga kirishlari mumkin bo'ladi.</p>
+                        {% else %}
+                        <div class="mb-3">
+                            <label class="form-label">Bloklash sababi (ixtiyoriy)</label>
+                            <input type="text" name="blocked_reason" class="form-control" placeholder="Masalan: Texnik ishlar olib borilmoqda">
+                        </div>
+                        <p class="text-muted small">O'quvchilar bu kursga kira olmaydi. Admin va o'qituvchi kira oladi.</p>
+                        {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn {% if profession.is_blocked %}btn-success{% else %}btn-danger{% endif %}">
+                            {% if profession.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </td>
 

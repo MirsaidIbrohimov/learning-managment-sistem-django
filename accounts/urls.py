@@ -72,6 +72,7 @@ urlpatterns = [
     path('dashboard/professions/add/', views.admin_profession_add, name='admin_profession_add'),
     path('dashboard/professions/<int:pk>/edit/', views.admin_profession_edit, name='admin_profession_edit'),
     path('dashboard/professions/<int:pk>/delete/', views.admin_profession_delete, name='admin_profession_delete'),
+    path('dashboard/professions/<int:pk>/toggle-block/', views.admin_profession_toggle_block, name='admin_profession_toggle_block'),
     path('dashboard/users/', views.admin_users, name='admin_users'),
     path('dashboard/users/<int:pk>/', views.admin_user_view, name='admin_user_view'),
     path('dashboard/users/<int:pk>/edit/', views.admin_user_edit, name='admin_user_edit'),

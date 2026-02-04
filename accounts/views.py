@@ -179,6 +179,11 @@ def profession_detail(request, pk):
     is_enrolled = False
     enrollment_request = None
     
+    # Bloklangan kursga kirish cheklovi (faqat o'quvchilar uchun)
+    if profession.is_blocked and request.user.is_student:
+        messages.warning(request, f"'{profession.name}' kursi vaqtincha bloklangan. {profession.blocked_reason or ''}")
+        return redirect('professions')
+    
     if request.user.is_student:
         is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
         if not is_enrolled:
@@ -1967,6 +1972,27 @@ def admin_profession_delete(request, pk):
         return redirect('admin_professions')
     
     return render(request, 'accounts/admin/profession_delete.html', {'profession': profession})
+
+
+@login_required
+def admin_profession_toggle_block(request, pk):
+    """Kasbni bloklash/blokdan chiqarish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    profession = get_object_or_404(Profession, pk=pk)
+    
+    if request.method == 'POST':
+        profession.is_blocked = not profession.is_blocked
+        if profession.is_blocked:
+            profession.blocked_reason = request.POST.get('blocked_reason', '').strip() or "Vaqtincha to'xtatilgan"
+            messages.warning(request, f"'{profession.name}' kursi bloklandi!")
+        else:
+            profession.blocked_reason = None
+            messages.success(request, f"'{profession.name}' kursi blokdan chiqarildi!")
+        profession.save()
+    
+    return redirect('admin_professions')
 
 
 @login_required
