@@ -51,6 +51,44 @@ def parent_login_view(request):
     return render(request, 'accounts/parent/login.html')
 
 
+def parent_password_reset_request(request):
+    """Ota-ona parolni tiklash so'rovi"""
+    if request.method == 'POST':
+        phone = request.POST.get('phone', '').strip()
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        if new_password != confirm_password:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Parollar mos kelmadi!"
+            })
+        
+        if len(new_password) < 6:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Parol kamida 6 ta belgidan iborat bo'lishi kerak!"
+            })
+        
+        try:
+            parent = Parent.objects.get(phone=phone)
+            from .models import ParentPasswordResetRequest
+            from django.contrib.auth.hashers import make_password
+            
+            ParentPasswordResetRequest.objects.create(
+                parent=parent,
+                new_password=make_password(new_password)
+            )
+            
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'success': "So'rov yuborildi! Admin tasdiqlashi bilan parol o'zgaradi."
+            })
+        except Parent.DoesNotExist:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Bu telefon raqam bilan ota-ona topilmadi!"
+            })
+    
+    return render(request, 'accounts/parent/password_reset_request.html')
+
+
 def parent_logout_view(request):
     request.session.pop('parent_id', None)
     return redirect('parent_login')
