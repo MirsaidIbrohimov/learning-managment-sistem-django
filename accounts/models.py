@@ -881,6 +881,31 @@ class ParentMessage(models.Model):
         return f"{self.parent.full_name} - {self.subject}"
 
 
+class ParentPasswordResetRequest(models.Model):
+    """Ota-ona parol tiklash so'rovi"""
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlangan'),
+        ('rejected', 'Rad etilgan'),
+    )
+    
+    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='password_reset_requests')
+    new_password = models.CharField(max_length=255, verbose_name="Yangi parol (hash)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    admin_message = models.TextField(blank=True, null=True, verbose_name="Admin xabari")
+    reviewed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_parent_password_requests')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Ota-ona parol tiklash so'rovi"
+        verbose_name_plural = "Ota-ona parol tiklash so'rovlari"
+    
+    def __str__(self):
+        return f"{self.parent.full_name} - {self.get_status_display()}"
+
+
 class Book(models.Model):
     """Kutubxona kitoblari"""
     title = models.CharField(max_length=300, verbose_name="Kitob nomi")
