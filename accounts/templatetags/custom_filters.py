@@ -1,4 +1,5 @@
 from django import template
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
@@ -19,3 +20,16 @@ def abs_value(value):
         return abs(int(value))
     except (ValueError, TypeError):
         return value
+
+
+@register.filter
+def premium_name(user):
+    """Display user's full name with premium badge if applicable."""
+    if user is None:
+        return ""
+    
+    name = user.full_name if hasattr(user, 'full_name') else str(user)
+    
+    if hasattr(user, 'is_premium') and user.is_premium:
+        return mark_safe(f'{name} <span class="badge bg-warning text-dark" style="font-size: 0.65em; vertical-align: middle;" title="Premium foydalanuvchi"><i class="bi bi-star-fill"></i></span>')
+    return name
