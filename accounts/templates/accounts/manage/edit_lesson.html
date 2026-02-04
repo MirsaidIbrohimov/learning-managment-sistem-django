@@ -17,47 +17,6 @@
     .ql-container.ql-snow {
         border-radius: 0 0 8px 8px;
     }
-    .format-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 8px;
-        padding: 12px;
-        background: var(--card-bg, #f8f9fa);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 8px;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    .format-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 10px;
-        background: var(--bg-color, #fff);
-        border: 1px solid var(--border-color, #dee2e6);
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .format-item:hover {
-        border-color: var(--primary-blue, #0d6efd);
-        background: rgba(13, 110, 253, 0.05);
-    }
-    .format-item input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        cursor: pointer;
-    }
-    .format-item label {
-        margin: 0;
-        font-size: 13px;
-        cursor: pointer;
-        color: var(--text-color);
-    }
-    .format-item:has(input:checked) {
-        border-color: var(--primary-blue, #0d6efd);
-        background: rgba(13, 110, 253, 0.1);
-    }
 </style>
 {% endif %}
 {% endblock %}
@@ -114,20 +73,6 @@
                             <label class="form-label" style="color: var(--text-color);">Vazifa tavsifi</label>
                             <div id="editor"></div>
                             <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">
-                                <i class="bi bi-file-earmark-check me-1"></i>Ruxsat etilgan fayl formatlari
-                            </label>
-                            <small class="text-muted d-block mb-2">O'quvchi qaysi formatda fayl yuklashi mumkinligini belgilang. Hech narsa tanlamasangiz, barcha formatlar ruxsat etiladi.</small>
-                            <div class="format-grid">
-                                {% for checkbox in form.allowed_formats %}
-                                <div class="format-item">
-                                    {{ checkbox.tag }}
-                                    <label for="{{ checkbox.id_for_label }}">{{ checkbox.choice_label }}</label>
-                                </div>
-                                {% endfor %}
-                            </div>
                         </div>
                         {% endif %}
                         

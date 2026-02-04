@@ -90,9 +90,6 @@ class CustomUser(AbstractUser):
     # Gamification
     coins = models.IntegerField(default=0, verbose_name="Coinlar")
     total_online_time = models.IntegerField(default=0, verbose_name="Jami online vaqt (daqiqa)")
-    is_premium = models.BooleanField(default=False, verbose_name="Premium foydalanuvchi")
-    premium_purchased_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium sotib olingan sana")
-    last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
 
     # Documents
     address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Yashash manzili")
@@ -366,58 +363,12 @@ class VideoProgress(models.Model):
 
 
 class Homework(models.Model):
-    FILE_FORMAT_CHOICES = [
-        ('.zip', 'ZIP arxiv (.zip)'),
-        ('.rar', 'RAR arxiv (.rar)'),
-        ('.jpg', 'JPEG rasm (.jpg)'),
-        ('.jpeg', 'JPEG rasm (.jpeg)'),
-        ('.png', 'PNG rasm (.png)'),
-        ('.gif', 'GIF rasm (.gif)'),
-        ('.pdf', 'PDF hujjat (.pdf)'),
-        ('.doc', 'Word hujjat (.doc)'),
-        ('.docx', 'Word hujjat (.docx)'),
-        ('.xls', 'Excel hujjat (.xls)'),
-        ('.xlsx', 'Excel hujjat (.xlsx)'),
-        ('.ppt', 'PowerPoint (.ppt)'),
-        ('.pptx', 'PowerPoint (.pptx)'),
-        ('.txt', 'Matn fayli (.txt)'),
-        ('.py', 'Python fayli (.py)'),
-        ('.js', 'JavaScript fayli (.js)'),
-        ('.css', 'CSS fayli (.css)'),
-        ('.html', 'HTML fayli (.html)'),
-        ('.java', 'Java fayli (.java)'),
-        ('.c', 'C fayli (.c)'),
-        ('.cpp', 'C++ fayli (.cpp)'),
-        ('.json', 'JSON fayli (.json)'),
-        ('.xml', 'XML fayli (.xml)'),
-        ('.sql', 'SQL fayli (.sql)'),
-        ('.mp3', 'Audio fayli (.mp3)'),
-        ('.mp4', 'Video fayli (.mp4)'),
-    ]
-    
     lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='homework')
     description = models.TextField(verbose_name="Vazifa tavsifi")
-    allowed_formats = models.TextField(blank=True, default='', verbose_name="Ruxsat etilgan formatlar", 
-                                        help_text="Vergul bilan ajratilgan formatlar, masalan: .zip,.jpg,.png")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
     max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
-    
-    def get_allowed_formats_list(self):
-        """Ruxsat etilgan formatlar ro'yxatini qaytaradi"""
-        if self.allowed_formats:
-            return [f.strip().lower() for f in self.allowed_formats.split(',') if f.strip()]
-        return []
-    
-    def is_format_allowed(self, filename):
-        """Fayl formati ruxsat etilganligini tekshiradi"""
-        allowed = self.get_allowed_formats_list()
-        if not allowed:  # Agar formatlar belgilanmagan bo'lsa, hammasi ruxsat
-            return True
-        import os
-        ext = os.path.splitext(filename)[1].lower()
-        return ext in allowed
     
     def __str__(self):
         return self.lesson.title
@@ -928,31 +879,6 @@ class ParentMessage(models.Model):
     
     def __str__(self):
         return f"{self.parent.full_name} - {self.subject}"
-
-
-class ParentPasswordResetRequest(models.Model):
-    """Ota-ona parol tiklash so'rovi"""
-    STATUS_CHOICES = (
-        ('pending', 'Kutilmoqda'),
-        ('approved', 'Tasdiqlangan'),
-        ('rejected', 'Rad etilgan'),
-    )
-    
-    parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='password_reset_requests')
-    new_password = models.CharField(max_length=255, verbose_name="Yangi parol (hash)")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
-    admin_message = models.TextField(blank=True, null=True, verbose_name="Admin xabari")
-    reviewed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_parent_password_requests')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = "Ota-ona parol tiklash so'rovi"
-        verbose_name_plural = "Ota-ona parol tiklash so'rovlari"
-    
-    def __str__(self):
-        return f"{self.parent.full_name} - {self.get_status_display()}"
 
 
 class Book(models.Model):
