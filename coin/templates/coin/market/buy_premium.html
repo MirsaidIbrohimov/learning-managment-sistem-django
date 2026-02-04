@@ -1,0 +1,59 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Premium Sotib Olish | LMS{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden;">
+                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
+                    <i class="bi bi-star-fill text-white" style="font-size: 3rem;"></i>
+                    <h3 class="text-white fw-bold mt-2 mb-0">Premium Obuna</h3>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <div class="mb-4">
+                        <div class="fs-1 fw-bold text-warning">{{ premium_price }}</div>
+                        <span class="text-muted">coin</span>
+                    </div>
+                    
+                    <div class="text-start mb-4">
+                        <h6 class="fw-bold mb-3">Premium afzalliklari:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Ismingiz yonida ⭐ premium galochka
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Hamma joyda ko'rinadi (profil, izohlar, leaderboard)
+                            </li>
+                            <li class="mb-2">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Umrbod amal qiladi
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-info small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Sizda <strong>{{ user.coins }}</strong> coin bor
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'coin:market_list' %}" class="btn btn-outline-secondary flex-grow-1">
+                                <i class="bi bi-arrow-left me-1"></i>Orqaga
+                            </a>
+                            <button type="submit" class="btn btn-warning flex-grow-1 fw-bold">
+                                <i class="bi bi-bag-fill me-1"></i>Sotib olish
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

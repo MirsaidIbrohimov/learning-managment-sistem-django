@@ -71,6 +71,41 @@
     </div>
 </div>
 
+<!-- ================= PREMIUM CARD ================= -->
+<div class="row g-4 mb-4">
+<div class="col-12">
+<div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 1.2rem;">
+    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="text-white">
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-star-fill me-2"></i>Premium Obuna
+            </h4>
+            <p class="mb-0 opacity-90">Ismingiz yonida ⭐ premium galochka ko'rinadi!</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="text-white text-center">
+                <div class="fs-2 fw-bold">{{ premium_price }}</div>
+                <small>coin</small>
+            </div>
+            {% if user.is_premium %}
+                <span class="badge bg-white text-success fs-6 px-4 py-2 rounded-pill">
+                    <i class="bi bi-check-circle-fill me-1"></i>Premium
+                </span>
+            {% elif can_buy_premium %}
+                <a href="{% url 'coin:buy_premium' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
+                    <i class="bi bi-bag-fill me-2"></i>Sotib olish
+                </a>
+            {% else %}
+                <span class="badge bg-white text-danger fs-6 px-3 py-2 rounded-pill">
+                    <i class="bi bi-lock-fill me-1"></i>{{ premium_price }} coin kerak
+                </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
 <!-- ================= PRODUCTS ================= -->
 <div class="row g-4" id="productList">
 

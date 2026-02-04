@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Reyting - LMS{% endblock %}
 
@@ -46,7 +47,7 @@
                                     </div>
                                     {% endif %}
                                     <div>
-                                        <strong>{{ student.full_name }}</strong>
+                                        <strong>{{ student.full_name }}</strong> {% premium_badge student %}
                                         {% if student == request.user %}<span class="badge bg-primary ms-2">Siz</span>{% endif %}
                                         <br><small class="text-muted">@{{ student.username }}</small>
                                     </div>

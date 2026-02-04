@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from accounts.models import CustomUser
 from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
     CoinTransaction, ActivityLog
 )
+
+PREMIUM_PRICE = 1000  # Premium narxi coinlarda
 
 
 # ============== COIN MARKET ==============
@@ -13,7 +16,52 @@ from .models import (
 @login_required
 def market_list(request):
     products = Product.objects.filter(is_active=True)
-    return render(request, 'coin/market/list.html', {'products': products})
+    return render(request, 'coin/market/list.html', {
+        'products': products,
+        'premium_price': PREMIUM_PRICE,
+        'can_buy_premium': request.user.coins >= PREMIUM_PRICE and not request.user.is_premium,
+    })
+
+
+@login_required
+def buy_premium(request):
+    """Premium sotib olish"""
+    if request.user.is_premium:
+        messages.info(request, "Siz allaqachon Premium foydalanuvchisiz! ✓")
+        return redirect('coin:market_list')
+    
+    if request.user.coins < PREMIUM_PRICE:
+        messages.error(request, f"Coinlaringiz yetarli emas! Premium narxi: {PREMIUM_PRICE} coin")
+        return redirect('coin:market_list')
+    
+    if request.method == 'POST':
+        # Coinlarni ayirish
+        request.user.coins -= PREMIUM_PRICE
+        request.user.is_premium = True
+        request.user.premium_purchased_at = timezone.now()
+        request.user.save()
+        
+        # Transaction yaratish
+        CoinTransaction.objects.create(
+            user=request.user,
+            amount=PREMIUM_PRICE,
+            action='remove',
+            reason="⭐ Premium obuna sotib olindi"
+        )
+        
+        # Activity log
+        ActivityLog.objects.create(
+            user=request.user,
+            action_type='purchase_product',
+            description=f"Premium obuna sotib oldi ({PREMIUM_PRICE} coin)"
+        )
+        
+        messages.success(request, "🎉 Tabriklaymiz! Siz endi Premium foydalanuvchisiz! ⭐")
+        return redirect('coin:market_list')
+    
+    return render(request, 'coin/market/buy_premium.html', {
+        'premium_price': PREMIUM_PRICE,
+    })
 
 
 @login_required

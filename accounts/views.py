@@ -90,6 +90,14 @@ def login_view(request):
 
             user.last_activity = timezone.now()
             user.save(update_fields=["last_activity"])
+            
+            # 🔥 Kunlik login coin (+5)
+            today = timezone.now().date()
+            if user.last_daily_login != today:
+                user.add_coins(5, "🔥 Kunlik login bonusi")
+                user.last_daily_login = today
+                user.save(update_fields=["last_daily_login"])
+                messages.info(request, "🔥 Kunlik login uchun +5 coin oldingiz!")
 
             ActivityLog.objects.create(
                 user=user,
@@ -426,7 +434,7 @@ def mark_video_watched(request, pk):
         progress.save()
         
         if not progress.coin_awarded:
-            request.user.add_coins(1, f"Video darslik ko'rildi: {video.lesson.title}")
+            request.user.add_coins(5, f"🎥 Video ko'rildi: {video.lesson.title}")
             progress.coin_awarded = True
             progress.save()
         
@@ -444,6 +452,14 @@ def submit_homework(request, pk):
     if request.method == 'POST':
         form = HomeworkSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
+            uploaded_file = request.FILES.get('file')
+            if uploaded_file:
+                # Fayl formatini tekshirish
+                if not homework.is_format_allowed(uploaded_file.name):
+                    allowed = homework.get_allowed_formats_list()
+                    messages.error(request, f"Bu format ruxsat etilmagan! Ruxsat etilgan formatlar: {', '.join(allowed)}")
+                    return redirect('lesson_view', pk=homework.lesson.pk)
+            
             submission = form.save(commit=False)
             submission.homework = homework
             submission.student = request.user
@@ -532,20 +548,28 @@ def submit_test(request, pk):
     result.passed = score >= test.passing_score
     result.save()
     
-    # Har bir to'g'ri javob uchun 1 coin
-    if correct > 0 and not result.coin_awarded:
-        request.user.add_coins(correct, f"Test: {correct} ta to'g'ri javob - {test.lesson.title}")
-        result.coin_awarded = True
-        result.save()
-        
-        # Activity log
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='Test topshirdi',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, {correct} coin oldi"
-        )
-        
-        messages.success(request, f"Tabriklaymiz! {correct} ta to'g'ri javob uchun {correct} coin oldingiz!")
+    # 📝 Testdan 80%+ → +10 coin
+    if not result.coin_awarded:
+        if score >= 80:
+            request.user.add_coins(10, f"📝 Testdan 80%+ natija: {test.lesson.title} ({score}%)")
+            result.coin_awarded = True
+            result.save()
+            
+            # Activity log
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='Test topshirdi',
+                description=f"Test topshirdi: {test.lesson.title} - {score}% natija, +10 coin oldi"
+            )
+            
+            messages.success(request, f"Tabriklaymiz! 80%+ natija uchun +10 coin oldingiz! ({score}%)")
+        else:
+            # Activity log for attempts below 80%
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='Test topshirdi',
+                description=f"Test topshirdi: {test.lesson.title} - {score}% natija"
+            )
     
     # Avtomatik xabar yuborish
     from .notifications import on_test_completed
@@ -1274,9 +1298,11 @@ def add_lesson(request, pk):
                     lesson_type='homework',
                     created_by=request.user
                 )
+                allowed_formats = ','.join(form.cleaned_data.get('allowed_formats', []))
                 Homework.objects.create(
                     lesson=lesson,
-                    description=form.cleaned_data['description']
+                    description=form.cleaned_data['description'],
+                    allowed_formats=allowed_formats
                 )
                 # Xabar yuborish
                 send_course_notification(
@@ -1365,6 +1391,7 @@ def edit_lesson(request, pk):
                 lesson.title = form.cleaned_data['title']
                 lesson.save()
                 lesson.homework.description = form.cleaned_data['description']
+                lesson.homework.allowed_formats = ','.join(form.cleaned_data.get('allowed_formats', []))
                 lesson.homework.save()
                 # Xabar yuborish
                 send_course_notification(
@@ -1387,6 +1414,7 @@ def edit_lesson(request, pk):
             form = HomeworkForm(initial={
                 'title': lesson.title,
                 'description': lesson.homework.description,
+                'allowed_formats': lesson.homework.get_allowed_formats_list(),
             })
         else:
             return redirect('manage_test_questions', pk=lesson.test.pk)
@@ -4737,4 +4765,3 @@ def reject_parent_password_reset(request, pk):
         messages.info(request, f"{reset_request.parent.full_name} so'rovi rad etildi!")
     
     return redirect('admin_parent_password_requests')
-

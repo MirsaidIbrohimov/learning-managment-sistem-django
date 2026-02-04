@@ -199,12 +199,47 @@ class VideoLessonForm(forms.Form):
 
 
 class HomeworkForm(forms.Form):
+    FILE_FORMAT_CHOICES = [
+        ('.zip', 'ZIP arxiv (.zip)'),
+        ('.rar', 'RAR arxiv (.rar)'),
+        ('.jpg', 'JPEG rasm (.jpg)'),
+        ('.jpeg', 'JPEG rasm (.jpeg)'),
+        ('.png', 'PNG rasm (.png)'),
+        ('.gif', 'GIF rasm (.gif)'),
+        ('.pdf', 'PDF hujjat (.pdf)'),
+        ('.doc', 'Word hujjat (.doc)'),
+        ('.docx', 'Word hujjat (.docx)'),
+        ('.xls', 'Excel hujjat (.xls)'),
+        ('.xlsx', 'Excel hujjat (.xlsx)'),
+        ('.ppt', 'PowerPoint (.ppt)'),
+        ('.pptx', 'PowerPoint (.pptx)'),
+        ('.txt', 'Matn fayli (.txt)'),
+        ('.py', 'Python fayli (.py)'),
+        ('.js', 'JavaScript fayli (.js)'),
+        ('.css', 'CSS fayli (.css)'),
+        ('.html', 'HTML fayli (.html)'),
+        ('.java', 'Java fayli (.java)'),
+        ('.c', 'C fayli (.c)'),
+        ('.cpp', 'C++ fayli (.cpp)'),
+        ('.json', 'JSON fayli (.json)'),
+        ('.xml', 'XML fayli (.xml)'),
+        ('.sql', 'SQL fayli (.sql)'),
+        ('.mp3', 'Audio fayli (.mp3)'),
+        ('.mp4', 'Video fayli (.mp4)'),
+    ]
+    
     title = forms.CharField(
         max_length=300,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Vazifa nomi'})
     )
     description = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Vazifa tavsifi', 'rows': 4})
+    )
+    allowed_formats = forms.MultipleChoiceField(
+        choices=FILE_FORMAT_CHOICES,
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'format-checkbox'}),
+        label="Ruxsat etilgan fayl formatlari"
     )
 
 
