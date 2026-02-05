@@ -25,17 +25,16 @@ class RegisterForm(UserCreationForm):
     )
     phone = forms.CharField(
         max_length=20,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998 90 123 45 67'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control', 
+            'placeholder': '+998 90 123 45 67',
+            'pattern': r'\+998[0-9]{9}',
+            'title': "O'zbek telefon raqami: +998XXXXXXXXX"
+        })
     )
     birth_date = forms.DateField(
         required=True,
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
-    )
-    profession = forms.ModelChoiceField(
-        queryset=Profession.objects.all(),
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-select'}),
-        empty_label="Yo'nalishni tanlang"
     )
     role = forms.ChoiceField(
         choices=[('student', 'O\'quvchi'), ('teacher', 'O\'qituvchi')],
