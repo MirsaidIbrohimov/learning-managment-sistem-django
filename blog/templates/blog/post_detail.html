@@ -3,6 +3,40 @@
 
 {% block title %}{{ post.title }} - Blog{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Dark mode support for comments */
+[data-bs-theme="dark"] .card {
+    background: var(--bs-body-bg) !important;
+    border-color: var(--bs-border-color) !important;
+}
+[data-bs-theme="dark"] .bg-light {
+    background: rgba(255,255,255,0.05) !important;
+}
+[data-bs-theme="dark"] .comment-box {
+    background: rgba(255,255,255,0.08) !important;
+}
+[data-bs-theme="dark"] .form-control {
+    background: rgba(255,255,255,0.08) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: var(--bs-body-color) !important;
+}
+[data-bs-theme="dark"] .form-control::placeholder {
+    color: rgba(255,255,255,0.5) !important;
+}
+[data-bs-theme="dark"] .text-secondary {
+    color: rgba(255,255,255,0.7) !important;
+}
+[data-bs-theme="dark"] h4, [data-bs-theme="dark"] h6 {
+    color: var(--bs-body-color) !important;
+}
+[data-bs-theme="dark"] .rounded-circle.bg-light {
+    background: rgba(255,255,255,0.1) !important;
+    color: rgba(255,255,255,0.7) !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-5">
     <div class="row justify-content-center">
@@ -59,7 +93,7 @@
             <!-- Comments Section -->
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4 p-lg-5">
-                    <h4 class="mb-4">Izohlar ({{ comments.count }})</h4>
+                    <h4 class="mb-4" style="color: var(--bs-body-color);">Izohlar ({{ comments.count }})</h4>
 
                     <!-- Comment Form -->
                     <div class="mb-5">
@@ -90,12 +124,12 @@
                             </div>
                             {% endif %}
                             <div class="flex-grow-1">
-                                <div class="bg-light p-3 rounded-3">
+                                <div class="comment-box bg-light p-3 rounded-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <h6 class="fw-bold mb-0">{{ comment.user.full_name }}</h6>
+                                        <h6 class="fw-bold mb-0" style="color: var(--bs-body-color);">{{ comment.user.full_name }}</h6>
                                         <small class="text-muted">{{ comment.created_at|timesince }} oldin</small>
                                     </div>
-                                    <p class="mb-0 text-secondary">{{ comment.content }}</p>
+                                    <p class="mb-0" style="color: var(--bs-body-color); opacity: 0.85;">{{ comment.content }}</p>
                                 </div>
                                 <div class="mt-2">
                                     <a href="{% url 'blog:toggle_comment_like' comment.pk %}" 

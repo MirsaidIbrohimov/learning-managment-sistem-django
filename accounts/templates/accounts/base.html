@@ -603,6 +603,42 @@
     {% endif %}
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Global Toast Notifications -->
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        {% for message in messages %}
+        <div class="toast align-items-center text-white 
+            {% if message.tags == 'success' %}bg-success
+            {% elif message.tags == 'error' or message.tags == 'danger' %}bg-danger
+            {% elif message.tags == 'warning' %}bg-warning text-dark
+            {% elif message.tags == 'info' %}bg-info text-dark
+            {% else %}bg-primary{% endif %}" 
+            role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-x-circle-fill me-2"></i>
+                    {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% elif message.tags == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>
+                    {% else %}<i class="bi bi-bell-fill me-2"></i>{% endif %}
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function(toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+    </script>
+    {% endif %}
 </body>
 
 </html>
