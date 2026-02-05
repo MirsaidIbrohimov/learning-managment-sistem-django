@@ -3,7 +3,7 @@ from . import views
 from .parent_views import (
     parent_login_view, parent_logout_view, parent_dashboard, parent_children,
     parent_lessons, parent_homework, parent_tests, parent_achievements,
-    parent_books, parent_messages
+    parent_books, parent_messages, parent_password_reset_request
 )
 
 urlpatterns = [
@@ -166,6 +166,7 @@ urlpatterns = [
     path('parent/achievements/', parent_achievements, name='parent_achievements'),
     path('parent/books/', parent_books, name='parent_books'),
     path('parent/messages/', parent_messages, name='parent_messages'),
+    path('parent/password-reset/', parent_password_reset_request, name='parent_password_reset_request'),
     
     # Admin: Ota-onalar boshqaruvi
     path('dashboard/parents/', views.admin_parents, name='admin_parents'),
@@ -174,6 +175,11 @@ urlpatterns = [
     path('dashboard/parents/<int:pk>/edit/', views.admin_parent_edit, name='admin_parent_edit'),
     path('dashboard/parents/<int:pk>/toggle/', views.admin_parent_toggle, name='admin_parent_toggle'),
     path('dashboard/parents/<int:pk>/delete/', views.admin_parent_delete, name='admin_parent_delete'),
+    
+    # Admin: Ota-ona parol so'rovlari
+    path('dashboard/parent-password-requests/', views.admin_parent_password_requests, name='admin_parent_password_requests'),
+    path('dashboard/parent-password-requests/<int:pk>/approve/', views.approve_parent_password_reset, name='approve_parent_password_reset'),
+    path('dashboard/parent-password-requests/<int:pk>/reject/', views.reject_parent_password_reset, name='reject_parent_password_reset'),
     
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),

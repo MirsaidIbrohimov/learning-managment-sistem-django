@@ -667,3 +667,41 @@ def parent_settings(request):
     return render(request, 'accounts/parent/settings.html', {
         'parent': parent,
     })
+
+
+def parent_password_reset_request(request):
+    """Ota-ona parol tiklash so'rovi"""
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        
+        if not username or not new_password:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Barcha maydonlarni to'ldiring"
+            })
+        
+        if new_password != confirm_password:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Parollar mos kelmadi"
+            })
+        
+        try:
+            parent = Parent.objects.get(username=username)
+            from .models import ParentPasswordResetRequest
+            
+            # Yangi so'rov yaratish
+            ParentPasswordResetRequest.objects.create(
+                parent=parent,
+                new_password=new_password
+            )
+            
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'success': "So'rov yuborildi! Admin tasdiqlashini kuting."
+            })
+        except Parent.DoesNotExist:
+            return render(request, 'accounts/parent/password_reset_request.html', {
+                'error': "Bunday foydalanuvchi topilmadi"
+            })
+    
+    return render(request, 'accounts/parent/password_reset_request.html')

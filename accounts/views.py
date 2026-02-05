@@ -4676,3 +4676,68 @@ def send_book_reminders():
     ).update(status='overdue')
 
 
+# ============== ADMIN: OTA-ONA PAROL SO'ROVLARI ==============
+
+@login_required
+def admin_parent_password_requests(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    from .models import ParentPasswordResetRequest
+    
+    requests_list = ParentPasswordResetRequest.objects.select_related('parent').all()
+    
+    status_filter = request.GET.get('status')
+    if status_filter:
+        requests_list = requests_list.filter(status=status_filter)
+    
+    context = {
+        'requests': requests_list,
+        'pending_count': ParentPasswordResetRequest.objects.filter(status='pending').count(),
+    }
+    return render(request, 'accounts/admin/parent_password_requests.html', context)
+
+
+@login_required
+def approve_parent_password_reset(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    from .models import ParentPasswordResetRequest
+    from django.contrib.auth.hashers import make_password
+    
+    reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
+    
+    if reset_request.status == 'pending':
+        reset_request.parent.password = make_password(reset_request.new_password)
+        reset_request.parent.save()
+        
+        reset_request.status = 'approved'
+        reset_request.reviewed_by = request.user
+        reset_request.reviewed_at = timezone.now()
+        reset_request.save()
+        
+        messages.success(request, f"{reset_request.parent.full_name} paroli yangilandi!")
+    
+    return redirect('admin_parent_password_requests')
+
+
+@login_required
+def reject_parent_password_reset(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    from .models import ParentPasswordResetRequest
+    
+    reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
+    
+    if reset_request.status == 'pending':
+        reset_request.status = 'rejected'
+        reset_request.reviewed_by = request.user
+        reset_request.reviewed_at = timezone.now()
+        reset_request.save()
+        
+        messages.info(request, f"{reset_request.parent.full_name} parol so'rovi rad etildi.")
+    
+    return redirect('admin_parent_password_requests')
+
