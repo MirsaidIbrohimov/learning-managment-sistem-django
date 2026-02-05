@@ -3,195 +3,960 @@
 {% block title %}{{ lesson.title }} - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'profession_detail' profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
-    </a>
+<style>
+/* ==================== HOMEWORK PAGE STYLES ==================== */
+.homework-page {
+    padding: 1rem 0 3rem;
+    min-height: 100vh;
+}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
+/* Back Button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 12px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e0e0e0);
+    color: var(--text-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
 
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header" style="background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-blue); margin: 0;">
-                        <i class="bi bi-file-earmark-text me-2"></i>{{ lesson.title }}
-                    </h4>
+.back-btn:hover {
+    background: var(--primary-blue, #4361ee);
+    color: #fff;
+    transform: translateX(-3px);
+    border-color: var(--primary-blue, #4361ee);
+}
+
+/* Page Header */
+.homework-header {
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+.homework-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.homework-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+
+.homework-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.homework-header .subtitle {
+    opacity: 0.9;
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Main Content Cards */
+.homework-card {
+    background: var(--card-bg, #fff);
+    border-radius: 20px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.homework-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+.card-header-custom {
+    background: linear-gradient(135deg, rgba(67,97,238,0.1) 0%, rgba(114,9,183,0.1) 100%);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-header-custom .icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.25rem;
+}
+
+.card-header-custom h5 {
+    margin: 0;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.card-body-custom {
+    padding: 1.5rem;
+}
+
+/* Description Content */
+.description-content {
+    color: var(--text-color);
+    line-height: 1.9;
+    font-size: 1rem;
+}
+
+.description-content h1, .description-content h2, .description-content h3 {
+    color: var(--text-color);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.description-content ul, .description-content ol {
+    padding-left: 1.5rem;
+}
+
+.description-content code {
+    background: rgba(67,97,238,0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.status-badge.pending {
+    background: rgba(255,193,7,0.15);
+    color: #d39e00;
+}
+
+.status-badge.reviewing {
+    background: rgba(23,162,184,0.15);
+    color: #117a8b;
+}
+
+.status-badge.graded {
+    background: rgba(40,167,69,0.15);
+    color: #1e7e34;
+}
+
+.status-badge.revision {
+    background: rgba(220,53,69,0.15);
+    color: #c82333;
+}
+
+/* Submission Info Card */
+.submission-info {
+    background: linear-gradient(135deg, rgba(40,167,69,0.08) 0%, rgba(32,201,151,0.08) 100%);
+    border-radius: 16px;
+    padding: 1.25rem;
+    border: 1px solid rgba(40,167,69,0.2);
+}
+
+.submission-info .info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+}
+
+.submission-info .info-row:last-child {
+    border-bottom: none;
+}
+
+.submission-info .info-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(40,167,69,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #28a745;
+}
+
+.submission-info .info-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.1rem;
+}
+
+.submission-info .info-value {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Submission Type Toggle */
+.submission-type-toggle {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.type-option {
+    flex: 1;
+    position: relative;
+}
+
+.type-option input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.type-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 12px;
+    border: 2px solid var(--border-color, #e0e0e0);
+    background: var(--card-bg, #fff);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.type-option label i {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.type-option label span {
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.type-option input:checked + label {
+    border-color: var(--primary-blue, #4361ee);
+    background: rgba(67,97,238,0.08);
+}
+
+.type-option input:checked + label i {
+    color: var(--primary-blue, #4361ee);
+}
+
+/* File Upload Area */
+.file-upload-area {
+    border: 2px dashed var(--border-color, #dee2e6);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    background: var(--card-bg, #f8f9fa);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.file-upload-area:hover {
+    border-color: var(--primary-blue, #4361ee);
+    background: rgba(67,97,238,0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--primary-blue, #4361ee);
+    background: rgba(67,97,238,0.1);
+}
+
+.file-upload-area i {
+    font-size: 3rem;
+    color: var(--primary-blue, #4361ee);
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.file-upload-area p {
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.file-upload-area .file-name {
+    font-weight: 600;
+    color: var(--primary-blue, #4361ee);
+    margin-top: 0.75rem;
+}
+
+.formats-info {
+    background: rgba(67,97,238,0.08);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+}
+
+.formats-info small {
+    color: var(--text-muted);
+}
+
+.formats-info .badge {
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Text Editor */
+.editor-container {
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg, #fff);
+}
+
+.editor-toolbar {
+    background: var(--card-bg, #f8f9fa);
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    padding: 0.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 0.25rem;
+    padding-right: 0.75rem;
+    border-right: 1px solid var(--border-color, #e0e0e0);
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+}
+
+.toolbar-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.toolbar-btn:hover {
+    background: rgba(67,97,238,0.1);
+    color: var(--primary-blue, #4361ee);
+}
+
+.toolbar-btn.active {
+    background: var(--primary-blue, #4361ee);
+    color: #fff;
+}
+
+.font-size-select {
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    padding: 0 0.75rem;
+    font-size: 0.875rem;
+    background: var(--card-bg, #fff);
+    color: var(--text-color);
+}
+
+.color-picker {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 2px solid var(--border-color, #e0e0e0);
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.text-editor-area {
+    min-height: 280px;
+    max-height: 450px;
+    overflow-y: auto;
+    padding: 1.25rem;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-color);
+    background: var(--input-bg, #fff);
+}
+
+.text-editor-area:focus {
+    outline: none;
+}
+
+/* Submit Button */
+.submit-btn {
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #fff;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(67,97,238,0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67,97,238,0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* View Submission Button */
+.view-submission-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.view-submission-btn:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67,97,238,0.3);
+}
+
+/* Text Preview Card */
+.text-preview-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+.text-preview-header {
+    background: rgba(67,97,238,0.1);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.text-preview-body {
+    padding: 1rem;
+    max-height: 250px;
+    overflow-y: auto;
+    background: var(--card-bg, #fff);
+    color: var(--text-color);
+    line-height: 1.7;
+}
+
+/* Due Date Badge */
+.due-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    background: rgba(255,193,7,0.15);
+    color: #d39e00;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .homework-header {
+        padding: 1.5rem;
+    }
+    
+    .homework-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .row > div {
+        margin-bottom: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .homework-page {
+        padding: 0.5rem 0 2rem;
+    }
+    
+    .homework-header {
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+    
+    .homework-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .homework-card {
+        border-radius: 16px;
+    }
+    
+    .card-header-custom {
+        padding: 1rem;
+    }
+    
+    .card-header-custom .icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+    }
+    
+    .card-body-custom {
+        padding: 1rem;
+    }
+    
+    .submission-type-toggle {
+        flex-direction: column;
+    }
+    
+    .file-upload-area {
+        padding: 1.5rem 1rem;
+    }
+    
+    .file-upload-area i {
+        font-size: 2.5rem;
+    }
+    
+    .editor-toolbar {
+        padding: 0.5rem;
+    }
+    
+    .toolbar-group {
+        padding-right: 0.5rem;
+    }
+    
+    .toolbar-btn {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .text-editor-area {
+        min-height: 200px;
+        padding: 1rem;
+    }
+}
+
+/* Dark mode support */
+[data-bs-theme="dark"] .homework-card {
+    background: var(--card-bg, #1a1a2e);
+    border-color: var(--border-color, #2d2d44);
+}
+
+[data-bs-theme="dark"] .file-upload-area {
+    background: rgba(255,255,255,0.03);
+    border-color: var(--border-color, #2d2d44);
+}
+
+[data-bs-theme="dark"] .editor-container {
+    border-color: var(--border-color, #2d2d44);
+}
+
+[data-bs-theme="dark"] .editor-toolbar {
+    background: rgba(255,255,255,0.03);
+}
+
+[data-bs-theme="dark"] .text-editor-area {
+    background: var(--card-bg, #1a1a2e);
+}
+
+[data-bs-theme="dark"] .type-option label {
+    background: var(--card-bg, #1a1a2e);
+    border-color: var(--border-color, #2d2d44);
+}
+</style>
+
+<div class="homework-page">
+    <div class="container">
+        <!-- Back Button -->
+        <a href="{% url 'profession_detail' profession.pk %}" class="back-btn mb-4">
+            <i class="bi bi-arrow-left"></i>
+            <span>Orqaga qaytish</span>
+        </a>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" style="border-radius: 12px;">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-                <div class="card-body">
-                    <h5 style="color: var(--text-color);">Vazifa tavsifi:</h5>
-                    <div style="color: var(--text-color); line-height: 1.8;">
-                        {{ homework.description|safe }}
+            {% endfor %}
+        {% endif %}
+
+        <!-- Page Header -->
+        <div class="homework-header mb-4">
+            <h1><i class="bi bi-journal-text me-2"></i>{{ lesson.title }}</h1>
+            <p class="subtitle mb-0">
+                <i class="bi bi-book me-1"></i>{{ profession.name }}
+                {% if homework.due_date %}
+                <span class="ms-3">
+                    <i class="bi bi-calendar-event me-1"></i>Muddat: {{ homework.due_date|date:"d.m.Y H:i" }}
+                </span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Description Card -->
+            <div class="col-lg-7">
+                <div class="homework-card">
+                    <div class="card-header-custom">
+                        <div class="icon">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <div>
+                            <h5>Vazifa tavsifi</h5>
+                        </div>
+                    </div>
+                    <div class="card-body-custom">
+                        <div class="description-content">
+                            {{ homework.description|safe }}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header" style="background: transparent;">
-                    <h5 style="color: var(--text-color); margin: 0;">
-                        <i class="bi bi-upload me-2"></i>Vazifani topshirish
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if submission %}
-                        <div class="alert {% if submission.status == 'graded' %}alert-success{% else %}alert-info{% endif %}">
-                            <strong>Status:</strong> {{ submission.get_status_display }}
-                            {% if submission.grade %}
-                            <br><strong>Baho:</strong> {{ submission.grade }}/100
-                            {% endif %}
-                            {% if submission.feedback %}
-                            <br><strong>Izoh:</strong> {{ submission.feedback }}
-                            {% endif %}
+
+            <!-- Submission Card -->
+            <div class="col-lg-5">
+                <div class="homework-card">
+                    <div class="card-header-custom">
+                        <div class="icon">
+                            <i class="bi bi-send"></i>
                         </div>
-                        <p class="text-muted">
-                            <i class="bi bi-clock me-1"></i>Yuborilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}
-                        </p>
-                        {% if submission.submission_type == 'file' and submission.file %}
-                        <a href="{{ submission.file.url }}" class="btn btn-outline-primary w-100" target="_blank">
-                            <i class="bi bi-download me-2"></i>Yuborilgan faylni ko'rish
-                        </a>
-                        {% elif submission.submission_type == 'text' %}
-                        <div class="card mt-2">
-                            <div class="card-header py-2" style="background: var(--card-bg);">
-                                <small><i class="bi bi-file-text me-1"></i>Yuborilgan matn</small>
-                            </div>
-                            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                                {{ submission.text_content|safe }}
-                            </div>
+                        <div>
+                            <h5>Vazifani topshirish</h5>
                         </div>
-                        {% endif %}
-                    {% else %}
-                        <form method="POST" action="{% url 'submit_homework' homework.pk %}" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            
-                            <!-- Topshirish turi tanlash -->
-                            <div class="mb-3">
-                                <label class="form-label" style="color: var(--text-color);">Topshirish usuli</label>
-                                <div class="d-flex gap-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="submission_type" id="type_file" value="file" checked onchange="toggleSubmissionType()">
-                                        <label class="form-check-label" for="type_file" style="color: var(--text-color);">
-                                            <i class="bi bi-file-earmark-arrow-up me-1"></i>Fayl yuklash
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="submission_type" id="type_text" value="text" onchange="toggleSubmissionType()">
-                                        <label class="form-check-label" for="type_text" style="color: var(--text-color);">
-                                            <i class="bi bi-pencil-square me-1"></i>Matn yozish
-                                        </label>
-                                    </div>
+                    </div>
+                    <div class="card-body-custom">
+                        {% if submission %}
+                            <!-- Submitted State -->
+                            <div class="text-center mb-3">
+                                <div class="status-badge {% if submission.status == 'graded' %}graded{% elif submission.status == 'pending' %}pending{% elif submission.status == 'reviewing' %}reviewing{% else %}revision{% endif %} mx-auto">
+                                    {% if submission.status == 'graded' %}
+                                        <i class="bi bi-check-circle-fill"></i>
+                                    {% elif submission.status == 'pending' %}
+                                        <i class="bi bi-hourglass-split"></i>
+                                    {% elif submission.status == 'reviewing' %}
+                                        <i class="bi bi-eye-fill"></i>
+                                    {% else %}
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    {% endif %}
+                                    {{ submission.get_status_display }}
                                 </div>
                             </div>
-                            
-                            <!-- Fayl yuklash -->
-                            <div class="mb-3" id="file-section">
-                                <label class="form-label" style="color: var(--text-color);">Faylingizni yuklang</label>
-                                {{ form.file }}
-                                {% if homework.allowed_formats %}
-                                <div class="mt-2 p-2 rounded" style="background: var(--card-bg, #f8f9fa); border: 1px solid var(--border-color, #dee2e6);">
-                                    <small class="text-muted d-block mb-1"><i class="bi bi-info-circle me-1"></i>Ruxsat etilgan formatlar:</small>
-                                    <div class="d-flex flex-wrap gap-1">
-                                        {% for fmt in homework.get_allowed_formats_list %}
-                                        <span class="badge bg-primary">{{ fmt }}</span>
-                                        {% endfor %}
+
+                            <div class="submission-info">
+                                <div class="info-row">
+                                    <div class="info-icon">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="info-label">Yuborilgan sana</div>
+                                        <div class="info-value">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+                                    </div>
+                                </div>
+                                
+                                {% if submission.grade %}
+                                <div class="info-row">
+                                    <div class="info-icon" style="background: rgba(40,167,69,0.2);">
+                                        <i class="bi bi-trophy"></i>
+                                    </div>
+                                    <div>
+                                        <div class="info-label">Baho</div>
+                                        <div class="info-value" style="font-size: 1.25rem; color: #28a745;">{{ submission.grade }}/100</div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                {% if submission.feedback %}
+                                <div class="info-row">
+                                    <div class="info-icon" style="background: rgba(67,97,238,0.15); color: #4361ee;">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div class="info-label">O'qituvchi izohi</div>
+                                        <div class="info-value" style="font-weight: 400;">{{ submission.feedback }}</div>
                                     </div>
                                 </div>
                                 {% endif %}
                             </div>
-                            
-                            <!-- Matn yozish (Canvas editor) -->
-                            <div class="mb-3" id="text-section" style="display: none;">
-                                <label class="form-label" style="color: var(--text-color);">Javobingizni yozing</label>
-                                
-                                <!-- Toolbar -->
-                                <div class="btn-toolbar mb-2 p-2 rounded" style="background: var(--card-bg, #f8f9fa); border: 1px solid var(--border-color);">
-                                    <div class="btn-group btn-group-sm me-2">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('bold')" title="Qalin">
-                                            <i class="bi bi-type-bold"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('italic')" title="Yotiq">
-                                            <i class="bi bi-type-italic"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('underline')" title="Tagiga chizish">
-                                            <i class="bi bi-type-underline"></i>
-                                        </button>
+
+                            {% if submission.submission_type == 'file' and submission.file %}
+                                <a href="{{ submission.file.url }}" class="view-submission-btn mt-3" target="_blank">
+                                    <i class="bi bi-download"></i>
+                                    Yuborilgan faylni ko'rish
+                                </a>
+                            {% elif submission.submission_type == 'text' %}
+                                <div class="text-preview-card">
+                                    <div class="text-preview-header">
+                                        <i class="bi bi-file-text"></i>
+                                        Yuborilgan matn
                                     </div>
-                                    <div class="btn-group btn-group-sm me-2">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('insertUnorderedList')" title="Ro'yxat">
-                                            <i class="bi bi-list-ul"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('insertOrderedList')" title="Raqamli ro'yxat">
-                                            <i class="bi bi-list-ol"></i>
-                                        </button>
-                                    </div>
-                                    <div class="btn-group btn-group-sm me-2">
-                                        <select class="form-select form-select-sm" onchange="changeFontSize(this.value)" style="width: auto;">
-                                            <option value="3">Normal</option>
-                                            <option value="1">Kichik</option>
-                                            <option value="5">Katta</option>
-                                            <option value="7">Juda katta</option>
-                                        </select>
-                                    </div>
-                                    <div class="btn-group btn-group-sm">
-                                        <input type="color" class="form-control form-control-color" id="textColor" value="#000000" onchange="changeColor(this.value)" title="Rang tanlash" style="width: 35px; height: 31px;">
+                                    <div class="text-preview-body">
+                                        {{ submission.text_content|safe }}
                                     </div>
                                 </div>
+                            {% endif %}
+
+                        {% else %}
+                            <!-- Submission Form -->
+                            <form method="POST" action="{% url 'submit_homework' homework.pk %}" enctype="multipart/form-data" id="homeworkForm">
+                                {% csrf_token %}
                                 
-                                <!-- Editor -->
-                                <div id="text-editor" contenteditable="true" class="form-control" 
-                                     style="min-height: 250px; max-height: 400px; overflow-y: auto; color: var(--text-color); background: var(--input-bg, #fff);">
+                                <!-- Submission Type Toggle -->
+                                <div class="submission-type-toggle">
+                                    <div class="type-option">
+                                        <input type="radio" name="submission_type" id="type_file" value="file" checked onchange="toggleSubmissionType()">
+                                        <label for="type_file">
+                                            <i class="bi bi-cloud-arrow-up"></i>
+                                            <span>Fayl yuklash</span>
+                                        </label>
+                                    </div>
+                                    <div class="type-option">
+                                        <input type="radio" name="submission_type" id="type_text" value="text" onchange="toggleSubmissionType()">
+                                        <label for="type_text">
+                                            <i class="bi bi-pencil-square"></i>
+                                            <span>Matn yozish</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <input type="hidden" name="text_content" id="text-content-input">
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100" onclick="prepareSubmit()">
-                                <i class="bi bi-send me-2"></i>Yuborish
-                            </button>
-                        </form>
-                        
-                        <script>
-                        function toggleSubmissionType() {
-                            const isFile = document.getElementById('type_file').checked;
-                            document.getElementById('file-section').style.display = isFile ? 'block' : 'none';
-                            document.getElementById('text-section').style.display = isFile ? 'none' : 'block';
-                        }
-                        
-                        function formatText(command) {
-                            document.execCommand(command, false, null);
-                            document.getElementById('text-editor').focus();
-                        }
-                        
-                        function changeFontSize(size) {
-                            document.execCommand('fontSize', false, size);
-                            document.getElementById('text-editor').focus();
-                        }
-                        
-                        function changeColor(color) {
-                            document.execCommand('foreColor', false, color);
-                            document.getElementById('text-editor').focus();
-                        }
-                        
-                        function prepareSubmit() {
-                            const isText = document.getElementById('type_text').checked;
-                            if (isText) {
-                                const content = document.getElementById('text-editor').innerHTML;
-                                document.getElementById('text-content-input').value = content;
-                            }
-                        }
-                        </script>
-                    {% endif %}
+
+                                <!-- File Upload Section -->
+                                <div id="file-section">
+                                    <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
+                                        <i class="bi bi-cloud-arrow-up"></i>
+                                        <p class="mb-1"><strong>Fayl tanlash uchun bosing</strong></p>
+                                        <p class="small text-muted mb-0">yoki faylni bu yerga tashlang</p>
+                                        <div class="file-name" id="file-name-display" style="display: none;"></div>
+                                    </div>
+                                    <input type="file" id="file-input" name="file" class="d-none" onchange="showFileName(this)">
+                                    
+                                    {% if homework.allowed_formats %}
+                                    <div class="formats-info">
+                                        <small class="d-block mb-2"><i class="bi bi-info-circle me-1"></i>Ruxsat etilgan formatlar:</small>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            {% for fmt in homework.get_allowed_formats_list %}
+                                            <span class="badge bg-primary">{{ fmt }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Text Editor Section -->
+                                <div id="text-section" style="display: none;">
+                                    <div class="editor-container">
+                                        <div class="editor-toolbar">
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" onclick="formatText('bold')" title="Qalin (Ctrl+B)">
+                                                    <i class="bi bi-type-bold"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('italic')" title="Yotiq (Ctrl+I)">
+                                                    <i class="bi bi-type-italic"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('underline')" title="Tagiga chizish (Ctrl+U)">
+                                                    <i class="bi bi-type-underline"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('strikeThrough')" title="Chizib tashlash">
+                                                    <i class="bi bi-type-strikethrough"></i>
+                                                </button>
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" onclick="formatText('insertUnorderedList')" title="Ro'yxat">
+                                                    <i class="bi bi-list-ul"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('insertOrderedList')" title="Raqamli ro'yxat">
+                                                    <i class="bi bi-list-ol"></i>
+                                                </button>
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyLeft')" title="Chapga">
+                                                    <i class="bi bi-text-left"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyCenter')" title="Markazga">
+                                                    <i class="bi bi-text-center"></i>
+                                                </button>
+                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyRight')" title="O'ngga">
+                                                    <i class="bi bi-text-right"></i>
+                                                </button>
+                                            </div>
+                                            <div class="toolbar-group">
+                                                <select class="font-size-select" onchange="changeFontSize(this.value)">
+                                                    <option value="2">Kichik</option>
+                                                    <option value="3" selected>Normal</option>
+                                                    <option value="4">O'rta</option>
+                                                    <option value="5">Katta</option>
+                                                    <option value="6">Juda katta</option>
+                                                </select>
+                                            </div>
+                                            <div class="toolbar-group" style="border-right: none;">
+                                                <input type="color" class="color-picker" id="textColor" value="#000000" onchange="changeColor(this.value)" title="Matn rangi">
+                                                <input type="color" class="color-picker" id="bgColor" value="#ffffff" onchange="changeBgColor(this.value)" title="Fon rangi">
+                                            </div>
+                                        </div>
+                                        <div id="text-editor" class="text-editor-area" contenteditable="true" placeholder="Javobingizni bu yerga yozing..."></div>
+                                    </div>
+                                    <input type="hidden" name="text_content" id="text-content-input">
+                                </div>
+
+                                <button type="submit" class="submit-btn mt-4" onclick="prepareSubmit()">
+                                    <i class="bi bi-send-fill"></i>
+                                    Yuborish
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Toggle submission type
+function toggleSubmissionType() {
+    const isFile = document.getElementById('type_file').checked;
+    document.getElementById('file-section').style.display = isFile ? 'block' : 'none';
+    document.getElementById('text-section').style.display = isFile ? 'none' : 'block';
+}
+
+// Show selected file name
+function showFileName(input) {
+    const display = document.getElementById('file-name-display');
+    if (input.files && input.files[0]) {
+        display.textContent = input.files[0].name;
+        display.style.display = 'block';
+    }
+}
+
+// Text formatting
+function formatText(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('text-editor').focus();
+}
+
+function changeFontSize(size) {
+    document.execCommand('fontSize', false, size);
+    document.getElementById('text-editor').focus();
+}
+
+function changeColor(color) {
+    document.execCommand('foreColor', false, color);
+    document.getElementById('text-editor').focus();
+}
+
+function changeBgColor(color) {
+    document.execCommand('hiliteColor', false, color);
+    document.getElementById('text-editor').focus();
+}
+
+// Prepare form submission
+function prepareSubmit() {
+    const isText = document.getElementById('type_text').checked;
+    if (isText) {
+        const content = document.getElementById('text-editor').innerHTML;
+        document.getElementById('text-content-input').value = content;
+    }
+}
+
+// Drag and drop support
+const uploadArea = document.querySelector('.file-upload-area');
+if (uploadArea) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        if (files.length) {
+            document.getElementById('file-input').files = files;
+            showFileName(document.getElementById('file-input'));
+        }
+    }, false);
+}
+
+// Keyboard shortcuts for editor
+document.getElementById('text-editor')?.addEventListener('keydown', function(e) {
+    if (e.ctrlKey || e.metaKey) {
+        switch(e.key.toLowerCase()) {
+            case 'b':
+                e.preventDefault();
+                formatText('bold');
+                break;
+            case 'i':
+                e.preventDefault();
+                formatText('italic');
+                break;
+            case 'u':
+                e.preventDefault();
+                formatText('underline');
+                break;
+        }
+    }
+});
+</script>
 {% endblock %}
