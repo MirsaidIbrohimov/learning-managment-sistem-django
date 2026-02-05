@@ -44,6 +44,19 @@ def post_detail(request, pk):
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():
+            # 1 soatda 1 ta izoh cheklovi
+            from datetime import timedelta
+            from django.utils import timezone
+            one_hour_ago = timezone.now() - timedelta(hours=1)
+            recent_comment = PostComment.objects.filter(
+                user=request.user,
+                created_at__gte=one_hour_ago
+            ).exists()
+            
+            if recent_comment:
+                messages.warning(request, "Siz 1 soatda faqat 1 ta izoh yozishingiz mumkin. Keyinroq urinib ko'ring.")
+                return redirect('blog:post_detail', pk=pk)
+            
             comment = form.save(commit=False)
             comment.post = post
             comment.user = request.user
