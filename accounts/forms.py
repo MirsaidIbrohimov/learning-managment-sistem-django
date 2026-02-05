@@ -49,7 +49,27 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'profession', 'role', 'password1', 'password2']
+        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'role', 'password1', 'password2']
+    
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        # Formatni tozalash
+        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        
+        # +998 bilan boshlanmaslikni tekshirish
+        if not phone.startswith('+998'):
+            if phone.startswith('998'):
+                phone = '+' + phone
+            elif phone.startswith('8') or phone.startswith('9'):
+                phone = '+998' + phone.lstrip('8')
+            else:
+                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
+        
+        # Uzunlikni tekshirish (+998 + 9 raqam = 13)
+        if len(phone) != 13:
+            raise forms.ValidationError("Telefon raqami noto'g'ri formatda. Masalan: +998901234567")
+        
+        return phone
 
 
 class LoginForm(forms.Form):
