@@ -55,13 +55,45 @@
                         <p class="text-muted">
                             <i class="bi bi-clock me-1"></i>Yuborilgan: {{ submission.submitted_at|date:"d.m.Y H:i" }}
                         </p>
+                        {% if submission.submission_type == 'file' and submission.file %}
                         <a href="{{ submission.file.url }}" class="btn btn-outline-primary w-100" target="_blank">
                             <i class="bi bi-download me-2"></i>Yuborilgan faylni ko'rish
                         </a>
+                        {% elif submission.submission_type == 'text' %}
+                        <div class="card mt-2">
+                            <div class="card-header py-2" style="background: var(--card-bg);">
+                                <small><i class="bi bi-file-text me-1"></i>Yuborilgan matn</small>
+                            </div>
+                            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                {{ submission.text_content|safe }}
+                            </div>
+                        </div>
+                        {% endif %}
                     {% else %}
                         <form method="POST" action="{% url 'submit_homework' homework.pk %}" enctype="multipart/form-data">
                             {% csrf_token %}
+                            
+                            <!-- Topshirish turi tanlash -->
                             <div class="mb-3">
+                                <label class="form-label" style="color: var(--text-color);">Topshirish usuli</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="submission_type" id="type_file" value="file" checked onchange="toggleSubmissionType()">
+                                        <label class="form-check-label" for="type_file" style="color: var(--text-color);">
+                                            <i class="bi bi-file-earmark-arrow-up me-1"></i>Fayl yuklash
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="submission_type" id="type_text" value="text" onchange="toggleSubmissionType()">
+                                        <label class="form-check-label" for="type_text" style="color: var(--text-color);">
+                                            <i class="bi bi-pencil-square me-1"></i>Matn yozish
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Fayl yuklash -->
+                            <div class="mb-3" id="file-section">
                                 <label class="form-label" style="color: var(--text-color);">Faylingizni yuklang</label>
                                 {{ form.file }}
                                 {% if homework.allowed_formats %}
@@ -75,10 +107,87 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">
+                            
+                            <!-- Matn yozish (Canvas editor) -->
+                            <div class="mb-3" id="text-section" style="display: none;">
+                                <label class="form-label" style="color: var(--text-color);">Javobingizni yozing</label>
+                                
+                                <!-- Toolbar -->
+                                <div class="btn-toolbar mb-2 p-2 rounded" style="background: var(--card-bg, #f8f9fa); border: 1px solid var(--border-color);">
+                                    <div class="btn-group btn-group-sm me-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('bold')" title="Qalin">
+                                            <i class="bi bi-type-bold"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('italic')" title="Yotiq">
+                                            <i class="bi bi-type-italic"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('underline')" title="Tagiga chizish">
+                                            <i class="bi bi-type-underline"></i>
+                                        </button>
+                                    </div>
+                                    <div class="btn-group btn-group-sm me-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('insertUnorderedList')" title="Ro'yxat">
+                                            <i class="bi bi-list-ul"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="formatText('insertOrderedList')" title="Raqamli ro'yxat">
+                                            <i class="bi bi-list-ol"></i>
+                                        </button>
+                                    </div>
+                                    <div class="btn-group btn-group-sm me-2">
+                                        <select class="form-select form-select-sm" onchange="changeFontSize(this.value)" style="width: auto;">
+                                            <option value="3">Normal</option>
+                                            <option value="1">Kichik</option>
+                                            <option value="5">Katta</option>
+                                            <option value="7">Juda katta</option>
+                                        </select>
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <input type="color" class="form-control form-control-color" id="textColor" value="#000000" onchange="changeColor(this.value)" title="Rang tanlash" style="width: 35px; height: 31px;">
+                                    </div>
+                                </div>
+                                
+                                <!-- Editor -->
+                                <div id="text-editor" contenteditable="true" class="form-control" 
+                                     style="min-height: 250px; max-height: 400px; overflow-y: auto; color: var(--text-color); background: var(--input-bg, #fff);">
+                                </div>
+                                <input type="hidden" name="text_content" id="text-content-input">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100" onclick="prepareSubmit()">
                                 <i class="bi bi-send me-2"></i>Yuborish
                             </button>
                         </form>
+                        
+                        <script>
+                        function toggleSubmissionType() {
+                            const isFile = document.getElementById('type_file').checked;
+                            document.getElementById('file-section').style.display = isFile ? 'block' : 'none';
+                            document.getElementById('text-section').style.display = isFile ? 'none' : 'block';
+                        }
+                        
+                        function formatText(command) {
+                            document.execCommand(command, false, null);
+                            document.getElementById('text-editor').focus();
+                        }
+                        
+                        function changeFontSize(size) {
+                            document.execCommand('fontSize', false, size);
+                            document.getElementById('text-editor').focus();
+                        }
+                        
+                        function changeColor(color) {
+                            document.execCommand('foreColor', false, color);
+                            document.getElementById('text-editor').focus();
+                        }
+                        
+                        function prepareSubmit() {
+                            const isText = document.getElementById('type_text').checked;
+                            if (isText) {
+                                const content = document.getElementById('text-editor').innerHTML;
+                                document.getElementById('text-content-input').value = content;
+                            }
+                        }
+                        </script>
                     {% endif %}
                 </div>
             </div>

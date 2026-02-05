@@ -228,11 +228,46 @@ class HomeworkForm(forms.Form):
 
 
 class HomeworkSubmissionForm(forms.ModelForm):
-    file = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}))
+    SUBMISSION_TYPE_CHOICES = (
+        ('file', 'Fayl yuklash'),
+        ('text', 'Matn yozish'),
+    )
+    
+    submission_type = forms.ChoiceField(
+        choices=SUBMISSION_TYPE_CHOICES,
+        initial='file',
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'})
+    )
+    file = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'})
+    )
+    text_content = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 10,
+            'placeholder': 'Javobingizni bu yerga yozing...',
+            'id': 'text-editor'
+        })
+    )
 
     class Meta:
         model = HomeworkSubmission
-        fields = ['file']
+        fields = ['submission_type', 'file', 'text_content']
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        submission_type = cleaned_data.get('submission_type')
+        file = cleaned_data.get('file')
+        text_content = cleaned_data.get('text_content')
+        
+        if submission_type == 'file' and not file:
+            raise forms.ValidationError("Fayl yuklashingiz kerak!")
+        if submission_type == 'text' and not text_content:
+            raise forms.ValidationError("Matn kiritishingiz kerak!")
+        
+        return cleaned_data
 
 
 class HomeworkGradeForm(forms.Form):

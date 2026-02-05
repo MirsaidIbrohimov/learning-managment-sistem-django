@@ -447,13 +447,29 @@ def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
     
     if request.method == 'POST':
-        form = HomeworkSubmissionForm(request.POST, request.FILES)
-        if form.is_valid():
-            submission = form.save(commit=False)
-            submission.homework = homework
-            submission.student = request.user
-            submission.save()
-            messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+        submission_type = request.POST.get('submission_type', 'file')
+        
+        if submission_type == 'file':
+            form = HomeworkSubmissionForm(request.POST, request.FILES)
+            if form.is_valid():
+                submission = form.save(commit=False)
+                submission.homework = homework
+                submission.student = request.user
+                submission.submission_type = 'file'
+                submission.save()
+                messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+        else:
+            text_content = request.POST.get('text_content', '').strip()
+            if text_content:
+                HomeworkSubmission.objects.create(
+                    homework=homework,
+                    student=request.user,
+                    submission_type='text',
+                    text_content=text_content
+                )
+                messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+            else:
+                messages.error(request, "Matn kiritishingiz kerak!")
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 

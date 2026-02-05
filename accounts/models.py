@@ -441,9 +441,16 @@ class HomeworkSubmission(models.Model):
         ('graded', 'Baholangan'),
     )
     
+    SUBMISSION_TYPES = (
+        ('file', 'Fayl'),
+        ('text', 'Matn'),
+    )
+    
     homework = models.ForeignKey(Homework, on_delete=models.CASCADE, related_name='submissions')
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='homework_submissions')
-    file = models.FileField(upload_to='homework_submissions/')
+    submission_type = models.CharField(max_length=10, choices=SUBMISSION_TYPES, default='file', verbose_name="Topshirish turi")
+    file = models.FileField(upload_to='homework_submissions/', null=True, blank=True)
+    text_content = models.TextField(null=True, blank=True, verbose_name="Matn javobi")
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     grade = models.IntegerField(null=True, blank=True, verbose_name="Baho (1-100)")
