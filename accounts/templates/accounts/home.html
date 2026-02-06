@@ -40,6 +40,12 @@
     --radius-2xl: 32px;
     
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Hero floating badges (Sertifikat oling / Reyting tizimi) */
+    --hero-float-bg: rgba(255, 255, 255, 0.92);
+    --hero-float-border: rgba(255, 255, 255, 0.28);
+    --hero-float-text: #0f172a;
+    --hero-float-shadow: 0 18px 45px rgba(2, 6, 23, 0.18);
 }
 
 [data-bs-theme="dark"] {
@@ -60,6 +66,11 @@
     --text-primary: #f1f5f9;
     --text-secondary: #cbd5e1;
     --text-muted: #64748b;
+
+    --hero-float-bg: rgba(2, 6, 23, 0.55);
+    --hero-float-border: rgba(255, 255, 255, 0.12);
+    --hero-float-text: rgba(241, 245, 249, 0.95);
+    --hero-float-shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
 }
 
 /* ==================== BASE ==================== */
@@ -362,14 +373,17 @@ main.main-container {
 
 .hero-floating-badge {
     position: absolute;
-    background: rgba(255,255,255,0.95);
+    background: var(--hero-float-bg);
     padding: 0.75rem 1.25rem;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--hero-float-shadow);
+    border: 1px solid var(--hero-float-border);
     display: flex;
     align-items: center;
     gap: 0.75rem;
     animation: float 3s ease-in-out infinite;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
 }
 
 .hero-floating-badge.top-left {
@@ -394,7 +408,7 @@ main.main-container {
 
 .hero-floating-badge span {
     font-weight: 700;
-    color: var(--text-primary);
+    color: var(--hero-float-text);
     font-size: 0.875rem;
 }
 

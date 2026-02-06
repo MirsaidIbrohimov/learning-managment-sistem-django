@@ -227,6 +227,20 @@
                         {{ user.coins|default:0 }}
                     </div>
 
+                    <!-- MESSAGES (unread badge) -->
+                    <a href="{% url 'messages' %}"
+                        class="btn position-relative shadow-soft d-inline-flex align-items-center justify-content-center"
+                        style="background: var(--card); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 12px;"
+                        title="Xabarlar">
+                        <i class="bi bi-envelope" aria-hidden="true"></i>
+                        {% if unread_messages_count|default:0|add:0 > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            {{ unread_messages_count }}
+                            <span class="visually-hidden">o'qilmagan xabarlar</span>
+                        </span>
+                        {% endif %}
+                    </a>
+
 
 
 
@@ -308,8 +322,13 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'messages' %}">
-                                    <i class="bi bi-envelope me-2"></i>Xabarlar
+                                <a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
+                                    <span class="d-inline-flex align-items-center">
+                                        <i class="bi bi-envelope me-2"></i>Xabarlar
+                                    </span>
+                                    {% if unread_messages_count|default:0|add:0 > 0 %}
+                                    <span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>
+                                    {% endif %}
                                 </a>
                             </li>
                             <li>
