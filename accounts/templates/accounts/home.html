@@ -19,7 +19,8 @@
     
     --bg-primary: #f8fafc;
     --bg-secondary: #f1f5f9;
-    --bg-card: #ffffff;
+    /* Oqartirib yubormasdan, body foniga mos "glass" kartalar */
+    --bg-card: rgba(255, 255, 255, 0.78);
     --bg-dark: #0f172a;
     --border: #e2e8f0;
     --text-primary: #0f172a;
@@ -68,8 +69,20 @@
     box-sizing: border-box;
 }
 
+/* 
+  Bu sahifa `accounts/base.html` ichidagi `main.main-container` bilan keladi.
+  Home page'da hero/sectionlar chetlarda "quti" bo'lib ko'rinmasligi uchun
+  faqat shu page'da main container'ni full-width qilamiz.
+*/
+main.main-container {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .lms-home {
-    background: var(--bg-primary);
+    /* Body fonini ko'rsatamiz (base.css dagi gradient bilan bir xil bo'ladi) */
+    background: transparent;
     min-height: 100vh;
     overflow-x: hidden;
 }
@@ -86,6 +99,16 @@
     padding: 6rem 0 10rem;
     position: relative;
     overflow: hidden;
+    /* Hero'ni umumiy fon bilan chiroyli ajratish */
+    border-bottom-left-radius: 48px;
+    border-bottom-right-radius: 48px;
+    /* Pastki qismda body foniga yumshoq o'tish */
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.18);
+}
+
+.hero::before,
+.hero::after {
+    pointer-events: none;
 }
 
 .hero::before {
@@ -395,7 +418,7 @@
     padding: 2rem;
     text-align: center;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 16px 34px rgba(2, 6, 23, 0.10);
     transition: var(--transition);
     position: relative;
     overflow: hidden;
@@ -461,11 +484,12 @@
 /* ==================== SECTION COMMON ==================== */
 .section {
     padding: 6rem 0;
-    background: var(--bg-primary);
+    /* Sectionlar body foniga mos (alohida quti bo'lib ko'rinmaydi) */
+    background: transparent;
 }
 
 .section-alt {
-    background: var(--bg-primary);
+    background: transparent;
 }
 
 .section-header {
@@ -523,7 +547,7 @@
     border-radius: var(--radius-lg);
     overflow: hidden;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
     transition: var(--transition);
     display: flex;
     flex-direction: column;
@@ -927,7 +951,7 @@
     border-radius: var(--radius-lg);
     padding: 2rem;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
     transition: var(--transition);
     backdrop-filter: blur(10px);
 }
@@ -1001,7 +1025,7 @@
 /* ==================== CTA BANNER ==================== */
 .cta-section {
     padding: 6rem 0;
-    background: var(--bg-primary);
+    background: transparent;
 }
 
 .cta-banner {
