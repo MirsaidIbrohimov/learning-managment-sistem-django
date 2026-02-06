@@ -2,67 +2,689 @@
 
 {% block title %}{{ lesson.title }} - LMS{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
-    <a href="{% url 'profession_detail' profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
-    </a>
+{% block extra_css %}
+<style>
+/* ==================== VARIABLES ==================== */
+:root {
+    --tl-primary: #6366f1;
+    --tl-primary-light: #818cf8;
+    --tl-success: #22c55e;
+    --tl-danger: #ef4444;
+    --tl-warning: #f59e0b;
+    --tl-bg: #f1f5f9;
+    --tl-card: #ffffff;
+    --tl-border: #e2e8f0;
+    --tl-text: #1e293b;
+    --tl-text-muted: #64748b;
+    --tl-shadow: rgba(0,0,0,0.08);
+}
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card text-center p-5">
-                <div class="mb-4">
-                    <i class="bi bi-question-circle text-primary" style="font-size: 5rem;"></i>
+[data-bs-theme="dark"] {
+    --tl-primary: #818cf8;
+    --tl-primary-light: #a5b4fc;
+    --tl-success: #4ade80;
+    --tl-danger: #f87171;
+    --tl-warning: #fbbf24;
+    --tl-bg: #0f172a;
+    --tl-card: #1e293b;
+    --tl-border: #334155;
+    --tl-text: #f1f5f9;
+    --tl-text-muted: #94a3b8;
+    --tl-shadow: rgba(0,0,0,0.25);
+}
+
+/* ==================== PAGE ==================== */
+.test-intro-page {
+    min-height: 100vh;
+    background: var(--tl-bg);
+    padding: 2rem 0 4rem;
+}
+
+/* Back Button */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 12px;
+    background: var(--tl-card);
+    border: 1px solid var(--tl-border);
+    color: var(--tl-text);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px var(--tl-shadow);
+    margin-bottom: 1.5rem;
+}
+
+.back-link:hover {
+    color: var(--tl-primary);
+    border-color: var(--tl-primary);
+    transform: translateX(-3px);
+}
+
+/* ==================== MAIN CARD ==================== */
+.intro-card {
+    background: var(--tl-card);
+    border-radius: 28px;
+    border: 1px solid var(--tl-border);
+    box-shadow: 0 8px 40px var(--tl-shadow);
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.intro-header {
+    background: linear-gradient(135deg, var(--tl-primary) 0%, #8b5cf6 100%);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.intro-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.intro-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+
+.intro-icon {
+    width: 90px;
+    height: 90px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 2.5rem;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+}
+
+.intro-header h1 {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.intro-header p {
+    color: rgba(255,255,255,0.85);
+    margin: 0.5rem 0 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* ==================== STATS ==================== */
+.stats-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--tl-border);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.stat-item {
+    background: var(--tl-bg);
+    border-radius: 16px;
+    padding: 1.25rem 1rem;
+    text-align: center;
+    transition: all 0.25s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px var(--tl-shadow);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.5rem;
+}
+
+.stat-icon.time {
+    background: rgba(99,102,241,0.12);
+    color: var(--tl-primary);
+}
+
+.stat-icon.pass {
+    background: rgba(34,197,94,0.12);
+    color: var(--tl-success);
+}
+
+.stat-icon.questions {
+    background: rgba(245,158,11,0.12);
+    color: var(--tl-warning);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--tl-text);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--tl-text-muted);
+}
+
+/* ==================== WARNINGS ==================== */
+.warnings-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--tl-border);
+}
+
+.warnings-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tl-danger);
+    margin-bottom: 1rem;
+}
+
+.warnings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+.warning-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(239,68,68,0.06);
+    border-radius: 12px;
+    border-left: 3px solid var(--tl-danger);
+}
+
+[data-bs-theme="dark"] .warning-item {
+    background: rgba(248,113,113,0.08);
+}
+
+.warning-item i {
+    color: var(--tl-danger);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.warning-item span {
+    font-size: 0.9rem;
+    color: var(--tl-text);
+    line-height: 1.5;
+}
+
+/* ==================== RULES ==================== */
+.rules-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--tl-border);
+}
+
+.rules-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--tl-primary);
+    margin-bottom: 1rem;
+}
+
+.rules-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.rule-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--tl-bg);
+    border-radius: 10px;
+}
+
+.rule-item i {
+    color: var(--tl-primary);
+    font-size: 1rem;
+}
+
+.rule-item span {
+    font-size: 0.9rem;
+    color: var(--tl-text);
+}
+
+/* ==================== PREVIOUS RESULT ==================== */
+.result-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--tl-border);
+}
+
+.result-card {
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.result-card.passed {
+    background: rgba(34,197,94,0.08);
+    border: 2px solid rgba(34,197,94,0.3);
+}
+
+.result-card.failed {
+    background: rgba(239,68,68,0.08);
+    border: 2px solid rgba(239,68,68,0.3);
+}
+
+[data-bs-theme="dark"] .result-card.passed {
+    background: rgba(74,222,128,0.1);
+}
+
+[data-bs-theme="dark"] .result-card.failed {
+    background: rgba(248,113,113,0.1);
+}
+
+.result-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.result-card.passed .result-icon {
+    background: var(--tl-success);
+    color: #fff;
+}
+
+.result-card.failed .result-icon {
+    background: var(--tl-danger);
+    color: #fff;
+}
+
+.result-info {
+    flex: 1;
+}
+
+.result-score {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.result-card.passed .result-score {
+    color: var(--tl-success);
+}
+
+.result-card.failed .result-score {
+    color: var(--tl-danger);
+}
+
+.result-details {
+    font-size: 0.85rem;
+    color: var(--tl-text-muted);
+}
+
+.result-btn {
+    padding: 0.625rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.result-card.passed .result-btn {
+    background: var(--tl-success);
+    color: #fff;
+}
+
+.result-card.failed .result-btn {
+    background: var(--tl-danger);
+    color: #fff;
+}
+
+.result-btn:hover {
+    transform: scale(1.05);
+    color: #fff;
+}
+
+/* ==================== ACTION SECTION ==================== */
+.action-section {
+    padding: 2rem;
+    text-align: center;
+}
+
+.start-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.125rem 3rem;
+    background: linear-gradient(135deg, var(--tl-primary) 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 30px rgba(99,102,241,0.35);
+}
+
+.start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(99,102,241,0.45);
+    color: #fff;
+}
+
+.start-btn:active {
+    transform: translateY(0);
+}
+
+.start-btn i {
+    font-size: 1.25rem;
+}
+
+.coin-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+    padding: 0.625rem 1.25rem;
+    background: rgba(245,158,11,0.1);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    color: var(--tl-warning);
+    font-weight: 500;
+}
+
+.coin-note i {
+    font-size: 1.1rem;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 767px) {
+    .test-intro-page {
+        padding: 1rem 0 3rem;
+    }
+    
+    .intro-card {
+        border-radius: 20px;
+        margin: 0 -0.5rem;
+    }
+    
+    .intro-header {
+        padding: 2rem 1.5rem;
+    }
+    
+    .intro-icon {
+        width: 75px;
+        height: 75px;
+        font-size: 2rem;
+    }
+    
+    .intro-header h1 {
+        font-size: 1.25rem;
+    }
+    
+    .stats-section,
+    .warnings-section,
+    .rules-section,
+    .result-section {
+        padding: 1.25rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-align: left;
+        padding: 1rem;
+    }
+    
+    .stat-icon {
+        margin: 0;
+        width: 45px;
+        height: 45px;
+    }
+    
+    .stat-info {
+        flex: 1;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .warning-item {
+        padding: 0.75rem;
+    }
+    
+    .warning-item span {
+        font-size: 0.85rem;
+    }
+    
+    .result-card {
+        flex-wrap: wrap;
+    }
+    
+    .result-btn {
+        width: 100%;
+        text-align: center;
+        margin-top: 0.75rem;
+    }
+    
+    .action-section {
+        padding: 1.5rem;
+    }
+    
+    .start-btn {
+        width: 100%;
+        padding: 1rem 2rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .intro-header {
+        padding: 1.5rem 1rem;
+    }
+    
+    .intro-icon {
+        width: 65px;
+        height: 65px;
+        font-size: 1.75rem;
+    }
+    
+    .intro-header h1 {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="test-intro-page">
+    <div class="container">
+        <a href="{% url 'profession_detail' profession.pk %}" class="back-link">
+            <i class="bi bi-arrow-left"></i>
+            <span>Orqaga</span>
+        </a>
+
+        <div class="intro-card">
+            <!-- Header -->
+            <div class="intro-header">
+                <div class="intro-icon">
+                    <i class="bi bi-journal-check"></i>
                 </div>
-                <h3 style="color: var(--primary-blue);">{{ lesson.title }}</h3>
-                
-                <div class="row justify-content-center my-4">
-                    <div class="col-md-4">
-                        <div class="card" style="background: var(--bg-color);">
-                            <div class="card-body">
-                                <i class="bi bi-clock text-primary" style="font-size: 2rem;"></i>
-                                <h5 class="mt-2" style="color: var(--text-color);">{{ test.time_limit }} daqiqa</h5>
-                                <small class="text-muted">Vaqt chegarasi</small>
-                            </div>
+                <h1>{{ lesson.title }}</h1>
+                <p>{{ profession.name }}</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-section">
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon time">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ test.time_limit }}'</div>
+                            <div class="stat-label">Vaqt chegarasi</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card" style="background: var(--bg-color);">
-                            <div class="card-body">
-                                <i class="bi bi-percent text-success" style="font-size: 2rem;"></i>
-                                <h5 class="mt-2" style="color: var(--text-color);">{{ test.passing_score }}%</h5>
-                                <small class="text-muted">O'tish bali</small>
-                            </div>
+                    <div class="stat-item">
+                        <div class="stat-icon pass">
+                            <i class="bi bi-percent"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ test.passing_score }}%</div>
+                            <div class="stat-label">O'tish bali</div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="card" style="background: var(--bg-color);">
-                            <div class="card-body">
-                                <i class="bi bi-list-ol text-warning" style="font-size: 2rem;"></i>
-                                <h5 class="mt-2" style="color: var(--text-color);">{{ test.questions.count }}</h5>
-                                <small class="text-muted">Savollar</small>
-                            </div>
+                    <div class="stat-item">
+                        <div class="stat-icon questions">
+                            <i class="bi bi-list-ol"></i>
+                        </div>
+                        <div class="stat-info">
+                            <div class="stat-value">{{ test.questions.count }}</div>
+                            <div class="stat-label">Savollar soni</div>
                         </div>
                     </div>
                 </div>
-                
-                {% if result %}
-                <div class="alert {% if result.passed %}alert-success{% else %}alert-danger{% endif %} mb-4">
-                    <h5>Oxirgi natija: {{ result.score }}%</h5>
-                    <p>{{ result.correct_answers }}/{{ result.total_questions }} to'g'ri javob</p>
-                    <a href="{% url 'test_result' result.pk %}" class="btn btn-outline-{% if result.passed %}success{% else %}danger{% endif %}">
-                        <i class="bi bi-eye me-2"></i>Natijani ko'rish
+            </div>
+
+            <!-- Warnings -->
+            <div class="warnings-section">
+                <div class="warnings-title">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Muhim ogohlantirishlar</span>
+                </div>
+                <div class="warnings-list">
+                    <div class="warning-item">
+                        <i class="bi bi-x-circle"></i>
+                        <span><strong>Sahifani yopmang!</strong> Test vaqtida sahifani yopsangiz yoki boshqa tabga o'tsangiz, test avtomatik yakunlanadi.</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="bi bi-keyboard"></i>
+                        <span><strong>Ctrl tugmasi bloklangan!</strong> Nusxa olish (Ctrl+C), kesish (Ctrl+X), qo'yish (Ctrl+V) va boshqa kombinatsiyalar ishlamaydi.</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="bi bi-camera-video-off"></i>
+                        <span><strong>Skrinshot taqiqlangan!</strong> PrintScreen tugmasi bosilganda ekran xiralashadi va ogohlantirish chiqadi.</span>
+                    </div>
+                    <div class="warning-item">
+                        <i class="bi bi-shield-exclamation"></i>
+                        <span><strong>3 ta ogohlantirish!</strong> Agar 3 marta qoidani buzsangiz, test avtomatik yakunlanadi va natijangiz saqlanadi.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rules -->
+            <div class="rules-section">
+                <div class="rules-title">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Test qoidalari</span>
+                </div>
+                <div class="rules-list">
+                    <div class="rule-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Har bir savolga faqat bitta to'g'ri javob bor</span>
+                    </div>
+                    <div class="rule-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Vaqt tugaganda test avtomatik yakunlanadi</span>
+                    </div>
+                    <div class="rule-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Javoblarni o'zgartirish mumkin</span>
+                    </div>
+                    <div class="rule-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Test yakunlangandan so'ng natijangizni ko'rasiz</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Result -->
+            {% if result %}
+            <div class="result-section">
+                <div class="result-card {% if result.passed %}passed{% else %}failed{% endif %}">
+                    <div class="result-icon">
+                        {% if result.passed %}
+                            <i class="bi bi-trophy-fill"></i>
+                        {% else %}
+                            <i class="bi bi-emoji-frown"></i>
+                        {% endif %}
+                    </div>
+                    <div class="result-info">
+                        <div class="result-score">Oxirgi natija: {{ result.score }}%</div>
+                        <div class="result-details">{{ result.correct_answers }}/{{ result.total_questions }} to'g'ri javob</div>
+                    </div>
+                    <a href="{% url 'test_result' result.pk %}" class="result-btn">
+                        <i class="bi bi-eye me-1"></i>Ko'rish
                     </a>
                 </div>
-                {% endif %}
-                
-                <a href="{% url 'start_test' test.pk %}" class="btn btn-primary btn-lg">
-                    <i class="bi bi-play-fill me-2"></i>{% if result %}Qayta topshirish{% else %}Testni boshlash{% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Action -->
+            <div class="action-section">
+                <a href="{% url 'start_test' test.pk %}" class="start-btn">
+                    <i class="bi bi-play-fill"></i>
+                    {% if result %}Qayta topshirish{% else %}Testni boshlash{% endif %}
                 </a>
                 
-                <p class="text-muted mt-3">
-                    <i class="bi bi-info-circle me-1"></i>Testni muvaffaqiyatli topshirsangiz 1 coin olasiz!
-                </p>
+                <div class="coin-note">
+                    <i class="bi bi-coin"></i>
+                    <span>Muvaffaqiyatli topshirsangiz +1 coin!</span>
+                </div>
             </div>
         </div>
     </div>

@@ -553,20 +553,27 @@ def submit_test(request, pk):
     result.passed = score >= test.passing_score
     result.save()
     
-    # Har bir to'g'ri javob uchun 1 coin
-    if correct > 0 and not result.coin_awarded:
-        request.user.add_coins(correct, f"Test: {correct} ta to'g'ri javob - {test.lesson.title}")
+    # Faqat birinchi marta muvaffaqiyatli topshirganda 1 coin
+    # Avval bu test uchun coin olinganligini tekshiramiz
+    previous_coin_awarded = TestResult.objects.filter(
+        test=test,
+        student=request.user,
+        coin_awarded=True
+    ).exclude(pk=result.pk).exists()
+    
+    if result.passed and not previous_coin_awarded and not result.coin_awarded:
+        request.user.add_coins(1, f"Test muvaffaqiyatli topshirildi: {test.lesson.title}")
         result.coin_awarded = True
         result.save()
         
         # Activity log
         ActivityLog.objects.create(
             user=request.user,
-            action_type='Test topshirdi',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, {correct} coin oldi"
+            action_type='submit_test',
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, 1 coin oldi"
         )
         
-        messages.success(request, f"Tabriklaymiz! {correct} ta to'g'ri javob uchun {correct} coin oldingiz!")
+        messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli topshirildi! +1 coin oldingiz!")
     
     # Avtomatik xabar yuborish
     from .notifications import on_test_completed
