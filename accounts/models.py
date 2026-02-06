@@ -167,9 +167,7 @@ class CustomUser(AbstractUser):
         if amount <= 0:
             return
 
-        if self.coins < amount:
-            return
-
+        # Coinlar minusga ham o'tishi mumkin
         self.coins -= amount
         self.save(update_fields=['coins'])
 
