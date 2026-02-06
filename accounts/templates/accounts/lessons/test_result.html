@@ -2,121 +2,702 @@
 
 {% block title %}Test natijasi - LMS{% endblock %}
 
+{% block extra_css %}
+<style>
+:root {
+    --result-primary: #4361ee;
+    --result-secondary: #7209b7;
+    --result-success: #10b981;
+    --result-danger: #ef4444;
+    --result-warning: #f59e0b;
+}
+
+.result-page {
+    min-height: 100vh;
+    padding: 2rem 0 4rem;
+    background: var(--bg-color, #f8fafc);
+}
+
+/* Result Hero */
+.result-hero {
+    background: var(--card-bg, #fff);
+    border-radius: 32px;
+    padding: 3rem 2rem;
+    text-align: center;
+    border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.result-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+}
+
+.result-hero.passed::before {
+    background: linear-gradient(90deg, var(--result-success) 0%, #059669 100%);
+}
+
+.result-hero.failed::before {
+    background: linear-gradient(90deg, var(--result-danger) 0%, #dc2626 100%);
+}
+
+/* Confetti Animation for Passed */
+.result-hero.passed {
+    background: linear-gradient(180deg, rgba(16,185,129,0.05) 0%, var(--card-bg, #fff) 30%);
+}
+
+.result-icon {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 3.5rem;
+    position: relative;
+}
+
+.result-icon.passed {
+    background: linear-gradient(135deg, var(--result-success) 0%, #059669 100%);
+    color: #fff;
+    box-shadow: 0 15px 40px rgba(16,185,129,0.3);
+    animation: bounce-in 0.6s ease;
+}
+
+.result-icon.failed {
+    background: linear-gradient(135deg, var(--result-danger) 0%, #dc2626 100%);
+    color: #fff;
+    box-shadow: 0 15px 40px rgba(239,68,68,0.3);
+}
+
+@keyframes bounce-in {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.result-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.result-title.passed {
+    color: var(--result-success);
+}
+
+.result-title.failed {
+    color: var(--result-danger);
+}
+
+.result-subtitle {
+    color: var(--text-muted, #64748b);
+    font-size: 1.1rem;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color, #e2e8f0);
+}
+
+.stat-card {
+    background: var(--bg-color, #f8fafc);
+    border-radius: 20px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 0.75rem;
+    font-size: 1.5rem;
+}
+
+.stat-icon.score {
+    background: linear-gradient(135deg, var(--result-primary) 0%, var(--result-secondary) 100%);
+    color: #fff;
+}
+
+.stat-icon.correct {
+    background: linear-gradient(135deg, var(--result-success) 0%, #059669 100%);
+    color: #fff;
+}
+
+.stat-icon.time {
+    background: linear-gradient(135deg, var(--result-warning) 0%, #d97706 100%);
+    color: #fff;
+}
+
+.stat-icon.coins {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: #fff;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-color, #1e293b);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted, #64748b);
+}
+
+/* Coin Award */
+.coin-award {
+    background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.15) 100%);
+    border: 2px solid rgba(245,158,11,0.3);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.coin-award i {
+    font-size: 2rem;
+    color: #f59e0b;
+}
+
+.coin-award span {
+    font-weight: 600;
+    color: #d97706;
+    font-size: 1.1rem;
+}
+
+/* Answers Section */
+.answers-section {
+    background: var(--card-bg, #fff);
+    border-radius: 24px;
+    border: 1px solid var(--border-color, #e2e8f0);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    overflow: hidden;
+}
+
+.answers-header {
+    background: var(--bg-color, #f8fafc);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.answers-header-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--result-primary) 0%, var(--result-secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.25rem;
+}
+
+.answers-header h5 {
+    margin: 0;
+    font-weight: 700;
+    color: var(--text-color, #1e293b);
+}
+
+.answers-body {
+    padding: 1.5rem;
+}
+
+/* Answer Item */
+.answer-item {
+    background: var(--bg-color, #f8fafc);
+    border-radius: 20px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 2px solid var(--border-color, #e2e8f0);
+    transition: all 0.3s ease;
+}
+
+.answer-item:last-child {
+    margin-bottom: 0;
+}
+
+.answer-item.correct {
+    border-color: rgba(16,185,129,0.3);
+    background: rgba(16,185,129,0.05);
+}
+
+.answer-item.wrong {
+    border-color: rgba(239,68,68,0.3);
+    background: rgba(239,68,68,0.05);
+}
+
+.answer-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.answer-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.answer-item.correct .answer-number {
+    background: var(--result-success);
+    color: #fff;
+}
+
+.answer-item.wrong .answer-number {
+    background: var(--result-danger);
+    color: #fff;
+}
+
+.answer-question {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-color, #1e293b);
+    line-height: 1.6;
+}
+
+.answer-status {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.answer-item.correct .answer-status {
+    background: var(--result-success);
+    color: #fff;
+}
+
+.answer-item.wrong .answer-status {
+    background: var(--result-danger);
+    color: #fff;
+}
+
+.answer-image {
+    max-width: 200px;
+    border-radius: 12px;
+    margin: 0.75rem 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.answer-details {
+    margin-left: 52px;
+}
+
+.answer-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--border-color, #e2e8f0);
+}
+
+.answer-row:last-child {
+    border-bottom: none;
+}
+
+.answer-row-label {
+    font-size: 0.85rem;
+    color: var(--text-muted, #64748b);
+    min-width: 130px;
+    flex-shrink: 0;
+}
+
+.answer-row-value {
+    font-weight: 500;
+    color: var(--text-color, #1e293b);
+}
+
+.answer-row-value.user-correct {
+    color: var(--result-success);
+}
+
+.answer-row-value.user-wrong {
+    color: var(--result-danger);
+}
+
+.answer-row-value.correct-answer {
+    color: var(--result-success);
+    font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+    background: linear-gradient(135deg, var(--result-primary) 0%, var(--result-secondary) 100%);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(67,97,238,0.3);
+}
+
+.action-btn.primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(67,97,238,0.4);
+    color: #fff;
+}
+
+.action-btn.secondary {
+    background: var(--bg-color, #f1f5f9);
+    color: var(--text-color, #1e293b);
+    border: 2px solid var(--border-color, #e2e8f0);
+}
+
+.action-btn.secondary:hover {
+    border-color: var(--result-primary);
+    color: var(--result-primary);
+}
+
+.action-btn.retry {
+    background: linear-gradient(135deg, var(--result-warning) 0%, #d97706 100%);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(245,158,11,0.3);
+}
+
+.action-btn.retry:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(245,158,11,0.4);
+    color: #fff;
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+    .result-page {
+        padding: 1rem 0 3rem;
+    }
+    
+    .result-hero {
+        padding: 2rem 1.25rem;
+        border-radius: 24px;
+    }
+    
+    .result-icon {
+        width: 100px;
+        height: 100px;
+        font-size: 3rem;
+    }
+    
+    .result-title {
+        font-size: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card {
+        padding: 1.25rem 0.75rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .answers-section {
+        border-radius: 20px;
+    }
+    
+    .answer-item {
+        padding: 1rem;
+    }
+    
+    .answer-item-header {
+        flex-wrap: wrap;
+    }
+    
+    .answer-details {
+        margin-left: 0;
+        margin-top: 0.75rem;
+    }
+    
+    .answer-row {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==================== DARK MODE ==================== */
+[data-bs-theme="dark"] {
+    --result-primary: #818cf8;
+    --result-secondary: #a78bfa;
+    --result-success: #34d399;
+    --result-danger: #f87171;
+    --result-warning: #fbbf24;
+}
+
+[data-bs-theme="dark"] .result-page {
+    background: var(--bg-color, #0f172a);
+}
+
+[data-bs-theme="dark"] .result-hero,
+[data-bs-theme="dark"] .answers-section {
+    background: var(--card-bg, #1e293b);
+    border-color: var(--border-color, #334155);
+}
+
+[data-bs-theme="dark"] .result-hero.passed {
+    background: linear-gradient(180deg, rgba(52,211,153,0.08) 0%, var(--card-bg, #1e293b) 30%);
+}
+
+[data-bs-theme="dark"] .stat-card {
+    background: rgba(0,0,0,0.2);
+}
+
+[data-bs-theme="dark"] .answers-header {
+    background: rgba(0,0,0,0.2);
+}
+
+[data-bs-theme="dark"] .answer-item {
+    background: rgba(0,0,0,0.2);
+    border-color: var(--border-color, #334155);
+}
+
+[data-bs-theme="dark"] .answer-item.correct {
+    background: rgba(52,211,153,0.08);
+    border-color: rgba(52,211,153,0.3);
+}
+
+[data-bs-theme="dark"] .answer-item.wrong {
+    background: rgba(248,113,113,0.08);
+    border-color: rgba(248,113,113,0.3);
+}
+
+[data-bs-theme="dark"] .action-btn.secondary {
+    background: rgba(0,0,0,0.3);
+    border-color: var(--border-color, #334155);
+}
+
+[data-bs-theme="dark"] .coin-award {
+    background: rgba(251,191,36,0.1);
+    border-color: rgba(251,191,36,0.2);
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 {% if result.coin_awarded and result.passed %}
-    document.addEventListener('DOMContentLoaded', function() {
-        showCoinCelebration("Tabriklaymiz! Test muvaffaqiyatli topshirildi! +1 coin 🎉");
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    showCoinCelebration("Tabriklaymiz! Test muvaffaqiyatli topshirildi! +1 coin 🎉");
+});
 {% endif %}
 </script>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card text-center p-5">
-                {% if result.passed %}
-                <div class="mb-4">
-                    <i class="bi bi-trophy-fill text-success" style="font-size: 5rem;"></i>
-                </div>
-                <h2 class="text-success">Tabriklaymiz!</h2>
-                <p class="lead">Siz testni muvaffaqiyatli topshirdingiz!</p>
-                {% else %}
-                <div class="mb-4">
-                    <i class="bi bi-emoji-frown text-danger" style="font-size: 5rem;"></i>
-                </div>
-                <h2 class="text-danger">Afsuski...</h2>
-                <p class="lead">Siz testdan o'ta olmadingiz. Qayta urinib ko'ring!</p>
-                {% endif %}
+<div class="result-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
                 
-                <div class="row justify-content-center my-4">
-                    <div class="col-md-4">
-                        <div class="card" style="background: var(--bg-color);">
-                            <div class="card-body">
-                                <h1 style="color: {% if result.passed %}#198754{% else %}#dc3545{% endif %};">{{ result.score }}%</h1>
-                                <small class="text-muted">Sizning balingiz</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card" style="background: var(--bg-color);">
-                            <div class="card-body">
-                                <h1 style="color: var(--primary-blue);">{{ result.correct_answers }}/{{ result.total_questions }}</h1>
-                                <small class="text-muted">To'g'ri javoblar</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                {% if result.coin_awarded %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-coin me-2"></i>
-                    Siz 1 coin qo'lga kiritdingiz!
-                </div>
-                {% endif %}
-            </div>
-            
-            <div class="card mt-4">
-                <div class="card-header" style="background: transparent;">
-                    <h5 style="color: var(--text-color); margin: 0;">
-                        <i class="bi bi-list-check me-2"></i>Javoblar tahlili
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% for ua in user_answers %}
-                    <div class="mb-4 p-3" style="background: var(--bg-color); border-radius: 10px;">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <strong style="color: var(--text-color);">{{ forloop.counter }}. {{ ua.question.question_text }}</strong>
-                            {% if ua.is_correct %}
-                            <span class="badge bg-success"><i class="bi bi-check"></i></span>
-                            {% else %}
-                            <span class="badge bg-danger"><i class="bi bi-x"></i></span>
-                            {% endif %}
-                        </div>
-                        
-                        {% if ua.question.question_image %}
-                        <img src="{{ ua.question.question_image.url }}" style="max-width: 200px; border-radius: 10px;" class="mb-2">
+                <!-- Result Hero -->
+                <div class="result-hero {% if result.passed %}passed{% else %}failed{% endif %}">
+                    <div class="result-icon {% if result.passed %}passed{% else %}failed{% endif %}">
+                        {% if result.passed %}
+                            <i class="bi bi-trophy-fill"></i>
+                        {% else %}
+                            <i class="bi bi-emoji-frown"></i>
                         {% endif %}
+                    </div>
+                    
+                    <h1 class="result-title {% if result.passed %}passed{% else %}failed{% endif %}">
+                        {% if result.passed %}
+                            Tabriklaymiz! 🎉
+                        {% else %}
+                            Afsuski...
+                        {% endif %}
+                    </h1>
+                    
+                    <p class="result-subtitle">
+                        {% if result.passed %}
+                            Siz testni muvaffaqiyatli topshirdingiz!
+                        {% else %}
+                            Siz testdan o'ta olmadingiz. Qayta urinib ko'ring!
+                        {% endif %}
+                    </p>
+                    
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon score">
+                                <i class="bi bi-percent"></i>
+                            </div>
+                            <div class="stat-value">{{ result.score }}%</div>
+                            <div class="stat-label">Sizning balingiz</div>
+                        </div>
                         
-                        <div class="ms-3">
-                            {% if ua.selected_answer %}
-                            <p class="mb-1">
-                                <span class="text-muted">Sizning javobingiz:</span>
-                                <span style="color: {% if ua.is_correct %}#198754{% else %}#dc3545{% endif %};">
-                                    {{ ua.selected_answer.answer_text }}
-                                </span>
-                            </p>
-                            {% else %}
-                            <p class="text-muted mb-1">Javob tanlanmagan</p>
+                        <div class="stat-card">
+                            <div class="stat-icon correct">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <div class="stat-value">{{ result.correct_answers }}/{{ result.total_questions }}</div>
+                            <div class="stat-label">To'g'ri javoblar</div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-icon time">
+                                <i class="bi bi-clock"></i>
+                            </div>
+                            <div class="stat-value">{{ result.test.time_limit }}'</div>
+                            <div class="stat-label">Test vaqti</div>
+                        </div>
+                        
+                        {% if result.coin_awarded %}
+                        <div class="stat-card">
+                            <div class="stat-icon coins">
+                                <i class="bi bi-coin"></i>
+                            </div>
+                            <div class="stat-value">+1</div>
+                            <div class="stat-label">Coin olindi</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if result.coin_awarded %}
+                    <div class="coin-award">
+                        <i class="bi bi-coin"></i>
+                        <span>Siz 1 coin qo'lga kiritdingiz!</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Answers Analysis -->
+                <div class="answers-section">
+                    <div class="answers-header">
+                        <div class="answers-header-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <h5>Javoblar tahlili</h5>
+                    </div>
+                    
+                    <div class="answers-body">
+                        {% for ua in user_answers %}
+                        <div class="answer-item {% if ua.is_correct %}correct{% else %}wrong{% endif %}">
+                            <div class="answer-item-header">
+                                <div class="answer-number">{{ forloop.counter }}</div>
+                                <div class="answer-question">{{ ua.question.question_text }}</div>
+                                <div class="answer-status">
+                                    {% if ua.is_correct %}
+                                        <i class="bi bi-check-lg"></i>
+                                    {% else %}
+                                        <i class="bi bi-x-lg"></i>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if ua.question.question_image %}
+                            <img src="{{ ua.question.question_image.url }}" class="answer-image" alt="Savol rasmi">
                             {% endif %}
                             
-                            {% if not ua.is_correct %}
-                            <p class="mb-0">
-                                <span class="text-muted">To'g'ri javob:</span>
-                                <span class="text-success">
-                                    {% for ans in ua.question.answers.all %}
-                                        {% if ans.is_correct %}{{ ans.answer_text }}{% endif %}
-                                    {% endfor %}
-                                </span>
-                            </p>
-                            {% endif %}
+                            <div class="answer-details">
+                                <div class="answer-row">
+                                    <span class="answer-row-label">Sizning javobingiz:</span>
+                                    {% if ua.selected_answer %}
+                                        <span class="answer-row-value {% if ua.is_correct %}user-correct{% else %}user-wrong{% endif %}">
+                                            {{ ua.selected_answer.answer_text }}
+                                        </span>
+                                    {% else %}
+                                        <span class="answer-row-value user-wrong">Javob tanlanmagan</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if not ua.is_correct %}
+                                <div class="answer-row">
+                                    <span class="answer-row-label">To'g'ri javob:</span>
+                                    <span class="answer-row-value correct-answer">
+                                        {% for ans in ua.question.answers.all %}
+                                            {% if ans.is_correct %}{{ ans.answer_text }}{% endif %}
+                                        {% endfor %}
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            
-            <div class="text-center mt-4 d-flex justify-content-center gap-3">
-                <a href="{% url 'profession_detail' result.test.lesson.profession.pk %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Kursga qaytish
-                </a>
-                {% if result.test.allow_retry %}
-                <a href="{% url 'start_test' result.test.pk %}" class="btn btn-warning">
-                    <i class="bi bi-arrow-repeat me-2"></i>Qayta ishlash
-                </a>
-                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{% url 'profession_detail' result.test.lesson.profession.pk %}" class="action-btn secondary">
+                        <i class="bi bi-arrow-left"></i>
+                        Kursga qaytish
+                    </a>
+                    {% if result.test.allow_retry %}
+                    <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
+                        <i class="bi bi-arrow-repeat"></i>
+                        Qayta ishlash
+                    </a>
+                    {% endif %}
+                </div>
+                
             </div>
         </div>
     </div>
