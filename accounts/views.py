@@ -2498,25 +2498,23 @@ def admin_manage_coins(request):
                 messages.success(request, f"{user.full_name}ga {amount} coin berildi!")
 
             elif action == 'remove':
-                if user.coins >= amount:
-                    user.coins -= amount
-                    user.save()
+                # Coinlar minusga ham o'tishi mumkin
+                user.coins -= amount
+                user.save()
 
-                    text = f"Sizdan {amount} coin ayirildi."
-                    if reason:
-                        text += f"\n\nSabab: {reason}"
+                text = f"Sizdan {amount} coin ayirildi."
+                if reason:
+                    text += f"\n\nSabab: {reason}"
 
-                    Message.objects.create(
-                        sender=request.user,
-                        recipient=user,
-                        title="Coin ayirildi",        # ✅ title
-                        content=text,
-                        message_type='system'
-                    )
+                Message.objects.create(
+                    sender=request.user,
+                    recipient=user,
+                    title="Coin ayirildi",
+                    content=text,
+                    message_type='system'
+                )
 
-                    messages.success(request, f"{user.full_name}dan {amount} coin ayirildi!")
-                else:
-                    messages.error(request, f"{user.full_name}da yetarli coin yo'q! (Mavjud: {user.coins})")
+                messages.success(request, f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})")
 
         except (ValueError, CustomUser.DoesNotExist):
             messages.error(request, "Xatolik yuz berdi!")
