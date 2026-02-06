@@ -134,9 +134,15 @@
                             <small class="text-muted">Topshirilgan fayl</small>
                         </div>
                     </div>
-                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-primary">
-                        <i class="bi bi-download me-2"></i>Yuklab olish
-                    </a>
+{% if submission.file %}
+    <a href="{{ submission.file.url }}">Faylni ochish</a>
+{% else %}
+    <div class="alert alert-info">
+        O‘quvchi matn yuborgan:
+        <br>
+        {{ submission.text_content  }}
+    </div>
+{% endif %}
                 </div>
             </div>
         </div>

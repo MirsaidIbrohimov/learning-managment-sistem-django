@@ -3,9 +3,11 @@
 {% block title %}Uy Vazifalari - Admin Panel{% endblock %}
 
 {% block admin_content %}
-<!-- Top Bar -->
+
 <div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-journal-text me-2"></i>Uy Vazifalari</h1>
+    <h1 class="page-title">
+        <i class="bi bi-journal-text me-2"></i>Uy Vazifalari
+    </h1>
 </div>
 
 <!-- Statistika -->
@@ -14,11 +16,14 @@
         <a href="{% url 'homework_submissions' %}" class="text-decoration-none">
             <div class="stat-card text-center {% if not status_filter %}border-primary{% endif %}">
                 <div class="stat-icon purple mx-auto mb-2"><i class="bi bi-stack"></i></div>
-                <div class="stat-number">{{ stats.pending|add:stats.reviewing|add:stats.revision|add:stats.accepted }}</div>
+                <div class="stat-number">
+                    {{ stats.pending|add:stats.reviewing|add:stats.revision|add:stats.accepted }}
+                </div>
                 <div class="stat-label">Barchasi</div>
             </div>
         </a>
     </div>
+
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?status=pending" class="text-decoration-none">
             <div class="stat-card text-center {% if status_filter == 'pending' %}border-warning{% endif %}">
@@ -28,6 +33,7 @@
             </div>
         </a>
     </div>
+
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?status=reviewing" class="text-decoration-none">
             <div class="stat-card text-center {% if status_filter == 'reviewing' %}border-info{% endif %}">
@@ -37,6 +43,7 @@
             </div>
         </a>
     </div>
+
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?status=revision" class="text-decoration-none">
             <div class="stat-card text-center {% if status_filter == 'revision' %}border-danger{% endif %}">
@@ -46,6 +53,7 @@
             </div>
         </a>
     </div>
+
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?status=accepted" class="text-decoration-none">
             <div class="stat-card text-center {% if status_filter == 'accepted' %}border-success{% endif %}">
@@ -55,6 +63,7 @@
             </div>
         </a>
     </div>
+
     <div class="col-6 col-md-4 col-lg-2">
         <a href="?status=graded" class="text-decoration-none">
             <div class="stat-card text-center {% if status_filter == 'graded' %}border-primary{% endif %}">
@@ -70,18 +79,27 @@
 <div class="card mb-4">
     <div class="card-body py-3">
         <form method="GET" class="row g-2 align-items-center">
-            {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+
+            {% if status_filter %}
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            {% endif %}
+
             <div class="col-auto">
                 <i class="bi bi-funnel text-muted"></i>
             </div>
+
             <div class="col-md-4">
                 <select name="profession" class="form-select" onchange="this.form.submit()">
                     <option value="">📚 Barcha kurslar</option>
                     {% for p in professions %}
-                    <option value="{{ p.pk }}" {% if profession_filter == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
+                        <option value="{{ p.pk }}"
+                            {% if profession_filter == p.pk|stringformat:"i" %}selected{% endif %}>
+                            {{ p.name }}
+                        </option>
                     {% endfor %}
                 </select>
             </div>
+
             {% if status_filter or profession_filter %}
             <div class="col-auto ms-auto">
                 <a href="{% url 'homework_submissions' %}" class="btn btn-outline-secondary">
@@ -89,6 +107,7 @@
                 </a>
             </div>
             {% endif %}
+
         </form>
     </div>
 </div>
@@ -102,6 +121,7 @@
         </span>
         <span class="badge bg-primary">{{ submissions|length }}</span>
     </div>
+
     <div class="card-body p-0">
         {% if submissions %}
         <div class="table-responsive">
@@ -117,59 +137,98 @@
                     </tr>
                 </thead>
                 <tbody>
+
                     {% for sub in submissions %}
                     <tr>
+
+                        <!-- O'quvchi -->
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                {% if sub.student.photo %}
-                                <img src="{{ sub.student.photo.url }}" class="user-avatar-sm">
+
+                                {% if sub.student.photo and sub.student.photo.url %}
+                                    <img src="{{ sub.student.photo.url }}" class="user-avatar-sm">
                                 {% else %}
-                                <div class="user-avatar-placeholder">{{ sub.student.get_initials }}</div>
+                                    <div class="user-avatar-placeholder">
+                                        {{ sub.student.get_initials }}
+                                    </div>
                                 {% endif %}
+
                                 <div>
                                     <div class="fw-bold">
                                         {{ sub.student.full_name }}
-                                        {% if sub.messages.count > 0 %}
-                                        <span class="badge bg-danger rounded-pill ms-1">{{ sub.messages.count }}</span>
+
+                                        {% if sub.unread_messages_count > 0 %}
+                                            <span class="badge bg-danger rounded-pill ms-1">
+                                                {{ sub.unread_messages_count }}
+                                            </span>
                                         {% endif %}
                                     </div>
+
                                     {% if sub.is_late %}
-                                    <small class="text-danger"><i class="bi bi-clock me-1"></i>Kech topshirilgan</small>
+                                        <small class="text-danger">
+                                            <i class="bi bi-clock me-1"></i>Kech topshirilgan
+                                        </small>
                                     {% endif %}
                                 </div>
                             </div>
                         </td>
+
+                        <!-- Vazifa -->
                         <td>
-                            <div class="fw-semibold">{{ sub.homework.lesson.title|truncatewords:5 }}</div>
+                            <div class="fw-semibold">
+                                {{ sub.homework.lesson.title|truncatewords:5 }}
+                            </div>
+
                             {% if sub.revision_count > 0 %}
-                            <small class="text-warning"><i class="bi bi-arrow-repeat me-1"></i>{{ sub.revision_count }}x qayta</small>
+                                <small class="text-warning">
+                                    <i class="bi bi-arrow-repeat me-1"></i>{{ sub.revision_count }}x qayta
+                                </small>
                             {% endif %}
                         </td>
-                        <td><small class="text-muted">{{ sub.homework.lesson.profession.name }}</small></td>
+
+                        <!-- Kurs -->
+                        <td>
+                            <small class="text-muted">
+                                {{ sub.homework.lesson.profession.name }}
+                            </small>
+                        </td>
+
+                        <!-- Status -->
                         <td>
                             {% if sub.status == 'pending' %}
-                            <span class="badge bg-warning text-dark">Kutilmoqda</span>
+                                <span class="badge bg-warning text-dark">Kutilmoqda</span>
                             {% elif sub.status == 'reviewing' %}
-                            <span class="badge bg-info">Ko'rilmoqda</span>
+                                <span class="badge bg-info">Ko'rilmoqda</span>
                             {% elif sub.status == 'revision' %}
-                            <span class="badge bg-danger">Qayta ishlash</span>
+                                <span class="badge bg-danger">Qayta ishlash</span>
                             {% elif sub.status == 'accepted' %}
-                            <span class="badge bg-success">Qabul qilindi</span>
+                                <span class="badge bg-success">Qabul qilindi</span>
                             {% elif sub.status == 'graded' %}
-                            <span class="badge bg-primary">{{ sub.grade }}%</span>
+                                <span class="badge bg-primary">{{ sub.grade }}%</span>
                             {% endif %}
                         </td>
-                        <td><small class="text-muted">{{ sub.submitted_at|timesince }} oldin</small></td>
+
+                        <!-- Vaqt -->
+                        <td>
+                            <small class="text-muted">
+                                {{ sub.submitted_at|timesince }} oldin
+                            </small>
+                        </td>
+
+                        <!-- Action -->
                         <td>
                             <a href="{% url 'grade_homework' sub.pk %}" class="btn btn-sm btn-primary">
                                 <i class="bi bi-eye me-1"></i>Ko'rish
                             </a>
                         </td>
+
                     </tr>
                     {% endfor %}
+
                 </tbody>
             </table>
         </div>
+
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
@@ -178,4 +237,5 @@
         {% endif %}
     </div>
 </div>
+
 {% endblock %}
