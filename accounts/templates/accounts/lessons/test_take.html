@@ -1,155 +1,925 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 
 {% block title %}{{ test.lesson.title }} - Test{% endblock %}
 
 {% block extra_css %}
 <style>
-    .question-card {
-        background: var(--card-bg);
-        border: 2px solid var(--border-color);
-        border-radius: 15px;
-        padding: 25px;
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
+/* ==================== ANTI-CHEAT STYLES ==================== */
+* {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+}
+
+body.test-mode {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+@media print {
+    body * {
+        display: none !important;
+    }
+    body::after {
+        content: "Test vaqtida chop etish taqiqlangan!";
+        display: block;
+        font-size: 24px;
+        text-align: center;
+        padding: 50px;
+    }
+}
+
+/* ==================== TEST PAGE STYLES ==================== */
+.test-page {
+    min-height: 100vh;
+    padding: 1rem 0 4rem;
+    background: linear-gradient(180deg, rgba(67,97,238,0.03) 0%, transparent 50%);
+}
+
+/* Header */
+.test-header {
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(67,97,238,0.3);
+}
+
+.test-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.test-header h2 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.test-header p {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+}
+
+/* Timer */
+.timer-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.timer-box {
+    background: linear-gradient(135deg, #dc3545 0%, #9b1b2a 100%);
+    color: #fff;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(220,53,69,0.4);
+    text-align: center;
+    min-width: 140px;
+    animation: pulse-timer 2s infinite;
+}
+
+.timer-box.warning {
+    animation: shake 0.5s ease-in-out infinite;
+    background: linear-gradient(135deg, #ff4757 0%, #c0392b 100%);
+}
+
+.timer-box .timer-label {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.timer-box .timer-value {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Courier New', monospace;
+}
+
+@keyframes pulse-timer {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-3px); }
+    75% { transform: translateX(3px); }
+}
+
+/* Progress Bar */
+.test-progress {
+    background: var(--card-bg, #fff);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.progress-info span {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.progress-bar-custom {
+    height: 10px;
+    background: var(--bg-color, #e9ecef);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4361ee 0%, #7209b7 100%);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* Question Navigation */
+.question-nav {
+    background: var(--card-bg, #fff);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.question-nav-title {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+}
+
+.question-nav-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.question-nav-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+    background: var(--card-bg, #fff);
+    color: var(--text-color);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.question-nav-item:hover {
+    border-color: var(--primary-blue, #4361ee);
+    color: var(--primary-blue, #4361ee);
+}
+
+.question-nav-item.answered {
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    border-color: transparent;
+    color: #fff;
+}
+
+.question-nav-item.current {
+    border-color: var(--primary-blue, #4361ee);
+    box-shadow: 0 0 0 3px rgba(67,97,238,0.2);
+}
+
+/* Question Card */
+.question-card {
+    background: var(--card-bg, #fff);
+    border-radius: 20px;
+    border: 2px solid var(--border-color);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: all 0.3s ease;
+}
+
+.question-card:hover {
+    border-color: rgba(67,97,238,0.3);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+.question-card.answered {
+    border-color: rgba(40,167,69,0.4);
+}
+
+.question-header {
+    background: linear-gradient(135deg, rgba(67,97,238,0.08) 0%, rgba(114,9,183,0.08) 100%);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.question-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(67,97,238,0.3);
+}
+
+.question-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    line-height: 1.6;
+    flex: 1;
+}
+
+.question-image-container {
+    padding: 1rem 1.5rem;
+    text-align: center;
+    background: var(--bg-color, #f8f9fa);
+}
+
+.question-image {
+    max-width: 100%;
+    max-height: 350px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.question-answers {
+    padding: 1.5rem;
+}
+
+/* Answer Options */
+.answer-option {
+    position: relative;
+    background: var(--bg-color, #f8f9fa);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.answer-option:hover {
+    border-color: var(--primary-blue, #4361ee);
+    background: rgba(67,97,238,0.05);
+    transform: translateX(5px);
+}
+
+.answer-option:last-child {
+    margin-bottom: 0;
+}
+
+.answer-option input[type="radio"] {
+    display: none;
+}
+
+.answer-radio {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.answer-radio::after {
+    content: '';
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.answer-option.selected {
+    border-color: var(--primary-blue, #4361ee);
+    background: rgba(67,97,238,0.1);
+}
+
+.answer-option.selected .answer-radio {
+    border-color: var(--primary-blue, #4361ee);
+    background: var(--primary-blue, #4361ee);
+}
+
+.answer-option.selected .answer-radio::after {
+    background: #fff;
+}
+
+.answer-letter {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+}
+
+.answer-option.selected .answer-letter {
+    background: var(--primary-blue, #4361ee);
+    border-color: var(--primary-blue, #4361ee);
+    color: #fff;
+}
+
+.answer-text {
+    font-size: 1rem;
+    color: var(--text-color);
+    flex: 1;
+}
+
+/* Submit Button */
+.submit-section {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 2rem;
+    background: var(--card-bg, #fff);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.submit-section p {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 14px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(40,167,69,0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(40,167,69,0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Warning Modal */
+.warning-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.warning-modal {
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.5rem;
+    max-width: 400px;
+    text-align: center;
+    animation: modalPop 0.3s ease;
+}
+
+@keyframes modalPop {
+    0% { transform: scale(0.8); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.warning-modal i {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.warning-modal h3 {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.warning-modal p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.warning-modal button {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Anti-Screenshot Watermark */
+.watermark {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 100px,
+        rgba(67,97,238,0.03) 100px,
+        rgba(67,97,238,0.03) 200px
+    );
+}
+
+.watermark.active {
+    opacity: 1;
+}
+
+.watermark-text {
+    position: absolute;
+    font-size: 1.5rem;
+    color: rgba(220,53,69,0.15);
+    font-weight: 700;
+    transform: rotate(-45deg);
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+    .timer-container {
+        position: fixed;
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 0.5rem;
+        background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
     }
     
-    .question-card:hover {
-        border-color: var(--primary-blue);
-    }
-    
-    .question-number {
-        background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+    .timer-box {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
+        gap: 1rem;
+    }
+    
+    .timer-box .timer-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 767px) {
+    .test-page {
+        padding: 0.5rem 0 5rem;
+    }
+    
+    .test-header {
+        border-radius: 16px;
+        padding: 1.25rem;
+    }
+    
+    .test-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .question-card {
+        border-radius: 16px;
+    }
+    
+    .question-header {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .question-number {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .question-answers {
+        padding: 1rem;
     }
     
     .answer-option {
-        background: var(--bg-color);
-        border: 2px solid var(--border-color);
-        border-radius: 10px;
-        padding: 15px 20px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
+        padding: 0.875rem 1rem;
     }
     
-    .answer-option:hover {
-        border-color: var(--primary-blue);
-        background: rgba(13, 110, 253, 0.1);
+    .question-nav-item {
+        width: 35px;
+        height: 35px;
+        font-size: 0.875rem;
     }
     
-    .answer-option input[type="radio"] {
-        width: 20px;
-        height: 20px;
-        margin-right: 15px;
+    .submit-btn {
+        width: 100%;
+        padding: 1rem;
     }
-    
-    .answer-option input[type="radio"]:checked + label {
-        color: var(--primary-blue);
-        font-weight: 600;
-    }
-    
-    .timer {
-        position: fixed;
-        top: 100px;
-        right: 30px;
-        background: linear-gradient(135deg, #dc3545, #b02a37);
-        color: white;
-        padding: 15px 25px;
-        border-radius: 15px;
-        font-size: 1.5rem;
-        font-weight: 700;
-        z-index: 1000;
-        box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
-    }
-    
-    .question-image {
-        max-width: 100%;
-        border-radius: 10px;
-        margin: 15px 0;
-    }
+}
+
+/* Dark Mode */
+[data-bs-theme="dark"] .question-card {
+    background: var(--card-bg, #1a1a2e);
+}
+
+[data-bs-theme="dark"] .answer-option {
+    background: rgba(255,255,255,0.03);
+}
+
+[data-bs-theme="dark"] .warning-modal {
+    background: #1a1a2e;
+}
+
+[data-bs-theme="dark"] .warning-modal h3 {
+    color: #ff6b6b;
+}
+
+[data-bs-theme="dark"] .warning-modal p {
+    color: #aaa;
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5 mb-5">
-    <div class="timer" id="timer">
-        <i class="bi bi-clock me-2"></i>
-        <span id="timerDisplay">{{ test.time_limit }}:00</span>
-    </div>
+<!-- Watermark for anti-screenshot -->
+<div class="watermark" id="watermark">
+    {% for i in "12345678" %}
+    <span class="watermark-text" style="top: {{ forloop.counter0|add:forloop.counter0 }}0%; left: {{ forloop.counter0 }}0%;">
+        {{ request.user.full_name }} - {{ request.user.email }}
+    </span>
+    {% endfor %}
+</div>
 
-    <div class="card mb-4">
-        <div class="card-body text-center">
-            <h3 style="color: var(--primary-blue);">{{ test.lesson.title }}</h3>
-            <p class="text-muted">Barcha savollarga javob bering va "Yakunlash" tugmasini bosing</p>
+<!-- Warning Modal -->
+<div class="warning-overlay" id="warningOverlay">
+    <div class="warning-modal">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <h3>Ogohlantirish!</h3>
+        <p id="warningMessage">Test vaqtida bu amal taqiqlangan!</p>
+        <button onclick="closeWarning()">Tushundim</button>
+    </div>
+</div>
+
+<div class="test-page" id="testPage">
+    <div class="container">
+        <!-- Timer -->
+        <div class="timer-container">
+            <div class="timer-box" id="timerBox">
+                <div class="timer-label">Qolgan vaqt</div>
+                <div class="timer-value" id="timerDisplay">{{ test.time_limit }}:00</div>
+            </div>
         </div>
-    </div>
 
-    <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
-        {% csrf_token %}
-        
-        {% for question in questions %}
-        <div class="question-card">
-            <div class="d-flex align-items-start mb-3">
-                <div class="question-number me-3">{{ forloop.counter }}</div>
-                <div style="color: var(--text-color); font-size: 1.1rem; font-weight: 500;">
-                    {{ question.question_text }}
+        <!-- Header -->
+        <div class="test-header">
+            <h2><i class="bi bi-journal-check me-2"></i>{{ test.lesson.title }}</h2>
+            <p><i class="bi bi-info-circle me-1"></i>Barcha savollarga javob bering. Vaqt tugaganda test avtomatik yakunlanadi.</p>
+        </div>
+
+        <!-- Progress -->
+        <div class="test-progress">
+            <div class="progress-info">
+                <span><i class="bi bi-check-circle me-1"></i>Javob berildi: <strong id="answeredCount">0</strong>/{{ questions|length }}</span>
+                <span id="progressPercent">0%</span>
+            </div>
+            <div class="progress-bar-custom">
+                <div class="progress-bar-fill" id="progressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Question Navigation -->
+        <div class="question-nav">
+            <div class="question-nav-title">Savollar navigatsiyasi</div>
+            <div class="question-nav-items">
+                {% for question in questions %}
+                <div class="question-nav-item" data-question="{{ forloop.counter }}" onclick="scrollToQuestion({{ forloop.counter }})">
+                    {{ forloop.counter }}
                 </div>
-            </div>
-            
-            {% if question.question_image %}
-            <div class="text-center">
-                <img src="{{ question.question_image.url }}" alt="Savol rasmi" class="question-image">
-            </div>
-            {% endif %}
-            
-            <div class="mt-3">
-                {% for answer in question.answers.all %}
-                <label class="answer-option">
-                    <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}">
-                    <span style="color: var(--text-color);">{{ answer.answer_text }}</span>
-                </label>
                 {% endfor %}
             </div>
         </div>
-        {% endfor %}
-        
-        <div class="text-center mt-4">
-            <button type="submit" class="btn btn-primary btn-lg px-5">
-                <i class="bi bi-check-circle me-2"></i>Yakunlash
-            </button>
-        </div>
-    </form>
+
+        <!-- Test Form -->
+        <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
+            {% csrf_token %}
+            
+            {% for question in questions %}
+            <div class="question-card" id="question-{{ forloop.counter }}" data-question-id="{{ question.pk }}">
+                <div class="question-header">
+                    <div class="question-number">{{ forloop.counter }}</div>
+                    <div class="question-text">{{ question.question_text }}</div>
+                </div>
+                
+                {% if question.question_image %}
+                <div class="question-image-container">
+                    <img src="{{ question.question_image.url }}" alt="Savol rasmi" class="question-image">
+                </div>
+                {% endif %}
+                
+                <div class="question-answers">
+                    {% for answer in question.answers.all %}
+                    <label class="answer-option" data-question="{{ question.pk }}">
+                        <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}" onchange="updateProgress()">
+                        <div class="answer-radio"></div>
+                        <div class="answer-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% elif forloop.counter == 5 %}E{% else %}{{ forloop.counter }}{% endif %}</div>
+                        <div class="answer-text">{{ answer.answer_text }}</div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="submit-section">
+                <p><i class="bi bi-info-circle me-1"></i>Testni yakunlashdan oldin barcha javoblaringizni tekshiring</p>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Testni yakunlash
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 {% block extra_js %}
 <script>
-    let timeLeft = {{ test.time_limit }} * 60;
-    const timerDisplay = document.getElementById('timerDisplay');
-    const testForm = document.getElementById('testForm');
+// Add test-mode class to body
+document.body.classList.add('test-mode');
+
+// Total questions
+const totalQuestions = {{ questions|length }};
+let warningCount = 0;
+
+// Timer
+let timeLeft = {{ test.time_limit }} * 60;
+const timerDisplay = document.getElementById('timerDisplay');
+const timerBox = document.getElementById('timerBox');
+const testForm = document.getElementById('testForm');
+
+function updateTimer() {
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     
-    function updateTimer() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        if (timeLeft <= 0) {
-            testForm.submit();
-        } else {
-            timeLeft--;
-            setTimeout(updateTimer, 1000);
-        }
+    // Warning when less than 2 minutes
+    if (timeLeft <= 120) {
+        timerBox.classList.add('warning');
     }
     
-    updateTimer();
+    if (timeLeft <= 0) {
+        testForm.submit();
+    } else {
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+    }
+}
+updateTimer();
+
+// Update progress
+function updateProgress() {
+    const answered = document.querySelectorAll('input[type="radio"]:checked').length;
+    const percent = Math.round((answered / totalQuestions) * 100);
+    
+    document.getElementById('answeredCount').textContent = answered;
+    document.getElementById('progressPercent').textContent = percent + '%';
+    document.getElementById('progressBar').style.width = percent + '%';
+    
+    // Update navigation
+    document.querySelectorAll('.question-card').forEach((card, index) => {
+        const questionId = card.dataset.questionId;
+        const isAnswered = document.querySelector(`input[name="question_${questionId}"]:checked`);
+        const navItem = document.querySelector(`.question-nav-item[data-question="${index + 1}"]`);
+        
+        if (isAnswered) {
+            navItem.classList.add('answered');
+            card.classList.add('answered');
+        } else {
+            navItem.classList.remove('answered');
+            card.classList.remove('answered');
+        }
+    });
+}
+
+// Answer selection
+document.querySelectorAll('.answer-option').forEach(option => {
+    option.addEventListener('click', function() {
+        const questionId = this.dataset.question;
+        document.querySelectorAll(`.answer-option[data-question="${questionId}"]`).forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        this.classList.add('selected');
+        this.querySelector('input').checked = true;
+        updateProgress();
+    });
+});
+
+// Scroll to question
+function scrollToQuestion(num) {
+    const question = document.getElementById('question-' + num);
+    if (question) {
+        question.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Highlight current
+        document.querySelectorAll('.question-nav-item').forEach(item => {
+            item.classList.remove('current');
+        });
+        document.querySelector(`.question-nav-item[data-question="${num}"]`).classList.add('current');
+    }
+}
+
+// Show warning
+function showWarning(message) {
+    document.getElementById('warningMessage').textContent = message;
+    document.getElementById('warningOverlay').style.display = 'flex';
+    document.getElementById('watermark').classList.add('active');
+    warningCount++;
+    
+    if (warningCount >= 3) {
+        // Auto submit after 3 warnings
+        alert("3 marta ogohlantirish! Test avtomatik yakunlanadi.");
+        testForm.submit();
+    }
+}
+
+function closeWarning() {
+    document.getElementById('warningOverlay').style.display = 'none';
+    setTimeout(() => {
+        document.getElementById('watermark').classList.remove('active');
+    }, 2000);
+}
+
+// ==================== ANTI-CHEAT MEASURES ====================
+
+// Disable right-click
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    showWarning("O'ng tugma bosilishi taqiqlangan!");
+    return false;
+});
+
+// Disable copy/cut/paste
+document.addEventListener('copy', function(e) {
+    e.preventDefault();
+    showWarning("Nusxa olish taqiqlangan!");
+    return false;
+});
+
+document.addEventListener('cut', function(e) {
+    e.preventDefault();
+    showWarning("Kesish taqiqlangan!");
+    return false;
+});
+
+document.addEventListener('paste', function(e) {
+    e.preventDefault();
+    showWarning("Qo'yish taqiqlangan!");
+    return false;
+});
+
+// Disable keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+    if (e.key === 'F12' || 
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+        (e.ctrlKey && (e.key === 'U' || e.key === 'u'))) {
+        e.preventDefault();
+        showWarning("Dasturchi asboblari taqiqlangan!");
+        return false;
+    }
+    
+    // Disable Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'x' || e.key === 'X' || 
+                      e.key === 'v' || e.key === 'V' || e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        showWarning("Bu klaviatura kombinatsiyasi taqiqlangan!");
+        return false;
+    }
+    
+    // Disable PrintScreen
+    if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        showWarning("Skrinshot olish taqiqlangan!");
+        document.getElementById('watermark').classList.add('active');
+        return false;
+    }
+});
+
+// Detect PrintScreen (fallback)
+document.addEventListener('keyup', function(e) {
+    if (e.key === 'PrintScreen') {
+        showWarning("Skrinshot olish taqiqlangan!");
+        // Blur content temporarily
+        document.getElementById('testPage').style.filter = 'blur(10px)';
+        setTimeout(() => {
+            document.getElementById('testPage').style.filter = 'none';
+        }, 1000);
+    }
+});
+
+// Disable drag and drop
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+// Detect visibility change (tab switch)
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        showWarning("Sahifadan chiqish aniqlandi! Iltimos, testni davom ettiring.");
+    }
+});
+
+// Detect window blur (alt+tab)
+window.addEventListener('blur', function() {
+    document.getElementById('watermark').classList.add('active');
+    showWarning("Oynadan chiqish aniqlandi!");
+});
+
+window.addEventListener('focus', function() {
+    setTimeout(() => {
+        document.getElementById('watermark').classList.remove('active');
+    }, 1000);
+});
+
+// Disable DevTools
+(function() {
+    const devtools = /./;
+    devtools.toString = function() {
+        showWarning("Dasturchi asboblari taqiqlangan!");
+    }
+    console.log('%c', devtools);
+})();
+
+// Letter filter for template
+document.addEventListener('DOMContentLoaded', function() {
+    updateProgress();
+});
+</script>
+
+<!-- Character filter -->
+{% load static %}
+<script>
+// Simple chr filter equivalent
+String.prototype.chr = function() {
+    return String.fromCharCode(parseInt(this));
+};
 </script>
 {% endblock %}
 {% endblock %}

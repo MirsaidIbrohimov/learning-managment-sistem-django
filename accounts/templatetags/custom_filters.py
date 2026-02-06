@@ -33,3 +33,16 @@ def premium_name(user):
     if hasattr(user, 'is_premium') and user.is_premium:
         return mark_safe(f'{name} <span class="badge bg-warning text-dark" style="font-size: 0.65em; vertical-align: middle;" title="Premium foydalanuvchi"><i class="bi bi-star-fill"></i></span>')
     return name
+
+
+@register.filter
+def chr(value):
+    """Convert integer to character (ASCII)."""
+    try:
+        return __builtins__['chr'](int(value))
+    except (ValueError, TypeError, KeyError):
+        try:
+            import builtins
+            return builtins.chr(int(value))
+        except:
+            return ''
