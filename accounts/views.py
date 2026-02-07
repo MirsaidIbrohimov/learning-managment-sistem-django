@@ -1134,7 +1134,10 @@ def admin_messages(request):
     if not request.user.is_admin:
         return redirect('home')
     
-    all_messages = Message.objects.all().order_by('-created_at')[:100]
+    all_messages = Message.objects.all().order_by('-created_at')
+    paginator = Paginator(all_messages, 25)
+    page = request.GET.get('page')
+    all_messages = paginator.get_page(page)
     return render(request, 'accounts/admin/messages.html', {'messages_list': all_messages})
 
 from django.core.paginator import Paginator
@@ -1564,6 +1567,10 @@ def homework_submissions(request):
         submissions = submissions.filter(homework__lesson__profession_id=profession_filter)
     
     submissions = submissions.order_by('-submitted_at')
+    
+    paginator = Paginator(submissions, 25)
+    page = request.GET.get('page')
+    submissions = paginator.get_page(page)
     
     # Statistika
     stats = {
@@ -2055,6 +2062,10 @@ def admin_users(request):
     
     professions = Profession.objects.all()
     
+    paginator = Paginator(users, 25)
+    page = request.GET.get('page')
+    users = paginator.get_page(page)
+    
     return render(request, 'accounts/admin/users.html', {
         'users': users,
         'professions': professions,
@@ -2402,6 +2413,10 @@ def admin_sections(request):
     
     professions = Profession.objects.all()
     
+    paginator = Paginator(sections, 25)
+    page = request.GET.get('page')
+    sections = paginator.get_page(page)
+    
     return render(request, 'accounts/admin/sections.html', {
         'sections': sections,
         'professions': professions,
@@ -2535,6 +2550,10 @@ def admin_manage_coins(request):
             messages.error(request, "Xatolik yuz berdi!")
 
         return redirect('admin_manage_coins')
+
+    paginator = Paginator(users, 25)
+    page = request.GET.get('page')
+    users = paginator.get_page(page)
 
     return render(request, 'accounts/admin/manage_coins.html', {
         'users': users,
