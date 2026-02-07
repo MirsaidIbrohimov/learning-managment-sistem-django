@@ -3,196 +3,497 @@
 {% block title %}Sozlamalar | LMS{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-9">
-
-            <!-- HEADER -->
-            <div class="mb-4">
-                <h2 class="fw-bold">
-                    <i class="bi bi-gear me-2"></i>Sozlamalar
-                </h2>
-                <p class="text-muted mb-0">
-                    Sayt ko‘rinishi va effektlarini sozlang
-                </p>
-            </div>
-
-            <!-- WEATHER SETTINGS -->
-            <div class="settings-card mb-4">
-                <h5 class="mb-3">
-                    <i class="bi bi-cloud-sun me-2"></i>Ob-havo effektlari
-                </h5>
-                <p class="text-muted mb-4">
-                    Sayt fonida ko‘rinadigan fasliy effektni tanlang
-                </p>
-
-                <div class="row g-3">
-                    <div class="col-6 col-md-4" data-effect="off">
-                        <div class="weather-box">
-                            <i class="bi bi-x-circle fs-1"></i>
-                            <span>O‘chirilgan</span>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-md-4" data-effect="auto">
-                        <div class="weather-box">
-                            <i class="bi bi-magic fs-1"></i>
-                            <span>Avtomatik</span>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-md-4" data-effect="winter">
-                        <div class="weather-box">
-                            ❄️
-                            <span>Qor</span>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-md-4" data-effect="spring">
-                        <div class="weather-box">
-                            🌧️
-                            <span>Yomg‘ir</span>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-md-4" data-effect="summer">
-                        <div class="weather-box">
-                            ☀️
-                            <span>Quyosh</span>
-                        </div>
-                    </div>
-
-                    <div class="col-6 col-md-4" data-effect="autumn">
-                        <div class="weather-box">
-                            🍁
-                            <span>Kuz</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- THEME SETTINGS -->
-            <div class="settings-card mb-4">
-                <h5 class="mb-3">
-                    <i class="bi bi-palette me-2"></i>Mavzu
-                </h5>
-
-                <div class="d-flex gap-3">
-                    <button class="theme-btn" data-theme="light">
-                        <i class="bi bi-sun me-2"></i>Yorug‘
-                    </button>
-                    <button class="theme-btn" data-theme="dark">
-                        <i class="bi bi-moon-stars me-2"></i>Qorong‘u
-                    </button>
-                </div>
-            </div>
-
-            <!-- BACK BUTTON -->
-            <div class="text-center">
-                <a href="{% url 'profile' %}" class="btn btn-outline-secondary px-4">
-                    <i class="bi bi-arrow-left me-2"></i>Profilga qaytish
-                </a>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-<!-- STYLES -->
 <style>
-.settings-card{
-    background: rgba(255,255,255,.85);
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 15px 35px rgba(0,0,0,.08);
+/* ===== PAGE ===== */
+.settings-page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
 }
 
-[data-bs-theme="dark"] .settings-card{
-    background: rgba(30,30,30,.8);
+/* ===== HEADER ===== */
+.settings-header {
+    margin-bottom: 2rem;
 }
 
-.weather-box{
-    background: var(--card-bg,#fff);
-    border: 2px solid transparent;
+.settings-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.375rem;
+}
+
+.settings-title i {
+    color: #6366f1;
+}
+
+.settings-subtitle {
+    color: var(--bs-secondary-color);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* ===== CARD ===== */
+.s-card {
+    border: 1px solid var(--bs-border-color);
+    border-radius: 20px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    background: var(--bs-body-bg);
+    transition: box-shadow 0.3s;
+}
+
+.s-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+
+[data-bs-theme="dark"] .s-card:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.s-card-head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.s-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.s-card-icon.weather { background: rgba(6,182,212,0.12); color: #06b6d4; }
+.s-card-icon.theme   { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+
+.s-card-info h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.2rem;
+}
+
+.s-card-info p {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+    margin: 0;
+}
+
+/* ===== WEATHER GRID ===== */
+.weather-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.wx-option {
+    position: relative;
+    border: 2px solid var(--bs-border-color);
     border-radius: 16px;
-    padding: 22px;
+    padding: 1.25rem 0.75rem;
     text-align: center;
     cursor: pointer;
-    transition: .3s ease;
-    font-size: 2rem;
-}
-
-.weather-box span{
-    display: block;
-    margin-top: 8px;
-    font-size: .95rem;
-    font-weight: 600;
-}
-
-.weather-box:hover{
-    transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0,0,0,.12);
-}
-
-.col-6.active .weather-box{
-    border-color: var(--primary-blue,#6366f1);
-    background: rgba(99,102,241,.12);
-}
-
-.theme-btn{
-    flex: 1;
-    border-radius: 14px;
-    padding: 14px;
-    border: 2px solid #ddd;
+    transition: all 0.25s ease;
     background: transparent;
-    font-weight: 600;
-    transition: .3s;
 }
 
-.theme-btn.active{
-    background: var(--primary-blue,#6366f1);
+.wx-option:hover {
+    border-color: rgba(99,102,241,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+[data-bs-theme="dark"] .wx-option:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.wx-option.active {
+    border-color: #6366f1;
+    background: rgba(99,102,241,0.08);
+}
+
+[data-bs-theme="dark"] .wx-option.active {
+    background: rgba(99,102,241,0.15);
+    border-color: #818cf8;
+}
+
+.wx-option .check-mark {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #6366f1;
     color: #fff;
-    border-color: var(--primary-blue,#6366f1);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.wx-option.active .check-mark {
+    display: flex;
+}
+
+.weather-emoji {
+    font-size: 2.25rem;
+    line-height: 1;
+    margin-bottom: 0.625rem;
+    display: block;
+}
+
+.wx-option i.weather-emoji {
+    font-size: 2rem;
+    color: var(--bs-secondary-color);
+}
+
+.wx-option.active i.weather-emoji {
+    color: #6366f1;
+}
+
+.weather-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    display: block;
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.theme-option {
+    position: relative;
+    border: 2px solid var(--bs-border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: transparent;
+}
+
+.theme-option:hover {
+    border-color: rgba(139,92,246,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+[data-bs-theme="dark"] .theme-option:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.theme-option.active {
+    border-color: #8b5cf6;
+    background: rgba(139,92,246,0.08);
+}
+
+[data-bs-theme="dark"] .theme-option.active {
+    background: rgba(139,92,246,0.15);
+    border-color: #a78bfa;
+}
+
+.theme-option .check-mark {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #8b5cf6;
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+.theme-option.active .check-mark {
+    display: flex;
+}
+
+.theme-preview {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.theme-preview.light-p {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: #f59e0b;
+    border: 2px solid #e2e8f0;
+}
+
+.theme-preview.dark-p {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #fbbf24;
+    border: 2px solid #334155;
+}
+
+.theme-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.theme-desc {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    margin: 0;
+}
+
+/* ===== BACK BTN ===== */
+.settings-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--bs-border-color);
+    background: transparent;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.settings-back:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: rgba(99,102,241,0.05);
+}
+
+/* ===== TOAST ===== */
+.settings-toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #10b981;
+    color: #fff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 30px rgba(16,185,129,0.3);
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.settings-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 575px) {
+    .settings-page {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .settings-title {
+        font-size: 1.4rem;
+    }
+
+    .s-card {
+        padding: 1.25rem;
+        border-radius: 16px;
+    }
+
+    .weather-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .weather-item {
+        padding: 1rem 0.5rem;
+    }
+
+    .weather-emoji {
+        font-size: 1.75rem;
+    }
+
+    .theme-options {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .theme-option {
+        padding: 1.25rem 0.75rem;
+    }
+
+    .theme-preview {
+        width: 48px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
 }
 </style>
 
-<!-- SCRIPT -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+<div class="settings-page">
+    <!-- HEADER -->
+    <div class="settings-header">
+        <h2 class="settings-title">
+            <i class="bi bi-gear-fill"></i> Sozlamalar
+        </h2>
+        <p class="settings-subtitle">Sayt ko'rinishi va effektlarini sozlang</p>
+    </div>
 
-    // WEATHER EFFECT
+    <!-- WEATHER EFFECTS -->
+    <div class="s-card">
+        <div class="s-card-head">
+            <div class="s-card-icon weather">
+                <i class="bi bi-cloud-sun-fill"></i>
+            </div>
+            <div class="s-card-info">
+                <h5>Ob-havo effektlari</h5>
+                <p>Sayt fonida ko'rinadigan fasliy effektni tanlang</p>
+            </div>
+        </div>
+
+        <div class="weather-grid">
+            <div class="wx-option" data-effect="off">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <i class="bi bi-x-circle weather-emoji"></i>
+                <span class="weather-label">O'chirilgan</span>
+            </div>
+            <div class="wx-option" data-effect="auto">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <i class="bi bi-magic weather-emoji"></i>
+                <span class="weather-label">Avtomatik</span>
+            </div>
+            <div class="wx-option" data-effect="winter">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="weather-emoji">❄️</span>
+                <span class="weather-label">Qor</span>
+            </div>
+            <div class="wx-option" data-effect="spring">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="weather-emoji">🌧️</span>
+                <span class="weather-label">Yomg'ir</span>
+            </div>
+            <div class="wx-option" data-effect="summer">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="weather-emoji">☀️</span>
+                <span class="weather-label">Quyosh</span>
+            </div>
+            <div class="wx-option" data-effect="autumn">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="weather-emoji">🍁</span>
+                <span class="weather-label">Kuz</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- THEME -->
+    <div class="s-card">
+        <div class="s-card-head">
+            <div class="s-card-icon theme">
+                <i class="bi bi-palette-fill"></i>
+            </div>
+            <div class="s-card-info">
+                <h5>Mavzu</h5>
+                <p>Sayt ranglar sxemasini tanlang</p>
+            </div>
+        </div>
+
+        <div class="theme-options">
+            <div class="theme-option" data-theme="light">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <div class="theme-preview light-p">
+                    <i class="bi bi-sun-fill"></i>
+                </div>
+                <div class="theme-name">Yorug'</div>
+                <p class="theme-desc">Kunduzgi rejim</p>
+            </div>
+            <div class="theme-option" data-theme="dark">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <div class="theme-preview dark-p">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </div>
+                <div class="theme-name">Qorong'u</div>
+                <p class="theme-desc">Tungi rejim</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACK -->
+    <div class="text-center">
+        <a href="{% url 'profile' %}" class="settings-back">
+            <i class="bi bi-arrow-left"></i> Profilga qaytish
+        </a>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="settings-toast" id="settingsToast">
+    <i class="bi bi-check-circle-fill"></i>
+    <span id="toastText">Saqlandi</span>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function showToast(text) {
+        const toast = document.getElementById('settingsToast');
+        document.getElementById('toastText').textContent = text;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    // WEATHER
     const currentEffect = localStorage.getItem('weatherEffect') || 'auto';
 
-    document.querySelectorAll('[data-effect]').forEach(col => {
-        if (col.dataset.effect === currentEffect) {
-            col.classList.add('active');
+    document.querySelectorAll('.wx-option').forEach(item => {
+        if (item.dataset.effect === currentEffect) {
+            item.classList.add('active');
         }
 
-        col.addEventListener('click', function () {
-            document.querySelectorAll('[data-effect]').forEach(c => c.classList.remove('active'));
+        item.addEventListener('click', function() {
+            document.querySelectorAll('.wx-option').forEach(i => i.classList.remove('active'));
             this.classList.add('active');
             localStorage.setItem('weatherEffect', this.dataset.effect);
-            location.reload();
+            showToast('Effekt o\'zgartirildi');
+            setTimeout(() => location.reload(), 800);
         });
     });
 
     // THEME
     const currentTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-bs-theme', currentTheme);
 
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        if (btn.dataset.theme === currentTheme) {
-            btn.classList.add('active');
+    document.querySelectorAll('.theme-option').forEach(opt => {
+        if (opt.dataset.theme === currentTheme) {
+            opt.classList.add('active');
         }
 
-        btn.addEventListener('click', function () {
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.theme-option').forEach(o => o.classList.remove('active'));
             this.classList.add('active');
-            document.documentElement.setAttribute('data-bs-theme', this.dataset.theme);
-            localStorage.setItem('theme', this.dataset.theme);
+            const theme = this.dataset.theme;
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            showToast(theme === 'dark' ? 'Qorong\'u rejim yoqildi' : 'Yorug\' rejim yoqildi');
         });
     });
-
 });
 </script>
-{% endblock %} 
+{% endblock %}
