@@ -1060,6 +1060,21 @@ def mark_message_read(request, pk):
     return JsonResponse({'success': True})
 
 
+@login_required
+def mark_all_messages_read(request):
+    if request.method == 'POST':
+        Message.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        general_q = Q(recipient__isnull=True, is_read=False)
+        if request.user.is_student:
+            general_q &= Q(message_type__in=['all', 'students'])
+        elif request.user.is_teacher:
+            general_q &= Q(message_type__in=['all', 'teachers'])
+        else:
+            general_q &= Q(message_type='all')
+        Message.objects.filter(general_q).update(is_read=True)
+    return redirect('messages')
+
+
 # Admin: Send message
 @login_required
 def admin_send_message(request):
