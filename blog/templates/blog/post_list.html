@@ -3,110 +3,513 @@
 {% block title %}Blog - LMS{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold" style="color: var(--text);">Blog Postlar</h2>
+<style>
+.blog-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.blog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.blog-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.blog-title i { color: #6366f1; }
+
+/* SEARCH BAR */
+.blog-search {
+    position: relative;
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 1.25rem;
+}
+
+.blog-search input {
+    width: 100%;
+    padding: 0.7rem 1rem 0.7rem 2.75rem;
+    border-radius: 50px;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.25s;
+}
+
+.blog-search input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+
+.blog-search .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--bs-secondary-color);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.blog-search .search-clear {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 0.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.blog-search .search-clear:hover { color: #ef4444; }
+
+/* FILTER TABS */
+.blog-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+}
+.blog-filters::-webkit-scrollbar { display: none; }
+
+.blog-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1.125rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--bs-border-color);
+    background: transparent;
+    color: var(--bs-body-color);
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+.blog-tab:hover { border-color: #6366f1; color: #6366f1; }
+.blog-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+
+.blog-tab .cnt {
+    background: rgba(0,0,0,0.1);
+    padding: 0.1rem 0.45rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+}
+.blog-tab.active .cnt { background: rgba(255,255,255,0.25); }
+
+/* GRID */
+.blog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+/* CARD */
+.blog-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.blog-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    border-color: #6366f1;
+    color: inherit;
+}
+
+[data-bs-theme="dark"] .blog-card:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+/* IMAGE */
+.blog-img {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+.blog-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+.blog-card:hover .blog-img img { transform: scale(1.08); }
+
+.blog-img-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99,102,241,0.08);
+    color: var(--bs-secondary-color);
+}
+.blog-img-placeholder i { font-size: 3rem; opacity: 0.4; }
+
+/* BADGES ON IMAGE */
+.blog-badges-top {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 2;
+}
+
+.blog-badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    backdrop-filter: blur(8px);
+}
+
+.blog-badge.type-news { background: rgba(59,130,246,0.9); color: #fff; }
+.blog-badge.type-tutorial { background: rgba(16,185,129,0.9); color: #fff; }
+.blog-badge.type-tips { background: rgba(245,158,11,0.9); color: #fff; }
+.blog-badge.type-announcement { background: rgba(239,68,68,0.9); color: #fff; }
+.blog-badge.type-other { background: rgba(107,114,128,0.9); color: #fff; }
+
+/* DATE BADGE */
+.blog-date {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 0.3rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    z-index: 2;
+}
+
+/* BODY */
+.blog-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.blog-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--bs-body-color);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.blog-desc {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    line-height: 1.6;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+/* AUTHOR */
+.blog-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.blog-author-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(99,102,241,0.2);
+}
+
+.blog-author-initials {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.blog-author-name {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    font-weight: 500;
+}
+
+/* FOOTER */
+.blog-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.blog-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.blog-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+}
+
+.blog-stat i { font-size: 0.9rem; }
+
+.blog-stat.likes i { color: #ef4444; }
+.blog-stat.comments i { color: #6366f1; }
+
+.blog-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(99,102,241,0.1);
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.blog-card:hover .blog-arrow {
+    background: #6366f1;
+    color: #fff;
+}
+
+/* EMPTY */
+.blog-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 20px;
+}
+.blog-empty i {
+    font-size: 4rem;
+    color: var(--bs-secondary-color);
+    opacity: 0.3;
+}
+
+/* RESPONSIVE */
+@media (max-width: 991px) {
+    .blog-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 575px) {
+    .blog-page { padding: 1.25rem 0.75rem; }
+    .blog-grid { grid-template-columns: 1fr; }
+    .blog-title { font-size: 1.4rem; }
+    .blog-img { height: 170px; }
+    .blog-search { max-width: 100%; }
+}
+</style>
+
+<div class="blog-page">
+    <!-- HEADER -->
+    <div class="blog-header">
+        <h2 class="blog-title">
+            <i class="bi bi-journal-richtext"></i> Blog Postlar
+        </h2>
         {% if user.is_teacher or user.is_admin %}
-        <a href="{% url 'blog:post_create' %}" class="btn btn-primary">
+        <a href="{% url 'blog:post_create' %}" class="btn btn-primary rounded-pill px-4">
             <i class="bi bi-plus-lg me-2"></i>Post yaratish
         </a>
         {% endif %}
     </div>
 
-    <!-- Filter & Search -->
-    <div class="card mb-4 border-0 shadow-sm" style="background: var(--card);">
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Qidirish..."
-                            value="{{ search_query|default:'' }}">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select name="type" class="form-select">
-                        <option value="">Barcha turlar</option>
-                        <option value="news" {% if filter_type == 'news' %}selected{% endif %}>Yangiliklar</option>
-                        <option value="tutorial" {% if filter_type == 'tutorial' %}selected{% endif %}>Darslik</option>
-                        <option value="tips" {% if filter_type == 'tips' %}selected{% endif %}>Maslahatlar</option>
-                        <option value="announcement" {% if filter_type == 'announcement' %}selected{% endif %}>E'lon</option>
-                        <option value="other" {% if filter_type == 'other' %}selected{% endif %}>Boshqa</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-outline-primary w-100">Filtrlash</button>
-                </div>
-                {% if search_query or filter_type %}
-                <div class="col-md-2">
-                    <a href="{% url 'blog:post_list' %}" class="btn btn-link text-decoration-none">Tozalash</a>
+    <!-- SEARCH -->
+    <form method="get" id="blogSearchForm">
+        <input type="hidden" name="type" id="hiddenType" value="{{ filter_type|default:'' }}">
+        <div class="blog-search">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" name="q" placeholder="Postlarni qidirish..." value="{{ search_query|default:'' }}" id="blogSearchInput">
+            {% if search_query %}
+            <a href="{% url 'blog:post_list' %}{% if filter_type %}?type={{ filter_type }}{% endif %}" class="search-clear" title="Tozalash">
+                <i class="bi bi-x-lg"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+
+    <!-- FILTER TABS -->
+    <div class="blog-filters">
+        <a href="{% url 'blog:post_list' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+           class="blog-tab {% if not filter_type %}active{% endif %}">
+            <i class="bi bi-grid-3x3-gap"></i> Barchasi
+            <span class="cnt">{{ posts|length }}</span>
+        </a>
+        <a href="{% url 'blog:post_list' %}?type=news{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="blog-tab {% if filter_type == 'news' %}active{% endif %}">
+            <i class="bi bi-newspaper"></i> Yangiliklar
+        </a>
+        <a href="{% url 'blog:post_list' %}?type=tutorial{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="blog-tab {% if filter_type == 'tutorial' %}active{% endif %}">
+            <i class="bi bi-book-half"></i> Darslik
+        </a>
+        <a href="{% url 'blog:post_list' %}?type=tips{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="blog-tab {% if filter_type == 'tips' %}active{% endif %}">
+            <i class="bi bi-lightbulb-fill"></i> Maslahatlar
+        </a>
+        <a href="{% url 'blog:post_list' %}?type=announcement{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="blog-tab {% if filter_type == 'announcement' %}active{% endif %}">
+            <i class="bi bi-megaphone-fill"></i> E'lonlar
+        </a>
+        <a href="{% url 'blog:post_list' %}?type=other{% if search_query %}&q={{ search_query }}{% endif %}"
+           class="blog-tab {% if filter_type == 'other' %}active{% endif %}">
+            <i class="bi bi-three-dots"></i> Boshqa
+        </a>
+    </div>
+
+    {% if posts %}
+    <!-- GRID -->
+    <div class="blog-grid">
+        {% for post in posts %}
+        <a href="{% url 'blog:post_detail' post.pk %}" class="blog-card">
+            <div class="blog-img">
+                {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% else %}
+                <div class="blog-img-placeholder">
+                    <i class="bi bi-journal-richtext"></i>
                 </div>
                 {% endif %}
-            </form>
-        </div>
-    </div>
 
-    <!-- Posts Grid -->
-    <div class="row g-4">
-        {% for post in posts %}
-        <div class="col-md-6 col-lg-4">
-            <a href="{% url 'blog:post_detail' post.pk %}" class="text-decoration-none">
-                <div class="card h-100 border-0 shadow-sm hover-card">
-                    {% if post.image %}
-                    <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}"
-                        style="height: 200px; object-fit: cover;">
+                <!-- TYPE BADGE -->
+                <div class="blog-badges-top">
+                    <span class="blog-badge type-{{ post.post_type }}">
+                        {% if post.post_type == 'news' %}<i class="bi bi-newspaper"></i> Yangilik
+                        {% elif post.post_type == 'tutorial' %}<i class="bi bi-book-half"></i> Darslik
+                        {% elif post.post_type == 'tips' %}<i class="bi bi-lightbulb-fill"></i> Maslahat
+                        {% elif post.post_type == 'announcement' %}<i class="bi bi-megaphone-fill"></i> E'lon
+                        {% else %}<i class="bi bi-three-dots"></i> Boshqa
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- DATE -->
+                <div class="blog-date">
+                    <i class="bi bi-calendar3"></i> {{ post.created_at|date:"d.m.Y" }}
+                </div>
+            </div>
+
+            <div class="blog-body">
+                <h5 class="blog-name">{{ post.title }}</h5>
+                <p class="blog-desc">{{ post.content|striptags|truncatewords:18 }}</p>
+
+                <!-- AUTHOR -->
+                <div class="blog-author">
+                    {% if post.author.photo %}
+                    <img src="{{ post.author.photo.url }}" alt="{{ post.author.full_name }}" class="blog-author-avatar">
                     {% else %}
-                    <div class="bg-light d-flex align-items-center justify-content-center text-muted"
-                        style="height: 200px;">
-                        <i class="bi bi-image" style="font-size: 3rem;"></i>
-                    </div>
+                    <div class="blog-author-initials">{{ post.author.get_initials }}</div>
                     {% endif %}
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="badge bg-primary bg-opacity-10 text-primary">{{ post.get_post_type_display }}</span>
-                            <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ post.created_at|date:"d.m.Y" }}</small>
-                        </div>
-                        <h5 class="card-title fw-bold mb-2" style="color: var(--text);">{{ post.title|truncatechars:50 }}</h5>
-                        <p class="card-text text-muted small">{{ post.content|striptags|truncatewords:20 }}</p>
+                    <span class="blog-author-name">{{ post.author.full_name }}</span>
+                </div>
 
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-                            <div class="d-flex align-items-center">
-                                {% if post.author.photo %}
-                                <img src="{{ post.author.photo.url }}" class="rounded-circle me-2" width="30" height="30"
-                                    style="object-fit: cover;">
-                                {% else %}
-                                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white me-2"
-                                    style="width: 30px; height: 30px; font-size: 0.8rem;">
-                                    {{ post.author.get_initials }}
-                                </div>
-                                {% endif %}
-                                <small class="text-muted">{{ post.author.full_name }}</small>
-                            </div>
-                            <div class="d-flex gap-3 text-muted small">
-                                <span><i class="bi bi-heart me-1"></i>{{ post.likes.count }}</span>
-                                <span><i class="bi bi-chat me-1"></i>{{ post.comments.count }}</span>
-                            </div>
-                        </div>
+                <div class="blog-footer">
+                    <div class="blog-stats">
+                        <span class="blog-stat likes">
+                            <i class="bi bi-heart-fill"></i> {{ post.likes.count }}
+                        </span>
+                        <span class="blog-stat comments">
+                            <i class="bi bi-chat-dots-fill"></i> {{ post.comments.count }}
+                        </span>
+                    </div>
+                    <div class="blog-arrow">
+                        <i class="bi bi-arrow-right"></i>
                     </div>
                 </div>
-            </a>
-        </div>
-        {% empty %}
-        <div class="col-12 text-center py-5">
-            <i class="bi bi-journal-x text-muted" style="font-size: 4rem;"></i>
-            <p class="text-muted mt-3">Postlar topilmadi</p>
-        </div>
+            </div>
+        </a>
         {% endfor %}
     </div>
+
+    {% else %}
+    <div class="blog-empty">
+        <i class="bi bi-journal-x"></i>
+        <h4 class="mt-3">Postlar topilmadi</h4>
+        <p class="text-muted mt-1">
+            {% if search_query or filter_type %}
+            Qidiruv natijasi topilmadi. <a href="{% url 'blog:post_list' %}" class="text-decoration-none">Barchasini ko'rish</a>
+            {% else %}
+            Hozircha postlar mavjud emas
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
 </div>
 
-<style>
-    .hover-card {
-        transition: transform 0.2s;
-    }
-
-    .hover-card:hover {
-        transform: translateY(-5px);
-    }
-</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('blogSearchInput');
+    let timeout;
+    searchInput.addEventListener('keyup', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('blogSearchForm').submit();
+        }
+    });
+});
+</script>
 {% endblock %}
