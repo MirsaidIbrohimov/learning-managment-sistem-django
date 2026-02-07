@@ -2563,6 +2563,14 @@ def admin_manage_coins(request):
 # ==================== YORDAM SO'ROVLARI ====================
 
 @login_required
+def help_page(request):
+    my_requests = HelpRequest.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'accounts/help_page.html', {
+        'my_requests': my_requests,
+    })
+
+
+@login_required
 def submit_help_request(request):
     if request.method == 'POST':
         subject = request.POST.get('subject', '').strip()

@@ -98,6 +98,7 @@ urlpatterns = [
     path('dashboard/sections/<int:pk>/delete/', views.admin_section_delete, name='admin_section_delete'),
     
     # Help Requests / Yordam
+    path('help/', views.help_page, name='help_page'),
     path('help/submit/', views.submit_help_request, name='submit_help_request'),
     path('dashboard/help_requests/', views.admin_help_requests, name='admin_help_requests'),
     path('dashboard/help-requests/<int:pk>/', views.admin_help_request_detail, name='admin_help_request_detail'),

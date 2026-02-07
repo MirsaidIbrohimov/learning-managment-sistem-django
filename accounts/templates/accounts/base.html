@@ -205,6 +205,13 @@
                         </a>
                     </li> -->
 
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}"
+                            href="{% url 'help_page' %}">
+                            <i class="bi bi-question-circle me-1"></i>Yordam
+                        </a>
+                    </li>
+
                     {% if user.is_teacher or user.is_admin %}
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}"
@@ -565,12 +572,11 @@
     </div>
 
     <script>
-    // Alt+Enter -> Yordam modal
+    // Alt+Enter -> Yordam sahifasi
     document.addEventListener('keydown', function(e) {
         if (e.altKey && e.key === 'Enter') {
             e.preventDefault();
-            const modal = new bootstrap.Modal(document.getElementById('helpModal'));
-            modal.show();
+            window.location.href = '{% url "help_page" %}';
         }
     });
     
