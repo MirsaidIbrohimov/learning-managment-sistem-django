@@ -48,11 +48,13 @@
                 class="nav-link {% if 'enrollment' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-person-plus"></i>
                 <span>So'rovlar</span>
+                {% if admin_pending_enrollments %}<span class="sidebar-badge">{{ admin_pending_enrollments }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_password_reset_requests' %}"
                 class="nav-link {% if 'password_reset' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-key"></i>
                 <span>Parol tiklash</span>
+                {% if admin_pending_passwords %}<span class="sidebar-badge">{{ admin_pending_passwords }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_users' %}"
                 class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
@@ -94,6 +96,7 @@
                 class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}">
                 <i class="bi bi-file-check"></i>
                 <span>Vazifalar</span>
+                {% if admin_pending_homeworks %}<span class="sidebar-badge">{{ admin_pending_homeworks }}</span>{% endif %}
             </a>
             <a href="{% url 'coin:admin_products' %}"
                 class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
@@ -126,6 +129,7 @@
             <a href="{% url 'admin_help_requests' %}" class="nav-link {% if 'help_requests' in request.path %}active{% endif %}">
                 <i class="bi bi-question-circle"></i>
                 <span>Yordam xatlari</span>
+                {% if admin_pending_help %}<span class="sidebar-badge">{{ admin_pending_help }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}">
                 <i class="bi bi-coin"></i>

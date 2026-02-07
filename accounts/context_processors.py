@@ -28,3 +28,23 @@ def unread_messages(request):
 
     return {"unread_messages_count": Message.objects.filter(q).distinct().count()}
 
+
+def admin_badges(request):
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or not getattr(user, "is_superuser", False):
+        return {}
+
+    from .models import (
+        CourseEnrollmentRequest,
+        HomeworkSubmission,
+        HelpRequest,
+        PasswordResetRequest,
+    )
+
+    return {
+        "admin_pending_enrollments": CourseEnrollmentRequest.objects.filter(status="pending").count(),
+        "admin_pending_homeworks": HomeworkSubmission.objects.filter(status__in=["pending", "reviewing"]).count(),
+        "admin_pending_help": HelpRequest.objects.filter(status="pending").count(),
+        "admin_pending_passwords": PasswordResetRequest.objects.filter(status="pending").count(),
+    }
+
