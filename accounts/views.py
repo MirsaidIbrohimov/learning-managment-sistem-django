@@ -2490,16 +2490,30 @@ def admin_section_delete(request, pk):
 
 
 # ==================== COIN BOSHQARUVI ====================
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.core.paginator import Paginator
+from django.db import transaction
 
 @login_required
 def admin_manage_coins(request):
+
+    # 🔐 Admin check
     if not request.user.is_admin:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
 
-    users = CustomUser.objects.filter(role='student').order_by('-coins', 'first_name')
+    # 📌 Studentlar queryset
+    users_qs = CustomUser.objects.filter(
+        role='student'
+    ).order_by('-coins', 'first_name')
 
+    # =========================
+    # POST ACTION (Coin berish/ayirish)
+    # =========================
     if request.method == 'POST':
+
         user_id = request.POST.get('user_id')
         amount = request.POST.get('amount')
         action = request.POST.get('action')
@@ -2507,57 +2521,81 @@ def admin_manage_coins(request):
 
         try:
             amount = int(amount)
-            user = CustomUser.objects.get(pk=user_id)
 
-            if action == 'add':
-                user.coins += amount
-                user.save()
+            # ❗ Xavfsizlik
+            if amount <= 0:
+                raise ValueError("Amount must be positive")
 
-                text = f"Sizga {amount} coin rag'batlantirish sifatida berildi! 🎉"
-                if reason:
-                    text += f"\n\nSabab: {reason}"
+            with transaction.atomic():
 
-                Message.objects.create(
-                    sender=request.user,
-                    recipient=user,
-                    title="Coin rag'batlantirish",   # ✅ subject emas, title
-                    content=text,
-                    message_type='system'
-                )
+                user = CustomUser.objects.select_for_update().get(pk=user_id)
 
-                messages.success(request, f"{user.full_name}ga {amount} coin berildi!")
+                # ================= ADD =================
+                if action == 'add':
+                    user.coins += amount
+                    user.save(update_fields=['coins'])
 
-            elif action == 'remove':
-                # Coinlar minusga ham o'tishi mumkin
-                user.coins -= amount
-                user.save()
+                    text = f"Sizga {amount} coin rag'batlantirish sifatida berildi! 🎉"
+                    if reason:
+                        text += f"\n\nSabab: {reason}"
 
-                text = f"Sizdan {amount} coin ayirildi."
-                if reason:
-                    text += f"\n\nSabab: {reason}"
+                    Message.objects.create(
+                        sender=request.user,
+                        recipient=user,
+                        title="Coin rag'batlantirish",
+                        content=text,
+                        message_type='system'
+                    )
 
-                Message.objects.create(
-                    sender=request.user,
-                    recipient=user,
-                    title="Coin ayirildi",
-                    content=text,
-                    message_type='system'
-                )
+                    messages.success(
+                        request,
+                        f"{user.full_name}ga {amount} coin berildi!"
+                    )
 
-                messages.success(request, f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})")
+                # ================= REMOVE =================
+                elif action == 'remove':
+                    user.coins -= amount
+                    user.save(update_fields=['coins'])
+
+                    text = f"Sizdan {amount} coin ayirildi."
+                    if reason:
+                        text += f"\n\nSabab: {reason}"
+
+                    Message.objects.create(
+                        sender=request.user,
+                        recipient=user,
+                        title="Coin ayirildi",
+                        content=text,
+                        message_type='system'
+                    )
+
+                    messages.success(
+                        request,
+                        f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})"
+                    )
 
         except (ValueError, CustomUser.DoesNotExist):
             messages.error(request, "Xatolik yuz berdi!")
 
+        # 🔥 Qaysi sahifada bo‘lsa o‘sha sahifaga qaytadi
+        current_page = request.GET.get('page', '')
+        if current_page:
+            return redirect(f"{request.path}?page={current_page}")
+
         return redirect('admin_manage_coins')
 
-    paginator = Paginator(users, 25)
-    page = request.GET.get('page')
-    users = paginator.get_page(page)
+    # =========================
+    # PAGINATION
+    # =========================
+    paginator = Paginator(users_qs, 25)  # har sahifada 25 ta
+    page_number = request.GET.get('page')
+    users = paginator.get_page(page_number)
 
-    return render(request, 'accounts/admin/manage_coins.html', {
-        'users': users,
-    })
+    context = {
+        'users': users
+    }
+
+    return render(request, 'accounts/admin/manage_coins.html', context)
 
 
 # ==================== YORDAM SO'ROVLARI ====================
