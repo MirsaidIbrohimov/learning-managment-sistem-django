@@ -230,6 +230,50 @@
 </table>
 </div>
 
+<!-- PAGINATION -->
+{% if students.has_other_pages %}
+<nav class="mt-4">
+<ul class="pagination justify-content-center flex-wrap gap-1 mb-0">
+    {% if students.has_previous %}
+    <li class="page-item">
+        <a class="page-link rounded-pill px-3" href="?page=1">&laquo;</a>
+    </li>
+    <li class="page-item">
+        <a class="page-link rounded-pill px-3" href="?page={{ students.previous_page_number }}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    </li>
+    {% endif %}
+
+    {% for num in students.paginator.page_range %}
+        {% if students.number == num %}
+        <li class="page-item active">
+            <span class="page-link rounded-pill px-3">{{ num }}</span>
+        </li>
+        {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
+        <li class="page-item">
+            <a class="page-link rounded-pill px-3" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %}
+    {% endfor %}
+
+    {% if students.has_next %}
+    <li class="page-item">
+        <a class="page-link rounded-pill px-3" href="?page={{ students.next_page_number }}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </li>
+    <li class="page-item">
+        <a class="page-link rounded-pill px-3" href="?page={{ students.paginator.num_pages }}">&raquo;</a>
+    </li>
+    {% endif %}
+</ul>
+<p class="text-center text-muted small mt-2 mb-0">
+    {{ students.paginator.count }} ta o'quvchidan {{ students.start_index }}-{{ students.end_index }} ko'rsatilmoqda
+</p>
+</nav>
+{% endif %}
+
 {% else %}
 <div class="text-center py-5 text-muted">
 <i class="bi bi-people fs-1"></i>

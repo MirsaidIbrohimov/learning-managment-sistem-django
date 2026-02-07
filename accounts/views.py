@@ -1152,7 +1152,7 @@ def admin_payments(request):
 
     qs = CustomUser.objects.filter(role='student').select_related('payment_status')
 
-    paginator = Paginator(qs, 10)  # har sahifada 10 ta
+    paginator = Paginator(qs, 25)
     page = request.GET.get('page')
     students = paginator.get_page(page)
 
