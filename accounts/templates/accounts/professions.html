@@ -3,89 +3,433 @@
 {% block title %}Kasblar - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 style="color: var(--primary-blue);"><i class="bi bi-briefcase me-2"></i>Kasblar</h2>
+<style>
+.prof-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.prof-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.prof-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.prof-title i { color: #6366f1; }
+
+/* FILTER TABS */
+.prof-filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+}
+.prof-filters::-webkit-scrollbar { display: none; }
+
+.prof-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1.125rem;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--bs-border-color);
+    background: transparent;
+    color: var(--bs-body-color);
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.prof-tab:hover { border-color: #6366f1; color: #6366f1; }
+.prof-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+
+.prof-tab .cnt {
+    background: rgba(0,0,0,0.1);
+    padding: 0.1rem 0.45rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+}
+.prof-tab.active .cnt { background: rgba(255,255,255,0.25); }
+
+/* GRID */
+.prof-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+/* CARD */
+.prof-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.prof-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    border-color: #6366f1;
+    color: inherit;
+}
+
+[data-bs-theme="dark"] .prof-card:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+/* ENROLLED GLOW */
+.prof-card.enrolled {
+    border-color: rgba(16,185,129,0.5);
+    box-shadow: 0 0 0 1px rgba(16,185,129,0.2);
+}
+.prof-card.enrolled:hover {
+    border-color: #10b981;
+    box-shadow: 0 12px 30px rgba(16,185,129,0.15);
+}
+
+/* IMAGE */
+.prof-img {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+}
+.prof-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+.prof-card:hover .prof-img img { transform: scale(1.08); }
+
+/* BADGES ON IMAGE */
+.prof-badges-top {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 2;
+}
+
+.prof-badge {
+    padding: 0.3rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    backdrop-filter: blur(8px);
+}
+
+.prof-badge.free {
+    background: rgba(16,185,129,0.9);
+    color: #fff;
+}
+.prof-badge.paid {
+    background: rgba(245,158,11,0.9);
+    color: #fff;
+}
+.prof-badge.active-badge {
+    background: rgba(16,185,129,0.95);
+    color: #fff;
+    animation: activePulse 2s ease-in-out infinite;
+}
+
+@keyframes activePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
+
+.prof-badge.blocked-badge {
+    background: rgba(239,68,68,0.9);
+    color: #fff;
+}
+
+/* STUDENT COUNT ON IMAGE */
+.prof-students {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    padding: 0.3rem 0.65rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    z-index: 2;
+}
+
+/* BLOCKED OVERLAY */
+.prof-blocked-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.65);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 3;
+}
+.prof-blocked-overlay i { font-size: 2.5rem; opacity: 0.9; }
+.prof-blocked-overlay span { font-weight: 700; margin-top: 0.5rem; font-size: 0.9rem; }
+
+/* BODY */
+.prof-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.prof-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--bs-body-color);
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.prof-desc {
+    font-size: 0.9rem;
+    color: var(--bs-secondary-color);
+    line-height: 1.6;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+/* FOOTER */
+.prof-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.prof-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+}
+
+.prof-status.enrolled-status {
+    background: rgba(16,185,129,0.1);
+    color: #10b981;
+}
+.prof-status.not-enrolled {
+    background: rgba(99,102,241,0.1);
+    color: #6366f1;
+}
+
+.prof-arrow {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(99,102,241,0.1);
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+.prof-card:hover .prof-arrow {
+    background: #6366f1;
+    color: #fff;
+}
+
+/* EMPTY */
+.prof-empty {
+    text-align: center;
+    padding: 5rem 2rem;
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 20px;
+}
+.prof-empty i {
+    font-size: 4rem;
+    color: var(--bs-secondary-color);
+    opacity: 0.3;
+}
+
+/* RESPONSIVE */
+@media (max-width: 991px) {
+    .prof-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 575px) {
+    .prof-page { padding: 1.25rem 0.75rem; }
+    .prof-grid { grid-template-columns: 1fr; }
+    .prof-title { font-size: 1.4rem; }
+    .prof-img { height: 160px; }
+}
+</style>
+
+<div class="prof-page">
+    <!-- HEADER -->
+    <div class="prof-header">
+        <h2 class="prof-title">
+            <i class="bi bi-briefcase-fill"></i> Kasblar
+        </h2>
         {% if user.is_admin or user.is_teacher %}
-        <a href="{% url 'admin_professions' %}" class="btn btn-primary">
+        <a href="{% url 'admin_professions' %}" class="btn btn-primary rounded-pill px-4">
             <i class="bi bi-gear me-2"></i>Boshqarish
         </a>
         {% endif %}
     </div>
 
     {% if professions %}
-    <div class="row">
+    <!-- FILTER TABS -->
+    <div class="prof-filters">
+        <button class="prof-tab active" data-filter="all">
+            <i class="bi bi-grid-3x3-gap"></i> Barchasi
+            <span class="cnt">{{ professions|length }}</span>
+        </button>
+        {% if user.is_authenticated and enrolled_ids %}
+        <button class="prof-tab" data-filter="enrolled">
+            <i class="bi bi-play-circle-fill"></i> Faol kurslarim
+        </button>
+        {% endif %}
+        <button class="prof-tab" data-filter="free">
+            <i class="bi bi-gift-fill"></i> Bepul
+        </button>
+        <button class="prof-tab" data-filter="paid">
+            <i class="bi bi-currency-dollar"></i> Pullik
+        </button>
+    </div>
+
+    <!-- GRID -->
+    <div class="prof-grid">
         {% for profession in professions %}
-        <div class="col-md-4 mb-4">
-            <a href="{% url 'profession_detail' profession.pk %}" class="text-decoration-none {% if profession.is_blocked and user.is_student %}pe-none{% endif %}">
-                <div class="card h-100 profession-card {% if profession.is_blocked %}profession-blocked{% endif %}">
-                    <div class="position-relative">
-                        <img src="{{ profession.photo.url }}" class="card-img-top" alt="{{ profession.name }}" style="height: 180px; object-fit: cover; {% if profession.is_blocked %}filter: grayscale(100%) opacity(0.5);{% endif %}">
-                        {% if profession.is_blocked %}
-                        <div class="blocked-overlay position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.6);">
-                            <div class="text-center text-white">
-                                <i class="bi bi-lock-fill" style="font-size: 2.5rem;"></i>
-                                <div class="fw-bold mt-1">Vaqtincha bloklangan</div>
-                            </div>
-                        </div>
+        <a href="{% url 'profession_detail' profession.pk %}"
+           class="prof-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
+           data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
+           data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}">
+
+            <div class="prof-img">
+                <img src="{{ profession.photo.url }}" alt="{{ profession.name }}">
+
+                <!-- TOP BADGES -->
+                <div class="prof-badges-top">
+                    <div>
+                        {% if not profession.is_paid %}
+                        <span class="prof-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
+                        {% else %}
+                        <span class="prof-badge paid"><i class="bi bi-cash-stack"></i> Pullik</span>
                         {% endif %}
                     </div>
-                    <div class="card-body">
-                        <h5 class="card-title" style="color: var(--primary-blue);">
-                            {{ profession.name }}
-                            {% if profession.is_blocked %}
-                            <span class="badge bg-danger ms-1" style="font-size: 0.6em;"><i class="bi bi-lock-fill"></i></span>
-                            {% endif %}
-                        </h5>
-                        <p class="card-text" style="color: var(--text-color);">{{ profession.description|truncatewords:15 }}</p>
-                        
-                        {% if profession.is_blocked %}
-                        <div class="alert alert-danger py-1 px-2 mb-2" style="font-size: 0.8rem;">
-                            <i class="bi bi-exclamation-triangle me-1"></i>{{ profession.blocked_reason|default:"Bu kurs vaqtincha to'xtatilgan" }}
-                        </div>
+                    <div>
+                        {% if profession.pk in enrolled_ids %}
+                        <span class="prof-badge active-badge"><i class="bi bi-play-fill"></i> Faol</span>
                         {% endif %}
-                        
-                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-                            {% if profession.is_paid %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-currency-dollar me-1"></i>Pullik
-                            </span>
-                            {% else %}
-                            <span class="badge bg-success">
-                                <i class="bi bi-gift me-1"></i>Bepul
-                            </span>
-                            {% endif %}
-                            <span class="badge bg-primary">
-                                <i class="bi bi-people me-1"></i>{{ profession.student_count }} o'quvchi
-                            </span>
-                            {% if profession.pk in enrolled_ids %}
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i>Yozilgan
-                            </span>
-                            {% endif %}
-                        </div>
+                        {% if profession.is_blocked %}
+                        <span class="prof-badge blocked-badge"><i class="bi bi-lock-fill"></i></span>
+                        {% endif %}
                     </div>
                 </div>
-            </a>
-        </div>
+
+                <!-- STUDENT COUNT -->
+                <div class="prof-students">
+                    <i class="bi bi-people-fill"></i> {{ profession.student_count }}
+                </div>
+
+                {% if profession.is_blocked %}
+                <div class="prof-blocked-overlay">
+                    <i class="bi bi-lock-fill"></i>
+                    <span>Vaqtincha bloklangan</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="prof-body">
+                <h5 class="prof-name">{{ profession.name }}</h5>
+                <p class="prof-desc">{{ profession.description|truncatewords:18 }}</p>
+
+                <div class="prof-footer">
+                    {% if profession.pk in enrolled_ids %}
+                    <span class="prof-status enrolled-status">
+                        <i class="bi bi-check-circle-fill"></i> O'qiyapsiz
+                    </span>
+                    {% else %}
+                    <span class="prof-status not-enrolled">
+                        <i class="bi bi-arrow-right-circle"></i> Batafsil
+                    </span>
+                    {% endif %}
+                    <div class="prof-arrow">
+                        <i class="bi bi-arrow-right"></i>
+                    </div>
+                </div>
+            </div>
+        </a>
         {% endfor %}
     </div>
-    
-    <style>
-    .profession-card {
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    .profession-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    }
-    </style>
+
     {% else %}
-    <div class="text-center py-5">
-        <i class="bi bi-inbox text-muted" style="font-size: 5rem;"></i>
+    <div class="prof-empty">
+        <i class="bi bi-inbox"></i>
         <h4 class="mt-3">Hozircha kasblar mavjud emas</h4>
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.prof-tab');
+    const cards = document.querySelectorAll('.prof-card');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            const filter = this.dataset.filter;
+
+            cards.forEach(card => {
+                if (filter === 'all') {
+                    card.style.display = '';
+                } else if (filter === 'enrolled') {
+                    card.style.display = card.dataset.enrolled === 'true' ? '' : 'none';
+                } else {
+                    card.style.display = card.dataset.type === filter ? '' : 'none';
+                }
+            });
+        });
+    });
+});
+</script>
 {% endblock %}
