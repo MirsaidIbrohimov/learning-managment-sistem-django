@@ -6,650 +6,789 @@
 {% block content %}
 <style>
 :root {
-    --ios-bg: #f2f2f7;
-    --ios-card: #ffffff;
-    --ios-card-secondary: #f9f9fb;
-    --ios-text: #1c1c1e;
-    --ios-text-secondary: #8e8e93;
-    --ios-separator: rgba(60, 60, 67, 0.12);
-    --ios-blue: #007aff;
-    --ios-green: #34c759;
-    --ios-orange: #ff9500;
-    --ios-red: #ff3b30;
-    --ios-purple: #af52de;
-    --ios-gold: #ffd60a;
-    --ios-silver: #8e8e93;
-    --ios-bronze: #cd7f32;
-    --ios-radius: 16px;
-    --ios-radius-sm: 12px;
-    --ios-radius-xs: 8px;
-    --ios-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
-    --ios-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+    --lb-bg: #f2f2f7;
+    --lb-card: #ffffff;
+    --lb-card-hover: #f8f8fa;
+    --lb-text: #1c1c1e;
+    --lb-text-secondary: #8e8e93;
+    --lb-border: rgba(60, 60, 67, 0.1);
+    --lb-blue: #007aff;
+    --lb-purple: #5856d6;
+    --lb-gold: #ffd60a;
+    --lb-gold-bg: linear-gradient(135deg, #ffd60a, #ffb800);
+    --lb-silver: #a8a8a8;
+    --lb-silver-bg: linear-gradient(135deg, #e8e8ed, #b8b8bc);
+    --lb-bronze: #cd7f32;
+    --lb-bronze-bg: linear-gradient(135deg, #cd7f32, #a0522d);
+    --lb-coin: #f59e0b;
+    --lb-radius: 20px;
+    --lb-radius-md: 14px;
+    --lb-radius-sm: 10px;
+    --lb-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+    --lb-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 [data-bs-theme="dark"] {
-    --ios-bg: #000000;
-    --ios-card: #1c1c1e;
-    --ios-card-secondary: #2c2c2e;
-    --ios-text: #ffffff;
-    --ios-text-secondary: #8e8e93;
-    --ios-separator: rgba(84, 84, 88, 0.65);
-    --ios-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
-    --ios-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --lb-bg: #000000;
+    --lb-card: #1c1c1e;
+    --lb-card-hover: #2c2c2e;
+    --lb-text: #ffffff;
+    --lb-text-secondary: #98989f;
+    --lb-border: rgba(84, 84, 88, 0.5);
+    --lb-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    --lb-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-.ios-leaderboard {
-    max-width: 900px;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.lb-container {
+    max-width: 800px;
     margin: 0 auto;
     padding: 1rem;
 }
 
-.ios-hero {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: var(--ios-radius);
-    padding: 2rem;
+/* Hero Section */
+.lb-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: var(--lb-radius);
+    padding: 2.5rem 2rem;
     margin-bottom: 1.5rem;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--ios-shadow-lg);
+    animation: fadeInUp 0.6s ease;
 }
 
-[data-bs-theme="dark"] .ios-hero {
-    background: linear-gradient(135deg, #4c5fd7 0%, #5a3d8a 100%);
-}
-
-.ios-hero::before {
+.lb-hero::before {
     content: '';
     position: absolute;
-    top: -30%;
-    right: -10%;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+.lb-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
     width: 200px;
     height: 200px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-    filter: blur(40px);
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    animation: float 8s ease-in-out infinite reverse;
 }
 
-.ios-hero::after {
-    content: '';
-    position: absolute;
-    bottom: -20%;
-    left: -5%;
-    width: 150px;
-    height: 150px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 50%;
-    filter: blur(30px);
-}
-
-.ios-hero-content {
+.lb-hero-content {
     position: relative;
     z-index: 1;
     text-align: center;
     color: white;
 }
 
-.ios-hero-icon {
-    width: 64px;
-    height: 64px;
+.lb-hero-icon {
+    width: 72px;
+    height: 72px;
     background: rgba(255,255,255,0.2);
     backdrop-filter: blur(10px);
-    border-radius: 20px;
+    border-radius: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.75rem;
+    margin: 0 auto 1.25rem;
+    font-size: 2rem;
+    animation: scaleIn 0.5s ease 0.2s both;
 }
 
-.ios-hero h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
+.lb-hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
     letter-spacing: -0.5px;
+    animation: fadeInUp 0.5s ease 0.3s both;
 }
 
-.ios-hero p {
+.lb-hero p {
     opacity: 0.9;
-    font-size: 0.95rem;
-    margin: 0;
+    font-size: 1rem;
+    animation: fadeInUp 0.5s ease 0.4s both;
 }
 
-.ios-search-section {
-    background: var(--ios-card);
-    border-radius: var(--ios-radius);
-    padding: 1rem;
+/* Search Section */
+.lb-search-card {
+    background: var(--lb-card);
+    border-radius: var(--lb-radius);
+    padding: 1.25rem;
     margin-bottom: 1.5rem;
-    box-shadow: var(--ios-shadow);
+    box-shadow: var(--lb-shadow);
+    animation: fadeInUp 0.5s ease 0.2s both;
 }
 
-.ios-search-wrapper {
+.lb-search-box {
     position: relative;
     margin-bottom: 1rem;
 }
 
-.ios-search-wrapper i {
+.lb-search-box i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--ios-text-secondary);
-    font-size: 1rem;
+    color: var(--lb-text-secondary);
+    font-size: 1.1rem;
+    transition: color 0.2s;
 }
 
-.ios-search-input {
+.lb-search-input {
     width: 100%;
-    height: 44px;
-    padding: 0 1rem 0 2.75rem;
-    border: none;
-    border-radius: var(--ios-radius-sm);
-    background: var(--ios-card-secondary);
-    color: var(--ios-text);
+    height: 50px;
+    padding: 0 1.25rem 0 3rem;
+    border: 2px solid var(--lb-border);
+    border-radius: var(--lb-radius-md);
+    background: var(--lb-card);
+    color: var(--lb-text);
     font-size: 1rem;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
-.ios-search-input::placeholder {
-    color: var(--ios-text-secondary);
+.lb-search-input::placeholder {
+    color: var(--lb-text-secondary);
 }
 
-.ios-search-input:focus {
+.lb-search-input:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+    border-color: var(--lb-blue);
+    box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15);
 }
 
-.ios-filter-scroll {
+.lb-search-input:focus + i {
+    color: var(--lb-blue);
+}
+
+.lb-pills {
     display: flex;
     gap: 0.5rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding: 4px 0;
     scrollbar-width: none;
-    -ms-overflow-style: none;
 }
 
-.ios-filter-scroll::-webkit-scrollbar {
+.lb-pills::-webkit-scrollbar {
     display: none;
 }
 
-.ios-filter-pill {
+.lb-pill {
     flex-shrink: 0;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    border: none;
-    background: var(--ios-card-secondary);
-    color: var(--ios-text);
+    padding: 0.6rem 1.1rem;
+    border-radius: 25px;
+    border: 2px solid var(--lb-border);
+    background: transparent;
+    color: var(--lb-text);
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
 }
 
-.ios-filter-pill:hover {
-    background: var(--ios-separator);
-    color: var(--ios-text);
+.lb-pill:hover {
+    border-color: var(--lb-blue);
+    color: var(--lb-blue);
+    transform: translateY(-2px);
 }
 
-.ios-filter-pill.active {
-    background: var(--ios-blue);
+.lb-pill.active {
+    background: var(--lb-blue);
+    border-color: var(--lb-blue);
     color: white;
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
 }
 
-.ios-podium {
+/* Podium Section */
+.lb-podium {
     display: flex;
     justify-content: center;
     align-items: flex-end;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    padding: 1rem 0;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem 0;
 }
 
-.ios-podium-item {
+.lb-podium-item {
     flex: 1;
-    max-width: 140px;
-    text-align: center;
+    max-width: 150px;
     text-decoration: none;
     color: inherit;
 }
 
-.ios-podium-card {
-    background: var(--ios-card);
-    border-radius: var(--ios-radius);
-    padding: 1.25rem 0.75rem;
-    box-shadow: var(--ios-shadow);
+.lb-podium-item:nth-child(1) { animation: fadeInUp 0.5s ease 0.3s both; }
+.lb-podium-item:nth-child(2) { animation: fadeInUp 0.5s ease 0.4s both; }
+.lb-podium-item:nth-child(3) { animation: fadeInUp 0.5s ease 0.5s both; }
+
+.lb-podium-card {
+    background: var(--lb-card);
+    border-radius: var(--lb-radius);
+    padding: 1.5rem 1rem;
+    text-align: center;
     position: relative;
-    transition: transform 0.3s ease;
+    box-shadow: var(--lb-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
 }
 
-.ios-podium-card:hover {
-    transform: translateY(-4px);
+.lb-podium-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--lb-shadow-hover);
 }
 
-.ios-podium-item:nth-child(2) .ios-podium-card {
-    padding-top: 1.75rem;
-    padding-bottom: 1.75rem;
-}
-
-.ios-podium-item:nth-child(2) {
+/* First place styling */
+.lb-podium-item:nth-child(2) {
     order: 0;
 }
 
-.ios-podium-item:nth-child(1) {
+.lb-podium-item:nth-child(2) .lb-podium-card {
+    padding: 2rem 1rem;
+    border-color: var(--lb-gold);
+    background: linear-gradient(180deg, var(--lb-card) 0%, rgba(255, 214, 10, 0.05) 100%);
+}
+
+.lb-podium-item:nth-child(1) {
     order: -1;
 }
 
-.ios-podium-item:nth-child(3) {
+.lb-podium-item:nth-child(1) .lb-podium-card {
+    border-color: var(--lb-silver);
+}
+
+.lb-podium-item:nth-child(3) {
     order: 1;
 }
 
-.ios-rank-medal {
+.lb-podium-item:nth-child(3) .lb-podium-card {
+    border-color: var(--lb-bronze);
+}
+
+.lb-medal {
     position: absolute;
-    top: -12px;
+    top: -16px;
     left: 50%;
     transform: translateX(-50%);
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.ios-rank-medal.gold {
-    background: linear-gradient(145deg, #ffd60a, #ffb800);
-    color: #5c4813;
+.lb-medal.gold { background: var(--lb-gold-bg); color: #5c4813; }
+.lb-medal.silver { background: var(--lb-silver-bg); color: #48484a; }
+.lb-medal.bronze { background: var(--lb-bronze-bg); }
+
+.lb-podium-item:nth-child(2) .lb-medal {
+    width: 44px;
+    height: 44px;
+    top: -20px;
+    font-size: 1.3rem;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.ios-rank-medal.silver {
-    background: linear-gradient(145deg, #e8e8ed, #c7c7cc);
-    color: #48484a;
-}
-
-.ios-rank-medal.bronze {
-    background: linear-gradient(145deg, #cd7f32, #a0522d);
-    color: #fff;
-}
-
-.ios-podium-avatar {
-    width: 56px;
-    height: 56px;
+.lb-podium-avatar {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    margin: 0.75rem auto 0.5rem;
+    margin: 0.75rem auto 0.75rem;
     object-fit: cover;
-    border: 3px solid var(--ios-separator);
+    border: 3px solid var(--lb-border);
+    transition: transform 0.3s ease;
 }
 
-.ios-podium-item:nth-child(2) .ios-podium-avatar {
-    width: 68px;
-    height: 68px;
-    border-color: var(--ios-gold);
+.lb-podium-card:hover .lb-podium-avatar {
+    transform: scale(1.08);
 }
 
-.ios-podium-item:nth-child(1) .ios-podium-avatar {
-    border-color: var(--ios-silver);
+.lb-podium-item:nth-child(2) .lb-podium-avatar {
+    width: 80px;
+    height: 80px;
+    border-color: var(--lb-gold);
+    box-shadow: 0 0 20px rgba(255, 214, 10, 0.3);
 }
 
-.ios-podium-item:nth-child(3) .ios-podium-avatar {
-    border-color: var(--ios-bronze);
+.lb-podium-item:nth-child(1) .lb-podium-avatar {
+    border-color: var(--lb-silver);
 }
 
-.ios-avatar-placeholder {
-    width: 56px;
-    height: 56px;
+.lb-podium-item:nth-child(3) .lb-podium-avatar {
+    border-color: var(--lb-bronze);
+}
+
+.lb-avatar-placeholder {
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
-    margin: 0.75rem auto 0.5rem;
-    background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+    margin: 0.75rem auto 0.75rem;
+    background: linear-gradient(135deg, var(--lb-blue), var(--lb-purple));
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 600;
-    font-size: 1.1rem;
-    border: 3px solid var(--ios-separator);
+    font-weight: 700;
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
 }
 
-.ios-podium-item:nth-child(2) .ios-avatar-placeholder {
-    width: 68px;
-    height: 68px;
-    font-size: 1.3rem;
-    border-color: var(--ios-gold);
+.lb-podium-item:nth-child(2) .lb-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    font-size: 1.5rem;
+    box-shadow: 0 0 20px rgba(255, 214, 10, 0.3);
 }
 
-.ios-podium-name {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--ios-text);
-    margin-bottom: 0.25rem;
+.lb-podium-name {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--lb-text);
+    margin-bottom: 0.5rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 0.25rem;
 }
 
-.ios-podium-item:nth-child(2) .ios-podium-name {
-    font-size: 0.9rem;
+.lb-podium-item:nth-child(2) .lb-podium-name {
+    font-size: 1rem;
 }
 
-.ios-coin-badge {
+.lb-coin {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
-    padding: 0.35rem 0.75rem;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 20px;
     font-weight: 700;
-    font-size: 0.8rem;
-    background: linear-gradient(135deg, rgba(255, 214, 10, 0.15), rgba(255, 159, 10, 0.15));
-    color: #c79600;
+    font-size: 0.85rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(245, 158, 11, 0.06));
+    color: var(--lb-coin);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-[data-bs-theme="dark"] .ios-coin-badge {
-    background: linear-gradient(135deg, rgba(255, 214, 10, 0.2), rgba(255, 159, 10, 0.2));
-    color: #ffd60a;
+.lb-coin.lg {
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
 }
 
-.ios-coin-badge.lg {
-    font-size: 0.95rem;
-    padding: 0.4rem 0.9rem;
-}
-
-.ios-podium-you {
+.lb-you-tag {
     display: inline-block;
     margin-top: 0.5rem;
-    padding: 0.2rem 0.5rem;
+    padding: 0.25rem 0.6rem;
     border-radius: 6px;
-    background: var(--ios-blue);
+    background: var(--lb-blue);
     color: white;
     font-size: 0.65rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.ios-list-card {
-    background: var(--ios-card);
-    border-radius: var(--ios-radius);
+/* List Section */
+.lb-list {
+    background: var(--lb-card);
+    border-radius: var(--lb-radius);
     overflow: hidden;
-    box-shadow: var(--ios-shadow);
+    box-shadow: var(--lb-shadow);
+    animation: fadeInUp 0.5s ease 0.4s both;
 }
 
-.ios-list-header {
+.lb-list-header {
     display: grid;
-    grid-template-columns: 50px 1fr 100px auto;
-    padding: 0.75rem 1rem;
-    background: var(--ios-card-secondary);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--ios-text-secondary);
+    grid-template-columns: 50px 1fr 90px 30px;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--lb-card-hover);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--lb-text-secondary);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
-.ios-list-item {
+.lb-row {
     display: grid;
-    grid-template-columns: 50px 1fr 100px auto;
-    padding: 0.875rem 1rem;
+    grid-template-columns: 50px 1fr 90px 30px;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
     align-items: center;
-    border-bottom: 1px solid var(--ios-separator);
-    transition: background 0.15s ease;
-    cursor: pointer;
+    border-bottom: 1px solid var(--lb-border);
     text-decoration: none;
     color: inherit;
+    transition: all 0.25s ease;
 }
 
-.ios-list-item:hover {
-    background: var(--ios-card-secondary);
-    color: inherit;
+.lb-row:nth-child(odd) {
+    animation: slideInLeft 0.4s ease both;
 }
 
-.ios-list-item:last-child {
+.lb-row:nth-child(even) {
+    animation: slideInLeft 0.4s ease 0.05s both;
+}
+
+.lb-row:last-child {
     border-bottom: none;
 }
 
-.ios-list-item:active {
-    background: var(--ios-card-secondary);
+.lb-row:hover {
+    background: var(--lb-card-hover);
 }
 
-.ios-list-item.is-you {
-    background: rgba(0, 122, 255, 0.08);
+.lb-row:active {
+    transform: scale(0.995);
 }
 
-[data-bs-theme="dark"] .ios-list-item.is-you {
-    background: rgba(0, 122, 255, 0.15);
+.lb-row.is-you {
+    background: linear-gradient(90deg, rgba(0, 122, 255, 0.08), transparent);
+    border-left: 3px solid var(--lb-blue);
 }
 
-.ios-rank {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--ios-radius-xs);
+.lb-rank {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--lb-radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 0.875rem;
-    background: var(--ios-card-secondary);
-    color: var(--ios-text);
+    font-weight: 800;
+    font-size: 0.9rem;
+    background: var(--lb-card-hover);
+    color: var(--lb-text);
+    transition: all 0.3s ease;
 }
 
-.ios-user-cell {
+.lb-row:hover .lb-rank {
+    background: var(--lb-blue);
+    color: white;
+    transform: scale(1.1);
+}
+
+.lb-user {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.875rem;
     min-width: 0;
 }
 
-.ios-user-avatar {
-    width: 40px;
-    height: 40px;
+.lb-user-avatar {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
 
-.ios-user-avatar-placeholder {
-    width: 40px;
-    height: 40px;
+.lb-row:hover .lb-user-avatar {
+    transform: scale(1.08);
+}
+
+.lb-user-placeholder {
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+    background: linear-gradient(135deg, var(--lb-blue), var(--lb-purple));
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    font-weight: 600;
-    font-size: 0.85rem;
+    font-weight: 700;
+    font-size: 0.9rem;
     flex-shrink: 0;
 }
 
-.ios-user-info {
+.lb-user-info {
     min-width: 0;
 }
 
-.ios-user-name {
+.lb-user-name {
     font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--ios-text);
+    font-size: 0.95rem;
+    color: var(--lb-text);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
 }
 
-.ios-user-name .you-badge {
-    display: inline-block;
-    margin-left: 0.35rem;
-    padding: 0.1rem 0.4rem;
+.lb-badge {
+    padding: 0.15rem 0.4rem;
     border-radius: 4px;
-    background: var(--ios-blue);
+    background: var(--lb-blue);
     color: white;
-    font-size: 0.6rem;
-    font-weight: 600;
-    vertical-align: middle;
+    font-size: 0.55rem;
+    font-weight: 700;
+    text-transform: uppercase;
 }
 
-.ios-user-username {
-    font-size: 0.75rem;
-    color: var(--ios-text-secondary);
-}
-
-.ios-profession-cell {
+.lb-username {
     font-size: 0.8rem;
-    color: var(--ios-text-secondary);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--lb-text-secondary);
 }
 
-.ios-chevron {
-    color: var(--ios-text-secondary);
+.lb-chevron {
+    color: var(--lb-text-secondary);
     font-size: 1rem;
+    transition: transform 0.3s ease;
 }
 
-.ios-empty {
+.lb-row:hover .lb-chevron {
+    transform: translateX(4px);
+    color: var(--lb-blue);
+}
+
+/* Empty State */
+.lb-empty {
     text-align: center;
-    padding: 3rem 2rem;
+    padding: 4rem 2rem;
+    animation: fadeInUp 0.5s ease;
 }
 
-.ios-empty-icon {
-    width: 80px;
-    height: 80px;
+.lb-empty-icon {
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
-    background: var(--ios-card-secondary);
+    background: var(--lb-card-hover);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 2rem;
-    color: var(--ios-text-secondary);
+    margin: 0 auto 1.25rem;
+    font-size: 2.5rem;
+    color: var(--lb-text-secondary);
 }
 
-.ios-empty h4 {
-    font-weight: 600;
-    color: var(--ios-text);
+.lb-empty h4 {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--lb-text);
     margin-bottom: 0.5rem;
 }
 
-.ios-empty p {
-    color: var(--ios-text-secondary);
+.lb-empty p {
+    color: var(--lb-text-secondary);
     margin-bottom: 1.5rem;
 }
 
-.ios-btn {
+.lb-btn {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--ios-radius-sm);
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--lb-radius-md);
     border: none;
-    background: var(--ios-blue);
+    background: var(--lb-blue);
     color: white;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 0.95rem;
     text-decoration: none;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
-.ios-btn:hover {
-    opacity: 0.9;
+.lb-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 122, 255, 0.35);
     color: white;
 }
 
+/* Responsive */
 @media (max-width: 768px) {
-    .ios-leaderboard {
+    .lb-container {
         padding: 0.75rem;
     }
     
-    .ios-hero {
-        padding: 1.5rem;
+    .lb-hero {
+        padding: 2rem 1.5rem;
+        border-radius: 16px;
     }
     
-    .ios-hero h1 {
-        font-size: 1.5rem;
+    .lb-hero h1 {
+        font-size: 1.6rem;
     }
     
-    .ios-podium {
-        gap: 0.5rem;
+    .lb-podium {
+        gap: 0.6rem;
+        padding: 1rem 0;
     }
     
-    .ios-podium-item {
-        max-width: 110px;
+    .lb-podium-item {
+        max-width: 120px;
     }
     
-    .ios-podium-card {
-        padding: 1rem 0.5rem;
+    .lb-podium-card {
+        padding: 1.25rem 0.75rem;
+        border-radius: 16px;
     }
     
-    .ios-podium-avatar,
-    .ios-avatar-placeholder {
-        width: 48px;
-        height: 48px;
+    .lb-podium-item:nth-child(2) .lb-podium-card {
+        padding: 1.5rem 0.75rem;
     }
     
-    .ios-podium-item:nth-child(2) .ios-podium-avatar,
-    .ios-podium-item:nth-child(2) .ios-avatar-placeholder {
-        width: 56px;
-        height: 56px;
+    .lb-podium-avatar,
+    .lb-avatar-placeholder {
+        width: 52px;
+        height: 52px;
     }
     
-    .ios-list-header {
+    .lb-podium-item:nth-child(2) .lb-podium-avatar,
+    .lb-podium-item:nth-child(2) .lb-avatar-placeholder {
+        width: 64px;
+        height: 64px;
+    }
+    
+    .lb-podium-name {
+        font-size: 0.8rem;
+    }
+    
+    .lb-list-header {
         display: none;
     }
     
-    .ios-list-item {
-        grid-template-columns: 40px 1fr auto auto;
-        gap: 0.5rem;
+    .lb-row {
+        grid-template-columns: 40px 1fr 80px 24px;
+        padding: 0.875rem 1rem;
     }
     
-    .ios-profession-cell {
-        display: none;
+    .lb-user-avatar,
+    .lb-user-placeholder {
+        width: 40px;
+        height: 40px;
     }
 }
 
 @media (max-width: 480px) {
-    .ios-podium-item {
-        max-width: 95px;
+    .lb-podium-item {
+        max-width: 100px;
     }
     
-    .ios-podium-name {
-        font-size: 0.7rem;
+    .lb-podium-card {
+        padding: 1rem 0.5rem;
     }
     
-    .ios-coin-badge {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.5rem;
+    .lb-podium-avatar,
+    .lb-avatar-placeholder {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+    }
+    
+    .lb-podium-item:nth-child(2) .lb-podium-avatar,
+    .lb-podium-item:nth-child(2) .lb-avatar-placeholder {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .lb-podium-name {
+        font-size: 0.75rem;
+    }
+    
+    .lb-coin {
+        font-size: 0.75rem;
+        padding: 0.3rem 0.6rem;
+    }
+    
+    .lb-medal {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+        top: -12px;
+    }
+    
+    .lb-podium-item:nth-child(2) .lb-medal {
+        width: 34px;
+        height: 34px;
+        top: -15px;
     }
 }
 </style>
 
-<div class="ios-leaderboard">
-    <div class="ios-hero">
-        <div class="ios-hero-content">
-            <div class="ios-hero-icon">
+<div class="lb-container">
+    <div class="lb-hero">
+        <div class="lb-hero-content">
+            <div class="lb-hero-icon">
                 <i class="bi bi-trophy-fill"></i>
             </div>
             <h1>Reyting</h1>
-            <p>Eng faol o'quvchilar</p>
+            <p>Eng yaxshi natijalarga erishing!</p>
         </div>
     </div>
     
-    <div class="ios-search-section">
-        <form method="get" class="ios-search-wrapper">
-            <i class="bi bi-search"></i>
-            <input type="text" name="q" class="ios-search-input" 
-                   placeholder="Ism yoki username izlash..." 
+    <div class="lb-search-card">
+        <form method="get" class="lb-search-box">
+            <input type="text" name="q" class="lb-search-input" 
+                   placeholder="Qidirish..." 
                    value="{{ search_query }}">
+            <i class="bi bi-search"></i>
             {% if selected_profession %}
             <input type="hidden" name="profession" value="{{ selected_profession }}">
             {% endif %}
         </form>
         
-        <div class="ios-filter-scroll">
+        <div class="lb-pills">
             <a href="{% url 'leaderboard' %}{% if search_query %}?q={{ search_query }}{% endif %}" 
-               class="ios-filter-pill {% if not selected_profession %}active{% endif %}">
+               class="lb-pill {% if not selected_profession %}active{% endif %}">
                 Barchasi
             </a>
             {% for prof in professions %}
             <a href="?profession={{ prof.id }}{% if search_query %}&q={{ search_query }}{% endif %}" 
-               class="ios-filter-pill {% if selected_profession == prof.id|stringformat:'s' %}active{% endif %}">
+               class="lb-pill {% if selected_profession == prof.id|stringformat:'s' %}active{% endif %}">
                 {{ prof.name }}
             </a>
             {% endfor %}
@@ -659,30 +798,30 @@
     {% if students %}
     {% with top3=students|slice:":3" %}
     {% if top3|length >= 3 %}
-    <div class="ios-podium">
+    <div class="lb-podium">
         {% for student in top3 %}
         <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}" 
-           class="ios-podium-item">
-            <div class="ios-podium-card">
-                <div class="ios-rank-medal {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
+           class="lb-podium-item">
+            <div class="lb-podium-card">
+                <div class="lb-medal {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
                     {{ forloop.counter }}
                 </div>
                 
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="ios-podium-avatar">
+                <img src="{{ student.photo.url }}" alt="" class="lb-podium-avatar">
                 {% else %}
-                <div class="ios-avatar-placeholder">{{ student.get_initials }}</div>
+                <div class="lb-avatar-placeholder">{{ student.get_initials }}</div>
                 {% endif %}
                 
-                <div class="ios-podium-name">{{ student.first_name }}</div>
+                <div class="lb-podium-name">{{ student.first_name }}</div>
                 
-                <div class="ios-coin-badge {% if forloop.counter == 1 %}lg{% endif %}">
+                <div class="lb-coin {% if forloop.counter == 1 %}lg{% endif %}">
                     <i class="bi bi-coin"></i>
-                    <span class="coin-value" data-coins="{{ student.coins }}">{{ student.coins }}</span>
+                    <span class="coin-fmt" data-coins="{{ student.coins }}">{{ student.coins }}</span>
                 </div>
                 
                 {% if student == request.user %}
-                <div class="ios-podium-you">Siz</div>
+                <div class="lb-you-tag">Siz</div>
                 {% endif %}
             </div>
         </a>
@@ -691,64 +830,60 @@
     {% endif %}
     {% endwith %}
     
-    <div class="ios-list-card">
-        <div class="ios-list-header">
+    <div class="lb-list">
+        <div class="lb-list-header">
             <div>#</div>
-            <div>O'quvchi</div>
-            <div>Yo'nalish</div>
+            <div>Foydalanuvchi</div>
+            <div>Coin</div>
             <div></div>
         </div>
         
         {% for student in students %}
         {% if forloop.counter > 3 %}
         <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}" 
-           class="ios-list-item {% if student == request.user %}is-you{% endif %}">
+           class="lb-row {% if student == request.user %}is-you{% endif %}" style="animation-delay: {{ forloop.counter|add:'-3' }}00ms">
             <div>
-                <span class="ios-rank">{{ forloop.counter }}</span>
+                <span class="lb-rank">{{ forloop.counter }}</span>
             </div>
             
-            <div class="ios-user-cell">
+            <div class="lb-user">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="ios-user-avatar">
+                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar">
                 {% else %}
-                <div class="ios-user-avatar-placeholder">{{ student.get_initials }}</div>
+                <div class="lb-user-placeholder">{{ student.get_initials }}</div>
                 {% endif %}
                 
-                <div class="ios-user-info">
-                    <div class="ios-user-name">
+                <div class="lb-user-info">
+                    <div class="lb-user-name">
                         {{ student|premium_name }}
-                        {% if student == request.user %}<span class="you-badge">Siz</span>{% endif %}
+                        {% if student == request.user %}<span class="lb-badge">Siz</span>{% endif %}
                     </div>
-                    <div class="ios-user-username">@{{ student.username }}</div>
+                    <div class="lb-username">@{{ student.username }}</div>
                 </div>
             </div>
             
-            <div class="ios-profession-cell">
-                {% if student.profession %}{{ student.profession.name }}{% else %}-{% endif %}
-            </div>
-            
-            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span class="ios-coin-badge coin-value" data-coins="{{ student.coins }}">
+            <div>
+                <span class="lb-coin coin-fmt" data-coins="{{ student.coins }}">
                     <i class="bi bi-coin"></i>
                     <span>{{ student.coins }}</span>
                 </span>
             </div>
             
-            <i class="bi bi-chevron-right ios-chevron"></i>
+            <i class="bi bi-chevron-right lb-chevron"></i>
         </a>
         {% endif %}
         {% endfor %}
     </div>
     
     {% else %}
-    <div class="ios-list-card">
-        <div class="ios-empty">
-            <div class="ios-empty-icon">
+    <div class="lb-list">
+        <div class="lb-empty">
+            <div class="lb-empty-icon">
                 <i class="bi bi-search"></i>
             </div>
-            <h4>Hech narsa topilmadi</h4>
+            <h4>Topilmadi</h4>
             <p>Boshqa kalit soz bilan qidiring</p>
-            <a href="{% url 'leaderboard' %}" class="ios-btn">
+            <a href="{% url 'leaderboard' %}" class="lb-btn">
                 <i class="bi bi-arrow-left"></i>
                 Orqaga
             </a>
@@ -758,29 +893,20 @@
 </div>
 
 <script>
-function formatCoins(num) {
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-    }
-    if (num >= 1000) {
-        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-    }
-    return num.toString();
+function formatCoins(n) {
+    if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return n.toString();
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.coin-value').forEach(function(el) {
-        var coins = parseInt(el.dataset.coins || '0');
-        var span = el.querySelector('span') || el;
-        if (coins >= 1000) {
-            if (el.querySelector('span')) {
-                el.querySelector('span').textContent = formatCoins(coins);
-            } else {
-                el.textContent = formatCoins(coins);
-            }
-            el.title = coins.toLocaleString() + ' coin';
-        }
-    });
+document.querySelectorAll('.coin-fmt').forEach(function(el) {
+    var c = parseInt(el.dataset.coins || '0');
+    var s = el.querySelector('span');
+    if (c >= 1000) {
+        if (s) s.textContent = formatCoins(c);
+        else el.childNodes[el.childNodes.length - 1].textContent = formatCoins(c);
+        el.title = c.toLocaleString() + ' coin';
+    }
 });
 </script>
 {% endblock %}
