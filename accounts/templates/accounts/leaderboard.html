@@ -4,86 +4,783 @@
 {% block title %}Reyting - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h3 style="color: var(--primary-blue);" class="mb-4">
-        <i class="bi bi-trophy me-2"></i>O'quvchilar reytingi
-    </h3>
+<style>
+:root {
+    --ios-bg: #f2f2f7;
+    --ios-card: #ffffff;
+    --ios-card-secondary: #f9f9fb;
+    --ios-text: #1c1c1e;
+    --ios-text-secondary: #8e8e93;
+    --ios-separator: rgba(60, 60, 67, 0.12);
+    --ios-blue: #007aff;
+    --ios-green: #34c759;
+    --ios-orange: #ff9500;
+    --ios-red: #ff3b30;
+    --ios-purple: #af52de;
+    --ios-gold: #ffd60a;
+    --ios-silver: #8e8e93;
+    --ios-bronze: #cd7f32;
+    --ios-radius: 16px;
+    --ios-radius-sm: 12px;
+    --ios-radius-xs: 8px;
+    --ios-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    --ios-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
 
-    <div class="card">
-        <div class="card-body">
-            {% if students %}
-            <div class="table-responsive">
-                <table class="table" style="color: var(--text-color);">
-                    <thead>
-                        <tr>
-                            <th class="text-center">#</th>
-                            <th>O'quvchi</th>
-                            <th>Yo'nalish</th>
-                            <th class="text-center">Coinlar</th>
-                            <th class="text-center">Profil</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in students %}
-                        <tr {% if student == request.user %}style="background: rgba(13, 110, 253, 0.1);"{% endif %}>
-                            <td class="text-center">
-                                {% if forloop.counter == 1 %}
-                                <span style="font-size: 1.5rem;">🥇</span>
-                                {% elif forloop.counter == 2 %}
-                                <span style="font-size: 1.5rem;">🥈</span>
-                                {% elif forloop.counter == 3 %}
-                                <span style="font-size: 1.5rem;">🥉</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ forloop.counter }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    {% if student.photo %}
-                                    <img src="{{ student.photo.url }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px;">
-                                    {% else %}
-                                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue)); display: flex; align-items: center; justify-content: center; margin-right: 10px; color: white; font-weight: 600;">
-                                        {{ student.get_initials }}
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <strong>{{ student|premium_name }}</strong>
-                                        {% if student == request.user %}<span class="badge bg-primary ms-2">Siz</span>{% endif %}
-                                        <br><small class="text-muted">@{{ student.username }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {% if student.profession %}{{ student.profession.name }}{% else %}<span class="text-muted">-</span>{% endif %}
-                            </td>
-                            <td class="text-center">
-                                <span class="coin-badge">
-                                    <i class="bi bi-coin me-1"></i>{{ student.coins }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                {% if student != request.user %}
-                                <a href="{% url 'student_public_profile' student.pk %}" class="btn btn-sm btn-outline-primary rounded-pill">
-                                    <i class="bi bi-person"></i>
-                                </a>
-                                {% else %}
-                                <a href="{% url 'profile' %}" class="btn btn-sm btn-primary rounded-pill">
-                                    <i class="bi bi-person-check"></i>
-                                </a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+[data-bs-theme="dark"] {
+    --ios-bg: #000000;
+    --ios-card: #1c1c1e;
+    --ios-card-secondary: #2c2c2e;
+    --ios-text: #ffffff;
+    --ios-text-secondary: #8e8e93;
+    --ios-separator: rgba(84, 84, 88, 0.65);
+    --ios-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    --ios-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.ios-leaderboard {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.ios-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: var(--ios-radius);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--ios-shadow-lg);
+}
+
+[data-bs-theme="dark"] .ios-hero {
+    background: linear-gradient(135deg, #4c5fd7 0%, #5a3d8a 100%);
+}
+
+.ios-hero::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    filter: blur(40px);
+}
+
+.ios-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    left: -5%;
+    width: 150px;
+    height: 150px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    filter: blur(30px);
+}
+
+.ios-hero-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: white;
+}
+
+.ios-hero-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.75rem;
+}
+
+.ios-hero h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+
+.ios-hero p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.ios-search-section {
+    background: var(--ios-card);
+    border-radius: var(--ios-radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--ios-shadow);
+}
+
+.ios-search-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.ios-search-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ios-text-secondary);
+    font-size: 1rem;
+}
+
+.ios-search-input {
+    width: 100%;
+    height: 44px;
+    padding: 0 1rem 0 2.75rem;
+    border: none;
+    border-radius: var(--ios-radius-sm);
+    background: var(--ios-card-secondary);
+    color: var(--ios-text);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.ios-search-input::placeholder {
+    color: var(--ios-text-secondary);
+}
+
+.ios-search-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3);
+}
+
+.ios-filter-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.ios-filter-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.ios-filter-pill {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: none;
+    background: var(--ios-card-secondary);
+    color: var(--ios-text);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.ios-filter-pill:hover {
+    background: var(--ios-separator);
+    color: var(--ios-text);
+}
+
+.ios-filter-pill.active {
+    background: var(--ios-blue);
+    color: white;
+}
+
+.ios-podium {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 0;
+}
+
+.ios-podium-item {
+    flex: 1;
+    max-width: 140px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.ios-podium-card {
+    background: var(--ios-card);
+    border-radius: var(--ios-radius);
+    padding: 1.25rem 0.75rem;
+    box-shadow: var(--ios-shadow);
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.ios-podium-card:hover {
+    transform: translateY(-4px);
+}
+
+.ios-podium-item:nth-child(2) .ios-podium-card {
+    padding-top: 1.75rem;
+    padding-bottom: 1.75rem;
+}
+
+.ios-podium-item:nth-child(2) {
+    order: 0;
+}
+
+.ios-podium-item:nth-child(1) {
+    order: -1;
+}
+
+.ios-podium-item:nth-child(3) {
+    order: 1;
+}
+
+.ios-rank-medal {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.ios-rank-medal.gold {
+    background: linear-gradient(145deg, #ffd60a, #ffb800);
+    color: #5c4813;
+}
+
+.ios-rank-medal.silver {
+    background: linear-gradient(145deg, #e8e8ed, #c7c7cc);
+    color: #48484a;
+}
+
+.ios-rank-medal.bronze {
+    background: linear-gradient(145deg, #cd7f32, #a0522d);
+    color: #fff;
+}
+
+.ios-podium-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0.75rem auto 0.5rem;
+    object-fit: cover;
+    border: 3px solid var(--ios-separator);
+}
+
+.ios-podium-item:nth-child(2) .ios-podium-avatar {
+    width: 68px;
+    height: 68px;
+    border-color: var(--ios-gold);
+}
+
+.ios-podium-item:nth-child(1) .ios-podium-avatar {
+    border-color: var(--ios-silver);
+}
+
+.ios-podium-item:nth-child(3) .ios-podium-avatar {
+    border-color: var(--ios-bronze);
+}
+
+.ios-avatar-placeholder {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    margin: 0.75rem auto 0.5rem;
+    background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: 3px solid var(--ios-separator);
+}
+
+.ios-podium-item:nth-child(2) .ios-avatar-placeholder {
+    width: 68px;
+    height: 68px;
+    font-size: 1.3rem;
+    border-color: var(--ios-gold);
+}
+
+.ios-podium-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ios-text);
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 0.25rem;
+}
+
+.ios-podium-item:nth-child(2) .ios-podium-name {
+    font-size: 0.9rem;
+}
+
+.ios-coin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    background: linear-gradient(135deg, rgba(255, 214, 10, 0.15), rgba(255, 159, 10, 0.15));
+    color: #c79600;
+}
+
+[data-bs-theme="dark"] .ios-coin-badge {
+    background: linear-gradient(135deg, rgba(255, 214, 10, 0.2), rgba(255, 159, 10, 0.2));
+    color: #ffd60a;
+}
+
+.ios-coin-badge.lg {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.9rem;
+}
+
+.ios-podium-you {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    background: var(--ios-blue);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ios-list-card {
+    background: var(--ios-card);
+    border-radius: var(--ios-radius);
+    overflow: hidden;
+    box-shadow: var(--ios-shadow);
+}
+
+.ios-list-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px auto;
+    padding: 0.75rem 1rem;
+    background: var(--ios-card-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ios-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ios-list-item {
+    display: grid;
+    grid-template-columns: 50px 1fr 100px auto;
+    padding: 0.875rem 1rem;
+    align-items: center;
+    border-bottom: 1px solid var(--ios-separator);
+    transition: background 0.15s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.ios-list-item:hover {
+    background: var(--ios-card-secondary);
+    color: inherit;
+}
+
+.ios-list-item:last-child {
+    border-bottom: none;
+}
+
+.ios-list-item:active {
+    background: var(--ios-card-secondary);
+}
+
+.ios-list-item.is-you {
+    background: rgba(0, 122, 255, 0.08);
+}
+
+[data-bs-theme="dark"] .ios-list-item.is-you {
+    background: rgba(0, 122, 255, 0.15);
+}
+
+.ios-rank {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--ios-radius-xs);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    background: var(--ios-card-secondary);
+    color: var(--ios-text);
+}
+
+.ios-user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.ios-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.ios-user-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.ios-user-info {
+    min-width: 0;
+}
+
+.ios-user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ios-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ios-user-name .you-badge {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    background: var(--ios-blue);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+.ios-user-username {
+    font-size: 0.75rem;
+    color: var(--ios-text-secondary);
+}
+
+.ios-profession-cell {
+    font-size: 0.8rem;
+    color: var(--ios-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ios-chevron {
+    color: var(--ios-text-secondary);
+    font-size: 1rem;
+}
+
+.ios-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.ios-empty-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--ios-card-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: var(--ios-text-secondary);
+}
+
+.ios-empty h4 {
+    font-weight: 600;
+    color: var(--ios-text);
+    margin-bottom: 0.5rem;
+}
+
+.ios-empty p {
+    color: var(--ios-text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.ios-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--ios-radius-sm);
+    border: none;
+    background: var(--ios-blue);
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.ios-btn:hover {
+    opacity: 0.9;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .ios-leaderboard {
+        padding: 0.75rem;
+    }
+    
+    .ios-hero {
+        padding: 1.5rem;
+    }
+    
+    .ios-hero h1 {
+        font-size: 1.5rem;
+    }
+    
+    .ios-podium {
+        gap: 0.5rem;
+    }
+    
+    .ios-podium-item {
+        max-width: 110px;
+    }
+    
+    .ios-podium-card {
+        padding: 1rem 0.5rem;
+    }
+    
+    .ios-podium-avatar,
+    .ios-avatar-placeholder {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .ios-podium-item:nth-child(2) .ios-podium-avatar,
+    .ios-podium-item:nth-child(2) .ios-avatar-placeholder {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .ios-list-header {
+        display: none;
+    }
+    
+    .ios-list-item {
+        grid-template-columns: 40px 1fr auto auto;
+        gap: 0.5rem;
+    }
+    
+    .ios-profession-cell {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .ios-podium-item {
+        max-width: 95px;
+    }
+    
+    .ios-podium-name {
+        font-size: 0.7rem;
+    }
+    
+    .ios-coin-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+</style>
+
+<div class="ios-leaderboard">
+    <div class="ios-hero">
+        <div class="ios-hero-content">
+            <div class="ios-hero-icon">
+                <i class="bi bi-trophy-fill"></i>
             </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-trophy text-muted" style="font-size: 4rem;"></i>
-                <h4 class="mt-3" style="color: var(--text-color);">Hozircha o'quvchilar yo'q</h4>
-            </div>
-            {% endif %}
+            <h1>Reyting</h1>
+            <p>Eng faol o'quvchilar</p>
         </div>
     </div>
+    
+    <div class="ios-search-section">
+        <form method="get" class="ios-search-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" class="ios-search-input" 
+                   placeholder="Ism yoki username izlash..." 
+                   value="{{ search_query }}">
+            {% if selected_profession %}
+            <input type="hidden" name="profession" value="{{ selected_profession }}">
+            {% endif %}
+        </form>
+        
+        <div class="ios-filter-scroll">
+            <a href="{% url 'leaderboard' %}{% if search_query %}?q={{ search_query }}{% endif %}" 
+               class="ios-filter-pill {% if not selected_profession %}active{% endif %}">
+                Barchasi
+            </a>
+            {% for prof in professions %}
+            <a href="?profession={{ prof.id }}{% if search_query %}&q={{ search_query }}{% endif %}" 
+               class="ios-filter-pill {% if selected_profession == prof.id|stringformat:'s' %}active{% endif %}">
+                {{ prof.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% if students %}
+    {% with top3=students|slice:":3" %}
+    {% if top3|length >= 3 %}
+    <div class="ios-podium">
+        {% for student in top3 %}
+        <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}" 
+           class="ios-podium-item">
+            <div class="ios-podium-card">
+                <div class="ios-rank-medal {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% else %}bronze{% endif %}">
+                    {{ forloop.counter }}
+                </div>
+                
+                {% if student.photo %}
+                <img src="{{ student.photo.url }}" alt="" class="ios-podium-avatar">
+                {% else %}
+                <div class="ios-avatar-placeholder">{{ student.get_initials }}</div>
+                {% endif %}
+                
+                <div class="ios-podium-name">{{ student.first_name }}</div>
+                
+                <div class="ios-coin-badge {% if forloop.counter == 1 %}lg{% endif %}">
+                    <i class="bi bi-coin"></i>
+                    <span class="coin-value" data-coins="{{ student.coins }}">{{ student.coins }}</span>
+                </div>
+                
+                {% if student == request.user %}
+                <div class="ios-podium-you">Siz</div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+    
+    <div class="ios-list-card">
+        <div class="ios-list-header">
+            <div>#</div>
+            <div>O'quvchi</div>
+            <div>Yo'nalish</div>
+            <div></div>
+        </div>
+        
+        {% for student in students %}
+        {% if forloop.counter > 3 %}
+        <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}" 
+           class="ios-list-item {% if student == request.user %}is-you{% endif %}">
+            <div>
+                <span class="ios-rank">{{ forloop.counter }}</span>
+            </div>
+            
+            <div class="ios-user-cell">
+                {% if student.photo %}
+                <img src="{{ student.photo.url }}" alt="" class="ios-user-avatar">
+                {% else %}
+                <div class="ios-user-avatar-placeholder">{{ student.get_initials }}</div>
+                {% endif %}
+                
+                <div class="ios-user-info">
+                    <div class="ios-user-name">
+                        {{ student|premium_name }}
+                        {% if student == request.user %}<span class="you-badge">Siz</span>{% endif %}
+                    </div>
+                    <div class="ios-user-username">@{{ student.username }}</div>
+                </div>
+            </div>
+            
+            <div class="ios-profession-cell">
+                {% if student.profession %}{{ student.profession.name }}{% else %}-{% endif %}
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span class="ios-coin-badge coin-value" data-coins="{{ student.coins }}">
+                    <i class="bi bi-coin"></i>
+                    <span>{{ student.coins }}</span>
+                </span>
+            </div>
+            
+            <i class="bi bi-chevron-right ios-chevron"></i>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <div class="ios-list-card">
+        <div class="ios-empty">
+            <div class="ios-empty-icon">
+                <i class="bi bi-search"></i>
+            </div>
+            <h4>Hech narsa topilmadi</h4>
+            <p>Boshqa kalit soz bilan qidiring</p>
+            <a href="{% url 'leaderboard' %}" class="ios-btn">
+                <i class="bi bi-arrow-left"></i>
+                Orqaga
+            </a>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+function formatCoins(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    if (num >= 1000) {
+        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toString();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.coin-value').forEach(function(el) {
+        var coins = parseInt(el.dataset.coins || '0');
+        var span = el.querySelector('span') || el;
+        if (coins >= 1000) {
+            if (el.querySelector('span')) {
+                el.querySelector('span').textContent = formatCoins(coins);
+            } else {
+                el.textContent = formatCoins(coins);
+            }
+            el.title = coins.toLocaleString() + ' coin';
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -999,8 +999,31 @@ def export_system_pdf(request):
 
 @login_required
 def leaderboard(request):
-    students = CustomUser.objects.filter(role='student').order_by('-coins')[:50]
-    return render(request, 'accounts/leaderboard.html', {'students': students})
+    students = CustomUser.objects.filter(role='student').order_by('-coins')
+    
+    # Yo'nalish bo'yicha filter
+    profession_id = request.GET.get('profession')
+    if profession_id:
+        students = students.filter(profession_id=profession_id)
+    
+    # Qidiruv
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        students = students.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+    
+    # Barcha yo'nalishlar (filter uchun)
+    professions = Profession.objects.all()
+    
+    return render(request, 'accounts/leaderboard.html', {
+        'students': students[:100],
+        'professions': professions,
+        'selected_profession': profession_id,
+        'search_query': search_query,
+    })
 
 
 # Messages views
