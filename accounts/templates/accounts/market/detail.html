@@ -1,164 +1,563 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ product.name }} | Coin Market - IT Creative{% endblock %}
+{% block title %}{{ product.name }} | Coin Market{% endblock %}
 
 {% block extra_css %}
 <style>
-
-/* ===== THEME VARS ===== */
-.detail-wrap{--border:rgba(0,0,0,.08);--shadow:0 15px 40px rgba(0,0,0,.12)}
-[data-bs-theme="dark"] .detail-wrap{--border:rgba(255,255,255,.1);--shadow:0 25px 60px rgba(0,0,0,.7)}
-
-/* ===== HERO CARD ===== */
-.product-hero{
-    border-radius:1.5rem;overflow:hidden;border:1px solid var(--border);
-    background:var(--bs-body-bg);box-shadow:var(--shadow)
+:root {
+    --d-card: #ffffff;
+    --d-border: rgba(0, 0, 0, 0.06);
+    --d-text: #1e293b;
+    --d-text-muted: #64748b;
+    --d-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --d-radius: 20px;
+    --d-radius-md: 14px;
+    --d-primary: #6366f1;
+    --d-coin: #f59e0b;
 }
-.product-img{max-height:420px;object-fit:cover}
 
-/* ===== PRICE BAR ===== */
-.price-bar{
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    color:#fff;border-radius:1rem;padding:1rem 1.2rem
+[data-bs-theme="dark"] {
+    --d-card: #1e1e1e;
+    --d-border: rgba(255, 255, 255, 0.08);
+    --d-text: #f1f5f9;
+    --d-text-muted: #94a3b8;
+    --d-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
 }
-.coin-badge{background:rgba(255,255,255,.2);padding:.5rem 1rem;border-radius:2rem;font-weight:700}
 
-/* ===== ACTIONS ===== */
-.action-btn{border-radius:2rem;font-weight:600}
-.like-btn{transition:.2s}
-.like-btn:hover{transform:scale(1.1)}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-/* ===== COMMENT ===== */
-.comment-box{border-radius:1rem;border:1px solid var(--border);background:var(--bs-tertiary-bg)}
-.avatar{width:42px;height:42px;object-fit:cover;border-radius:50%}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
+.detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Back Button */
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--d-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s;
+}
+
+.back-btn:hover {
+    color: var(--d-primary);
+    transform: translateX(-4px);
+}
+
+/* Product Hero */
+.product-hero {
+    background: var(--d-card);
+    border-radius: var(--d-radius);
+    overflow: hidden;
+    box-shadow: var(--d-shadow);
+    margin-bottom: 2rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.product-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+.product-content {
+    padding: 2rem;
+}
+
+/* Price Bar */
+.price-bar {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-radius: var(--d-radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.price-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 0.6rem 1.25rem;
+    border-radius: 25px;
+    color: white;
+    font-weight: 800;
+    font-size: 1.25rem;
+}
+
+.stock-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.stock-badge.available {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.stock-badge.out {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.product-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--d-text);
+    margin-bottom: 1rem;
+}
+
+.product-description {
+    color: var(--d-text-muted);
+    line-height: 1.7;
+    white-space: pre-wrap;
+    margin-bottom: 2rem;
+}
+
+/* Actions */
+.actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--d-border);
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.like-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #64748b;
+}
+
+.like-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.like-btn.liked {
+    background: #ef4444;
+    color: white;
+}
+
+.buy-btn {
+    background: #10b981;
+    color: white;
+    margin-left: auto;
+}
+
+.buy-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+    color: white;
+}
+
+.buy-btn:disabled {
+    background: var(--d-border);
+    color: var(--d-text-muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.balance-info {
+    width: 100%;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--d-text-muted);
+}
+
+/* Comments Section */
+.comments-section {
+    background: var(--d-card);
+    border-radius: var(--d-radius);
+    padding: 2rem;
+    box-shadow: var(--d-shadow);
+    animation: fadeIn 0.5s ease 0.2s both;
+}
+
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.comments-header h3 {
+    font-weight: 700;
+    color: var(--d-text);
+    margin: 0;
+}
+
+.comment-count {
+    background: var(--d-primary);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* Comment Form */
+.comment-form {
+    margin-bottom: 2rem;
+}
+
+.comment-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--d-border);
+    border-radius: var(--d-radius-md);
+    background: var(--d-card);
+    color: var(--d-text);
+    font-size: 1rem;
+    resize: none;
+    transition: all 0.3s;
+    min-height: 100px;
+}
+
+.comment-textarea:focus {
+    outline: none;
+    border-color: var(--d-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.comment-textarea::placeholder {
+    color: var(--d-text-muted);
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.coin-reward {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--d-coin);
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.submit-btn {
+    background: var(--d-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.submit-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+}
+
+/* Comment List */
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.comment-item {
+    display: flex;
+    gap: 1rem;
+    animation: slideIn 0.4s ease both;
+}
+
+.comment-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.comment-avatar-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--d-primary), #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.comment-body {
+    flex: 1;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: var(--d-radius-md);
+    padding: 1rem;
+    border: 1px solid var(--d-border);
+}
+
+[data-bs-theme="dark"] .comment-body {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comment-author {
+    font-weight: 700;
+    color: var(--d-text);
+}
+
+.comment-time {
+    font-size: 0.8rem;
+    color: var(--d-text-muted);
+}
+
+.comment-text {
+    color: var(--d-text);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Empty Comments */
+.empty-comments {
+    text-align: center;
+    padding: 3rem;
+    color: var(--d-text-muted);
+}
+
+.empty-comments i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detail-container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .product-content {
+        padding: 1.5rem;
+    }
+    
+    .product-title {
+        font-size: 1.4rem;
+    }
+    
+    .price-bar {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .actions-bar {
+        flex-direction: column;
+    }
+    
+    .buy-btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0;
+    }
+    
+    .comments-section {
+        padding: 1.5rem;
+    }
+    
+    .comment-item {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .comment-avatar,
+    .comment-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-image {
+        max-height: 250px;
+    }
+    
+    .form-footer {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .submit-btn {
+        width: 100%;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5 detail-wrap">
+<div class="detail-container">
 
-<div class="row justify-content-center">
-<div class="col-lg-9">
+    <!-- Back Button -->
+    <a href="{% url 'coin:market_list' %}" class="back-btn">
+        <i class="bi bi-arrow-left"></i>
+        Marketga qaytish
+    </a>
 
-
-
-<!-- ================= PRODUCT HERO ================= -->
-<div class="product-hero mb-5">
-
-{% if product.image %}
-<img src="{{ product.image.url }}" class="w-100 product-img">
-{% endif %}
-
-<div class="p-4 p-lg-5">
-
-    <!-- PRICE BAR -->
-    <div class="price-bar mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-
-        <div class="coin-badge fs-5">
-            <i class="bi bi-coin me-1"></i>{{ product.coin_price }} coin
-        </div>
-
-        {% if product.stock > 0 %}
-            <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">{{ product.stock }} ta mavjud</span>
-        {% else %}
-            <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill">Tugagan</span>
+    <!-- Product Hero -->
+    <div class="product-hero">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
         {% endif %}
-    </div>
-
-    <h1 class="fw-bold mb-4">{{ product.name }}</h1>
-
-    <div class="mb-5 text-body-secondary" style="white-space:pre-wrap">
-        {{ product.description }}
-    </div>
-
-    <!-- ===== ACTIONS ===== -->
-    <div class="d-flex flex-wrap gap-3 align-items-center border-top pt-4">
-
-        <!-- LIKE -->
-        <a href="{% url 'market_like' product.pk %}"
-           class="btn action-btn {% if is_liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
-            <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %} me-2"></i>
-            Like ({{ product.likes.count }})
-        </a>
-
-        <span class="text-muted">
-            <i class="bi bi-chat-dots me-1"></i>{{ product.comments.count }} izoh
-        </span>
-
-        <!-- BUY -->
-        {% if product.stock > 0 %}
-            {% if user.coins >= product.coin_price %}
-            <a href="{% url 'market_purchase' product.pk %}"
-               class="btn btn-success action-btn ms-auto">
-                <i class="bi bi-cart-check me-2"></i>Sotib olish
-            </a>
-            {% else %}
-            <button class="btn btn-secondary action-btn ms-auto" disabled>
-                <i class="bi bi-wallet2 me-2"></i>Coin yetarli emas
-            </button>
-            {% endif %}
-        {% endif %}
-    </div>
-
-    <div class="mt-3 small text-muted">
-        <i class="bi bi-wallet2 me-1"></i>Balansingiz: <b>{{ user.coins }}</b> coin
-    </div>
-
-</div>
-</div>
-
-<!-- ================= COMMENTS ================= -->
-<div class="product-hero p-4 p-lg-5">
-
-<h4 class="mb-4">Izohlar ({{ comments.count }})</h4>
-
-<!-- FORM -->
-<form method="post" class="mb-5">
-    {% csrf_token %}
-    <textarea name="content" rows="3" class="form-control mb-3"
-        placeholder="Fikringizni yozing... (+1 coin)" required></textarea>
-    <div class="text-end">
-        <button class="btn btn-primary action-btn">
-            <i class="bi bi-send me-1"></i>Yuborish
-        </button>
-    </div>
-</form>
-
-<!-- LIST -->
-<div class="d-flex flex-column gap-4">
-
-{% for comment in comments %}
-<div class="d-flex gap-3">
-
-    {% if comment.user.photo %}
-        <img src="{{ comment.user.photo.url }}" class="avatar">
-    {% else %}
-        <div class="avatar bg-secondary-subtle d-flex align-items-center justify-content-center">
-            <i class="bi bi-person-fill"></i>
+        
+        <div class="product-content">
+            <!-- Price Bar -->
+            <div class="price-bar">
+                <div class="price-display">
+                    <i class="bi bi-coin"></i>
+                    <span>{{ product.coin_price }} coin</span>
+                </div>
+                
+                {% if product.stock > 0 %}
+                <span class="stock-badge available">
+                    <i class="bi bi-check-circle me-1"></i>{{ product.stock }} ta mavjud
+                </span>
+                {% else %}
+                <span class="stock-badge out">
+                    <i class="bi bi-x-circle me-1"></i>Tugagan
+                </span>
+                {% endif %}
+            </div>
+            
+            <h1 class="product-title">{{ product.name }}</h1>
+            
+            <div class="product-description">{{ product.description }}</div>
+            
+            <!-- Actions -->
+            <div class="actions-bar">
+                <a href="{% url 'coin:market_like' product.pk %}"
+                   class="action-btn like-btn {% if is_liked %}liked{% endif %}">
+                    <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                    <span>{{ product.likes.count }}</span>
+                </a>
+                
+                <span style="color: var(--d-text-muted);">
+                    <i class="bi bi-chat-dots me-1"></i>{{ product.comments.count }} izoh
+                </span>
+                
+                {% if product.stock > 0 %}
+                    {% if user.coins >= product.coin_price %}
+                    <a href="{% url 'coin:market_purchase' product.pk %}" class="action-btn buy-btn">
+                        <i class="bi bi-cart-check"></i>
+                        Sotib olish
+                    </a>
+                    {% else %}
+                    <button class="action-btn buy-btn" disabled>
+                        <i class="bi bi-wallet2"></i>
+                        Coin yetarli emas
+                    </button>
+                    {% endif %}
+                {% endif %}
+                
+                <div class="balance-info">
+                    <i class="bi bi-wallet2 me-1"></i>Balansingiz: <strong>{{ user.coins }}</strong> coin
+                </div>
+            </div>
         </div>
-    {% endif %}
-
-    <div class="flex-grow-1 comment-box p-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-            <b>{{ comment.user.full_name }}</b>
-            <small class="text-muted">{{ comment.created_at|timesince }} oldin</small>
-        </div>
-        <p class="mb-0">{{ comment.content }}</p>
     </div>
 
-</div>
-{% empty %}
-<p class="text-center text-muted my-4">
-    Hozircha izohlar yo‘q. Birinchi bo‘lib yozing 😉
-</p>
-{% endfor %}
+    <!-- Comments Section -->
+    <div class="comments-section">
+        <div class="comments-header">
+            <h3><i class="bi bi-chat-square-text me-2"></i>Izohlar</h3>
+            <span class="comment-count">{{ comments.count }}</span>
+        </div>
+        
+        <!-- Comment Form -->
+        <form method="post" class="comment-form">
+            {% csrf_token %}
+            <input type="hidden" name="comment" value="1">
+            <textarea name="content" class="comment-textarea" 
+                      placeholder="Fikringizni yozing..." required></textarea>
+            <div class="form-footer">
+                <div class="coin-reward">
+                    <i class="bi bi-coin"></i>
+                    <span>+1 coin olasiz</span>
+                </div>
+                <button type="submit" class="submit-btn">
+                    <i class="bi bi-send me-1"></i>Yuborish
+                </button>
+            </div>
+        </form>
+        
+        <!-- Comment List -->
+        <div class="comment-list">
+            {% for comment in comments %}
+            <div class="comment-item" style="animation-delay: {{ forloop.counter }}00ms">
+                {% if comment.user.photo %}
+                <img src="{{ comment.user.photo.url }}" alt="" class="comment-avatar">
+                {% else %}
+                <div class="comment-avatar-placeholder">
+                    {{ comment.user.first_name|slice:":1"|upper }}
+                </div>
+                {% endif %}
+                
+                <div class="comment-body">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ comment.user.full_name }}</span>
+                        <span class="comment-time">{{ comment.created_at|timesince }} oldin</span>
+                    </div>
+                    <p class="comment-text">{{ comment.content }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-comments">
+                <i class="bi bi-chat-square"></i>
+                <h4>Hozircha izohlar yo'q</h4>
+                <p>Birinchi bo'lib fikr bildiring!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-</div>
-
-</div>
-
-</div>
-</div>
 </div>
 {% endblock %}

@@ -1,221 +1,579 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Coin Market | LMS - IT Creative{% endblock %}
+{% block title %}Coin Market | LMS{% endblock %}
 
 {% block extra_css %}
 <style>
-
-/* ---------------- THEME ---------------- */
-.market-wrap{--card-bg:var(--bs-body-bg);--border:rgba(0,0,0,.08);--shadow:0 12px 30px rgba(0,0,0,.12)}
-[data-bs-theme="dark"] .market-wrap{--border:rgba(255,255,255,.08);--shadow:0 20px 40px rgba(0,0,0,.6)}
-
-/* ---------------- HEADER ---------------- */
-.market-hero{
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    border-radius:1.2rem;padding:2rem;color:#fff;box-shadow:var(--shadow)
+:root {
+    --m-card: #ffffff;
+    --m-card-hover: #f8fafc;
+    --m-border: rgba(0, 0, 0, 0.06);
+    --m-text: #1e293b;
+    --m-text-muted: #64748b;
+    --m-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --m-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+    --m-radius: 20px;
+    --m-radius-md: 14px;
+    --m-primary: #6366f1;
+    --m-coin: #f59e0b;
 }
-.coin-pill{background:rgba(255,255,255,.2);backdrop-filter:blur(8px);padding:.6rem 1.1rem;border-radius:2rem;font-weight:600}
 
-/* ---------------- SEARCH + FILTER ---------------- */
-.market-tools{margin-top:-1.5rem}
-.search-input{border-radius:2rem;padding:.6rem 1.2rem}
-.filter-btn{border-radius:2rem}
-
-/* ---------------- CARD ---------------- */
-.market-card{
-    background:var(--card-bg);border:1px solid var(--border);border-radius:1.2rem;
-    overflow:hidden;box-shadow:var(--shadow);transition:.25s ease
+[data-bs-theme="dark"] {
+    --m-card: #1e1e1e;
+    --m-card-hover: #2a2a2a;
+    --m-border: rgba(255, 255, 255, 0.08);
+    --m-text: #f1f5f9;
+    --m-text-muted: #94a3b8;
+    --m-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --m-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
-.market-card:hover{transform:translateY(-8px) scale(1.02)}
-.market-img{height:190px;object-fit:cover}
-.price-badge{background:linear-gradient(135deg,#facc15,#f59e0b);color:#111;font-weight:700}
-.stock{font-size:.75rem;border-radius:1rem;padding:.35rem .7rem}
 
-/* ---------------- LIKE ---------------- */
-.like-btn{cursor:pointer;transition:.2s}
-.like-btn.liked{color:#ef4444;transform:scale(1.2)}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-/* ---------------- SKELETON ---------------- */
-.skeleton{background:linear-gradient(90deg,#ddd,#eee,#ddd);animation:load 1.5s infinite;border-radius:1rem}
-@keyframes load{0%{background-position:0}100%{background-position:200%}}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
 
+.market-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Hero */
+.market-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: var(--m-radius);
+    padding: 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+}
+
+.market-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+}
+
+.market-hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.market-hero h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+}
+
+.market-hero p {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+}
+
+.coin-display {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 0.75rem 1.25rem;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Search & Filter */
+.market-toolbar {
+    background: var(--m-card);
+    border-radius: var(--m-radius);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--m-shadow);
+    animation: fadeIn 0.5s ease 0.1s both;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--m-text-muted);
+}
+
+.search-input {
+    width: 100%;
+    height: 48px;
+    padding: 0 1rem 0 3rem;
+    border: 2px solid var(--m-border);
+    border-radius: 25px;
+    background: var(--m-card);
+    color: var(--m-text);
+    font-size: 1rem;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--m-primary);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.filter-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.filter-pill {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 2px solid var(--m-border);
+    background: transparent;
+    color: var(--m-text);
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-pill:hover {
+    border-color: var(--m-primary);
+    color: var(--m-primary);
+}
+
+.filter-pill.active {
+    background: var(--m-primary);
+    border-color: var(--m-primary);
+    color: white;
+}
+
+/* Premium Card */
+.premium-card {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: var(--m-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.3);
+    animation: fadeIn 0.5s ease 0.2s both;
+}
+
+.premium-card h3 {
+    color: #1e1e1e;
+    font-weight: 800;
+    margin: 0;
+}
+
+.premium-card p {
+    color: rgba(0,0,0,0.7);
+    margin: 0.25rem 0 0;
+}
+
+.premium-price {
+    text-align: center;
+    color: #1e1e1e;
+}
+
+.premium-price .amount {
+    font-size: 2rem;
+    font-weight: 800;
+}
+
+.premium-btn {
+    background: white;
+    color: #f59e0b;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.premium-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    color: #f59e0b;
+}
+
+/* Product Grid */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Product Card */
+.product-card {
+    background: var(--m-card);
+    border-radius: var(--m-radius);
+    overflow: hidden;
+    box-shadow: var(--m-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.5s ease both;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--m-shadow-hover);
+}
+
+.product-image {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.08);
+}
+
+.product-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.product-badge.out {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.like-btn {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: #64748b;
+}
+
+.like-btn:hover {
+    transform: scale(1.1);
+}
+
+.like-btn.liked {
+    color: #ef4444;
+    animation: pulse 0.3s;
+}
+
+.product-body {
+    padding: 1.25rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.product-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--m-text);
+    margin-bottom: 0.5rem;
+}
+
+.product-desc {
+    color: var(--m-text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    flex: 1;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.product-price {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.08));
+    color: var(--m-coin);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 800;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.view-btn {
+    flex: 1;
+    background: var(--m-primary);
+    color: white;
+    border: none;
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.view-btn:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--m-text-muted);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .market-container {
+        padding: 1rem 0.75rem;
+    }
+    
+    .market-hero {
+        padding: 1.5rem;
+    }
+    
+    .market-hero h1 {
+        font-size: 1.4rem;
+    }
+    
+    .market-hero-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .premium-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+    
+    .product-image {
+        height: 160px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-pills {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+    }
+    
+    .filter-pill {
+        flex-shrink: 0;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5 market-wrap">
+<div class="market-container">
 
-<!-- ================= HERO ================= -->
-<div class="market-hero mb-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
-    <div>
-        <h2 class="fw-bold mb-1"><i class="bi bi-shop me-2"></i>Coin Market</h2>
-        <small class="opacity-75">Coin orqali bonus va sovg'alarni sotib oling 🚀</small>
-    </div>
-    <div class="coin-pill fs-5"><i class="bi bi-coin me-1"></i>{{ user.coins }} coin</div>
-</div>
-
-<!-- ================= SEARCH + FILTER ================= -->
-<div class="market-tools mb-4 p-3 rounded shadow-sm bg-body">
-    <div class="row g-2 align-items-center">
-        <div class="col-md-6">
-            <input id="searchInput" class="form-control search-input" placeholder="Mahsulot qidirish...">
-        </div>
-        <div class="col-md-6 text-md-end">
-            <div class="btn-group">
-                <button class="btn btn-outline-primary filter-btn active" onclick="filterCat('all')">Hammasi</button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterCat('gift')">Sovg'a</button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterCat('bonus')">Bonus</button>
-                <button class="btn btn-outline-primary filter-btn" onclick="filterCat('course')">Kurs</button>
+    <!-- Hero -->
+    <div class="market-hero">
+        <div class="market-hero-content">
+            <div>
+                <h1><i class="bi bi-shop-window me-2"></i>Coin Market</h1>
+                <p>Coinlaringiz bilan ajoyib sovg'alar va bonuslarni qo'lga kiriting!</p>
+            </div>
+            <div class="coin-display">
+                <i class="bi bi-coin"></i>
+                <span>{{ user.coins }} coin</span>
             </div>
         </div>
     </div>
-</div>
 
-<!-- ================= PREMIUM CARD ================= -->
-<div class="row g-4 mb-4">
-<div class="col-12">
-<div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); border-radius: 1.2rem;">
-    <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="text-white">
-            <h4 class="fw-bold mb-1">
-                <i class="bi bi-star-fill me-2"></i>Premium Obuna
-            </h4>
-            <p class="mb-0 opacity-90">Ismingiz yonida ⭐ premium galochka ko'rinadi!</p>
+    <!-- Search & Filter -->
+    <div class="market-toolbar">
+        <div class="search-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" class="search-input" placeholder="Mahsulot qidirish...">
+        </div>
+        <div class="filter-pills">
+            <button class="filter-pill active" onclick="filterCat('all', this)">Hammasi</button>
+            <button class="filter-pill" onclick="filterCat('gift', this)">Sovg'alar</button>
+            <button class="filter-pill" onclick="filterCat('bonus', this)">Bonuslar</button>
+            <button class="filter-pill" onclick="filterCat('course', this)">Kurslar</button>
+        </div>
+    </div>
+
+    <!-- Premium Card -->
+    <div class="premium-card">
+        <div>
+            <h3><i class="bi bi-star-fill me-2"></i>Premium Obuna</h3>
+            <p>Ismingiz yonida premium belgisi ko'rinadi!</p>
         </div>
         <div class="d-flex align-items-center gap-3">
-            <div class="text-white text-center">
-                <div class="fs-2 fw-bold">{{ premium_price }}</div>
+            <div class="premium-price">
+                <div class="amount">{{ premium_price }}</div>
                 <small>coin</small>
             </div>
             {% if user.is_premium %}
-                <span class="badge bg-white text-success fs-6 px-4 py-2 rounded-pill">
+                <span class="premium-btn" style="background: #10b981; color: white;">
                     <i class="bi bi-check-circle-fill me-1"></i>Premium
                 </span>
             {% elif can_buy_premium %}
-                <a href="{% url 'coin:buy_premium' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
-                    <i class="bi bi-bag-fill me-2"></i>Sotib olish
+                <a href="{% url 'coin:buy_premium' %}" class="premium-btn">
+                    <i class="bi bi-bag-fill me-1"></i>Sotib olish
                 </a>
             {% else %}
-                <span class="badge bg-white text-danger fs-6 px-3 py-2 rounded-pill">
-                    <i class="bi bi-lock-fill me-1"></i>{{ premium_price }} coin kerak
+                <span class="premium-btn" style="background: #f1f5f9; color: #64748b;">
+                    <i class="bi bi-lock-fill me-1"></i>Yetarli emas
                 </span>
             {% endif %}
         </div>
     </div>
-</div>
-</div>
-</div>
 
-<!-- ================= PRODUCTS ================= -->
-<div class="row g-4" id="productList">
-
-{% for product in products %}
-<div class="col-sm-6 col-lg-4 product-item" data-name="{{ product.name|lower }}" data-cat="gift">
-
-<div class="market-card h-100 d-flex flex-column">
-
-    <img src="{{ product.image.url }}" class="market-img w-100">
-
-    <div class="p-4 d-flex flex-column flex-grow-1">
-
-        <div class="d-flex justify-content-between align-items-start mb-1">
-            <h6 class="fw-bold mb-0">{{ product.name }}</h6>
-            <i class="bi bi-heart like-btn" onclick="toggleLike(this)"></i>
+    <!-- Products Grid -->
+    <div class="product-grid" id="productList">
+        {% for product in products %}
+        <div class="product-card product-item" 
+             data-name="{{ product.name|lower }}" 
+             data-cat="gift"
+             style="animation-delay: {{ forloop.counter }}00ms">
+            
+            <div class="product-image">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                {% else %}
+                <div style="width:100%;height:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+                    <i class="bi bi-box-seam" style="font-size:3rem;color:white;opacity:0.5;"></i>
+                </div>
+                {% endif %}
+                
+                {% if product.stock > 0 %}
+                <span class="product-badge">{{ product.stock }} ta</span>
+                {% else %}
+                <span class="product-badge out">Tugagan</span>
+                {% endif %}
+                
+                <button class="like-btn" onclick="toggleLike(this, event)">
+                    <i class="bi bi-heart"></i>
+                </button>
+            </div>
+            
+            <div class="product-body">
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p class="product-desc">{{ product.description|truncatewords:12 }}</p>
+                
+                <div class="product-footer">
+                    <div class="product-price">
+                        <i class="bi bi-coin"></i>
+                        <span>{{ product.coin_price }}</span>
+                    </div>
+                    <a href="{% url 'coin:market_detail' product.pk %}" class="view-btn">
+                        Ko'rish
+                    </a>
+                </div>
+            </div>
         </div>
-
-        <p class="small text-body-secondary mb-3">
-            {{ product.description|truncatewords:14 }}
-        </p>
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="badge price-badge">
-                <i class="bi bi-coin me-1"></i>{{ product.coin_price }}
-            </span>
-            <small class="text-muted">
-                <i class="bi bi-chat"></i> {{ product.comments_count }}
-            </small>
+        {% empty %}
+        <div class="empty-state" style="grid-column: 1/-1;">
+            <i class="bi bi-box-seam"></i>
+            <h4>Mahsulotlar topilmadi</h4>
+            <p>Tez orada yangi mahsulotlar qo'shiladi</p>
         </div>
-
-        <div class="mt-auto d-flex gap-2 align-items-center">
-            <a href="{% url 'coin:market_detail' product.pk %}" class="btn btn-primary w-100 rounded-pill">
-                Ko'rish
-            </a>
-
-            {% if product.stock > 0 %}
-                <span class="badge bg-success stock">{{ product.stock }} ta</span>
-            {% else %}
-                <span class="badge bg-danger stock">Tugagan</span>
-            {% endif %}
-
-            <button class="btn btn-warning rounded-pill px-3" onclick="openBuy('{{ product.name }}', {{ product.coin_price }})">
-                <i class="bi bi-bag"></i>
-            </button>
-        </div>
-
+        {% endfor %}
     </div>
-</div>
-</div>
-{% endfor %}
 
 </div>
 
-
-<!-- ================= BUY MODAL ================= -->
-<div class="modal fade" id="buyModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4">
-      <div class="modal-header">
-        <h5 class="modal-title">Sotib olish</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p id="buyText"></p>
-        <div class="alert alert-warning small mb-0">
-            Bu demo. Backend ulanmagan 😉
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Bekor</button>
-        <button class="btn btn-success">Tasdiqlash</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<!-- ================= JS ================= -->
 <script>
-/* SEARCH */
-document.getElementById("searchInput").addEventListener("keyup", function(){
-    let val = this.value.toLowerCase();
-    document.querySelectorAll(".product-item").forEach(p=>{
-        p.style.display = p.dataset.name.includes(val) ? "block" : "none";
+document.getElementById("searchInput").addEventListener("keyup", function() {
+    var val = this.value.toLowerCase();
+    document.querySelectorAll(".product-item").forEach(function(p) {
+        p.style.display = p.dataset.name.includes(val) ? "flex" : "none";
     });
 });
 
-/* FILTER */
-function filterCat(cat){
-    document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
-    event.target.classList.add("active");
-
-    document.querySelectorAll(".product-item").forEach(p=>{
-        if(cat==="all" || p.dataset.cat===cat) p.style.display="block";
-        else p.style.display="none";
+function filterCat(cat, btn) {
+    document.querySelectorAll(".filter-pill").forEach(function(b) {
+        b.classList.remove("active");
+    });
+    btn.classList.add("active");
+    
+    document.querySelectorAll(".product-item").forEach(function(p) {
+        if (cat === "all" || p.dataset.cat === cat) {
+            p.style.display = "flex";
+        } else {
+            p.style.display = "none";
+        }
     });
 }
 
-/* LIKE */
-function toggleLike(el){
-    el.classList.toggle("liked");
-}
-
-/* BUY MODAL */
-function openBuy(name, price){
-    document.getElementById("buyText").innerHTML =
-        `<b>${name}</b> mahsulotini <b>${price} coin</b> ga sotib olmoqchimisiz?`;
-    new bootstrap.Modal(document.getElementById("buyModal")).show();
+function toggleLike(btn, e) {
+    e.preventDefault();
+    e.stopPropagation();
+    btn.classList.toggle("liked");
+    var icon = btn.querySelector("i");
+    if (btn.classList.contains("liked")) {
+        icon.className = "bi bi-heart-fill";
+    } else {
+        icon.className = "bi bi-heart";
+    }
 }
 </script>
-
 {% endblock %}
