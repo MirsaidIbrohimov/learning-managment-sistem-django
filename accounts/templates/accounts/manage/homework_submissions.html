@@ -179,10 +179,20 @@
                                 {{ sub.homework.lesson.title|truncatewords:5 }}
                             </div>
 
+                            {% if sub.submission_type == 'text' %}
+                                <span class="badge bg-info bg-opacity-10 text-info" style="font-size:0.7rem;">
+                                    <i class="bi bi-pencil-square me-1"></i>Matn
+                                </span>
+                            {% elif sub.file %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary" style="font-size:0.7rem;">
+                                    <i class="bi bi-file-earmark me-1"></i>Fayl
+                                </span>
+                            {% endif %}
+
                             {% if sub.revision_count > 0 %}
-                                <small class="text-warning">
+                                <span class="badge bg-warning bg-opacity-10 text-warning" style="font-size:0.7rem;">
                                     <i class="bi bi-arrow-repeat me-1"></i>{{ sub.revision_count }}x qayta
-                                </small>
+                                </span>
                             {% endif %}
                         </td>
 

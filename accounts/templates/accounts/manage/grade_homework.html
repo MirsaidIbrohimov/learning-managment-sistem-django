@@ -245,29 +245,48 @@
             </div>
         </div>
         
-        <!-- Fayl -->
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-file-earmark me-2"></i>Topshirilgan fayl</div>
+        <!-- Topshiriq -->
+        <div class="card mb-4" style="overflow:hidden;">
+{% if submission.file %}
+            <div class="card-header"><i class="bi bi-file-earmark-arrow-down me-2"></i>Topshirilgan fayl</div>
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="stat-icon blue"><i class="bi bi-file-earmark-arrow-down"></i></div>
+                        <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:1.3rem;flex-shrink:0;">
+                            <i class="bi bi-file-earmark-arrow-down"></i>
+                        </div>
                         <div>
                             <div class="fw-bold">{{ submission.file.name|cut:"homework_submissions/" }}</div>
                             <small class="text-muted">Topshirilgan fayl</small>
                         </div>
                     </div>
-{% if submission.file %}
-    <a href="{{ submission.file.url }}">Faylni ochish</a>
-{% else %}
-    <div class="alert alert-info">
-        O‘quvchi matn yuborgan:
-        <br>
-        {{ submission.text_content  }}
-    </div>
-{% endif %}
+                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3">
+                        <i class="bi bi-download me-1"></i>Faylni ochish
+                    </a>
                 </div>
             </div>
+{% else %}
+            <div class="card-header d-flex align-items-center gap-2">
+                <i class="bi bi-pencil-square"></i>
+                <span>Matn ko'rinishida topshirilgan</span>
+            </div>
+            <div class="card-body p-0">
+                <div style="background:linear-gradient(135deg,rgba(99,102,241,0.04),rgba(139,92,246,0.04));">
+                    <div style="padding:0.85rem 1.25rem;background:rgba(99,102,241,0.06);border-bottom:1px solid rgba(99,102,241,0.08);display:flex;align-items:center;gap:0.6rem;">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.95rem;flex-shrink:0;">
+                            <i class="bi bi-chat-square-text-fill"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;font-size:0.9rem;">{{ submission.student.full_name }} ning javobi</div>
+                            <div style="font-size:0.75rem;color:var(--bs-secondary-color);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+                        </div>
+                    </div>
+                    <div style="padding:1.25rem 1.5rem;font-size:0.95rem;line-height:1.85;">
+                        {{ submission.text_content|safe }}
+                    </div>
+                </div>
+            </div>
+{% endif %}
         </div>
         
         <!-- Vazifa tavsifi -->
