@@ -4,6 +4,85 @@
 
 {% block extra_css %}
 <style>
+    :root {
+    --stat-bg: #F2F2F7;
+    --stat-text: #000000;
+    --stat-label: #8E8E93;
+    --stat-border: #D1D1D6;
+}
+
+[data-bs-theme="dark"] {
+    --stat-bg: #2C2C2E;
+    --stat-text: #FFFFFF;
+    --stat-label: #8E8E93;
+    --stat-border: #424245;
+}
+
+.stat-card {
+    background: var(--stat-bg);
+    border: 1px solid var(--stat-border);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-card:active {
+    transform: scale(0.98);
+    background: var(--stat-border);
+}
+
+.stat-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--stat-label);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--stat-text);
+    word-break: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 10px 6px;
+    }
+
+    .stat-label {
+        font-size: 10px;
+        margin-bottom: 3px;
+    }
+
+    .stat-value {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        padding: 10px 4px;
+    }
+
+    .stat-label {
+        font-size: 9px;
+    }
+
+    .stat-value {
+        font-size: 11px;
+    }
+}
 .chat-container {
     height: 450px;
     overflow-y: auto;
@@ -217,25 +296,25 @@
                 </div>
                 
                 <div class="row g-2">
-                    <div class="col-md-4">
-                        <div class="bg-light rounded p-2 text-center">
-                            <small class="text-muted d-block">Topshirilgan</small>
-                            <span class="fw-bold">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="bg-light rounded p-2 text-center">
-                            <small class="text-muted d-block">Versiya</small>
-                            <span class="fw-bold">v{{ submission.version }}</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="bg-light rounded p-2 text-center">
-                            <small class="text-muted d-block">Qayta topshirish</small>
-                            <span class="fw-bold">{{ submission.revision_count }}x</span>
-                        </div>
-                    </div>
-                </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <small class="stat-label">Topshirilgan</small>
+            <span class="stat-value">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <small class="stat-label">Versiya</small>
+            <span class="stat-value">v{{ submission.version }}</span>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <small class="stat-label">Qayta topshirish</small>
+            <span class="stat-value">{{ submission.revision_count }}x</span>
+        </div>
+    </div>
+</div>
                 
                 {% if submission.is_late %}
                 <div class="alert alert-danger mt-3 mb-0 py-2">
