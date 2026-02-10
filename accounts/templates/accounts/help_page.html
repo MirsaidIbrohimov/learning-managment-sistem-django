@@ -973,13 +973,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ========== FORM SUBMIT ========== */
     const form = document.getElementById('helpForm');
+    let isSubmitting = false; // Flag to prevent double submission
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+
+        if (isSubmitting) return; // Stop if already submitting
 
         const btn = document.getElementById('submitBtn');
         const alertEl = document.getElementById('formAlert');
         const formData = new FormData(this);
 
+        isSubmitting = true; // Set flag
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Yuborilmoqda...';
 
@@ -1002,14 +1007,16 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 alertEl.classList.add('alert-danger');
                 alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>' + data.error;
+                isSubmitting = false; // Reset flag on error
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
             }
         })
         .catch(() => {
             alertEl.classList.remove('d-none', 'alert-success');
             alertEl.classList.add('alert-danger');
             alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Xatolik yuz berdi!';
-        })
-        .finally(() => {
+            isSubmitting = false; // Reset flag on error
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
         });

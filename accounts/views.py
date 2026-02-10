@@ -2649,19 +2649,26 @@ def help_page(request):
 @login_required
 def submit_help_request(request):
     if request.method == 'POST':
+        import logging
+        logger = logging.getLogger(__name__)
+
         subject = request.POST.get('subject', '').strip()
         message = request.POST.get('message', '').strip()
         image = request.FILES.get('image')
         
+        logger.info(f"Help Request Received - User: {request.user.username}, Subject: {subject}, Image: {image}")
+
         if not subject or not message:
             return JsonResponse({'success': False, 'error': "Mavzu va xabar to'ldirilishi shart!"})
         
-        HelpRequest.objects.create(
+        help_request = HelpRequest.objects.create(
             user=request.user,
             subject=subject,
             message=message,
             image=image
         )
+        
+        logger.info(f"Help Request Created - ID: {help_request.id}, Image Path: {help_request.image.name if help_request.image else 'None'}")
         
         return JsonResponse({'success': True, 'message': "Xabaringiz yuborildi! Tez orada javob beramiz."})
     
