@@ -2650,6 +2650,8 @@ def help_page(request):
 def submit_help_request(request):
     if request.method == 'POST':
         import logging
+        from django.utils import timezone
+        from datetime import timedelta
         logger = logging.getLogger(__name__)
 
         subject = request.POST.get('subject', '').strip()
@@ -2660,6 +2662,18 @@ def submit_help_request(request):
 
         if not subject or not message:
             return JsonResponse({'success': False, 'error': "Mavzu va xabar to'ldirilishi shart!"})
+
+        # Backend Debounce: Check for recent duplicate
+        recent_duplicate = HelpRequest.objects.filter(
+            user=request.user,
+            subject=subject,
+            created_at__gte=timezone.now() - timedelta(seconds=10)
+        ).exists()
+
+        if recent_duplicate:
+            logger.warning(f"Duplicate request detected for user {request.user.username}")
+            return JsonResponse({'success': False, 'error': "Siz bu xabarni yaqinda yubordingiz. Biroz kuting."})
+
         
         help_request = HelpRequest.objects.create(
             user=request.user,
