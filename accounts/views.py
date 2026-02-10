@@ -3731,6 +3731,15 @@ def remove_device(request, pk):
         return redirect('my_devices')
     
     # Delete all sessions for this device (so user gets logged out)
+    from django.contrib.sessions.models import Session
+    
+    # Get session keys for this device
+    session_keys = device.sessions.values_list('session_key', flat=True)
+    
+    # Delete Django sessions
+    Session.objects.filter(session_key__in=session_keys).delete()
+    
+    # Delete custom sessions
     device.sessions.all().delete()
     device.is_active = False
     device.save()
@@ -3752,7 +3761,16 @@ def logout_device(request, pk):
         return redirect('my_devices')
     
     # Delete all active sessions for this device (so user gets logged out)
-    device.sessions.filter(is_active=True).delete()
+    from django.contrib.sessions.models import Session
+    
+    # Get active session keys for this device
+    active_session_keys = device.sessions.filter(is_active=True).values_list('session_key', flat=True)
+    
+    # Delete Django sessions
+    Session.objects.filter(session_key__in=active_session_keys).delete()
+    
+    # Update custom sessions
+    device.sessions.filter(is_active=True).update(is_active=False)
     
     messages.success(request, f"'{device.device_name}' qurilmasidan chiqildi!")
     return redirect('my_devices')
@@ -3778,12 +3796,29 @@ def logout_all_devices(request):
         current_session_key = request.session.session_key
         
         # Deactivate all sessions except current
-        UserSession.objects.filter(
+        # Note: With the new middleware cookie logic, 'device' is stable. 
+        # But we still operate on sessions to log them out.
+        
+        from django.contrib.sessions.models import Session
+        
+        # Get all active sessions for user EXECPT current
+        sessions_to_kill = UserSession.objects.filter(
             user=request.user,
             is_active=True
-        ).exclude(session_key=current_session_key).update(is_active=False)
+        ).exclude(session_key=current_session_key)
         
-        messages.success(request, "Barcha boshqa qurilmalardan chiqildi!")
+        keys_to_kill = sessions_to_kill.values_list('session_key', flat=True)
+        
+        # Delete Django sessions
+        Session.objects.filter(session_key__in=keys_to_kill).delete()
+        
+        # Deactivate custom sessions
+        sessions_to_kill.update(is_active=False)
+        
+        # Optional: update device status if no active sessions remain?
+        # For now, we just kill sessions, which requires re-login on those devices.
+        
+        messages.success(request, "Barcha boshqa qurilmalardan muvaffaqiyatli chiqildi!")
     
     return redirect('my_devices')
 

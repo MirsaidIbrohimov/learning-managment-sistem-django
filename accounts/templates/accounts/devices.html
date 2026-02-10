@@ -5,67 +5,88 @@
 
 {% block extra_css %}
 <style>
-.device-card {
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 16px;
-    transition: all 0.3s ease;
-}
-.device-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-.device-card.current {
-    border: 2px solid #198754;
-    background: rgba(25, 135, 84, 0.05);
-}
-.device-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    color: #fff;
-}
-.device-icon.desktop { background: linear-gradient(135deg, #6366f1, #4f46e5); }
-.device-icon.mobile { background: linear-gradient(135deg, #10b981, #059669); }
-.device-icon.tablet { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .device-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.3s ease;
+    }
 
-.device-info h5 { margin: 0; font-weight: 600; }
-.device-meta { font-size: 0.85rem; color: #6c757d; }
+    .device-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
 
-.trusted-badge {
-    background: linear-gradient(135deg, #198754, #157347);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.current-badge {
-    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-.session-time {
-    background: var(--soft-bg);
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 0.85rem;
-}
+    .device-card.current {
+        border: 2px solid #198754;
+        background: rgba(25, 135, 84, 0.05);
+    }
+
+    .device-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: #fff;
+    }
+
+    .device-icon.desktop {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+    }
+
+    .device-icon.mobile {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .device-icon.tablet {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .device-info h5 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .device-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .trusted-badge {
+        background: linear-gradient(135deg, #198754, #157347);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .current-badge {
+        background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .session-time {
+        background: var(--soft-bg);
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    
+
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <div>
@@ -77,86 +98,104 @@
                 <i class="bi bi-arrow-left me-1"></i>Profilga
             </a>
             {% if devices.count > 1 %}
-            <form method="post" action="{% url 'logout_all_devices' %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Barcha boshqa qurilmalardan chiqmoqchimisiz?')">
-                    <i class="bi bi-box-arrow-right me-1"></i>Barchasidan chiqish
-                </button>
-            </form>
+            {% if devices.count > 1 %}
+            <button type="button" class="btn btn-outline-danger"
+                onclick="showLogoutModal('{% url 'logout_all_devices' %}', 'Barcha boshqa qurilmalar')">
+                <i class="bi bi-box-arrow-right me-1"></i>Barchasidan chiqish
+            </button>
+            {% endif %}
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Info Alert -->
     <div class="alert alert-info mb-4">
         <i class="bi bi-info-circle me-2"></i>
         <strong>Eslatma:</strong> Har bir sessiya 2 soat davom etadi. Faollik bo'lmasa avtomatik chiqariladi.
     </div>
-    
+
     <!-- Devices List -->
     {% if devices %}
-    <div class="row">
+    <div class="row g-3">
         {% for device in devices %}
-        <div class="col-lg-6">
-            <div class="device-card {% if device == current_device %}current{% endif %}">
-                <div class="d-flex gap-3">
-                    <!-- Device Icon -->
-                    <div class="device-icon {{ device.device_type }}">
-                        {% if device.device_type == 'mobile' %}
-                        <i class="bi bi-phone"></i>
-                        {% elif device.device_type == 'tablet' %}
-                        <i class="bi bi-tablet"></i>
-                        {% else %}
-                        <i class="bi bi-laptop"></i>
-                        {% endif %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="device-card h-100 {% if device == current_device %}current{% endif %}">
+                <div class="d-flex flex-column h-100">
+                    <div class="d-flex gap-3 align-items-start">
+                        <!-- Device Icon -->
+                        <div class="device-icon {{ device.device_type }} flex-shrink-0">
+                            {% if device.device_type == 'mobile' %}
+                            <i class="bi bi-phone"></i>
+                            {% elif device.device_type == 'tablet' %}
+                            <i class="bi bi-tablet"></i>
+                            {% else %}
+                            <i class="bi bi-laptop"></i>
+                            {% endif %}
+                        </div>
+
+                        <!-- Device Info -->
+                        <div class="flex-grow-1 min-width-0">
+                            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                <h5 class="text-truncate mb-0" style="max-width: 100%;"
+                                    title="{{ device.device_name }}">{{ device.device_name }}</h5>
+                                {% if device == current_device %}
+                                <span class="current-badge">Joriy</span>
+                                {% endif %}
+                                {% if device.is_trusted %}
+                                <span class="trusted-badge"><i class="bi bi-shield-check"></i></span>
+                                {% endif %}
+                            </div>
+
+                            <div class="device-meta mb-3">
+                                <div class="text-truncate" title="{{ device.browser }} • {{ device.os }}"><i
+                                        class="bi bi-globe me-1"></i>{{ device.browser }} • {{ device.os }}</div>
+                                <div class="text-truncate"><i class="bi bi-geo-alt me-1"></i>IP: {{
+                                    device.ip_address|default:"Noma'lum" }}</div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <!-- Device Info -->
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <h5>{{ device.device_name }}</h5>
-                            {% if device == current_device %}
-                            <span class="current-badge">Joriy qurilma</span>
-                            {% endif %}
-                            {% if device.is_trusted %}
-                            <span class="trusted-badge"><i class="bi bi-shield-check me-1"></i>Ishonchli</span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="device-meta mb-2">
-                            <div><i class="bi bi-globe me-1"></i>{{ device.browser }} • {{ device.os }}</div>
-                            <div><i class="bi bi-geo-alt me-1"></i>IP: {{ device.ip_address|default:"Noma'lum" }}</div>
-                        </div>
-                        
-                        <div class="session-time">
+
+                    <div class="mt-auto">
+                        <div class="session-time mb-3">
                             <i class="bi bi-clock me-1"></i>
-                            Oxirgi kirish: {{ device.last_login|date:"d.m.Y, H:i" }}
+                            <span class="d-inline-block text-truncate"
+                                style="max-width: 200px; vertical-align: bottom;">
+                                Oxirgi: {{ device.last_login|date:"d.m.Y, H:i" }}
+                            </span>
                         </div>
+
+                        <!-- Actions -->
+                        {% if device != current_device %}
+                        <div class="d-flex gap-2 pt-3 border-top flex-wrap justify-content-between">
+                            <a href="{% url 'trust_device' device.pk %}"
+                                class="btn btn-sm {% if device.is_trusted %}btn-outline-warning{% else %}btn-outline-success{% endif %} flex-grow-1">
+                                {% if device.is_trusted %}
+                                <i class="bi bi-shield-x"></i> Ishonchsiz
+                                {% else %}
+                                <i class="bi bi-shield-check"></i> Ishonchli
+                                {% endif %}
+                            </a>
+                            <div class="d-flex gap-2">
+                                <button type="button"
+                                    onclick="showLogoutModal('{% url 'logout_device' device.pk %}', '{{ device.device_name }}')"
+                                    class="btn btn-sm btn-outline-primary" title="Chiqish">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                </button>
+                                <button type="button"
+                                    onclick="showLogoutModal('{% url 'remove_device' device.pk %}', '{{ device.device_name }}', true)"
+                                    class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="text-center pt-3 border-top">
+                            <span class="text-success small fw-bold"><i class="bi bi-check-circle me-1"></i>Faol
+                                qurilma</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                
-                <!-- Actions -->
-                {% if device != current_device %}
-                <div class="d-flex gap-2 mt-3 pt-3 border-top">
-                    <a href="{% url 'trust_device' device.pk %}" class="btn btn-sm {% if device.is_trusted %}btn-outline-warning{% else %}btn-outline-success{% endif %}">
-                        {% if device.is_trusted %}
-                        <i class="bi bi-shield-x me-1"></i>Ishonchsiz
-                        {% else %}
-                        <i class="bi bi-shield-check me-1"></i>Ishonchli
-                        {% endif %}
-                    </a>
-                    <a href="{% url 'logout_device' device.pk %}" class="btn btn-sm btn-outline-primary" onclick="return confirm('Bu qurilmadan chiqmoqchimisiz?')">
-                        <i class="bi bi-box-arrow-right me-1"></i>Chiqish
-                    </a>
-                    <a href="{% url 'remove_device' device.pk %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bu qurilmani o\'chirmoqchimisiz? Qayta kirganingizda yangi qurilma sifatida ko\'rinadi.')">
-                        <i class="bi bi-trash me-1"></i>O'chirish
-                    </a>
-                </div>
-                {% else %}
-                <div class="text-center mt-3 pt-3 border-top">
-                    <span class="text-success"><i class="bi bi-check-circle me-1"></i>Siz hozir shu qurilmadan foydalanmoqdasiz</span>
-                </div>
-                {% endif %}
             </div>
         </div>
         {% endfor %}
@@ -168,6 +207,6 @@
         <p class="text-muted">Qayta login qiling va qurilmangiz bu yerda ko'rinadi</p>
     </div>
     {% endif %}
-    
+
 </div>
 {% endblock %}

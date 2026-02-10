@@ -118,8 +118,18 @@ def get_device_info(request):
     # Create device name
     device_name = f"{os_name} - {browser}"
     
-    # Create unique device ID
-    device_id = hashlib.md5(f"{user_agent}{get_client_ip(request)}".encode()).hexdigest()
+    # ----------------------------------------------------
+    # NEW LOGIC: Use cookie-based UUID if available
+    # ----------------------------------------------------
+    import uuid
+    
+    # Check for existing device_uuid cookie
+    device_id = request.COOKIES.get('device_uuid')
+    
+    # If not found, generate new UUID
+    if not device_id:
+        device_id = str(uuid.uuid4())
+        request.new_device_uuid = device_id  # Signal to middleware to set cookie
     
     return {
         'device_id': device_id,
@@ -138,8 +148,9 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        # 1. PRE-RESPONSE: Check Expiry and Update Activity for EXISTING sessions
         if request.user.is_authenticated:
-            from .models import UserSession, UserDevice
+            from .models import UserSession
             
             session_key = request.session.session_key
             
@@ -151,7 +162,7 @@ class SessionTimeoutMiddleware:
                         is_active=True
                     )
                     
-                    # Check if session expired (2 hours)
+                    # Check if session expired
                     if user_session.is_expired:
                         user_session.is_active = False
                         user_session.save()
@@ -165,20 +176,35 @@ class SessionTimeoutMiddleware:
                     user_session.save(update_fields=['last_activity', 'expires_at'])
                     
                 except UserSession.DoesNotExist:
-                    # Session not found - user may have been logged out from another device
-                    # Check if there's an inactive session with this key
+                    # Session missing. Logic to create it will run in POST-RESPONSE to handle login case.
+                    pass
+        
+        response = self.get_response(request)
+        
+        # 2. POST-RESPONSE: Ensure Session Exists (Handles Login & Orphans)
+        if request.user.is_authenticated:
+            from .models import UserSession, UserDevice
+            
+            session_key = request.session.session_key
+            
+            if session_key:
+                # Check directly if session exists (to avoid duplicate get queries if possible, but safe to get)
+                # We need to create it if it doesn't exist
+                if not UserSession.objects.filter(session_key=session_key, user=request.user, is_active=True).exists():
+                     # Check if there's an inactive session with this key (Optional safety)
                     inactive_session = UserSession.objects.filter(session_key=session_key).first()
                     if inactive_session:
-                        # Session exists but inactive - logout user
-                        logout(request)
-                        messages.info(request, "Sessiyangiz boshqa qurilmadan tugatildi. Iltimos, qaytadan kiring.")
-                        return redirect('login')
-                    
+                        # Session exists but inactive - logout user? 
+                        # Or just reactivate? Reactivating might be safer if user just logged in?
+                        # But if user just logged in, session key should be new or recycled.
+                        # If recycled, effectively new.
+                        pass # Treat as new logic below or handle duplication
+
                     # Create new session if truly not exists
                     device_info = get_device_info(request)
                     ip_address = get_client_ip(request)
                     
-                    # Get or create device
+                    # Get or create device using the STABLE device_id (cookie)
                     device, created = UserDevice.objects.get_or_create(
                         user=request.user,
                         device_id=device_info['device_id'],
@@ -214,5 +240,18 @@ class SessionTimeoutMiddleware:
                         }
                     )
         
-        response = self.get_response(request)
+        # ----------------------------------------------------
+        # SET COOKIE IF NEW UUID GENERATED
+        # ----------------------------------------------------
+        if hasattr(request, 'new_device_uuid'):
+            # Set cookie for 10 years
+            max_age = 10 * 365 * 24 * 60 * 60
+            response.set_cookie(
+                'device_uuid', 
+                request.new_device_uuid, 
+                max_age=max_age, 
+                httponly=True, 
+                samesite='Lax'
+            )
+            
         return response
