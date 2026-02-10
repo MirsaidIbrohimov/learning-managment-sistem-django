@@ -4,436 +4,818 @@
 
 {% block content %}
 <style>
-.help-page {
-    max-width: 1200px;
+/* ==================== VARIABLES ==================== */
+:root {
+    --hp-primary: #6366f1;
+    --hp-primary-dark: #4f46e5;
+    --hp-primary-light: #818cf8;
+    --hp-success: #10b981;
+    --hp-warning: #f59e0b;
+    --hp-info: #3b82f6;
+    --hp-muted: #6b7280;
+    --hp-danger: #ef4444;
+    --hp-card: var(--bs-body-bg);
+    --hp-border: var(--bs-border-color);
+    --hp-text: var(--bs-body-color);
+    --hp-text-muted: var(--bs-secondary-color);
+    --hp-soft: rgba(99,102,241,0.06);
+    --hp-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+
+[data-bs-theme="dark"] {
+    --hp-soft: rgba(99,102,241,0.1);
+    --hp-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+
+/* ==================== PAGE ==================== */
+.hp {
+    max-width: 860px;
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 4rem;
 }
 
-.help-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 2rem;
-}
-
-.help-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.help-title i { color: #6366f1; }
-
-/* HERO SECTION */
-.help-hero {
-    background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.08) 100%);
-    border: 1px solid rgba(99,102,241,0.15);
-    border-radius: 20px;
-    padding: 2.5rem;
-    margin-bottom: 2rem;
+/* ==================== HERO ==================== */
+.hp-hero {
     text-align: center;
+    padding: 3rem 2rem;
+    border-radius: 24px;
+    background: linear-gradient(160deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.12) 50%, rgba(236,72,153,0.06) 100%);
+    border: 1px solid rgba(99,102,241,0.12);
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: heroFadeIn 0.6s ease;
 }
 
-[data-bs-theme="dark"] .help-hero {
-    background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.12) 100%);
+[data-bs-theme="dark"] .hp-hero {
+    background: linear-gradient(160deg, rgba(99,102,241,0.14) 0%, rgba(139,92,246,0.16) 50%, rgba(236,72,153,0.08) 100%);
 }
 
-.help-hero-icon {
-    width: 80px;
-    height: 80px;
+@keyframes heroFadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hp-hero::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    right: -60px;
+    width: 180px;
+    height: 180px;
+    background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
     border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    pointer-events: none;
+}
+
+.hp-hero-icon {
+    width: 88px;
+    height: 88px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, var(--hp-primary), #8b5cf6);
     color: #fff;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 1.25rem;
-    box-shadow: 0 8px 25px rgba(99,102,241,0.3);
+    font-size: 2.25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 12px 32px rgba(99,102,241,0.3);
+    animation: iconFloat 3s ease-in-out infinite;
 }
 
-.help-hero h3 {
-    font-weight: 700;
+@keyframes iconFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.hp-hero h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
     margin-bottom: 0.5rem;
+    color: var(--hp-text);
 }
 
-.help-hero p {
-    color: var(--bs-secondary-color);
-    max-width: 500px;
-    margin: 0 auto 1.5rem;
+.hp-hero p {
+    color: var(--hp-text-muted);
+    max-width: 440px;
+    margin: 0 auto 1.75rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.hp-hero-btn {
+    background: linear-gradient(135deg, var(--hp-primary), var(--hp-primary-dark));
+    color: #fff;
+    border: none;
+    padding: 0.875rem 2.25rem;
+    border-radius: 16px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(99,102,241,0.25);
+    cursor: pointer;
+}
+
+.hp-hero-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.35);
+    color: #fff;
+}
+
+.hp-hero-btn:active {
+    transform: translateY(-1px);
+}
+
+/* ==================== FORM ==================== */
+.hp-form-wrap {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, margin 0.4s ease;
+    opacity: 0;
+    margin-bottom: 0;
+}
+
+.hp-form-wrap.open {
+    max-height: 700px;
+    opacity: 1;
+    margin-bottom: 2rem;
+}
+
+.hp-form {
+    background: var(--hp-card);
+    border: 1px solid var(--hp-border);
+    border-radius: 22px;
+    padding: 2rem;
+    box-shadow: var(--hp-shadow);
+}
+
+.hp-form-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    color: var(--hp-text);
+}
+
+.hp-form-title i {
+    color: var(--hp-primary);
+    font-size: 1.3rem;
+}
+
+.hp-form .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.4rem;
+    color: var(--hp-text);
+}
+
+.hp-form .form-control {
+    border-radius: 14px;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--hp-border);
+    transition: all 0.25s ease;
     font-size: 0.95rem;
 }
 
-.help-hero .btn-submit {
-    background: #6366f1;
+.hp-form .form-control:focus {
+    border-color: var(--hp-primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+}
+
+/* File upload area */
+.hp-file-area {
+    border: 2px dashed var(--hp-border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    background: var(--hp-soft);
+}
+
+.hp-file-area:hover {
+    border-color: var(--hp-primary);
+    background: rgba(99,102,241,0.08);
+}
+
+.hp-file-area.has-file {
+    border-color: var(--hp-success);
+    background: rgba(16,185,129,0.06);
+}
+
+.hp-file-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.hp-file-icon {
+    font-size: 2rem;
+    color: var(--hp-primary);
+    margin-bottom: 0.5rem;
+    transition: transform 0.3s ease;
+}
+
+.hp-file-area:hover .hp-file-icon {
+    transform: translateY(-3px);
+}
+
+.hp-file-area.has-file .hp-file-icon {
+    color: var(--hp-success);
+}
+
+.hp-file-text {
+    font-size: 0.85rem;
+    color: var(--hp-text-muted);
+}
+
+.hp-file-preview {
+    display: none;
+    margin-top: 1rem;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hp-file-preview img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+}
+
+.hp-file-preview .hp-file-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.9);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.hp-file-preview .hp-file-remove:hover {
+    transform: scale(1.15);
+}
+
+.hp-form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.hp-btn-send {
+    background: linear-gradient(135deg, var(--hp-primary), var(--hp-primary-dark));
     color: #fff;
     border: none;
     padding: 0.75rem 2rem;
-    border-radius: 50px;
+    border-radius: 14px;
     font-weight: 700;
-    font-size: 1rem;
-    transition: all 0.25s;
+    font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.25s;
+    cursor: pointer;
 }
 
-.help-hero .btn-submit:hover {
-    background: #4f46e5;
+.hp-btn-send:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(99,102,241,0.3);
 }
 
-/* FORM CARD */
-.help-form-card {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 2.5rem;
-    display: none;
-    animation: slideDown 0.3s ease;
+.hp-btn-cancel {
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1.5px solid var(--hp-border);
+    background: transparent;
+    color: var(--hp-text);
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.help-form-card.show { display: block; }
+.hp-btn-cancel:hover {
+    border-color: var(--hp-danger);
+    color: var(--hp-danger);
+}
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
+.hp-alert {
+    border-radius: 14px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    animation: alertSlide 0.3s ease;
+}
+
+@keyframes alertSlide {
+    from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.help-form-card .form-label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.4rem;
-}
-
-.help-form-card .form-control,
-.help-form-card .form-select {
-    border-radius: 12px;
-    padding: 0.7rem 1rem;
-    border: 1px solid var(--bs-border-color);
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.help-form-card .form-control:focus,
-.help-form-card .form-select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
-}
-
-.help-form-card .btn-send {
-    background: #6366f1;
-    color: #fff;
-    border: none;
-    padding: 0.7rem 2rem;
-    border-radius: 50px;
+/* ==================== SECTION LABEL ==================== */
+.hp-section-label {
+    font-size: 1.15rem;
     font-weight: 700;
-    transition: all 0.25s;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--hp-text);
 }
 
-.help-form-card .btn-send:hover {
-    background: #4f46e5;
-    transform: translateY(-1px);
+.hp-section-label i {
+    color: var(--hp-primary);
 }
 
-.help-form-card .btn-cancel {
-    padding: 0.7rem 1.5rem;
-    border-radius: 50px;
-    font-weight: 600;
-}
-
-/* FILTER TABS */
-.help-filters {
+/* ==================== FILTER PILLS ==================== */
+.hp-pills {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.75rem;
     overflow-x: auto;
-    padding-bottom: 0.25rem;
+    padding-bottom: 4px;
     scrollbar-width: none;
 }
-.help-filters::-webkit-scrollbar { display: none; }
 
-.help-tab {
+.hp-pills::-webkit-scrollbar { display: none; }
+
+.hp-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.4rem;
     padding: 0.5rem 1.125rem;
-    border-radius: 50px;
-    font-size: 0.875rem;
+    border-radius: 12px;
+    font-size: 0.825rem;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid var(--bs-border-color);
+    border: 1.5px solid var(--hp-border);
     background: transparent;
-    color: var(--bs-body-color);
-    transition: all 0.2s;
+    color: var(--hp-text-muted);
+    transition: all 0.25s ease;
     white-space: nowrap;
     flex-shrink: 0;
 }
-.help-tab:hover { border-color: #6366f1; color: #6366f1; }
-.help-tab.active { background: #6366f1; color: #fff; border-color: #6366f1; }
 
-.help-tab .cnt {
-    background: rgba(0,0,0,0.1);
-    padding: 0.1rem 0.45rem;
-    border-radius: 50px;
-    font-size: 0.7rem;
+.hp-pill:hover {
+    border-color: var(--hp-primary);
+    color: var(--hp-primary);
+    background: rgba(99,102,241,0.04);
 }
-.help-tab.active .cnt { background: rgba(255,255,255,0.25); }
 
-/* REQUEST CARDS */
-.help-grid {
+.hp-pill.active {
+    background: var(--hp-primary);
+    color: #fff;
+    border-color: var(--hp-primary);
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+}
+
+.hp-pill .hp-pill-cnt {
+    background: rgba(0,0,0,0.08);
+    padding: 0.1rem 0.5rem;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+
+.hp-pill.active .hp-pill-cnt {
+    background: rgba(255,255,255,0.25);
+}
+
+/* ==================== REQUEST CARDS ==================== */
+.hp-list {
     display: flex;
     flex-direction: column;
     gap: 1rem;
 }
 
-.help-card {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 16px;
+.hp-card {
+    background: var(--hp-card);
+    border: 1px solid var(--hp-border);
+    border-radius: 20px;
     padding: 1.5rem;
-    transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: cardAppear 0.5s ease both;
+    box-shadow: var(--hp-shadow);
 }
 
-.help-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-    border-color: #6366f1;
+@keyframes cardAppear {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-[data-bs-theme="dark"] .help-card:hover {
-    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+.hp-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    transition: opacity 0.3s;
 }
 
-.help-card-header {
+.hp-card[data-status="pending"]::before { background: var(--hp-warning); }
+.hp-card[data-status="in_progress"]::before { background: var(--hp-info); }
+.hp-card[data-status="resolved"]::before { background: var(--hp-success); }
+.hp-card[data-status="closed"]::before { background: var(--hp-muted); }
+
+.hp-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.1);
+    border-color: rgba(99,102,241,0.3);
+}
+
+[data-bs-theme="dark"] .hp-card:hover {
+    box-shadow: 0 12px 36px rgba(0,0,0,0.35);
+}
+
+/* Card header */
+.hp-card-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.625rem;
 }
 
-.help-card-subject {
-    font-size: 1.1rem;
+.hp-card-subject {
+    font-size: 1.05rem;
     font-weight: 700;
-    color: var(--bs-body-color);
+    color: var(--hp-text);
     margin: 0;
+    line-height: 1.4;
 }
 
-.help-card-message {
+.hp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.hp-badge.pending { background: rgba(245,158,11,0.12); color: #d97706; }
+.hp-badge.in_progress { background: rgba(59,130,246,0.12); color: #2563eb; }
+.hp-badge.resolved { background: rgba(16,185,129,0.12); color: #059669; }
+.hp-badge.closed { background: rgba(107,114,128,0.12); color: #4b5563; }
+
+[data-bs-theme="dark"] .hp-badge.pending { color: #fbbf24; }
+[data-bs-theme="dark"] .hp-badge.in_progress { color: #60a5fa; }
+[data-bs-theme="dark"] .hp-badge.resolved { color: #34d399; }
+[data-bs-theme="dark"] .hp-badge.closed { color: #9ca3af; }
+
+/* Card message */
+.hp-card-msg {
     font-size: 0.9rem;
-    color: var(--bs-secondary-color);
-    line-height: 1.6;
+    color: var(--hp-text-muted);
+    line-height: 1.65;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin-bottom: 0.875rem;
+}
+
+/* Card image thumbnail */
+.hp-card-thumb {
     margin-bottom: 1rem;
 }
 
-.help-card-footer {
+.hp-card-thumb img {
+    max-height: 140px;
+    border-radius: 14px;
+    border: 1px solid var(--hp-border);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    object-fit: cover;
+}
+
+.hp-card-thumb img:hover {
+    transform: scale(1.03);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-color: var(--hp-primary);
+}
+
+/* Admin response */
+.hp-reply {
+    background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(16,185,129,0.02));
+    border: 1px solid rgba(16,185,129,0.18);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1rem;
+    animation: replyAppear 0.4s ease;
+}
+
+@keyframes replyAppear {
+    from { opacity: 0; transform: translateX(-8px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.hp-reply-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--hp-success);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.hp-reply-text {
+    font-size: 0.88rem;
+    color: var(--hp-text);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+/* Card footer */
+.hp-card-bottom {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 0.875rem;
-    border-top: 1px solid var(--bs-border-color);
     flex-wrap: wrap;
     gap: 0.5rem;
+    padding-top: 0.875rem;
+    border-top: 1px solid var(--hp-border);
 }
 
-.help-card-date {
-    font-size: 0.8rem;
-    color: var(--bs-secondary-color);
+.hp-card-time {
+    font-size: 0.78rem;
+    color: var(--hp-text-muted);
     display: flex;
     align-items: center;
     gap: 0.35rem;
 }
 
-/* STATUS BADGES */
-.help-status {
+/* ==================== EMPTY ==================== */
+.hp-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    border: 2px dashed var(--hp-border);
+    border-radius: 24px;
+    animation: emptyPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes emptyPulse {
+    from { border-color: var(--hp-border); }
+    to { border-color: rgba(99,102,241,0.25); }
+}
+
+.hp-empty-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--hp-soft);
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 50px;
-    font-size: 0.78rem;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--hp-text-muted);
+    margin-bottom: 1.25rem;
+    opacity: 0.5;
+}
+
+.hp-empty h4 {
     font-weight: 700;
-}
-
-.help-status.pending {
-    background: rgba(245,158,11,0.12);
-    color: #f59e0b;
-}
-
-.help-status.in_progress {
-    background: rgba(59,130,246,0.12);
-    color: #3b82f6;
-}
-
-.help-status.resolved {
-    background: rgba(16,185,129,0.12);
-    color: #10b981;
-}
-
-.help-status.closed {
-    background: rgba(107,114,128,0.12);
-    color: #6b7280;
-}
-
-/* ADMIN RESPONSE */
-.help-response {
-    background: rgba(16,185,129,0.06);
-    border: 1px solid rgba(16,185,129,0.15);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    margin-top: 0.75rem;
-    font-size: 0.88rem;
-}
-
-.help-response-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #10b981;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
     margin-bottom: 0.35rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
 }
 
-/* IMAGE PREVIEW */
-.help-card-image {
-    margin-top: 0.75rem;
-}
-
-.help-card-image img {
-    max-height: 120px;
-    border-radius: 10px;
-    border: 1px solid var(--bs-border-color);
-    cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.help-card-image img:hover { transform: scale(1.02); }
-
-/* EMPTY */
-.help-empty {
-    text-align: center;
-    padding: 5rem 2rem;
-    border: 2px dashed var(--bs-border-color);
-    border-radius: 20px;
-}
-.help-empty i {
-    font-size: 4rem;
-    color: var(--bs-secondary-color);
-    opacity: 0.3;
-}
-
-/* ALERT */
-.help-alert {
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
+.hp-empty p {
+    color: var(--hp-text-muted);
     font-size: 0.9rem;
 }
 
-/* RESPONSIVE */
+/* ==================== IMAGE LIGHTBOX ==================== */
+.hp-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1070;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hp-lightbox.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.hp-lightbox-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.hp-lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hp-lightbox.open .hp-lightbox-content {
+    transform: scale(1) translateY(0);
+}
+
+.hp-lightbox-content img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+    display: block;
+}
+
+.hp-lightbox-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    color: #1e293b;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.hp-lightbox-close:hover {
+    transform: scale(1.1) rotate(90deg);
+    background: #fff;
+}
+
+.hp-lightbox-download {
+    position: absolute;
+    bottom: -14px;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 0.5rem 1.25rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.95);
+    color: #1e293b;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.hp-lightbox-download:hover {
+    background: #fff;
+    transform: translateX(50%) translateY(-2px);
+}
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 575px) {
-    .help-page { padding: 1.25rem 0.75rem; }
-    .help-title { font-size: 1.4rem; }
-    .help-hero { padding: 1.5rem; }
-    .help-form-card { padding: 1.5rem; }
-    .help-card { padding: 1.25rem; }
+    .hp { padding: 1.25rem 0.75rem 3rem; }
+    .hp-hero { padding: 2rem 1.25rem; border-radius: 20px; }
+    .hp-hero h2 { font-size: 1.4rem; }
+    .hp-hero-icon { width: 72px; height: 72px; font-size: 1.8rem; border-radius: 22px; }
+    .hp-form { padding: 1.5rem; border-radius: 18px; }
+    .hp-card { padding: 1.25rem; border-radius: 16px; }
+    .hp-card-top { flex-direction: column; gap: 0.5rem; }
+    .hp-form-actions { flex-direction: column-reverse; }
+    .hp-btn-send, .hp-btn-cancel { width: 100%; justify-content: center; }
+    .hp-lightbox-close { top: -10px; right: -10px; width: 36px; height: 36px; }
 }
 </style>
 
-<div class="help-page">
-    <!-- HEADER -->
-    <div class="help-header">
-        <h2 class="help-title">
-            <i class="bi bi-question-circle-fill"></i> Yordam markazi
-        </h2>
-    </div>
+<div class="hp">
 
-    <!-- HERO -->
-    <div class="help-hero">
-        <div class="help-hero-icon">
+    <!-- ===== HERO ===== -->
+    <div class="hp-hero">
+        <div class="hp-hero-icon">
             <i class="bi bi-headset"></i>
         </div>
-        <h3>Qanday yordam kerak?</h3>
+        <h2>Yordam markazi</h2>
         <p>Muammo yoki savolingiz bo'lsa, bizga xabar yuboring. Adminlar tez orada javob beradi.</p>
-        <button class="btn-submit" id="toggleFormBtn" onclick="toggleForm()">
-            <i class="bi bi-send-fill"></i> Yordam so'rash
+        <button class="hp-hero-btn" id="toggleFormBtn">
+            <i class="bi bi-plus-circle-fill"></i> Yangi so'rov yuborish
         </button>
     </div>
 
-    <!-- FORM -->
-    <div class="help-form-card" id="helpFormCard">
-        <h5 class="fw-bold mb-3"><i class="bi bi-pencil-square text-primary me-2"></i>Yangi so'rov yuborish</h5>
-        <form id="helpPageForm" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="row g-3">
-                <div class="col-12">
-                    <label class="form-label">Mavzu <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="subject" id="helpSubjectPage" placeholder="Masalan: Video yuklanmayapti" required>
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Xabar <span class="text-danger">*</span></label>
-                    <textarea class="form-control" name="message" id="helpMessagePage" rows="4" placeholder="Muammoni batafsil yozing..." required></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Rasm (ixtiyoriy)</label>
-                    <input type="file" class="form-control" name="image" accept="image/*">
-                    <div class="form-text">Skrinshot yuklashingiz mumkin</div>
-                </div>
+    <!-- ===== FORM ===== -->
+    <div class="hp-form-wrap" id="formWrap">
+        <div class="hp-form">
+            <div class="hp-form-title">
+                <i class="bi bi-pencil-square"></i> Yangi so'rov
             </div>
-            <div id="helpPageAlert" class="help-alert alert d-none mt-3"></div>
-            <div class="d-flex gap-2 mt-3 justify-content-end">
-                <button type="button" class="btn btn-outline-secondary btn-cancel" onclick="toggleForm()">Bekor qilish</button>
-                <button type="submit" class="btn btn-send" id="helpPageSubmitBtn">
-                    <i class="bi bi-send me-1"></i>Yuborish
-                </button>
-            </div>
-        </form>
+            <form id="helpForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Mavzu <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="subject" placeholder="Masalan: Video yuklanmayapti" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Xabar <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="message" rows="4" placeholder="Muammoni batafsil yozing..." required></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Skrinshot (ixtiyoriy)</label>
+                        <div class="hp-file-area" id="fileArea">
+                            <input type="file" name="image" accept="image/*" id="fileInput">
+                            <div class="hp-file-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                            <div class="hp-file-text">Rasm tanlash yoki shu yerga tashlang</div>
+                            <div class="hp-file-preview" id="filePreview">
+                                <img src="" alt="Preview" id="previewImg">
+                                <button type="button" class="hp-file-remove" id="fileRemove"><i class="bi bi-x"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="formAlert" class="hp-alert alert d-none"></div>
+                <div class="hp-form-actions">
+                    <button type="button" class="hp-btn-cancel" id="cancelBtn">Bekor qilish</button>
+                    <button type="submit" class="hp-btn-send" id="submitBtn">
+                        <i class="bi bi-send-fill"></i> Yuborish
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     {% if my_requests %}
-    <!-- FILTER TABS -->
-    <div class="help-filters">
-        <button class="help-tab active" data-filter="all">
-            <i class="bi bi-grid-3x3-gap"></i> Barchasi
-            <span class="cnt">{{ my_requests|length }}</span>
+    <!-- ===== FILTERS ===== -->
+    <div class="hp-section-label">
+        <i class="bi bi-clock-history"></i> Mening so'rovlarim
+    </div>
+
+    <div class="hp-pills">
+        <button class="hp-pill active" data-filter="all">
+            <i class="bi bi-layers"></i> Barchasi
+            <span class="hp-pill-cnt">{{ my_requests|length }}</span>
         </button>
-        <button class="help-tab" data-filter="pending">
-            <i class="bi bi-clock-fill"></i> Kutilmoqda
+        <button class="hp-pill" data-filter="pending">
+            <i class="bi bi-clock"></i> Kutilmoqda
         </button>
-        <button class="help-tab" data-filter="in_progress">
+        <button class="hp-pill" data-filter="in_progress">
             <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
         </button>
-        <button class="help-tab" data-filter="resolved">
-            <i class="bi bi-check-circle-fill"></i> Hal qilindi
+        <button class="hp-pill" data-filter="resolved">
+            <i class="bi bi-check-circle"></i> Hal qilindi
         </button>
-        <button class="help-tab" data-filter="closed">
-            <i class="bi bi-x-circle-fill"></i> Yopildi
+        <button class="hp-pill" data-filter="closed">
+            <i class="bi bi-x-circle"></i> Yopildi
         </button>
     </div>
 
-    <!-- REQUESTS LIST -->
-    <div class="help-grid">
+    <!-- ===== CARDS ===== -->
+    <div class="hp-list">
         {% for req in my_requests %}
-        <div class="help-card" data-status="{{ req.status }}">
-            <div class="help-card-header">
-                <h5 class="help-card-subject">{{ req.subject }}</h5>
-                <span class="help-status {{ req.status }}">
+        <div class="hp-card" data-status="{{ req.status }}" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <div class="hp-card-top">
+                <h5 class="hp-card-subject">{{ req.subject }}</h5>
+                <span class="hp-badge {{ req.status }}">
                     {% if req.status == 'pending' %}
                         <i class="bi bi-clock-fill"></i> Kutilmoqda
                     {% elif req.status == 'in_progress' %}
@@ -446,32 +828,30 @@
                 </span>
             </div>
 
-            <p class="help-card-message">{{ req.message }}</p>
+            <p class="hp-card-msg">{{ req.message }}</p>
 
             {% if req.image %}
-            <div class="help-card-image">
-                <a href="{{ req.image.url }}" target="_blank">
-                    <img src="{{ req.image.url }}" alt="Rasm">
-                </a>
+            <div class="hp-card-thumb">
+                <img src="{{ req.image.url }}" alt="Yuklangan rasm" onclick="openLightbox(this.src)">
             </div>
             {% endif %}
 
             {% if req.admin_response %}
-            <div class="help-response">
-                <div class="help-response-label">
+            <div class="hp-reply">
+                <div class="hp-reply-label">
                     <i class="bi bi-reply-fill"></i> Admin javobi
                 </div>
-                <p class="mb-0" style="white-space: pre-wrap;">{{ req.admin_response }}</p>
+                <p class="hp-reply-text">{{ req.admin_response }}</p>
             </div>
             {% endif %}
 
-            <div class="help-card-footer">
-                <span class="help-card-date">
+            <div class="hp-card-bottom">
+                <span class="hp-card-time">
                     <i class="bi bi-calendar3"></i> {{ req.created_at|date:"d.m.Y H:i" }}
                 </span>
                 {% if req.updated_at != req.created_at %}
-                <span class="help-card-date">
-                    <i class="bi bi-arrow-clockwise"></i> Yangilangan: {{ req.updated_at|date:"d.m.Y H:i" }}
+                <span class="hp-card-time">
+                    <i class="bi bi-arrow-clockwise"></i> {{ req.updated_at|date:"d.m.Y H:i" }}
                 </span>
                 {% endif %}
             </div>
@@ -480,47 +860,118 @@
     </div>
 
     {% else %}
-    <div class="help-empty" id="helpEmpty">
-        <i class="bi bi-inbox"></i>
-        <h4 class="mt-3">So'rovlar yo'q</h4>
-        <p class="text-muted">Siz hali yordam so'rovi yubormagansiz</p>
+    <div class="hp-empty">
+        <div class="hp-empty-icon">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h4>So'rovlar yo'q</h4>
+        <p>Siz hali yordam so'rovi yubormagansiz</p>
     </div>
     {% endif %}
 </div>
 
+<!-- ===== IMAGE LIGHTBOX ===== -->
+<div class="hp-lightbox" id="lightbox">
+    <div class="hp-lightbox-bg" onclick="closeLightbox()"></div>
+    <div class="hp-lightbox-content">
+        <button class="hp-lightbox-close" onclick="closeLightbox()"><i class="bi bi-x-lg"></i></button>
+        <img src="" alt="Rasm" id="lightboxImg">
+        <a class="hp-lightbox-download" id="lightboxDownload" href="" download target="_blank">
+            <i class="bi bi-download"></i> Yuklab olish
+        </a>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Filter tabs
-    const tabs = document.querySelectorAll('.help-tab');
-    const cards = document.querySelectorAll('.help-card');
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            tabs.forEach(t => t.classList.remove('active'));
+    /* ========== FORM TOGGLE ========== */
+    const formWrap = document.getElementById('formWrap');
+    const toggleBtn = document.getElementById('toggleFormBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    function openForm() {
+        formWrap.classList.add('open');
+        toggleBtn.innerHTML = '<i class="bi bi-x-circle"></i> Yopish';
+        setTimeout(() => {
+            formWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
+
+    function closeForm() {
+        formWrap.classList.remove('open');
+        toggleBtn.innerHTML = '<i class="bi bi-plus-circle-fill"></i> Yangi so\'rov yuborish';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        formWrap.classList.contains('open') ? closeForm() : openForm();
+    });
+
+    cancelBtn.addEventListener('click', closeForm);
+
+    /* ========== FILE UPLOAD PREVIEW ========== */
+    const fileInput = document.getElementById('fileInput');
+    const fileArea = document.getElementById('fileArea');
+    const filePreview = document.getElementById('filePreview');
+    const previewImg = document.getElementById('previewImg');
+    const fileRemove = document.getElementById('fileRemove');
+
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                filePreview.style.display = 'block';
+                fileArea.classList.add('has-file');
+                fileArea.querySelector('.hp-file-icon').innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                fileArea.querySelector('.hp-file-text').textContent = fileInput.files[0].name;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    fileRemove.addEventListener('click', function(e) {
+        e.stopPropagation();
+        fileInput.value = '';
+        filePreview.style.display = 'none';
+        fileArea.classList.remove('has-file');
+        fileArea.querySelector('.hp-file-icon').innerHTML = '<i class="bi bi-cloud-arrow-up"></i>';
+        fileArea.querySelector('.hp-file-text').textContent = 'Rasm tanlash yoki shu yerga tashlang';
+    });
+
+    /* ========== FILTER PILLS ========== */
+    const pills = document.querySelectorAll('.hp-pill');
+    const cards = document.querySelectorAll('.hp-card');
+
+    pills.forEach(pill => {
+        pill.addEventListener('click', function() {
+            pills.forEach(p => p.classList.remove('active'));
             this.classList.add('active');
             const filter = this.dataset.filter;
 
-            cards.forEach(card => {
-                if (filter === 'all') {
-                    card.style.display = '';
-                } else {
-                    card.style.display = card.dataset.status === filter ? '' : 'none';
+            cards.forEach((card, i) => {
+                const show = filter === 'all' || card.dataset.status === filter;
+                card.style.display = show ? '' : 'none';
+                if (show) {
+                    card.style.animation = 'none';
+                    card.offsetHeight;
+                    card.style.animation = `cardAppear 0.4s ease ${i * 60}ms both`;
                 }
             });
         });
     });
 
-    // Form submit
-    const form = document.getElementById('helpPageForm');
+    /* ========== FORM SUBMIT ========== */
+    const form = document.getElementById('helpForm');
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const btn = document.getElementById('helpPageSubmitBtn');
-        const alertEl = document.getElementById('helpPageAlert');
+        const btn = document.getElementById('submitBtn');
+        const alertEl = document.getElementById('formAlert');
         const formData = new FormData(this);
 
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Yuborilmoqda...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Yuborilmoqda...';
 
         fetch('{% url "submit_help_request" %}', {
             method: 'POST',
@@ -531,40 +982,49 @@ document.addEventListener('DOMContentLoaded', function() {
             alertEl.classList.remove('d-none', 'alert-danger', 'alert-success');
             if (data.success) {
                 alertEl.classList.add('alert-success');
-                alertEl.innerHTML = '<i class="bi bi-check-circle me-1"></i>' + data.message;
+                alertEl.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>' + data.message;
                 form.reset();
-                setTimeout(() => { location.reload(); }, 1500);
+                filePreview.style.display = 'none';
+                fileArea.classList.remove('has-file');
+                fileArea.querySelector('.hp-file-icon').innerHTML = '<i class="bi bi-cloud-arrow-up"></i>';
+                fileArea.querySelector('.hp-file-text').textContent = 'Rasm tanlash yoki shu yerga tashlang';
+                setTimeout(() => location.reload(), 1500);
             } else {
                 alertEl.classList.add('alert-danger');
-                alertEl.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + data.error;
+                alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>' + data.error;
             }
         })
         .catch(() => {
             alertEl.classList.remove('d-none', 'alert-success');
             alertEl.classList.add('alert-danger');
-            alertEl.innerHTML = 'Xatolik yuz berdi!';
+            alertEl.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Xatolik yuz berdi!';
         })
         .finally(() => {
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-send me-1"></i>Yuborish';
+            btn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
         });
     });
 });
 
-function toggleForm() {
-    const card = document.getElementById('helpFormCard');
-    card.classList.toggle('show');
-    if (card.classList.contains('show')) {
-        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+/* ========== LIGHTBOX ========== */
+function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    const img = document.getElementById('lightboxImg');
+    const dl = document.getElementById('lightboxDownload');
+    img.src = src;
+    dl.href = src;
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
-// Alt+Enter shortcut
+function closeLightbox() {
+    const lb = document.getElementById('lightbox');
+    lb.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
 document.addEventListener('keydown', function(e) {
-    if (e.altKey && e.key === 'Enter') {
-        e.preventDefault();
-        window.location.href = '{% url "help_page" %}';
-    }
+    if (e.key === 'Escape') closeLightbox();
 });
 </script>
 {% endblock %}
