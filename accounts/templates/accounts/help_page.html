@@ -524,10 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         fetch('{% url "submit_help_request" %}', {
             method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': '{{ csrf_token }}'
-            }
+            body: formData
         })
         .then(r => r.json())
         .then(data => {
