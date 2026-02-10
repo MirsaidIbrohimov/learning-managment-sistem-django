@@ -4,320 +4,452 @@
 
 {% block admin_content %}
 <style>
-:root {
-    --hr-primary: #6366f1;
-    --hr-warning: #f59e0b;
-    --hr-info: #3b82f6;
-    --hr-success: #10b981;
-    --hr-muted: #6b7280;
-    --hr-card: var(--bs-body-bg);
-    --hr-border: var(--bs-border-color);
-    --hr-text: var(--bs-body-color);
-    --hr-text-muted: var(--bs-secondary-color);
-    --hr-shadow: 0 4px 20px rgba(0,0,0,0.06);
-}
-[data-bs-theme="dark"] {
-    --hr-shadow: 0 4px 20px rgba(0,0,0,0.25);
-}
+    :root {
+        --hr-primary: #6366f1;
+        --hr-warning: #f59e0b;
+        --hr-info: #3b82f6;
+        --hr-success: #10b981;
+        --hr-muted: #6b7280;
+        --hr-card: var(--bs-body-bg);
+        --hr-border: var(--bs-border-color);
+        --hr-text: var(--bs-body-color);
+        --hr-text-muted: var(--bs-secondary-color);
+        --hr-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    }
 
-.hr-page { padding: 1.5rem 0; }
+    [data-bs-theme="dark"] {
+        --hr-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
 
-.hr-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.75rem;
-}
+    .hr-page {
+        padding: 1.5rem 0;
+    }
 
-.hr-header h3 {
-    font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-}
+    .hr-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-.hr-header h3 i { color: var(--hr-primary); }
+    .hr-header h3 {
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1.75rem;
+    }
 
-.hr-pending-badge {
-    background: linear-gradient(135deg, var(--hr-warning), #d97706);
-    color: #fff;
-    padding: 0.5rem 1.25rem;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    animation: pendingPulse 2s ease-in-out infinite;
-}
+    .hr-header h3 i {
+        color: var(--hr-primary);
+    }
 
-@keyframes pendingPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
-}
+    .hr-pending-badge {
+        background: linear-gradient(135deg, var(--hr-warning), #d97706);
+        color: #fff;
+        padding: 0.6rem 1.25rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        animation: pendingPulse 2s ease-in-out infinite;
+    }
 
-/* Filter pills */
-.hr-filters {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1.75rem;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-}
-.hr-filters::-webkit-scrollbar { display: none; }
+    @keyframes pendingPulse {
 
-.hr-filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.55rem 1.25rem;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    border: 1.5px solid var(--hr-border);
-    color: var(--hr-text-muted);
-    background: transparent;
-    transition: all 0.25s ease;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
+        0%,
+        100% {
+            transform: scale(1);
+        }
 
-.hr-filter:hover {
-    border-color: var(--hr-primary);
-    color: var(--hr-primary);
-}
+        50% {
+            transform: scale(1.02);
+        }
+    }
 
-.hr-filter.active {
-    background: var(--hr-primary);
-    color: #fff;
-    border-color: var(--hr-primary);
-    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
-}
+    /* Stats */
+    .hr-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.25rem;
+        margin-bottom: 2.5rem;
+    }
 
-.hr-filter.active-warning {
-    background: var(--hr-warning);
-    color: #fff;
-    border-color: var(--hr-warning);
-}
+    .hr-stat {
+        background: var(--hr-card);
+        border: 1px solid var(--hr-border);
+        border-radius: 20px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: var(--hr-shadow);
+        transition: transform 0.25s;
+        position: relative;
+        overflow: hidden;
+    }
 
-.hr-filter.active-info {
-    background: var(--hr-info);
-    color: #fff;
-    border-color: var(--hr-info);
-}
+    .hr-stat::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
 
-.hr-filter.active-success {
-    background: var(--hr-success);
-    color: #fff;
-    border-color: var(--hr-success);
-}
+    .hr-stat.pending::after {
+        background: var(--hr-warning);
+    }
 
-.hr-filter.active-muted {
-    background: var(--hr-muted);
-    color: #fff;
-    border-color: var(--hr-muted);
-}
+    .hr-stat.st-in_progress::after {
+        background: var(--hr-info);
+    }
 
-/* Cards */
-.hr-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.875rem;
-}
+    /* Renamed from progress */
+    .hr-stat.resolved::after {
+        background: var(--hr-success);
+    }
 
-.hr-card {
-    background: var(--hr-card);
-    border: 1px solid var(--hr-border);
-    border-radius: 18px;
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--hr-shadow);
-    text-decoration: none;
-    color: var(--hr-text);
-    position: relative;
-    overflow: hidden;
-}
+    .hr-stat.total::after {
+        background: var(--hr-primary);
+    }
 
-.hr-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-}
+    .hr-stat:hover {
+        transform: translateY(-5px);
+    }
 
-.hr-card.st-pending::before { background: var(--hr-warning); }
-.hr-card.st-in_progress::before { background: var(--hr-info); }
-.hr-card.st-resolved::before { background: var(--hr-success); }
-.hr-card.st-closed::before { background: var(--hr-muted); }
+    .hr-stat-num {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
 
-.hr-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 32px rgba(0,0,0,0.1);
-    border-color: rgba(99,102,241,0.3);
-    color: var(--hr-text);
-}
+    .hr-stat-label {
+        font-size: 0.85rem;
+        color: var(--hr-text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 
-[data-bs-theme="dark"] .hr-card:hover {
-    box-shadow: 0 10px 32px rgba(0,0,0,0.35);
-}
+    .hr-stat.pending .hr-stat-num {
+        color: var(--hr-warning);
+    }
 
-.hr-card-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    flex-shrink: 0;
-    object-fit: cover;
-}
+    .hr-stat.st-in_progress .hr-stat-num {
+        color: var(--hr-info);
+    }
 
-.hr-card-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--hr-primary), #8b5cf6);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-}
+    /* Renamed from progress */
+    .hr-stat.resolved .hr-stat-num {
+        color: var(--hr-success);
+    }
 
-.hr-card-body {
-    flex: 1;
-    min-width: 0;
-}
+    .hr-stat.total .hr-stat-num {
+        color: var(--hr-primary);
+    }
 
-.hr-card-subject {
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
 
-.hr-card-meta {
-    font-size: 0.8rem;
-    color: var(--hr-text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
+    /* Filter pills */
+    .hr-filters {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
 
-.hr-card-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-}
+    .hr-filters::-webkit-scrollbar {
+        display: none;
+    }
 
-.hr-badge {
-    padding: 0.35rem 0.85rem;
-    border-radius: 10px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-}
+    .hr-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid var(--hr-border);
+        color: var(--hr-text-muted);
+        background: var(--hr-card);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
 
-.hr-badge.pending { background: rgba(245,158,11,0.12); color: #d97706; }
-.hr-badge.in_progress { background: rgba(59,130,246,0.12); color: #2563eb; }
-.hr-badge.resolved { background: rgba(16,185,129,0.12); color: #059669; }
-.hr-badge.closed { background: rgba(107,114,128,0.12); color: #4b5563; }
+    .hr-filter:hover {
+        border-color: var(--hr-primary);
+        color: var(--hr-primary);
+        transform: translateY(-2px);
+    }
 
-[data-bs-theme="dark"] .hr-badge.pending { color: #fbbf24; }
-[data-bs-theme="dark"] .hr-badge.in_progress { color: #60a5fa; }
-[data-bs-theme="dark"] .hr-badge.resolved { color: #34d399; }
-[data-bs-theme="dark"] .hr-badge.closed { color: #9ca3af; }
+    .hr-filter.active {
+        background: var(--hr-primary);
+        color: #fff;
+        border-color: var(--hr-primary);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
 
-.hr-card-has-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    object-fit: cover;
-    border: 1px solid var(--hr-border);
-    flex-shrink: 0;
-}
+    .hr-filter.active-warning {
+        background: var(--hr-warning);
+        border-color: var(--hr-warning);
+        color: #fff;
+    }
 
-.hr-card-arrow {
-    color: var(--hr-text-muted);
-    font-size: 1.1rem;
-    transition: transform 0.25s;
-}
+    .hr-filter.active-info {
+        background: var(--hr-info);
+        border-color: var(--hr-info);
+        color: #fff;
+    }
 
-.hr-card:hover .hr-card-arrow {
-    transform: translateX(4px);
-    color: var(--hr-primary);
-}
+    .hr-filter.active-success {
+        background: var(--hr-success);
+        border-color: var(--hr-success);
+        color: #fff;
+    }
 
-/* Stats */
-.hr-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.875rem;
-    margin-bottom: 1.75rem;
-}
+    .hr-filter.active-muted {
+        background: var(--hr-muted);
+        border-color: var(--hr-muted);
+        color: #fff;
+    }
 
-.hr-stat {
-    background: var(--hr-card);
-    border: 1px solid var(--hr-border);
-    border-radius: 16px;
-    padding: 1.25rem;
-    text-align: center;
-    box-shadow: var(--hr-shadow);
-    transition: transform 0.25s;
-}
+    /* Cards Grid Layout */
+    .hr-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        /* Responsive Grid */
+        gap: 1.5rem;
+    }
 
-.hr-stat:hover { transform: translateY(-2px); }
+    .hr-card {
+        background: var(--hr-card);
+        border: 1px solid var(--hr-border);
+        border-radius: 20px;
+        padding: 0;
+        /* padding handling inside */
+        display: flex;
+        flex-direction: column;
+        /* Stacked layout by default for the card */
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--hr-shadow);
+        text-decoration: none;
+        color: var(--hr-text);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
 
-.hr-stat-num {
-    font-size: 1.75rem;
-    font-weight: 800;
-    line-height: 1;
-    margin-bottom: 0.35rem;
-}
+    /* Status indicator bar on top */
+    .hr-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+    }
 
-.hr-stat-label {
-    font-size: 0.78rem;
-    color: var(--hr-text-muted);
-    font-weight: 600;
-}
+    .hr-card.st-pending::before {
+        background: var(--hr-warning);
+    }
 
-.hr-stat.pending .hr-stat-num { color: var(--hr-warning); }
-.hr-stat.progress .hr-stat-num { color: var(--hr-info); }
-.hr-stat.resolved .hr-stat-num { color: var(--hr-success); }
-.hr-stat.total .hr-stat-num { color: var(--hr-primary); }
+    .hr-card.st-in_progress::before {
+        background: var(--hr-info);
+    }
 
-/* Empty */
-.hr-empty {
-    text-align: center;
-    padding: 4rem 2rem;
-    border: 2px dashed var(--hr-border);
-    border-radius: 20px;
-}
+    .hr-card.st-resolved::before {
+        background: var(--hr-success);
+    }
 
-.hr-empty i { font-size: 3rem; color: var(--hr-text-muted); opacity: 0.4; }
+    .hr-card.st-closed::before {
+        background: var(--hr-muted);
+    }
 
-@media (max-width: 767px) {
-    .hr-stats { grid-template-columns: repeat(2, 1fr); }
-    .hr-card { flex-wrap: wrap; padding: 1rem 1.25rem; }
-    .hr-card-right { width: 100%; justify-content: space-between; padding-top: 0.75rem; border-top: 1px solid var(--hr-border); }
-}
+    .hr-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .hr-card-content {
+        padding: 1.5rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .hr-card-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .hr-card-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        object-fit: cover;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .hr-card-avatar-placeholder {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, var(--hr-primary), #8b5cf6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .hr-card-user {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .hr-card-name {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 0.2rem;
+        color: var(--hr-text);
+    }
+
+    .hr-card-date {
+        font-size: 0.8rem;
+        color: var(--hr-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .hr-card-subject {
+        font-weight: 600;
+        font-size: 1.05rem;
+        line-height: 1.4;
+        margin-bottom: 1rem;
+        color: var(--hr-text);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .hr-card-footer {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid var(--hr-border);
+    }
+
+    .hr-badge {
+        padding: 0.4rem 0.9rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .hr-badge.pending {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+    }
+
+    .hr-badge.in_progress {
+        background: rgba(59, 130, 246, 0.12);
+        color: #2563eb;
+    }
+
+    .hr-badge.resolved {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+    }
+
+    .hr-badge.closed {
+        background: rgba(107, 114, 128, 0.12);
+        color: #4b5563;
+    }
+
+    [data-bs-theme="dark"] .hr-badge.pending {
+        color: #fbbf24;
+    }
+
+    [data-bs-theme="dark"] .hr-badge.in_progress {
+        color: #60a5fa;
+    }
+
+    [data-bs-theme="dark"] .hr-badge.resolved {
+        color: #34d399;
+    }
+
+    [data-bs-theme="dark"] .hr-badge.closed {
+        color: #9ca3af;
+    }
+
+    .hr-card-img-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        color: var(--hr-info);
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(59, 130, 246, 0.1);
+        padding: 0.3rem 0.6rem;
+        border-radius: 8px;
+    }
+
+    /* Empty State */
+    .hr-empty {
+        text-align: center;
+        padding: 5rem 2rem;
+        border: 2px dashed var(--hr-border);
+        border-radius: 20px;
+        background: var(--hr-card);
+    }
+
+    .hr-empty i {
+        font-size: 4rem;
+        color: var(--hr-text-muted);
+        opacity: 0.3;
+    }
+
+    @media (max-width: 991px) {
+        .hr-stats {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hr-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .hr-list {
+            grid-template-columns: 1fr;
+        }
+
+        .hr-header h3 {
+            font-size: 1.5rem;
+        }
+    }
 </style>
 
 <div class="hr-page">
@@ -342,7 +474,8 @@
             <div class="hr-stat-num">{{ pending_count }}</div>
             <div class="hr-stat-label">Kutilmoqda</div>
         </div>
-        <div class="hr-stat progress">
+        <!-- Fixed: Changed class from 'progress' to 'st-in_progress' to avoid Bootstrap conflict -->
+        <div class="hr-stat st-in_progress">
             <div class="hr-stat-num" id="progressCount">0</div>
             <div class="hr-stat-label">Ko'rilmoqda</div>
         </div>
@@ -371,43 +504,51 @@
         </a>
     </div>
 
-    <!-- Cards -->
+    <!-- Cards Layout -->
     {% if requests and requests|length > 0 %}
     <div class="hr-list">
         {% for req in requests %}
         <a href="{% url 'admin_help_request_detail' req.id %}" class="hr-card st-{{ req.status }}">
-            {% if req.user.photo %}
-            <img src="{{ req.user.photo.url }}" class="hr-card-avatar" alt="">
-            {% else %}
-            <div class="hr-card-avatar-placeholder">
-                {{ req.user.first_name|first }}{{ req.user.last_name|first }}
-            </div>
-            {% endif %}
-
-            <div class="hr-card-body">
-                <div class="hr-card-subject">{{ req.subject|default:"(mavzu yo'q)" }}</div>
-                <div class="hr-card-meta">
-                    <span><i class="bi bi-person me-1"></i>{{ req.user.full_name }}</span>
-                    <span><i class="bi bi-calendar3 me-1"></i>{{ req.created_at|date:"d.m.Y H:i" }}</span>
-                </div>
-            </div>
-
-            <div class="hr-card-right">
-                {% if req.image %}
-                <img src="{{ req.image.url }}" class="hr-card-has-img" alt="">
-                {% endif %}
-                <span class="hr-badge {{ req.status }}">
-                    {% if req.status == 'pending' %}
-                        <i class="bi bi-clock-fill"></i> Kutilmoqda
-                    {% elif req.status == 'in_progress' %}
-                        <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
-                    {% elif req.status == 'resolved' %}
-                        <i class="bi bi-check-circle-fill"></i> Hal qilindi
+            <div class="hr-card-content">
+                <div class="hr-card-top">
+                    {% if req.user.photo %}
+                    <img src="{{ req.user.photo.url }}" class="hr-card-avatar" alt="">
                     {% else %}
-                        <i class="bi bi-x-circle-fill"></i> Yopildi
+                    <div class="hr-card-avatar-placeholder">
+                        {{ req.user.first_name|first }}{{ req.user.last_name|first }}
+                    </div>
                     {% endif %}
-                </span>
-                <i class="bi bi-chevron-right hr-card-arrow"></i>
+                    <div class="hr-card-user">
+                        <div class="hr-card-name">{{ req.user.full_name }}</div>
+                        <div class="hr-card-date">
+                            <i class="bi bi-calendar3"></i> {{ req.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hr-card-subject">
+                    {{ req.subject|default:"(mavzu yo'q)" }}
+                </div>
+
+                <div class="hr-card-footer">
+                    <span class="hr-badge {{ req.status }}">
+                        {% if req.status == 'pending' %}
+                        <i class="bi bi-clock-fill"></i> Kutilmoqda
+                        {% elif req.status == 'in_progress' %}
+                        <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
+                        {% elif req.status == 'resolved' %}
+                        <i class="bi bi-check-circle-fill"></i> Hal qilindi
+                        {% else %}
+                        <i class="bi bi-x-circle-fill"></i> Yopildi
+                        {% endif %}
+                    </span>
+
+                    {% if req.image %}
+                    <span class="hr-card-img-badge">
+                        <i class="bi bi-image"></i> Rasm
+                    </span>
+                    {% endif %}
+                </div>
             </div>
         </a>
         {% endfor %}
@@ -422,17 +563,17 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.hr-card');
-    let prog = 0, res = 0;
-    cards.forEach(c => {
-        if (c.classList.contains('st-in_progress')) prog++;
-        if (c.classList.contains('st-resolved')) res++;
+    document.addEventListener('DOMContentLoaded', function () {
+        const cards = document.querySelectorAll('.hr-card');
+        let prog = 0, res = 0;
+        cards.forEach(c => {
+            if (c.classList.contains('st-in_progress')) prog++;
+            if (c.classList.contains('st-resolved')) res++;
+        });
+        const pe = document.getElementById('progressCount');
+        const re = document.getElementById('resolvedCount');
+        if (pe) pe.textContent = prog;
+        if (re) re.textContent = res;
     });
-    const pe = document.getElementById('progressCount');
-    const re = document.getElementById('resolvedCount');
-    if (pe) pe.textContent = prog;
-    if (re) re.textContent = res;
-});
 </script>
 {% endblock %}
