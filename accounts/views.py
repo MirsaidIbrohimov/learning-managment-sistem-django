@@ -587,9 +587,24 @@ def test_result(request, pk):
     result = get_object_or_404(TestResult, pk=pk)
     user_answers = result.user_answers.all().select_related('question', 'selected_answer')
     
+    lesson = result.test.lesson
+    profession = lesson.profession
+    section = lesson.section
+    
+    video_lesson = None
+    homework_lesson = None
+    same_section_lessons = Lesson.objects.filter(profession=profession, section=section) if section else Lesson.objects.filter(profession=profession)
+    for l in same_section_lessons:
+        if l.lesson_type == 'video' and not video_lesson:
+            video_lesson = l
+        elif l.lesson_type == 'homework' and not homework_lesson:
+            homework_lesson = l
+    
     return render(request, 'accounts/lessons/test_result.html', {
         'result': result,
         'user_answers': user_answers,
+        'video_lesson': video_lesson,
+        'homework_lesson': homework_lesson,
     })
 
 
