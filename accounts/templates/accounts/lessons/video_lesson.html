@@ -293,11 +293,45 @@ if (placeholder) {
 
         /* ===== YOUTUBE ===== */
         if (isYouTube) {
-            iframe.src = "https://www.youtube-nocookie.com/embed/" + videoId + "?autoplay=1&rel=0&modestbranding=1";
-            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share');
-            iframe.setAttribute('allowfullscreen', '');
-            isVideoPlaying = true;
-            resumeTimer();
+            iframe.remove();
+            const ytDiv = document.createElement('div');
+            ytDiv.id = 'ytPlayer';
+            ytDiv.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;';
+            document.getElementById('videoBox').appendChild(ytDiv);
+
+            function onYouTubeIframeAPIReady() {
+                new YT.Player('ytPlayer', {
+                    videoId: videoId,
+                    playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
+                    events: {
+                        onStateChange: function(e) {
+                            const s = e.data;
+                            if (s === YT.PlayerState.PLAYING) {
+                                isVideoPlaying = true;
+                                resumeTimer();
+                            } else if (s === YT.PlayerState.BUFFERING) {
+                                isVideoPlaying = false;
+                                pauseTimer("Video yuklanmoqda...");
+                            } else if (s === YT.PlayerState.PAUSED) {
+                                isVideoPlaying = false;
+                                pauseTimer("Video to'xtatildi");
+                            } else if (s === YT.PlayerState.ENDED) {
+                                isVideoPlaying = false;
+                                pauseTimer("Video tugadi");
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (window.YT && window.YT.Player) {
+                onYouTubeIframeAPIReady();
+            } else {
+                window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+                const tag = document.createElement('script');
+                tag.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(tag);
+            }
         }
 
         /* ===== VIMEO ===== */
@@ -320,6 +354,16 @@ if (placeholder) {
                 vimeoPlayer.on('ended', function() {
                     isVideoPlaying = false;
                     pauseTimer("Video tugadi");
+                });
+
+                vimeoPlayer.on('bufferstart', function() {
+                    isVideoPlaying = false;
+                    pauseTimer("Video yuklanmoqda...");
+                });
+
+                vimeoPlayer.on('bufferend', function() {
+                    isVideoPlaying = true;
+                    resumeTimer();
                 });
             };
         }
