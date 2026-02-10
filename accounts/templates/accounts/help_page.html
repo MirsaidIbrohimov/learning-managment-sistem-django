@@ -131,15 +131,19 @@
 
 /* ==================== FORM ==================== */
 .hp-form-wrap {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, margin 0.4s ease;
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease, margin 0.4s ease;
     opacity: 0;
     margin-bottom: 0;
 }
 
+.hp-form-wrap > .hp-form {
+    overflow: hidden;
+}
+
 .hp-form-wrap.open {
-    max-height: 700px;
+    grid-template-rows: 1fr;
     opacity: 1;
     margin-bottom: 2rem;
 }
@@ -214,6 +218,11 @@
     inset: 0;
     opacity: 0;
     cursor: pointer;
+    z-index: 2;
+}
+
+.hp-file-area.has-file input[type="file"] {
+    pointer-events: none;
 }
 
 .hp-file-icon {
@@ -269,6 +278,7 @@
     font-size: 0.8rem;
     cursor: pointer;
     transition: transform 0.2s;
+    z-index: 5;
 }
 
 .hp-file-preview .hp-file-remove:hover {

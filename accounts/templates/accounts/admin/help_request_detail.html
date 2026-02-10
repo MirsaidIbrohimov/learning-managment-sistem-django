@@ -2,59 +2,487 @@
 
 {% block title %}Yordam so'rovi #{{ help_request.pk }} - Admin{% endblock %}
 
-{% block admin_content %}<div class="container-fluid py-4">
-    <a href="{% url 'admin_help_requests' %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-1"></i>Orqaga
+{% block admin_content %}
+<style>
+:root {
+    --hd-primary: #6366f1;
+    --hd-success: #10b981;
+    --hd-warning: #f59e0b;
+    --hd-info: #3b82f6;
+    --hd-muted: #6b7280;
+    --hd-danger: #ef4444;
+    --hd-card: var(--bs-body-bg);
+    --hd-border: var(--bs-border-color);
+    --hd-text: var(--bs-body-color);
+    --hd-text-muted: var(--bs-secondary-color);
+    --hd-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    --hd-soft: rgba(99,102,241,0.06);
+}
+[data-bs-theme="dark"] {
+    --hd-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    --hd-soft: rgba(99,102,241,0.1);
+}
+
+.hd-page { padding: 1.5rem 0; }
+
+.hd-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 12px;
+    border: 1.5px solid var(--hd-border);
+    color: var(--hd-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    margin-bottom: 1.5rem;
+}
+.hd-back:hover {
+    border-color: var(--hd-primary);
+    color: var(--hd-primary);
+    transform: translateX(-3px);
+}
+
+/* Main card */
+.hd-main {
+    background: var(--hd-card);
+    border: 1px solid var(--hd-border);
+    border-radius: 22px;
+    box-shadow: var(--hd-shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.hd-main-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--hd-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.hd-main-header h4 {
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hd-main-header h4 i { color: var(--hd-primary); }
+
+.hd-status {
+    padding: 0.4rem 1rem;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.hd-status.pending { background: rgba(245,158,11,0.12); color: #d97706; }
+.hd-status.in_progress { background: rgba(59,130,246,0.12); color: #2563eb; }
+.hd-status.resolved { background: rgba(16,185,129,0.12); color: #059669; }
+.hd-status.closed { background: rgba(107,114,128,0.12); color: #4b5563; }
+
+[data-bs-theme="dark"] .hd-status.pending { color: #fbbf24; }
+[data-bs-theme="dark"] .hd-status.in_progress { color: #60a5fa; }
+[data-bs-theme="dark"] .hd-status.resolved { color: #34d399; }
+[data-bs-theme="dark"] .hd-status.closed { color: #9ca3af; }
+
+.hd-main-body { padding: 2rem; }
+
+.hd-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--hd-text-muted);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.hd-message {
+    font-size: 1rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    color: var(--hd-text);
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    background: var(--hd-soft);
+    border-radius: 14px;
+}
+
+/* Image section */
+.hd-image-section { margin-bottom: 2rem; }
+
+.hd-image-wrap {
+    position: relative;
+    display: inline-block;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--hd-border);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.hd-image-wrap:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    border-color: var(--hd-primary);
+}
+
+.hd-image-wrap img {
+    max-height: 350px;
+    max-width: 100%;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.hd-image-wrap:hover img { transform: scale(1.02); }
+
+.hd-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hd-image-wrap:hover .hd-image-overlay { opacity: 1; }
+
+.hd-image-overlay i {
+    color: #fff;
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+}
+
+/* Existing response */
+.hd-existing-response {
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.18);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.hd-existing-response .hd-label { color: var(--hd-success); }
+
+.hd-existing-response p {
+    margin: 0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Reply form */
+.hd-reply-card {
+    background: var(--hd-card);
+    border: 1px solid var(--hd-border);
+    border-radius: 22px;
+    box-shadow: var(--hd-shadow);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.hd-reply-header {
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--hd-border);
+    background: var(--hd-soft);
+}
+
+.hd-reply-header h5 {
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.hd-reply-header h5 i { color: var(--hd-primary); }
+
+.hd-reply-body { padding: 2rem; }
+
+.hd-reply-body .form-label {
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.4rem;
+}
+
+.hd-reply-body .form-control,
+.hd-reply-body .form-select {
+    border-radius: 14px;
+    border: 1.5px solid var(--hd-border);
+    padding: 0.75rem 1rem;
+    transition: all 0.25s;
+}
+
+.hd-reply-body .form-control:focus,
+.hd-reply-body .form-select:focus {
+    border-color: var(--hd-primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+}
+
+.hd-btn-save {
+    background: linear-gradient(135deg, var(--hd-primary), #4f46e5);
+    color: #fff;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 14px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.25s;
+    cursor: pointer;
+}
+
+.hd-btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.3);
+}
+
+/* User sidebar */
+.hd-user-card {
+    background: var(--hd-card);
+    border: 1px solid var(--hd-border);
+    border-radius: 22px;
+    box-shadow: var(--hd-shadow);
+    overflow: hidden;
+}
+
+.hd-user-top {
+    padding: 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+}
+
+[data-bs-theme="dark"] .hd-user-top {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12));
+}
+
+.hd-user-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 22px;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+.hd-user-avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, var(--hd-primary), #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 auto 1rem;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+}
+
+.hd-user-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.hd-user-phone {
+    color: var(--hd-text-muted);
+    font-size: 0.88rem;
+    margin-bottom: 0.75rem;
+}
+
+.hd-user-role {
+    display: inline-flex;
+    padding: 0.3rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.hd-user-role.admin { background: rgba(239,68,68,0.12); color: var(--hd-danger); }
+.hd-user-role.teacher { background: rgba(59,130,246,0.12); color: var(--hd-info); }
+.hd-user-role.student { background: rgba(16,185,129,0.12); color: var(--hd-success); }
+
+.hd-user-info { padding: 0; margin: 0; list-style: none; }
+
+.hd-user-info li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1.5rem;
+    border-top: 1px solid var(--hd-border);
+    font-size: 0.88rem;
+}
+
+.hd-user-info li span:first-child {
+    color: var(--hd-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.hd-user-info li span:last-child { font-weight: 600; }
+
+.hd-user-btn {
+    display: block;
+    margin: 1.25rem;
+    padding: 0.75rem;
+    border-radius: 14px;
+    border: 1.5px solid var(--hd-border);
+    text-align: center;
+    text-decoration: none;
+    color: var(--hd-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+}
+
+.hd-user-btn:hover {
+    background: var(--hd-primary);
+    color: #fff;
+    border-color: var(--hd-primary);
+}
+
+/* Lightbox */
+.hd-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1070;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s;
+}
+.hd-lightbox.open { opacity: 1; visibility: visible; }
+
+.hd-lightbox-bg {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.hd-lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    transform: scale(0.9);
+    transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.hd-lightbox.open .hd-lightbox-content { transform: scale(1); }
+
+.hd-lightbox-content img {
+    max-width: 100%;
+    max-height: 85vh;
+    border-radius: 16px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    display: block;
+}
+
+.hd-lightbox-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #fff;
+    color: #1e293b;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.hd-lightbox-close:hover { transform: scale(1.1) rotate(90deg); }
+
+@media (max-width: 767px) {
+    .hd-main-body, .hd-reply-body { padding: 1.25rem; }
+    .hd-main-header { padding: 1.25rem; }
+}
+</style>
+
+<div class="hd-page">
+
+    <a href="{% url 'admin_help_requests' %}" class="hd-back">
+        <i class="bi bi-arrow-left"></i> Barcha so'rovlar
     </a>
 
-    <div class="row">
-        <!-- So'rov ma'lumotlari -->
+    <div class="row g-4">
+        <!-- Left: Content -->
         <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="bi bi-envelope me-2"></i>{{ help_request.subject }}</h5>
-                    {% if help_request.status == 'pending' %}
-                    <span class="badge bg-warning">Kutilmoqda</span>
-                    {% elif help_request.status == 'in_progress' %}
-                    <span class="badge bg-info">Ko'rilmoqda</span>
-                    {% elif help_request.status == 'resolved' %}
-                    <span class="badge bg-success">Hal qilindi</span>
-                    {% else %}
-                    <span class="badge bg-secondary">Yopildi</span>
-                    {% endif %}
+            <!-- Main card -->
+            <div class="hd-main">
+                <div class="hd-main-header">
+                    <h4><i class="bi bi-envelope-paper"></i> {{ help_request.subject }}</h4>
+                    <span class="hd-status {{ help_request.status }}">
+                        {% if help_request.status == 'pending' %}
+                            <i class="bi bi-clock-fill"></i> Kutilmoqda
+                        {% elif help_request.status == 'in_progress' %}
+                            <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
+                        {% elif help_request.status == 'resolved' %}
+                            <i class="bi bi-check-circle-fill"></i> Hal qilindi
+                        {% else %}
+                            <i class="bi bi-x-circle-fill"></i> Yopildi
+                        {% endif %}
+                    </span>
                 </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <label class="text-muted small">Xabar:</label>
-                        <p class="mb-0" style="white-space: pre-wrap;">{{ help_request.message }}</p>
-                    </div>
+                <div class="hd-main-body">
+                    <div class="hd-label"><i class="bi bi-chat-text"></i> Xabar</div>
+                    <div class="hd-message">{{ help_request.message }}</div>
 
                     {% if help_request.image %}
-                    <div class="mb-4">
-                        <label class="text-muted small">Yuklangan rasm:</label>
-                        <div>
-                            <a href="{{ help_request.image.url }}" target="_blank">
-                                <img src="{{ help_request.image.url }}" class="img-fluid rounded" style="max-height: 400px;">
-                            </a>
+                    <div class="hd-image-section">
+                        <div class="hd-label"><i class="bi bi-image"></i> Yuklangan rasm</div>
+                        <div class="hd-image-wrap" onclick="openDetailLightbox('{{ help_request.image.url }}')">
+                            <img src="{{ help_request.image.url }}" alt="Rasm">
+                            <div class="hd-image-overlay">
+                                <i class="bi bi-zoom-in"></i>
+                            </div>
                         </div>
                     </div>
                     {% endif %}
 
                     {% if help_request.admin_response %}
-                    <div class="alert alert-success">
-                        <label class="text-muted small d-block mb-2"><i class="bi bi-reply me-1"></i>Admin javobi:</label>
-                        <p class="mb-0">{{ help_request.admin_response }}</p>
+                    <div class="hd-existing-response">
+                        <div class="hd-label"><i class="bi bi-reply-fill"></i> Joriy javob</div>
+                        <p>{{ help_request.admin_response }}</p>
                     </div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Javob yozish -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-reply me-2"></i>Javob va holat</h5>
+            <!-- Reply form -->
+            <div class="hd-reply-card">
+                <div class="hd-reply-header">
+                    <h5><i class="bi bi-send"></i> Javob va holat</h5>
                 </div>
-                <div class="card-body">
+                <div class="hd-reply-body">
                     <form method="post">
                         {% csrf_token %}
                         <div class="mb-3">
@@ -66,59 +494,79 @@
                                 <option value="closed" {% if help_request.status == 'closed' %}selected{% endif %}>Yopildi</option>
                             </select>
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">Javob yozish</label>
-                            <textarea name="admin_response" class="form-control" rows="4" placeholder="Foydalanuvchiga javob yozing...">{{ help_request.admin_response|default:'' }}</textarea>
+                            <textarea name="admin_response" class="form-control" rows="5" placeholder="Foydalanuvchiga javob yozing...">{{ help_request.admin_response|default:'' }}</textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Saqlash
+                        <button type="submit" class="hd-btn-save">
+                            <i class="bi bi-check-lg"></i> Saqlash
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Foydalanuvchi ma'lumotlari -->
+        <!-- Right: User info -->
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Yuboruvchi</h6>
-                </div>
-                <div class="card-body text-center">
+            <div class="hd-user-card">
+                <div class="hd-user-top">
                     {% if help_request.user.photo %}
-                    <img src="{{ help_request.user.photo.url }}" class="rounded-circle mb-3" width="80" height="80" style="object-fit: cover;">
+                    <img src="{{ help_request.user.photo.url }}" class="hd-user-avatar" alt="">
                     {% else %}
-                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px; font-size: 1.5rem;">
+                    <div class="hd-user-avatar-placeholder">
                         {{ help_request.user.first_name.0 }}{{ help_request.user.last_name.0 }}
                     </div>
                     {% endif %}
-                    <h5 class="mb-1">{{ help_request.user.full_name }}</h5>
-                    <p class="text-muted mb-2">{{ help_request.user.phone }}</p>
-                    <span class="badge {% if help_request.user.role == 'admin' %}bg-danger{% elif help_request.user.role == 'teacher' %}bg-info{% else %}bg-success{% endif %}">
+                    <div class="hd-user-name">{{ help_request.user.full_name }}</div>
+                    <div class="hd-user-phone">{{ help_request.user.phone }}</div>
+                    <span class="hd-user-role {% if help_request.user.role == 'admin' %}admin{% elif help_request.user.role == 'teacher' %}teacher{% else %}student{% endif %}">
                         {{ help_request.user.get_role_display }}
                     </span>
                 </div>
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span class="text-muted">Yuborilgan:</span>
+                <ul class="hd-user-info">
+                    <li>
+                        <span><i class="bi bi-calendar3"></i> Yuborilgan</span>
                         <span>{{ help_request.created_at|date:"d.m.Y H:i" }}</span>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span class="text-muted">Yangilangan:</span>
+                    <li>
+                        <span><i class="bi bi-arrow-clockwise"></i> Yangilangan</span>
                         <span>{{ help_request.updated_at|date:"d.m.Y H:i" }}</span>
                     </li>
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span class="text-muted">Coin:</span>
-                        <span class="text-warning fw-bold">{{ help_request.user.coins }}</span>
+                    <li>
+                        <span><i class="bi bi-coin"></i> Coin</span>
+                        <span style="color: var(--hd-warning);">{{ help_request.user.coins }}</span>
                     </li>
                 </ul>
-                <div class="card-body">
-                    <a href="{% url 'admin_user_view' help_request.user.pk %}" class="btn btn-outline-primary w-100">
-                        <i class="bi bi-person me-1"></i>Profilni ko'rish
-                    </a>
-                </div>
+                <a href="{% url 'admin_user_view' help_request.user.pk %}" class="hd-user-btn">
+                    <i class="bi bi-person me-1"></i> Profilni ko'rish
+                </a>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Lightbox -->
+<div class="hd-lightbox" id="detailLightbox">
+    <div class="hd-lightbox-bg" onclick="closeDetailLightbox()"></div>
+    <div class="hd-lightbox-content">
+        <button class="hd-lightbox-close" onclick="closeDetailLightbox()"><i class="bi bi-x-lg"></i></button>
+        <img src="" alt="Rasm" id="detailLightboxImg">
+    </div>
+</div>
+
+<script>
+function openDetailLightbox(src) {
+    const lb = document.getElementById('detailLightbox');
+    document.getElementById('detailLightboxImg').src = src;
+    lb.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closeDetailLightbox() {
+    document.getElementById('detailLightbox').classList.remove('open');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDetailLightbox();
+});
+</script>
 {% endblock %}
