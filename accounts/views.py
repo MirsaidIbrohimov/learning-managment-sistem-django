@@ -18,7 +18,7 @@ from .models import (
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
-    Parent, ParentMessage
+    Parent, ParentMessage, PremiumRequest
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -5118,4 +5118,91 @@ def reject_parent_password_reset(request, pk):
         messages.info(request, f"{reset_request.parent.full_name} parol so'rovi rad etildi.")
     
     return redirect('admin_parent_password_requests')
+
+
+@login_required
+def admin_premium_management(request):
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    search = request.GET.get('search', '').strip()
+    filter_type = request.GET.get('filter', 'all')
+
+    users_qs = CustomUser.objects.filter(role='student').order_by('-premium_purchased_at', 'first_name')
+
+    if filter_type == 'premium':
+        users_qs = users_qs.filter(is_premium=True)
+    elif filter_type == 'not_premium':
+        users_qs = users_qs.filter(is_premium=False)
+
+    if search:
+        users_qs = users_qs.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(username__icontains=search) |
+            Q(phone__icontains=search)
+        )
+
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        action = request.POST.get('action')
+
+        try:
+            with transaction.atomic():
+                user = CustomUser.objects.select_for_update().get(pk=user_id, role='student')
+
+                if action == 'give_premium':
+                    if not user.is_premium:
+                        user.is_premium = True
+                        user.premium_purchased_at = timezone.now()
+                        user.save(update_fields=['is_premium', 'premium_purchased_at'])
+
+                        Message.objects.create(
+                            sender=request.user,
+                            recipient=user,
+                            title="Premium berildi ⭐",
+                            content="Sizga admin tomonidan Premium obuna berildi! Endi siz premium imkoniyatlardan foydalanishingiz mumkin.",
+                            message_type='system'
+                        )
+
+                        messages.success(request, f"{user.full_name}ga Premium berildi!")
+
+                elif action == 'remove_premium':
+                    if user.is_premium:
+                        user.is_premium = False
+                        user.premium_purchased_at = None
+                        user.save(update_fields=['is_premium', 'premium_purchased_at'])
+
+                        Message.objects.create(
+                            sender=request.user,
+                            recipient=user,
+                            title="Premium olib tashlandi",
+                            content="Sizning Premium obunangiz admin tomonidan olib tashlandi.",
+                            message_type='system'
+                        )
+
+                        messages.success(request, f"{user.full_name}dan Premium olib tashlandi!")
+
+        except CustomUser.DoesNotExist:
+            messages.error(request, "Foydalanuvchi topilmadi!")
+
+        return redirect(f"{request.path}?filter={filter_type}&search={search}")
+
+    premium_count = CustomUser.objects.filter(role='student', is_premium=True).count()
+    total_students = CustomUser.objects.filter(role='student').count()
+
+    paginator = Paginator(users_qs, 25)
+    page_number = request.GET.get('page')
+    users = paginator.get_page(page_number)
+
+    context = {
+        'users': users,
+        'premium_count': premium_count,
+        'total_students': total_students,
+        'search': search,
+        'filter_type': filter_type,
+    }
+
+    return render(request, 'accounts/admin/premium_management.html', context)
 

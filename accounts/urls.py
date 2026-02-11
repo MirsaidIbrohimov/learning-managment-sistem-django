@@ -193,6 +193,9 @@ urlpatterns = [
     path('dashboard/book-rentals/give/', views.admin_give_book, name='admin_give_book'),
     path('dashboard/book-rentals/<int:pk>/return/', views.admin_return_book, name='admin_return_book'),
     
+    # Admin: Premium boshqaruv
+    path('dashboard/premium/', views.admin_premium_management, name='admin_premium_management'),
+    
     # O'quvchi: Ijaradagi kitoblar
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),
 ]

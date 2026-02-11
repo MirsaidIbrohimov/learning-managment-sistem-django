@@ -94,6 +94,7 @@ class CustomUser(AbstractUser):
     total_online_time = models.IntegerField(default=0, verbose_name="Jami online vaqt (daqiqa)")
     is_premium = models.BooleanField(default=False, verbose_name="Premium foydalanuvchi")
     premium_purchased_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium sotib olingan sana")
+    premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium tugash sanasi")
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
 
     # Documents
@@ -1041,4 +1042,54 @@ class ParentPasswordResetRequest(models.Model):
     
     def __str__(self):
         return f"{self.parent.full_name} - {self.get_status_display()}"
+
+
+class PremiumRequest(models.Model):
+    PLAN_CHOICES = (
+        ('weekly', 'Haftalik (350 coin)'),
+        ('monthly', '1 oylik (700 coin)'),
+        ('bimonthly', '2 oylik (1000 coin)'),
+    )
+    
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlangan'),
+        ('rejected', 'Rad etilgan'),
+    )
+    
+    PLAN_PRICES = {
+        'weekly': 350,
+        'monthly': 700,
+        'bimonthly': 1000,
+    }
+    
+    PLAN_DAYS = {
+        'weekly': 7,
+        'monthly': 30,
+        'bimonthly': 60,
+    }
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='premium_requests')
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, verbose_name="Tarif reja")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    is_extension = models.BooleanField(default=False, verbose_name="Muddatni uzaytirish")
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_premium_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    @property
+    def price(self):
+        return self.PLAN_PRICES.get(self.plan, 0)
+    
+    @property
+    def duration_days(self):
+        return self.PLAN_DAYS.get(self.plan, 0)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Premium so'rovi"
+        verbose_name_plural = "Premium so'rovlari"
+    
+    def __str__(self):
+        return f"{self.user.full_name} - {self.get_plan_display()} ({self.get_status_display()})"
 
