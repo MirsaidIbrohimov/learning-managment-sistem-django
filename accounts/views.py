@@ -3720,6 +3720,9 @@ def my_devices(request):
 
 @login_required
 def remove_device(request, pk):
+    if request.method != 'POST':
+        return redirect('my_devices')
+    
     device = get_object_or_404(UserDevice, pk=pk, user=request.user)
     current_session_key = request.session.session_key
     
@@ -3734,7 +3737,7 @@ def remove_device(request, pk):
     from django.contrib.sessions.models import Session
     
     # Get session keys for this device
-    session_keys = device.sessions.values_list('session_key', flat=True)
+    session_keys = list(device.sessions.values_list('session_key', flat=True))
     
     # Delete Django sessions
     Session.objects.filter(session_key__in=session_keys).delete()
@@ -3750,6 +3753,9 @@ def remove_device(request, pk):
 
 @login_required
 def logout_device(request, pk):
+    if request.method != 'POST':
+        return redirect('my_devices')
+    
     device = get_object_or_404(UserDevice, pk=pk, user=request.user)
     current_session_key = request.session.session_key
     
@@ -3764,7 +3770,7 @@ def logout_device(request, pk):
     from django.contrib.sessions.models import Session
     
     # Get active session keys for this device
-    active_session_keys = device.sessions.filter(is_active=True).values_list('session_key', flat=True)
+    active_session_keys = list(device.sessions.filter(is_active=True).values_list('session_key', flat=True))
     
     # Delete Django sessions
     Session.objects.filter(session_key__in=active_session_keys).delete()
