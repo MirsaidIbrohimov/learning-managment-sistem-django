@@ -196,131 +196,175 @@
 
 /* chat */
 @keyframes ghChatSlideIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes ghChatPulse {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.05); }
 }
-@keyframes ghTypingBounce {
-    0%, 60%, 100% { transform: translateY(0); }
-    30% { transform: translateY(-4px); }
+@keyframes ghSendPulse {
+    0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    70% { box-shadow: 0 0 0 8px rgba(99,102,241,0); }
+    100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
 }
 
 .gh-page .gh-chat-wrap { position: sticky; top: 20px; }
 .gh-page .gh-chat-card {
-    border: 1px solid var(--border-color, #dee2e6); border-radius: 16px;
+    border: 1px solid var(--border-color, #dee2e6); border-radius: 20px;
     background: var(--card-bg, #fff); overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
 }
+[data-bs-theme="dark"] .gh-page .gh-chat-card { box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+
+/* header */
 .gh-page .gh-chat-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0.85rem 1.25rem;
-    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+    padding: 1rem 1.25rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.05), rgba(139,92,246,0.05));
     border-bottom: 1px solid var(--border-color, #dee2e6);
 }
 .gh-page .gh-chat-header-left {
-    display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.92rem;
 }
 .gh-page .gh-chat-header-icon {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    width: 38px; height: 38px; border-radius: 12px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.95rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 1rem;
+    box-shadow: 0 3px 10px rgba(99,102,241,0.25);
 }
 .gh-page .gh-chat-count {
     display: inline-flex; align-items: center; justify-content: center;
-    min-width: 24px; height: 24px; border-radius: 8px; padding: 0 6px;
+    min-width: 26px; height: 26px; border-radius: 8px; padding: 0 7px;
     background: rgba(99,102,241,0.1); color: #6366f1;
-    font-size: 0.75rem; font-weight: 700;
+    font-size: 0.78rem; font-weight: 800;
 }
+
+/* message area */
 .gh-page .gh-chat-container {
-    height: 450px; overflow-y: auto;
-    background: var(--bg-color, #f0f2f5); border-radius: 0;
-    padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;
-    scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.3) transparent;
+    height: 480px; overflow-y: auto;
+    background: var(--bg-color, #f0f2f5);
+    padding: 1.25rem; display: flex; flex-direction: column; gap: 0.4rem;
+    scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.2) transparent;
 }
-.gh-page .gh-chat-container::-webkit-scrollbar { width: 5px; }
+[data-bs-theme="dark"] .gh-page .gh-chat-container { background: rgba(0,0,0,0.15); }
+.gh-page .gh-chat-container::-webkit-scrollbar { width: 4px; }
 .gh-page .gh-chat-container::-webkit-scrollbar-track { background: transparent; }
-.gh-page .gh-chat-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 10px; }
+.gh-page .gh-chat-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 10px; }
+
+/* message row */
 .gh-page .gh-msg {
-    display: flex; max-width: 100%;
-    animation: ghChatSlideIn 0.3s ease-out both;
+    display: flex; flex-direction: column; max-width: 100%;
+    animation: ghChatSlideIn 0.35s ease-out both;
+    margin-bottom: 0.15rem;
 }
-.gh-page .gh-msg.gh-mine { justify-content: flex-end; }
-.gh-page .gh-msg.gh-other { justify-content: flex-start; }
+.gh-page .gh-msg.gh-mine { align-items: flex-end; }
+.gh-page .gh-msg.gh-other { align-items: flex-start; }
+
+/* sender label */
+.gh-page .gh-msg-sender {
+    font-size: 0.68rem; font-weight: 700; margin-bottom: 0.2rem; padding: 0 0.25rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+.gh-page .gh-msg.gh-mine .gh-msg-sender { color: #6366f1; }
+
+/* bubble */
 .gh-page .gh-bubble {
-    max-width: 78%; padding: 0.75rem 1rem; border-radius: 18px;
-    font-size: 0.88rem; line-height: 1.65; word-wrap: break-word;
+    max-width: 72%; padding: 0.6rem 0.9rem; border-radius: 16px;
+    font-size: 0.86rem; line-height: 1.55; word-wrap: break-word;
     overflow-wrap: break-word; white-space: pre-wrap; position: relative;
-    transition: transform 0.15s;
 }
-.gh-page .gh-bubble:hover { transform: scale(1.01); }
 .gh-page .gh-msg.gh-mine .gh-bubble {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 3px 12px rgba(99,102,241,0.2);
+    background: #6366f1; color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 1px 4px rgba(99,102,241,0.15);
 }
 .gh-page .gh-msg.gh-other .gh-bubble {
     background: var(--card-bg, #fff); color: var(--text-color, #212529);
-    border: 1px solid var(--border-color, #dee2e6); border-bottom-left-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border-color, #e2e8f0); border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
+[data-bs-theme="dark"] .gh-page .gh-msg.gh-other .gh-bubble {
+    background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.08);
+}
+
+/* links inside bubble */
 .gh-page .gh-bubble a { color: inherit; text-decoration: underline; word-break: break-all; }
-.gh-page .gh-msg.gh-mine .gh-bubble a { color: rgba(255,255,255,0.9); }
-.gh-page .gh-bubble .gh-file-link {
-    display: flex; align-items: center; gap: 0.4rem;
-    margin-top: 0.5rem; padding: 0.4rem 0.65rem; border-radius: 8px;
-    font-size: 0.78rem; font-weight: 600; text-decoration: none;
-    transition: background 0.2s;
+.gh-page .gh-msg.gh-mine .gh-bubble a { color: rgba(255,255,255,0.85); }
+
+/* file attachment */
+.gh-page .gh-file-link {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    margin-top: 0.45rem; padding: 0.35rem 0.65rem; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 600; text-decoration: none;
+    transition: all 0.2s;
 }
 .gh-page .gh-msg.gh-mine .gh-file-link {
-    background: rgba(255,255,255,0.15); color: #fff;
+    background: rgba(255,255,255,0.18); color: #fff;
 }
-.gh-page .gh-msg.gh-mine .gh-file-link:hover { background: rgba(255,255,255,0.25); }
+.gh-page .gh-msg.gh-mine .gh-file-link:hover { background: rgba(255,255,255,0.28); color: #fff; }
 .gh-page .gh-msg.gh-other .gh-file-link {
-    background: rgba(99,102,241,0.08); color: #6366f1;
+    background: rgba(99,102,241,0.06); color: #6366f1;
 }
-.gh-page .gh-msg.gh-other .gh-file-link:hover { background: rgba(99,102,241,0.15); }
+.gh-page .gh-msg.gh-other .gh-file-link:hover { background: rgba(99,102,241,0.12); color: #6366f1; }
+
+/* time */
 .gh-page .gh-chat-meta {
-    font-size: 0.68rem; margin-top: 6px; opacity: 0.5;
+    font-size: 0.65rem; margin-top: 3px; padding: 0 0.25rem;
     display: flex; align-items: center; gap: 4px;
+    color: var(--bs-secondary-color, #9ca3af);
 }
-.gh-page .gh-msg.gh-mine .gh-chat-meta { justify-content: flex-end; color: rgba(255,255,255,0.65); }
+.gh-page .gh-msg.gh-mine .gh-chat-meta { justify-content: flex-end; color: rgba(255,255,255,0.5); }
+
+/* empty */
 .gh-page .gh-chat-empty {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; text-align: center; padding: 2rem;
+    height: 100%; text-align: center; padding: 2.5rem 1.5rem;
 }
 .gh-page .gh-chat-empty-icon {
-    width: 64px; height: 64px; border-radius: 50%; margin-bottom: 1rem;
+    width: 70px; height: 70px; border-radius: 50%; margin-bottom: 1rem;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(99,102,241,0.08); color: #6366f1; font-size: 1.5rem;
+    background: rgba(99,102,241,0.06); color: #6366f1; font-size: 1.6rem;
     animation: ghChatPulse 3s ease-in-out infinite;
 }
 .gh-page .gh-chat-empty p {
-    color: var(--bs-secondary-color, #6c757d); font-size: 0.88rem; margin: 0;
+    color: var(--bs-secondary-color, #6c757d); font-weight: 600; font-size: 0.9rem; margin: 0;
 }
 .gh-page .gh-chat-empty span {
-    font-size: 0.78rem; color: var(--bs-secondary-color, #adb5bd); margin-top: 0.25rem; display: block;
+    font-size: 0.78rem; color: var(--bs-secondary-color, #adb5bd); margin-top: 0.3rem; display: block;
 }
+
+/* input area */
 .gh-page .gh-chat-input {
     display: flex; align-items: center; gap: 0.5rem;
-    padding: 0.85rem 1.25rem; border-top: 1px solid var(--border-color, #dee2e6);
+    padding: 0.85rem 1.25rem;
+    border-top: 1px solid var(--border-color, #dee2e6);
     background: var(--card-bg, #fff);
 }
 .gh-page .gh-chat-text {
-    flex: 1; min-width: 0; padding: 0.65rem 1rem; border-radius: 12px;
+    flex: 1; min-width: 0; padding: 0.7rem 1rem; border-radius: 24px;
     border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
-    color: var(--text-color, #212529); font-size: 0.88rem; transition: border-color 0.2s;
+    color: var(--text-color, #212529); font-size: 0.86rem; transition: all 0.2s;
 }
-.gh-page .gh-chat-text:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+[data-bs-theme="dark"] .gh-page .gh-chat-text { background: rgba(255,255,255,0.05); }
+.gh-page .gh-chat-text:focus {
+    outline: none; border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.08);
+    background: var(--card-bg, #fff);
+}
 .gh-page .gh-chat-btn {
-    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
     border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    color: var(--text-color, #212529); cursor: pointer; font-size: 0.95rem; transition: all 0.2s;
+    color: var(--bs-secondary-color, #6c757d); cursor: pointer; font-size: 1rem; transition: all 0.2s;
 }
-.gh-page .gh-chat-btn.gh-send { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; }
-.gh-page .gh-chat-btn:hover { transform: translateY(-1px); }
+.gh-page .gh-chat-btn:hover { color: #6366f1; border-color: rgba(99,102,241,0.3); background: rgba(99,102,241,0.04); }
+.gh-page .gh-chat-btn.gh-send {
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+    animation: ghSendPulse 2s infinite;
+}
+.gh-page .gh-chat-btn.gh-send:hover { transform: scale(1.08); box-shadow: 0 4px 14px rgba(99,102,241,0.35); }
 
 /* revision list */
 .gh-page .gh-rev-item {
@@ -591,7 +635,10 @@
                     <div class="gh-chat-container" id="ghChat">
                         {% if chat_messages %}
                         {% for msg in chat_messages %}
-                        <div class="gh-msg {% if msg.sender == request.user %}gh-mine{% else %}gh-other{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
+                        <div class="gh-msg {% if msg.sender == request.user %}gh-mine{% else %}gh-other{% endif %}" style="animation-delay: {{ forloop.counter0 }}50ms;">
+                            <div class="gh-msg-sender">
+                                {% if msg.sender == request.user %}Siz{% else %}{{ msg.sender.full_name }}{% endif %}
+                            </div>
                             <div class="gh-bubble">
                                 {{ msg.message }}
                                 {% if msg.file %}
@@ -599,9 +646,9 @@
                                     <i class="bi bi-file-earmark-arrow-down"></i> Faylni yuklab olish
                                 </a>
                                 {% endif %}
-                                <div class="gh-chat-meta">
-                                    {% if msg.sender != request.user %}{{ msg.sender.first_name }} &bull; {% endif %}{{ msg.created_at|date:"H:i" }}
-                                </div>
+                            </div>
+                            <div class="gh-chat-meta">
+                                <i class="bi bi-check2-all"></i> {{ msg.created_at|date:"H:i" }}
                             </div>
                         </div>
                         {% endfor %}
