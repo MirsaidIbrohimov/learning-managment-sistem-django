@@ -1589,12 +1589,23 @@ def homework_submissions(request):
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
+    search_query = request.GET.get('q', '').strip()
     status_filter = request.GET.get('status', '')
     profession_filter = request.GET.get('profession', '')
+    sort_by = request.GET.get('sort', '')
     
     submissions = HomeworkSubmission.objects.select_related(
         'homework__lesson__profession', 'student'
     ).prefetch_related('messages')
+    
+    if search_query:
+        from django.db.models import Q
+        submissions = submissions.filter(
+            Q(student__first_name__icontains=search_query) |
+            Q(student__last_name__icontains=search_query) |
+            Q(student__username__icontains=search_query) |
+            Q(homework__lesson__title__icontains=search_query)
+        )
     
     if status_filter:
         submissions = submissions.filter(status=status_filter)
@@ -1604,13 +1615,19 @@ def homework_submissions(request):
     if profession_filter:
         submissions = submissions.filter(homework__lesson__profession_id=profession_filter)
     
-    submissions = submissions.order_by('-submitted_at')
+    if sort_by == 'oldest':
+        submissions = submissions.order_by('submitted_at')
+    elif sort_by == 'name':
+        submissions = submissions.order_by('student__first_name', 'student__last_name')
+    else:
+        submissions = submissions.order_by('-submitted_at')
+    
+    total_count = submissions.count()
     
     paginator = Paginator(submissions, 25)
     page = request.GET.get('page')
     submissions = paginator.get_page(page)
     
-    # Statistika
     stats = {
         'pending': HomeworkSubmission.objects.filter(status='pending').count(),
         'reviewing': HomeworkSubmission.objects.filter(status='reviewing').count(),
@@ -1625,8 +1642,11 @@ def homework_submissions(request):
         'submissions': submissions,
         'stats': stats,
         'professions': professions,
+        'search_query': search_query,
         'status_filter': status_filter,
         'profession_filter': profession_filter,
+        'sort_by': sort_by,
+        'total_count': total_count,
     })
 
 
@@ -1700,6 +1720,35 @@ def grade_homework(request, pk):
             submission.save()
             messages.success(request, "Vazifa qabul qilindi!")
             return redirect('grade_homework', pk=pk)
+        
+        # Avtomatik baholash (qabul + 1 ball)
+        elif action == 'auto_grade':
+            submission.status = 'graded'
+            submission.grade = 1
+            submission.feedback = "Avtomatik baholandi"
+            submission.graded_by = request.user
+            submission.graded_at = timezone.now()
+            submission.save()
+            
+            if not submission.coin_awarded:
+                coin_amount = 5
+                if not submission.is_late:
+                    coin_amount = 10
+                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+                submission.coin_awarded = True
+                submission.save()
+                
+                ActivityLog.objects.create(
+                    user=submission.student,
+                    action_type='homework_graded',
+                    description=f"Vazifa avtomatik baholandi: {submission.homework.lesson.title} - Baho: 1, +{coin_amount} coin"
+                )
+            
+            from .notifications import on_homework_graded
+            on_homework_graded(submission.student, submission, 1)
+            
+            messages.success(request, "Vazifa avtomatik baholandi: 1 ball!")
+            return redirect('homework_submissions')
         
         # Baholash
         elif action == 'grade':

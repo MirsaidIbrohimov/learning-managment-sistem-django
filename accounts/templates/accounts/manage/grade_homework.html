@@ -2,559 +2,562 @@
 
 {% block title %}Vazifani tekshirish - Admin Panel{% endblock %}
 
-{% block extra_css %}
+{% block admin_content %}
 <style>
-    :root {
-    --stat-bg: #F2F2F7;
-    --stat-text: #000000;
-    --stat-label: #8E8E93;
-    --stat-border: #D1D1D6;
+/* scoped under .gh-page */
+.gh-page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+/* back */
+.gh-page .gh-back {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.88rem; font-weight: 600; color: var(--bs-secondary-color, #6c757d);
+    text-decoration: none; margin-bottom: 1.25rem; transition: color 0.2s;
+}
+.gh-page .gh-back:hover { color: #6366f1; }
+
+/* header bar */
+.gh-page .gh-header {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    padding: 1.25rem 1.5rem; border-radius: 16px; margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+}
+.gh-page .gh-header-title { font-size: 1.3rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.5rem; }
+.gh-page .gh-header-title i { color: #6366f1; }
+.gh-page .gh-header-sub { font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d); margin: 0.15rem 0 0; }
+.gh-page .gh-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.35rem 0.85rem; border-radius: 10px; font-size: 0.82rem; font-weight: 700;
+}
+.gh-page .gh-badge.b-pending { background: rgba(245,158,11,0.1); color: #d97706; }
+.gh-page .gh-badge.b-reviewing { background: rgba(14,165,233,0.1); color: #0ea5e9; }
+.gh-page .gh-badge.b-revision { background: rgba(239,68,68,0.1); color: #ef4444; }
+.gh-page .gh-badge.b-accepted { background: rgba(16,185,129,0.1); color: #10b981; }
+.gh-page .gh-badge.b-graded { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+[data-bs-theme="dark"] .gh-page .gh-badge.b-pending { background: rgba(245,158,11,0.2); color: #fcd34d; }
+[data-bs-theme="dark"] .gh-page .gh-badge.b-reviewing { background: rgba(14,165,233,0.2); color: #7dd3fc; }
+[data-bs-theme="dark"] .gh-page .gh-badge.b-revision { background: rgba(239,68,68,0.2); color: #fca5a5; }
+[data-bs-theme="dark"] .gh-page .gh-badge.b-accepted { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+[data-bs-theme="dark"] .gh-page .gh-badge.b-graded { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+
+/* section cards */
+.gh-page .gh-card {
+    border: 1px solid var(--border-color, #dee2e6); border-radius: 16px;
+    background: var(--card-bg, #fff); margin-bottom: 1.25rem; overflow: hidden;
+}
+.gh-page .gh-card-head {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.85rem 1.25rem; font-weight: 700; font-size: 0.9rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+.gh-page .gh-card-head i { color: #6366f1; }
+.gh-page .gh-card-body { padding: 1.25rem; }
+
+/* student info */
+.gh-page .gh-student { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 1rem; }
+.gh-page .gh-stu-avatar {
+    width: 52px; height: 52px; border-radius: 14px; object-fit: cover; flex-shrink: 0;
+}
+.gh-page .gh-stu-avatar-ph {
+    width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+.gh-page .gh-stu-name { font-weight: 700; font-size: 1rem; margin: 0; }
+.gh-page .gh-stu-course { font-size: 0.82rem; color: var(--bs-secondary-color, #6c757d); }
+
+/* mini stat row */
+.gh-page .gh-mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.gh-page .gh-mini-stat {
+    text-align: center; padding: 0.75rem 0.5rem; border-radius: 12px;
+    background: var(--bg-color, #f0f2f5); border: 1px solid var(--border-color, #dee2e6);
+}
+.gh-page .gh-mini-stat-label { font-size: 0.68rem; font-weight: 700; color: var(--bs-secondary-color, #6c757d); text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 0.2rem; }
+.gh-page .gh-mini-stat-val { font-size: 0.85rem; font-weight: 700; }
+.gh-page .gh-late-alert {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1rem; border-radius: 10px; margin-top: 0.75rem;
+    background: rgba(239,68,68,0.08); color: #ef4444; font-size: 0.82rem; font-weight: 600;
+    border: 1px solid rgba(239,68,68,0.15);
 }
 
-[data-bs-theme="dark"] {
-    --stat-bg: #2C2C2E;
-    --stat-text: #FFFFFF;
-    --stat-label: #8E8E93;
-    --stat-border: #424245;
+/* file card */
+.gh-page .gh-file-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
 }
-
-.stat-card {
-    background: var(--stat-bg);
-    border: 1px solid var(--stat-border);
-    border-radius: 12px;
-    padding: 12px 8px;
-    text-align: center;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.gh-page .gh-file-info { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.gh-page .gh-file-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(99,102,241,0.1); color: #6366f1; font-size: 1.2rem;
 }
-
-.stat-card:active {
-    transform: scale(0.98);
-    background: var(--stat-border);
+.gh-page .gh-file-name { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gh-page .gh-file-sub { font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); }
+.gh-page .gh-file-btn {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.45rem 0.9rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    text-decoration: none; white-space: nowrap; transition: all 0.2s; border: none;
 }
+.gh-page .gh-file-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); color: #fff; }
 
-.stat-label {
-    display: block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--stat-label);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 4px;
+/* text submission */
+.gh-page .gh-text-header {
+    padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 0.6rem;
+    background: rgba(99,102,241,0.05); border-bottom: 1px solid var(--border-color, #dee2e6);
 }
-
-.stat-value {
-    display: block;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--stat-text);
-    word-break: break-word;
+.gh-page .gh-text-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.95rem;
 }
+.gh-page .gh-text-body { padding: 1.25rem 1.5rem; font-size: 0.95rem; line-height: 1.85; }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .stat-card {
-        padding: 10px 6px;
-    }
-
-    .stat-label {
-        font-size: 10px;
-        margin-bottom: 3px;
-    }
-
-    .stat-value {
-        font-size: 12px;
-    }
+/* actions */
+.gh-page .gh-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.gh-page .gh-act-btn {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.55rem 1.1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; transition: all 0.2s;
 }
-
-@media (max-width: 576px) {
-    .stat-card {
-        padding: 10px 4px;
-    }
-
-    .stat-label {
-        font-size: 9px;
-    }
-
-    .stat-value {
-        font-size: 11px;
-    }
+.gh-page .gh-act-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.gh-page .gh-act-btn.a-review { color: #0ea5e9; border-color: rgba(14,165,233,0.3); }
+.gh-page .gh-act-btn.a-review:hover { background: rgba(14,165,233,0.06); }
+.gh-page .gh-act-btn.a-revision { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+.gh-page .gh-act-btn.a-revision:hover { background: rgba(245,158,11,0.06); }
+.gh-page .gh-act-btn.a-accept { color: #10b981; border-color: rgba(16,185,129,0.3); }
+.gh-page .gh-act-btn.a-accept:hover { background: rgba(16,185,129,0.06); }
+.gh-page .gh-act-btn.a-auto {
+    color: #fff; border-color: transparent;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
-.chat-container {
-    height: 450px;
-    overflow-y: auto;
-    background: var(--bg-color, #f8f9fa);
-    border-radius: 12px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(99,102,241,0.3) transparent;
-}
+.gh-page .gh-act-btn.a-auto:hover { box-shadow: 0 4px 12px rgba(139,92,246,0.35); }
 
-.chat-container::-webkit-scrollbar {
-    width: 6px;
+/* grade form */
+.gh-page .gh-grade-input {
+    width: 100%; padding: 0.65rem 0.85rem; border-radius: 10px;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
+    color: var(--text-color, #212529); font-size: 0.9rem;
 }
-
-.chat-container::-webkit-scrollbar-track {
-    background: transparent;
+.gh-page .gh-grade-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.gh-page .gh-grade-label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--bs-secondary-color, #6c757d); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.4rem; }
+.gh-page .gh-grade-submit {
+    width: 100%; padding: 0.7rem; border-radius: 12px; font-weight: 700; font-size: 0.9rem;
+    border: none; cursor: pointer; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); transition: all 0.2s;
 }
+.gh-page .gh-grade-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
 
-.chat-container::-webkit-scrollbar-thumb {
-    background: rgba(99,102,241,0.3);
-    border-radius: 10px;
+/* chat */
+.gh-page .gh-chat-wrap { position: sticky; top: 20px; }
+.gh-page .gh-chat-container {
+    height: 450px; overflow-y: auto;
+    background: var(--bg-color, #f0f2f5); border-radius: 12px;
+    padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+    scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.3) transparent;
 }
-
-.chat-message {
-    display: flex;
-    max-width: 100%;
+.gh-page .gh-chat-container::-webkit-scrollbar { width: 6px; }
+.gh-page .gh-chat-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 10px; }
+.gh-page .gh-msg { display: flex; max-width: 100%; }
+.gh-page .gh-msg.gh-mine { justify-content: flex-end; }
+.gh-page .gh-msg.gh-other { justify-content: flex-start; }
+.gh-page .gh-bubble {
+    max-width: 75%; padding: 0.75rem 1rem; border-radius: 16px;
+    font-size: 0.9rem; line-height: 1.6; word-wrap: break-word;
+    overflow-wrap: break-word; white-space: pre-wrap; position: relative;
 }
-
-.chat-message.mine {
-    justify-content: flex-end;
+.gh-page .gh-msg.gh-mine .gh-bubble {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+    border-bottom-right-radius: 4px; box-shadow: 0 2px 8px rgba(99,102,241,0.25);
 }
-
-.chat-message.other {
-    justify-content: flex-start;
-}
-
-.chat-bubble {
-    max-width: 75%;
-    padding: 0.75rem 1rem;
-    border-radius: 16px;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-word;
-    hyphens: auto;
-    white-space: pre-wrap;
-    position: relative;
-}
-
-.chat-message.mine .chat-bubble {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 2px 8px rgba(99,102,241,0.25);
-}
-
-.chat-message.other .chat-bubble {
-    background: var(--card-bg, #fff);
-    color: var(--text-color, #1e293b);
-    border: 1px solid var(--border-color, #e2e8f0);
-    border-bottom-left-radius: 4px;
+.gh-page .gh-msg.gh-other .gh-bubble {
+    background: var(--card-bg, #fff); color: var(--text-color, #212529);
+    border: 1px solid var(--border-color, #dee2e6); border-bottom-left-radius: 4px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
-
-.chat-bubble a {
-    color: inherit;
-    text-decoration: underline;
-    word-break: break-all;
+.gh-page .gh-bubble a { color: inherit; text-decoration: underline; word-break: break-all; }
+.gh-page .gh-msg.gh-mine .gh-bubble a { color: rgba(255,255,255,0.9); }
+.gh-page .gh-chat-meta {
+    font-size: 0.7rem; margin-top: 6px; opacity: 0.6;
+    display: flex; align-items: center; gap: 4px;
 }
-
-.chat-message.mine .chat-bubble a {
-    color: rgba(255,255,255,0.9);
+.gh-page .gh-msg.gh-mine .gh-chat-meta { justify-content: flex-end; color: rgba(255,255,255,0.7); }
+.gh-page .gh-chat-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--bs-secondary-color, #6c757d); text-align: center; padding: 2rem;
 }
-
-.chat-bubble img,
-.chat-bubble video {
-    max-width: 100%;
-    border-radius: 8px;
-    margin-top: 0.5rem;
+.gh-page .gh-chat-empty i { font-size: 3rem; opacity: 0.2; margin-bottom: 0.75rem; }
+.gh-page .gh-chat-input {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color, #dee2e6);
 }
-
-.chat-meta {
-    font-size: 0.7rem;
-    margin-top: 6px;
-    opacity: 0.6;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+.gh-page .gh-chat-text {
+    flex: 1; min-width: 0; padding: 0.6rem 0.85rem; border-radius: 10px;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
+    color: var(--text-color, #212529); font-size: 0.88rem;
 }
-
-.chat-message.mine .chat-meta {
-    justify-content: flex-end;
-    color: rgba(255,255,255,0.7);
+.gh-page .gh-chat-text:focus { outline: none; border-color: #6366f1; }
+.gh-page .gh-chat-btn {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; font-size: 0.95rem; transition: all 0.2s;
 }
+.gh-page .gh-chat-btn.gh-send { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; border: none; }
+.gh-page .gh-chat-btn:hover { transform: translateY(-1px); }
 
-.chat-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    color: var(--text-muted, #94a3b8);
-    text-align: center;
-    padding: 2rem;
+/* revision list */
+.gh-page .gh-rev-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--border-color, #dee2e6);
 }
+.gh-page .gh-rev-item:last-child { border-bottom: none; }
 
-.chat-empty i {
-    font-size: 3rem;
-    opacity: 0.2;
-    margin-bottom: 0.75rem;
+/* confirm modal */
+.gh-page .gh-modal-content { border-radius: 20px; border: none; overflow: hidden; }
+.gh-page .gh-modal-body { padding: 2rem; text-align: center; }
+.gh-page .gh-modal-icon {
+    width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
 }
-
-.chat-input-area {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border-color, #e2e8f0);
+.gh-page .gh-modal-icon.m-warn { background: rgba(245,158,11,0.1); color: #f59e0b; }
+.gh-page .gh-modal-icon.m-auto { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.gh-page .gh-modal-actions { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.5rem; }
+.gh-page .gh-modal-cancel {
+    padding: 0.55rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer;
 }
-
-.chat-input-area input[type="text"] {
-    flex: 1;
-    min-width: 0;
+.gh-page .gh-modal-confirm {
+    padding: 0.55rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.85rem;
+    border: none; color: #fff; cursor: pointer; transition: all 0.2s;
 }
+.gh-page .gh-modal-confirm.mc-warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.gh-page .gh-modal-confirm.mc-auto { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.gh-page .gh-modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
-.chat-input-area .btn {
-    flex-shrink: 0;
-}
+/* two columns */
+.gh-page .gh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 
+/* responsive */
 @media (max-width: 991px) {
-    .chat-container {
-        height: 350px;
-    }
-
-    .chat-bubble {
-        max-width: 85%;
-    }
+    .gh-page .gh-grid { grid-template-columns: 1fr; }
+    .gh-page .gh-chat-container { height: 350px; }
+    .gh-page .gh-chat-wrap { position: static; }
 }
-
-@media (max-width: 575px) {
-    .chat-container {
-        height: 300px;
-        padding: 0.75rem;
-    }
-
-    .chat-bubble {
-        max-width: 90%;
-        padding: 0.625rem 0.875rem;
-        font-size: 0.85rem;
-    }
-
-    .chat-input-area {
-        gap: 0.375rem;
-    }
-
-    .chat-input-area input[type="text"] {
-        font-size: 0.875rem;
-    }
+@media (max-width: 576px) {
+    .gh-page { padding: 1rem 0.5rem; }
+    .gh-page .gh-header { padding: 1rem; flex-direction: column; align-items: flex-start; }
+    .gh-page .gh-header-title { font-size: 1.1rem; }
+    .gh-page .gh-mini-stats { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .gh-page .gh-chat-container { height: 300px; padding: 0.75rem; }
+    .gh-page .gh-bubble { max-width: 90%; font-size: 0.85rem; }
+    .gh-page .gh-actions { flex-direction: column; }
+    .gh-page .gh-act-btn { width: 100%; justify-content: center; }
 }
 </style>
-{% endblock %}
 
-{% block admin_content %}
-<!-- Back link -->
-<a href="{% url 'homework_submissions' %}" class="back-link">
-    <i class="bi bi-arrow-left me-2"></i>Orqaga qaytish
-</a>
+<div class="gh-page">
 
-<!-- Top Bar -->
-<div class="top-bar">
-    <div>
-        <h1 class="page-title mb-1"><i class="bi bi-journal-check me-2"></i>Vazifani tekshirish</h1>
-        <small class="text-muted">{{ submission.homework.lesson.title }}</small>
-    </div>
-    <div>
-        {% if submission.status == 'pending' %}
-        <span class="badge bg-warning text-dark fs-6">⏳ Kutilmoqda</span>
-        {% elif submission.status == 'reviewing' %}
-        <span class="badge bg-info fs-6">👀 Ko'rilmoqda</span>
-        {% elif submission.status == 'revision' %}
-        <span class="badge bg-danger fs-6">🔄 Qayta ishlash</span>
-        {% elif submission.status == 'accepted' %}
-        <span class="badge bg-success fs-6">✅ Qabul qilindi</span>
-        {% elif submission.status == 'graded' %}
-        <span class="badge bg-primary fs-6">📊 {{ submission.grade }}%</span>
-        {% endif %}
-    </div>
-</div>
+    <!-- Back -->
+    <a href="{% url 'homework_submissions' %}" class="gh-back">
+        <i class="bi bi-arrow-left"></i> Orqaga qaytish
+    </a>
 
-<div class="row g-4">
-    <!-- Chap ustun -->
-    <div class="col-lg-7">
-        <!-- O'quvchi ma'lumotlari -->
-        <div class="card mb-4">
-            <div class="card-body">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    {% if submission.student.photo %}
-                    <img src="{{ submission.student.photo.url }}" class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
-                    {% else %}
-                    <div class="user-avatar-placeholder" style="width:60px;height:60px;font-size:1.2rem;">{{ submission.student.get_initials }}</div>
-                    {% endif %}
-                    <div>
-                        <h5 class="mb-0">{{ submission.student.full_name }}</h5>
-                        <small class="text-muted">{{ submission.homework.lesson.profession.name }}</small>
-                    </div>
-                </div>
-                
-                <div class="row g-2">
-    <div class="col-md-4">
-        <div class="stat-card">
-            <small class="stat-label">Topshirilgan</small>
-            <span class="stat-value">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+    <!-- Header -->
+    <div class="gh-header">
+        <div>
+            <h1 class="gh-header-title"><i class="bi bi-journal-check"></i> Vazifani tekshirish</h1>
+            <p class="gh-header-sub">{{ submission.homework.lesson.title }}</p>
         </div>
+        <span class="gh-badge b-{{ submission.status }}">
+            {% if submission.status == 'pending' %}<i class="bi bi-hourglass-split"></i> Kutilmoqda
+            {% elif submission.status == 'reviewing' %}<i class="bi bi-eye"></i> Ko'rilmoqda
+            {% elif submission.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta ishlash
+            {% elif submission.status == 'accepted' %}<i class="bi bi-check-lg"></i> Qabul qilindi
+            {% elif submission.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ submission.grade }}%
+            {% endif %}
+        </span>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <small class="stat-label">Versiya</small>
-            <span class="stat-value">v{{ submission.version }}</span>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <small class="stat-label">Qayta topshirish</small>
-            <span class="stat-value">{{ submission.revision_count }}x</span>
-        </div>
-    </div>
-</div>
-                
-                {% if submission.is_late %}
-                <div class="alert alert-danger mt-3 mb-0 py-2">
-                    <i class="bi bi-clock me-2"></i>Bu vazifa kech topshirilgan!
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Topshiriq -->
-        <div class="card mb-4" style="overflow:hidden;">
-{% if submission.file %}
-            <div class="card-header"><i class="bi bi-file-earmark-arrow-down me-2"></i>Topshirilgan fayl</div>
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between">
-                    <div class="d-flex align-items-center gap-3">
-                        <div style="width:48px;height:48px;border-radius:12px;background:rgba(59,130,246,0.1);display:flex;align-items:center;justify-content:center;color:#3b82f6;font-size:1.3rem;flex-shrink:0;">
-                            <i class="bi bi-file-earmark-arrow-down"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold">{{ submission.file.name|cut:"homework_submissions/" }}</div>
-                            <small class="text-muted">Topshirilgan fayl</small>
-                        </div>
-                    </div>
-                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-sm btn-primary rounded-pill px-3">
-                        <i class="bi bi-download me-1"></i>Faylni ochish
-                    </a>
-                </div>
-            </div>
-{% else %}
-            <div class="card-header d-flex align-items-center gap-2">
-                <i class="bi bi-pencil-square"></i>
-                <span>Matn ko'rinishida topshirilgan</span>
-            </div>
-            <div class="card-body p-0">
-                <div style="background:linear-gradient(135deg,rgba(99,102,241,0.04),rgba(139,92,246,0.04));">
-                    <div style="padding:0.85rem 1.25rem;background:rgba(99,102,241,0.06);border-bottom:1px solid rgba(99,102,241,0.08);display:flex;align-items:center;gap:0.6rem;">
-                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.95rem;flex-shrink:0;">
-                            <i class="bi bi-chat-square-text-fill"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight:700;font-size:0.9rem;">{{ submission.student.full_name }} ning javobi</div>
-                            <div style="font-size:0.75rem;color:var(--bs-secondary-color);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
-                        </div>
-                    </div>
-                    <div style="padding:1.25rem 1.5rem;font-size:0.95rem;line-height:1.85;">
-                        {{ submission.text_content|safe }}
-                    </div>
-                </div>
-            </div>
-{% endif %}
-        </div>
-        
-        <!-- Vazifa tavsifi -->
-        {% if submission.homework.description %}
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-info-circle me-2"></i>Vazifa tavsifi</div>
-            <div class="card-body">
-                <p class="mb-2">{{ submission.homework.description }}</p>
-                {% if submission.homework.due_date %}
-                <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>Muddat: {{ submission.homework.due_date|date:"d.m.Y H:i" }}</small>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Oldingi versiyalar -->
-        {% if revisions %}
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Oldingi versiyalar</div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for rev in revisions %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-file-earmark me-2 text-muted"></i>
-                            {{ rev.note|default:"Oldingi versiya" }}
-                            <small class="text-muted ms-2">{{ rev.submitted_at|date:"d.m.Y H:i" }}</small>
-                        </div>
-                        <a href="{{ rev.file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-download"></i>
-                        </a>
-                    </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Amallar -->
-        {% if submission.status != 'graded' %}
-        <div class="card mb-4">
-            <div class="card-header"><i class="bi bi-lightning me-2"></i>Tezkor amallar</div>
-            <div class="card-body">
-                <div class="d-flex gap-2 flex-wrap">
-                    {% if submission.status == 'pending' %}
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="set_reviewing">
-                        <button type="submit" class="btn btn-info">
-                            <i class="bi bi-eye me-1"></i>Ko'rib chiqishni boshlash
-                        </button>
-                    </form>
-                    {% endif %}
-                    
-                    {% if submission.status != 'accepted' %}
-                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#revisionModal">
-                        <i class="bi bi-arrow-repeat me-1"></i>Qayta ishlashga yuborish
-                    </button>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="accept">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check-lg me-1"></i>Qabul qilish
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        
-        <!-- Baholash -->
-        <div class="card">
-            <div class="card-header"><i class="bi bi-star me-2 text-warning"></i>Baholash</div>
-            <div class="card-body">
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="grade">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Ball (0-100) <span class="text-danger">*</span></label>
-                        <input type="number" name="grade" class="form-control" min="0" max="100" value="{{ submission.grade|default:'' }}" required placeholder="Masalan: 85">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Izoh</label>
-                        <textarea name="feedback" class="form-control" rows="3" placeholder="O'quvchiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Izoh fayli (ixtiyoriy)</label>
-                        <input type="file" name="feedback_file" class="form-control">
-                        {% if submission.feedback_file %}
-                        <small class="text-muted mt-1 d-block">
-                            <i class="bi bi-paperclip me-1"></i>Mavjud: 
-                            <a href="{{ submission.feedback_file.url }}" target="_blank">{{ submission.feedback_file.name|cut:"homework_feedback/" }}</a>
-                        </small>
+
+    <div class="gh-grid">
+        <!-- LEFT COLUMN -->
+        <div>
+            <!-- Student info -->
+            <div class="gh-card">
+                <div class="gh-card-body">
+                    <div class="gh-student">
+                        {% if submission.student.photo %}
+                        <img src="{{ submission.student.photo.url }}" class="gh-stu-avatar" alt="">
+                        {% else %}
+                        <div class="gh-stu-avatar-ph">{{ submission.student.get_initials }}</div>
                         {% endif %}
+                        <div>
+                            <h5 class="gh-stu-name">{{ submission.student.full_name }}</h5>
+                            <span class="gh-stu-course">{{ submission.homework.lesson.profession.name }}</span>
+                        </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-check-circle me-2"></i>Baholash
-                    </button>
-                </form>
+                    <div class="gh-mini-stats">
+                        <div class="gh-mini-stat">
+                            <span class="gh-mini-stat-label">Topshirilgan</span>
+                            <span class="gh-mini-stat-val">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="gh-mini-stat">
+                            <span class="gh-mini-stat-label">Versiya</span>
+                            <span class="gh-mini-stat-val">v{{ submission.version }}</span>
+                        </div>
+                        <div class="gh-mini-stat">
+                            <span class="gh-mini-stat-label">Qayta topshirish</span>
+                            <span class="gh-mini-stat-val">{{ submission.revision_count }}x</span>
+                        </div>
+                    </div>
+                    {% if submission.is_late %}
+                    <div class="gh-late-alert"><i class="bi bi-clock"></i> Bu vazifa kech topshirilgan!</div>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- O'ng ustun - Chat -->
-    <div class="col-lg-5">
-        <div class="card" style="position: sticky; top: 20px;">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-chat-dots me-2"></i>O'quvchi bilan chat</span>
-                <span class="badge bg-secondary">{{ chat_messages.count }}</span>
-            </div>
-            <div class="card-body">
-                <div class="chat-container" id="chatContainer">
-                    {% if chat_messages %}
-                    {% for msg in chat_messages %}
-                    <div class="chat-message {% if msg.sender == request.user %}mine{% else %}other{% endif %}">
-                        <div class="chat-bubble">
-                            {{ msg.message }}
-                            {% if msg.file %}
-                            <a href="{{ msg.file.url }}" target="_blank" class="d-block mt-2 small">
-                                <i class="bi bi-paperclip me-1"></i>Fayl
-                            </a>
-                            {% endif %}
-                            <div class="chat-meta">
-                                {% if msg.sender != request.user %}{{ msg.sender.first_name }} • {% endif %}{{ msg.created_at|date:"H:i" }}
+
+            <!-- Submitted content -->
+            <div class="gh-card">
+                {% if submission.file %}
+                <div class="gh-card-head"><i class="bi bi-file-earmark-arrow-down"></i> Topshirilgan fayl</div>
+                <div class="gh-card-body">
+                    <div class="gh-file-row">
+                        <div class="gh-file-info">
+                            <div class="gh-file-icon"><i class="bi bi-file-earmark-arrow-down"></i></div>
+                            <div style="min-width:0;">
+                                <div class="gh-file-name">{{ submission.file.name|cut:"homework_submissions/" }}</div>
+                                <div class="gh-file-sub">Topshirilgan fayl</div>
                             </div>
                         </div>
+                        <a href="{{ submission.file.url }}" target="_blank" class="gh-file-btn">
+                            <i class="bi bi-download"></i> Ochish
+                        </a>
                     </div>
-                    {% endfor %}
-                    {% else %}
-                    <div class="chat-empty">
-                        <i class="bi bi-chat-dots"></i>
-                        <p>Hali xabarlar yo'q</p>
+                </div>
+                {% else %}
+                <div class="gh-text-header">
+                    <div class="gh-text-icon"><i class="bi bi-chat-square-text-fill"></i></div>
+                    <div>
+                        <div style="font-weight:700; font-size:0.9rem;">{{ submission.student.full_name }} ning javobi</div>
+                        <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
                     </div>
+                </div>
+                <div class="gh-text-body">{{ submission.text_content|safe }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Homework description -->
+            {% if submission.homework.description %}
+            <div class="gh-card">
+                <div class="gh-card-head"><i class="bi bi-info-circle"></i> Vazifa tavsifi</div>
+                <div class="gh-card-body">
+                    <p style="margin:0 0 0.5rem;">{{ submission.homework.description }}</p>
+                    {% if submission.homework.due_date %}
+                    <span style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);">
+                        <i class="bi bi-calendar-event me-1"></i>Muddat: {{ submission.homework.due_date|date:"d.m.Y H:i" }}
+                    </span>
                     {% endif %}
                 </div>
-                
-                <form method="POST" enctype="multipart/form-data" class="chat-input-area">
+            </div>
+            {% endif %}
+
+            <!-- Previous versions -->
+            {% if revisions %}
+            <div class="gh-card">
+                <div class="gh-card-head"><i class="bi bi-clock-history"></i> Oldingi versiyalar</div>
+                {% for rev in revisions %}
+                <div class="gh-rev-item">
+                    <div>
+                        <i class="bi bi-file-earmark" style="color:var(--bs-secondary-color, #6c757d); margin-right:0.4rem;"></i>
+                        <span style="font-weight:600; font-size:0.88rem;">{{ rev.note|default:"Oldingi versiya" }}</span>
+                        <span style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d); margin-left:0.5rem;">{{ rev.submitted_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                    <a href="{{ rev.file.url }}" target="_blank" class="gh-file-btn" style="padding:0.35rem 0.7rem; font-size:0.75rem;">
+                        <i class="bi bi-download"></i>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Actions -->
+            {% if submission.status != 'graded' %}
+            <div class="gh-card">
+                <div class="gh-card-head"><i class="bi bi-lightning"></i> Tezkor amallar</div>
+                <div class="gh-card-body">
+                    <div class="gh-actions">
+                        {% if submission.status == 'pending' %}
+                        <form method="POST" style="display:contents;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="set_reviewing">
+                            <button type="submit" class="gh-act-btn a-review">
+                                <i class="bi bi-eye"></i> Ko'rib chiqishni boshlash
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        {% if submission.status != 'accepted' %}
+                        <button type="button" class="gh-act-btn a-revision" data-bs-toggle="modal" data-bs-target="#revModal">
+                            <i class="bi bi-arrow-repeat"></i> Qayta ishlashga yuborish
+                        </button>
+                        <form method="POST" style="display:contents;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="accept">
+                            <button type="submit" class="gh-act-btn a-accept">
+                                <i class="bi bi-check-lg"></i> Qabul qilish
+                            </button>
+                        </form>
+                        {% endif %}
+
+                        <button type="button" class="gh-act-btn a-auto" data-bs-toggle="modal" data-bs-target="#autoGradeModal">
+                            <i class="bi bi-magic"></i> Avtomatik baholash (1 ball)
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Grading form -->
+            <div class="gh-card">
+                <div class="gh-card-head"><i class="bi bi-star" style="color:#f59e0b;"></i> Baholash</div>
+                <div class="gh-card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="grade">
+
+                        <div style="margin-bottom:1rem;">
+                            <label class="gh-grade-label">Ball (0-100) <span style="color:#ef4444;">*</span></label>
+                            <input type="number" name="grade" class="gh-grade-input" min="0" max="100"
+                                   value="{{ submission.grade|default:'' }}" required placeholder="Masalan: 85">
+                        </div>
+
+                        <div style="margin-bottom:1rem;">
+                            <label class="gh-grade-label">Izoh</label>
+                            <textarea name="feedback" class="gh-grade-input" rows="3"
+                                      placeholder="O'quvchiga izoh yozing..." style="resize:vertical;">{{ submission.feedback|default:'' }}</textarea>
+                        </div>
+
+                        <div style="margin-bottom:1rem;">
+                            <label class="gh-grade-label">Izoh fayli (ixtiyoriy)</label>
+                            <input type="file" name="feedback_file" class="gh-grade-input" style="padding:0.5rem;">
+                            {% if submission.feedback_file %}
+                            <div style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d); margin-top:0.4rem;">
+                                <i class="bi bi-paperclip"></i> Mavjud:
+                                <a href="{{ submission.feedback_file.url }}" target="_blank">{{ submission.feedback_file.name|cut:"homework_feedback/" }}</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="gh-grade-submit">
+                            <i class="bi bi-check-circle me-1"></i> Baholash
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN - Chat -->
+        <div>
+            <div class="gh-card gh-chat-wrap">
+                <div class="gh-card-head" style="justify-content:space-between;">
+                    <span><i class="bi bi-chat-dots" style="color:#6366f1;"></i> O'quvchi bilan chat</span>
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--bs-secondary-color, #6c757d);">{{ chat_messages.count }}</span>
+                </div>
+                <div class="gh-card-body">
+                    <div class="gh-chat-container" id="ghChat">
+                        {% if chat_messages %}
+                        {% for msg in chat_messages %}
+                        <div class="gh-msg {% if msg.sender == request.user %}gh-mine{% else %}gh-other{% endif %}">
+                            <div class="gh-bubble">
+                                {{ msg.message }}
+                                {% if msg.file %}
+                                <a href="{{ msg.file.url }}" target="_blank" style="display:block; margin-top:0.5rem; font-size:0.82rem;">
+                                    <i class="bi bi-paperclip"></i> Fayl
+                                </a>
+                                {% endif %}
+                                <div class="gh-chat-meta">
+                                    {% if msg.sender != request.user %}{{ msg.sender.first_name }} &bull; {% endif %}{{ msg.created_at|date:"H:i" }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="gh-chat-empty">
+                            <i class="bi bi-chat-dots"></i>
+                            <p>Hali xabarlar yo'q</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data" class="gh-chat-input">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="send_message">
+                        <input type="text" name="message" class="gh-chat-text" placeholder="Xabar yozing..." autocomplete="off">
+                        <label class="gh-chat-btn" style="cursor:pointer;">
+                            <i class="bi bi-paperclip"></i>
+                            <input type="file" name="message_file" style="display:none;" onchange="this.form.submit()">
+                        </label>
+                        <button type="submit" class="gh-chat-btn gh-send"><i class="bi bi-send"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revision Modal -->
+<div class="modal fade" id="revModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="gh-modal-content modal-content">
+            <div class="gh-modal-body">
+                <div class="gh-modal-icon m-warn"><i class="bi bi-arrow-repeat"></i></div>
+                <h5 style="font-weight:700;">Qayta ishlashga yuborish</h5>
+                <form method="POST">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="send_message">
-                    <input type="text" name="message" class="form-control" placeholder="Xabar yozing..." autocomplete="off">
-                    <label class="btn btn-outline-secondary">
-                        <i class="bi bi-paperclip"></i>
-                        <input type="file" name="message_file" style="display:none;" onchange="this.form.submit()">
-                    </label>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-send"></i>
-                    </button>
+                    <input type="hidden" name="action" value="request_revision">
+                    <div style="text-align:left; margin:1rem 0;">
+                        <label class="gh-grade-label">Nima uchun qayta ishlash kerak?</label>
+                        <textarea name="revision_note" class="gh-grade-input" rows="4" required
+                                  placeholder="O'quvchiga nimani to'g'rilash kerakligini tushuntiring..." style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="gh-modal-actions">
+                        <button type="button" class="gh-modal-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="gh-modal-confirm mc-warn"><i class="bi bi-send me-1"></i> Yuborish</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Qayta ishlash Modal -->
-<div class="modal fade" id="revisionModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-arrow-repeat me-2 text-warning"></i>Qayta ishlashga yuborish
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Auto Grade Modal -->
+<div class="modal fade" id="autoGradeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="gh-modal-content modal-content">
+            <div class="gh-modal-body">
+                <div class="gh-modal-icon m-auto"><i class="bi bi-magic"></i></div>
+                <h5 style="font-weight:700;">Avtomatik baholash</h5>
+                <p style="color:var(--bs-secondary-color, #6c757d); font-size:0.88rem; margin-bottom:0;">
+                    Vazifa <strong>1 ball</strong> bilan avtomatik baholanadi va o'quvchiga coin beriladi. Davom ettirilsinmi?
+                </p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="auto_grade">
+                    <div class="gh-modal-actions">
+                        <button type="button" class="gh-modal-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="gh-modal-confirm mc-auto"><i class="bi bi-magic me-1"></i> Baholash</button>
+                    </div>
+                </form>
             </div>
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="request_revision">
-                <div class="modal-body">
-                    <label class="form-label">Nima uchun qayta ishlash kerak?</label>
-                    <textarea name="revision_note" class="form-control" rows="4" required placeholder="O'quvchiga nimani to'g'rilash kerakligini tushuntiring..."></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="bi bi-send me-1"></i>Yuborish
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const chat = document.getElementById('chatContainer');
+    var chat = document.getElementById('ghChat');
     if (chat) chat.scrollTop = chat.scrollHeight;
 });
 </script>
