@@ -2,144 +2,315 @@
 
 {% block title %}Foydalanuvchilar - Admin Panel{% endblock %}
 
-{% block extra_css %}
-<meta name="keywords" content="Suyunov Husan, IT Creative, Django admin users iOS style dark light responsive">
-<style>
-
-/* ===== iOS Minimal Palette ===== */
-:root{
-    --bg:#f5f5f7;
-    --card:#ffffff;
-    --text:#111;
-    --muted:#6b7280;
-    --border:rgba(0,0,0,.08);
-    --primary:#0a84ff;
-    --success:#28a745;
-    --danger:#dc3545;
-    --warning:#f0ad4e;
-}
-@media (prefers-color-scheme: dark){
-    :root{
-        --bg:#0b0b0c;
-        --card:#1c1c1e;
-        --text:#f5f5f7;
-        --muted:#9ca3af;
-        --border:rgba(255,255,255,.08);
-    }
-}
-
-/* ===== Layout ===== */
-.admin-ios{
-    background:var(--bg);
-    min-height:100vh;
-    padding:1rem;
-    color:var(--text);
-}
-
-/* ===== Top ===== */
-.page-title{
-    font-size:1.4rem;
-    font-weight:700;
-    margin-bottom:1rem;
-}
-
-/* ===== Cards ===== */
-.card{
-    background:var(--card)!important;
-    border-radius:14px;
-    border:1px solid var(--border);
-}
-.card-header{
-    background:transparent!important;
-    border-bottom:1px solid var(--border);
-    font-weight:600;
-}
-
-/* ===== Filters ===== */
-.form-label{font-weight:600;color:var(--text);}
-.form-select,.form-control{
-    background:transparent;
-    color:var(--text);
-    border:1px solid var(--border);
-    border-radius:10px;
-}
-.form-select:focus,.form-control:focus{
-    border-color:var(--primary);
-    box-shadow:none;
-}
-.btn-primary{background:var(--primary);border:none;border-radius:10px;}
-.btn-outline-secondary{border-radius:10px;border-color:var(--border);color:var(--text);}
-
-/* ===== Table ===== */
-.table{margin:0;color:var(--text);}
-.table th{
-    color:var(--muted);
-    font-weight:600;
-    border-bottom:1px solid var(--border);
-}
-.table td{border-top:1px solid var(--border);vertical-align:middle;}
-
-/* ===== Avatars ===== */
-.user-avatar-sm{
-    width:36px;height:36px;border-radius:50%;object-fit:cover;
-}
-.user-avatar-placeholder{
-    width:36px;height:36px;border-radius:50%;
-    background:#adb5bd;color:white;font-weight:700;
-    display:flex;align-items:center;justify-content:center;
-}
-
-/* ===== Online dot ===== */
-.online-badge{
-    display:inline-block;width:7px;height:7px;border-radius:50%;
-    background:#28a745;margin-left:4px;
-}
-
-/* ===== Badges ===== */
-.badge{border-radius:999px;padding:.35rem .6rem;}
-
-/* ===== Action buttons ===== */
-.action-btns .btn{border-radius:10px;}
-
-/* ===== Mobile Responsive ===== */
-@media(max-width:768px){
-    table thead{display:none;}
-    table tr{display:block;padding:1rem;border-bottom:1px solid var(--border);}
-    table td{display:flex;justify-content:space-between;border:none;padding:.35rem 0;}
-    table td::before{
-        content:attr(data-label);
-        font-weight:600;
-        color:var(--muted);
-    }
-}
-
-</style>
-{% endblock %}
-
 {% block admin_content %}
-<div class="admin-ios">
+<style>
+/* All styles scoped under .au-page to avoid base_admin.css conflicts */
 
-<h1 class="page-title">
-    <i class="bi bi-people me-1"></i>Foydalanuvchilar
-</h1>
+.au-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
 
-<!-- FILTERS -->
-<div class="card mb-3">
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label">Rol</label>
-                <select name="role" class="form-select">
+/* Header */
+.au-page .au-title {
+    font-size: 1.6rem; font-weight: 800;
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;
+}
+.au-page .au-title i { color: #6366f1; }
+.au-page .au-sub { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0 0 1.5rem 0; }
+
+/* Search */
+.au-page .au-search {
+    position: relative; margin-bottom: 1rem;
+}
+.au-page .au-search .au-search-icon {
+    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+    color: var(--bs-secondary-color, #6c757d); font-size: 1.1rem; pointer-events: none;
+}
+.au-page .au-search-input {
+    width: 100%; padding: 0.75rem 2.5rem 0.75rem 2.75rem;
+    border: 2px solid var(--border-color, #dee2e6); border-radius: 14px;
+    background: var(--card-bg, #fff); color: var(--text-color, #212529);
+    font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.au-page .au-search-input:focus {
+    outline: none; border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+.au-page .au-search-input::placeholder { color: var(--bs-secondary-color, #adb5bd); }
+.au-page .au-search-clear {
+    position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--bs-secondary-color, #6c757d);
+    cursor: pointer; font-size: 1.1rem; padding: 0.25rem; display: none;
+}
+.au-page .au-search-clear.au-show { display: block; }
+
+/* Filter bar */
+.au-page .au-filter-bar {
+    display: flex; gap: 0.75rem; align-items: center;
+    flex-wrap: wrap; margin-bottom: 1.25rem;
+}
+.au-page .au-filter-toggle {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; transition: all 0.2s;
+}
+.au-page .au-filter-toggle:hover { border-color: #6366f1; color: #6366f1; }
+.au-page .au-filter-toggle.au-active { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.06); }
+.au-page .au-filter-count {
+    background: #6366f1; color: #fff; font-size: 0.65rem; font-weight: 700;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.au-page .au-sort-select {
+    padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; min-width: 160px;
+}
+.au-page .au-sort-select:focus { outline: none; border-color: #6366f1; box-shadow: none; }
+.au-page .au-result-count {
+    margin-left: auto; font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d);
+    font-weight: 500; white-space: nowrap;
+}
+
+/* Filter panel */
+.au-page .au-filter-panel {
+    border: 2px solid var(--border-color, #dee2e6); border-radius: 16px;
+    padding: 1.25rem; margin-bottom: 1.25rem; background: var(--card-bg, #fff);
+    display: none;
+}
+.au-page .au-filter-panel.au-show { display: block; }
+.au-page .au-filter-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+}
+.au-page .au-filter-group label {
+    display: block; font-size: 0.78rem; font-weight: 700;
+    color: var(--bs-secondary-color, #6c757d);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
+}
+.au-page .au-filter-select {
+    width: 100%; padding: 0.55rem 0.75rem; border-radius: 10px;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
+    color: var(--text-color, #212529); font-size: 0.875rem;
+}
+.au-page .au-filter-select:focus { outline: none; border-color: #6366f1; box-shadow: none; }
+.au-page .au-filter-actions {
+    display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end;
+}
+.au-page .au-btn-apply {
+    padding: 0.5rem 1.25rem; border-radius: 10px; font-weight: 600;
+    font-size: 0.85rem; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    transition: all 0.2s;
+}
+.au-page .au-btn-apply:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.au-page .au-btn-reset {
+    padding: 0.5rem 1.25rem; border-radius: 10px; font-weight: 600;
+    font-size: 0.85rem; border: 2px solid var(--border-color, #dee2e6); cursor: pointer;
+    background: var(--card-bg, #fff); color: var(--text-color, #212529);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;
+    transition: all 0.2s;
+}
+.au-page .au-btn-reset:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color, #212529); }
+
+/* Active filter chips */
+.au-page .au-chips {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.au-page .au-chip {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.3rem 0.7rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+    background: rgba(99,102,241,0.08); color: #6366f1;
+    border: 1px solid rgba(99,102,241,0.15);
+}
+[data-bs-theme="dark"] .au-page .au-chip {
+    background: rgba(99,102,241,0.15); color: #a5b4fc;
+}
+.au-page .au-chip-x {
+    background: none; border: none; color: inherit; cursor: pointer;
+    font-size: 0.9rem; padding: 0; line-height: 1; opacity: 0.6;
+    text-decoration: none;
+}
+.au-page .au-chip-x:hover { opacity: 1; color: inherit; }
+
+/* User list */
+.au-page .au-list { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.au-page .au-row {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr 0.8fr 1.2fr 1fr;
+    align-items: center; gap: 1rem;
+    padding: 0.875rem 1.25rem;
+    border: 1px solid var(--border-color, #dee2e6); border-radius: 14px;
+    background: var(--card-bg, #fff); transition: box-shadow 0.2s;
+}
+.au-page .au-row:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+[data-bs-theme="dark"] .au-page .au-row:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+}
+
+/* User identity */
+.au-page .au-identity { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.au-page .au-avatar {
+    width: 40px; height: 40px; border-radius: 12px; object-fit: cover; flex-shrink: 0;
+}
+.au-page .au-avatar-ph {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+.au-page .au-name {
+    font-weight: 700; font-size: 0.9rem; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.au-page .au-uname {
+    font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.au-page .au-online {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: #10b981; margin-left: 4px; vertical-align: middle;
+}
+.au-page .au-premium {
+    font-size: 0.6rem; color: #f59e0b; margin-left: 2px; vertical-align: middle;
+}
+
+/* Phone */
+.au-page .au-phone { font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d); }
+
+/* Role badge */
+.au-page .au-role {
+    display: inline-flex; align-items: center; padding: 0.25rem 0.6rem;
+    border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+}
+.au-page .au-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
+.au-page .au-role.r-teacher { background: rgba(16,185,129,0.1); color: #10b981; }
+.au-page .au-role.r-student { background: rgba(99,102,241,0.1); color: #6366f1; }
+[data-bs-theme="dark"] .au-page .au-role.r-admin { background: rgba(239,68,68,0.2); color: #fca5a5; }
+[data-bs-theme="dark"] .au-page .au-role.r-teacher { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+[data-bs-theme="dark"] .au-page .au-role.r-student { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+
+/* Status */
+.au-page .au-status {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-size: 0.78rem; font-weight: 600;
+}
+.au-page .au-status.s-active { color: #10b981; }
+.au-page .au-status.s-blocked { color: #ef4444; }
+.au-page .au-status-dot {
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.au-page .au-status.s-active .au-status-dot { background: #10b981; }
+.au-page .au-status.s-blocked .au-status-dot { background: #ef4444; }
+
+/* Actions */
+.au-page .au-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
+.au-page .au-act {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; text-decoration: none;
+    font-size: 0.85rem; transition: all 0.2s;
+}
+.au-page .au-act:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.au-page .au-act.a-view { color: #0ea5e9; border-color: rgba(14,165,233,0.3); }
+.au-page .au-act.a-view:hover { background: rgba(14,165,233,0.06); color: #0ea5e9; }
+.au-page .au-act.a-edit { color: #6366f1; border-color: rgba(99,102,241,0.3); }
+.au-page .au-act.a-edit:hover { background: rgba(99,102,241,0.06); color: #6366f1; }
+.au-page .au-act.a-block { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+.au-page .au-act.a-block:hover { background: rgba(245,158,11,0.06); color: #f59e0b; }
+.au-page .au-act.a-delete { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.au-page .au-act.a-delete:hover { background: rgba(239,68,68,0.06); color: #ef4444; }
+
+/* Empty */
+.au-page .au-empty { text-align: center; padding: 3rem 1rem; }
+.au-page .au-empty-icon {
+    width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 1rem;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg-color, #f0f2f5); font-size: 1.75rem;
+    color: var(--bs-secondary-color, #6c757d);
+}
+.au-page .au-empty h5 { font-weight: 700; margin-bottom: 0.4rem; }
+.au-page .au-empty p { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0; }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+    .au-page { padding: 1rem 0.5rem; }
+    .au-page .au-title { font-size: 1.3rem; }
+    .au-page .au-filter-grid { grid-template-columns: 1fr; }
+    .au-page .au-filter-bar { gap: 0.5rem; }
+    .au-page .au-result-count { margin-left: 0; width: 100%; text-align: center; order: 10; }
+    .au-page .au-sort-select { min-width: 0; flex: 1; }
+
+    .au-page .au-row {
+        grid-template-columns: 1fr;
+        gap: 0.6rem; padding: 1rem;
+    }
+    .au-page .au-desktop { display: none !important; }
+    .au-page .au-mobile { display: flex !important; }
+}
+@media (min-width: 769px) {
+    .au-page .au-mobile { display: none !important; }
+}
+</style>
+
+<div class="au-page">
+
+    <!-- Header -->
+    <h1 class="au-title"><i class="bi bi-people"></i> Foydalanuvchilar</h1>
+    <p class="au-sub">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+
+    <form method="GET" id="auForm">
+
+    <!-- Search -->
+    <div class="au-search">
+        <i class="bi bi-search au-search-icon"></i>
+        <input type="text" name="q" class="au-search-input" id="auSearchInput"
+               placeholder="Ism, username yoki telefon raqam bo'yicha izlash..."
+               value="{{ search_query }}" autocomplete="off">
+        <button type="button" class="au-search-clear {% if search_query %}au-show{% endif %}"
+                id="auSearchClear" title="Tozalash">
+            <i class="bi bi-x-circle-fill"></i>
+        </button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="au-filter-bar">
+        <button type="button" class="au-filter-toggle {% if active_filters %}au-active{% endif %}" id="auFilterToggle">
+            <i class="bi bi-sliders"></i> Filtrlar
+            {% if active_filters %}<span class="au-filter-count">{{ active_filters }}</span>{% endif %}
+        </button>
+
+        <select name="sort" class="au-sort-select" onchange="document.getElementById('auForm').submit()">
+            <option value="">Saralash: Yangi</option>
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Yangi birinchi</option>
+            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
+            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism (A-Z)</option>
+            <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Ism (Z-A)</option>
+            <option value="activity" {% if sort_by == 'activity' %}selected{% endif %}>Faollik bo'yicha</option>
+        </select>
+
+        <span class="au-result-count">
+            <i class="bi bi-people-fill me-1"></i>{{ total_count }} ta foydalanuvchi
+        </span>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="au-filter-panel {% if active_filters %}au-show{% endif %}" id="auFilterPanel">
+        <div class="au-filter-grid">
+            <div class="au-filter-group">
+                <label>Rol</label>
+                <select name="role" class="au-filter-select">
                     <option value="">Barchasi</option>
                     <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
-                    <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O‘qituvchi</option>
-                    <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O‘quvchi</option>
+                    <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O'qituvchi</option>
+                    <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O'quvchi</option>
                 </select>
             </div>
-
-            <div class="col-md-3">
-                <label class="form-label">Yo‘nalish</label>
-                <select name="profession" class="form-select">
+            <div class="au-filter-group">
+                <label>Yo'nalish</label>
+                <select name="profession" class="au-filter-select">
                     <option value="">Barchasi</option>
                     {% for p in professions %}
                     <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>
@@ -148,136 +319,202 @@
                     {% endfor %}
                 </select>
             </div>
-
-            <div class="col-md-3">
-                <label class="form-label">Status</label>
-                <select name="status" class="form-select">
+            <div class="au-filter-group">
+                <label>Status</label>
+                <select name="status" class="au-filter-select">
                     <option value="">Barchasi</option>
                     <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
                     <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Bloklangan</option>
                 </select>
             </div>
-
-            <div class="col-md-3 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-filter"></i>
-                </button>
-                <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-x-lg"></i>
-                </a>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- LIST -->
-<div class="card">
-    <div class="card-header">
-        Foydalanuvchilar ({{ users.count }})
+        </div>
+        <div class="au-filter-actions">
+            <a href="{% url 'admin_users' %}" class="au-btn-reset">
+                <i class="bi bi-x-lg"></i> Tozalash
+            </a>
+            <button type="submit" class="au-btn-apply">
+                <i class="bi bi-check2 me-1"></i>Qo'llash
+            </button>
+        </div>
     </div>
 
-    <div class="card-body p-0">
+    </form>
+
+    <!-- Active Filter Chips -->
+    {% if search_query or role_filter or profession_filter or status_filter %}
+    <div class="au-chips">
+        {% if search_query %}
+        <span class="au-chip">
+            <i class="bi bi-search"></i> "{{ search_query }}"
+            <a href="?{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+        {% if role_filter %}
+        <span class="au-chip">
+            <i class="bi bi-person-badge"></i>
+            {% if role_filter == 'admin' %}Admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+        {% if profession_filter %}
+        <span class="au-chip">
+            <i class="bi bi-mortarboard"></i> Yo'nalish: {{ profession_filter }}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+        {% if status_filter %}
+        <span class="au-chip">
+            <i class="bi bi-circle-fill" style="font-size:0.4rem;"></i>
+            {% if status_filter == 'active' %}Faol{% else %}Bloklangan{% endif %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Users List -->
     {% if users %}
-    <div class="table-responsive">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Foydalanuvchi</th>
-                    <th>Telefon</th>
-                    <th>Rol</th>
-                    <th>Yo‘nalish</th>
-                    <th class="text-center">Status</th>
-                    <th>Faollik</th>
-                    <th>Amallar</th>
-                </tr>
-            </thead>
-            <tbody>
+    <div class="au-list">
+        {% for u in users %}
+        <div class="au-row">
 
-            {% for u in users %}
-            <tr>
-                <td data-label="#"> {{ forloop.counter }} </td>
+            <!-- DESKTOP -->
+            <div class="au-identity au-desktop">
+                {% if u.photo %}
+                <img src="{{ u.photo.url }}" class="au-avatar" alt="">
+                {% else %}
+                <div class="au-avatar-ph">{{ u.get_initials }}</div>
+                {% endif %}
+                <div style="min-width:0;">
+                    <div class="au-name">
+                        {{ u.full_name }}
+                        {% if u.is_premium %}<i class="bi bi-star-fill au-premium"></i>{% endif %}
+                        {% if u.is_online %}<span class="au-online"></span>{% endif %}
+                    </div>
+                    <div class="au-uname">@{{ u.username }}</div>
+                </div>
+            </div>
 
-                <td data-label="Foydalanuvchi">
-                    <div class="d-flex align-items-center gap-2">
+            <div class="au-phone au-desktop">{{ u.phone }}</div>
+
+            <div class="au-desktop">
+                <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                    {% if u.role == 'admin' %}Admin{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                </span>
+            </div>
+
+            <div class="au-desktop">
+                <span class="au-status {% if u.is_blocked %}s-blocked{% else %}s-active{% endif %}">
+                    <span class="au-status-dot"></span>
+                    {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
+                </span>
+                {% if u.last_activity %}
+                <div style="font-size:0.72rem; color:var(--bs-secondary-color, #6c757d); margin-top:2px;">
+                    {{ u.last_activity|timesince }} oldin
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="au-actions au-desktop">
+                <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
+                <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                {% if not u.is_admin %}
+                <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
+                    <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
+                </a>
+                <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
+                {% endif %}
+            </div>
+
+            <!-- MOBILE -->
+            <div class="au-mobile" style="flex-direction:column; gap:0.6rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="au-identity">
                         {% if u.photo %}
-                        <img src="{{ u.photo.url }}" class="user-avatar-sm">
+                        <img src="{{ u.photo.url }}" class="au-avatar" alt="">
                         {% else %}
-                        <div class="user-avatar-placeholder">{{ u.get_initials }}</div>
+                        <div class="au-avatar-ph">{{ u.get_initials }}</div>
                         {% endif %}
-                        <div>
-                            <strong>{{ u.full_name }}</strong>
-                            {% if u.is_premium %}<span class="badge bg-warning text-dark" style="font-size: 0.65em;" title="Premium"><i class="bi bi-star-fill"></i></span>{% endif %}
-                            {% if u.is_online %}<span class="online-badge"></span>{% endif %}
-                            <br><small class="text-muted">@{{ u.username }}</small>
+                        <div style="min-width:0;">
+                            <div class="au-name">
+                                {{ u.full_name }}
+                                {% if u.is_premium %}<i class="bi bi-star-fill au-premium"></i>{% endif %}
+                                {% if u.is_online %}<span class="au-online"></span>{% endif %}
+                            </div>
+                            <div class="au-uname">@{{ u.username }}</div>
                         </div>
                     </div>
-                </td>
-
-                <td data-label="Telefon">{{ u.phone }}</td>
-
-                <td data-label="Rol">
-                    <span class="badge
-                        {% if u.role == 'admin' %}bg-danger
-                        {% elif u.role == 'teacher' %}bg-success
-                        {% else %}bg-primary{% endif %}">
-                        {% if u.role == 'admin' %}Admin{% elif u.role == 'teacher' %}O‘qituvchi{% else %}O‘quvchi{% endif %}
+                    <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                        {% if u.role == 'admin' %}Admin{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
                     </span>
-                </td>
-
-                <td data-label="Yo‘nalish">
-                    {% if u.profession %}{{ u.profession.name }}{% else %}<span class="text-muted">—</span>{% endif %}
-                </td>
-
-                <td data-label="Status" class="text-center">
-                    {% if u.is_blocked %}
-                    <span class="badge bg-danger">Bloklangan</span>
-                    {% else %}
-                    <span class="badge bg-success">Faol</span>
-                    {% endif %}
-                </td>
-
-                <td data-label="Faollik">
+                </div>
+                <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
+                    <span style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);"><i class="bi bi-phone me-1"></i>{{ u.phone }}</span>
+                    <span class="au-status {% if u.is_blocked %}s-blocked{% else %}s-active{% endif %}">
+                        <span class="au-status-dot"></span>
+                        {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
+                    </span>
                     {% if u.last_activity %}
-                        {{ u.last_activity|timesince }} oldin
-                    {% else %}
-                        <span class="text-muted">—</span>
+                    <span style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">
+                        <i class="bi bi-clock me-1"></i>{{ u.last_activity|timesince }}
+                    </span>
                     {% endif %}
-                </td>
-
-                <td data-label="Amallar" class="action-btns">
-                    <a href="{% url 'admin_user_view' u.pk %}" class="btn btn-sm btn-outline-info">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'admin_user_edit' u.pk %}" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                </div>
+                <div class="au-actions" style="justify-content:flex-start;">
+                    <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
+                    <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
                     {% if not u.is_admin %}
-                    <a href="{% url 'admin_user_block' u.pk %}" class="btn btn-sm btn-outline-warning">
+                    <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
                         <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                     </a>
-                    <a href="{% url 'admin_user_delete' u.pk %}" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i>
-                    </a>
+                    <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
                     {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
+                </div>
+            </div>
 
-            </tbody>
-        </table>
+        </div>
+        {% endfor %}
     </div>
 
     {% with page_obj=users %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
 
     {% else %}
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-people" style="font-size:2.5rem;"></i>
-        <p class="mt-2 mb-0">Foydalanuvchilar topilmadi</p>
+    <div class="au-empty">
+        <div class="au-empty-icon"><i class="bi bi-people"></i></div>
+        <h5>Foydalanuvchilar topilmadi</h5>
+        <p>{% if search_query %}«{{ search_query }}» bo'yicha hech narsa topilmadi{% else %}Filtr shartlariga mos foydalanuvchi yo'q{% endif %}</p>
     </div>
     {% endif %}
-    </div>
-</div>
 
 </div>
+
+<script>
+(function(){
+    var toggle = document.getElementById('auFilterToggle');
+    var panel = document.getElementById('auFilterPanel');
+    var input = document.getElementById('auSearchInput');
+    var clearBtn = document.getElementById('auSearchClear');
+    var form = document.getElementById('auForm');
+    var timer = null;
+
+    toggle.addEventListener('click', function(){
+        panel.classList.toggle('au-show');
+        toggle.classList.toggle('au-active');
+    });
+
+    clearBtn.addEventListener('click', function(){
+        input.value = '';
+        clearBtn.classList.remove('au-show');
+        form.submit();
+    });
+
+    input.addEventListener('input', function(){
+        clearBtn.classList.toggle('au-show', input.value.length > 0);
+        clearTimeout(timer);
+        timer = setTimeout(function(){
+            form.submit();
+        }, 600);
+    });
+})();
+</script>
 {% endblock %}

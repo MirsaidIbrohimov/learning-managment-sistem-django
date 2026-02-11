@@ -2083,11 +2083,22 @@ def admin_users(request):
     if not request.user.is_admin:
         return redirect('home')
     
+    search_query = request.GET.get('q', '').strip()
     role_filter = request.GET.get('role', '')
     profession_filter = request.GET.get('profession', '')
     status_filter = request.GET.get('status', '')
+    sort_by = request.GET.get('sort', '')
     
     users = CustomUser.objects.all()
+    
+    if search_query:
+        from django.db.models import Q
+        users = users.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(username__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
     
     if role_filter:
         users = users.filter(role=role_filter)
@@ -2098,18 +2109,42 @@ def admin_users(request):
     elif status_filter == 'active':
         users = users.filter(is_blocked=False)
     
+    if sort_by == 'name':
+        users = users.order_by('first_name', 'last_name')
+    elif sort_by == 'name_desc':
+        users = users.order_by('-first_name', '-last_name')
+    elif sort_by == 'newest':
+        users = users.order_by('-date_joined')
+    elif sort_by == 'oldest':
+        users = users.order_by('date_joined')
+    elif sort_by == 'activity':
+        users = users.order_by('-last_activity')
+    else:
+        users = users.order_by('-date_joined')
+    
+    total_count = users.count()
     professions = Profession.objects.all()
     
     paginator = Paginator(users, 25)
     page = request.GET.get('page')
     users = paginator.get_page(page)
     
+    active_filters = sum([
+        bool(role_filter),
+        bool(profession_filter),
+        bool(status_filter),
+    ])
+    
     return render(request, 'accounts/admin/users.html', {
         'users': users,
         'professions': professions,
+        'search_query': search_query,
         'role_filter': role_filter,
         'profession_filter': profession_filter,
         'status_filter': status_filter,
+        'sort_by': sort_by,
+        'total_count': total_count,
+        'active_filters': active_filters,
     })
 
 
