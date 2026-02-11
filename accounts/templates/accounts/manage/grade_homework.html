@@ -149,55 +149,170 @@
 }
 .gh-page .gh-grade-submit:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
 
+/* description card */
+@keyframes ghDescFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.gh-page .gh-desc-card {
+    border: 1px solid var(--border-color, #dee2e6); border-radius: 16px;
+    background: var(--card-bg, #fff); margin-bottom: 1.25rem; overflow: hidden;
+    animation: ghDescFadeIn 0.5s ease-out;
+}
+.gh-page .gh-desc-head {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.85rem 1.25rem; font-weight: 700; font-size: 0.9rem;
+    background: linear-gradient(135deg, rgba(14,165,233,0.06), rgba(99,102,241,0.06));
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+.gh-page .gh-desc-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0ea5e9, #6366f1); color: #fff; font-size: 0.95rem;
+}
+.gh-page .gh-desc-body {
+    padding: 1.25rem 1.5rem; font-size: 0.92rem; line-height: 1.8;
+    color: var(--text-color, #212529); animation: ghDescFadeIn 0.5s ease-out 0.15s both;
+}
+.gh-page .gh-desc-body p { margin: 0 0 0.75rem; }
+.gh-page .gh-desc-body p:last-child { margin-bottom: 0; }
+.gh-page .gh-desc-body ul, .gh-page .gh-desc-body ol { padding-left: 1.25rem; margin: 0.5rem 0; }
+.gh-page .gh-desc-body li { margin-bottom: 0.35rem; }
+.gh-page .gh-desc-body strong { color: var(--text-color, #111); }
+.gh-page .gh-desc-body code {
+    background: rgba(99,102,241,0.08); padding: 0.15rem 0.4rem;
+    border-radius: 5px; font-size: 0.85em; color: #6366f1;
+}
+.gh-page .gh-desc-due {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    margin-top: 1rem; padding: 0.55rem 1rem; border-radius: 10px;
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);
+    font-size: 0.82rem; font-weight: 600; color: #d97706;
+    animation: ghDescFadeIn 0.5s ease-out 0.3s both;
+}
+[data-bs-theme="dark"] .gh-page .gh-desc-due {
+    background: rgba(245,158,11,0.12); color: #fbbf24;
+}
+
 /* chat */
+@keyframes ghChatSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ghChatPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+@keyframes ghTypingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
 .gh-page .gh-chat-wrap { position: sticky; top: 20px; }
+.gh-page .gh-chat-card {
+    border: 1px solid var(--border-color, #dee2e6); border-radius: 16px;
+    background: var(--card-bg, #fff); overflow: hidden;
+}
+.gh-page .gh-chat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1.25rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+}
+.gh-page .gh-chat-header-left {
+    display: flex; align-items: center; gap: 0.5rem; font-weight: 700; font-size: 0.9rem;
+}
+.gh-page .gh-chat-header-icon {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; font-size: 0.95rem;
+}
+.gh-page .gh-chat-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 24px; height: 24px; border-radius: 8px; padding: 0 6px;
+    background: rgba(99,102,241,0.1); color: #6366f1;
+    font-size: 0.75rem; font-weight: 700;
+}
 .gh-page .gh-chat-container {
     height: 450px; overflow-y: auto;
-    background: var(--bg-color, #f0f2f5); border-radius: 12px;
-    padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+    background: var(--bg-color, #f0f2f5); border-radius: 0;
+    padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;
     scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.3) transparent;
 }
-.gh-page .gh-chat-container::-webkit-scrollbar { width: 6px; }
-.gh-page .gh-chat-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 10px; }
-.gh-page .gh-msg { display: flex; max-width: 100%; }
+.gh-page .gh-chat-container::-webkit-scrollbar { width: 5px; }
+.gh-page .gh-chat-container::-webkit-scrollbar-track { background: transparent; }
+.gh-page .gh-chat-container::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 10px; }
+.gh-page .gh-msg {
+    display: flex; max-width: 100%;
+    animation: ghChatSlideIn 0.3s ease-out both;
+}
 .gh-page .gh-msg.gh-mine { justify-content: flex-end; }
 .gh-page .gh-msg.gh-other { justify-content: flex-start; }
 .gh-page .gh-bubble {
-    max-width: 75%; padding: 0.75rem 1rem; border-radius: 16px;
-    font-size: 0.9rem; line-height: 1.6; word-wrap: break-word;
+    max-width: 78%; padding: 0.75rem 1rem; border-radius: 18px;
+    font-size: 0.88rem; line-height: 1.65; word-wrap: break-word;
     overflow-wrap: break-word; white-space: pre-wrap; position: relative;
+    transition: transform 0.15s;
 }
+.gh-page .gh-bubble:hover { transform: scale(1.01); }
 .gh-page .gh-msg.gh-mine .gh-bubble {
     background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
-    border-bottom-right-radius: 4px; box-shadow: 0 2px 8px rgba(99,102,241,0.25);
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 3px 12px rgba(99,102,241,0.2);
 }
 .gh-page .gh-msg.gh-other .gh-bubble {
     background: var(--card-bg, #fff); color: var(--text-color, #212529);
-    border: 1px solid var(--border-color, #dee2e6); border-bottom-left-radius: 4px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid var(--border-color, #dee2e6); border-bottom-left-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 .gh-page .gh-bubble a { color: inherit; text-decoration: underline; word-break: break-all; }
 .gh-page .gh-msg.gh-mine .gh-bubble a { color: rgba(255,255,255,0.9); }
+.gh-page .gh-bubble .gh-file-link {
+    display: flex; align-items: center; gap: 0.4rem;
+    margin-top: 0.5rem; padding: 0.4rem 0.65rem; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 600; text-decoration: none;
+    transition: background 0.2s;
+}
+.gh-page .gh-msg.gh-mine .gh-file-link {
+    background: rgba(255,255,255,0.15); color: #fff;
+}
+.gh-page .gh-msg.gh-mine .gh-file-link:hover { background: rgba(255,255,255,0.25); }
+.gh-page .gh-msg.gh-other .gh-file-link {
+    background: rgba(99,102,241,0.08); color: #6366f1;
+}
+.gh-page .gh-msg.gh-other .gh-file-link:hover { background: rgba(99,102,241,0.15); }
 .gh-page .gh-chat-meta {
-    font-size: 0.7rem; margin-top: 6px; opacity: 0.6;
+    font-size: 0.68rem; margin-top: 6px; opacity: 0.5;
     display: flex; align-items: center; gap: 4px;
 }
-.gh-page .gh-msg.gh-mine .gh-chat-meta { justify-content: flex-end; color: rgba(255,255,255,0.7); }
+.gh-page .gh-msg.gh-mine .gh-chat-meta { justify-content: flex-end; color: rgba(255,255,255,0.65); }
 .gh-page .gh-chat-empty {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    height: 100%; color: var(--bs-secondary-color, #6c757d); text-align: center; padding: 2rem;
+    height: 100%; text-align: center; padding: 2rem;
 }
-.gh-page .gh-chat-empty i { font-size: 3rem; opacity: 0.2; margin-bottom: 0.75rem; }
+.gh-page .gh-chat-empty-icon {
+    width: 64px; height: 64px; border-radius: 50%; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(99,102,241,0.08); color: #6366f1; font-size: 1.5rem;
+    animation: ghChatPulse 3s ease-in-out infinite;
+}
+.gh-page .gh-chat-empty p {
+    color: var(--bs-secondary-color, #6c757d); font-size: 0.88rem; margin: 0;
+}
+.gh-page .gh-chat-empty span {
+    font-size: 0.78rem; color: var(--bs-secondary-color, #adb5bd); margin-top: 0.25rem; display: block;
+}
 .gh-page .gh-chat-input {
     display: flex; align-items: center; gap: 0.5rem;
-    margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color, #dee2e6);
+    padding: 0.85rem 1.25rem; border-top: 1px solid var(--border-color, #dee2e6);
+    background: var(--card-bg, #fff);
 }
 .gh-page .gh-chat-text {
-    flex: 1; min-width: 0; padding: 0.6rem 0.85rem; border-radius: 10px;
+    flex: 1; min-width: 0; padding: 0.65rem 1rem; border-radius: 12px;
     border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
-    color: var(--text-color, #212529); font-size: 0.88rem;
+    color: var(--text-color, #212529); font-size: 0.88rem; transition: border-color 0.2s;
 }
-.gh-page .gh-chat-text:focus { outline: none; border-color: #6366f1; }
+.gh-page .gh-chat-text:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
 .gh-page .gh-chat-btn {
     width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
@@ -350,14 +465,17 @@
 
             <!-- Homework description -->
             {% if submission.homework.description %}
-            <div class="gh-card">
-                <div class="gh-card-head"><i class="bi bi-info-circle"></i> Vazifa tavsifi</div>
-                <div class="gh-card-body">
-                    <p style="margin:0 0 0.5rem;">{{ submission.homework.description }}</p>
+            <div class="gh-desc-card">
+                <div class="gh-desc-head">
+                    <div class="gh-desc-icon"><i class="bi bi-journal-text"></i></div>
+                    Vazifa tavsifi
+                </div>
+                <div class="gh-desc-body">
+                    {{ submission.homework.description|safe }}
                     {% if submission.homework.due_date %}
-                    <span style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);">
-                        <i class="bi bi-calendar-event me-1"></i>Muddat: {{ submission.homework.due_date|date:"d.m.Y H:i" }}
-                    </span>
+                    <div class="gh-desc-due">
+                        <i class="bi bi-calendar-event"></i> Muddat: {{ submission.homework.due_date|date:"d.m.Y H:i" }}
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -460,21 +578,25 @@
 
         <!-- RIGHT COLUMN - Chat -->
         <div>
-            <div class="gh-card gh-chat-wrap">
-                <div class="gh-card-head" style="justify-content:space-between;">
-                    <span><i class="bi bi-chat-dots" style="color:#6366f1;"></i> O'quvchi bilan chat</span>
-                    <span style="font-size:0.75rem; font-weight:700; color:var(--bs-secondary-color, #6c757d);">{{ chat_messages.count }}</span>
-                </div>
-                <div class="gh-card-body">
+            <div class="gh-chat-wrap">
+                <div class="gh-chat-card">
+                    <div class="gh-chat-header">
+                        <div class="gh-chat-header-left">
+                            <div class="gh-chat-header-icon"><i class="bi bi-chat-dots-fill"></i></div>
+                            O'quvchi bilan chat
+                        </div>
+                        <span class="gh-chat-count">{{ chat_messages.count }}</span>
+                    </div>
+
                     <div class="gh-chat-container" id="ghChat">
                         {% if chat_messages %}
                         {% for msg in chat_messages %}
-                        <div class="gh-msg {% if msg.sender == request.user %}gh-mine{% else %}gh-other{% endif %}">
+                        <div class="gh-msg {% if msg.sender == request.user %}gh-mine{% else %}gh-other{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
                             <div class="gh-bubble">
                                 {{ msg.message }}
                                 {% if msg.file %}
-                                <a href="{{ msg.file.url }}" target="_blank" style="display:block; margin-top:0.5rem; font-size:0.82rem;">
-                                    <i class="bi bi-paperclip"></i> Fayl
+                                <a href="{{ msg.file.url }}" target="_blank" class="gh-file-link">
+                                    <i class="bi bi-file-earmark-arrow-down"></i> Faylni yuklab olish
                                 </a>
                                 {% endif %}
                                 <div class="gh-chat-meta">
@@ -485,8 +607,9 @@
                         {% endfor %}
                         {% else %}
                         <div class="gh-chat-empty">
-                            <i class="bi bi-chat-dots"></i>
+                            <div class="gh-chat-empty-icon"><i class="bi bi-chat-dots"></i></div>
                             <p>Hali xabarlar yo'q</p>
+                            <span>Birinchi xabarni yuboring</span>
                         </div>
                         {% endif %}
                     </div>
