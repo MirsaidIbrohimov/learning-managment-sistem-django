@@ -533,21 +533,190 @@
 </div>
 
 <!-- Auto Grade Modal -->
-<div class="modal fade" id="autoGradeModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="gh-modal-content modal-content">
-            <div class="gh-modal-body">
-                <div class="gh-modal-icon m-auto"><i class="bi bi-magic"></i></div>
-                <h5 style="font-weight:700;">Avtomatik baholash</h5>
-                <p style="color:var(--bs-secondary-color, #6c757d); font-size:0.88rem; margin-bottom:0;">
-                    Vazifa <strong>1 ball</strong> bilan avtomatik baholanadi va o'quvchiga coin beriladi. Davom ettirilsinmi?
+<style>
+/* auto-grade modal animations */
+@keyframes agPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+@keyframes agSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes agFadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes agFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+@keyframes agShimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes agParticle {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+}
+
+.ag-modal .modal-content {
+    border-radius: 24px; border: none; overflow: visible;
+    background: var(--card-bg, #fff);
+    box-shadow: 0 25px 60px rgba(139, 92, 246, 0.15);
+}
+[data-bs-theme="dark"] .ag-modal .modal-content {
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+.ag-modal .modal-body { padding: 2.5rem 2rem 2rem; text-align: center; position: relative; overflow: hidden; }
+
+/* glow bg */
+.ag-glow {
+    position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 200px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%);
+    pointer-events: none; animation: agPulse 3s ease-in-out infinite;
+}
+[data-bs-theme="dark"] .ag-glow {
+    background: radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%);
+}
+
+/* icon */
+.ag-icon-wrap {
+    width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1.25rem;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(99,102,241,0.1));
+    position: relative; animation: agFloat 3s ease-in-out infinite;
+}
+.ag-icon-wrap::before {
+    content: ''; position: absolute; inset: -3px; border-radius: 50%;
+    background: conic-gradient(from 0deg, #8b5cf6, #6366f1, #a78bfa, #8b5cf6);
+    opacity: 0.3; animation: agSpin 4s linear infinite;
+}
+.ag-icon-wrap::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: var(--card-bg, #fff);
+}
+.ag-icon-inner {
+    position: relative; z-index: 1; font-size: 2rem;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* title */
+.ag-title {
+    font-weight: 800; font-size: 1.2rem; margin-bottom: 0.75rem;
+    animation: agFadeUp 0.4s ease-out 0.1s both;
+}
+
+/* info cards */
+.ag-info {
+    display: flex; gap: 0.75rem; justify-content: center; margin-bottom: 1.25rem;
+    animation: agFadeUp 0.4s ease-out 0.2s both;
+}
+.ag-info-card {
+    flex: 1; max-width: 130px; padding: 0.85rem 0.5rem; border-radius: 14px;
+    background: var(--bg-color, #f0f2f5); border: 1px solid var(--border-color, #dee2e6);
+    text-align: center; transition: transform 0.2s;
+}
+.ag-info-card:hover { transform: translateY(-2px); }
+.ag-info-icon {
+    width: 36px; height: 36px; border-radius: 10px; margin: 0 auto 0.4rem;
+    display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.ag-info-card:first-child .ag-info-icon {
+    background: rgba(139,92,246,0.1); color: #8b5cf6;
+}
+.ag-info-card:last-child .ag-info-icon {
+    background: rgba(245,158,11,0.1); color: #f59e0b;
+}
+.ag-info-val { font-size: 1.1rem; font-weight: 800; display: block; line-height: 1; }
+.ag-info-label { font-size: 0.68rem; font-weight: 600; color: var(--bs-secondary-color, #6c757d); text-transform: uppercase; letter-spacing: 0.3px; margin-top: 0.25rem; display: block; }
+
+/* description */
+.ag-desc {
+    font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d); line-height: 1.6;
+    margin-bottom: 1.5rem; animation: agFadeUp 0.4s ease-out 0.3s both;
+}
+
+/* buttons */
+.ag-btns {
+    display: flex; gap: 0.75rem; justify-content: center;
+    animation: agFadeUp 0.4s ease-out 0.4s both;
+}
+.ag-btn-cancel {
+    padding: 0.65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.88rem;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color, #212529); cursor: pointer; transition: all 0.2s;
+}
+.ag-btn-cancel:hover { background: var(--bg-color, #f0f2f5); }
+.ag-btn-confirm {
+    padding: 0.65rem 1.75rem; border-radius: 12px; font-weight: 700; font-size: 0.88rem;
+    border: none; color: #fff; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    box-shadow: 0 4px 15px rgba(139,92,246,0.3);
+}
+.ag-btn-confirm:hover {
+    transform: translateY(-2px); box-shadow: 0 8px 25px rgba(139,92,246,0.4);
+}
+.ag-btn-confirm::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 100%;
+    animation: agShimmer 2s linear infinite;
+}
+.ag-btn-confirm span { position: relative; z-index: 1; }
+
+/* particles */
+.ag-particles {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.ag-particle {
+    position: absolute; width: 6px; height: 6px; border-radius: 50%;
+    animation: agParticle 1.5s ease-out forwards;
+    opacity: 0;
+}
+</style>
+
+<div class="modal fade ag-modal" id="autoGradeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="ag-glow"></div>
+                <div class="ag-particles" id="agParticles"></div>
+
+                <div class="ag-icon-wrap">
+                    <i class="bi bi-magic ag-icon-inner"></i>
+                </div>
+
+                <h5 class="ag-title">Avtomatik baholash</h5>
+
+                <div class="ag-info">
+                    <div class="ag-info-card">
+                        <div class="ag-info-icon"><i class="bi bi-star-fill"></i></div>
+                        <span class="ag-info-val">1</span>
+                        <span class="ag-info-label">Ball</span>
+                    </div>
+                    <div class="ag-info-card">
+                        <div class="ag-info-icon"><i class="bi bi-coin"></i></div>
+                        <span class="ag-info-val">{% if submission.is_late %}5{% else %}10{% endif %}</span>
+                        <span class="ag-info-label">Coin</span>
+                    </div>
+                </div>
+
+                <p class="ag-desc">
+                    Vazifa <strong>1 ball</strong> bilan baholanadi{% if not submission.is_late %}, o'quvchiga <strong>10 coin</strong> beriladi{% else %}, o'quvchiga <strong>5 coin</strong> beriladi (kech topshirilgan){% endif %}.
                 </p>
-                <form method="POST">
+
+                <form method="POST" id="autoGradeForm">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="auto_grade">
-                    <div class="gh-modal-actions">
-                        <button type="button" class="gh-modal-cancel" data-bs-dismiss="modal">Bekor qilish</button>
-                        <button type="submit" class="gh-modal-confirm mc-auto"><i class="bi bi-magic me-1"></i> Baholash</button>
+                    <div class="ag-btns">
+                        <button type="button" class="ag-btn-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="ag-btn-confirm" id="agConfirmBtn">
+                            <span><i class="bi bi-magic me-1"></i> Baholash</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -559,6 +728,30 @@
 document.addEventListener('DOMContentLoaded', function() {
     var chat = document.getElementById('ghChat');
     if (chat) chat.scrollTop = chat.scrollHeight;
+
+    // particles on modal show
+    var agModal = document.getElementById('autoGradeModal');
+    if (agModal) {
+        agModal.addEventListener('shown.bs.modal', function() {
+            var container = document.getElementById('agParticles');
+            container.innerHTML = '';
+            var colors = ['#8b5cf6','#6366f1','#a78bfa','#f59e0b','#fbbf24','#c084fc'];
+            for (var i = 0; i < 20; i++) {
+                var p = document.createElement('div');
+                p.className = 'ag-particle';
+                p.style.left = (40 + Math.random() * 20) + '%';
+                p.style.top = (30 + Math.random() * 10) + '%';
+                p.style.background = colors[Math.floor(Math.random() * colors.length)];
+                p.style.width = (4 + Math.random() * 5) + 'px';
+                p.style.height = p.style.width;
+                p.style.setProperty('--dx', (Math.random() * 120 - 60) + 'px');
+                p.style.setProperty('--dy', (Math.random() * 120 - 60) + 'px');
+                p.style.animationDelay = (Math.random() * 0.5) + 's';
+                p.style.opacity = '1';
+                container.appendChild(p);
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
