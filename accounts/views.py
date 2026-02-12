@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Q, Sum, Avg
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from datetime import timedelta
 from .forms import (
@@ -18,7 +18,7 @@ from .models import (
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
-    Parent, ParentMessage, PremiumRequest
+    Parent, ParentMessage, PremiumRequest, BlockedSection
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -5334,4 +5334,119 @@ def reject_premium_request(request, pk):
 
     messages.success(request, f"{prem_req.user.full_name}ning Premium so'rovi rad etildi. Coinlar qaytarildi.")
     return redirect('admin_premium_management')
+
+
+# ============== SECTION MANAGEMENT ==============
+
+@login_required
+def admin_sections_management(request):
+    """Bo'limlar boshqaruvi - saytdagi barcha bo'limlarni bloklab/yoqlab qo'yish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    # Database dan bloklangan bo'limlarni o'qish
+    blocked_db = BlockedSection.objects.all()
+    
+    # Har bo'lim uchun default dict yaratish
+    sections_dict = {}
+    
+    # Barcha bo'limlar uchun default status qo'yish
+    for section_code, section_name in BlockedSection.SECTION_CHOICES:
+        sections_dict[section_code] = {
+            'is_blocked': False,
+            'reason': '',
+            'blocked_by': None,
+            'blocked_at': None,
+        }
+    
+    # Database dan bloklangan bo'limlarni update qilish
+    for bs in blocked_db:
+        sections_dict[bs.section] = {
+            'is_blocked': bs.is_blocked,
+            'reason': bs.reason,
+            'blocked_by': bs.blocked_by,
+            'blocked_at': bs.blocked_at,
+        }
+    
+    # Statistika hisoblash
+    total_sections = len(BlockedSection.SECTION_CHOICES)
+    blocked_count = BlockedSection.objects.filter(is_blocked=True).count()
+    active_count = total_sections - blocked_count
+    
+    context = {
+        'blocked_sections': sections_dict,
+        'total_sections': total_sections,
+        'blocked_count': blocked_count,
+        'active_count': active_count,
+    }
+    
+    return render(request, 'accounts/admin/sections_management.html', context)
+
+
+@login_required
+def toggle_section_block(request, section):
+    """Bo'limni bloklab yoki yoqlab qo'yish - DATABASE ga saqlash"""
+    import sys
+    print(f"DEBUG: toggle_section_block called - User: {request.user}, Admin: {request.user.is_admin}", file=sys.stderr)
+    
+    if not request.user.is_admin:
+        print(f"DEBUG: User not admin", file=sys.stderr)
+        return JsonResponse({'error': 'Ruxsatmangan'}, status=403)
+    
+    if request.method != 'POST':
+        print(f"DEBUG: Not POST - Method: {request.method}", file=sys.stderr)
+        return JsonResponse({'error': 'POST so\'rovi kerak'}, status=400)
+    
+    try:
+        # Database dan bloklangan bo'limni topib yoki yaratib
+        blocked_section, created = BlockedSection.objects.get_or_create(section=section)
+        
+        reason = request.POST.get('reason', 'Tuzatish ishlari olib borilmoqda')
+        
+        # Toggle status
+        if blocked_section.is_blocked:
+            # Yoqib qo'yish
+            blocked_section.is_blocked = False
+            blocked_section.reason = ''
+            blocked = False
+            message = f"{section} yoqildi"
+        else:
+            # Bloklab qo'yish
+            blocked_section.is_blocked = True
+            blocked_section.reason = reason
+            blocked_section.blocked_by = request.user
+            blocked = True
+            message = f"{section} bloklandi: {reason}"
+        
+        # Database ga saqlash
+        blocked_section.save()
+        
+        # Aktivligi log - faqat action_type va description field lar
+        # ActivityLog model 'action' emas 'action_type' field boradi
+        # va 'details' field yo'q, faqat description bo'ladi
+        try:
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='deploy_edit',  # Deploy related action, yoki custom qo'shish kerak
+                description=message
+            )
+        except Exception as e:
+            # Log error ignore qil
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'blocked': blocked,
+            'message': message
+        })
+    
+    except Exception as e:
+        import sys
+        print(f"DEBUG: Exception - {str(e)}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
 

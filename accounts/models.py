@@ -1094,3 +1094,46 @@ class PremiumRequest(models.Model):
     def __str__(self):
         return f"{self.user.full_name} - {self.get_plan_display()} ({self.get_status_display()})"
 
+
+class BlockedSection(models.Model):
+    """Bloklangan sayt bo'limlari"""
+    
+    SECTION_CHOICES = (
+        ('sozlamalar', 'Sozlamalar'),
+        ('qurilmalar', 'Qurilmalar'),
+        ('reyting', 'Reyting'),
+        ('postlar', 'Postlar'),
+        ('market', 'Market'),
+        ('coding', 'Coding'),
+        ('yordam', 'Yordam'),
+        ('vazifalar', 'Vazifalar'),
+        ('xabarlar', 'Xabarlar'),
+        ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'),
+        ('profili', 'Profile'),
+    )
+    
+    section = models.CharField(
+        max_length=50,
+        choices=SECTION_CHOICES,
+        unique=True,
+        verbose_name="Bo'lim"
+    )
+    is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
+    reason = models.CharField(max_length=500, blank=True, verbose_name="Bloklash sababi")
+    blocked_at = models.DateTimeField(auto_now=True, verbose_name="Bloklash vaqti")
+    blocked_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='blocked_sections',
+        verbose_name="Admin"
+    )
+    
+    class Meta:
+        verbose_name = "Bloklangan bo'lim"
+        verbose_name_plural = "Bloklangan bo'limlar"
+    
+    def __str__(self):
+        return f"{self.get_section_display()} - {'Bloklangan' if self.is_blocked else 'Faol'}"
+

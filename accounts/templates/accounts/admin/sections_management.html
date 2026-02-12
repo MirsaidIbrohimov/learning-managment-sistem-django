@@ -1,0 +1,1114 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Bo'limlar boshqaruvi - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<!-- CSRF Token -->
+{% csrf_token %}
+
+<!-- DEBUG INFO -->
+<script>
+    console.log('Current User:', '{{ request.user }}');
+    console.log('Is Admin:', '{{ request.user.is_admin }}');
+    console.log('Is Staff:', '{{ request.user.is_staff }}');
+</script>
+<style>
+    /* Main container */
+    .sm-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+
+    .sm-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        transition: color 0.2s;
+    }
+
+    .sm-back:hover {
+        color: #6366f1;
+    }
+
+    /* Header */
+    .sm-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: slideIn 0.4s ease-out;
+    }
+
+    .sm-header-left h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-color, #212529);
+    }
+
+    .sm-header-left h1 i {
+        color: #6366f1;
+        font-size: 1.75rem;
+    }
+
+    .sm-header-sub {
+        font-size: 0.85rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.35rem;
+    }
+
+    .sm-stats {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .sm-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0.9rem 1.25rem;
+        border-radius: 12px;
+        background: var(--bg-color, #f0f2f5);
+        border: 1px solid var(--border-color, #dee2e6);
+        min-width: 140px;
+        text-align: center;
+    }
+
+    .sm-stat-val {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #6366f1;
+        margin-bottom: 0.25rem;
+    }
+
+    .sm-stat-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    /* Tabs */
+    .sm-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.75rem;
+        border-bottom: 2px solid var(--border-color, #dee2e6);
+        overflow-x: auto;
+    }
+
+    .sm-tab-btn {
+        padding: 0.75rem 1.25rem;
+        border: none;
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+
+    .sm-tab-btn:hover {
+        color: #6366f1;
+    }
+
+    .sm-tab-btn.active {
+        color: #6366f1;
+        border-bottom-color: #6366f1;
+    }
+
+    /* Grid */
+    .sm-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Page Block Card */
+    @keyframes cardSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .sm-page-card {
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 16px;
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: cardSlideIn 0.4s ease-out;
+    }
+
+    .sm-page-card:hover {
+        border-color: #6366f1;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.15);
+        transform: translateY(-4px);
+    }
+
+    .sm-page-card.blocked {
+        opacity: 0.7;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .sm-page-card.blocked:hover {
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.1);
+    }
+
+    /* Card header with icon and status */
+    .sm-page-head {
+        padding: 1.25rem;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .sm-page-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    .sm-page-card.blocked .sm-page-icon {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .sm-page-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+    }
+
+    .sm-page-desc {
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.2rem;
+    }
+
+    /* Status badge */
+    .sm-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-left: auto;
+    }
+
+    .sm-status-active {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .sm-status-blocked {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    /* Card body */
+    .sm-page-body {
+        padding: 1.25rem;
+    }
+
+    .sm-page-info {
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: var(--text-color, #212529);
+        margin-bottom: 1rem;
+    }
+
+    .sm-page-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+        padding: 0.75rem 0;
+        border-top: 1px solid var(--border-color, #dee2e6);
+        margin-bottom: 1rem;
+    }
+
+    /* Toggle switch */
+    .sm-toggle-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+    }
+
+    .sm-toggle-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-color, #212529);
+    }
+
+    .sm-switch {
+        position: relative;
+        display: inline-flex;
+        width: 50px;
+        height: 28px;
+        background: var(--border-color, #dee2e6);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        border: none;
+        padding: 2px;
+        align-items: center;
+    }
+
+    .sm-switch.active {
+        background: #10b981;
+    }
+
+    .sm-switch-thumb {
+        width: 24px;
+        height: 24px;
+        background: #fff;
+        border-radius: 12px;
+        transition: transform 0.3s;
+        margin-left: 0;
+    }
+
+    .sm-switch.active .sm-switch-thumb {
+        transform: translateX(22px);
+    }
+
+    /* Actions */
+    .sm-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+
+    .sm-btn {
+        flex: 1;
+        padding: 0.55rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .sm-btn-edit {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+    }
+
+    .sm-btn-edit:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .sm-btn-view {
+        background: var(--bg-color, #f0f2f5);
+        color: var(--text-color, #212529);
+        border: 1px solid var(--border-color, #dee2e6);
+    }
+
+    .sm-btn-view:hover {
+        background: var(--border-color, #dee2e6);
+    }
+
+    /* Modal */
+    .sm-modal-content {
+        border-radius: 20px;
+        border: none;
+        overflow: hidden;
+    }
+
+    .sm-modal-body {
+        padding: 2rem;
+    }
+
+    .sm-modal-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin: 0 auto 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        font-size: 1.75rem;
+    }
+
+    .sm-modal-title {
+        font-weight: 800;
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem;
+        text-align: center;
+    }
+
+    .sm-modal-desc {
+        font-size: 0.9rem;
+        color: var(--bs-secondary-color, #6c757d);
+        text-align: center;
+        margin-bottom: 1.75rem;
+        line-height: 1.6;
+    }
+
+    .sm-modal-reason {
+        background: var(--bg-color, #f0f2f5);
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .sm-modal-reason-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .sm-modal-reason-input {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        border: 2px solid var(--border-color, #dee2e6);
+        border-radius: 8px;
+        background: var(--card-bg, #fff);
+        color: var(--text-color, #212529);
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .sm-modal-reason-input:focus {
+        outline: none;
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .sm-modal-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .sm-modal-btn {
+        flex: 1;
+        padding: 0.65rem 1.25rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .sm-modal-cancel {
+        background: var(--bg-color, #f0f2f5);
+        color: var(--text-color, #212529);
+    }
+
+    .sm-modal-cancel:hover {
+        background: var(--border-color, #dee2e6);
+    }
+
+    .sm-modal-confirm {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+    }
+
+    .sm-modal-confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Unblock confirmation button - green */
+    .sm-modal-confirm.sm-modal-confirm-success {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .sm-modal-confirm.sm-modal-confirm-success:hover {
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .sm-loading {
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .sm-page {
+            padding: 1rem 0.5rem;
+        }
+
+        .sm-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sm-stats {
+            width: 100%;
+        }
+
+        .sm-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .sm-tabs {
+            gap: 0;
+        }
+
+        .sm-tab-btn {
+            padding: 0.65rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="sm-page">
+    <!-- Back button -->
+    <a href="/admin/" class="sm-back">
+        <i class="bi bi-arrow-left"></i>
+        Admin panelga qaytish
+    </a>
+
+    <!-- Header -->
+    <div class="sm-header">
+        <div class="sm-header-left">
+            <h1>
+                <i class="bi bi-layers"></i>
+                Bo'limlar boshqaruvi
+            </h1>
+            <p class="sm-header-sub">Saytdagi bo'limlarni bloklab yoki yoqlab qo'ying</p>
+        </div>
+        <div class="sm-stats">
+            <div class="sm-stat-card">
+                <div class="sm-stat-val">{{ total_sections }}</div>
+                <div class="sm-stat-label">Jami bo'lim</div>
+            </div>
+            <div class="sm-stat-card">
+                <div class="sm-stat-val">{{ active_count }}</div>
+                <div class="sm-stat-label">Faol</div>
+            </div>
+            <div class="sm-stat-card">
+                <div class="sm-stat-val">{{ blocked_count }}</div>
+                <div class="sm-stat-label">Bloklangan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="sm-tabs">
+        <button class="sm-tab-btn active" onclick="filterPages('all')">Barchasi</button>
+        <button class="sm-tab-btn" onclick="filterPages('active')">Faol</button>
+        <button class="sm-tab-btn" onclick="filterPages('blocked')">Bloklangan</button>
+    </div>
+
+    <!-- Pages Grid -->
+    <div class="sm-grid" id="pagesGrid">
+        <!-- Sozlamalar -->
+        {% with status=blocked_sections.sozlamalar %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-gear"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Sozlamalar</h3>
+                    <p class="sm-page-desc">Tizim sozlamalari</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Saytning barcha sozlamalarini boshqaring va tizimni to'g'rilang.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 5</span>
+                    <span>👥 Ruxsat: Admin</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'sozlamalar')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Qurilmalar -->
+        {% with status=blocked_sections.qurilmalar %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-laptop"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Qurilmalar</h3>
+                    <p class="sm-page-desc">Qurilmalarni boshqarish</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Foydalanuvchilarning qurilmalarini kuzatib boring va boshqaring.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 3</span>
+                    <span>👥 Ruxsat: Admin</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'qurilmalar')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Reyting -->
+        {% with status=blocked_sections.reyting %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-star"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Reyting</h3>
+                    <p class="sm-page-desc">Reyting tizimi</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">O'quvchilarning reytingini ko'rish va boshqarish.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 4</span>
+                    <span>👥 Ruxsat: Admin, O'qituvchi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'reyting')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Postlar -->
+        {% with status=blocked_sections.postlar %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-chat-left-text"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Postlar</h3>
+                    <p class="sm-page-desc">Postlarni boshqarish</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Blog postlarini yaratib, o'zgartirib va o'chirib tashlab qo'ying.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 2</span>
+                    <span>👥 Ruxsat: Admin, Muharrir</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'postlar')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Market -->
+        {% with status=blocked_sections.market %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-bag"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Market</h3>
+                    <p class="sm-page-desc">Bozor va sotuvlar</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Mahsulot va xizmatlarni sotish bo'limini boshqaring.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 6</span>
+                    <span>👥 Ruxsat: Admin, Sotuvchi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'market')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Coding -->
+        <div class="sm-page-card" data-status="active">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-code-square"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Coding</h3>
+                    <p class="sm-page-desc">Kodlash masalalari</p>
+                </div>
+                <span class="sm-status-badge sm-status-active">
+                    <i class="bi bi-check-circle-fill"></i> FAOL
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Programmali masalalar va kodlash musobaqalari.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 5</span>
+                    <span>👥 Ruxsat: Barchasi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch active" onclick="toggleBlock(this, 'coding')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yordam -->
+        <div class="sm-page-card" data-status="active">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-question-circle"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Yordam</h3>
+                    <p class="sm-page-desc">Yordamchi va FAQ</p>
+                </div>
+                <span class="sm-status-badge sm-status-active">
+                    <i class="bi bi-check-circle-fill"></i> FAOL
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Foydalanuvchilar uchun yordamchi va ko'p so'raladigan savollar.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 3</span>
+                    <span>👥 Ruxsat: Barchasi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch active" onclick="toggleBlock(this, 'yordam')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vazifalar -->
+        <div class="sm-page-card" data-status="active">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-check2-square"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Vazifalar</h3>
+                    <p class="sm-page-desc">O'quv vazifalarini boshqarish</p>
+                </div>
+                <span class="sm-status-badge sm-status-active">
+                    <i class="bi bi-check-circle-fill"></i> FAOL
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">O'quvchilar uchun vazifalar yaratish va baholash.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 4</span>
+                    <span>👥 Ruxsat: Admin, O'qituvchi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch active" onclick="toggleBlock(this, 'vazifalar')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Xabarlar -->
+        <div class="sm-page-card" data-status="active">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-envelope"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Xabarlar</h3>
+                    <p class="sm-page-desc">Xabarlar va bildirishlar</p>
+                </div>
+                <span class="sm-status-badge sm-status-active">
+                    <i class="bi bi-check-circle-fill"></i> FAOL
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Foydalanuvchilarga xabar jo'natish va bildirishnomalar.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 2</span>
+                    <span>👥 Ruxsat: Admin</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch active" onclick="toggleBlock(this, 'xabarlar')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Block Modal -->
+<div class="modal fade" id="blockModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="sm-modal-content modal-content">
+            <div class="sm-modal-body">
+                <div class="sm-modal-icon">
+                    <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <h5 class="sm-modal-title">Bo'limni bloklab qo'yasizmi?</h5>
+                <p class="sm-modal-desc" id="blockMessage"></p>
+
+                <div class="sm-modal-reason">
+                    <label class="sm-modal-reason-label">Bloklash sababi (ixtiyoriy):</label>
+                    <input type="text" class="sm-modal-reason-input" id="blockReason" 
+                           placeholder="Masalan: Tuzatish ishlari olib borilmoqda...">
+                </div>
+
+                <div class="sm-modal-actions">
+                    <button class="sm-modal-btn sm-modal-cancel" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button class="sm-modal-btn sm-modal-confirm" onclick="confirmBlock()">Bloklab qo'yish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedSection = null;
+
+    function toggleBlock(button, sectionName) {
+        console.log('toggleBlock called with:', sectionName);
+        selectedSection = { button, sectionName };
+        const isActive = button.classList.contains('active');
+        const action = isActive ? 'bloklab' : 'yoqlab';
+        
+        // Modal title va message o'zgartiramiz
+        const modalTitle = document.querySelector('.sm-modal-title');
+        const blockReasonDiv = document.querySelector('.sm-modal-reason');
+        const confirmBtn = document.querySelector('.sm-modal-confirm');
+        
+        if (isActive) {
+            // Bloklab qo'yish
+            modalTitle.textContent = 'Bo\'limni bloklab qo\'yasizmi?';
+            document.getElementById('blockMessage').textContent = 
+                `"${sectionName}" bo'limini bloklab qo'yasizmi? Foydalanuvchilar bu bo'limga kira olmaydi.`;
+            blockReasonDiv.style.display = 'block';
+            confirmBtn.textContent = 'Bloklab qo\'yish';
+            confirmBtn.className = 'sm-modal-btn sm-modal-confirm';
+        } else {
+            // Blokdan ochish
+            modalTitle.textContent = 'Bo\'limni blokdan ochib yoqib qo\'yasizmi?';
+            document.getElementById('blockMessage').textContent = 
+                `"${sectionName}" bo'limini blokdan ochib yoqib qo'yasizmi? Foydalanuvchilar bu bo'limga kirishi mumkin bo'ladi.`;
+            blockReasonDiv.style.display = 'none';
+            confirmBtn.textContent = 'Ha, ochib yoqish';
+            confirmBtn.className = 'sm-modal-btn sm-modal-confirm sm-modal-confirm-success';
+        }
+        
+        const modal = new bootstrap.Modal(document.getElementById('blockModal'));
+        modal.show();
+    }
+
+    function confirmBlock() {
+        if (!selectedSection) return;
+        
+        const { button, sectionName } = selectedSection;
+        const reason = document.getElementById('blockReason').value;
+        const isCurrentlyActive = button.classList.contains('active');
+        
+        // Server ga POST jo'natish
+        const formData = new FormData();
+        formData.append('reason', reason);
+        
+        // CSRF token ni olish
+        const csrfToken = document.querySelector('[name="csrfmiddlewaretoken"]')?.value || 
+                         getCookie('csrftoken');
+        
+        console.log('Section:', sectionName);
+        console.log('Reason:', reason);
+        console.log('CSRF Token:', csrfToken);
+        
+        // Section name dan slug hosil qilish (hyphen bilan)
+        const sectionSlug = sectionName.replace(/_/g, '-');
+        // URL /accounts prefix yo'q, faqat /dashboard dan start
+        const url = `/dashboard/sections-management/${sectionSlug}/toggle/`;
+        console.log('Section Name:', sectionName);
+        console.log('Section Slug:', sectionSlug);
+        console.log('URL:', url);
+        
+        fetch(url, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            // Response body ni olish
+            return response.text().then(text => {
+                console.log('Response text:', text.substring(0, 500));
+                try {
+                    return { status: response.status, data: JSON.parse(text) };
+                } catch(e) {
+                    console.error('JSON parse error:', e);
+                    return { status: response.status, data: null, text: text };
+                }
+            });
+        })
+        .then(result => {
+            console.log('Result:', result);
+            
+            if (!result.data) {
+                showNotification(`Server Xatosi (${result.status}): ${result.text ? result.text.substring(0, 100) : 'Unknown'}`, 'danger');
+                return;
+            }
+            
+            const data = result.data;
+            if (data.success) {
+                // Toggle button state
+                button.classList.toggle('active');
+                
+                // Update card status
+                const card = button.closest('.sm-page-card');
+                const badge = card.querySelector('.sm-status-badge');
+                
+                if (data.blocked) {
+                    // Block the section
+                    card.classList.add('blocked');
+                    card.dataset.status = 'blocked';
+                    badge.innerHTML = '<i class="bi bi-lock-fill"></i> BLOKLANGAN';
+                    badge.className = 'sm-status-badge sm-status-blocked';
+                } else {
+                    // Unblock the section
+                    card.classList.remove('blocked');
+                    card.dataset.status = 'active';
+                    badge.innerHTML = '<i class="bi bi-check-circle-fill"></i> FAOL';
+                    badge.className = 'sm-status-badge sm-status-active';
+                }
+                
+                // Show notification
+                showNotification(data.message, data.blocked ? 'danger' : 'success');
+            } else {
+                showNotification('Xatolik: ' + (data.error || 'Noma\'lum xatolik'), 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            showNotification(`Server xatosi: ${error.message}`, 'danger');
+        });
+        
+        // Close modal
+        bootstrap.Modal.getInstance(document.getElementById('blockModal')).hide();
+    }
+    
+    // CSRF token olish
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function filterPages(status) {
+        // Update active tab
+        document.querySelectorAll('.sm-tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        // Filter cards
+        const cards = document.querySelectorAll('.sm-page-card');
+        cards.forEach(card => {
+            if (status === 'all') {
+                card.style.display = '';
+            } else if (status === card.dataset.status) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} position-fixed`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${message}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            notification.style.animation = 'fadeOut 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 4000);
+    }
+
+    // Add fade out animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

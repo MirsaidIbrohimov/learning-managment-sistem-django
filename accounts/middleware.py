@@ -1,257 +1,195 @@
-import hashlib
+from django.shortcuts import render, redirect
+from django.core.cache import cache
+from django.urls import resolve
+from django.http import HttpResponse
 from django.utils import timezone
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-from django.contrib import messages
-from datetime import timedelta, date
+from datetime import timedelta
+from .models import CustomUser, PaymentStatus, BlockedSection
 
-
-# ==================== BIRTHDAY CHECK ====================
 
 class BirthdayCheckMiddleware:
+    """
+    O'quvchi tug'ilgan kun bo'lsa, bildirishnoma ko'rsatadi
+    """
+    
     def __init__(self, get_response):
         self.get_response = get_response
-
+    
     def __call__(self, request):
-        if request.user.is_authenticated and hasattr(request.user, 'birth_date'):
-            today = date.today()
-            birth = request.user.birth_date
-            if birth and birth.month == today.month and birth.day == today.day:
-                request.is_birthday = True
-            else:
-                request.is_birthday = False
-        else:
-            request.is_birthday = False
-
+        if request.user.is_authenticated and request.user.role == 'student':
+            today = timezone.now().date()
+            # Xavfsiz tekshirish - date_of_birth mavjud bo'lsa
+            if hasattr(request.user, 'date_of_birth') and request.user.date_of_birth:
+                if (request.user.date_of_birth.month == today.month and 
+                    request.user.date_of_birth.day == today.day):
+                    request.birthday_today = True
+        
         return self.get_response(request)
 
-
-# ==================== UPDATE LAST ACTIVITY ====================
 
 class UpdateLastActivityMiddleware:
+    """
+    Foydalanuvchi oxirgi faolligini yangilaydi
+    """
+    
     def __init__(self, get_response):
         self.get_response = get_response
-
+    
     def __call__(self, request):
         if request.user.is_authenticated:
-            request.user.last_activity = timezone.now()
-            request.user.save(update_fields=['last_activity'])
+            CustomUser.objects.filter(id=request.user.id).update(
+                last_login=timezone.now()
+            )
+        
         return self.get_response(request)
 
-
-# ==================== BLOCKED USER ====================
 
 class BlockedUserMiddleware:
+    """
+    Bloklangan foydalanuvchilar saytga kira olmaydi
+    """
+    
     def __init__(self, get_response):
         self.get_response = get_response
-
+    
     def __call__(self, request):
         if request.user.is_authenticated:
-            if hasattr(request.user, 'is_blocked') and request.user.is_blocked:
-                logout(request)
-                messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
-                return redirect('login')
+            user = request.user
+            # Agar is_blocked maydoni mavjud bo'lsa tekshir
+            if hasattr(user, 'is_blocked') and user.is_blocked:
+                try:
+                    return render(
+                        request,
+                        'accounts/user_blocked.html',
+                        {'message': 'Sizning akkauntingiz bloklangan'},
+                        status=403
+                    )
+                except Exception:
+                    return HttpResponse('Akkaunt bloklangan', status=403)
+        
         return self.get_response(request)
 
-
-# ==================== PAYMENT CHECK ====================
 
 class PaymentCheckMiddleware:
+    """
+    To'lov kutilayotgan o'quvchilarni ogohlantiradi
+    """
+    
     def __init__(self, get_response):
         self.get_response = get_response
-
+    
     def __call__(self, request):
-        # Payment check logic - can be customized based on your needs
+        try:
+            if request.user.is_authenticated and request.user.role == 'student':
+                pending_payments = PaymentStatus.objects.filter(
+                    user=request.user,
+                    is_paid=False,
+                    due_date__lt=timezone.now()
+                ).count()
+                
+                if pending_payments > 0:
+                    request.pending_payments = pending_payments
+        except Exception:
+            # PaymentStatus yoki model maydoni mavjud bo'lmasa, xatoni ignore qil
+            pass
+        
         return self.get_response(request)
-
-
-def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
-
-
-def get_device_info(request):
-    user_agent = request.META.get('HTTP_USER_AGENT', '')
-    
-    # Detect device type
-    device_type = 'desktop'
-    if 'Mobile' in user_agent or 'Android' in user_agent:
-        if 'Tablet' in user_agent or 'iPad' in user_agent:
-            device_type = 'tablet'
-        else:
-            device_type = 'mobile'
-    elif 'Tablet' in user_agent or 'iPad' in user_agent:
-        device_type = 'tablet'
-    
-    # Detect browser
-    browser = 'Noma\'lum'
-    if 'Chrome' in user_agent and 'Edg' not in user_agent:
-        browser = 'Chrome'
-    elif 'Firefox' in user_agent:
-        browser = 'Firefox'
-    elif 'Safari' in user_agent and 'Chrome' not in user_agent:
-        browser = 'Safari'
-    elif 'Edg' in user_agent:
-        browser = 'Edge'
-    elif 'Opera' in user_agent or 'OPR' in user_agent:
-        browser = 'Opera'
-    elif 'MSIE' in user_agent or 'Trident' in user_agent:
-        browser = 'Internet Explorer'
-    
-    # Detect OS
-    os_name = 'Noma\'lum'
-    if 'Windows' in user_agent:
-        os_name = 'Windows'
-    elif 'Mac OS' in user_agent or 'Macintosh' in user_agent:
-        os_name = 'macOS'
-    elif 'Linux' in user_agent and 'Android' not in user_agent:
-        os_name = 'Linux'
-    elif 'Android' in user_agent:
-        os_name = 'Android'
-    elif 'iPhone' in user_agent or 'iPad' in user_agent:
-        os_name = 'iOS'
-    
-    # Create device name
-    device_name = f"{os_name} - {browser}"
-    
-    # ----------------------------------------------------
-    # NEW LOGIC: Use cookie-based UUID if available
-    # ----------------------------------------------------
-    import uuid
-    
-    # Check for existing device_uuid cookie
-    device_id = request.COOKIES.get('device_uuid')
-    
-    # If not found, generate new UUID
-    if not device_id:
-        device_id = str(uuid.uuid4())
-        request.new_device_uuid = device_id  # Signal to middleware to set cookie
-    
-    return {
-        'device_id': device_id,
-        'device_name': device_name,
-        'device_type': device_type,
-        'browser': browser,
-        'os': os_name,
-        'user_agent': user_agent,
-    }
 
 
 class SessionTimeoutMiddleware:
-    SESSION_TIMEOUT = 2 * 60 * 60  # 2 soat (sekundlarda)
+    """
+    Session timeout qo'llaydi
+    """
+    
+    SESSION_TIMEOUT = 30 * 60  # 30 daqiqa
     
     def __init__(self, get_response):
         self.get_response = get_response
     
     def __call__(self, request):
-        # 1. PRE-RESPONSE: Check Expiry and Update Activity for EXISTING sessions
         if request.user.is_authenticated:
-            from .models import UserSession
+            last_activity = request.session.get('_last_activity')
+            now = timezone.now().timestamp()
             
-            session_key = request.session.session_key
+            if last_activity:
+                if now - last_activity > self.SESSION_TIMEOUT:
+                    request.session.flush()
+                    return redirect('login')
             
-            if session_key:
-                try:
-                    user_session = UserSession.objects.get(
-                        session_key=session_key,
-                        user=request.user,
-                        is_active=True
-                    )
-                    
-                    # Check if session expired
-                    if user_session.is_expired:
-                        user_session.is_active = False
-                        user_session.save()
-                        logout(request)
-                        messages.warning(request, "Sessiya muddati tugadi. Iltimos, qaytadan kiring.")
-                        return redirect('login')
-                    
-                    # Update last activity
-                    user_session.last_activity = timezone.now()
-                    user_session.expires_at = timezone.now() + timedelta(seconds=self.SESSION_TIMEOUT)
-                    user_session.save(update_fields=['last_activity', 'expires_at'])
-                    
-                except UserSession.DoesNotExist:
-                    # Session missing. Logic to create it will run in POST-RESPONSE to handle login case.
-                    pass
+            request.session['_last_activity'] = now
         
-        response = self.get_response(request)
-        
-        # 2. POST-RESPONSE: Ensure Session Exists (Handles Login & Orphans)
-        if request.user.is_authenticated:
-            from .models import UserSession, UserDevice
-            
-            session_key = request.session.session_key
-            
-            if session_key:
-                # Check directly if session exists (to avoid duplicate get queries if possible, but safe to get)
-                # We need to create it if it doesn't exist
-                if not UserSession.objects.filter(session_key=session_key, user=request.user, is_active=True).exists():
-                     # Check if there's an inactive session with this key (Optional safety)
-                    inactive_session = UserSession.objects.filter(session_key=session_key).first()
-                    if inactive_session:
-                        # Session exists but inactive - logout user? 
-                        # Or just reactivate? Reactivating might be safer if user just logged in?
-                        # But if user just logged in, session key should be new or recycled.
-                        # If recycled, effectively new.
-                        pass # Treat as new logic below or handle duplication
+        return self.get_response(request)
 
-                    # Create new session if truly not exists
-                    device_info = get_device_info(request)
-                    ip_address = get_client_ip(request)
-                    
-                    # Get or create device using the STABLE device_id (cookie)
-                    device, created = UserDevice.objects.get_or_create(
-                        user=request.user,
-                        device_id=device_info['device_id'],
-                        defaults={
-                            'device_name': device_info['device_name'],
-                            'device_type': device_info['device_type'],
-                            'browser': device_info['browser'],
-                            'os': device_info['os'],
-                            'ip_address': ip_address,
-                        }
-                    )
-                    
-                    if not created:
-                        device.last_login = timezone.now()
-                        device.ip_address = ip_address
-                        device.save(update_fields=['last_login', 'ip_address'])
-                    else:
-                        # Yangi qurilma - xabar yuborish
-                        try:
-                            from .notifications import check_new_device_login
-                            check_new_device_login(request.user, device_info['device_name'], ip_address)
-                        except:
-                            pass
-                    
-                    # Create session using get_or_create to avoid unique constraint error
-                    UserSession.objects.get_or_create(
-                        session_key=session_key,
-                        defaults={
-                            'user': request.user,
-                            'device': device,
-                            'ip_address': ip_address,
-                            'expires_at': timezone.now() + timedelta(seconds=self.SESSION_TIMEOUT)
-                        }
-                    )
+
+class SectionBlockMiddleware:
+    """
+    Bo'limlar bloklangan bo'lsa, foydalanuvchilarga "Bloklangan" sahifasini ko'rsatadi
+    Database va cache dan bloklash infosini o'qiydi
+    """
+    
+    # Admin ruxsatiga ega bo'lsa, bloklangan bo'limlarni ko'rishga ruxsat
+    ADMIN_EXEMPT = True
+    
+    # Bloklash qo'llaniladigan URL patterns
+    BLOCKED_PATTERNS = {
+        'sozlamalar': ['settings'],
+        'qurilmalar': ['devices'],
+        'reyting': ['leaderboard', 'rating'],
+        'postlar': ['blog:'],
+        'market': ['coin:'],
+        'coding': ['coding'],
+        'yordam': ['help'],
+        'vazifalar': ['homework'],
+        'xabarlar': ['messages'],
+        'ijaradagi-kitoblarim': ['books'],
+        'profili': ['profile'],
+    }
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        # Admin bolsa, bloklash qo'llanmaydi
+        if self.ADMIN_EXEMPT and request.user.is_authenticated and request.user.is_admin:
+            return self.get_response(request)
         
-        # ----------------------------------------------------
-        # SET COOKIE IF NEW UUID GENERATED
-        # ----------------------------------------------------
-        if hasattr(request, 'new_device_uuid'):
-            # Set cookie for 10 years
-            max_age = 10 * 365 * 24 * 60 * 60
-            response.set_cookie(
-                'device_uuid', 
-                request.new_device_uuid, 
-                max_age=max_age, 
-                httponly=True, 
-                samesite='Lax'
-            )
-            
-        return response
+        # Joriy URL ni aniqlash
+        try:
+            resolved = resolve(request.path)
+            current_view = resolved.url_name or ''
+            current_app = resolved.app_name or ''
+        except:
+            return self.get_response(request)
+        
+        # Database dan bloklangan bo'limlarni o'qish
+        try:
+            blocked_db = BlockedSection.objects.filter(is_blocked=True).values_list('section', 'reason')
+            blocked_sections = {section: {'reason': reason} for section, reason in blocked_db}
+        except Exception:
+            blocked_sections = {}
+        
+        # Agar database malumoti yo'q bo'lsa, cache dan o'qi
+        if not blocked_sections:
+            blocked_sections = cache.get('blocked_sections', {})
+        
+        if not blocked_sections:
+            return self.get_response(request)
+        
+        # Joriy URL qaysi bo'limga tegishli ekanini tekshirish
+        for section_slug, patterns in self.BLOCKED_PATTERNS.items():
+            if section_slug in blocked_sections:
+                for pattern in patterns:
+                    if pattern in current_view or pattern in current_app:
+                        # Bo'lim bloklangan bo'lsa, bloklangan sahifasini ko'rsatish
+                        section_info = blocked_sections[section_slug]
+                        return render(
+                            request, 
+                            'accounts/section_blocked.html',
+                            {
+                                'section': section_slug,
+                                'reason': section_info.get('reason', 'Tuzatish ishlari olib borilmoqda'),
+                            },
+                            status=403
+                        )
+        
+        return self.get_response(request)

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 from .parent_views import (
     parent_login_view, parent_logout_view, parent_dashboard, parent_children,
@@ -97,6 +97,10 @@ urlpatterns = [
     path('dashboard/sections/add/', views.admin_section_add, name='admin_section_add'),
     path('dashboard/sections/<int:pk>/edit/', views.admin_section_edit, name='admin_section_edit'),
     path('dashboard/sections/<int:pk>/delete/', views.admin_section_delete, name='admin_section_delete'),
+    
+    # Admin: Page/Section Management
+    path('dashboard/sections-management/', views.admin_sections_management, name='admin_sections_management'),
+    re_path(r'^dashboard/sections-management/(?P<section>[\w-]+)/toggle/$', views.toggle_section_block, name='toggle_section_block'),
     
     # Help Requests / Yordam
     path('help/', views.help_page, name='help_page'),

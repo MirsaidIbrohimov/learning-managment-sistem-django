@@ -1,0 +1,31 @@
+Qolgan bo'limlarni template da yangilash pattern:
+
+```django
+{% with status=blocked_sections.section_key %}
+<div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+    <div class="sm-page-head">
+        ...icon va title...
+        <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+            <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+            {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+        </span>
+    </div>
+    <div class="sm-page-body">
+        ...body content...
+        <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'section_key')">
+            <div class="sm-switch-thumb"></div>
+        </button>
+    </div>
+</div>
+{% endwith %}
+```
+
+Yangilash kerak bo'lgan bo'limlar va section_key lar:
+1. postlar -> 'postlar'
+2. market -> 'market'
+3. coding -> 'coding'
+4. yordam -> 'yordam'
+5. vazifalar -> 'vazifalar'
+6. xabarlar -> 'xabarlar'
+
+Har birini shunga o'xshash qilish kerak.
