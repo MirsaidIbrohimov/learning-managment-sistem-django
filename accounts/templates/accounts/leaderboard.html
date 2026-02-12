@@ -1076,6 +1076,441 @@
             top: -15px;
         }
     }
+
+    /* New Podium Styles */
+    .lb-podium-new {
+        position: relative;
+        margin: 2rem 0 2.5rem 0;
+        padding: 2rem 0 0 0;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        min-height: 480px;
+        animation: fadeInUp 0.6s ease 0.3s both;
+    }
+
+    .podium-spotlight {
+        position: absolute;
+        top: -50px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 600px;
+        height: 400px;
+        background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+        pointer-events: none;
+        filter: blur(40px);
+    }
+
+    .podium-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 0.5rem;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .podium-stand {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+        flex: 0 0 auto;
+    }
+
+    .podium-stand:hover .player-card {
+        animation: cardHover 0.6s ease;
+    }
+
+    /* Position 1 (Gold - Center, Tallest) */
+    .stand-1 {
+        animation: podiumSlideUp 0.5s ease 0.1s both;
+    }
+
+    .stand-1 .medal-display {
+        animation: medalBounce 2s ease-in-out infinite;
+    }
+
+    .block-1 {
+        width: 120px;
+        height: 200px;
+        background: linear-gradient(135deg, #ffd60a 0%, #ffb800 100%);
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 24px rgba(255, 214, 10, 0.3);
+        position: relative;
+        margin-bottom: 0.5rem;
+    }
+
+    .block-1::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+        border-radius: 8px 8px 0 0;
+    }
+
+    /* Position 2 (Silver - Left) */
+    .stand-2 {
+        animation: podiumSlideUp 0.5s ease 0.2s both;
+        order: 1;
+    }
+
+    .block-2 {
+        width: 100px;
+        height: 160px;
+        background: linear-gradient(135deg, #e8e8ed 0%, #b8b8bc 100%);
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 16px rgba(168, 168, 168, 0.25);
+        position: relative;
+        margin-bottom: 0.5rem;
+    }
+
+    .block-2::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
+        border-radius: 8px 8px 0 0;
+    }
+
+    /* Position 3 (Bronze - Right) */
+    .stand-3 {
+        animation: podiumSlideUp 0.5s ease 0.3s both;
+        order: 3;
+    }
+
+    .block-3 {
+        width: 90px;
+        height: 120px;
+        background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(205, 127, 50, 0.3);
+        position: relative;
+        margin-bottom: 0.5rem;
+    }
+
+    .block-3::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+        border-radius: 8px 8px 0 0;
+    }
+
+    .stand-height-label {
+        font-size: 1.8rem;
+        font-weight: 900;
+        color: rgba(0, 0, 0, 0.1);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .medal-display {
+        position: absolute;
+        top: -35px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        color: white;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        border: 3px solid white;
+        z-index: 2;
+    }
+
+    .gold-medal {
+        background: linear-gradient(135deg, #ffd60a 0%, #ffb800 100%);
+    }
+
+    .silver-medal {
+        background: linear-gradient(135deg, #e8e8ed 0%, #b8b8bc 100%);
+    }
+
+    .bronze-medal {
+        background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+    }
+
+    .player-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem;
+        background: var(--lb-card);
+        border-radius: var(--lb-radius-md);
+        box-shadow: var(--lb-shadow);
+        transition: all 0.3s ease;
+        min-width: 120px;
+        position: relative;
+    }
+
+    .player-card:hover {
+        box-shadow: var(--lb-shadow-hover);
+    }
+
+    .player-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--lb-blue);
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+    }
+
+    .player-avatar-placeholder {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--lb-blue), var(--lb-purple));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.4rem;
+        margin-bottom: 0.75rem;
+        border: 3px solid var(--lb-blue);
+    }
+
+    .player-card:hover .player-avatar {
+        transform: scale(1.08);
+    }
+
+    .premium-crown {
+        position: absolute;
+        top: -8px;
+        right: 8px;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #ffd60a, #ffb800);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        box-shadow: 0 2px 8px rgba(255, 214, 10, 0.4);
+        animation: sparkle 2s ease-in-out infinite;
+    }
+
+    .player-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        color: var(--lb-text);
+        line-height: 1.2;
+    }
+
+    .player-coins {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 0.75rem;
+        background: linear-gradient(135deg, var(--lb-blue), var(--lb-purple));
+        color: white;
+        border-radius: var(--lb-radius-sm);
+        font-weight: 600;
+        font-size: 0.95rem;
+    }
+
+    .you-badge {
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 0.3rem 0.7rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .premium-stand .player-card {
+        background: linear-gradient(135deg, rgba(255, 214, 10, 0.1), rgba(255, 184, 0, 0.1));
+        border: 2px solid rgba(255, 214, 10, 0.3);
+    }
+
+    [data-bs-theme="dark"] .premium-stand .player-card {
+        background: linear-gradient(135deg, rgba(255, 214, 10, 0.08), rgba(255, 184, 0, 0.08));
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .lb-podium-new {
+            min-height: 420px;
+            padding: 1.5rem 0 0 0;
+            gap: 0.25rem;
+        }
+
+        .podium-spotlight {
+            width: 400px;
+            height: 300px;
+            top: -30px;
+        }
+
+        .block-1 {
+            width: 100px;
+            height: 160px;
+        }
+
+        .block-2 {
+            width: 85px;
+            height: 130px;
+        }
+
+        .block-3 {
+            width: 75px;
+            height: 100px;
+        }
+
+        .medal-display {
+            width: 50px;
+            height: 50px;
+            font-size: 1.4rem;
+            top: -28px;
+        }
+
+        .player-card {
+            min-width: 100px;
+            padding: 0.75rem;
+        }
+
+        .player-avatar {
+            width: 55px;
+            height: 55px;
+            border-width: 2px;
+        }
+
+        .player-avatar-placeholder {
+            width: 55px;
+            height: 55px;
+            font-size: 1.1rem;
+            border-width: 2px;
+        }
+
+        .player-name {
+            font-size: 0.9rem;
+        }
+
+        .player-coins {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+            gap: 0.3rem;
+        }
+
+        .premium-crown {
+            width: 28px;
+            height: 28px;
+            font-size: 0.85rem;
+        }
+
+        .stand-height-label {
+            font-size: 1.4rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .lb-podium-new {
+            min-height: 380px;
+            padding: 1rem 0 0 0;
+            gap: 0.2rem;
+        }
+
+        .podium-spotlight {
+            width: 300px;
+            height: 250px;
+        }
+
+        .block-1 {
+            width: 80px;
+            height: 140px;
+        }
+
+        .block-2 {
+            width: 70px;
+            height: 110px;
+        }
+
+        .block-3 {
+            width: 60px;
+            height: 85px;
+        }
+
+        .medal-display {
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            top: -24px;
+        }
+
+        .player-card {
+            min-width: 85px;
+            padding: 0.6rem;
+        }
+
+        .player-avatar {
+            width: 45px;
+            height: 45px;
+            margin-bottom: 0.5rem;
+            border-width: 2px;
+        }
+
+        .player-avatar-placeholder {
+            width: 45px;
+            height: 45px;
+            font-size: 0.9rem;
+            border-width: 2px;
+        }
+
+        .player-name {
+            font-size: 0.8rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .player-coins {
+            font-size: 0.7rem;
+            padding: 0.3rem 0.5rem;
+            gap: 0.2rem;
+        }
+
+        .premium-crown {
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+        }
+
+        .stand-height-label {
+            font-size: 1rem;
+        }
+    }
 </style>
 
 <div class="lb-container">
