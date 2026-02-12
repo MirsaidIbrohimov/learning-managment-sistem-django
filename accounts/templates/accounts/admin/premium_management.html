@@ -4,200 +4,1020 @@
 
 {% block admin_content %}
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-star-fill text-warning me-2"></i>Premium boshqaruv</h4>
-            <p class="text-muted mb-0">Premium foydalanuvchilarni boshqarish</p>
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes starFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-6px) rotate(5deg); }
+    75% { transform: translateY(4px) rotate(-3deg); }
+}
+@keyframes ripple {
+    0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+    70% { box-shadow: 0 0 0 12px rgba(245,158,11,0); }
+    100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+@keyframes countPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes rowSlideIn {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Page Header */
+.ap-header {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    border-radius: 1.2rem;
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease-out;
+}
+.ap-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M25 3l4.5 9 10 1.5-7.2 7 1.7 9.9L25 26l-9 4.4 1.7-9.9-7.2-7 10-1.5z' fill='%23fff' fill-opacity='0.04'/%3E%3C/svg%3E");
+}
+.ap-header-icon {
+    font-size: 2.2rem;
+    color: white;
+    animation: starFloat 3s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+.ap-header h4 {
+    color: white;
+    font-weight: 800;
+    margin: 0.3rem 0 0.15rem;
+    font-size: 1.4rem;
+    position: relative;
+}
+.ap-header p {
+    color: rgba(255,255,255,0.8);
+    margin: 0;
+    font-size: 0.9rem;
+    position: relative;
+}
+
+/* Stat Cards */
+.ap-stats { margin-bottom: 1.5rem; }
+.ap-stat {
+    border-radius: 1rem;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.ap-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+.ap-stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-bottom: 0.6rem;
+    transition: transform 0.3s ease;
+}
+.ap-stat:hover .ap-stat-icon { transform: scale(1.15) rotate(8deg); }
+.ap-stat-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.15rem;
+}
+.ap-stat-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-color);
+    opacity: 0.6;
+}
+
+.ap-stat.gold { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+.ap-stat.gold .ap-stat-icon { background: #f59e0b; color: white; }
+.ap-stat.gold .ap-stat-num { color: #b45309; }
+
+.ap-stat.blue { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+.ap-stat.blue .ap-stat-icon { background: #3b82f6; color: white; }
+.ap-stat.blue .ap-stat-num { color: #1d4ed8; }
+
+.ap-stat.red { background: linear-gradient(135deg, #fecaca, #fca5a5); }
+.ap-stat.red .ap-stat-icon { background: #ef4444; color: white; }
+.ap-stat.red .ap-stat-num { color: #b91c1c; }
+
+.ap-stat.orange { background: linear-gradient(135deg, #fed7aa, #fdba74); }
+.ap-stat.orange .ap-stat-icon { background: #f97316; color: white; }
+.ap-stat.orange .ap-stat-num { color: #c2410c; }
+
+.ap-stat-anim-1 { animation: scaleIn 0.4s ease-out 0.1s both; }
+.ap-stat-anim-2 { animation: scaleIn 0.4s ease-out 0.2s both; }
+.ap-stat-anim-3 { animation: scaleIn 0.4s ease-out 0.3s both; }
+.ap-stat-anim-4 { animation: scaleIn 0.4s ease-out 0.4s both; }
+
+[data-bs-theme="dark"] .ap-stat.gold { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1)); }
+[data-bs-theme="dark"] .ap-stat.gold .ap-stat-num { color: #fbbf24; }
+[data-bs-theme="dark"] .ap-stat.blue { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.1)); }
+[data-bs-theme="dark"] .ap-stat.blue .ap-stat-num { color: #60a5fa; }
+[data-bs-theme="dark"] .ap-stat.red { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(220,38,38,0.1)); }
+[data-bs-theme="dark"] .ap-stat.red .ap-stat-num { color: #f87171; }
+[data-bs-theme="dark"] .ap-stat.orange { background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(234,88,12,0.1)); }
+[data-bs-theme="dark"] .ap-stat.orange .ap-stat-num { color: #fb923c; }
+
+/* Tabs */
+.ap-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: var(--card-bg);
+    border-radius: 1rem;
+    padding: 0.4rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+    animation: fadeInUp 0.5s ease-out 0.3s both;
+    flex-wrap: wrap;
+}
+.ap-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.2rem;
+    border-radius: 0.7rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    color: var(--text-color);
+    opacity: 0.6;
+    transition: all 0.3s ease;
+    position: relative;
+    white-space: nowrap;
+    border: none;
+    background: transparent;
+}
+.ap-tab:hover { opacity: 0.85; background: var(--border-color); color: var(--text-color); }
+.ap-tab.active {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+}
+.ap-tab .badge {
+    font-size: 0.65rem;
+    padding: 0.2em 0.5em;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Panel card */
+.ap-panel {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease-out 0.4s both;
+    margin-bottom: 1.5rem;
+}
+.ap-panel-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.ap-panel-title {
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+.ap-panel-title i { color: #f59e0b; }
+
+/* Filter bar */
+.ap-filter {
+    background: var(--card-bg);
+    border-radius: 1rem;
+    border: 1px solid var(--border-color);
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    animation: slideInLeft 0.5s ease-out 0.35s both;
+}
+
+/* Table */
+.ap-table {
+    width: 100%;
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.ap-table thead th {
+    background: var(--border-color);
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-color);
+    opacity: 0.7;
+    border: none;
+    white-space: nowrap;
+}
+.ap-table tbody tr {
+    transition: all 0.2s ease;
+    animation: rowSlideIn 0.4s ease-out both;
+}
+.ap-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.ap-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.ap-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.ap-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.ap-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.ap-table tbody tr:hover {
+    background: rgba(245,158,11,0.04);
+}
+.ap-table tbody td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+}
+
+/* User cell */
+.ap-user {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+.ap-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.7rem;
+    object-fit: cover;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+.ap-table tbody tr:hover .ap-avatar { transform: scale(1.1); }
+.ap-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.7rem;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+.ap-table tbody tr:hover .ap-avatar-placeholder { transform: scale(1.1); }
+.ap-user-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+.ap-user-sub {
+    font-size: 0.78rem;
+    color: var(--text-color);
+    opacity: 0.5;
+}
+
+/* Badges */
+.ap-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.ap-badge-premium {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+}
+.ap-badge-premium i { animation: starFloat 2.5s ease-in-out infinite; }
+[data-bs-theme="dark"] .ap-badge-premium { background: rgba(245,158,11,0.2); color: #fbbf24; }
+
+.ap-badge-normal { background: var(--border-color); color: var(--text-color); opacity: 0.5; }
+.ap-badge-coin {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+}
+[data-bs-theme="dark"] .ap-badge-coin { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+.ap-badge-pending { background: #fef3c7; color: #92400e; }
+.ap-badge-approved { background: #d1fae5; color: #065f46; }
+.ap-badge-rejected { background: #fecaca; color: #991b1b; }
+.ap-badge-new { background: #d1fae5; color: #065f46; }
+.ap-badge-extend { background: #dbeafe; color: #1e40af; }
+.ap-badge-plan { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
+
+[data-bs-theme="dark"] .ap-badge-pending { background: rgba(245,158,11,0.15); color: #fbbf24; }
+[data-bs-theme="dark"] .ap-badge-approved { background: rgba(16,185,129,0.15); color: #34d399; }
+[data-bs-theme="dark"] .ap-badge-rejected { background: rgba(239,68,68,0.15); color: #f87171; }
+[data-bs-theme="dark"] .ap-badge-new { background: rgba(16,185,129,0.15); color: #34d399; }
+[data-bs-theme="dark"] .ap-badge-extend { background: rgba(59,130,246,0.15); color: #60a5fa; }
+[data-bs-theme="dark"] .ap-badge-plan { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+/* Action Buttons */
+.ap-btn-approve {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: none;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.ap-btn-approve::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.ap-btn-approve:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+.ap-btn-approve:hover::after { opacity: 1; }
+
+.ap-btn-reject {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 2px solid #ef4444;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.ap-btn-reject:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239,68,68,0.3);
+}
+
+.ap-btn-give {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 2px solid #10b981;
+    background: transparent;
+    color: #10b981;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.ap-btn-give:hover {
+    background: #10b981;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16,185,129,0.3);
+}
+
+.ap-btn-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 2px solid #ef4444;
+    background: transparent;
+    color: #ef4444;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.ap-btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Action group */
+.ap-actions {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+
+/* Empty state */
+.ap-empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    animation: fadeInUp 0.5s ease-out;
+}
+.ap-empty-icon {
+    font-size: 3.5rem;
+    color: var(--text-color);
+    opacity: 0.15;
+    margin-bottom: 0.8rem;
+    animation: starFloat 4s ease-in-out infinite;
+}
+.ap-empty-text {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    opacity: 0.4;
+    font-weight: 500;
+}
+
+/* Expiry date styles */
+.ap-expiry { line-height: 1.35; }
+.ap-expiry-date { font-weight: 600; font-size: 0.88rem; }
+.ap-expiry-start { font-size: 0.75rem; color: var(--text-color); opacity: 0.5; }
+
+/* Pagination */
+.ap-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.4s ease-out;
+}
+.ap-pagination .page-link {
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    transition: all 0.2s ease;
+}
+.ap-pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border-color: transparent;
+    box-shadow: 0 3px 10px rgba(245,158,11,0.3);
+}
+
+/* Modal styling */
+.ap-modal .modal-content {
+    border-radius: 1.2rem;
+    border: none;
+    overflow: hidden;
+}
+.ap-modal .modal-header {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-bottom: none;
+    padding: 1.2rem 1.5rem;
+}
+[data-bs-theme="dark"] .ap-modal .modal-header {
+    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(217,119,6,0.1));
+}
+.ap-modal .modal-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+.ap-modal .modal-body { padding: 1.5rem; }
+.ap-modal .modal-footer { border-top: 1px solid var(--border-color); padding: 1rem 1.5rem; }
+
+/* Filter search button */
+.ap-search-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+    font-weight: 700;
+    border-radius: 0.6rem;
+    padding: 0.5rem 1.2rem;
+    transition: all 0.3s ease;
+}
+.ap-search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245,158,11,0.35);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ap-header { padding: 1.2rem 1rem; border-radius: 0.8rem; }
+    .ap-header h4 { font-size: 1.1rem; }
+    .ap-header-icon { font-size: 1.8rem; }
+    .ap-tabs { gap: 0.3rem; padding: 0.3rem; }
+    .ap-tab { padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+    .ap-table tbody td { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+    .ap-table thead th { padding: 0.6rem 0.5rem; font-size: 0.7rem; }
+    .ap-stat-num { font-size: 1.4rem; }
+    .ap-panel-header { padding: 0.8rem 1rem; }
+    .ap-actions { gap: 0.25rem; }
+    .ap-btn-approve, .ap-btn-reject, .ap-btn-give, .ap-btn-remove {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.72rem;
+    }
+    .ap-user-name { font-size: 0.82rem; }
+    .ap-avatar, .ap-avatar-placeholder { width: 34px; height: 34px; border-radius: 0.5rem; }
+    .ap-filter { padding: 0.8rem 1rem; }
+}
+@media (max-width: 576px) {
+    .ap-header { padding: 1rem 0.8rem; }
+    .ap-stat { padding: 0.8rem 0.5rem; }
+    .ap-stat-num { font-size: 1.2rem; }
+    .ap-stat-label { font-size: 0.7rem; }
+    .ap-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+    .ap-table { font-size: 0.78rem; }
+    .ap-badge { font-size: 0.68rem; padding: 0.2rem 0.5rem; }
+}
+</style>
+
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="ap-header">
+        <div class="ap-header-icon"><i class="bi bi-star-fill"></i></div>
+        <h4>Premium boshqaruv</h4>
+        <p>Premium so'rovlar va foydalanuvchilarni boshqarish</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="row g-3 ap-stats">
+        <div class="col-6 col-lg-3">
+            <div class="ap-stat gold ap-stat-anim-1">
+                <div class="ap-stat-icon"><i class="bi bi-star-fill"></i></div>
+                <div class="ap-stat-num">{{ premium_count }}</div>
+                <div class="ap-stat-label">Premium</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ap-stat blue ap-stat-anim-2">
+                <div class="ap-stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="ap-stat-num">{{ total_students }}</div>
+                <div class="ap-stat-label">Jami o'quvchilar</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ap-stat red ap-stat-anim-3">
+                <div class="ap-stat-icon"><i class="bi bi-inbox-fill"></i></div>
+                <div class="ap-stat-num">{{ pending_count }}</div>
+                <div class="ap-stat-label">Kutilayotgan</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="ap-stat orange ap-stat-anim-4">
+                <div class="ap-stat-icon"><i class="bi bi-clock-fill"></i></div>
+                <div class="ap-stat-num">{{ expiring_soon }}</div>
+                <div class="ap-stat-label">Tugayotgan</div>
+            </div>
         </div>
     </div>
 
-    <!-- Statistika -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="fs-1 fw-bold text-warning">{{ premium_count }}</div>
-                    <div class="text-muted">Premium foydalanuvchilar</div>
+    <!-- Tabs -->
+    <div class="ap-tabs">
+        <a href="?tab=requests" class="ap-tab {% if tab == 'requests' %}active{% endif %}">
+            <i class="bi bi-inbox"></i>
+            <span>So'rovlar</span>
+            {% if pending_count %}<span class="badge bg-danger">{{ pending_count }}</span>{% endif %}
+        </a>
+        <a href="?tab=users" class="ap-tab {% if tab == 'users' %}active{% endif %}">
+            <i class="bi bi-people"></i>
+            <span>Foydalanuvchilar</span>
+        </a>
+        <a href="?tab=history" class="ap-tab {% if tab == 'history' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
+            <span>Tarix</span>
+        </a>
+    </div>
+
+    <!-- ======= TAB: SO'ROVLAR ======= -->
+    {% if tab == 'requests' %}
+    <div class="ap-panel">
+        <div class="ap-panel-header">
+            <h5 class="ap-panel-title">
+                <i class="bi bi-inbox-fill"></i>
+                Kutilayotgan Premium so'rovlar
+                {% if pending_count %}<span class="badge bg-danger" style="animation: ripple 2s infinite;">{{ pending_count }}</span>{% endif %}
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="ap-table">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Tarif</th>
+                        <th class="text-center">Narx</th>
+                        <th>Turi</th>
+                        <th>Sana</th>
+                        <th class="text-center">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in pending_requests %}
+                    <tr>
+                        <td>
+                            <div class="ap-user">
+                                {% if req.user.photo %}
+                                <img src="{{ req.user.photo.url }}" class="ap-avatar">
+                                {% else %}
+                                <div class="ap-avatar-placeholder">{{ req.user.first_name.0 }}{{ req.user.last_name.0 }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="ap-user-name">{{ req.user.full_name }}</div>
+                                    <div class="ap-user-sub">{{ req.user.phone }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="ap-badge ap-badge-plan">{{ req.get_plan_display }}</span></td>
+                        <td class="text-center"><span class="fw-bold">{{ req.price }}</span> <small class="text-muted">coin</small></td>
+                        <td>
+                            {% if req.is_extension %}
+                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytirish</span>
+                            {% else %}
+                            <span class="ap-badge ap-badge-new"><i class="bi bi-plus-circle"></i> Yangi</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="ap-user-sub">{{ req.created_at|date:"d.m.Y H:i" }}</span></td>
+                        <td>
+                            <div class="ap-actions justify-content-center">
+                                <form method="POST" action="{% url 'approve_premium_request' req.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="ap-btn-approve" onclick="return confirm('{{ req.user.full_name }}ning so\'rovini tasdiqlaysizmi?');">
+                                        <i class="bi bi-check-lg"></i>Tasdiqlash
+                                    </button>
+                                </form>
+                                <form method="POST" action="{% url 'reject_premium_request' req.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="ap-btn-reject" onclick="return confirm('Rad etasizmi? {{ req.price }} coin qaytariladi.');">
+                                        <i class="bi bi-x-lg"></i>Rad
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="ap-empty">
+                                <div class="ap-empty-icon"><i class="bi bi-inbox"></i></div>
+                                <div class="ap-empty-text">Kutilayotgan so'rovlar yo'q</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ======= TAB: FOYDALANUVCHILAR ======= -->
+    {% if tab == 'users' %}
+    <div class="ap-filter">
+        <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="tab" value="users">
+            <div class="col-12 col-md-5">
+                <label class="form-label small fw-bold">Qidirish</label>
+                <div class="input-group">
+                    <span class="input-group-text" style="border-radius: 0.6rem 0 0 0.6rem;"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="Ism, familiya, telefon..." value="{{ search }}" style="border-radius: 0 0.6rem 0.6rem 0;">
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="fs-1 fw-bold text-primary">{{ total_students }}</div>
-                    <div class="text-muted">Jami o'quvchilar</div>
-                </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-bold">Filter</label>
+                <select name="filter" class="form-select" style="border-radius: 0.6rem;">
+                    <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Barcha o'quvchilar</option>
+                    <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Faqat Premium ⭐</option>
+                    <option value="not_premium" {% if filter_type == 'not_premium' %}selected{% endif %}>Premiumsiz</option>
+                    <option value="expiring" {% if filter_type == 'expiring' %}selected{% endif %}>Muddati tugayotgan ⚠️</option>
+                </select>
             </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn ap-search-btn w-100">
+                    <i class="bi bi-search me-1"></i>Qidirish
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="ap-panel">
+        <div class="ap-panel-header">
+            <h5 class="ap-panel-title">
+                <i class="bi bi-people-fill"></i>
+                O'quvchilar
+                <span class="ap-badge ap-badge-coin">{{ users.paginator.count }} ta</span>
+            </h5>
         </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <div class="fs-1 fw-bold text-success">
-                        {% if total_students > 0 %}
-                            {% widthratio premium_count total_students 100 %}%
-                        {% else %}
-                            0%
-                        {% endif %}
+        <div class="table-responsive">
+            <table class="ap-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>O'quvchi</th>
+                        <th class="d-none d-md-table-cell">Telefon</th>
+                        <th class="text-center">Coin</th>
+                        <th class="text-center">Status</th>
+                        <th class="d-none d-md-table-cell">Muddat</th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td class="fw-medium" style="opacity: 0.4;">{{ users.start_index|add:forloop.counter0 }}</td>
+                        <td>
+                            <div class="ap-user">
+                                {% if u.photo %}
+                                <img src="{{ u.photo.url }}" class="ap-avatar">
+                                {% else %}
+                                <div class="ap-avatar-placeholder">{{ u.first_name.0 }}{{ u.last_name.0 }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="ap-user-name">
+                                        {{ u.full_name }}
+                                        {% if u.is_premium %}<i class="bi bi-star-fill text-warning" style="font-size: 0.7rem; animation: starFloat 2.5s ease-in-out infinite;"></i>{% endif %}
+                                    </div>
+                                    <div class="ap-user-sub">{{ u.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="d-none d-md-table-cell"><span class="ap-user-sub">{{ u.phone }}</span></td>
+                        <td class="text-center">
+                            <span class="ap-badge ap-badge-coin"><i class="bi bi-coin"></i> {{ u.coins }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if u.is_premium %}
+                            <span class="ap-badge ap-badge-premium"><i class="bi bi-star-fill"></i> Premium</span>
+                            {% else %}
+                            <span class="ap-badge ap-badge-normal">Oddiy</span>
+                            {% endif %}
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            {% if u.is_premium and u.premium_expires_at %}
+                            <div class="ap-expiry">
+                                <div class="ap-expiry-date">{{ u.premium_expires_at|date:"d.m.Y H:i" }}</div>
+                                <div class="ap-expiry-start">{{ u.premium_purchased_at|date:"d.m.Y" }} dan</div>
+                            </div>
+                            {% elif u.is_premium %}
+                            <span class="ap-user-sub">Muddatsiz</span>
+                            {% else %}
+                            <span class="ap-user-sub">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if u.is_premium %}
+                            <form method="post" class="d-inline" onsubmit="return confirm('{{ u.full_name }}dan Premiumni olib tashlamoqchimisiz?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="user_id" value="{{ u.pk }}">
+                                <input type="hidden" name="action" value="remove_premium">
+                                <button type="submit" class="ap-btn-remove"><i class="bi bi-star"></i> <span class="d-none d-lg-inline">Olib tashlash</span></button>
+                            </form>
+                            {% else %}
+                            <button type="button" class="ap-btn-give" onclick="openGiveModal('{{ u.pk }}', '{{ u.full_name }}', '{{ u.phone }}', '{{ u.first_name.0 }}{{ u.last_name.0 }}', '{% if u.photo %}{{ u.photo.url }}{% endif %}')">
+                                <i class="bi bi-star-fill"></i> <span class="d-none d-lg-inline">Berish</span>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="ap-empty">
+                                <div class="ap-empty-icon"><i class="bi bi-people"></i></div>
+                                <div class="ap-empty-text">O'quvchilar topilmadi</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if users.has_other_pages %}
+    <nav class="ap-pagination">
+        <ul class="pagination mb-0">
+            {% if users.has_previous %}
+            <li class="page-item"><a class="page-link" href="?tab=users&page={{ users.previous_page_number }}&filter={{ filter_type }}&search={{ search }}"><i class="bi bi-chevron-left"></i></a></li>
+            {% endif %}
+            {% for num in users.paginator.page_range %}
+                {% if users.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?tab=users&page={{ num }}&filter={{ filter_type }}&search={{ search }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if users.has_next %}
+            <li class="page-item"><a class="page-link" href="?tab=users&page={{ users.next_page_number }}&filter={{ filter_type }}&search={{ search }}"><i class="bi bi-chevron-right"></i></a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% endif %}
+
+    <!-- ======= TAB: TARIX ======= -->
+    {% if tab == 'history' %}
+    <div class="ap-filter">
+        <form method="get" class="row g-2 align-items-end">
+            <input type="hidden" name="tab" value="history">
+            <div class="col-8 col-md-4">
+                <label class="form-label small fw-bold">Holat</label>
+                <select name="status" class="form-select" style="border-radius: 0.6rem;">
+                    <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Barchasi</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
+                </select>
+            </div>
+            <div class="col-4 col-md-3">
+                <button type="submit" class="btn ap-search-btn w-100">
+                    <i class="bi bi-filter me-1"></i>Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="ap-panel">
+        <div class="ap-panel-header">
+            <h5 class="ap-panel-title">
+                <i class="bi bi-clock-history"></i>
+                Barcha so'rovlar tarixi
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="ap-table">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Tarif</th>
+                        <th class="text-center d-none d-md-table-cell">Narx</th>
+                        <th class="d-none d-md-table-cell">Turi</th>
+                        <th>Holat</th>
+                        <th class="d-none d-lg-table-cell">So'rov sanasi</th>
+                        <th class="d-none d-lg-table-cell">Ko'rib chiqilgan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in all_requests %}
+                    <tr>
+                        <td>
+                            <div class="ap-user">
+                                {% if req.user.photo %}
+                                <img src="{{ req.user.photo.url }}" class="ap-avatar">
+                                {% else %}
+                                <div class="ap-avatar-placeholder">{{ req.user.first_name.0 }}{{ req.user.last_name.0 }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="ap-user-name">{{ req.user.full_name }}</div>
+                                    <div class="ap-user-sub">{{ req.user.phone }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="ap-badge ap-badge-plan">{{ req.get_plan_display }}</span></td>
+                        <td class="text-center d-none d-md-table-cell"><span class="fw-bold">{{ req.price }}</span> <small style="opacity:0.5;">coin</small></td>
+                        <td class="d-none d-md-table-cell">
+                            {% if req.is_extension %}
+                            <span class="ap-badge ap-badge-extend"><i class="bi bi-arrow-repeat"></i> Uzaytirish</span>
+                            {% else %}
+                            <span class="ap-badge ap-badge-new"><i class="bi bi-plus-circle"></i> Yangi</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                            <span class="ap-badge ap-badge-pending"><i class="bi bi-clock"></i> Kutilmoqda</span>
+                            {% elif req.status == 'approved' %}
+                            <span class="ap-badge ap-badge-approved"><i class="bi bi-check-circle"></i> Tasdiqlangan</span>
+                            {% else %}
+                            <span class="ap-badge ap-badge-rejected"><i class="bi bi-x-circle"></i> Rad etilgan</span>
+                            {% endif %}
+                        </td>
+                        <td class="d-none d-lg-table-cell"><span class="ap-user-sub">{{ req.created_at|date:"d.m.Y H:i" }}</span></td>
+                        <td class="d-none d-lg-table-cell">
+                            {% if req.reviewed_at %}
+                            <div class="ap-expiry">
+                                <div class="ap-expiry-date" style="font-size: 0.82rem;">{{ req.reviewed_at|date:"d.m.Y H:i" }}</div>
+                                {% if req.reviewed_by %}<div class="ap-expiry-start">{{ req.reviewed_by.full_name }}</div>{% endif %}
+                            </div>
+                            {% else %}
+                            <span class="ap-user-sub">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="ap-empty">
+                                <div class="ap-empty-icon"><i class="bi bi-clock-history"></i></div>
+                                <div class="ap-empty-text">So'rovlar yo'q</div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Premium berish modal (jadvaldan tashqarida) -->
+<div class="modal fade ap-modal" id="givePremiumModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="user_id" id="modalUserId">
+                <input type="hidden" name="action" value="give_premium">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>Premium berish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex align-items-center gap-2 mb-3 p-3 rounded-3" style="background: var(--border-color);">
+                        <img id="modalUserPhoto" class="ap-avatar" style="display:none;">
+                        <div id="modalUserInitials" class="ap-avatar-placeholder"></div>
+                        <div>
+                            <div class="fw-bold" id="modalUserName"></div>
+                            <small class="text-muted" id="modalUserPhone"></small>
+                        </div>
                     </div>
-                    <div class="text-muted">Premium ulushi</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter va qidirish -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label">Qidirish</label>
-                    <input type="text" name="search" class="form-control" placeholder="Ism, familiya, username yoki telefon..." value="{{ search }}">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Filter</label>
-                    <select name="filter" class="form-select">
-                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Barcha o'quvchilar</option>
-                        <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Faqat Premium</option>
-                        <option value="not_premium" {% if filter_type == 'not_premium' %}selected{% endif %}>Premiumsiz</option>
+                    <label class="form-label fw-bold">Tarif tanlang</label>
+                    <select name="plan" class="form-select" style="border-radius: 0.6rem;">
+                        <option value="weekly">&#9889; Haftalik (7 kun)</option>
+                        <option value="monthly" selected>&#11088; 1 oylik (30 kun)</option>
+                        <option value="bimonthly">&#128142; 2 oylik (60 kun)</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search me-1"></i>Qidirish
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor</button>
+                    <button type="submit" class="ap-btn-approve" style="padding: 0.5rem 1.5rem;">
+                        <i class="bi bi-star-fill"></i>Premium berish
                     </button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- O'quvchilar ro'yxati -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-people me-2"></i>O'quvchilar ({{ users.paginator.count }})</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>O'quvchi</th>
-                            <th>Telefon</th>
-                            <th class="text-center">Coinlar</th>
-                            <th class="text-center">Status</th>
-                            <th>Premium olingan sana</th>
-                            <th>Amallar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for u in users %}
-                        <tr>
-                            <td>{{ users.start_index|add:forloop.counter0 }}</td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    {% if u.photo %}
-                                    <img src="{{ u.photo.url }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
-                                    {% else %}
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 0.8rem;">
-                                        {{ u.first_name.0 }}{{ u.last_name.0 }}
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="fw-medium">
-                                            {{ u.full_name }}
-                                            {% if u.is_premium %}<i class="bi bi-star-fill text-warning ms-1"></i>{% endif %}
-                                        </div>
-                                        <small class="text-muted">{{ u.username }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>{{ u.phone }}</td>
-                            <td class="text-center">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-coin me-1"></i>{{ u.coins }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                {% if u.is_premium %}
-                                <span class="badge bg-success"><i class="bi bi-star-fill me-1"></i>Premium</span>
-                                {% else %}
-                                <span class="badge bg-secondary">Oddiy</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if u.premium_purchased_at %}
-                                {{ u.premium_purchased_at|date:"d.m.Y H:i" }}
-                                {% else %}
-                                <span class="text-muted">—</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if u.is_premium %}
-                                <form method="post" style="display:inline;" onsubmit="return confirm('{{ u.full_name }}dan Premiumni olib tashlamoqchimisiz?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="user_id" value="{{ u.pk }}">
-                                    <input type="hidden" name="action" value="remove_premium">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-star me-1"></i>Olib tashlash
-                                    </button>
-                                </form>
-                                {% else %}
-                                <form method="post" style="display:inline;" onsubmit="return confirm('{{ u.full_name }}ga Premium bermoqchimisiz?');">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="user_id" value="{{ u.pk }}">
-                                    <input type="hidden" name="action" value="give_premium">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-star-fill me-1"></i>Premium berish
-                                    </button>
-                                </form>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                O'quvchilar topilmadi
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- PAGINATOR -->
-    {% if users.has_other_pages %}
-    <nav class="mt-4">
-        <ul class="pagination justify-content-center">
-            {% if users.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ users.previous_page_number }}&filter={{ filter_type }}&search={{ search }}">Oldingi</a>
-            </li>
-            {% endif %}
-
-            {% for num in users.paginator.page_range %}
-                {% if users.number == num %}
-                <li class="page-item active">
-                    <span class="page-link">{{ num }}</span>
-                </li>
-                {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ num }}&filter={{ filter_type }}&search={{ search }}">{{ num }}</a>
-                </li>
-                {% endif %}
-            {% endfor %}
-
-            {% if users.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ users.next_page_number }}&filter={{ filter_type }}&search={{ search }}">Keyingi</a>
-            </li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
-
 </div>
+
+<script>
+function openGiveModal(userId, fullName, phone, initials, photoUrl) {
+    document.getElementById('modalUserId').value = userId;
+    document.getElementById('modalUserName').textContent = fullName;
+    document.getElementById('modalUserPhone').textContent = phone;
+
+    var photoEl = document.getElementById('modalUserPhoto');
+    var initialsEl = document.getElementById('modalUserInitials');
+
+    if (photoUrl) {
+        photoEl.src = photoUrl;
+        photoEl.style.display = 'block';
+        initialsEl.style.display = 'none';
+    } else {
+        photoEl.style.display = 'none';
+        initialsEl.style.display = 'flex';
+        initialsEl.textContent = initials;
+    }
+
+    new bootstrap.Modal(document.getElementById('givePremiumModal')).show();
+}
+</script>
 
 {% endblock %}

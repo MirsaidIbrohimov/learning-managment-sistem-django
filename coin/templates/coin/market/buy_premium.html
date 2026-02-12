@@ -1,59 +1,611 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Premium Sotib Olish | LMS{% endblock %}
+{% block title %}Premium Obuna | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --pm-bg: #f8fafc;
+    --pm-card: #ffffff;
+    --pm-text: #1e293b;
+    --pm-muted: #64748b;
+    --pm-border: rgba(0,0,0,0.06);
+    --pm-gold: #f59e0b;
+    --pm-gold-light: #fef3c7;
+    --pm-gold-dark: #d97706;
+    --pm-success: #10b981;
+    --pm-purple: #8b5cf6;
+}
+[data-bs-theme="dark"] {
+    --pm-bg: #0f172a;
+    --pm-card: #1e293b;
+    --pm-text: #f1f5f9;
+    --pm-muted: #94a3b8;
+    --pm-border: rgba(255,255,255,0.08);
+    --pm-gold-light: rgba(245,158,11,0.15);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
+    50% { box-shadow: 0 0 40px rgba(245,158,11,0.5); }
+}
+@keyframes starSpin {
+    from { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); }
+    to { transform: rotate(360deg) scale(1); }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes bounceIn {
+    0% { opacity: 0; transform: scale(0.3); }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes dotPulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+.pm-page {
+    min-height: 100vh;
+    background: var(--pm-bg);
+    padding-bottom: 4rem;
+}
+
+/* Hero */
+.pm-hero {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%);
+    border-radius: 0 0 2.5rem 2.5rem;
+    padding: 3rem 1.5rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: -2rem;
+}
+.pm-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5l5.5 11 12.2 1.8-8.8 8.6 2.1 12.1L30 32.8l-10.9 5.7 2.1-12.1-8.8-8.6L24.5 16z' fill='%23ffffff' fill-opacity='0.06'/%3E%3C/svg%3E");
+    animation: float 6s ease-in-out infinite;
+}
+.pm-hero-icon {
+    font-size: 3.5rem;
+    color: white;
+    animation: starSpin 3s ease-in-out infinite;
+    display: inline-block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+}
+.pm-hero h1 {
+    color: white;
+    font-weight: 800;
+    font-size: 2rem;
+    margin: 0.8rem 0 0.3rem;
+    animation: fadeInUp 0.6s ease-out;
+}
+.pm-hero p {
+    color: rgba(255,255,255,0.85);
+    font-size: 1rem;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+/* Coin Badge */
+.pm-coin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    padding: 0.5rem 1.2rem;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    animation: bounceIn 0.8s ease-out 0.3s both;
+}
+.pm-coin-badge i { font-size: 1.3rem; }
+
+/* Cards Container */
+.pm-cards-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+/* Plan Card */
+.pm-plan {
+    background: var(--pm-card);
+    border-radius: 1.5rem;
+    border: 2px solid var(--pm-border);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.pm-plan::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--pm-gold), var(--pm-gold-dark));
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+}
+.pm-plan:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(245,158,11,0.15);
+    border-color: var(--pm-gold);
+}
+.pm-plan:hover::before { transform: scaleX(1); }
+
+.pm-plan.popular {
+    border-color: var(--pm-gold);
+    box-shadow: 0 8px 30px rgba(245,158,11,0.2);
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+.pm-plan.popular::before { transform: scaleX(1); }
+
+/* Popular badge */
+.pm-popular-tag {
+    position: absolute;
+    top: 14px;
+    right: -32px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 40px;
+    transform: rotate(45deg);
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+}
+
+/* Plan icon */
+.pm-plan-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+.pm-plan:hover .pm-plan-icon { transform: scale(1.15) rotate(10deg); }
+
+.pm-plan-icon.weekly {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #3b82f6;
+}
+.pm-plan-icon.monthly {
+    background: linear-gradient(135deg, var(--pm-gold-light), #fde68a);
+    color: var(--pm-gold);
+}
+.pm-plan-icon.bimonthly {
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    color: var(--pm-purple);
+}
+
+.pm-plan-name {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--pm-text);
+    margin-bottom: 0.2rem;
+}
+.pm-plan-days {
+    color: var(--pm-muted);
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+
+/* Price */
+.pm-price {
+    margin: 1rem 0;
+}
+.pm-price-amount {
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--pm-gold);
+    line-height: 1;
+    animation: countUp 0.6s ease-out;
+}
+.pm-price-label {
+    color: var(--pm-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Features */
+.pm-features {
+    list-style: none;
+    padding: 0;
+    margin: 1.2rem 0;
+    text-align: left;
+    flex-grow: 1;
+}
+.pm-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0;
+    font-size: 0.88rem;
+    color: var(--pm-text);
+    border-bottom: 1px solid var(--pm-border);
+}
+.pm-features li:last-child { border-bottom: none; }
+.pm-features li i {
+    color: var(--pm-success);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Button */
+.pm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.8rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+.pm-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.pm-btn:hover::after { opacity: 1; }
+
+.pm-btn-primary {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245,158,11,0.4);
+}
+.pm-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(245,158,11,0.5);
+    color: white;
+}
+.pm-btn-outline {
+    background: transparent;
+    color: var(--pm-gold);
+    border: 2px solid var(--pm-gold);
+}
+.pm-btn-outline:hover {
+    background: var(--pm-gold);
+    color: white;
+    transform: translateY(-2px);
+}
+.pm-btn-disabled {
+    background: var(--pm-border);
+    color: var(--pm-muted);
+    cursor: not-allowed;
+}
+
+/* Steps */
+.pm-steps {
+    background: var(--pm-card);
+    border-radius: 1.2rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid var(--pm-border);
+}
+.pm-step {
+    text-align: center;
+    position: relative;
+    animation: fadeInUp 0.5s ease-out both;
+}
+.pm-step:nth-child(1) { animation-delay: 0.5s; }
+.pm-step:nth-child(2) { animation-delay: 0.65s; }
+.pm-step:nth-child(3) { animation-delay: 0.8s; }
+.pm-step:nth-child(4) { animation-delay: 0.95s; }
+
+.pm-step-num {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--pm-gold-light), #fde68a);
+    color: var(--pm-gold-dark);
+    font-weight: 800;
+    font-size: 1.3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.6rem;
+    transition: transform 0.3s ease;
+}
+.pm-step:hover .pm-step-num {
+    transform: scale(1.15);
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+.pm-step-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--pm-text);
+}
+
+/* Connector dots between steps (desktop) */
+.pm-step-connector {
+    position: absolute;
+    right: -20px;
+    top: 26px;
+    display: flex;
+    gap: 4px;
+}
+.pm-step-connector span {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--pm-gold);
+}
+.pm-step-connector span:nth-child(1) { animation: dotPulse 1.5s ease-in-out infinite; }
+.pm-step-connector span:nth-child(2) { animation: dotPulse 1.5s ease-in-out 0.3s infinite; }
+.pm-step-connector span:nth-child(3) { animation: dotPulse 1.5s ease-in-out 0.6s infinite; }
+
+/* Back button */
+.pm-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--pm-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--pm-border);
+    transition: all 0.3s ease;
+    background: var(--pm-card);
+}
+.pm-back:hover {
+    color: var(--pm-gold);
+    border-color: var(--pm-gold);
+    transform: translateX(-4px);
+}
+
+/* Animation classes for cards */
+.pm-animate-1 { animation: slideInLeft 0.6s ease-out 0.2s both; }
+.pm-animate-2 { animation: bounceIn 0.7s ease-out 0.35s both; }
+.pm-animate-3 { animation: slideInRight 0.6s ease-out 0.2s both; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pm-hero { padding: 2rem 1rem 3rem; border-radius: 0 0 1.5rem 1.5rem; }
+    .pm-hero h1 { font-size: 1.5rem; }
+    .pm-hero-icon { font-size: 2.5rem; }
+    .pm-price-amount { font-size: 2.2rem; }
+    .pm-plan { padding: 1.5rem 1.2rem; border-radius: 1.2rem; }
+    .pm-step-connector { display: none; }
+    .pm-steps { padding: 1.2rem; }
+    .pm-cards-wrap { padding: 0 0.5rem; }
+}
+@media (max-width: 576px) {
+    .pm-hero { padding: 1.5rem 1rem 2.5rem; }
+    .pm-hero h1 { font-size: 1.3rem; }
+    .pm-plan { padding: 1.2rem 1rem; }
+    .pm-price-amount { font-size: 2rem; }
+    .pm-plan-icon { width: 52px; height: 52px; font-size: 1.4rem; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-lg" style="border-radius: 1.5rem; overflow: hidden;">
-                <div class="card-header text-center py-4" style="background: linear-gradient(135deg, #fbbf24, #f59e0b);">
-                    <i class="bi bi-star-fill text-white" style="font-size: 3rem;"></i>
-                    <h3 class="text-white fw-bold mt-2 mb-0">Premium Obuna</h3>
-                </div>
-                <div class="card-body p-4 text-center">
-                    <div class="mb-4">
-                        <div class="fs-1 fw-bold text-warning">{{ premium_price }}</div>
-                        <span class="text-muted">coin</span>
-                    </div>
-                    
-                    <div class="text-start mb-4">
-                        <h6 class="fw-bold mb-3">Premium afzalliklari:</h6>
-                        <ul class="list-unstyled">
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                Ismingiz yonida ⭐ premium galochka
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                Hamma joyda ko'rinadi (profil, izohlar, leaderboard)
-                            </li>
-                            <li class="mb-2">
-                                <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                Umrbod amal qiladi
-                            </li>
-                        </ul>
-                    </div>
-                    
-                    <div class="alert alert-info small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Sizda <strong>{{ user.coins }}</strong> coin bor
-                    </div>
-                    
-                    <form method="POST">
-                        {% csrf_token %}
-                        <div class="d-flex gap-2">
-                            <a href="{% url 'coin:market_list' %}" class="btn btn-outline-secondary flex-grow-1">
-                                <i class="bi bi-arrow-left me-1"></i>Orqaga
-                            </a>
-                            <button type="submit" class="btn btn-warning flex-grow-1 fw-bold">
-                                <i class="bi bi-bag-fill me-1"></i>Sotib olish
-                            </button>
-                        </div>
-                    </form>
-                </div>
+<div class="pm-page">
+
+    <!-- Hero -->
+    <div class="pm-hero">
+        <div class="pm-hero-icon"><i class="bi bi-star-fill"></i></div>
+        <h1>Premium Obuna</h1>
+        <p>O'zingizga mos tarifni tanlang va imtiyozlardan bahramand bo'ling</p>
+        <div class="mt-3">
+            <div class="pm-coin-badge">
+                <i class="bi bi-coin"></i>
+                <span>{{ user.coins }} coin</span>
             </div>
         </div>
     </div>
+
+    <!-- Plans -->
+    <div class="pm-cards-wrap mt-4">
+        <div class="row g-4">
+
+            <!-- Haftalik -->
+            <div class="col-12 col-md-4">
+                <div class="pm-plan pm-animate-1">
+                    <div class="pm-plan-icon weekly"><i class="bi bi-lightning-fill"></i></div>
+                    <div class="pm-plan-name">Haftalik</div>
+                    <div class="pm-plan-days">7 kun amal qiladi</div>
+                    <div class="pm-price">
+                        <div class="pm-price-amount">350</div>
+                        <div class="pm-price-label">coin</div>
+                    </div>
+                    <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>7 kun davomida amal qiladi</li>
+                    </ul>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="weekly">
+                        {% if user.coins >= 350 %}
+                        <button type="submit" class="pm-btn pm-btn-outline"
+                                onclick="return confirm('Haftalik Premium uchun 350 coin sarflanadi. So\'rov yuboriladi va admin tasdiqlashini kutasiz. Davom etasizmi?');">
+                            <i class="bi bi-send-fill"></i>So'rov yuborish
+                        </button>
+                        {% else %}
+                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
+                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- 1 oylik (Mashhur) -->
+            <div class="col-12 col-md-4">
+                <div class="pm-plan popular pm-animate-2">
+                    <div class="pm-popular-tag">MASHHUR</div>
+                    <div class="pm-plan-icon monthly"><i class="bi bi-star-fill"></i></div>
+                    <div class="pm-plan-name">1 Oylik</div>
+                    <div class="pm-plan-days">30 kun amal qiladi</div>
+                    <div class="pm-price">
+                        <div class="pm-price-amount">700</div>
+                        <div class="pm-price-label">coin</div>
+                    </div>
+                    <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>30 kun davomida amal qiladi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>Eng ko'p tanlanadi</li>
+                    </ul>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="monthly">
+                        {% if user.coins >= 700 %}
+                        <button type="submit" class="pm-btn pm-btn-primary"
+                                onclick="return confirm('1 Oylik Premium uchun 700 coin sarflanadi. So\'rov yuboriladi va admin tasdiqlashini kutasiz. Davom etasizmi?');">
+                            <i class="bi bi-send-fill"></i>So'rov yuborish
+                        </button>
+                        {% else %}
+                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
+                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- 2 oylik -->
+            <div class="col-12 col-md-4">
+                <div class="pm-plan pm-animate-3">
+                    <div class="pm-plan-icon bimonthly"><i class="bi bi-gem"></i></div>
+                    <div class="pm-plan-name">2 Oylik</div>
+                    <div class="pm-plan-days">60 kun amal qiladi</div>
+                    <div class="pm-price">
+                        <div class="pm-price-amount">1000</div>
+                        <div class="pm-price-label">coin</div>
+                    </div>
+                    <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>60 kun davomida amal qiladi</li>
+                        <li><i class="bi bi-check-circle-fill"></i>Eng tejamkor variant</li>
+                    </ul>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="bimonthly">
+                        {% if user.coins >= 1000 %}
+                        <button type="submit" class="pm-btn pm-btn-outline"
+                                onclick="return confirm('2 Oylik Premium uchun 1000 coin sarflanadi. So\'rov yuboriladi va admin tasdiqlashini kutasiz. Davom etasizmi?');">
+                            <i class="bi bi-send-fill"></i>So'rov yuborish
+                        </button>
+                        {% else %}
+                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
+                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Qanday ishlaydi -->
+        <div class="pm-steps">
+            <h6 class="fw-bold mb-4 text-center" style="color: var(--pm-text);">
+                <i class="bi bi-info-circle text-warning me-2"></i>Qanday ishlaydi?
+            </h6>
+            <div class="row g-3">
+                <div class="col-6 col-md-3">
+                    <div class="pm-step">
+                        <div class="pm-step-num">1</div>
+                        <div class="pm-step-text">Tarifni tanlang</div>
+                        <div class="pm-step-connector d-none d-md-flex">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="pm-step">
+                        <div class="pm-step-num">2</div>
+                        <div class="pm-step-text">Coinlar yechiladi</div>
+                        <div class="pm-step-connector d-none d-md-flex">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="pm-step">
+                        <div class="pm-step-num">3</div>
+                        <div class="pm-step-text">Admin tasdiqlaydi</div>
+                        <div class="pm-step-connector d-none d-md-flex">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="pm-step">
+                        <div class="pm-step-num">⭐</div>
+                        <div class="pm-step-text">Premium faollashadi</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orqaga -->
+        <div class="text-center mt-4">
+            <a href="{% url 'coin:market_list' %}" class="pm-back">
+                <i class="bi bi-arrow-left"></i>Marketga qaytish
+            </a>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

@@ -5126,8 +5126,16 @@ def admin_premium_management(request):
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
 
+    tab = request.GET.get('tab', 'requests')
     search = request.GET.get('search', '').strip()
     filter_type = request.GET.get('filter', 'all')
+    status_filter = request.GET.get('status', 'pending')
+
+    pending_requests = PremiumRequest.objects.filter(status='pending').select_related('user')
+    all_requests = PremiumRequest.objects.all().select_related('user', 'reviewed_by')
+
+    if status_filter and status_filter != 'all':
+        all_requests = all_requests.filter(status=status_filter)
 
     users_qs = CustomUser.objects.filter(role='student').order_by('-premium_purchased_at', 'first_name')
 
@@ -5135,6 +5143,13 @@ def admin_premium_management(request):
         users_qs = users_qs.filter(is_premium=True)
     elif filter_type == 'not_premium':
         users_qs = users_qs.filter(is_premium=False)
+    elif filter_type == 'expiring':
+        from datetime import timedelta as td
+        users_qs = users_qs.filter(
+            is_premium=True,
+            premium_expires_at__lte=timezone.now() + td(days=3),
+            premium_expires_at__gt=timezone.now()
+        )
 
     if search:
         users_qs = users_qs.filter(
@@ -5145,34 +5160,44 @@ def admin_premium_management(request):
         )
 
     if request.method == 'POST':
-        user_id = request.POST.get('user_id')
         action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
 
         try:
             with transaction.atomic():
-                user = CustomUser.objects.select_for_update().get(pk=user_id, role='student')
-
                 if action == 'give_premium':
-                    if not user.is_premium:
+                    user = CustomUser.objects.select_for_update().get(pk=user_id, role='student')
+                    plan = request.POST.get('plan', 'monthly')
+                    from accounts.models import PremiumRequest as PR
+                    days = PR.PLAN_DAYS.get(plan, 30)
+
+                    now = timezone.now()
+                    if user.is_premium and user.premium_expires_at and user.premium_expires_at > now:
+                        user.premium_expires_at = user.premium_expires_at + timedelta(days=days)
+                    else:
                         user.is_premium = True
-                        user.premium_purchased_at = timezone.now()
-                        user.save(update_fields=['is_premium', 'premium_purchased_at'])
+                        user.premium_purchased_at = now
+                        user.premium_expires_at = now + timedelta(days=days)
 
-                        Message.objects.create(
-                            sender=request.user,
-                            recipient=user,
-                            title="Premium berildi ⭐",
-                            content="Sizga admin tomonidan Premium obuna berildi! Endi siz premium imkoniyatlardan foydalanishingiz mumkin.",
-                            message_type='system'
-                        )
+                    user.save(update_fields=['is_premium', 'premium_purchased_at', 'premium_expires_at'])
 
-                        messages.success(request, f"{user.full_name}ga Premium berildi!")
+                    plan_name = dict(PR.PLAN_CHOICES).get(plan, plan)
+                    Message.objects.create(
+                        sender=request.user,
+                        recipient=user,
+                        title="Premium berildi ⭐",
+                        content=f"Sizga admin tomonidan {plan_name} Premium obuna berildi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha.",
+                        message_type='system'
+                    )
+                    messages.success(request, f"{user.full_name}ga {plan_name} Premium berildi!")
 
                 elif action == 'remove_premium':
+                    user = CustomUser.objects.select_for_update().get(pk=user_id, role='student')
                     if user.is_premium:
                         user.is_premium = False
                         user.premium_purchased_at = None
-                        user.save(update_fields=['is_premium', 'premium_purchased_at'])
+                        user.premium_expires_at = None
+                        user.save(update_fields=['is_premium', 'premium_purchased_at', 'premium_expires_at'])
 
                         Message.objects.create(
                             sender=request.user,
@@ -5181,16 +5206,21 @@ def admin_premium_management(request):
                             content="Sizning Premium obunangiz admin tomonidan olib tashlandi.",
                             message_type='system'
                         )
-
                         messages.success(request, f"{user.full_name}dan Premium olib tashlandi!")
 
         except CustomUser.DoesNotExist:
             messages.error(request, "Foydalanuvchi topilmadi!")
 
-        return redirect(f"{request.path}?filter={filter_type}&search={search}")
+        return redirect(f"{request.path}?tab={tab}&filter={filter_type}&search={search}")
 
     premium_count = CustomUser.objects.filter(role='student', is_premium=True).count()
     total_students = CustomUser.objects.filter(role='student').count()
+    pending_count = PremiumRequest.objects.filter(status='pending').count()
+    expiring_soon = CustomUser.objects.filter(
+        role='student', is_premium=True,
+        premium_expires_at__lte=timezone.now() + timedelta(days=3),
+        premium_expires_at__gt=timezone.now()
+    ).count()
 
     paginator = Paginator(users_qs, 25)
     page_number = request.GET.get('page')
@@ -5200,9 +5230,98 @@ def admin_premium_management(request):
         'users': users,
         'premium_count': premium_count,
         'total_students': total_students,
+        'pending_count': pending_count,
+        'expiring_soon': expiring_soon,
+        'pending_requests': pending_requests,
+        'all_requests': all_requests[:100],
         'search': search,
         'filter_type': filter_type,
+        'tab': tab,
+        'status_filter': status_filter,
     }
 
     return render(request, 'accounts/admin/premium_management.html', context)
+
+
+@login_required
+def approve_premium_request(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    prem_req = get_object_or_404(PremiumRequest, pk=pk)
+
+    if prem_req.status != 'pending':
+        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        return redirect('admin_premium_management')
+
+    with transaction.atomic():
+        prem_req.status = 'approved'
+        prem_req.reviewed_by = request.user
+        prem_req.reviewed_at = timezone.now()
+        prem_req.save()
+
+        user = CustomUser.objects.select_for_update().get(pk=prem_req.user_id)
+        days = prem_req.duration_days
+        now = timezone.now()
+
+        if user.is_premium and user.premium_expires_at and user.premium_expires_at > now:
+            user.premium_expires_at = user.premium_expires_at + timedelta(days=days)
+        else:
+            user.is_premium = True
+            user.premium_purchased_at = now
+            user.premium_expires_at = now + timedelta(days=days)
+
+        user.save(update_fields=['is_premium', 'premium_purchased_at', 'premium_expires_at'])
+
+        Message.objects.create(
+            sender=request.user,
+            recipient=user,
+            title="Premium tasdiqlandi ⭐",
+            content=f"Sizning {prem_req.get_plan_display()} Premium so'rovingiz tasdiqlandi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha amal qiladi.",
+            message_type='system'
+        )
+
+    messages.success(request, f"{prem_req.user.full_name}ning Premium so'rovi tasdiqlandi!")
+    return redirect('admin_premium_management')
+
+
+@login_required
+def reject_premium_request(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    prem_req = get_object_or_404(PremiumRequest, pk=pk)
+
+    if prem_req.status != 'pending':
+        messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+        return redirect('admin_premium_management')
+
+    with transaction.atomic():
+        prem_req.status = 'rejected'
+        prem_req.reviewed_by = request.user
+        prem_req.reviewed_at = timezone.now()
+        prem_req.save()
+
+        user = CustomUser.objects.select_for_update().get(pk=prem_req.user_id)
+        user.coins += prem_req.price
+        user.save(update_fields=['coins'])
+
+        from coin.models import CoinTransaction
+        CoinTransaction.objects.create(
+            user=user,
+            amount=prem_req.price,
+            action='add',
+            reason=f"Premium so'rov rad etildi - {prem_req.price} coin qaytarildi"
+        )
+
+        Message.objects.create(
+            sender=request.user,
+            recipient=user,
+            title="Premium so'rov rad etildi",
+            content=f"Sizning {prem_req.get_plan_display()} Premium so'rovingiz rad etildi.\n{prem_req.price} coin hisobingizga qaytarildi.",
+            message_type='system'
+        )
+
+    messages.success(request, f"{prem_req.user.full_name}ning Premium so'rovi rad etildi. Coinlar qaytarildi.")
+    return redirect('admin_premium_management')
 

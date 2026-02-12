@@ -464,25 +464,28 @@
     <div class="premium-card">
         <div>
             <h3><i class="bi bi-star-fill me-2"></i>Premium Obuna</h3>
-            <p>Ismingiz yonida premium belgisi ko'rinadi!</p>
+            {% if user.is_premium and user.premium_expires_at %}
+                <p>Muddati: {{ user.premium_expires_at|date:"d.m.Y" }} gacha</p>
+            {% else %}
+                <p>Haftalik 350 | 1 oylik 700 | 2 oylik 1000 coin</p>
+            {% endif %}
         </div>
-        <div class="d-flex align-items-center gap-3">
-            <div class="premium-price">
-                <div class="amount">{{ premium_price }}</div>
-                <small>coin</small>
-            </div>
-            {% if user.is_premium %}
+        <div class="d-flex align-items-center gap-2">
+            {% if pending_request %}
+                <span class="premium-btn" style="background: #f59e0b; color: white;">
+                    <i class="bi bi-clock me-1"></i>So'rov kutilmoqda
+                </span>
+            {% elif user.is_premium %}
                 <span class="premium-btn" style="background: #10b981; color: white;">
                     <i class="bi bi-check-circle-fill me-1"></i>Premium
                 </span>
-            {% elif can_buy_premium %}
-                <a href="{% url 'coin:buy_premium' %}" class="premium-btn">
-                    <i class="bi bi-bag-fill me-1"></i>Sotib olish
+                <a href="{% url 'coin:extend_premium' %}" class="premium-btn" style="background: #3b82f6; color: white;">
+                    <i class="bi bi-arrow-repeat me-1"></i>Uzaytirish
                 </a>
             {% else %}
-                <span class="premium-btn" style="background: #f1f5f9; color: #64748b;">
-                    <i class="bi bi-lock-fill me-1"></i>Yetarli emas
-                </span>
+                <a href="{% url 'coin:buy_premium' %}" class="premium-btn">
+                    <i class="bi bi-star-fill me-1"></i>Tariflar
+                </a>
             {% endif %}
         </div>
     </div>

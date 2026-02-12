@@ -195,6 +195,8 @@ urlpatterns = [
     
     # Admin: Premium boshqaruv
     path('dashboard/premium/', views.admin_premium_management, name='admin_premium_management'),
+    path('dashboard/premium/<int:pk>/approve/', views.approve_premium_request, name='approve_premium_request'),
+    path('dashboard/premium/<int:pk>/reject/', views.reject_premium_request, name='reject_premium_request'),
     
     # O'quvchi: Ijaradagi kitoblar
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),

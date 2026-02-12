@@ -2,13 +2,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
-from accounts.models import CustomUser
+from django.db import transaction
+from accounts.models import CustomUser, PremiumRequest, Message
 from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
     CoinTransaction, ActivityLog
 )
 
-PREMIUM_PRICE = 1000  # Premium narxi coinlarda
+PREMIUM_PLANS = {
+    'weekly': {'name': 'Haftalik', 'price': 350, 'days': 7},
+    'monthly': {'name': '1 oylik', 'price': 700, 'days': 30},
+    'bimonthly': {'name': '2 oylik', 'price': 1000, 'days': 60},
+}
 
 
 # ============== COIN MARKET ==============
@@ -16,51 +21,148 @@ PREMIUM_PRICE = 1000  # Premium narxi coinlarda
 @login_required
 def market_list(request):
     products = Product.objects.filter(is_active=True)
+    
+    pending_request = None
+    if request.user.is_authenticated:
+        pending_request = PremiumRequest.objects.filter(
+            user=request.user, status='pending'
+        ).first()
+    
     return render(request, 'coin/market/list.html', {
         'products': products,
-        'premium_price': PREMIUM_PRICE,
-        'can_buy_premium': request.user.coins >= PREMIUM_PRICE and not request.user.is_premium,
+        'premium_plans': PREMIUM_PLANS,
+        'pending_request': pending_request,
     })
 
 
 @login_required
-def buy_premium(request):
-    """Premium sotib olish"""
-    if request.user.is_premium:
-        messages.info(request, "Siz allaqachon Premium foydalanuvchisiz! ✓")
+def request_premium(request):
+    pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
+    if pending:
+        messages.info(request, "Sizda allaqachon kutilayotgan Premium so'rov bor!")
         return redirect('coin:market_list')
-    
-    if request.user.coins < PREMIUM_PRICE:
-        messages.error(request, f"Coinlaringiz yetarli emas! Premium narxi: {PREMIUM_PRICE} coin")
-        return redirect('coin:market_list')
-    
+
     if request.method == 'POST':
-        # Coinlarni ayirish
-        request.user.coins -= PREMIUM_PRICE
-        request.user.is_premium = True
-        request.user.premium_purchased_at = timezone.now()
-        request.user.save()
+        plan = request.POST.get('plan')
+        if plan not in PREMIUM_PLANS:
+            messages.error(request, "Noto'g'ri tarif tanlandi!")
+            return redirect('coin:buy_premium')
         
-        # Transaction yaratish
-        CoinTransaction.objects.create(
-            user=request.user,
-            amount=PREMIUM_PRICE,
-            action='remove',
-            reason="⭐ Premium obuna sotib olindi"
-        )
+        plan_info = PREMIUM_PLANS[plan]
+        price = plan_info['price']
         
-        # Activity log
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='purchase_product',
-            description=f"Premium obuna sotib oldi ({PREMIUM_PRICE} coin)"
-        )
+        if request.user.coins < price:
+            messages.error(request, f"Coinlaringiz yetarli emas! {plan_info['name']} Premium narxi: {price} coin")
+            return redirect('coin:buy_premium')
         
-        messages.success(request, "🎉 Tabriklaymiz! Siz endi Premium foydalanuvchisiz! ⭐")
+        with transaction.atomic():
+            request.user.coins -= price
+            request.user.save(update_fields=['coins'])
+            
+            is_ext = request.user.is_premium and request.user.premium_expires_at and request.user.premium_expires_at > timezone.now()
+            
+            PremiumRequest.objects.create(
+                user=request.user,
+                plan=plan,
+                is_extension=is_ext,
+            )
+            
+            CoinTransaction.objects.create(
+                user=request.user,
+                amount=price,
+                action='remove',
+                reason=f"⭐ Premium so'rov ({plan_info['name']}) - {price} coin"
+            )
+            
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='purchase_product',
+                description=f"Premium so'rov yuborildi: {plan_info['name']} ({price} coin)"
+            )
+            
+            admins = CustomUser.objects.filter(role='admin')
+            for admin in admins:
+                Message.objects.create(
+                    sender=request.user,
+                    recipient=admin,
+                    title="Yangi Premium so'rov ⭐",
+                    content=f"{request.user.full_name} {plan_info['name']} Premium ({price} coin) uchun so'rov yubordi. Dashboard > Premium boshqaruv bo'limidan tasdiqlang.",
+                    message_type='system'
+                )
+        
+        label = "uzaytirish" if is_ext else ""
+        messages.success(request, f"Premium {label} so'rovingiz yuborildi! Admin tasdiqlashini kuting.")
         return redirect('coin:market_list')
     
     return render(request, 'coin/market/buy_premium.html', {
-        'premium_price': PREMIUM_PRICE,
+        'premium_plans': PREMIUM_PLANS,
+        'user': request.user,
+    })
+
+
+@login_required
+def extend_premium(request):
+    if not request.user.is_premium:
+        messages.error(request, "Siz hali Premium foydalanuvchi emassiz!")
+        return redirect('coin:market_list')
+    
+    pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
+    if pending:
+        messages.info(request, "Sizda allaqachon kutilayotgan Premium so'rov bor!")
+        return redirect('coin:market_list')
+    
+    if request.method == 'POST':
+        plan = request.POST.get('plan')
+        if plan not in PREMIUM_PLANS:
+            messages.error(request, "Noto'g'ri tarif tanlandi!")
+            return redirect('coin:extend_premium')
+        
+        plan_info = PREMIUM_PLANS[plan]
+        price = plan_info['price']
+        
+        if request.user.coins < price:
+            messages.error(request, f"Coinlaringiz yetarli emas! {plan_info['name']} Premium narxi: {price} coin")
+            return redirect('coin:extend_premium')
+        
+        with transaction.atomic():
+            request.user.coins -= price
+            request.user.save(update_fields=['coins'])
+            
+            PremiumRequest.objects.create(
+                user=request.user,
+                plan=plan,
+                is_extension=True,
+            )
+            
+            CoinTransaction.objects.create(
+                user=request.user,
+                amount=price,
+                action='remove',
+                reason=f"⭐ Premium uzaytirish so'rovi ({plan_info['name']}) - {price} coin"
+            )
+            
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='purchase_product',
+                description=f"Premium uzaytirish so'rovi: {plan_info['name']} ({price} coin)"
+            )
+            
+            admins = CustomUser.objects.filter(role='admin')
+            for admin in admins:
+                Message.objects.create(
+                    sender=request.user,
+                    recipient=admin,
+                    title="Premium uzaytirish so'rovi ⭐",
+                    content=f"{request.user.full_name} Premium muddatini {plan_info['name']} ga uzaytirish uchun so'rov yubordi ({price} coin). Dashboard > Premium boshqaruv bo'limidan tasdiqlang.",
+                    message_type='system'
+                )
+        
+        messages.success(request, "Premium uzaytirish so'rovingiz yuborildi! Admin tasdiqlashini kuting.")
+        return redirect('coin:market_list')
+    
+    return render(request, 'coin/market/extend_premium.html', {
+        'premium_plans': PREMIUM_PLANS,
+        'user': request.user,
     })
 
 
@@ -74,7 +176,6 @@ def market_detail(request, pk):
     if request.method == 'POST' and 'comment' in request.POST:
         content = request.POST.get('content')
         if content:
-            # 1 soatda bitta izoh yozish cheklovi
             from datetime import timedelta
             one_hour_ago = timezone.now() - timedelta(hours=1)
             recent_comment = ProductComment.objects.filter(
@@ -114,12 +215,10 @@ def market_like(request, pk):
     like = ProductLike.objects.filter(product=product, user=request.user).first()
     
     if like:
-        # Unlike - coin qaytarib olinadi
         if like.coin_awarded:
             request.user.remove_coins(1, f"Mahsulotga like bekor qilindi: {product.name}")
         like.delete()
     else:
-        # Like - coin berish
         like = ProductLike.objects.create(product=product, user=request.user)
         request.user.add_coins(1, f"Mahsulotga like: {product.name}")
         like.coin_awarded = True

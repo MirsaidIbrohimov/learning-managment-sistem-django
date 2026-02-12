@@ -39,6 +39,7 @@ def admin_badges(request):
         HomeworkSubmission,
         HelpRequest,
         PasswordResetRequest,
+        PremiumRequest,
     )
 
     return {
@@ -46,5 +47,6 @@ def admin_badges(request):
         "admin_pending_homeworks": HomeworkSubmission.objects.filter(status__in=["pending", "reviewing"]).count(),
         "admin_pending_help": HelpRequest.objects.filter(status="pending").count(),
         "admin_pending_passwords": PasswordResetRequest.objects.filter(status="pending").count(),
+        "admin_pending_premium": PremiumRequest.objects.filter(status="pending").count(),
     }
 

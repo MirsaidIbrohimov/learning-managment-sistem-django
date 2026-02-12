@@ -138,6 +138,7 @@
             <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}">
                 <i class="bi bi-star-fill"></i>
                 <span>Premium boshqaruv</span>
+                {% if admin_pending_premium %}<span class="sidebar-badge">{{ admin_pending_premium }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}">
                 <i class="bi bi-percent"></i>

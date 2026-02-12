@@ -1,0 +1,375 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Premium Uzaytirish | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --pe-bg: #f8fafc;
+    --pe-card: #ffffff;
+    --pe-text: #1e293b;
+    --pe-muted: #64748b;
+    --pe-border: rgba(0,0,0,0.06);
+    --pe-gold: #f59e0b;
+    --pe-gold-light: #fef3c7;
+    --pe-gold-dark: #d97706;
+    --pe-blue: #3b82f6;
+    --pe-blue-light: #dbeafe;
+    --pe-purple: #8b5cf6;
+    --pe-success: #10b981;
+}
+[data-bs-theme="dark"] {
+    --pe-bg: #0f172a;
+    --pe-card: #1e293b;
+    --pe-text: #f1f5f9;
+    --pe-muted: #94a3b8;
+    --pe-border: rgba(255,255,255,0.08);
+    --pe-gold-light: rgba(245,158,11,0.15);
+    --pe-blue-light: rgba(59,130,246,0.15);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rotate360 {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+@keyframes pulse-ring {
+    0% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+}
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes timerPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+.pe-page {
+    min-height: 100vh;
+    background: var(--pe-bg);
+    padding-bottom: 4rem;
+}
+
+/* Hero */
+.pe-hero {
+    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
+    border-radius: 0 0 2.5rem 2.5rem;
+    padding: 2.5rem 1.5rem 3.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: -2rem;
+}
+.pe-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='3' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
+}
+.pe-hero-icon-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+.pe-hero-icon {
+    font-size: 3rem;
+    color: white;
+    display: inline-block;
+    animation: rotate360 4s linear infinite;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+}
+.pe-hero-ring {
+    position: absolute;
+    inset: -12px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    animation: pulse-ring 2s ease-out infinite;
+}
+.pe-hero h1 {
+    color: white;
+    font-weight: 800;
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
+    animation: fadeInUp 0.6s ease-out;
+}
+.pe-hero p {
+    color: rgba(255,255,255,0.85);
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+/* Status bar */
+.pe-status {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    justify-content: center;
+    margin-top: 1rem;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+.pe-status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 50px;
+    padding: 0.45rem 1rem;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.pe-status-item.timer {
+    animation: timerPulse 2s ease-in-out infinite;
+}
+.pe-status-item i { font-size: 1.1rem; }
+
+/* Cards */
+.pe-cards-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    position: relative;
+    z-index: 2;
+}
+
+.pe-plan {
+    background: var(--pe-card);
+    border-radius: 1.5rem;
+    border: 2px solid var(--pe-border);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+.pe-plan::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--pe-blue), var(--pe-purple));
+    transition: all 0.4s ease;
+    transform: translateX(-50%);
+}
+.pe-plan:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(99,102,241,0.15);
+    border-color: var(--pe-blue);
+}
+.pe-plan:hover::before { width: 100%; }
+
+.pe-plan-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+.pe-plan:hover .pe-plan-icon { transform: scale(1.1); border-radius: 50%; }
+
+.pe-plan-icon.weekly { background: var(--pe-blue-light); color: var(--pe-blue); }
+.pe-plan-icon.monthly { background: var(--pe-gold-light); color: var(--pe-gold); }
+.pe-plan-icon.bimonthly { background: #ede9fe; color: var(--pe-purple); }
+
+.pe-days-badge {
+    display: inline-block;
+    background: var(--pe-blue-light);
+    color: var(--pe-blue);
+    font-weight: 800;
+    font-size: 1.6rem;
+    padding: 0.3rem 1rem;
+    border-radius: 0.8rem;
+    margin: 0.5rem 0;
+}
+.pe-plan-label {
+    color: var(--pe-muted);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.pe-price-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.3rem;
+    margin: 0.8rem 0 1.2rem;
+}
+.pe-price-val {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--pe-gold);
+    line-height: 1;
+}
+.pe-price-unit {
+    color: var(--pe-muted);
+    font-weight: 500;
+}
+
+.pe-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.8rem 1.5rem;
+    border-radius: 0.8rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border: 2px solid var(--pe-blue);
+    background: transparent;
+    color: var(--pe-blue);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    margin-top: auto;
+    text-decoration: none;
+}
+.pe-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.pe-btn:hover {
+    background: var(--pe-blue);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.35);
+}
+.pe-btn:hover::after { opacity: 1; }
+.pe-btn-disabled {
+    border-color: var(--pe-border);
+    color: var(--pe-muted);
+    cursor: not-allowed;
+}
+.pe-btn-disabled:hover { background: transparent; color: var(--pe-muted); transform: none; box-shadow: none; }
+
+/* Back */
+.pe-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--pe-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.7rem;
+    border: 1px solid var(--pe-border);
+    background: var(--pe-card);
+    transition: all 0.3s ease;
+}
+.pe-back:hover { color: var(--pe-blue); border-color: var(--pe-blue); transform: translateX(-4px); }
+
+/* Animate cards */
+.pe-anim-1 { animation: slideUp 0.5s ease-out 0.2s both; }
+.pe-anim-2 { animation: slideUp 0.5s ease-out 0.35s both; }
+.pe-anim-3 { animation: slideUp 0.5s ease-out 0.5s both; }
+
+@media (max-width: 768px) {
+    .pe-hero { padding: 2rem 1rem 3rem; border-radius: 0 0 1.5rem 1.5rem; }
+    .pe-hero h1 { font-size: 1.4rem; }
+    .pe-hero-icon { font-size: 2.5rem; }
+    .pe-price-val { font-size: 2rem; }
+    .pe-plan { padding: 1.5rem 1.2rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pe-page">
+
+    <!-- Hero -->
+    <div class="pe-hero">
+        <div class="pe-hero-icon-wrap">
+            <div class="pe-hero-ring"></div>
+            <div class="pe-hero-icon"><i class="bi bi-arrow-repeat"></i></div>
+        </div>
+        <h1>Premium Uzaytirish</h1>
+        <p>Muddatingizni uzaytiring va imtiyozlardan foydalanishda davom eting</p>
+
+        <div class="pe-status">
+            {% if user.premium_expires_at %}
+            <div class="pe-status-item timer">
+                <i class="bi bi-clock"></i>
+                {{ user.premium_expires_at|date:"d.m.Y H:i" }} gacha
+            </div>
+            {% endif %}
+            <div class="pe-status-item">
+                <i class="bi bi-coin"></i>
+                {{ user.coins }} coin
+            </div>
+        </div>
+    </div>
+
+    <!-- Plans -->
+    <div class="pe-cards-wrap mt-4">
+        <div class="row g-4">
+
+            {% for key, plan in premium_plans.items %}
+            <div class="col-12 col-md-4">
+                <div class="pe-plan pe-anim-{{ forloop.counter }}">
+                    <div class="pe-plan-icon {{ key }}">
+                        {% if key == 'weekly' %}<i class="bi bi-lightning-fill"></i>
+                        {% elif key == 'monthly' %}<i class="bi bi-calendar-check-fill"></i>
+                        {% else %}<i class="bi bi-gem"></i>{% endif %}
+                    </div>
+                    <div class="pe-plan-label">{{ plan.name }}</div>
+                    <div class="pe-days-badge">+{{ plan.days }} kun</div>
+                    <div class="pe-price-row">
+                        <span class="pe-price-val">{{ plan.price }}</span>
+                        <span class="pe-price-unit">coin</span>
+                    </div>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="plan" value="{{ key }}">
+                        {% if user.coins >= plan.price %}
+                        <button type="submit" class="pe-btn"
+                                onclick="return confirm('{{ plan.name }} uzaytirish uchun {{ plan.price }} coin sarflanadi. So\'rov yuboriladi. Davom etasizmi?');">
+                            <i class="bi bi-plus-circle-fill"></i>Uzaytirish
+                        </button>
+                        {% else %}
+                        <button type="button" class="pe-btn pe-btn-disabled" disabled>
+                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
+                        </button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'coin:market_list' %}" class="pe-back">
+                <i class="bi bi-arrow-left"></i>Marketga qaytish
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
