@@ -37,33 +37,6 @@
         --lb-border: rgba(84, 84, 88, 0.5);
         --lb-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         --lb-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.4);
-        --premium-color: #a78bfa;
-        --premium-color-dark: #8b5cf6;
-    }
-
-    [data-bs-theme="light"] {
-        --premium-color: #a78bfa;
-        --premium-color-dark: #8b5cf6;
-    }
-
-    [data-bs-theme="dark"] .premium-podium-card {
-        background: linear-gradient(135deg,
-                rgba(167, 139, 250, 0.08) 0%,
-                rgba(168, 85, 247, 0.06) 100%);
-        box-shadow: 0 0 30px rgba(167, 139, 250, 0.3),
-            inset 0 0 20px rgba(167, 139, 250, 0.08);
-    }
-
-    [data-bs-theme="dark"] .premium-row {
-        background: linear-gradient(90deg,
-                rgba(167, 139, 250, 0.12) 0%,
-                transparent 100%);
-    }
-
-    [data-bs-theme="dark"] .premium-row:hover {
-        background: linear-gradient(90deg,
-                rgba(167, 139, 250, 0.18) 0%,
-                transparent 100%);
     }
 
     @keyframes fadeInUp {
@@ -1064,32 +1037,421 @@
             height: 34px;
             top: -15px;
         }
+    }
 
-        .premium-crown-icon {
-            font-size: 1.5rem;
-            top: -25px;
+    /* ==================== TOP 3 HOMEWORKS - CARD UI ==================== */
+    @keyframes hwCardSlide {
+        from {
+            opacity: 0;
+            transform: translateY(40px);
         }
 
-        .premium-badge {
-            font-size: 0.6rem;
-            padding: 0.15rem 0.5rem;
+        to {
+            opacity: 1;
+            transform: translateY(0);
         }
     }
 
-    @media (max-width: 768px) {
-        .premium-podium-card {
-            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3),
-                inset 0 0 15px rgba(167, 139, 250, 0.08);
+    @keyframes hwMedalBounce {
+        0% {
+            transform: scale(0) rotate(-360deg);
         }
 
-        .premium-crown-icon {
-            font-size: 1.8rem;
-            top: -28px;
+        50% {
+            transform: scale(1.15);
+        }
+
+        100% {
+            transform: scale(1) rotate(0);
+        }
+    }
+
+    @keyframes hwAvatarGlow {
+
+        0%,
+        100% {
+            box-shadow: 0 0 20px rgba(255, 214, 10, 0.5),
+                inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        50% {
+            box-shadow: 0 0 30px rgba(255, 214, 10, 0.8),
+                inset 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+    }
+
+    @keyframes hwCardHover {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-6px);
+        }
+    }
+
+    .hw-cards-section {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        gap: 1.5rem;
+        margin-bottom: 2.5rem;
+        padding: 2rem 1rem;
+        position: relative;
+        flex-wrap: wrap;
+    }
+
+    .hw-card-wrapper {
+        position: relative;
+        animation: hwCardSlide 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    .hw-card-wrapper:nth-child(1) {
+        animation-delay: 0.1s;
+        flex: 0 0 180px;
+    }
+
+    .hw-card-wrapper:nth-child(2) {
+        animation-delay: 0.2s;
+        flex: 0 0 160px;
+    }
+
+    .hw-card-wrapper:nth-child(3) {
+        animation-delay: 0.3s;
+        flex: 0 0 160px;
+    }
+
+    .hw-card {
+        background: var(--lb-card);
+        border: 2px solid rgba(99, 102, 241, 0.3);
+        border-radius: 16px;
+        padding: 1.5rem 1.25rem;
+        text-align: center;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        height: 100%;
+        animation: hwCardHover 3s ease-in-out infinite;
+        cursor: pointer;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-card {
+        border-color: rgba(255, 214, 10, 0.6);
+        background: linear-gradient(135deg,
+                rgba(255, 214, 10, 0.1) 0%,
+                rgba(255, 184, 0, 0.05) 100%);
+        box-shadow: 0 0 20px rgba(255, 214, 10, 0.2);
+        animation-delay: 0.1s;
+    }
+
+    .hw-card-wrapper:nth-child(2) .hw-card {
+        border-color: rgba(168, 168, 168, 0.5);
+        background: linear-gradient(135deg,
+                rgba(168, 168, 168, 0.08) 0%,
+                rgba(184, 184, 192, 0.04) 100%);
+        animation-delay: 0.2s;
+    }
+
+    .hw-card-wrapper:nth-child(3) .hw-card {
+        border-color: rgba(205, 127, 50, 0.5);
+        background: linear-gradient(135deg,
+                rgba(205, 127, 50, 0.08) 0%,
+                rgba(160, 82, 45, 0.04) 100%);
+        animation-delay: 0.3s;
+    }
+
+    .hw-card:hover {
+        transform: translateY(-12px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        border-color: #6366f1;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-card:hover {
+        border-color: rgba(255, 214, 10, 0.8);
+        box-shadow: 0 0 30px rgba(255, 214, 10, 0.4),
+            0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .hw-medal-badge {
+        position: absolute;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.4rem;
+        color: white;
+        top: -26px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        animation: hwMedalBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-medal-badge {
+        background: linear-gradient(135deg, #ffd60a, #ffb800);
+        box-shadow: 0 6px 25px rgba(255, 214, 10, 0.4);
+    }
+
+    .hw-card-wrapper:nth-child(2) .hw-medal-badge {
+        background: linear-gradient(135deg, #e8e8ed, #a8a8a8);
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        box-shadow: 0 6px 20px rgba(168, 168, 168, 0.3);
+    }
+
+    .hw-card-wrapper:nth-child(3) .hw-medal-badge {
+        background: linear-gradient(135deg, #cd7f32, #a0522d);
+        width: 48px;
+        height: 48px;
+        font-size: 1.2rem;
+        box-shadow: 0 6px 20px rgba(205, 127, 50, 0.3);
+    }
+
+    .hw-avatar-large {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0.5rem auto 0.75rem;
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        flex-shrink: 0;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-avatar-large {
+        width: 88px;
+        height: 88px;
+        border: 4px solid #ffd60a;
+        animation: hwAvatarGlow 2s ease-in-out infinite;
+        animation-delay: 0.6s;
+    }
+
+    .hw-card-wrapper:nth-child(2) .hw-avatar-large,
+    .hw-card-wrapper:nth-child(3) .hw-avatar-large {
+        width: 72px;
+        height: 72px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .hw-avatar-large img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hw-avatar-text {
+        color: white;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-avatar-text {
+        font-size: 1.4rem;
+    }
+
+    .hw-student-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--lb-text);
+        margin-bottom: 0.75rem;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-student-title {
+        font-size: 1.05rem;
+    }
+
+    .hw-coin-display {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.1rem;
+        background: linear-gradient(135deg,
+                rgba(245, 158, 11, 0.2) 0%,
+                rgba(245, 158, 11, 0.1) 100%);
+        border-radius: 10px;
+        font-weight: 700;
+        color: #f59e0b;
+        font-size: 1rem;
+    }
+
+    .hw-card-wrapper:nth-child(1) .hw-coin-display {
+        background: linear-gradient(135deg,
+                rgba(255, 214, 10, 0.25) 0%,
+                rgba(255, 184, 0, 0.15) 100%);
+        color: #ffd60a;
+        font-size: 1.1rem;
+        padding: 0.85rem 1.2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hw-cards-section {
+            gap: 1rem;
+            padding: 1.5rem 0.5rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) {
+            flex: 0 0 150px;
+        }
+
+        .hw-card-wrapper:nth-child(2),
+        .hw-card-wrapper:nth-child(3) {
+            flex: 0 0 130px;
+        }
+
+        .hw-card {
+            padding: 1.25rem 1rem;
+        }
+
+        .hw-avatar-large {
+            width: 64px;
+            height: 64px;
+            margin: 0.25rem auto 0.5rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-avatar-large {
+            width: 72px;
+            height: 72px;
+        }
+
+        .hw-student-title {
+            font-size: 0.85rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-student-title {
+            font-size: 0.9rem;
+        }
+
+        .hw-medal-badge {
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+            top: -22px;
+        }
+
+        .hw-card-wrapper:nth-child(2) .hw-medal-badge,
+        .hw-card-wrapper:nth-child(3) .hw-medal-badge {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hw-cards-section {
+            gap: 0.75rem;
+            padding: 1rem 0.25rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) {
+            flex: 0 0 135px;
+        }
+
+        .hw-card-wrapper:nth-child(2),
+        .hw-card-wrapper:nth-child(3) {
+            flex: 0 0 115px;
+        }
+
+        .hw-card {
+            padding: 1rem 0.75rem;
+        }
+
+        .hw-avatar-large {
+            width: 56px;
+            height: 56px;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-avatar-large {
+            width: 64px;
+            height: 64px;
+        }
+
+        .hw-avatar-text {
+            font-size: 0.9rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-avatar-text {
+            font-size: 1.2rem;
+        }
+
+        .hw-student-title {
+            font-size: 0.8rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-student-title {
+            font-size: 0.85rem;
+        }
+
+        .hw-coin-display {
+            padding: 0.6rem 0.9rem;
+            font-size: 0.9rem;
+            gap: 0.3rem;
+        }
+
+        .hw-card-wrapper:nth-child(1) .hw-coin-display {
+            font-size: 1rem;
+        }
+
+        .hw-medal-badge {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+            top: -20px;
+        }
+
+        .hw-card-wrapper:nth-child(2) .hw-medal-badge,
+        .hw-card-wrapper:nth-child(3) .hw-medal-badge {
+            width: 36px;
+            height: 36px;
+            font-size: 0.9rem;
         }
     }
 </style>
 
 <div class="lb-container">
+    <!-- Top 3 Homeworks Cards -->
+    {% if top_3_homeworks %}
+    <div class="hw-cards-section">
+        {% for submission in top_3_homeworks %}
+        <div class="hw-card-wrapper">
+            <a href="#" class="hw-card">
+                <div class="hw-medal-badge">{{ forloop.counter }}</div>
+
+                <div class="hw-avatar-large">
+                    {% if submission.student.photo %}
+                    <img src="{{ submission.student.photo.url }}" alt="">
+                    {% else %}
+                    <span class="hw-avatar-text">{{ submission.student.get_initials }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="hw-student-title">{{ submission.student.first_name }}</div>
+
+                <div class="hw-coin-display">
+                    <i class="bi bi-coin"></i>
+                    <span>{{ submission.grade }}</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="lb-hero">
         <div class="lb-hero-content">
             <div class="lb-hero-icon">
