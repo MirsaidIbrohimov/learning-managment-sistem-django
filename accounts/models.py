@@ -96,6 +96,7 @@ class CustomUser(AbstractUser):
     premium_purchased_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium sotib olingan sana")
     premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium tugash sanasi")
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
+    weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
 
     # Documents
     address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Yashash manzili")

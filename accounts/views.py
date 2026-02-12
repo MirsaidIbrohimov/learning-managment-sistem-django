@@ -648,6 +648,27 @@ def site_settings(request):
 
 
 @login_required
+def save_weather_effect(request):
+    if request.method == 'POST':
+        import json
+        try:
+            data = json.loads(request.body)
+            effect = data.get('effect', 'auto')
+        except (json.JSONDecodeError, AttributeError):
+            effect = request.POST.get('effect', 'auto')
+
+        allowed = ('off', 'auto', 'winter', 'spring', 'summer', 'autumn')
+        if effect not in allowed:
+            effect = 'auto'
+
+        request.user.weather_effect = effect
+        request.user.save(update_fields=['weather_effect'])
+        return JsonResponse({'status': 'ok'})
+
+    return JsonResponse({'status': 'error'}, status=400)
+
+
+@login_required
 def classmates_view(request, pk):
     """Kursdoshlar ro'yxati"""
     profession = get_object_or_404(Profession, pk=pk)
