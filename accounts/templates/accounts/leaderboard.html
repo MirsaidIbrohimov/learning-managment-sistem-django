@@ -37,6 +37,33 @@
         --lb-border: rgba(84, 84, 88, 0.5);
         --lb-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
         --lb-shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --premium-color: #a78bfa;
+        --premium-color-dark: #8b5cf6;
+    }
+
+    [data-bs-theme="light"] {
+        --premium-color: #a78bfa;
+        --premium-color-dark: #8b5cf6;
+    }
+
+    [data-bs-theme="dark"] .premium-podium-card {
+        background: linear-gradient(135deg,
+                rgba(167, 139, 250, 0.08) 0%,
+                rgba(168, 85, 247, 0.06) 100%);
+        box-shadow: 0 0 30px rgba(167, 139, 250, 0.3),
+            inset 0 0 20px rgba(167, 139, 250, 0.08);
+    }
+
+    [data-bs-theme="dark"] .premium-row {
+        background: linear-gradient(90deg,
+                rgba(167, 139, 250, 0.12) 0%,
+                transparent 100%);
+    }
+
+    [data-bs-theme="dark"] .premium-row:hover {
+        background: linear-gradient(90deg,
+                rgba(167, 139, 250, 0.18) 0%,
+                transparent 100%);
     }
 
     @keyframes fadeInUp {
@@ -307,6 +334,179 @@
         border-color: var(--lb-blue);
         color: white;
         box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+    }
+
+    /* ==================== PREMIUM STYLING ==================== */
+
+    /* Premium Podium Item */
+    .premium-podium-item {
+        animation: premiumFloat 3s ease-in-out infinite;
+    }
+
+    .premium-podium-card {
+        border: 2px solid #a78bfa;
+        background: linear-gradient(135deg,
+                rgba(167, 139, 250, 0.05) 0%,
+                rgba(168, 85, 247, 0.05) 100%);
+        box-shadow: 0 0 30px rgba(167, 139, 250, 0.4),
+            inset 0 0 20px rgba(167, 139, 250, 0.1);
+        position: relative;
+        overflow: visible;
+    }
+
+    @keyframes premiumFloat {
+
+        0%,
+        100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-8px);
+        }
+    }
+
+    @keyframes premiumGlow {
+
+        0%,
+        100% {
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.6),
+                inset 0 0 10px rgba(167, 139, 250, 0.1);
+        }
+
+        50% {
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.8),
+                inset 0 0 15px rgba(168, 85, 247, 0.15);
+        }
+    }
+
+    @keyframes spinCrown {
+
+        0%,
+        100% {
+            transform: translateY(-20px) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-22px) rotate(10deg);
+        }
+    }
+
+    .premium-crown-icon {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 2rem;
+        color: #a78bfa;
+        animation: spinCrown 3s ease-in-out infinite;
+        text-shadow: 0 0 20px rgba(167, 139, 250, 0.6);
+        z-index: 10;
+    }
+
+    .premium-avatar {
+        border: 3px solid #a78bfa;
+        box-shadow: 0 0 20px rgba(167, 139, 250, 0.5);
+        animation: premiumGlow 2s ease-in-out infinite;
+    }
+
+    .premium-name {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .premium-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 50px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .premium-coin {
+        background: linear-gradient(135deg,
+                rgba(167, 139, 250, 0.2) 0%,
+                rgba(168, 85, 247, 0.15) 100%);
+        border: 1px solid #a78bfa;
+        color: #a78bfa;
+        animation: premiumGlow 2s ease-in-out infinite;
+    }
+
+    /* Premium Leaderboard Row */
+    .lb-row.is-premium {
+        background: linear-gradient(90deg,
+                rgba(167, 139, 250, 0.08) 0%,
+                transparent 100%);
+        border-left: 4px solid #a78bfa;
+        border-right: 1px solid rgba(167, 139, 250, 0.3);
+        position: relative;
+    }
+
+    .lb-row.is-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(90deg,
+                rgba(167, 139, 250, 0.05) 0%,
+                transparent 50%);
+        pointer-events: none;
+    }
+
+    .lb-row.is-premium:hover {
+        background: linear-gradient(90deg,
+                rgba(167, 139, 250, 0.15) 0%,
+                transparent 100%);
+        box-shadow: 0 0 20px rgba(167, 139, 250, 0.3),
+            var(--lb-shadow-hover);
+    }
+
+    .premium-avatar-border {
+        border: 2.5px solid #a78bfa !important;
+        box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
+    }
+
+    .premium-user-name {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .premium-star {
+        font-size: 0.75rem;
+        color: #a78bfa;
+        animation: starTwinkle 1.5s ease-in-out infinite;
+    }
+
+    @keyframes starTwinkle {
+
+        0%,
+        100% {
+            opacity: 1;
+            text-shadow: 0 0 10px rgba(167, 139, 250, 0.6);
+        }
+
+        50% {
+            opacity: 0.6;
+            text-shadow: 0 0 20px rgba(167, 139, 250, 0.8);
+        }
+    }
+
+    .premium-coin-row {
+        background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+        color: white !important;
+        font-weight: 700;
+        padding: 0.4rem 0.8rem !important;
+        border-radius: 8px;
+        animation: premiumGlow 2s ease-in-out infinite;
     }
 
     /* Podium Section */
@@ -864,6 +1064,28 @@
             height: 34px;
             top: -15px;
         }
+
+        .premium-crown-icon {
+            font-size: 1.5rem;
+            top: -25px;
+        }
+
+        .premium-badge {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .premium-podium-card {
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.3),
+                inset 0 0 15px rgba(167, 139, 250, 0.08);
+        }
+
+        .premium-crown-icon {
+            font-size: 1.8rem;
+            top: -28px;
+        }
     }
 </style>
 
@@ -929,9 +1151,11 @@
                 {% endif %}
 
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="lb-podium-avatar {% if student.is_premium %}premium-avatar{% endif %}">
+                <img src="{{ student.photo.url }}" alt=""
+                    class="lb-podium-avatar {% if student.is_premium %}premium-avatar{% endif %}">
                 {% else %}
-                <div class="lb-avatar-placeholder {% if student.is_premium %}premium-avatar{% endif %}">{{ student.get_initials }}</div>
+                <div class="lb-avatar-placeholder {% if student.is_premium %}premium-avatar{% endif %}">{{
+                    student.get_initials }}</div>
                 {% endif %}
 
                 <div class="lb-podium-name {% if student.is_premium %}premium-name{% endif %}">
@@ -941,7 +1165,8 @@
                     {% endif %}
                 </div>
 
-                <div class="lb-coin {% if forloop.counter == 1 %}lg{% endif %} {% if student.is_premium %}premium-coin{% endif %}">
+                <div
+                    class="lb-coin {% if forloop.counter == 1 %}lg{% endif %} {% if student.is_premium %}premium-coin{% endif %}">
                     <i class="bi bi-coin"></i>
                     <span class="coin-fmt" data-coins="{{ student.coins }}">{{ student.coins }}</span>
                 </div>
@@ -967,7 +1192,7 @@
         {% for student in students %}
         {% if forloop.counter > 3 %}
         <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
-            class="lb-row {% if student == request.user %}is-you{% endif %}"
+            class="lb-row {% if student == request.user %}is-you{% endif %} {% if student.is_premium %}is-premium{% endif %}"
             style="animation-delay: {{ forloop.counter|add:'-3' }}00ms">
             <div>
                 <span class="lb-rank">{{ forloop.counter }}</span>
@@ -975,14 +1200,19 @@
 
             <div class="lb-user">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar">
+                <img src="{{ student.photo.url }}" alt=""
+                    class="lb-user-avatar {% if student.is_premium %}premium-avatar-border{% endif %}">
                 {% else %}
-                <div class="lb-user-placeholder">{{ student.get_initials }}</div>
+                <div class="lb-user-placeholder {% if student.is_premium %}premium-avatar-border{% endif %}">{{
+                    student.get_initials }}</div>
                 {% endif %}
 
                 <div class="lb-user-info">
-                    <div class="lb-user-name">
+                    <div class="lb-user-name {% if student.is_premium %}premium-user-name{% endif %}">
                         {{ student|premium_name }}
+                        {% if student.is_premium %}
+                        <i class="bi bi-star-fill premium-star"></i>
+                        {% endif %}
                         {% if student == request.user %}<span class="lb-badge">Siz</span>{% endif %}
                     </div>
                     <div class="lb-username">@{{ student.username }}</div>
@@ -990,7 +1220,8 @@
             </div>
 
             <div>
-                <span class="lb-coin coin-fmt" data-coins="{{ student.coins }}">
+                <span class="lb-coin coin-fmt {% if student.is_premium %}premium-coin-row{% endif %}"
+                    data-coins="{{ student.coins }}">
                     <i class="bi bi-coin"></i>
                     <span>{{ student.coins }}</span>
                 </span>
