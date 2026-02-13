@@ -328,6 +328,119 @@
     cursor: not-allowed;
 }
 
+/* Benefits Section */
+.pm-benefits {
+    background: var(--pm-card);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    margin-top: 2.5rem;
+    border: 1px solid var(--pm-border);
+    position: relative;
+    overflow: hidden;
+}
+.pm-benefits::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b, #d97706, #8b5cf6, #3b82f6);
+}
+.pm-benefits-title {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.pm-benefits-title h5 {
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--pm-text);
+    margin-bottom: 0.3rem;
+}
+.pm-benefits-title p {
+    color: var(--pm-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+.pm-benefit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+}
+.pm-benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.2rem;
+    border-radius: 1rem;
+    border: 1px solid var(--pm-border);
+    background: var(--pm-bg);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease-out both;
+}
+.pm-benefit-item:nth-child(1) { animation-delay: 0.1s; }
+.pm-benefit-item:nth-child(2) { animation-delay: 0.15s; }
+.pm-benefit-item:nth-child(3) { animation-delay: 0.2s; }
+.pm-benefit-item:nth-child(4) { animation-delay: 0.25s; }
+.pm-benefit-item:nth-child(5) { animation-delay: 0.3s; }
+.pm-benefit-item:nth-child(6) { animation-delay: 0.35s; }
+.pm-benefit-item:nth-child(7) { animation-delay: 0.4s; }
+.pm-benefit-item:hover {
+    border-color: var(--pm-gold);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(245,158,11,0.1);
+}
+.pm-benefit-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+.pm-benefit-icon.b-leaderboard { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #3b82f6; }
+.pm-benefit-icon.b-classmates { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #10b981; }
+.pm-benefit-icon.b-coding { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #8b5cf6; }
+.pm-benefit-icon.b-coins { background: linear-gradient(135deg, var(--pm-gold-light), #fde68a); color: var(--pm-gold); }
+.pm-benefit-icon.b-ai { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #ec4899; }
+.pm-benefit-icon.b-market { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #f97316; }
+.pm-benefit-icon.b-badge { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+.pm-benefit-info h6 {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--pm-text);
+    margin: 0 0 0.25rem;
+}
+.pm-benefit-info p {
+    font-size: 0.82rem;
+    color: var(--pm-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+.pm-benefit-tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-top: 0.3rem;
+}
+.pm-benefit-tag.t-exclusive {
+    background: rgba(245,158,11,0.15);
+    color: var(--pm-gold-dark);
+}
+.pm-benefit-tag.t-bonus {
+    background: rgba(16,185,129,0.15);
+    color: #10b981;
+}
+
+@media (max-width: 576px) {
+    .pm-benefits { padding: 1.5rem 1rem; }
+    .pm-benefit-grid { grid-template-columns: 1fr; }
+}
+
 /* Steps */
 .pm-steps {
     background: var(--pm-card);
@@ -467,8 +580,8 @@
                         <div class="pm-price-label">coin</div>
                     </div>
                     <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
                         <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
                         <li><i class="bi bi-check-circle-fill"></i>7 kun davomida amal qiladi</li>
                     </ul>
                     <form method="POST">
@@ -500,8 +613,8 @@
                         <div class="pm-price-label">coin</div>
                     </div>
                     <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
                         <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
                         <li><i class="bi bi-check-circle-fill"></i>30 kun davomida amal qiladi</li>
                         <li><i class="bi bi-check-circle-fill"></i>Eng ko'p tanlanadi</li>
                     </ul>
@@ -533,8 +646,8 @@
                         <div class="pm-price-label">coin</div>
                     </div>
                     <ul class="pm-features">
+                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
                         <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ⭐ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Profil va leaderboardda ko'rinadi</li>
                         <li><i class="bi bi-check-circle-fill"></i>60 kun davomida amal qiladi</li>
                         <li><i class="bi bi-check-circle-fill"></i>Eng tejamkor variant</li>
                     </ul>
@@ -555,6 +668,80 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- Premium imkoniyatlari -->
+        <div class="pm-benefits">
+            <div class="pm-benefits-title">
+                <h5><i class="bi bi-gem me-2"></i>Premium imkoniyatlari</h5>
+                <p>Premium obuna bilan quyidagi maxsus huquqlarga ega bo'lasiz</p>
+            </div>
+            <div class="pm-benefit-grid">
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-leaderboard"><i class="bi bi-trophy"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>Reytingda hammani ko'rish</h6>
+                        <p>Oddiy foydalanuvchilar faqat o'z o'rnini ko'radi. Premium bilan to'liq reytingni ko'ring!</p>
+                        <span class="pm-benefit-tag t-exclusive">⭐ Faqat Premium</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-classmates"><i class="bi bi-people"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>Kursdoshlar bo'limi</h6>
+                        <p>Kursdoshlaringizni ko'ring va ular bilan aloqada bo'ling.</p>
+                        <span class="pm-benefit-tag t-exclusive">⭐ Faqat Premium</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-coding"><i class="bi bi-code-slash"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>Codingdan limitsiz foydalanish</h6>
+                        <p>Boshqalar har bir deploy uchun 15 coin to'laydi, Premium foydalanuvchilar uchun bepul!</p>
+                        <span class="pm-benefit-tag t-bonus">💰 15 coin tejash</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-coins"><i class="bi bi-coin"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>2x Coin imkoniyati</h6>
+                        <p>Har kuni 5 coin olasiz va barcha coin olish yo'llarida 2 baravar ko'p coin yig'asiz!</p>
+                        <span class="pm-benefit-tag t-bonus">🔥 2x bonus</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-ai"><i class="bi bi-robot"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>AI hulosa va tahlil</h6>
+                        <p>Yuborilgan uyga vazifalar uchun AI hulosasi va tahlilini ko'ring.</p>
+                        <span class="pm-benefit-tag t-exclusive">⭐ Faqat Premium</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-market"><i class="bi bi-bag-check"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>Marketda 5% chegirma</h6>
+                        <p>Barcha mahsulotlarga 5% chegirma. Kamroq coin sarflab ko'proq xarid qiling!</p>
+                        <span class="pm-benefit-tag t-bonus">💰 5% tejash</span>
+                    </div>
+                </div>
+
+                <div class="pm-benefit-item">
+                    <div class="pm-benefit-icon b-badge"><i class="bi bi-star-fill"></i></div>
+                    <div class="pm-benefit-info">
+                        <h6>Premium belgi ⭐</h6>
+                        <p>Ismingiz yonida maxsus ⭐ belgisi. Profilingiz va leaderboardda ko'rinadi.</p>
+                        <span class="pm-benefit-tag t-exclusive">⭐ Premium nishoni</span>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
         <!-- Qanday ishlaydi -->
