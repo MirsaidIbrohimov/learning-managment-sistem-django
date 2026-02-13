@@ -5389,13 +5389,19 @@ def admin_sections_management(request):
             'blocked_at': bs.blocked_at,
         }
     
+    # Template uchun underscore kalit bilan ham saqlash (hyphenli kalitlar template da ishlamaydi)
+    sections_dict_safe = {}
+    for key, value in sections_dict.items():
+        safe_key = key.replace('-', '_')
+        sections_dict_safe[safe_key] = value
+    
     # Statistika hisoblash
     total_sections = len(BlockedSection.SECTION_CHOICES)
     blocked_count = BlockedSection.objects.filter(is_blocked=True).count()
     active_count = total_sections - blocked_count
     
     context = {
-        'blocked_sections': sections_dict,
+        'blocked_sections': sections_dict_safe,
         'total_sections': total_sections,
         'blocked_count': blocked_count,
         'active_count': active_count,

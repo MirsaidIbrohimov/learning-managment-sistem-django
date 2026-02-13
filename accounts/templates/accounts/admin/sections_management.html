@@ -751,7 +751,8 @@
         {% endwith %}
 
         <!-- Coding -->
-        <div class="sm-page-card" data-status="active">
+        {% with status=blocked_sections.coding %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
             <div class="sm-page-head">
                 <div class="sm-page-icon">
                     <i class="bi bi-code-square"></i>
@@ -760,8 +761,9 @@
                     <h3 class="sm-page-title">Coding</h3>
                     <p class="sm-page-desc">Kodlash masalalari</p>
                 </div>
-                <span class="sm-status-badge sm-status-active">
-                    <i class="bi bi-check-circle-fill"></i> FAOL
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
                 </span>
             </div>
             <div class="sm-page-body">
@@ -772,7 +774,7 @@
                 </div>
                 <div class="sm-toggle-wrap">
                     <label class="sm-toggle-label">Status:</label>
-                    <button class="sm-switch active" onclick="toggleBlock(this, 'coding')">
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'coding')">
                         <div class="sm-switch-thumb"></div>
                     </button>
                 </div>
@@ -782,9 +784,11 @@
                 </div>
             </div>
         </div>
+        {% endwith %}
 
         <!-- Yordam -->
-        <div class="sm-page-card" data-status="active">
+        {% with status=blocked_sections.yordam %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
             <div class="sm-page-head">
                 <div class="sm-page-icon">
                     <i class="bi bi-question-circle"></i>
@@ -793,8 +797,9 @@
                     <h3 class="sm-page-title">Yordam</h3>
                     <p class="sm-page-desc">Yordamchi va FAQ</p>
                 </div>
-                <span class="sm-status-badge sm-status-active">
-                    <i class="bi bi-check-circle-fill"></i> FAOL
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
                 </span>
             </div>
             <div class="sm-page-body">
@@ -805,7 +810,7 @@
                 </div>
                 <div class="sm-toggle-wrap">
                     <label class="sm-toggle-label">Status:</label>
-                    <button class="sm-switch active" onclick="toggleBlock(this, 'yordam')">
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'yordam')">
                         <div class="sm-switch-thumb"></div>
                     </button>
                 </div>
@@ -815,9 +820,11 @@
                 </div>
             </div>
         </div>
+        {% endwith %}
 
         <!-- Vazifalar -->
-        <div class="sm-page-card" data-status="active">
+        {% with status=blocked_sections.vazifalar %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
             <div class="sm-page-head">
                 <div class="sm-page-icon">
                     <i class="bi bi-check2-square"></i>
@@ -826,8 +833,9 @@
                     <h3 class="sm-page-title">Vazifalar</h3>
                     <p class="sm-page-desc">O'quv vazifalarini boshqarish</p>
                 </div>
-                <span class="sm-status-badge sm-status-active">
-                    <i class="bi bi-check-circle-fill"></i> FAOL
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
                 </span>
             </div>
             <div class="sm-page-body">
@@ -838,7 +846,7 @@
                 </div>
                 <div class="sm-toggle-wrap">
                     <label class="sm-toggle-label">Status:</label>
-                    <button class="sm-switch active" onclick="toggleBlock(this, 'vazifalar')">
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'vazifalar')">
                         <div class="sm-switch-thumb"></div>
                     </button>
                 </div>
@@ -848,9 +856,11 @@
                 </div>
             </div>
         </div>
+        {% endwith %}
 
         <!-- Xabarlar -->
-        <div class="sm-page-card" data-status="active">
+        {% with status=blocked_sections.xabarlar %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
             <div class="sm-page-head">
                 <div class="sm-page-icon">
                     <i class="bi bi-envelope"></i>
@@ -859,8 +869,9 @@
                     <h3 class="sm-page-title">Xabarlar</h3>
                     <p class="sm-page-desc">Xabarlar va bildirishlar</p>
                 </div>
-                <span class="sm-status-badge sm-status-active">
-                    <i class="bi bi-check-circle-fill"></i> FAOL
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
                 </span>
             </div>
             <div class="sm-page-body">
@@ -871,7 +882,7 @@
                 </div>
                 <div class="sm-toggle-wrap">
                     <label class="sm-toggle-label">Status:</label>
-                    <button class="sm-switch active" onclick="toggleBlock(this, 'xabarlar')">
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'xabarlar')">
                         <div class="sm-switch-thumb"></div>
                     </button>
                 </div>
@@ -881,6 +892,79 @@
                 </div>
             </div>
         </div>
+        {% endwith %}
+
+        <!-- Ijaradagi kitoblarim -->
+        {% with status=blocked_sections.ijaradagi_kitoblarim %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-book"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Ijaradagi kitoblarim</h3>
+                    <p class="sm-page-desc">Kitob ijarasi</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Foydalanuvchilarning ijaradagi kitoblarini boshqarish.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 2</span>
+                    <span>👥 Ruxsat: Barchasi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'ijaradagi-kitoblarim')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
+
+        <!-- Profil -->
+        {% with status=blocked_sections.profili %}
+        <div class="sm-page-card {% if status.is_blocked %}blocked{% endif %}" data-status="{% if status.is_blocked %}blocked{% else %}active{% endif %}">
+            <div class="sm-page-head">
+                <div class="sm-page-icon">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div>
+                    <h3 class="sm-page-title">Profil</h3>
+                    <p class="sm-page-desc">Foydalanuvchi profili</p>
+                </div>
+                <span class="sm-status-badge {% if status.is_blocked %}sm-status-blocked{% else %}sm-status-active{% endif %}">
+                    <i class="bi {% if status.is_blocked %}bi-lock-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+                    {% if status.is_blocked %}BLOKLANGAN{% else %}FAOL{% endif %}
+                </span>
+            </div>
+            <div class="sm-page-body">
+                <p class="sm-page-info">Foydalanuvchi profil sahifasini boshqarish.</p>
+                <div class="sm-page-meta">
+                    <span>📄 Pages: 3</span>
+                    <span>👥 Ruxsat: Barchasi</span>
+                </div>
+                <div class="sm-toggle-wrap">
+                    <label class="sm-toggle-label">Status:</label>
+                    <button class="sm-switch {% if not status.is_blocked %}active{% endif %}" onclick="toggleBlock(this, 'profili')">
+                        <div class="sm-switch-thumb"></div>
+                    </button>
+                </div>
+                <div class="sm-actions">
+                    <button class="sm-btn sm-btn-edit">Tahrirlash</button>
+                    <button class="sm-btn sm-btn-view">Ko'rish</button>
+                </div>
+            </div>
+        </div>
+        {% endwith %}
     </div>
 </div>
 
