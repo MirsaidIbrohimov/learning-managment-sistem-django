@@ -1,203 +1,421 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
 
 {% block title %}Coin boshqaruvi - Admin{% endblock %}
 
 {% block admin_content %}
+<style>
+/* ===== VARIABLES ===== */
+.mc-page{--mc-gold:#f59e0b;--mc-gold-d:#d97706;--mc-green:#10b981;--mc-red:#ef4444;--mc-blue:#3b82f6;--mc-purple:#8b5cf6;--mc-card:var(--bs-body-bg,#fff);--mc-bg:var(--bs-tertiary-bg,#f0f2f5);--mc-border:var(--bs-border-color,#dee2e6);--mc-text:var(--bs-body-color,#212529);--mc-muted:var(--bs-secondary-color,#6c757d)}
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-coin text-warning me-2"></i>Coin boshqaruvi</h4>
-            <p class="text-muted mb-0">Foydalanuvchilarga coin berish yoki ayirish</p>
+/* ===== ANIMATIONS ===== */
+@keyframes mc-fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes mc-coinSpin{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+@keyframes mc-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes mc-shimmer{0%{left:-100%}100%{left:200%}}
+@keyframes mc-slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes mc-glow{0%,100%{box-shadow:0 0 15px rgba(245,158,11,.15)}50%{box-shadow:0 0 30px rgba(245,158,11,.3)}}
+
+.mc-page{max-width:1300px;margin:0 auto;padding:1.5rem 1rem}
+
+/* ===== HEADER ===== */
+.mc-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:2rem;animation:mc-fadeIn .5s ease-out}
+.mc-header h2{font-size:1.6rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.6rem}
+.mc-header h2 i{color:var(--mc-gold);animation:mc-coinSpin 3s ease-in-out infinite}
+.mc-header-sub{color:var(--mc-muted);font-size:.88rem;margin-top:.2rem}
+
+/* ===== STATS ===== */
+.mc-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
+.mc-stat{background:var(--mc-card);border:1px solid var(--mc-border);border-radius:1rem;padding:1.2rem;text-align:center;transition:all .3s;animation:mc-fadeIn .5s ease-out both;position:relative;overflow:hidden}
+.mc-stat:nth-child(1){animation-delay:.05s}.mc-stat:nth-child(2){animation-delay:.1s}.mc-stat:nth-child(3){animation-delay:.15s}.mc-stat:nth-child(4){animation-delay:.2s}.mc-stat:nth-child(5){animation-delay:.25s}
+.mc-stat:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(0,0,0,.1)}
+.mc-stat::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(245,158,11,.04),transparent);animation:mc-shimmer 5s ease-in-out infinite;pointer-events:none}
+.mc-stat-icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.6rem}
+.mc-stat-icon.s-total{background:rgba(59,130,246,.1);color:var(--mc-blue)}
+.mc-stat-icon.s-coins{background:rgba(245,158,11,.1);color:var(--mc-gold)}
+.mc-stat-icon.s-avg{background:rgba(139,92,246,.1);color:var(--mc-purple)}
+.mc-stat-icon.s-top{background:rgba(16,185,129,.1);color:var(--mc-green)}
+.mc-stat-icon.s-zero{background:rgba(239,68,68,.1);color:var(--mc-red)}
+.mc-stat-num{font-size:1.6rem;font-weight:800;color:var(--mc-text);line-height:1.2}
+.mc-stat-label{font-size:.75rem;font-weight:600;color:var(--mc-muted);text-transform:uppercase;letter-spacing:.3px;margin-top:.2rem}
+
+/* ===== FILTERS ===== */
+.mc-filters{background:var(--mc-card);border:1px solid var(--mc-border);border-radius:1.2rem;padding:1.2rem 1.5rem;margin-bottom:1.5rem;animation:mc-fadeIn .5s ease-out .15s both}
+.mc-filters-row{display:flex;flex-wrap:wrap;gap:.8rem;align-items:end}
+.mc-filter-group{flex:1;min-width:160px}
+.mc-filter-group label{font-size:.75rem;font-weight:700;color:var(--mc-muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.3rem;display:block}
+.mc-filter-group input,.mc-filter-group select{width:100%;padding:.55rem .8rem;border:1.5px solid var(--mc-border);border-radius:.6rem;background:var(--mc-bg);color:var(--mc-text);font-size:.88rem;transition:all .2s}
+.mc-filter-group input:focus,.mc-filter-group select:focus{outline:none;border-color:var(--mc-gold);box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+.mc-filter-btns{display:flex;gap:.5rem;align-items:end}
+.mc-filter-btn{padding:.55rem 1rem;border-radius:.6rem;border:none;font-weight:600;font-size:.85rem;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+.mc-filter-btn.primary{background:linear-gradient(135deg,var(--mc-gold),var(--mc-gold-d));color:#fff}
+.mc-filter-btn.primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(245,158,11,.3)}
+.mc-filter-btn.secondary{background:var(--mc-bg);color:var(--mc-muted);border:1px solid var(--mc-border)}
+.mc-filter-btn.secondary:hover{color:var(--mc-text);border-color:var(--mc-text)}
+.mc-active-filters{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
+.mc-active-tag{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .6rem;border-radius:2rem;background:rgba(245,158,11,.1);color:var(--mc-gold-d);font-size:.78rem;font-weight:600}
+.mc-active-tag a{color:var(--mc-red);text-decoration:none;font-weight:700}
+
+/* ===== USER LIST ===== */
+.mc-list{background:var(--mc-card);border:1px solid var(--mc-border);border-radius:1.2rem;overflow:hidden;animation:mc-fadeIn .5s ease-out .2s both}
+.mc-list-header{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--mc-border)}
+.mc-list-header h5{font-weight:700;margin:0;display:flex;align-items:center;gap:.5rem}
+.mc-list-count{background:var(--mc-bg);padding:.3rem .7rem;border-radius:2rem;font-size:.78rem;font-weight:700;color:var(--mc-muted)}
+
+/* User Row */
+.mc-user{display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--mc-border);transition:all .2s;animation:mc-slideIn .4s ease-out both}
+.mc-user:last-child{border-bottom:none}
+.mc-user:hover{background:rgba(245,158,11,.03)}
+.mc-user-check{width:18px;height:18px;accent-color:var(--mc-gold);cursor:pointer}
+.mc-user-rank{width:30px;font-weight:800;font-size:.9rem;color:var(--mc-muted);text-align:center;flex-shrink:0}
+.mc-user-rank.top-1{color:var(--mc-gold);font-size:1.1rem}
+.mc-user-rank.top-2{color:#94a3b8}
+.mc-user-rank.top-3{color:#cd7f32}
+.mc-user-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid var(--mc-border);transition:all .3s}
+.mc-user:hover .mc-user-avatar{border-color:var(--mc-gold);transform:scale(1.08)}
+.mc-user-avatar-placeholder{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;flex-shrink:0}
+.mc-user-info{flex:1;min-width:0}
+.mc-user-name{font-weight:700;font-size:.92rem;color:var(--mc-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mc-user-meta{font-size:.78rem;color:var(--mc-muted)}
+.mc-user-coins{display:flex;align-items:center;gap:.4rem;padding:.4rem .9rem;border-radius:2rem;background:linear-gradient(135deg,rgba(245,158,11,.1),rgba(217,119,6,.1));color:var(--mc-gold-d);font-weight:800;font-size:.95rem;min-width:80px;justify-content:center;transition:all .3s}
+.mc-user:hover .mc-user-coins{background:linear-gradient(135deg,var(--mc-gold),var(--mc-gold-d));color:#fff;transform:scale(1.05);box-shadow:0 4px 12px rgba(245,158,11,.3)}
+.mc-user-actions{display:flex;gap:.4rem}
+.mc-action-btn{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--mc-border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;color:var(--mc-muted);font-size:.9rem}
+.mc-action-btn.add:hover{border-color:var(--mc-green);color:var(--mc-green);background:rgba(16,185,129,.08)}
+.mc-action-btn.remove:hover{border-color:var(--mc-red);color:var(--mc-red);background:rgba(239,68,68,.08)}
+.mc-action-btn.view:hover{border-color:var(--mc-blue);color:var(--mc-blue);background:rgba(59,130,246,.08)}
+
+/* ===== BULK BAR ===== */
+.mc-bulk-bar{display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--mc-card);border:2px solid var(--mc-gold);border-radius:1rem;padding:.8rem 1.5rem;box-shadow:0 10px 40px rgba(0,0,0,.2);z-index:100;animation:mc-fadeIn .3s ease-out;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.mc-bulk-bar.show{display:flex!important}
+.mc-bulk-bar.hide{display:none!important}
+.mc-bulk-count{font-weight:700;color:var(--mc-gold)}
+
+/* ===== MODAL ===== */
+.mc-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:1050;display:none;align-items:center;justify-content:center;animation:mc-fadeIn .2s ease-out}
+.mc-modal-bg.show{display:flex}
+.mc-modal{background:var(--mc-card);border-radius:1.5rem;width:95%;max-width:440px;padding:2rem;box-shadow:0 25px 60px rgba(0,0,0,.3);animation:mc-fadeIn .3s ease-out;position:relative;overflow:hidden}
+.mc-modal::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--mc-gold),var(--mc-gold-d))}
+.mc-modal-icon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin:0 auto 1rem}
+.mc-modal-icon.add-icon{background:rgba(16,185,129,.1);color:var(--mc-green)}
+.mc-modal-icon.remove-icon{background:rgba(239,68,68,.1);color:var(--mc-red)}
+.mc-modal h5{text-align:center;font-weight:800;margin-bottom:.3rem}
+.mc-modal-sub{text-align:center;color:var(--mc-muted);font-size:.88rem;margin-bottom:1.5rem}
+.mc-modal-field{margin-bottom:1rem}
+.mc-modal-field label{font-size:.78rem;font-weight:700;color:var(--mc-muted);text-transform:uppercase;margin-bottom:.3rem;display:block}
+.mc-modal-field input{width:100%;padding:.65rem .85rem;border:2px solid var(--mc-border);border-radius:.7rem;background:var(--mc-bg);color:var(--mc-text);font-size:.95rem;transition:all .2s}
+.mc-modal-field input:focus{outline:none;border-color:var(--mc-gold);box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+.mc-modal-btns{display:flex;gap:.6rem;margin-top:1.5rem}
+.mc-modal-btn{flex:1;padding:.7rem;border-radius:.7rem;border:none;font-weight:700;font-size:.9rem;cursor:pointer;transition:all .2s}
+.mc-modal-btn.cancel{background:var(--mc-bg);color:var(--mc-text)}
+.mc-modal-btn.cancel:hover{background:var(--mc-border)}
+.mc-modal-btn.confirm-add{background:linear-gradient(135deg,var(--mc-green),#059669);color:#fff}
+.mc-modal-btn.confirm-add:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(16,185,129,.3)}
+.mc-modal-btn.confirm-remove{background:linear-gradient(135deg,var(--mc-red),#dc2626);color:#fff}
+.mc-modal-btn.confirm-remove:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+
+/* ===== PAGINATION ===== */
+.mc-pagination{display:flex;justify-content:center;gap:.3rem;margin-top:1.5rem;flex-wrap:wrap}
+.mc-page-btn{padding:.45rem .8rem;border-radius:.5rem;border:1px solid var(--mc-border);background:var(--mc-card);color:var(--mc-text);text-decoration:none;font-weight:600;font-size:.85rem;transition:all .2s}
+.mc-page-btn:hover{border-color:var(--mc-gold);color:var(--mc-gold)}
+.mc-page-btn.active{background:linear-gradient(135deg,var(--mc-gold),var(--mc-gold-d));color:#fff;border-color:transparent}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+.mc-page{padding:1rem .5rem}
+.mc-stats{grid-template-columns:repeat(2,1fr)}
+.mc-filters-row{flex-direction:column}
+.mc-filter-group{min-width:100%}
+.mc-user{flex-wrap:wrap;gap:.6rem;padding:.8rem 1rem}
+.mc-user-coins{min-width:70px}
+.mc-bulk-bar{left:10px;right:10px;transform:none;flex-direction:column;text-align:center}
+}
+</style>
+
+<div class="mc-page">
+
+<!-- Header -->
+<div class="mc-header">
+    <div>
+        <h2><i class="bi bi-coin"></i> Coin boshqaruvi</h2>
+        <div class="mc-header-sub">O'quvchilarga coin berish, ayirish va boshqarish</div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="mc-stats">
+    <div class="mc-stat">
+        <div class="mc-stat-icon s-total"><i class="bi bi-people-fill"></i></div>
+        <div class="mc-stat-num">{{ stats.total_students }}</div>
+        <div class="mc-stat-label">Jami o'quvchi</div>
+    </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon s-coins"><i class="bi bi-coin"></i></div>
+        <div class="mc-stat-num">{{ stats.total_coins }}</div>
+        <div class="mc-stat-label">Jami coinlar</div>
+    </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon s-avg"><i class="bi bi-graph-up"></i></div>
+        <div class="mc-stat-num">{{ stats.avg_coins }}</div>
+        <div class="mc-stat-label">O'rtacha coin</div>
+    </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon s-top"><i class="bi bi-trophy-fill"></i></div>
+        <div class="mc-stat-num">{{ stats.max_coins }}</div>
+        <div class="mc-stat-label">Eng ko'p{% if stats.max_coins_user %} ({{ stats.max_coins_user.first_name }}){% endif %}</div>
+    </div>
+    <div class="mc-stat">
+        <div class="mc-stat-icon s-zero"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="mc-stat-num">{{ stats.zero_coin_count }}</div>
+        <div class="mc-stat-label">0 coin</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<form method="GET" class="mc-filters" id="filterForm">
+    <div class="mc-filters-row">
+        <div class="mc-filter-group" style="flex:2">
+            <label><i class="bi bi-search me-1"></i>Qidirish</label>
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Ism, username, telefon...">
+        </div>
+        <div class="mc-filter-group">
+            <label><i class="bi bi-book me-1"></i>Kurs</label>
+            <select name="course">
+                <option value="">Barcha kurslar</option>
+                {% for c in courses %}
+                <option value="{{ c.pk }}" {% if course_filter == c.pk|stringformat:"d" %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mc-filter-group">
+            <label><i class="bi bi-coin me-1"></i>Coin oralig'i</label>
+            <select name="coin_range">
+                <option value="">Barchasi</option>
+                <option value="0" {% if coin_filter == "0" %}selected{% endif %}>0 coin</option>
+                <option value="1-50" {% if coin_filter == "1-50" %}selected{% endif %}>1 - 50</option>
+                <option value="51-200" {% if coin_filter == "51-200" %}selected{% endif %}>51 - 200</option>
+                <option value="200+" {% if coin_filter == "200+" %}selected{% endif %}>200+</option>
+            </select>
+        </div>
+        <div class="mc-filter-group">
+            <label><i class="bi bi-sort-down me-1"></i>Tartiblash</label>
+            <select name="sort">
+                <option value="-coins" {% if sort_by == "-coins" %}selected{% endif %}>Coin: ko'pdan kamga</option>
+                <option value="coins" {% if sort_by == "coins" %}selected{% endif %}>Coin: kamdan ko'pga</option>
+                <option value="name" {% if sort_by == "name" %}selected{% endif %}>Ism: A-Z</option>
+                <option value="-name" {% if sort_by == "-name" %}selected{% endif %}>Ism: Z-A</option>
+            </select>
+        </div>
+        <div class="mc-filter-btns">
+            <button type="submit" class="mc-filter-btn primary"><i class="bi bi-funnel"></i> Filtr</button>
+            <a href="{% url 'admin_manage_coins' %}" class="mc-filter-btn secondary"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </div>
+    {% if search_q or course_filter or coin_filter %}
+    <div class="mc-active-filters">
+        {% if search_q %}<span class="mc-active-tag"><i class="bi bi-search"></i> "{{ search_q }}" <a href="javascript:void(0)" onclick="clearFilter('q')">×</a></span>{% endif %}
+        {% if course_filter %}<span class="mc-active-tag"><i class="bi bi-book"></i> Kurs filtri <a href="javascript:void(0)" onclick="clearFilter('course')">×</a></span>{% endif %}
+        {% if coin_filter %}<span class="mc-active-tag"><i class="bi bi-coin"></i> {{ coin_filter }} <a href="javascript:void(0)" onclick="clearFilter('coin_range')">×</a></span>{% endif %}
+    </div>
+    {% endif %}
+</form>
+
+<!-- User List -->
+<div class="mc-list">
+    <div class="mc-list-header">
+        <h5><i class="bi bi-people-fill me-2" style="color:var(--mc-gold)"></i>O'quvchilar <span class="mc-list-count">{{ users.paginator.count }} ta</span></h5>
+        <div style="display:flex;align-items:center;gap:.6rem">
+            <label style="font-size:.82rem;font-weight:600;color:var(--mc-muted);cursor:pointer">
+                <input type="checkbox" id="selectAll" style="accent-color:var(--mc-gold);margin-right:.3rem"> Barchasini tanlash
+            </label>
         </div>
     </div>
 
-
-<!-- Coin berish/ayirish formasi -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0"><i class="bi bi-send me-2"></i>Coin yuborish / Ayirish</h5>
+    {% for u in users %}
+    <div class="mc-user" style="animation-delay:{{ forloop.counter0 }}00ms">
+        <input type="checkbox" class="mc-user-check user-checkbox" value="{{ u.pk }}" data-name="{{ u.full_name }}">
+        <div class="mc-user-rank {% if forloop.counter == 1 and not users.has_previous %}top-1{% elif forloop.counter == 2 and not users.has_previous %}top-2{% elif forloop.counter == 3 and not users.has_previous %}top-3{% endif %}">
+            {{ users.start_index|add:forloop.counter0 }}
+        </div>
+        {% if u.photo %}
+        <img src="{{ u.photo.url }}" class="mc-user-avatar">
+        {% else %}
+        <div class="mc-user-avatar-placeholder">{{ u.first_name.0 }}{{ u.last_name.0 }}</div>
+        {% endif %}
+        <div class="mc-user-info">
+            <div class="mc-user-name">{{ u.full_name }}{% if u.is_premium %} <span style="color:var(--mc-gold)">⭐</span>{% endif %}</div>
+            <div class="mc-user-meta">@{{ u.username }} · {{ u.phone }}</div>
+        </div>
+        <div class="mc-user-coins">
+            <i class="bi bi-coin"></i> {{ u.coins }}
+        </div>
+        <div class="mc-user-actions">
+            <button class="mc-action-btn add" onclick="openModal('{{ u.pk }}','{{ u.full_name }}',{{ u.coins }},'add')" title="Coin berish">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button class="mc-action-btn remove" onclick="openModal('{{ u.pk }}','{{ u.full_name }}',{{ u.coins }},'remove')" title="Coin ayirish">
+                <i class="bi bi-dash-lg"></i>
+            </button>
+            <a href="{% url 'admin_user_view' u.pk %}" class="mc-action-btn view" title="Profilni ko'rish">
+                <i class="bi bi-person"></i>
+            </a>
+        </div>
     </div>
-    <div class="card-body">
-        <form method="post" id="coinForm">
+    {% empty %}
+    <div style="text-align:center;padding:3rem;color:var(--mc-muted)">
+        <i class="bi bi-search" style="font-size:2.5rem;opacity:.3"></i>
+        <p style="margin-top:.8rem;font-weight:600">O'quvchilar topilmadi</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if users.has_other_pages %}
+<div class="mc-pagination">
+    {% if users.has_previous %}
+    <a href="?page={{ users.previous_page_number }}&q={{ search_q }}&course={{ course_filter }}&coin_range={{ coin_filter }}&sort={{ sort_by }}" class="mc-page-btn"><i class="bi bi-chevron-left"></i></a>
+    {% endif %}
+    {% for num in users.paginator.page_range %}
+        {% if users.number == num %}
+        <span class="mc-page-btn active">{{ num }}</span>
+        {% elif num > users.number|add:"-3" and num < users.number|add:"3" %}
+        <a href="?page={{ num }}&q={{ search_q }}&course={{ course_filter }}&coin_range={{ coin_filter }}&sort={{ sort_by }}" class="mc-page-btn">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if users.has_next %}
+    <a href="?page={{ users.next_page_number }}&q={{ search_q }}&course={{ course_filter }}&coin_range={{ coin_filter }}&sort={{ sort_by }}" class="mc-page-btn"><i class="bi bi-chevron-right"></i></a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Bulk Action Bar -->
+<div class="mc-bulk-bar hide" id="bulkBar">
+    <span><i class="bi bi-check2-square me-1" style="color:var(--mc-gold)"></i> <span class="mc-bulk-count" id="bulkCount">0</span> ta tanlandi</span>
+    <form method="POST" id="bulkForm" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+        {% csrf_token %}
+        <div id="bulkInputs"></div>
+        <input type="number" name="amount" min="1" placeholder="Miqdor" required style="width:90px;padding:.4rem .6rem;border:1.5px solid var(--mc-border);border-radius:.5rem;font-size:.85rem;background:var(--mc-bg);color:var(--mc-text)">
+        <input type="text" name="reason" placeholder="Sabab..." style="width:140px;padding:.4rem .6rem;border:1.5px solid var(--mc-border);border-radius:.5rem;font-size:.85rem;background:var(--mc-bg);color:var(--mc-text)">
+        <button type="submit" name="action" value="add" class="mc-filter-btn primary" style="padding:.4rem .8rem"><i class="bi bi-plus-circle"></i> Berish</button>
+        <button type="submit" name="action" value="remove" class="mc-filter-btn secondary" style="padding:.4rem .8rem;background:rgba(239,68,68,.1);color:var(--mc-red);border-color:var(--mc-red)"><i class="bi bi-dash-circle"></i> Ayirish</button>
+    </form>
+</div>
+
+</div>
+
+<!-- Modal -->
+<div class="mc-modal-bg" id="coinModal">
+    <div class="mc-modal">
+        <div class="mc-modal-icon" id="modalIcon"><i class="bi bi-plus-circle"></i></div>
+        <h5 id="modalTitle">Coin berish</h5>
+        <p class="mc-modal-sub" id="modalSub"></p>
+        <form method="POST" id="modalForm">
             {% csrf_token %}
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Foydalanuvchi</label>
-                    <select name="user_id" class="form-select" required id="userSelect">
-                        <option value="">-- Tanlang --</option>
-                        {% for user in users %}
-                        <option value="{{ user.pk }}" data-coins="{{ user.coins }}">
-                            {{ user.full_name }} ({{ user.coins }} coin)
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Miqdor</label>
-                    <input type="number" name="amount" class="form-control" min="1" required placeholder="0">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Amal</label>
-                    <div class="d-flex gap-2">
-                        <button type="submit" name="action" value="add" class="btn btn-success flex-fill">
-                            <i class="bi bi-plus-circle me-1"></i>Berish
-                        </button>
-                        <button type="submit" name="action" value="remove" class="btn btn-danger flex-fill">
-                            <i class="bi bi-dash-circle me-1"></i>Ayirish
-                        </button>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Sabab (ixtiyoriy)</label>
-                    <input type="text" name="reason" class="form-control" placeholder="Sabab yozing...">
-                </div>
+            <input type="hidden" name="user_id" id="modalUserId">
+            <input type="hidden" name="action" id="modalAction">
+            <div class="mc-modal-field">
+                <label>Coin miqdori</label>
+                <input type="number" name="amount" id="modalAmount" min="1" required placeholder="Miqdorni kiriting...">
+            </div>
+            <div class="mc-modal-field">
+                <label>Sabab (ixtiyoriy)</label>
+                <input type="text" name="reason" id="modalReason" placeholder="Masalan: Faollik uchun rag'bat...">
+            </div>
+            <div class="mc-modal-btns">
+                <button type="button" class="mc-modal-btn cancel" onclick="closeModal()">Bekor qilish</button>
+                <button type="submit" class="mc-modal-btn" id="modalSubmit">Tasdiqlash</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Foydalanuvchilar ro'yxati -->
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-people me-2"></i>O'quvchilar</h5>
-        <input type="text" class="form-control" style="max-width: 250px;" placeholder="Qidirish..." id="searchInput">
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0" id="usersTable">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Foydalanuvchi</th>
-                        <th>Telefon</th>
-                        <th class="text-center">Coinlar</th>
-                        <th>Amallar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td>{{ users.start_index|add:forloop.counter0 }}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                {% if user.photo %}
-                                <img src="{{ user.photo.url }}" class="rounded-circle" width="36" height="36" style="object-fit: cover;">
-                                {% else %}
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 0.8rem;">
-                                    {{ user.first_name.0 }}{{ user.last_name.0 }}
-                                </div>
-                                {% endif %}
-                                <div>
-                                    <div class="fw-medium">{{ user.full_name }}</div>
-                                    <small class="text-muted">{{ user.username }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>{{ user.phone }}</td>
-                        <td class="text-center">
-                            <span class="badge bg-warning text-dark fs-6 px-3">
-                                <i class="bi bi-coin me-1"></i>{{ user.coins }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-outline-success" 
-                                        onclick="quickAction('{{ user.pk }}', 'add', '{{ user.full_name }}')">
-                                    <i class="bi bi-plus"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger" 
-                                        onclick="quickAction('{{ user.pk }}', 'remove', '{{ user.full_name }}')">
-                                    <i class="bi bi-dash"></i>
-                                </button>
-                                <a href="{% url 'admin_user_view' user.pk %}" class="btn btn-outline-primary">
-                                    <i class="bi bi-person"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
-                            O'quvchilar topilmadi
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<!-- PAGINATOR -->
-{% if users.has_other_pages %}
-<nav class="mt-4">
-    <ul class="pagination justify-content-center">
-
-        {% if users.has_previous %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ users.previous_page_number }}">Oldingi</a>
-        </li>
-        {% endif %}
-
-        {% for num in users.paginator.page_range %}
-            {% if users.number == num %}
-            <li class="page-item active">
-                <span class="page-link">{{ num }}</span>
-            </li>
-            {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-            </li>
-            {% endif %}
-        {% endfor %}
-
-        {% if users.has_next %}
-        <li class="page-item">
-            <a class="page-link" href="?page={{ users.next_page_number }}">Keyingi</a>
-        </li>
-        {% endif %}
-
-    </ul>
-</nav>
-{% endif %}
-
-
-</div>
-
 <script>
-document.getElementById('searchInput').addEventListener('input', function() {
-    const filter = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#usersTable tbody tr');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
-    });
+// Modal
+function openModal(userId, userName, userCoins, action) {
+    document.getElementById('modalUserId').value = userId;
+    document.getElementById('modalAction').value = action;
+    document.getElementById('modalAmount').value = '';
+    document.getElementById('modalReason').value = '';
+    
+    const icon = document.getElementById('modalIcon');
+    const title = document.getElementById('modalTitle');
+    const sub = document.getElementById('modalSub');
+    const btn = document.getElementById('modalSubmit');
+    
+    if (action === 'add') {
+        icon.className = 'mc-modal-icon add-icon';
+        icon.innerHTML = '<i class="bi bi-plus-circle-fill"></i>';
+        title.textContent = 'Coin berish';
+        sub.innerHTML = '<strong>' + userName + '</strong>ga coin berish <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
+        btn.className = 'mc-modal-btn confirm-add';
+        btn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Berish';
+    } else {
+        icon.className = 'mc-modal-icon remove-icon';
+        icon.innerHTML = '<i class="bi bi-dash-circle-fill"></i>';
+        title.textContent = 'Coin ayirish';
+        sub.innerHTML = '<strong>' + userName + '</strong>dan coin ayirish <br><small style="color:var(--mc-muted)">Hozirgi balans: ' + userCoins + ' coin</small>';
+        btn.className = 'mc-modal-btn confirm-remove';
+        btn.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Ayirish';
+    }
+    
+    document.getElementById('coinModal').classList.add('show');
+    setTimeout(() => document.getElementById('modalAmount').focus(), 200);
+}
+
+function closeModal() {
+    document.getElementById('coinModal').classList.remove('show');
+}
+
+document.getElementById('coinModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
 });
 
-function quickAction(userId, action, userName) {
-    document.getElementById('quickUserId').value = userId;
-    document.getElementById('quickAction').value = action;
-    document.getElementById('quickAmount').value = '';
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
 
-    const modal = document.getElementById('quickModal');
-    const title = document.getElementById('quickModalTitle');
-    const userNameEl = document.getElementById('quickUserName');
-    const submitBtn = document.getElementById('quickSubmitBtn');
+// Select All
+document.getElementById('selectAll').addEventListener('change', function() {
+    document.querySelectorAll('.user-checkbox').forEach(cb => {
+        cb.checked = this.checked;
+    });
+    updateBulkBar();
+});
 
-    if (action === 'add') {
-        title.innerHTML = '<i class="bi bi-plus-circle text-success me-2"></i>Coin berish';
-        userNameEl.innerHTML = `<strong>${userName}</strong>ga coin berish`;
-        submitBtn.className = 'btn btn-success';
-        submitBtn.innerHTML = '<i class="bi bi-plus-circle me-1"></i>Berish';
+// Bulk bar
+document.querySelectorAll('.user-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateBulkBar);
+});
+
+function updateBulkBar() {
+    const checked = document.querySelectorAll('.user-checkbox:checked');
+    const bar = document.getElementById('bulkBar');
+    const count = document.getElementById('bulkCount');
+    const inputs = document.getElementById('bulkInputs');
+    
+    if (checked.length > 0) {
+        bar.classList.add('show');
+        bar.classList.remove('hide');
+        count.textContent = checked.length;
+        inputs.innerHTML = '';
+        checked.forEach(cb => {
+            const inp = document.createElement('input');
+            inp.type = 'hidden';
+            inp.name = 'bulk_user_ids';
+            inp.value = cb.value;
+            inputs.appendChild(inp);
+        });
     } else {
-        title.innerHTML = '<i class="bi bi-dash-circle text-danger me-2"></i>Coin ayirish';
-        userNameEl.innerHTML = `<strong>${userName}</strong>dan coin ayirish`;
-        submitBtn.className = 'btn btn-danger';
-        submitBtn.innerHTML = '<i class="bi bi-dash-circle me-1"></i>Ayirish';
+        bar.classList.remove('show');
+        bar.classList.add('hide');
     }
+}
 
-    new bootstrap.Modal(modal).show();
+// Clear filter
+function clearFilter(name) {
+    const url = new URL(window.location);
+    url.searchParams.delete(name);
+    window.location.href = url.toString();
 }
 </script>
 

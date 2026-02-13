@@ -2663,6 +2663,43 @@ def admin_manage_coins(request):
     ).order_by('-coins', 'first_name')
 
     # =========================
+    # FILTRLAR
+    # =========================
+    search_q = request.GET.get('q', '').strip()
+    course_filter = request.GET.get('course', '')
+    coin_filter = request.GET.get('coin_range', '')
+    sort_by = request.GET.get('sort', '-coins')
+
+    if search_q:
+        users_qs = users_qs.filter(
+            models.Q(first_name__icontains=search_q) |
+            models.Q(last_name__icontains=search_q) |
+            models.Q(username__icontains=search_q) |
+            models.Q(phone__icontains=search_q)
+        )
+
+    if course_filter:
+        users_qs = users_qs.filter(enrollments__profession_id=course_filter).distinct()
+
+    if coin_filter == '0':
+        users_qs = users_qs.filter(coins=0)
+    elif coin_filter == '1-50':
+        users_qs = users_qs.filter(coins__gte=1, coins__lte=50)
+    elif coin_filter == '51-200':
+        users_qs = users_qs.filter(coins__gte=51, coins__lte=200)
+    elif coin_filter == '200+':
+        users_qs = users_qs.filter(coins__gt=200)
+
+    if sort_by == 'coins':
+        users_qs = users_qs.order_by('coins', 'first_name')
+    elif sort_by == '-coins':
+        users_qs = users_qs.order_by('-coins', 'first_name')
+    elif sort_by == 'name':
+        users_qs = users_qs.order_by('first_name', 'last_name')
+    elif sort_by == '-name':
+        users_qs = users_qs.order_by('-first_name', '-last_name')
+
+    # =========================
     # POST ACTION (Coin berish/ayirish)
     # =========================
     if request.method == 'POST':
@@ -2671,81 +2708,106 @@ def admin_manage_coins(request):
         amount = request.POST.get('amount')
         action = request.POST.get('action')
         reason = request.POST.get('reason', '').strip()
+        bulk_ids = request.POST.getlist('bulk_user_ids')
 
         try:
             amount = int(amount)
-
-            # ❗ Xavfsizlik
             if amount <= 0:
                 raise ValueError("Amount must be positive")
 
-            with transaction.atomic():
+            # Guruhga coin berish
+            if bulk_ids and action in ('add', 'remove'):
+                with transaction.atomic():
+                    bulk_users = CustomUser.objects.filter(pk__in=bulk_ids).select_for_update()
+                    count = 0
+                    for u in bulk_users:
+                        if action == 'add':
+                            u.coins += amount
+                        else:
+                            u.coins -= amount
+                        u.save(update_fields=['coins'])
+                        text = f"Sizga {amount} coin berildi! 🎉" if action == 'add' else f"Sizdan {amount} coin ayirildi."
+                        if reason:
+                            text += f"\n\nSabab: {reason}"
+                        Message.objects.create(
+                            sender=request.user, recipient=u,
+                            title="Coin rag'batlantirish" if action == 'add' else "Coin ayirildi",
+                            content=text, message_type='system'
+                        )
+                        count += 1
+                    verb = "berildi" if action == 'add' else "ayirildi"
+                    messages.success(request, f"{count} ta o'quvchiga {amount} coin {verb}!")
 
-                user = CustomUser.objects.select_for_update().get(pk=user_id)
-
-                # ================= ADD =================
-                if action == 'add':
-                    user.coins += amount
-                    user.save(update_fields=['coins'])
-
-                    text = f"Sizga {amount} coin rag'batlantirish sifatida berildi! 🎉"
-                    if reason:
-                        text += f"\n\nSabab: {reason}"
-
-                    Message.objects.create(
-                        sender=request.user,
-                        recipient=user,
-                        title="Coin rag'batlantirish",
-                        content=text,
-                        message_type='system'
-                    )
-
-                    messages.success(
-                        request,
-                        f"{user.full_name}ga {amount} coin berildi!"
-                    )
-
-                # ================= REMOVE =================
-                elif action == 'remove':
-                    user.coins -= amount
-                    user.save(update_fields=['coins'])
-
-                    text = f"Sizdan {amount} coin ayirildi."
-                    if reason:
-                        text += f"\n\nSabab: {reason}"
-
-                    Message.objects.create(
-                        sender=request.user,
-                        recipient=user,
-                        title="Coin ayirildi",
-                        content=text,
-                        message_type='system'
-                    )
-
-                    messages.success(
-                        request,
-                        f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})"
-                    )
+            elif user_id:
+                with transaction.atomic():
+                    user = CustomUser.objects.select_for_update().get(pk=user_id)
+                    if action == 'add':
+                        user.coins += amount
+                        user.save(update_fields=['coins'])
+                        text = f"Sizga {amount} coin rag'batlantirish sifatida berildi!"
+                        if reason:
+                            text += f"\n\nSabab: {reason}"
+                        Message.objects.create(
+                            sender=request.user, recipient=user,
+                            title="Coin rag'batlantirish", content=text, message_type='system'
+                        )
+                        messages.success(request, f"{user.full_name}ga {amount} coin berildi!")
+                    elif action == 'remove':
+                        user.coins -= amount
+                        user.save(update_fields=['coins'])
+                        text = f"Sizdan {amount} coin ayirildi."
+                        if reason:
+                            text += f"\n\nSabab: {reason}"
+                        Message.objects.create(
+                            sender=request.user, recipient=user,
+                            title="Coin ayirildi", content=text, message_type='system'
+                        )
+                        messages.success(request, f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})")
 
         except (ValueError, CustomUser.DoesNotExist):
             messages.error(request, "Xatolik yuz berdi!")
 
         # 🔥 Qaysi sahifada bo‘lsa o‘sha sahifaga qaytadi
-        current_page = request.GET.get('page', '')
-        if current_page:
-            return redirect(f"{request.path}?page={current_page}")
-
+        params = request.GET.urlencode()
+        if params:
+            return redirect(f"{request.path}?{params}")
         return redirect('admin_manage_coins')
+
+    # =========================
+    # STATISTIKA
+    # =========================
+    all_students = CustomUser.objects.filter(role='student')
+    total_coins = all_students.aggregate(total=models.Sum('coins'))['total'] or 0
+    avg_coins = all_students.aggregate(avg=models.Avg('coins'))['avg'] or 0
+    max_coins_user = all_students.order_by('-coins').first()
+    zero_coin_count = all_students.filter(coins=0).count()
+
+    stats = {
+        'total_students': all_students.count(),
+        'total_coins': total_coins,
+        'avg_coins': round(avg_coins, 1),
+        'max_coins': max_coins_user.coins if max_coins_user else 0,
+        'max_coins_user': max_coins_user,
+        'zero_coin_count': zero_coin_count,
+    }
+
+    courses = Profession.objects.all().order_by('name')
 
     # =========================
     # PAGINATION
     # =========================
-    paginator = Paginator(users_qs, 25)  # har sahifada 25 ta
+    paginator = Paginator(users_qs, 25)
     page_number = request.GET.get('page')
     users = paginator.get_page(page_number)
 
     context = {
-        'users': users
+        'users': users,
+        'stats': stats,
+        'courses': courses,
+        'search_q': search_q,
+        'course_filter': course_filter,
+        'coin_filter': coin_filter,
+        'sort_by': sort_by,
     }
 
     return render(request, 'accounts/admin/manage_coins.html', context)
