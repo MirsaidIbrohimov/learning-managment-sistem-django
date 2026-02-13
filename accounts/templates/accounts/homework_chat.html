@@ -214,6 +214,7 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
                     </div>
                 </div>
 
+                {% if submission.submission_type == 'file' and submission.file %}
                 <div class="fayl-box">
                     <div class="fayl-ikonka"><i class="bi bi-file-earmark-arrow-down"></i></div>
                     <div class="flex-grow-1 overflow-hidden">
@@ -224,6 +225,12 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
                         <i class="bi bi-download fs-5"></i>
                     </a>
                 </div>
+                {% elif submission.submission_type == 'text' and submission.text_content %}
+                <div class="p-3">
+                    <div class="fw-medium mb-1" style="font-size: 14px;"><i class="bi bi-file-text me-1"></i> Yuborilgan matn</div>
+                    <div class="p-2 rounded-3" style="background: var(--ios-fon); font-size: 14px;">{{ submission.text_content|safe|truncatewords_html:50 }}</div>
+                </div>
+                {% endif %}
 
                 {% if submission.status == 'graded' %}
                 <div class="text-center pb-3">
@@ -236,12 +243,18 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
             {% if submission.status == 'revision' %}
             <div class="ios-karta p-3 border-top border-danger border-4">
                 <h6 class="fw-bold text-danger"><i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish</h6>
-                <form method="POST" enctype="multipart/form-data">
+                <form method="POST" enctype="multipart/form-data" id="resubmit-form">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="resubmit">
+                    {% if submission.submission_type == 'file' %}
                     <input type="file" name="new_file" class="form-control mb-2 rounded-3 border-0 bg-light" required>
+                    {% else %}
+                    <textarea name="new_text_content" class="form-control mb-2 rounded-3 border-0 bg-light" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
+                    {% endif %}
                     <textarea name="note" class="form-control mb-2 rounded-3 border-0 bg-light" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
-                    <button type="submit" class="btn w-100 rounded-3 fw-bold" style="background: var(--ios-red); color: white;">Topshirish</button>
+                    <button type="submit" class="btn w-100 rounded-3 fw-bold" id="resubmit-btn" style="background: var(--ios-red); color: white;">
+                        <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish
+                    </button>
                 </form>
             </div>
             {% endif %}
@@ -304,6 +317,18 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
 document.addEventListener('DOMContentLoaded', function() {
     const chat = document.getElementById('chatMaydoni');
     if (chat) chat.scrollTop = chat.scrollHeight;
+    
+    // Qayta topshirish tugmasini bir marta bosish
+    const resubmitForm = document.getElementById('resubmit-form');
+    if (resubmitForm) {
+        resubmitForm.addEventListener('submit', function() {
+            const btn = document.getElementById('resubmit-btn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Yuborilmoqda...';
+            }
+        });
+    }
 });
 </script>
 {% endblock %}

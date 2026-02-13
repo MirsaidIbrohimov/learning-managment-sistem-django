@@ -436,6 +436,12 @@ def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
     
     if request.method == 'POST':
+        # Agar oldin topshirilgan bo'lsa, qayta yaratmaslik
+        existing = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
+        if existing:
+            messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+            return redirect('lesson_view', pk=homework.lesson.pk)
+        
         submission_type = request.POST.get('submission_type', 'file')
         
         if submission_type == 'file':
@@ -1844,19 +1850,29 @@ def homework_chat(request, pk):
         # Qayta topshirish
         elif action == 'resubmit':
             new_file = request.FILES.get('new_file')
+            new_text = request.POST.get('new_text_content', '').strip()
             note = request.POST.get('note', '')
             
-            if new_file:
+            has_new_content = new_file or new_text
+            
+            if has_new_content:
                 from .models import HomeworkRevision
-                # Eski faylni revision sifatida saqlash
-                HomeworkRevision.objects.create(
-                    submission=submission,
-                    file=submission.file,
-                    note=f"Versiya {submission.version}"
-                )
+                # Eski faylni revision sifatida saqlash (agar fayl mavjud bo'lsa)
+                if submission.file:
+                    HomeworkRevision.objects.create(
+                        submission=submission,
+                        file=submission.file,
+                        note=f"Versiya {submission.version}"
+                    )
                 
-                # Yangi faylni yuklash
-                submission.file = new_file
+                # Yangi kontentni yuklash
+                if new_file:
+                    submission.file = new_file
+                    submission.submission_type = 'file'
+                elif new_text:
+                    submission.text_content = new_text
+                    submission.submission_type = 'text'
+                
                 submission.version += 1
                 submission.revision_count += 1
                 submission.status = 'pending'
@@ -1865,13 +1881,18 @@ def homework_chat(request, pk):
                 
                 # Xabar qoldirish
                 from .models import HomeworkMessage
+                msg_text = f"📎 Qayta ishlangan versiya yuklandi (v{submission.version})."
+                if note:
+                    msg_text += f" {note}"
                 HomeworkMessage.objects.create(
                     submission=submission,
                     sender=request.user,
-                    message=f"📎 Yangi versiya yuklandi (v{submission.version}). {note}"
+                    message=msg_text
                 )
                 
                 messages.success(request, "Vazifa qayta topshirildi!")
+            else:
+                messages.error(request, "Fayl yoki matn kiriting!")
             return redirect('homework_chat', pk=pk)
     
     return render(request, 'accounts/homework_chat.html', {

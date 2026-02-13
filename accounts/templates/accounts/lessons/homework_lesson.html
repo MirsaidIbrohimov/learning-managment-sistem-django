@@ -964,7 +964,7 @@
                                     <input type="hidden" name="text_content" id="text-content-input">
                                 </div>
 
-                                <button type="submit" class="submit-btn mt-4" onclick="prepareSubmit()">
+                                <button type="submit" class="submit-btn mt-4" id="submit-homework-btn" onclick="prepareSubmit()">
                                     <i class="bi bi-send-fill"></i>
                                     Yuborish
                                 </button>
@@ -1021,6 +1021,16 @@ function prepareSubmit() {
     if (isText) {
         const content = document.getElementById('text-editor').innerHTML;
         document.getElementById('text-content-input').value = content;
+    }
+    // Tugmani bir marta bosish uchun o'chirish
+    const btn = document.getElementById('submit-homework-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
+        // Form submit bo'lgandan keyin buttonni disable qilish
+        setTimeout(function() {
+            btn.closest('form').submit();
+        }, 100);
     }
 }
 
