@@ -63,6 +63,122 @@
 }
 .online-indicator.online { background: #22c55e; }
 .online-indicator.offline { background: #9ca3af; }
+
+/* ===== PREMIUM PROFILE ===== */
+@keyframes pm-glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,.2),0 0 60px rgba(245,158,11,.05)}50%{box-shadow:0 0 35px rgba(245,158,11,.4),0 0 80px rgba(245,158,11,.1)}}
+@keyframes pm-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pm-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pm-sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
+@keyframes pm-shine{0%{left:-100%}100%{left:200%}}
+@keyframes pm-gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes pm-pulse-ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.3);opacity:0}}
+@keyframes pm-badge-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.1)}}
+
+.p-card.premium-card{
+    border:2px solid rgba(245,158,11,.3);
+    position:relative;overflow:hidden;
+    animation:pm-glow 3s ease-in-out infinite;
+}
+.p-card.premium-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:4px;
+    background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b,#d97706);
+    background-size:200% 100%;animation:pm-gradient 3s linear infinite;
+}
+.p-card.premium-card::after{
+    content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(245,158,11,.06),transparent);
+    animation:pm-shine 4s ease-in-out infinite;pointer-events:none;
+}
+
+.premium-avatar-wrap{
+    position:relative;display:inline-block;
+    animation:pm-float 4s ease-in-out infinite;
+}
+.premium-avatar-wrap .avatar-xl,
+.premium-avatar-wrap .avatar-fallback-xl{
+    border:4px solid transparent;
+    background-clip:padding-box;
+    box-shadow:0 0 0 4px rgba(245,158,11,.5),0 8px 25px rgba(245,158,11,.3);
+}
+.premium-avatar-ring{
+    position:absolute;inset:-8px;border-radius:50%;
+    border:2px dashed rgba(245,158,11,.4);
+    animation:pm-rotate 12s linear infinite;pointer-events:none;
+}
+.premium-avatar-ring-2{
+    position:absolute;inset:-14px;border-radius:50%;
+    border:1px dotted rgba(245,158,11,.2);
+    animation:pm-rotate 20s linear infinite reverse;pointer-events:none;
+}
+
+.premium-sparkle{
+    position:absolute;color:#f59e0b;font-size:.8rem;pointer-events:none;
+}
+.premium-sparkle:nth-child(1){top:-5px;right:10px;animation:pm-sparkle 2s ease-in-out infinite}
+.premium-sparkle:nth-child(2){bottom:5px;left:5px;animation:pm-sparkle 2s ease-in-out 0.5s infinite}
+.premium-sparkle:nth-child(3){top:20px;left:-5px;animation:pm-sparkle 2s ease-in-out 1s infinite}
+.premium-sparkle:nth-child(4){bottom:20px;right:0;animation:pm-sparkle 2s ease-in-out 1.5s infinite}
+
+.premium-badge{
+    display:inline-flex;align-items:center;gap:.4rem;
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    color:#fff;font-weight:700;font-size:.8rem;
+    padding:.4rem 1rem;border-radius:2rem;
+    box-shadow:0 4px 15px rgba(245,158,11,.4);
+    animation:pm-badge-bounce 3s ease-in-out infinite;
+    position:relative;overflow:hidden;
+}
+.premium-badge::after{
+    content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+    animation:pm-shine 2.5s ease-in-out infinite;
+}
+
+.premium-name{
+    background:linear-gradient(135deg,#f59e0b,#d97706,#f59e0b);
+    background-size:200% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    background-clip:text;
+    animation:pm-gradient 3s linear infinite;
+    font-weight:800;
+}
+
+.coin-box.premium-coin{
+    background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);
+    background-size:200% auto;animation:pm-gradient 4s ease infinite;
+    box-shadow:0 4px 20px rgba(245,158,11,.4);
+    position:relative;overflow:hidden;color:#fff;
+}
+.coin-box.premium-coin::after{
+    content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+    animation:pm-shine 3s ease-in-out infinite;
+}
+
+.pm-pulse-ring{
+    position:absolute;inset:-6px;border-radius:50%;
+    border:2px solid rgba(245,158,11,.4);
+    animation:pm-pulse-ring 2s ease-out infinite;pointer-events:none;
+}
+
+.premium-particles{
+    position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:1.5rem;
+}
+.premium-particles span{
+    position:absolute;width:4px;height:4px;border-radius:50%;
+    background:rgba(245,158,11,.3);
+}
+.premium-particles span:nth-child(1){top:15%;left:10%;animation:pm-float 3s ease-in-out infinite}
+.premium-particles span:nth-child(2){top:60%;right:15%;animation:pm-float 4s ease-in-out 0.5s infinite}
+.premium-particles span:nth-child(3){bottom:20%;left:30%;animation:pm-float 3.5s ease-in-out 1s infinite}
+.premium-particles span:nth-child(4){top:30%;right:25%;animation:pm-float 4.5s ease-in-out 1.5s infinite}
+.premium-particles span:nth-child(5){bottom:40%;left:60%;animation:pm-float 3s ease-in-out 0.8s infinite}
+.premium-particles span:nth-child(6){top:70%;left:80%;animation:pm-float 5s ease-in-out 0.3s infinite}
+
+.premium-online .online-indicator.online{
+    box-shadow:0 0 0 3px rgba(245,158,11,.3),0 0 10px rgba(245,158,11,.4);
+    background:linear-gradient(135deg,#f59e0b,#22c55e);
+}
 </style>
 {% endblock %}
 
@@ -73,25 +189,57 @@
 
 <!-- LEFT PROFILE CARD -->
 <div class="col-lg-4">
-<div class="p-card p-4 text-center">
+<div class="p-card p-4 text-center {% if student.is_premium %}premium-card{% endif %}">
 
+    {% if student.is_premium %}
+    <div class="premium-particles">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    {% endif %}
+
+    {% if student.is_premium %}
+    <div class="premium-avatar-wrap mb-3">
+        <div class="premium-avatar-ring"></div>
+        <div class="premium-avatar-ring-2"></div>
+        <div class="pm-pulse-ring"></div>
+        <span class="premium-sparkle">✦</span>
+        <span class="premium-sparkle">✦</span>
+        <span class="premium-sparkle">✦</span>
+        <span class="premium-sparkle">✦</span>
+        {% if student.photo %}
+            <img src="{{ student.photo.url }}" class="avatar-xl">
+        {% else %}
+            <div class="avatar-fallback-xl mx-auto">{{ student.get_initials }}</div>
+        {% endif %}
+    </div>
+    {% else %}
     {% if student.photo %}
         <img src="{{ student.photo.url }}" class="avatar-xl mb-3">
     {% else %}
         <div class="avatar-fallback-xl mb-3 mx-auto">{{ student.get_initials }}</div>
     {% endif %}
+    {% endif %}
 
-    <h4 class="fw-bold mb-1">{{ student|premium_name }}</h4>
+    <h4 class="fw-bold mb-1 {% if student.is_premium %}premium-name{% endif %}">{{ student|premium_name }}</h4>
+    {% if student.is_premium %}
+    <div class="premium-badge mb-2">
+        <i class="bi bi-star-fill"></i> Premium
+    </div>
+    {% endif %}
     <p class="text-muted mb-2">@{{ student.username }}</p>
     
-    <div class="mb-3">
+    <div class="mb-3 {% if student.is_premium %}premium-online{% endif %}">
         <span class="online-indicator {% if student.is_online %}online{% else %}offline{% endif %}"></span>
         <span>{% if student.is_online %}Online{% else %}Offline{% endif %}</span>
     </div>
 
+    {% if student.is_premium %}
+    <span class="badge rounded-pill px-3 py-2 mb-3" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">⭐ Premium O'quvchi</span>
+    {% else %}
     <span class="badge rounded-pill bg-primary px-3 py-2 mb-3">O'quvchi</span>
+    {% endif %}
 
-    <div class="coin-box mb-3">
+    <div class="coin-box mb-3 {% if student.is_premium %}premium-coin{% endif %}">
         <i class="bi bi-coin me-1"></i>{{ student.coins }} coin
     </div>
 
