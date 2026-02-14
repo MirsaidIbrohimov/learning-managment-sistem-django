@@ -5278,7 +5278,7 @@ def admin_premium_management(request):
                     Message.objects.create(
                         sender=request.user,
                         recipient=user,
-                        title="Premium berildi ⭐",
+                        title="Premium berildi ✅",
                         content=f"Sizga admin tomonidan {plan_name} Premium obuna berildi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha.",
                         message_type='system'
                     )
@@ -5369,7 +5369,7 @@ def approve_premium_request(request, pk):
         Message.objects.create(
             sender=request.user,
             recipient=user,
-            title="Premium tasdiqlandi ⭐",
+            title="Premium tasdiqlandi ✅",
             content=f"Sizning {prem_req.get_plan_display()} Premium so'rovingiz tasdiqlandi!\nMuddati: {user.premium_expires_at.strftime('%d.%m.%Y %H:%M')} gacha amal qiladi.",
             message_type='system'
         )

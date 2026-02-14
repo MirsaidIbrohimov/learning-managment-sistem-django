@@ -1,3 +1,5 @@
+import unicodedata
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
@@ -179,6 +181,25 @@ class CustomUser(AbstractUser):
             action='remove',
             reason=reason
         )
+
+    # ---------------- NAME SANITIZATION ----------------
+
+    def save(self, *args, **kwargs):
+        if self.first_name:
+            self.first_name = self._clean_name(self.first_name)
+        if self.last_name:
+            self.last_name = self._clean_name(self.last_name)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def _clean_name(name):
+        """Remove emojis, stickers and special characters from name. Keep only letters, spaces, hyphens, apostrophes."""
+        cleaned = ''
+        for char in name:
+            cat = unicodedata.category(char)
+            if cat.startswith('L') or cat.startswith('M') or char in " -'ʻʼ":
+                cleaned += char
+        return cleaned.strip()
 
     # ---------------- META ----------------
 

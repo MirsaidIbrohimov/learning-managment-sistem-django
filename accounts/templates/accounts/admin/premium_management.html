@@ -573,7 +573,7 @@
 
     <!-- Header -->
     <div class="ap-header">
-        <div class="ap-header-icon"><i class="bi bi-star-fill"></i></div>
+        <div class="ap-header-icon"><i class="bi bi-patch-check-fill"></i></div>
         <h4>Premium boshqaruv</h4>
         <p>Premium so'rovlar va foydalanuvchilarni boshqarish</p>
     </div>
@@ -582,7 +582,7 @@
     <div class="row g-3 ap-stats">
         <div class="col-6 col-lg-3">
             <div class="ap-stat gold ap-stat-anim-1">
-                <div class="ap-stat-icon"><i class="bi bi-star-fill"></i></div>
+                <div class="ap-stat-icon"><i class="bi bi-patch-check-fill"></i></div>
                 <div class="ap-stat-num">{{ premium_count }}</div>
                 <div class="ap-stat-label">Premium</div>
             </div>
@@ -724,7 +724,7 @@
                 <label class="form-label small fw-bold">Filter</label>
                 <select name="filter" class="form-select" style="border-radius: 0.6rem;">
                     <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Barcha o'quvchilar</option>
-                    <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Faqat Premium ⭐</option>
+                    <option value="premium" {% if filter_type == 'premium' %}selected{% endif %}>Faqat Premium ✅</option>
                     <option value="not_premium" {% if filter_type == 'not_premium' %}selected{% endif %}>Premiumsiz</option>
                     <option value="expiring" {% if filter_type == 'expiring' %}selected{% endif %}>Muddati tugayotgan ⚠️</option>
                 </select>
@@ -772,7 +772,7 @@
                                 <div>
                                     <div class="ap-user-name">
                                         {{ u.full_name }}
-                                        {% if u.is_premium %}<i class="bi bi-star-fill text-warning" style="font-size: 0.7rem; animation: starFloat 2.5s ease-in-out infinite;"></i>{% endif %}
+                                        {% if u.is_premium %}<i class="bi bi-patch-check-fill text-warning" style="font-size: 0.7rem; animation: starFloat 2.5s ease-in-out infinite;"></i>{% endif %}
                                     </div>
                                     <div class="ap-user-sub">{{ u.username }}</div>
                                 </div>
@@ -784,7 +784,7 @@
                         </td>
                         <td class="text-center">
                             {% if u.is_premium %}
-                            <span class="ap-badge ap-badge-premium"><i class="bi bi-star-fill"></i> Premium</span>
+                            <span class="ap-badge ap-badge-premium"><i class="bi bi-patch-check-fill"></i> Premium</span>
                             {% else %}
                             <span class="ap-badge ap-badge-normal">Oddiy</span>
                             {% endif %}
@@ -811,7 +811,7 @@
                             </form>
                             {% else %}
                             <button type="button" class="ap-btn-give" onclick="openGiveModal('{{ u.pk }}', '{{ u.full_name }}', '{{ u.phone }}', '{{ u.first_name.0 }}{{ u.last_name.0 }}', '{% if u.photo %}{{ u.photo.url }}{% endif %}')">
-                                <i class="bi bi-star-fill"></i> <span class="d-none d-lg-inline">Berish</span>
+                                <i class="bi bi-patch-check-fill"></i> <span class="d-none d-lg-inline">Berish</span>
                             </button>
                             {% endif %}
                         </td>
@@ -967,7 +967,7 @@
                 <input type="hidden" name="user_id" id="modalUserId">
                 <input type="hidden" name="action" value="give_premium">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-star-fill text-warning me-2"></i>Premium berish</h5>
+                    <h5 class="modal-title"><i class="bi bi-patch-check-fill text-warning me-2"></i>Premium berish</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -989,7 +989,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">Bekor</button>
                     <button type="submit" class="ap-btn-approve" style="padding: 0.5rem 1.5rem;">
-                        <i class="bi bi-star-fill"></i>Premium berish
+                        <i class="bi bi-patch-check-fill"></i>Premium berish
                     </button>
                 </div>
             </form>

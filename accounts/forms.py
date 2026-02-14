@@ -1,9 +1,24 @@
+import unicodedata
+
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import (
     CustomUser, Profession, Section, Lesson, VideoLesson, Homework, 
     Test, TestQuestion, TestAnswer, HomeworkSubmission, Certificate
 )
+
+
+def _clean_name_field(name, field_label):
+    """Remove emojis, stickers and special characters from name field."""
+    cleaned = ''
+    for char in name:
+        cat = unicodedata.category(char)
+        if cat.startswith('L') or cat.startswith('M') or char in " -'ʻʼ":
+            cleaned += char
+    cleaned = cleaned.strip()
+    if not cleaned:
+        raise forms.ValidationError(f"{field_label} faqat harflardan iborat bo'lishi kerak!")
+    return cleaned
 
 
 class RegisterForm(UserCreationForm):
@@ -51,6 +66,12 @@ class RegisterForm(UserCreationForm):
         model = CustomUser
         fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'role', 'password1', 'password2']
     
+    def clean_first_name(self):
+        return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
+
+    def clean_last_name(self):
+        return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         # Formatni tozalash
@@ -130,6 +151,12 @@ class UserProfileForm(forms.ModelForm):
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'birth_date', 'id_card', 'birth_certificate', 'photo', 'bio']
 
+    def clean_first_name(self):
+        return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
+
+    def clean_last_name(self):
+        return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
 
 class AdminUserEditForm(forms.ModelForm):
     first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -157,6 +184,12 @@ class AdminUserEditForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'username', 'phone', 'role', 'profession', 'photo', 'bio', 'is_blocked', 'address', 'birth_date', 'id_card', 'birth_certificate']
+
+    def clean_first_name(self):
+        return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
+
+    def clean_last_name(self):
+        return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
 
 
 class ChangePasswordForm(forms.Form):

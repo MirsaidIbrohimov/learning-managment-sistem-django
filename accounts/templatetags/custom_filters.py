@@ -31,7 +31,7 @@ def premium_name(user):
     name = user.full_name if hasattr(user, 'full_name') else str(user)
     
     if hasattr(user, 'is_premium') and user.is_premium:
-        return mark_safe(f'{name} <span class="badge bg-warning text-dark" style="font-size: 0.65em; vertical-align: middle;" title="Premium foydalanuvchi"><i class="bi bi-star-fill"></i></span>')
+        return mark_safe(f'{name} <span class="badge bg-warning text-dark" style="font-size: 0.65em; vertical-align: middle;" title="Premium foydalanuvchi"><i class="bi bi-patch-check-fill"></i></span>')
     return name
 
 

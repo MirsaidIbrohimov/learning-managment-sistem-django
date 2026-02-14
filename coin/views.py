@@ -71,7 +71,7 @@ def request_premium(request):
                 user=request.user,
                 amount=price,
                 action='remove',
-                reason=f"⭐ Premium so'rov ({plan_info['name']}) - {price} coin"
+                reason=f"✅ Premium so'rov ({plan_info['name']}) - {price} coin"
             )
             
             ActivityLog.objects.create(
@@ -85,7 +85,7 @@ def request_premium(request):
                 Message.objects.create(
                     sender=request.user,
                     recipient=admin,
-                    title="Yangi Premium so'rov ⭐",
+                    title="Yangi Premium so'rov ✅",
                     content=f"{request.user.full_name} {plan_info['name']} Premium ({price} coin) uchun so'rov yubordi. Dashboard > Premium boshqaruv bo'limidan tasdiqlang.",
                     message_type='system'
                 )
@@ -138,7 +138,7 @@ def extend_premium(request):
                 user=request.user,
                 amount=price,
                 action='remove',
-                reason=f"⭐ Premium uzaytirish so'rovi ({plan_info['name']}) - {price} coin"
+                reason=f"✅ Premium uzaytirish so'rovi ({plan_info['name']}) - {price} coin"
             )
             
             ActivityLog.objects.create(
@@ -152,7 +152,7 @@ def extend_premium(request):
                 Message.objects.create(
                     sender=request.user,
                     recipient=admin,
-                    title="Premium uzaytirish so'rovi ⭐",
+                    title="Premium uzaytirish so'rovi ✅",
                     content=f"{request.user.full_name} Premium muddatini {plan_info['name']} ga uzaytirish uchun so'rov yubordi ({price} coin). Dashboard > Premium boshqaruv bo'limidan tasdiqlang.",
                     message_type='system'
                 )
