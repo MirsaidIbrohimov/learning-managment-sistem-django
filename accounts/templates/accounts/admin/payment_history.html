@@ -1,0 +1,287 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{{ student.full_name }} - To'lov tarixi | IT Creative{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== PAYMENT HISTORY SCOPED STYLES ===== */
+.ph-page{
+    --ph-card-bg: rgba(255,255,255,.82);
+    --ph-border: rgba(0,0,0,.08);
+    --ph-text: #111;
+    --ph-muted: #6c757d;
+    --ph-soft: rgba(0,0,0,.03);
+    --ph-hover: rgba(0,0,0,.05);
+    --ph-paid-row: rgba(25,135,84,.06);
+    --ph-unpaid-row: rgba(220,53,69,.06);
+}
+[data-bs-theme="dark"] .ph-page{
+    --ph-card-bg: rgba(26,26,46,.85);
+    --ph-border: rgba(255,255,255,.08);
+    --ph-text: #f1f1f1;
+    --ph-muted: #9ca3af;
+    --ph-soft: rgba(255,255,255,.04);
+    --ph-hover: rgba(255,255,255,.06);
+    --ph-paid-row: rgba(25,135,84,.12);
+    --ph-unpaid-row: rgba(220,53,69,.12);
+}
+
+/* Card */
+.ph-card{
+    background:var(--ph-card-bg);backdrop-filter:blur(16px);
+    border:1px solid var(--ph-border);border-radius:22px;
+    box-shadow:0 8px 32px rgba(0,0,0,.08);overflow:hidden;
+}
+.ph-card-head{
+    padding:18px 24px;border-bottom:1px solid var(--ph-border);
+    font-weight:600;font-size:1rem;color:var(--ph-text);
+    display:flex;align-items:center;justify-content:space-between;
+}
+
+/* Student Info */
+.ph-info{
+    background:var(--ph-card-bg);backdrop-filter:blur(16px);
+    border:1px solid var(--ph-border);border-radius:22px;
+    padding:24px;margin-bottom:20px;
+    box-shadow:0 8px 32px rgba(0,0,0,.08);
+}
+.ph-avatar{
+    width:56px;height:56px;border-radius:16px;
+    background:linear-gradient(135deg,#0d6efd,#6f42c1);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1.3rem;font-weight:700;flex-shrink:0;
+}
+
+/* Stats */
+.ph-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+@media(max-width:576px){.ph-stat-grid{grid-template-columns:1fr;}}
+.ph-stat{
+    background:var(--ph-card-bg);border:1px solid var(--ph-border);
+    border-radius:18px;padding:18px;backdrop-filter:blur(12px);
+    transition:transform .25s;position:relative;overflow:hidden;
+}
+.ph-stat:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12);}
+.ph-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:18px 18px 0 0;}
+.ph-stat.hs-purple::before{background:linear-gradient(90deg,#6f42c1,#a98eda);}
+.ph-stat.hs-green::before{background:linear-gradient(90deg,#198754,#75b798);}
+.ph-stat.hs-red::before{background:linear-gradient(90deg,#dc3545,#ea868f);}
+
+.ph-si{
+    width:42px;height:42px;border-radius:13px;
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1.15rem;margin-bottom:12px;
+}
+.ph-si.hsi-purple{background:linear-gradient(135deg,#6f42c1,#59359a);}
+.ph-si.hsi-green{background:linear-gradient(135deg,#198754,#157347);}
+.ph-si.hsi-red{background:linear-gradient(135deg,#dc3545,#b02a37);}
+.ph-sn{font-size:1.25rem;font-weight:700;color:var(--ph-text);}
+.ph-sl{font-size:.78rem;color:var(--ph-muted);margin-top:2px;}
+
+/* Table */
+.ph-tbl{width:100%;border-collapse:collapse;}
+.ph-tbl thead th{
+    padding:12px 16px;font-size:.8rem;font-weight:600;
+    color:var(--ph-muted);text-transform:uppercase;letter-spacing:.3px;
+    border-bottom:1px solid var(--ph-border);white-space:nowrap;
+}
+.ph-tbl tbody tr{transition:background .15s;border-bottom:1px solid var(--ph-border);}
+.ph-tbl tbody tr:last-child{border-bottom:none;}
+.ph-tbl tbody tr:hover{background:var(--ph-hover);}
+.ph-tbl tbody tr.hr-paid{background:var(--ph-paid-row);}
+.ph-tbl tbody tr.hr-unpaid{background:var(--ph-unpaid-row);}
+.ph-tbl tbody td{padding:12px 16px;font-size:.88rem;color:var(--ph-text);vertical-align:middle;}
+
+.hb-paid{background:rgba(25,135,84,.15);color:#198754;padding:5px 12px;border-radius:50px;font-size:.78rem;font-weight:600;display:inline-block;}
+.hb-unpaid{background:rgba(220,53,69,.12);color:#dc3545;padding:5px 12px;border-radius:50px;font-size:.78rem;font-weight:600;display:inline-block;}
+
+.ph-money{font-weight:600;font-family:'Courier New',monospace;font-size:.88rem;}
+.ph-money.hm-green{color:#198754;}
+.ph-money.hm-red{color:#dc3545;}
+
+/* Summary */
+.ph-summary{
+    display:flex;gap:20px;flex-wrap:wrap;padding:16px 24px;
+    background:var(--ph-soft);border-top:1px solid var(--ph-border);
+    font-size:.88rem;
+}
+.ph-sum{display:flex;align-items:center;gap:6px;}
+.ph-sum .lbl{color:var(--ph-muted);font-weight:500;}
+.ph-sum .val{font-weight:700;color:var(--ph-text);}
+
+/* Mobile */
+@media(max-width:768px){
+.ph-tbl thead{display:none;}
+.ph-tbl tbody tr{
+    display:block;border:1px solid var(--ph-border);
+    border-radius:16px;padding:14px;margin-bottom:12px;
+    background:var(--ph-card-bg)!important;
+}
+.ph-tbl tbody td{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:6px 0;border:none;
+}
+.ph-tbl tbody td::before{
+    content:attr(data-label);font-weight:600;color:var(--ph-muted);
+    font-size:.8rem;min-width:120px;
+}
+}
+
+.ph-empty{padding:60px 20px;text-align:center;}
+.ph-empty i{font-size:3rem;color:var(--ph-muted);margin-bottom:12px;}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="ph-page">
+
+<!-- BACK -->
+<div class="mb-3">
+    <a href="{% url 'admin_payments' %}" class="btn btn-outline-secondary rounded-pill px-3" style="font-size:.88rem;">
+        <i class="bi bi-arrow-left me-1"></i>To'lovlarga qaytish
+    </a>
+</div>
+
+<!-- STUDENT INFO -->
+<div class="ph-info">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="ph-avatar">{{ student.get_initials }}</div>
+        <div class="flex-grow-1">
+            <h4 class="mb-1" style="font-weight:700;color:var(--ph-text);">{{ student.full_name }}</h4>
+            <div class="d-flex gap-3 flex-wrap" style="font-size:.88rem;color:var(--ph-muted);">
+                <span><i class="bi bi-person me-1"></i>@{{ student.username }}</span>
+                <span><i class="bi bi-telephone me-1"></i>{{ student.phone }}</span>
+                {% if student.profession %}
+                <span><i class="bi bi-briefcase me-1"></i>{{ student.profession.name }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="px-3 py-2 rounded-pill" style="font-size:.82rem;font-weight:600;{% if student.is_blocked %}background:rgba(220,53,69,.12);color:#dc3545;{% else %}background:rgba(25,135,84,.12);color:#198754;{% endif %}">
+                <i class="bi bi-{% if student.is_blocked %}lock-fill{% else %}unlock-fill{% endif %} me-1"></i>
+                {% if student.is_blocked %}Bloklangan{% else %}Faol{% endif %}
+            </span>
+            <span class="px-3 py-2 rounded-pill" style="font-size:.82rem;font-weight:600;background:rgba(13,110,253,.1);color:#0d6efd;">
+                <i class="bi bi-cash me-1"></i>{{ payment_status.monthly_fee|floatformat:0 }} so'm/oy
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="ph-stat-grid">
+    <div class="ph-stat hs-purple">
+        <div class="ph-si hsi-purple"><i class="bi bi-cash-stack"></i></div>
+        <div class="ph-sn">{{ total_expected|floatformat:0 }}</div>
+        <div class="ph-sl">Jami kutilgan (so'm)</div>
+    </div>
+    <div class="ph-stat hs-green">
+        <div class="ph-si hsi-green"><i class="bi bi-wallet2"></i></div>
+        <div class="ph-sn">{{ total_paid|floatformat:0 }}</div>
+        <div class="ph-sl">Jami to'langan (so'm)</div>
+    </div>
+    <div class="ph-stat hs-red">
+        <div class="ph-si hsi-red"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="ph-sn">{{ total_debt|floatformat:0 }}</div>
+        <div class="ph-sl">Jami qarz (so'm)</div>
+    </div>
+</div>
+
+<!-- RECORDS TABLE -->
+<div class="ph-card">
+    <div class="ph-card-head">
+        <span><i class="bi bi-clock-history me-2"></i>Oyma-oy to'lov tarixi</span>
+        <span style="font-size:.82rem;color:var(--ph-muted);">{{ records|length }} ta yozuv</span>
+    </div>
+
+    {% if records %}
+    <div class="table-responsive">
+        <table class="ph-tbl">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Oy / Yil</th>
+                    <th class="text-end">Oylik to'lov</th>
+                    <th class="text-end">To'langan</th>
+                    <th class="text-end">Qarz</th>
+                    <th class="text-center">Holat</th>
+                    <th>To'langan sana</th>
+                    <th>Izoh</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr class="{% if record.is_paid %}hr-paid{% else %}hr-unpaid{% endif %}">
+                    <td data-label="#">{{ forloop.counter }}</td>
+                    <td data-label="Oy / Yil">
+                        <strong>{{ record.month_name }}</strong> {{ record.year }}
+                    </td>
+                    <td data-label="Oylik to'lov" class="text-end">
+                        <span class="ph-money">{{ record.amount|floatformat:0 }}</span>
+                    </td>
+                    <td data-label="To'langan" class="text-end">
+                        <span class="ph-money hm-green">
+                            {% if record.is_paid %}{{ record.paid_amount|floatformat:0 }}{% else %}0{% endif %}
+                        </span>
+                    </td>
+                    <td data-label="Qarz" class="text-end">
+                        <span class="ph-money hm-red">
+                            {% if record.is_paid %}0{% else %}{{ record.amount|floatformat:0 }}{% endif %}
+                        </span>
+                    </td>
+                    <td data-label="Holat" class="text-center">
+                        {% if record.is_paid %}
+                        <span class="hb-paid"><i class="bi bi-check-circle-fill me-1"></i>To'langan</span>
+                        {% else %}
+                        <span class="hb-unpaid"><i class="bi bi-x-circle-fill me-1"></i>To'lanmagan</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Sana">
+                        {% if record.paid_date %}
+                        {{ record.paid_date|date:"d.m.Y" }}
+                        {% else %}
+                        <span style="color:var(--ph-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td data-label="Izoh">
+                        {% if record.notes %}
+                        <span style="font-size:.82rem;color:var(--ph-muted);">{{ record.notes }}</span>
+                        {% else %}
+                        <span style="color:var(--ph-muted);">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Summary -->
+    <div class="ph-summary">
+        <div class="ph-sum">
+            <i class="bi bi-cash-stack text-primary"></i>
+            <span class="lbl">Jami kutilgan:</span>
+            <span class="val">{{ total_expected|floatformat:0 }} so'm</span>
+        </div>
+        <div class="ph-sum">
+            <i class="bi bi-wallet2 text-success"></i>
+            <span class="lbl">Jami to'langan:</span>
+            <span class="val text-success">{{ total_paid|floatformat:0 }} so'm</span>
+        </div>
+        <div class="ph-sum">
+            <i class="bi bi-exclamation-triangle text-danger"></i>
+            <span class="lbl">Jami qarz:</span>
+            <span class="val text-danger">{{ total_debt|floatformat:0 }} so'm</span>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="ph-empty">
+        <i class="bi bi-inbox d-block"></i>
+        <h5 style="color:var(--ph-text);font-weight:600;">To'lov yozuvlari topilmadi</h5>
+        <p style="color:var(--ph-muted);font-size:.9rem;">Hali hech qanday to'lov qayd qilinmagan.</p>
+    </div>
+    {% endif %}
+</div>
+
+</div><!-- /ph-page -->
+{% endblock %}

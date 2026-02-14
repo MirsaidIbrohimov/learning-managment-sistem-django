@@ -197,7 +197,7 @@ class CustomUser(AbstractUser):
         cleaned = ''
         for char in name:
             cat = unicodedata.category(char)
-            if cat.startswith('L') or cat.startswith('M') or char in " -'ʻʼ":
+            if cat.startswith('L') or cat.startswith('M') or char in (" ", "-", "'"):
                 cleaned += char
         return cleaned.strip()
 
@@ -646,6 +646,7 @@ class PaymentStatus(models.Model):
     paid_until = models.DateField(null=True, blank=True, verbose_name="To'lov muddati")
     last_payment_date = models.DateField(null=True, blank=True)
     auto_blocked = models.BooleanField(default=False, verbose_name="Avtomatik bloklangan")
+    monthly_fee = models.DecimalField(max_digits=12, decimal_places=0, default=200000, verbose_name="Oylik to'lov (so'm)")
     
     class Meta:
         verbose_name = "To'lov holati"
@@ -654,6 +655,45 @@ class PaymentStatus(models.Model):
     def __str__(self):
         status = "To'langan" if self.is_paid else "To'lanmagan"
         return f"{self.user.full_name} - {status}"
+
+
+class PaymentRecord(models.Model):
+    """Oylik to'lov tarixi"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='payment_records')
+    amount = models.DecimalField(max_digits=12, decimal_places=0, verbose_name="To'lov miqdori (so'm)")
+    month = models.IntegerField(verbose_name="Oy (1-12)")
+    year = models.IntegerField(verbose_name="Yil")
+    is_paid = models.BooleanField(default=False, verbose_name="To'langan")
+    paid_date = models.DateField(null=True, blank=True, verbose_name="To'langan sana")
+    paid_amount = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name="To'langan summa")
+    notes = models.CharField(max_length=500, blank=True, verbose_name="Izoh")
+    recorded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='recorded_payments')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['user', 'month', 'year']
+        ordering = ['-year', '-month']
+        verbose_name = "To'lov yozuvi"
+        verbose_name_plural = "To'lov yozuvlari"
+
+    def __str__(self):
+        status = "+" if self.is_paid else "-"
+        return f"{self.user.full_name} - {self.month}/{self.year} {status}"
+
+    MONTH_NAMES = {
+        1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
+        5: 'May', 6: 'Iyun', 7: 'Iyul', 8: 'Avgust',
+        9: 'Sentyabr', 10: 'Oktyabr', 11: 'Noyabr', 12: 'Dekabr'
+    }
+
+    @property
+    def month_name(self):
+        return self.MONTH_NAMES.get(self.month, '')
+
+    @property
+    def debt(self):
+        return max(0, self.amount - self.paid_amount)
 
 
 class HelpRequest(models.Model):

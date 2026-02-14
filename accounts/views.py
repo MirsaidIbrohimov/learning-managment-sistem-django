@@ -16,7 +16,7 @@ from .forms import (
 from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    TestUserAnswer, Certificate, Message, PaymentStatus, HelpRequest, Discount,
+    TestUserAnswer, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection
 )
@@ -1202,23 +1202,112 @@ def admin_payments(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    qs = CustomUser.objects.filter(role='student')
-
-    for s in qs:
-        PaymentStatus.objects.get_or_create(user=s)
+    from datetime import date
+    today = date.today()
+    selected_month = int(request.GET.get('month', today.month))
+    selected_year = int(request.GET.get('year', today.year))
+    search_query = request.GET.get('q', '').strip()
+    filter_status = request.GET.get('status', '')
 
     qs = CustomUser.objects.filter(role='student').select_related('payment_status')
 
-    paginator = Paginator(qs, 25)
-    page = request.GET.get('page')
-    students = paginator.get_page(page)
+    # Har bir studentga PaymentStatus yaratish
+    existing_ids = set(PaymentStatus.objects.filter(user__role='student').values_list('user_id', flat=True))
+    all_student_ids = set(qs.values_list('id', flat=True))
+    missing = all_student_ids - existing_ids
+    if missing:
+        PaymentStatus.objects.bulk_create([
+            PaymentStatus(user_id=uid) for uid in missing
+        ], ignore_conflicts=True)
+        qs = CustomUser.objects.filter(role='student').select_related('payment_status')
 
-    blocked_students = qs.filter(is_blocked=True).count()
-    today = timezone.now()
+    # PaymentRecord yaratish (tanlangan oy uchun)
+    existing_record_ids = set(
+        PaymentRecord.objects.filter(month=selected_month, year=selected_year)
+        .values_list('user_id', flat=True)
+    )
+    missing_records = all_student_ids - existing_record_ids
+    if missing_records:
+        fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_records)}
+        PaymentRecord.objects.bulk_create([
+            PaymentRecord(user_id=uid, month=selected_month, year=selected_year, amount=fees.get(uid, 200000))
+            for uid in missing_records
+        ], ignore_conflicts=True)
+
+    # Search
+    if search_query:
+        qs = qs.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(username__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+
+    # Records dict
+    records = PaymentRecord.objects.filter(month=selected_month, year=selected_year).select_related('user')
+    records_dict = {r.user_id: r for r in records}
+
+    # Filter by status
+    if filter_status == 'paid':
+        qs = qs.filter(pk__in=[r.user_id for r in records if r.is_paid])
+    elif filter_status == 'unpaid':
+        qs = qs.filter(pk__in=[r.user_id for r in records if not r.is_paid])
+    elif filter_status == 'blocked':
+        qs = qs.filter(is_blocked=True)
+
+    students_list = list(qs.order_by('first_name', 'last_name'))
+    for s in students_list:
+        s.current_record = records_dict.get(s.pk)
+
+    paginator = Paginator(students_list, 30)
+    students = paginator.get_page(request.GET.get('page'))
+
+    # Stats
+    all_records = PaymentRecord.objects.filter(month=selected_month, year=selected_year)
+    total_students = CustomUser.objects.filter(role='student').count()
+    total_expected = all_records.aggregate(t=Sum('amount'))['t'] or 0
+    total_paid_sum = all_records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
+    total_paid_count = all_records.filter(is_paid=True).count()
+    total_unpaid = all_records.filter(is_paid=False).count()
+    blocked_count = CustomUser.objects.filter(role='student', is_blocked=True).count()
+
+    # Oylik tarix (6 oy)
+    MONTH_SHORT = {1:'Yan',2:'Fev',3:'Mar',4:'Apr',5:'May',6:'Iyn',7:'Iyl',8:'Avg',9:'Sen',10:'Okt',11:'Noy',12:'Dek'}
+    monthly_history = []
+    for i in range(5, -1, -1):
+        m = selected_month - i
+        y = selected_year
+        while m <= 0:
+            m += 12
+            y -= 1
+        mr = PaymentRecord.objects.filter(month=m, year=y)
+        monthly_history.append({
+            'month': m, 'year': y,
+            'name': MONTH_SHORT.get(m, ''),
+            'paid': mr.filter(is_paid=True).aggregate(s=Sum('paid_amount'))['s'] or 0,
+            'expected': mr.aggregate(s=Sum('amount'))['s'] or 0,
+            'paid_count': mr.filter(is_paid=True).count(),
+            'total_count': mr.count(),
+        })
+
+    months = [(i, PaymentRecord.MONTH_NAMES[i]) for i in range(1, 13)]
+    years = list(range(2024, today.year + 2))
 
     return render(request, 'accounts/admin/payments.html', {
         'students': students,
-        'blocked_students': blocked_students,
+        'total_students': total_students,
+        'total_expected': total_expected,
+        'total_paid_sum': total_paid_sum,
+        'total_paid_count': total_paid_count,
+        'total_unpaid': total_unpaid,
+        'blocked_count': blocked_count,
+        'selected_month': selected_month,
+        'selected_year': selected_year,
+        'months': months,
+        'years': years,
+        'search_query': search_query,
+        'filter_status': filter_status,
+        'monthly_history': monthly_history,
         'today': today,
     })
 
@@ -1227,77 +1316,305 @@ def admin_payments(request):
 def admin_mark_paid(request, pk):
     if not request.user.is_admin:
         return redirect('home')
-    
+
+    from datetime import date
     user = get_object_or_404(CustomUser, pk=pk)
     payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
+
+    month = int(request.POST.get('month', date.today().month))
+    year = int(request.POST.get('year', date.today().year))
+    paid_amount = request.POST.get('paid_amount', '')
+    notes = request.POST.get('notes', '')
+
+    record, _ = PaymentRecord.objects.get_or_create(
+        user=user, month=month, year=year,
+        defaults={'amount': payment_status.monthly_fee}
+    )
+    record.paid_amount = int(paid_amount) if paid_amount else record.amount
+    record.is_paid = True
+    record.paid_date = date.today()
+    record.notes = notes
+    record.recorded_by = request.user
+    record.save()
+
     payment_status.is_paid = True
-    payment_status.last_payment_date = timezone.now().date()
+    payment_status.last_payment_date = date.today()
     payment_status.save()
-    
-    # Agar bloklangan bo'lsa, ochish
+
     if user.is_blocked and payment_status.auto_blocked:
         user.is_blocked = False
         user.save()
         payment_status.auto_blocked = False
         payment_status.save()
-        
         Message.objects.create(
             title="✅ Hisobingiz ochildi",
-            content="To'lov qabul qilindi. Hisobingiz faollashtirildi. O'qishingizni davom eting!",
-            message_type='system',
-            recipient=user,
-            sender=request.user
+            content="To'lov qabul qilindi. Hisobingiz faollashtirildi.",
+            message_type='system', recipient=user, sender=request.user
         )
-    
+
     messages.success(request, f"{user.full_name} to'lovi belgilandi!")
-    return redirect('admin_payments')
+    return redirect(f'/dashboard/payments/?month={month}&year={year}')
+
+
+@login_required
+def admin_mark_unpaid(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    from datetime import date
+    user = get_object_or_404(CustomUser, pk=pk)
+    month = int(request.POST.get('month', date.today().month))
+    year = int(request.POST.get('year', date.today().year))
+
+    record = PaymentRecord.objects.filter(user=user, month=month, year=year).first()
+    if record:
+        record.is_paid = False
+        record.paid_amount = 0
+        record.paid_date = None
+        record.save()
+
+    messages.warning(request, f"{user.full_name} to'lovi bekor qilindi!")
+    return redirect(f'/dashboard/payments/?month={month}&year={year}')
 
 
 @login_required
 def send_payment_reminder(request, pk):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
-    
+
     student = get_object_or_404(CustomUser, pk=pk, role='student')
-    
     Message.objects.create(
-        sender=request.user,
-        recipient=student,
-        title="To'lov eslatmasi",
+        sender=request.user, recipient=student,
+        title="💳 To'lov eslatmasi",
         content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
         message_type='payment'
     )
-    
-    messages.success(request, f"{student.full_name}ga to'lov eslatmasi yuborildi!")
-    return redirect('admin_payments')
+    messages.success(request, f"{student.full_name}ga eslatma yuborildi!")
+    month = request.GET.get('month', '')
+    year = request.GET.get('year', '')
+    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
 
 
 @login_required
 def send_bulk_payment_reminders(request):
     if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
-    
+
     if request.method == 'POST':
-        unpaid_students = CustomUser.objects.filter(role='student').exclude(
-            payment_status__is_paid=True
-        )
-        
+        from datetime import date
+        today = date.today()
+        m = int(request.POST.get('month', today.month))
+        y = int(request.POST.get('year', today.year))
+        unpaid_ids = PaymentRecord.objects.filter(
+            month=m, year=y, is_paid=False
+        ).values_list('user_id', flat=True)
+        unpaid_students = CustomUser.objects.filter(pk__in=unpaid_ids, role='student')
+
         count = 0
         for student in unpaid_students:
             Message.objects.create(
-                sender=request.user,
-                recipient=student,
-                title="To'lov eslatmasi",
+                sender=request.user, recipient=student,
+                title="💳 To'lov eslatmasi",
                 content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                 message_type='payment'
             )
             count += 1
-        
-        messages.success(request, f"{count} ta o'quvchiga to'lov eslatmasi yuborildi!")
-    
-    return redirect('admin_payments')
+
+        messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
+
+    return redirect(f'/dashboard/payments/?month={m}&year={y}')
+
+
+@login_required
+def admin_toggle_block_payment(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    user = get_object_or_404(CustomUser, pk=pk, role='student')
+    payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
+
+    if user.is_blocked:
+        user.is_blocked = False
+        user.save()
+        payment_status.auto_blocked = False
+        payment_status.save()
+        Message.objects.create(
+            title="✅ Hisobingiz ochildi",
+            content="Admin hisobingizni ochdi. O'qishingizni davom eting!",
+            message_type='system', recipient=user, sender=request.user
+        )
+        messages.success(request, f"{user.full_name} blokdan ochildi!")
+    else:
+        user.is_blocked = True
+        user.save()
+        payment_status.auto_blocked = True
+        payment_status.save()
+        Message.objects.create(
+            title="🚫 Hisobingiz bloklandi",
+            content="To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.",
+            message_type='payment', recipient=user, sender=request.user
+        )
+        messages.warning(request, f"{user.full_name} bloklandi!")
+
+    month = request.GET.get('month', '')
+    year = request.GET.get('year', '')
+    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+
+
+@login_required
+def admin_set_monthly_fee(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    user = get_object_or_404(CustomUser, pk=pk, role='student')
+    payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        fee = request.POST.get('monthly_fee', 200000)
+        payment_status.monthly_fee = int(fee)
+        payment_status.save()
+        messages.success(request, f"{user.full_name} oylik to'lovi {int(fee):,} so'm qilib belgilandi!")
+
+    month = request.GET.get('month', '')
+    year = request.GET.get('year', '')
+    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+
+
+@login_required
+def admin_payment_history(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    user = get_object_or_404(CustomUser, pk=pk, role='student')
+    records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')
+    payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
+
+    total_expected = records.aggregate(t=Sum('amount'))['t'] or 0
+    total_paid = records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
+
+    return render(request, 'accounts/admin/payment_history.html', {
+        'student': user,
+        'records': records,
+        'payment_status': payment_status,
+        'total_expected': total_expected,
+        'total_paid': total_paid,
+        'total_debt': max(0, total_expected - total_paid),
+    })
+
+
+@login_required
+def export_payments_pdf(request):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    from datetime import date
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.units import mm
+    from io import BytesIO
+
+    today = date.today()
+    selected_month = int(request.GET.get('month', today.month))
+    selected_year = int(request.GET.get('year', today.year))
+
+    MONTH_NAMES = {
+        1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
+        5: 'May', 6: 'Iyun', 7: 'Iyul', 8: 'Avgust',
+        9: 'Sentyabr', 10: 'Oktyabr', 11: 'Noyabr', 12: 'Dekabr'
+    }
+    month_name = MONTH_NAMES.get(selected_month, '')
+
+    records = PaymentRecord.objects.filter(
+        month=selected_month, year=selected_year
+    ).select_related('user', 'user__payment_status')
+
+    total_expected = sum(r.amount for r in records)
+    total_paid = sum(r.paid_amount for r in records if r.is_paid)
+    total_debt = total_expected - total_paid
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), topMargin=20, bottomMargin=20, leftMargin=20, rightMargin=20)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    heading = ParagraphStyle('PH', parent=styles['Heading2'], textColor=colors.HexColor('#0d6efd'), spaceAfter=6)
+
+    elements.append(Paragraph(f"To'lovlar hisoboti — {month_name} {selected_year}", styles['Title']))
+    elements.append(Paragraph(f"Hisobot sanasi: {today.strftime('%d.%m.%Y')}", styles['Normal']))
+    elements.append(Spacer(1, 12))
+
+    # Summary table
+    elements.append(Paragraph("Umumiy ma'lumot", heading))
+    summary_data = [
+        ["Ko'rsatkich", 'Qiymat'],
+        ['Jami o\'quvchilar', str(records.count())],
+        ['To\'langan', str(records.filter(is_paid=True).count())],
+        ['To\'lanmagan', str(records.filter(is_paid=False).count())],
+        ['Kutilgan summa', f"{total_expected:,.0f} so'm"],
+        ['Yig\'ilgan summa', f"{total_paid:,.0f} so'm"],
+        ['Jami qarz', f"{total_debt:,.0f} so'm"],
+    ]
+    t = Table(summary_data, colWidths=[200, 180])
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+        ('PADDING', (0, 0), (-1, -1), 8),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')]),
+    ]))
+    elements.append(t)
+    elements.append(Spacer(1, 16))
+
+    # Detail table
+    elements.append(Paragraph("Batafsil to'lov jadvali", heading))
+    detail_data = [['#', 'Ism Familiya', 'Telefon', 'Oylik to\'lov', 'To\'langan', 'Qarz', 'Holat', 'Sana', 'Izoh']]
+    col_widths = [25, 130, 90, 80, 80, 80, 70, 70, 120]
+
+    for i, r in enumerate(records.order_by('user__first_name', 'user__last_name'), 1):
+        detail_data.append([
+            str(i),
+            r.user.full_name,
+            r.user.phone or '',
+            f"{r.amount:,.0f}",
+            f"{r.paid_amount:,.0f}" if r.is_paid else '0',
+            f"{max(0, r.amount - r.paid_amount):,.0f}" if not r.is_paid else '0',
+            'To\'langan' if r.is_paid else 'To\'lanmagan',
+            r.paid_date.strftime('%d.%m.%Y') if r.paid_date else '-',
+            (r.notes or '')[:30],
+        ])
+
+    dt = Table(detail_data, colWidths=col_widths)
+    dt.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+        ('PADDING', (0, 0), (-1, -1), 6),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('FONTSIZE', (0, 0), (-1, 0), 9),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')]),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+        ('ALIGN', (3, 0), (5, -1), 'RIGHT'),
+        ('ALIGN', (6, 0), (6, -1), 'CENTER'),
+    ]))
+
+    # Color paid/unpaid rows
+    for i, r in enumerate(records.order_by('user__first_name', 'user__last_name'), 1):
+        if r.is_paid:
+            dt.setStyle(TableStyle([('BACKGROUND', (6, i), (6, i), colors.HexColor('#d1e7dd'))]))
+        else:
+            dt.setStyle(TableStyle([('BACKGROUND', (6, i), (6, i), colors.HexColor('#f8d7da'))]))
+
+    elements.append(dt)
+    doc.build(elements)
+    buffer.seek(0)
+
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="tolovlar_{month_name}_{selected_year}.pdf"'
+    return response
 
 
 # Teacher/Admin: Manage lessons
