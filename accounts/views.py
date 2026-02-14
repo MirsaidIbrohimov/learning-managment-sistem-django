@@ -1270,6 +1270,7 @@ def admin_payments(request):
     total_paid_count = all_records.filter(is_paid=True).count()
     total_unpaid = all_records.filter(is_paid=False).count()
     blocked_count = CustomUser.objects.filter(role='student', is_blocked=True).count()
+    total_debt = max(0, total_expected - total_paid_sum)
 
     # Oylik tarix (6 oy)
     MONTH_SHORT = {1:'Yan',2:'Fev',3:'Mar',4:'Apr',5:'May',6:'Iyn',7:'Iyl',8:'Avg',9:'Sen',10:'Okt',11:'Noy',12:'Dek'}
@@ -1308,6 +1309,7 @@ def admin_payments(request):
         'search_query': search_query,
         'filter_status': filter_status,
         'monthly_history': monthly_history,
+        'total_debt': total_debt,
         'today': today,
     })
 
