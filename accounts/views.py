@@ -1464,6 +1464,90 @@ def admin_toggle_block_payment(request, pk):
 
 
 @login_required
+def bulk_payment_action(request):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    if request.method == 'POST':
+        from datetime import date
+        today = date.today()
+        ids_str = request.POST.get('selected_ids', '')
+        action = request.POST.get('action', '')
+        month = request.POST.get('month', str(today.month))
+        year = request.POST.get('year', str(today.year))
+
+        if not ids_str:
+            messages.warning(request, "Hech qanday o'quvchi tanlanmadi!")
+            return redirect(f'/dashboard/payments/?month={month}&year={year}')
+
+        student_ids = [int(x) for x in ids_str.split(',') if x.strip().isdigit()]
+        students = CustomUser.objects.filter(pk__in=student_ids, role='student')
+
+        if action == 'block':
+            count = 0
+            for student in students:
+                if not student.is_blocked:
+                    student.is_blocked = True
+                    student.save()
+                    ps, _ = PaymentStatus.objects.get_or_create(user=student)
+                    ps.auto_blocked = True
+                    ps.save()
+                    Message.objects.create(
+                        title="🚫 Hisobingiz bloklandi",
+                        content="To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.",
+                        message_type='payment', recipient=student, sender=request.user
+                    )
+                    count += 1
+            messages.warning(request, f"{count} ta o'quvchi bloklandi!")
+
+        elif action == 'unblock':
+            count = 0
+            for student in students:
+                if student.is_blocked:
+                    student.is_blocked = False
+                    student.save()
+                    ps, _ = PaymentStatus.objects.get_or_create(user=student)
+                    ps.auto_blocked = False
+                    ps.save()
+                    Message.objects.create(
+                        title="✅ Hisobingiz ochildi",
+                        content="Admin hisobingizni ochdi. O'qishingizni davom eting!",
+                        message_type='system', recipient=student, sender=request.user
+                    )
+                    count += 1
+            messages.success(request, f"{count} ta o'quvchi blokdan ochildi!")
+
+        elif action == 'set_fee':
+            fee = int(request.POST.get('monthly_fee', 200000))
+            count = 0
+            for student in students:
+                ps, _ = PaymentStatus.objects.get_or_create(user=student)
+                ps.monthly_fee = fee
+                ps.save()
+                PaymentRecord.objects.filter(
+                    user=student, month=int(month), year=int(year), is_paid=False
+                ).update(amount=fee)
+                count += 1
+            messages.success(request, f"{count} ta o'quvchiga {fee:,} so'm oylik belgilandi!")
+
+        elif action == 'remind':
+            count = 0
+            for student in students:
+                Message.objects.create(
+                    sender=request.user, recipient=student,
+                    title="💳 To'lov eslatmasi",
+                    content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
+                    message_type='payment'
+                )
+                count += 1
+            messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
+
+        return redirect(f'/dashboard/payments/?month={month}&year={year}')
+
+    return redirect('admin_payments')
+
+
+@login_required
 def admin_set_monthly_fee(request, pk):
     if not request.user.is_admin:
         return redirect('home')
@@ -1475,7 +1559,16 @@ def admin_set_monthly_fee(request, pk):
         fee = request.POST.get('monthly_fee', 200000)
         payment_status.monthly_fee = int(fee)
         payment_status.save()
+
+        month = request.GET.get('month', '')
+        year = request.GET.get('year', '')
+        if month and year:
+            PaymentRecord.objects.filter(
+                user=user, month=int(month), year=int(year), is_paid=False
+            ).update(amount=int(fee))
+
         messages.success(request, f"{user.full_name} oylik to'lovi {int(fee):,} so'm qilib belgilandi!")
+        return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
 
     month = request.GET.get('month', '')
     year = request.GET.get('year', '')

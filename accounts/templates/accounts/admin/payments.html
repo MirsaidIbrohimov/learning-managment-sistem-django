@@ -231,6 +231,27 @@
     </form>
 </div>
 
+<!-- BULK ACTIONS -->
+<div id="bulkBar" class="p-card mb-3" style="display:none;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3">
+        <span style="font-weight:600;color:var(--p-text);font-size:.9rem"><i class="bi bi-check2-square me-2"></i><span id="bulkCount">0</span> ta o'quvchi tanlandi</span>
+        <div class="d-flex gap-2 flex-wrap">
+            <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkForm">
+                {% csrf_token %}
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="selected_ids" id="bulkIds">
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" name="action" value="block" class="btn btn-danger rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarni bloklashni xohlaysizmi?')"><i class="bi bi-lock-fill me-1"></i>Bloklash</button>
+                    <button type="submit" name="action" value="unblock" class="btn btn-success rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarni blokdan chiqarishni xohlaysizmi?')"><i class="bi bi-unlock-fill me-1"></i>Blokdan chiqarish</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-3" style="font-size:.82rem" onclick="openBulkFeeModal()"><i class="bi bi-gear me-1"></i>Oylik belgilash</button>
+                    <button type="submit" name="action" value="remind" class="btn btn-warning rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarga eslatma yuborilsinmi?')"><i class="bi bi-bell-fill me-1"></i>Eslatma</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- TABLE -->
 <div class="p-card">
     <div class="p-card-head">
@@ -245,6 +266,7 @@
         <table class="p-tbl">
             <thead>
                 <tr>
+                    <th style="width:40px"><input type="checkbox" id="selectAll" onclick="toggleAll(this)" style="width:16px;height:16px;cursor:pointer"></th>
                     <th>#</th>
                     <th>O'quvchi</th>
                     <th>Telefon</th>
@@ -260,6 +282,7 @@
                 {% for student in students %}
                 <tr class="{% if student.current_record and student.current_record.is_paid %}rp{% elif student.is_blocked %}rb{% else %}ru{% endif %}">
 
+                    <td data-label=""><input type="checkbox" class="bulk-check" value="{{ student.pk }}" onclick="updateBulk()" style="width:16px;height:16px;cursor:pointer"></td>
                     <td data-label="#">{{ forloop.counter0|add:students.start_index }}</td>
 
                     <td data-label="O'quvchi">
@@ -428,6 +451,36 @@
     </div>
 </div>
 
+<!-- BULK FEE MODAL -->
+<div class="modal fade" id="bulkFeeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkFeeForm">
+                {% csrf_token %}
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <input type="hidden" name="action" value="set_fee">
+                <input type="hidden" name="selected_ids" id="bulkFeeIds">
+                <div class="modal-header">
+                    <h5 class="modal-title" style="font-weight:700;color:var(--p-text)"><i class="bi bi-gear text-primary me-2"></i>Ommaviy oylik to'lov belgilash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="color:var(--p-muted);font-size:.9rem;margin-bottom:16px"><strong id="bulkFeeCount" style="color:var(--p-text)">0</strong> ta o'quvchi uchun oylik to'lov</p>
+                    <div class="mb-0">
+                        <label class="form-label">Oylik to'lov (so'm)</label>
+                        <input type="number" name="monthly_fee" id="bulkFeeAmount" class="form-control" value="200000" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 </div>
 
 <script>
@@ -448,5 +501,23 @@ function openFeeModal(pk,name,f){
     bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;if(v>max)max=v});
     if(max>0)bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;b.style.height=Math.max(4,Math.round(v/max*90))+'px'});
 })();
+function toggleAll(el){
+    document.querySelectorAll('.bulk-check').forEach(function(c){c.checked=el.checked});
+    updateBulk();
+}
+function updateBulk(){
+    var checks=document.querySelectorAll('.bulk-check:checked');
+    var ids=Array.from(checks).map(function(c){return c.value});
+    document.getElementById('bulkBar').style.display=ids.length?'block':'none';
+    document.getElementById('bulkCount').textContent=ids.length;
+    document.getElementById('bulkIds').value=ids.join(',');
+}
+function openBulkFeeModal(){
+    var checks=document.querySelectorAll('.bulk-check:checked');
+    var ids=Array.from(checks).map(function(c){return c.value});
+    document.getElementById('bulkFeeIds').value=ids.join(',');
+    document.getElementById('bulkFeeCount').textContent=ids.length;
+    new bootstrap.Modal(document.getElementById('bulkFeeModal')).show();
+}
 </script>
 {% endblock %}

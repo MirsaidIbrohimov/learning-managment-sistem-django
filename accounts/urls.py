@@ -92,6 +92,7 @@ urlpatterns = [
     path('dashboard/payments/<int:pk>/unpaid/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
     path('dashboard/payments/<int:pk>/remind/', views.send_payment_reminder, name='send_payment_reminder'),
     path('dashboard/payments/remind-all/', views.send_bulk_payment_reminders, name='send_bulk_payment_reminders'),
+    path('dashboard/payments/bulk-action/', views.bulk_payment_action, name='bulk_payment_action'),
     path('dashboard/payments/<int:pk>/toggle-block/', views.admin_toggle_block_payment, name='admin_toggle_block_payment'),
     path('dashboard/payments/<int:pk>/history/', views.admin_payment_history, name='admin_payment_history'),
     path('dashboard/payments/<int:pk>/set-fee/', views.admin_set_monthly_fee, name='admin_set_monthly_fee'),
