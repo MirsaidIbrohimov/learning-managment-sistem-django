@@ -45,7 +45,7 @@
 .p-si.c-teal{background:linear-gradient(135deg,#0dcaf0,#0aa2c0)}
 .p-sn{font-size:1.3rem;font-weight:700;color:var(--p-text);line-height:1.2}
 .p-sl{font-size:.78rem;color:var(--p-muted);margin-top:2px}
-.p-card{background:var(--p-card);backdrop-filter:blur(16px);border:1px solid var(--p-border);border-radius:20px;box-shadow:0 6px 24px rgba(0,0,0,.06);overflow:hidden;margin-bottom:20px}
+.p-card{background:var(--p-card);backdrop-filter:blur(16px);border:1px solid var(--p-border);border-radius:20px;box-shadow:0 6px 24px rgba(0,0,0,.06);margin-bottom:20px}
 .p-card-head{padding:16px 22px;border-bottom:1px solid var(--p-border);font-weight:600;color:var(--p-text);display:flex;align-items:center;justify-content:space-between}
 .p-chart-bars{display:flex;align-items:flex-end;gap:14px;height:130px;padding:18px 22px}
 @media(max-width:576px){.p-chart-bars{height:100px;gap:8px;padding:14px}}
@@ -85,7 +85,7 @@
 .pm.r{color:#dc3545}
 .pa .dropdown-toggle{padding:5px 11px;border-radius:10px;font-size:.82rem;background:var(--p-soft);border:1px solid var(--p-border);color:var(--p-text)}
 .pa .dropdown-toggle:hover{background:var(--p-hover)}
-.pa .dropdown-menu{border-radius:14px;border:1px solid var(--p-border);background:var(--p-card);box-shadow:0 10px 36px rgba(0,0,0,.14);padding:5px;min-width:220px}
+.pa .dropdown-menu{border-radius:14px;border:1px solid var(--p-border);background:var(--p-card);box-shadow:0 10px 36px rgba(0,0,0,.14);padding:5px;min-width:220px;z-index:1050}
 .pa .dropdown-item{border-radius:9px;padding:8px 14px;font-size:.84rem;color:var(--p-text);transition:.15s}
 .pa .dropdown-item:hover{background:var(--p-hover)}
 .pa .dropdown-item i{width:20px;text-align:center;margin-right:8px}
@@ -93,12 +93,6 @@
 .p-sum{display:flex;align-items:center;gap:6px}
 .p-sum .l{color:var(--p-muted);font-weight:500}
 .p-sum .v{font-weight:700;color:var(--p-text)}
-.pay-page .modal-content{border-radius:20px!important;border:1px solid var(--p-border);background:var(--p-card)!important;box-shadow:0 16px 48px rgba(0,0,0,.18)}
-.pay-page .modal-header{border-bottom:1px solid var(--p-border);padding:18px 22px}
-.pay-page .modal-body{padding:22px}
-.pay-page .modal-footer{border-top:1px solid var(--p-border);padding:14px 22px}
-.pay-page .modal .form-control{border-radius:12px!important;border:1px solid var(--p-border)!important;background:var(--p-soft)!important;color:var(--p-text)!important;padding:10px 14px!important}
-.pay-page .modal .form-label{font-weight:600;font-size:.86rem;color:var(--p-text)}
 .pay-page .pf select,.pay-page .pf .ps{
     background:var(--p-card)!important;border:1px solid var(--p-border)!important;
     color:var(--p-text)!important;border-radius:12px!important;padding:8px 14px!important;
@@ -109,11 +103,57 @@
 .p-pag .page-item.active .page-link{background:#0d6efd!important;border-color:#0d6efd!important;color:#fff!important}
 .p-empty{padding:50px 20px;text-align:center}
 .p-empty i{font-size:3rem;color:var(--p-muted)}
+
+/* Modal styles */
+.pay-modal .modal-content{border-radius:20px!important;border:1px solid rgba(0,0,0,.08);background:#fff!important;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.pay-modal .modal-header{border-bottom:1px solid rgba(0,0,0,.08);padding:18px 22px}
+.pay-modal .modal-body{padding:22px}
+.pay-modal .modal-footer{border-top:1px solid rgba(0,0,0,.08);padding:14px 22px}
+.pay-modal .form-control{border-radius:12px!important;border:1px solid rgba(0,0,0,.12)!important;background:rgba(0,0,0,.02)!important;color:#111!important;padding:10px 14px!important}
+.pay-modal .form-label{font-weight:600;font-size:.86rem;color:#111}
+.pay-modal .modal-title{font-weight:700;color:#111}
+.pay-modal .modal-body p{color:#6c757d}
+.pay-modal .modal-body p strong{color:#111}
+[data-bs-theme="dark"] .pay-modal .modal-content{background:rgba(26,26,46,.97)!important;border-color:rgba(255,255,255,.1)}
+[data-bs-theme="dark"] .pay-modal .modal-header{border-color:rgba(255,255,255,.08)}
+[data-bs-theme="dark"] .pay-modal .modal-footer{border-color:rgba(255,255,255,.08)}
+[data-bs-theme="dark"] .pay-modal .form-control{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.1)!important;color:#f1f1f1!important}
+[data-bs-theme="dark"] .pay-modal .form-label{color:#f1f1f1}
+[data-bs-theme="dark"] .pay-modal .modal-title{color:#f1f1f1}
+[data-bs-theme="dark"] .pay-modal .modal-body p{color:#9ca3af}
+[data-bs-theme="dark"] .pay-modal .modal-body p strong{color:#f1f1f1}
+
+/* Bulk bar */
+.p-bulk-bar{
+    background:linear-gradient(135deg,#0d6efd,#6610f2);
+    border-radius:16px;padding:14px 20px;margin-bottom:16px;
+    box-shadow:0 8px 24px rgba(13,110,253,.2);
+    animation:bulkSlide .3s ease;
+}
+@keyframes bulkSlide{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.p-bulk-bar .bulk-label{color:#fff;font-weight:600;font-size:.9rem}
+.p-bulk-bar .bulk-count{background:rgba(255,255,255,.2);color:#fff;padding:2px 10px;border-radius:20px;font-weight:700;font-size:.85rem;margin-left:6px}
+.p-bulk-bar .btn{font-size:.8rem;padding:6px 14px;border-radius:50px;font-weight:600;border:1px solid rgba(255,255,255,.3);color:#fff;background:rgba(255,255,255,.12);transition:.2s}
+.p-bulk-bar .btn:hover{background:rgba(255,255,255,.25);color:#fff}
+.p-bulk-bar .btn-bulk-danger{background:rgba(220,53,69,.8);border-color:rgba(220,53,69,.6)}
+.p-bulk-bar .btn-bulk-danger:hover{background:rgba(220,53,69,1)}
+.p-bulk-bar .btn-bulk-success{background:rgba(25,135,84,.8);border-color:rgba(25,135,84,.6)}
+.p-bulk-bar .btn-bulk-success:hover{background:rgba(25,135,84,1)}
+.p-bulk-bar .btn-bulk-primary{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3)}
+.p-bulk-bar .btn-bulk-primary:hover{background:rgba(255,255,255,.35)}
+.p-bulk-bar .btn-bulk-warning{background:rgba(255,193,7,.8);border-color:rgba(255,193,7,.6);color:#000}
+.p-bulk-bar .btn-bulk-warning:hover{background:rgba(255,193,7,1);color:#000}
+
+/* Checkbox */
+.p-check{width:18px;height:18px;cursor:pointer;accent-color:#0d6efd;border-radius:4px}
+
 @media(max-width:992px){
 .p-tbl thead{display:none}
 .p-tbl tbody tr{display:block;border:1px solid var(--p-border);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--p-card)!important}
 .p-tbl tbody td{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border:none}
 .p-tbl tbody td::before{content:attr(data-label);font-weight:600;color:var(--p-muted);font-size:.78rem;min-width:110px}
+.p-tbl tbody td.td-check{justify-content:flex-start}
+.p-tbl tbody td.td-check::before{display:none}
 }
 </style>
 {% endblock %}
@@ -231,29 +271,31 @@
     </form>
 </div>
 
-<!-- BULK ACTIONS -->
-<div id="bulkBar" class="p-card mb-3" style="display:none;">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3">
-        <span style="font-weight:600;color:var(--p-text);font-size:.9rem"><i class="bi bi-check2-square me-2"></i><span id="bulkCount">0</span> ta o'quvchi tanlandi</span>
-        <div class="d-flex gap-2 flex-wrap">
-            <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkForm">
-                {% csrf_token %}
-                <input type="hidden" name="month" value="{{ selected_month }}">
-                <input type="hidden" name="year" value="{{ selected_year }}">
-                <input type="hidden" name="selected_ids" id="bulkIds">
-                <div class="d-flex gap-2 flex-wrap">
-                    <button type="submit" name="action" value="block" class="btn btn-danger rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarni bloklashni xohlaysizmi?')"><i class="bi bi-lock-fill me-1"></i>Bloklash</button>
-                    <button type="submit" name="action" value="unblock" class="btn btn-success rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarni blokdan chiqarishni xohlaysizmi?')"><i class="bi bi-unlock-fill me-1"></i>Blokdan chiqarish</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-3" style="font-size:.82rem" onclick="openBulkFeeModal()"><i class="bi bi-gear me-1"></i>Oylik belgilash</button>
-                    <button type="submit" name="action" value="remind" class="btn btn-warning rounded-pill px-3" style="font-size:.82rem" onclick="return confirm('Tanlangan o\'quvchilarga eslatma yuborilsinmi?')"><i class="bi bi-bell-fill me-1"></i>Eslatma</button>
-                </div>
-            </form>
+<!-- BULK ACTIONS BAR -->
+<div id="bulkBar" style="display:none;">
+    <div class="p-bulk-bar">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="bulk-label"><i class="bi bi-check2-square me-2"></i>Tanlandi: <span class="bulk-count" id="bulkCount">0</span></span>
+            <div class="d-flex gap-2 flex-wrap">
+                <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="month" value="{{ selected_month }}">
+                    <input type="hidden" name="year" value="{{ selected_year }}">
+                    <input type="hidden" name="selected_ids" id="bulkIds">
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button type="submit" name="action" value="block" class="btn btn-bulk-danger" onclick="return confirm('Tanlangan o\'quvchilarni bloklashni xohlaysizmi?')"><i class="bi bi-lock-fill me-1"></i>Bloklash</button>
+                        <button type="submit" name="action" value="unblock" class="btn btn-bulk-success" onclick="return confirm('Tanlangan o\'quvchilarni blokdan chiqarishni xohlaysizmi?')"><i class="bi bi-unlock-fill me-1"></i>Blokdan chiqarish</button>
+                        <button type="button" class="btn btn-bulk-primary" onclick="openBulkFeeModal()"><i class="bi bi-gear me-1"></i>Oylik belgilash</button>
+                        <button type="submit" name="action" value="remind" class="btn btn-bulk-warning" onclick="return confirm('Tanlangan o\'quvchilarga eslatma yuborilsinmi?')"><i class="bi bi-bell-fill me-1"></i>Eslatma</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- TABLE -->
-<div class="p-card">
+<div class="p-card" style="overflow:visible">
     <div class="p-card-head">
         <span><i class="bi bi-table me-2"></i>O'quvchilar to'lov holati</span>
         <span style="font-size:.82rem;color:var(--p-muted)">
@@ -262,11 +304,11 @@
     </div>
 
     {% if students %}
-    <div class="table-responsive">
+    <div class="table-responsive" style="overflow:visible">
         <table class="p-tbl">
             <thead>
                 <tr>
-                    <th style="width:40px"><input type="checkbox" id="selectAll" onclick="toggleAll(this)" style="width:16px;height:16px;cursor:pointer"></th>
+                    <th style="width:40px"><input type="checkbox" class="p-check" id="selectAll" onclick="toggleAll(this)"></th>
                     <th>#</th>
                     <th>O'quvchi</th>
                     <th>Telefon</th>
@@ -282,7 +324,7 @@
                 {% for student in students %}
                 <tr class="{% if student.current_record and student.current_record.is_paid %}rp{% elif student.is_blocked %}rb{% else %}ru{% endif %}">
 
-                    <td data-label=""><input type="checkbox" class="bulk-check" value="{{ student.pk }}" onclick="updateBulk()" style="width:16px;height:16px;cursor:pointer"></td>
+                    <td data-label="" class="td-check"><input type="checkbox" class="p-check bulk-check" value="{{ student.pk }}" onclick="updateBulk()"></td>
                     <td data-label="#">{{ forloop.counter0|add:students.start_index }}</td>
 
                     <td data-label="O'quvchi">
@@ -322,10 +364,10 @@
 
                     <td data-label="Amallar" class="text-center">
                         <div class="pa dropdown">
-                            <button class="dropdown-toggle" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                            <button class="dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport"><i class="bi bi-three-dots"></i></button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 {% if not student.current_record or not student.current_record.is_paid %}
-                                <li><a class="dropdown-item text-success" href="#" onclick="openPayModal({{ student.pk }},'{{ student.full_name }}',{% if student.current_record %}{{ student.current_record.amount }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-check-circle"></i>To'landi belgilash</a></li>
+                                <li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault();openPayModal({{ student.pk }},'{{ student.full_name }}',{% if student.current_record %}{{ student.current_record.amount }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-check-circle"></i>To'landi belgilash</a></li>
                                 {% else %}
                                 <li>
                                     <form method="post" action="{% url 'admin_mark_unpaid' student.pk %}">
@@ -341,7 +383,7 @@
                                 <li><a class="dropdown-item {% if student.is_blocked %}text-success{% else %}text-danger{% endif %}" href="{% url 'admin_toggle_block_payment' student.pk %}?month={{ selected_month }}&year={{ selected_year }}" onclick="return confirm('{{ student.full_name }}ni {% if student.is_blocked %}blokdan chiqarishni{% else %}bloklashni{% endif %} xohlaysizmi?')"><i class="bi bi-{% if student.is_blocked %}unlock{% else %}lock{% endif %}"></i>{% if student.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}</a></li>
                                 <li><hr class="dropdown-divider" style="margin:4px 0"></li>
                                 <li><a class="dropdown-item" href="{% url 'admin_payment_history' student.pk %}"><i class="bi bi-clock-history"></i>To'lov tarixi</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="openFeeModal({{ student.pk }},'{{ student.full_name }}',{% if student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-gear"></i>Oylik to'lovni belgilash</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault();openFeeModal({{ student.pk }},'{{ student.full_name }}',{% if student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-gear"></i>Oylik to'lovni belgilash</a></li>
                             </ul>
                         </div>
                     </td>
@@ -393,18 +435,22 @@
     {% endif %}
 </div>
 
+</div><!-- /pay-page -->
+
+<!-- ===== MODALS (outside .pay-page to avoid stacking context issues) ===== -->
+
 <!-- PAYMENT MODAL -->
-<div class="modal fade" id="payModal" tabindex="-1">
+<div class="modal fade pay-modal" id="payModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" id="payForm">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" style="font-weight:700;color:var(--p-text)"><i class="bi bi-check-circle text-success me-2"></i>To'lovni tasdiqlash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title"><i class="bi bi-check-circle text-success me-2"></i>To'lovni tasdiqlash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
                 </div>
                 <div class="modal-body">
-                    <p style="color:var(--p-muted);font-size:.9rem;margin-bottom:16px"><strong id="payStudentName" style="color:var(--p-text)"></strong> uchun to'lovni belgilang</p>
+                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="payStudentName"></strong> uchun to'lovni belgilang</p>
                     <input type="hidden" name="month" value="{{ selected_month }}">
                     <input type="hidden" name="year" value="{{ selected_year }}">
                     <div class="mb-3">
@@ -426,17 +472,17 @@
 </div>
 
 <!-- FEE MODAL -->
-<div class="modal fade" id="feeModal" tabindex="-1">
+<div class="modal fade pay-modal" id="feeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" id="feeForm">
                 {% csrf_token %}
                 <div class="modal-header">
-                    <h5 class="modal-title" style="font-weight:700;color:var(--p-text)"><i class="bi bi-gear text-primary me-2"></i>Oylik to'lovni belgilash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title"><i class="bi bi-gear text-primary me-2"></i>Oylik to'lovni belgilash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
                 </div>
                 <div class="modal-body">
-                    <p style="color:var(--p-muted);font-size:.9rem;margin-bottom:16px"><strong id="feeStudentName" style="color:var(--p-text)"></strong> uchun oylik to'lov</p>
+                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="feeStudentName"></strong> uchun oylik to'lov</p>
                     <div class="mb-0">
                         <label class="form-label">Oylik to'lov (so'm)</label>
                         <input type="number" name="monthly_fee" id="feeAmount" class="form-control" required>
@@ -452,7 +498,7 @@
 </div>
 
 <!-- BULK FEE MODAL -->
-<div class="modal fade" id="bulkFeeModal" tabindex="-1">
+<div class="modal fade pay-modal" id="bulkFeeModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkFeeForm">
@@ -462,11 +508,11 @@
                 <input type="hidden" name="action" value="set_fee">
                 <input type="hidden" name="selected_ids" id="bulkFeeIds">
                 <div class="modal-header">
-                    <h5 class="modal-title" style="font-weight:700;color:var(--p-text)"><i class="bi bi-gear text-primary me-2"></i>Ommaviy oylik to'lov belgilash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title"><i class="bi bi-gear text-primary me-2"></i>Ommaviy oylik to'lov belgilash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
                 </div>
                 <div class="modal-body">
-                    <p style="color:var(--p-muted);font-size:.9rem;margin-bottom:16px"><strong id="bulkFeeCount" style="color:var(--p-text)">0</strong> ta o'quvchi uchun oylik to'lov</p>
+                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="bulkFeeCount">0</strong> ta o'quvchi uchun oylik to'lov</p>
                     <div class="mb-0">
                         <label class="form-label">Oylik to'lov (so'm)</label>
                         <input type="number" name="monthly_fee" id="bulkFeeAmount" class="form-control" value="200000" required>
@@ -479,8 +525,6 @@
             </form>
         </div>
     </div>
-</div>
-
 </div>
 
 <script>
@@ -496,11 +540,6 @@ function openFeeModal(pk,name,f){
     document.getElementById('feeAmount').value=f;
     new bootstrap.Modal(document.getElementById('feeModal')).show();
 }
-(function(){
-    var bars=document.querySelectorAll('#chartBars .p-bar'),max=0;
-    bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;if(v>max)max=v});
-    if(max>0)bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;b.style.height=Math.max(4,Math.round(v/max*90))+'px'});
-})();
 function toggleAll(el){
     document.querySelectorAll('.bulk-check').forEach(function(c){c.checked=el.checked});
     updateBulk();
@@ -519,5 +558,10 @@ function openBulkFeeModal(){
     document.getElementById('bulkFeeCount').textContent=ids.length;
     new bootstrap.Modal(document.getElementById('bulkFeeModal')).show();
 }
+(function(){
+    var bars=document.querySelectorAll('#chartBars .p-bar'),max=0;
+    bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;if(v>max)max=v});
+    if(max>0)bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;b.style.height=Math.max(4,Math.round(v/max*90))+'px'});
+})();
 </script>
 {% endblock %}
