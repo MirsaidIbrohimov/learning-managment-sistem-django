@@ -299,6 +299,7 @@
     .prof-title { font-size: 1.4rem; }
     .prof-img { height: 160px; }
 }
+
 </style>
 
 <div class="prof-page">
@@ -321,9 +322,10 @@
             <i class="bi bi-grid-3x3-gap"></i> Barchasi
             <span class="cnt">{{ professions|length }}</span>
         </button>
-        {% if user.is_authenticated and enrolled_ids %}
-        <button class="prof-tab" data-filter="enrolled">
-            <i class="bi bi-play-circle-fill"></i> Faol kurslarim
+        {% if user.is_authenticated and user.is_student %}
+        <button class="prof-tab" data-filter="my_courses">
+            <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
+            {% if enrolled_ids %}<span class="cnt">{{ enrolled_ids|length }}</span>{% endif %}
         </button>
         {% endif %}
         <button class="prof-tab" data-filter="free">
@@ -395,6 +397,8 @@
                         <i class="bi bi-arrow-right"></i>
                     </div>
                 </div>
+
+
             </div>
         </a>
         {% endfor %}
@@ -422,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cards.forEach(card => {
                 if (filter === 'all') {
                     card.style.display = '';
-                } else if (filter === 'enrolled') {
+                } else if (filter === 'my_courses') {
                     card.style.display = card.dataset.enrolled === 'true' ? '' : 'none';
                 } else {
                     card.style.display = card.dataset.type === filter ? '' : 'none';

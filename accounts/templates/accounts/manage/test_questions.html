@@ -1,98 +1,570 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Test savollari - LMS{% endblock %}
+{% block title %}Test savollari - {{ test.lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --tq-bg: #f2f2f7;
+    --tq-card: rgba(255,255,255,0.85);
+    --tq-border: rgba(0,0,0,0.06);
+    --tq-text: #1d1d1f;
+    --tq-secondary: #86868b;
+    --tq-accent: #007aff;
+    --tq-accent-light: rgba(0,122,255,0.08);
+    --tq-success: #34c759;
+    --tq-success-light: rgba(52,199,89,0.1);
+    --tq-danger: #ff3b30;
+    --tq-danger-light: rgba(255,59,48,0.08);
+    --tq-warning: #ff9f0a;
+    --tq-purple: #af52de;
+    --tq-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --tq-bg: #000000;
+    --tq-card: rgba(28,28,30,0.85);
+    --tq-border: rgba(255,255,255,0.08);
+    --tq-text: #f5f5f7;
+    --tq-secondary: #98989d;
+    --tq-accent-light: rgba(0,122,255,0.18);
+    --tq-success-light: rgba(52,199,89,0.18);
+    --tq-danger-light: rgba(255,59,48,0.15);
+    --tq-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.tq-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+/* Back button */
+.tq-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 14px;
+    background: var(--tq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tq-border);
+    color: var(--tq-accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    margin-bottom: 1.5rem;
+}
+.tq-back:hover { transform: translateX(-4px); color: var(--tq-accent); box-shadow: var(--tq-shadow); }
+
+/* Header */
+.tq-header {
+    background: var(--tq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tq-border);
+    border-radius: 22px;
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--tq-shadow);
+    animation: fadeInDown 0.5s ease;
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tq-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.tq-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--tq-text);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+.tq-title i { color: var(--tq-accent); }
+.tq-subtitle {
+    font-size: 0.85rem;
+    color: var(--tq-secondary);
+    margin-top: 0.25rem;
+}
+
+.tq-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.5rem;
+    background: var(--tq-accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.25s;
+    box-shadow: 0 4px 14px rgba(0,122,255,0.3);
+}
+.tq-add-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,122,255,0.4); color: #fff; }
+.tq-add-btn:active { transform: scale(0.97); }
+
+/* Stats grid */
+.tq-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+}
+.tq-stat {
+    background: var(--tq-bg);
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    transition: transform 0.25s;
+}
+.tq-stat:hover { transform: translateY(-3px); }
+.tq-stat-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.tq-stat-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--tq-text);
+    line-height: 1;
+}
+.tq-stat-label {
+    font-size: 0.72rem;
+    color: var(--tq-secondary);
+    margin-top: 0.2rem;
+    font-weight: 500;
+}
+
+/* Feature toggles */
+.tq-features {
+    background: var(--tq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tq-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--tq-shadow);
+    animation: fadeInDown 0.5s ease 0.1s backwards;
+}
+.tq-features-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--tq-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tq-feature-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.tq-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    border-radius: 12px;
+    background: var(--tq-bg);
+    flex: 1;
+    min-width: 200px;
+}
+.tq-feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.tq-feature-info {
+    flex: 1;
+}
+.tq-feature-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--tq-text);
+}
+.tq-feature-status {
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.tq-feature-status.on { color: var(--tq-success); }
+.tq-feature-status.off { color: var(--tq-secondary); }
+
+/* Question cards */
+.tq-question {
+    background: var(--tq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tq-border);
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: var(--tq-shadow);
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease backwards;
+}
+.tq-question:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+[data-bs-theme="dark"] .tq-question:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+
+.tq-question:nth-child(1) { animation-delay: 0.05s; }
+.tq-question:nth-child(2) { animation-delay: 0.1s; }
+.tq-question:nth-child(3) { animation-delay: 0.15s; }
+.tq-question:nth-child(4) { animation-delay: 0.2s; }
+.tq-question:nth-child(5) { animation-delay: 0.25s; }
+.tq-question:nth-child(6) { animation-delay: 0.3s; }
+.tq-question:nth-child(7) { animation-delay: 0.35s; }
+.tq-question:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tq-q-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.25rem 0;
+}
+
+.tq-q-number {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--tq-accent), #5856d6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.tq-q-content { flex: 1; }
+.tq-q-text {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--tq-text);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+.tq-q-image {
+    max-width: 220px;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    border: 1px solid var(--tq-border);
+}
+
+.tq-q-delete {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--tq-border);
+    background: transparent;
+    color: var(--tq-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    flex-shrink: 0;
+}
+.tq-q-delete:hover {
+    background: var(--tq-danger-light);
+    color: var(--tq-danger);
+    border-color: var(--tq-danger);
+    transform: scale(1.08);
+}
+.tq-q-delete.confirming {
+    background: var(--tq-danger);
+    color: #fff;
+    border-color: var(--tq-danger);
+    animation: deleteShake 0.4s ease;
+}
+@keyframes deleteShake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+}
+
+/* Answers */
+.tq-answers {
+    padding: 0.75rem 1.25rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.tq-answer {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+    background: var(--tq-bg);
+    transition: all 0.2s;
+}
+.tq-answer:hover { transform: translateX(4px); }
+.tq-answer.correct {
+    background: var(--tq-success-light);
+    border: 1px solid rgba(52,199,89,0.3);
+}
+.tq-answer-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+}
+.tq-answer.correct .tq-answer-icon {
+    background: var(--tq-success);
+    color: #fff;
+}
+.tq-answer:not(.correct) .tq-answer-icon {
+    border: 2px solid var(--tq-border);
+    color: var(--tq-secondary);
+}
+.tq-answer-text {
+    font-size: 0.88rem;
+    color: var(--tq-text);
+    font-weight: 500;
+}
+.tq-answer.correct .tq-answer-text { font-weight: 600; color: var(--tq-success); }
+
+/* Empty state */
+.tq-empty {
+    background: var(--tq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tq-border);
+    border-radius: 22px;
+    text-align: center;
+    padding: 4rem 2rem;
+    box-shadow: var(--tq-shadow);
+    animation: fadeInUp 0.5s ease;
+}
+.tq-empty-icon {
+    font-size: 4rem;
+    color: var(--tq-secondary);
+    opacity: 0.3;
+    margin-bottom: 1rem;
+}
+.tq-empty h4 { color: var(--tq-text); font-weight: 700; }
+.tq-empty p { color: var(--tq-secondary); }
+
+/* Delete animation */
+.tq-question.deleting {
+    animation: slideOut 0.4s ease forwards;
+}
+@keyframes slideOut {
+    to { opacity: 0; transform: translateX(100px) scale(0.9); max-height: 0; margin: 0; padding: 0; overflow: hidden; }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .tq-stats { grid-template-columns: repeat(2, 1fr); }
+    .tq-header-top { flex-direction: column; align-items: flex-start; }
+    .tq-add-btn { width: 100%; justify-content: center; }
+    .tq-title { font-size: 1.25rem; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'manage_lessons' test.lesson.profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
-    </a>
+<div class="tq-page">
 
     {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius: 14px;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
     {% endif %}
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 style="color: var(--primary-blue);">
-            <i class="bi bi-list-ol me-2"></i>{{ test.lesson.title }} - Savollar
-        </h3>
-        <a href="{% url 'add_test_question' test.pk %}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-2"></i>Savol qo'shish
-        </a>
+    <a href="{% url 'manage_lessons' test.lesson.profession.pk %}" class="tq-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
+    </a>
+
+    <!-- Header -->
+    <div class="tq-header">
+        <div class="tq-header-top">
+            <div>
+                <h2 class="tq-title">
+                    <i class="bi bi-journal-check"></i> {{ test.lesson.title }}
+                </h2>
+                <div class="tq-subtitle">{{ test.lesson.profession.name }} • Test savollari</div>
+            </div>
+            <a href="{% url 'add_test_question' test.pk %}" class="tq-add-btn">
+                <i class="bi bi-plus-lg"></i> Savol qo'shish
+            </a>
+        </div>
+
+        <div class="tq-stats">
+            <div class="tq-stat">
+                <div class="tq-stat-icon" style="background: var(--tq-accent-light); color: var(--tq-accent);">
+                    <i class="bi bi-list-ol"></i>
+                </div>
+                <div class="tq-stat-value">{{ questions.count }}</div>
+                <div class="tq-stat-label">Savollar</div>
+            </div>
+            <div class="tq-stat">
+                <div class="tq-stat-icon" style="background: rgba(175,82,222,0.1); color: var(--tq-purple);">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="tq-stat-value">{{ test.time_limit }}'</div>
+                <div class="tq-stat-label">Vaqt (daqiqa)</div>
+            </div>
+            <div class="tq-stat">
+                <div class="tq-stat-icon" style="background: var(--tq-success-light); color: var(--tq-success);">
+                    <i class="bi bi-percent"></i>
+                </div>
+                <div class="tq-stat-value">{{ test.passing_score }}%</div>
+                <div class="tq-stat-label">O'tish bali</div>
+            </div>
+            <div class="tq-stat">
+                <div class="tq-stat-icon" style="background: rgba(255,159,10,0.1); color: var(--tq-warning);">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="tq-stat-value">{% if test.allow_retry %}<i class="bi bi-check-lg" style="color:var(--tq-success);"></i>{% else %}<i class="bi bi-x-lg" style="color:var(--tq-danger);"></i>{% endif %}</div>
+                <div class="tq-stat-label">Qayta ishlash</div>
+            </div>
+        </div>
     </div>
 
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-4">
-                    <h4 style="color: var(--primary-blue);">{{ questions.count }}</h4>
-                    <small class="text-muted">Savollar soni</small>
+    <!-- Feature toggles -->
+    <div class="tq-features">
+        <div class="tq-features-title">
+            <i class="bi bi-shuffle"></i> Random sozlamalari
+        </div>
+        <div class="tq-feature-row">
+            <div class="tq-feature">
+                <div class="tq-feature-icon" style="background: var(--tq-accent-light); color: var(--tq-accent);">
+                    <i class="bi bi-shuffle"></i>
                 </div>
-                <div class="col-md-4">
-                    <h4 style="color: var(--primary-blue);">{{ test.time_limit }} daqiqa</h4>
-                    <small class="text-muted">Vaqt chegarasi</small>
+                <div class="tq-feature-info">
+                    <div class="tq-feature-name">Random savollar</div>
+                    <div class="tq-feature-status {% if test.shuffle_questions %}on{% else %}off{% endif %}">
+                        {% if test.shuffle_questions %}
+                        <i class="bi bi-check-circle-fill"></i> Yoqilgan
+                        {% else %}
+                        <i class="bi bi-x-circle"></i> O'chirilgan
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <h4 style="color: var(--primary-blue);">{{ test.passing_score }}%</h4>
-                    <small class="text-muted">O'tish bali</small>
+            </div>
+            <div class="tq-feature">
+                <div class="tq-feature-icon" style="background: rgba(175,82,222,0.1); color: var(--tq-purple);">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="tq-feature-info">
+                    <div class="tq-feature-name">Random javoblar</div>
+                    <div class="tq-feature-status {% if test.shuffle_answers %}on{% else %}off{% endif %}">
+                        {% if test.shuffle_answers %}
+                        <i class="bi bi-check-circle-fill"></i> Yoqilgan
+                        {% else %}
+                        <i class="bi bi-x-circle"></i> O'chirilgan
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Questions -->
     {% if questions %}
-    {% for question in questions %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                    <h5 style="color: var(--text-color);">
-                        <span class="badge bg-primary me-2">{{ forloop.counter }}</span>
-                        {{ question.question_text }}
-                    </h5>
-                    
+    <div class="tq-questions-list">
+        {% for question in questions %}
+        <div class="tq-question" id="question-{{ question.pk }}">
+            <div class="tq-q-top">
+                <div class="tq-q-number">{{ forloop.counter }}</div>
+                <div class="tq-q-content">
+                    <div class="tq-q-text">{{ question.question_text }}</div>
                     {% if question.question_image %}
-                    <img src="{{ question.question_image.url }}" style="max-width: 200px; border-radius: 10px;" class="my-2">
+                    <img src="{{ question.question_image.url }}" class="tq-q-image" alt="Savol rasmi">
                     {% endif %}
-                    
-                    <div class="mt-3">
-                        {% for answer in question.answers.all %}
-                        <div class="d-flex align-items-center mb-2">
-                            {% if answer.is_correct %}
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            {% else %}
-                            <i class="bi bi-circle text-muted me-2"></i>
-                            {% endif %}
-                            <span style="color: var(--text-color);">{{ answer.answer_text }}</span>
-                        </div>
-                        {% endfor %}
-                    </div>
                 </div>
-                <form method="POST" action="{% url 'delete_test_question' question.pk %}">
+                <form method="POST" action="{% url 'delete_test_question' question.pk %}" class="delete-form">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                    <button type="button" class="tq-q-delete" onclick="confirmDelete(this)" title="O'chirish">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
             </div>
+            <div class="tq-answers">
+                {% for answer in question.answers.all %}
+                <div class="tq-answer {% if answer.is_correct %}correct{% endif %}">
+                    <div class="tq-answer-icon">
+                        {% if answer.is_correct %}
+                        <i class="bi bi-check2"></i>
+                        {% else %}
+                        <i class="bi bi-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="tq-answer-text">{{ answer.answer_text }}</div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
     {% else %}
-    <div class="card">
-        <div class="card-body text-center py-5">
-            <i class="bi bi-question-circle text-muted" style="font-size: 4rem;"></i>
-            <h4 class="mt-3" style="color: var(--text-color);">Hozircha savollar mavjud emas</h4>
-            <a href="{% url 'add_test_question' test.pk %}" class="btn btn-primary mt-3">
-                <i class="bi bi-plus-lg me-2"></i>Savol qo'shish
-            </a>
-        </div>
+    <div class="tq-empty">
+        <div class="tq-empty-icon"><i class="bi bi-journal-x"></i></div>
+        <h4>Hozircha savollar mavjud emas</h4>
+        <p>Test uchun savollar qo'shishni boshlang</p>
+        <a href="{% url 'add_test_question' test.pk %}" class="tq-add-btn mt-3">
+            <i class="bi bi-plus-lg"></i> Birinchi savolni qo'shish
+        </a>
     </div>
     {% endif %}
+
 </div>
+
+<script>
+function confirmDelete(btn) {
+    if (btn.classList.contains('confirming')) {
+        const card = btn.closest('.tq-question');
+        card.classList.add('deleting');
+        setTimeout(() => btn.closest('.delete-form').submit(), 400);
+    } else {
+        btn.classList.add('confirming');
+        btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+        btn.title = 'Tasdiqlash';
+        setTimeout(() => {
+            if (btn.classList.contains('confirming')) {
+                btn.classList.remove('confirming');
+                btn.innerHTML = '<i class="bi bi-trash"></i>';
+                btn.title = "O'chirish";
+            }
+        }, 3000);
+    }
+}
+</script>
 {% endblock %}

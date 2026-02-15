@@ -97,7 +97,7 @@
                                 <td><span class="badge bg-secondary">{{ lesson.get_lesson_type_display }}</span></td>
                                 <td>{{ lesson.created_at|date:"d.m.Y" }}</td>
                                 <td style="width: 150px;">
-                                    {% if lesson.lesson_type == 'test' %}
+                                    {% if lesson.lesson_type == 'test' and lesson.test %}
                                     <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="btn btn-sm btn-outline-success" title="Savollar">
                                         <i class="bi bi-list-ol"></i>
                                     </a>
@@ -162,7 +162,7 @@
                             <td><span class="badge bg-secondary">{{ lesson.get_lesson_type_display }}</span></td>
                             <td>{{ lesson.created_at|date:"d.m.Y" }}</td>
                             <td>
-                                {% if lesson.lesson_type == 'test' %}
+                                {% if lesson.lesson_type == 'test' and lesson.test %}
                                 <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="btn btn-sm btn-outline-success" title="Savollar">
                                     <i class="bi bi-list-ol"></i>
                                 </a>

@@ -1,0 +1,299 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Test Hulosalari - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<!-- Top Bar -->
+<div class="top-bar">
+    <h1 class="page-title"><i class="bi bi-journal-check me-2"></i>Test Hulosalari</h1>
+</div>
+
+<!-- Umumiy statistika -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon purple mx-auto mb-2"><i class="bi bi-clipboard"></i></div>
+            <div class="stat-number">{{ total_tests }}</div>
+            <div class="stat-label">Jami testlar</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon blue mx-auto mb-2"><i class="bi bi-pencil-square"></i></div>
+            <div class="stat-number">{{ total_attempts }}</div>
+            <div class="stat-label">Jami urinishlar</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon green mx-auto mb-2"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-number">{{ pass_rate }}%</div>
+            <div class="stat-label">O'tish foizi</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card text-center">
+            <div class="stat-icon orange mx-auto mb-2"><i class="bi bi-percent"></i></div>
+            <div class="stat-number">{{ avg_score }}%</div>
+            <div class="stat-label">O'rtacha ball</div>
+        </div>
+    </div>
+</div>
+
+<!-- Kurs tanlash -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small">Kursni tanlang</label>
+                <select name="profession" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Kurs tanlang --</option>
+                    {% for p in professions %}
+                    <option value="{{ p.pk }}" {% if selected_profession and selected_profession.pk == p.pk %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                {% if profession_tests %}
+                <label class="form-label small">Testni tanlang</label>
+                <select name="test" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Test tanlang --</option>
+                    {% for t in profession_tests %}
+                    <option value="{{ t.pk }}" {% if selected_test and selected_test.pk == t.pk %}selected{% endif %}>{{ t.lesson.title }} ({{ t.attempt_count }} urinish)</option>
+                    {% endfor %}
+                </select>
+                {% endif %}
+            </div>
+            <div class="col-md-2">
+                <a href="{% url 'admin_test_analytics' %}" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Tozalash</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if selected_profession and profession_tests %}
+<!-- Kurs testlari jadvali -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-clipboard-check me-2"></i>{{ selected_profession.name }} — Testlar</span>
+        <span class="badge bg-primary">{{ profession_tests|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Test (Dars)</th>
+                        <th>Urinishlar</th>
+                        <th>O'tganlar</th>
+                        <th>O'rtacha ball</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in profession_tests %}
+                    <tr>
+                        <td class="fw-bold">{{ t.lesson.title }}</td>
+                        <td>{{ t.attempt_count }}</td>
+                        <td>
+                            {% if t.attempt_count > 0 %}
+                            <span class="text-success">{{ t.pass_count }}</span> / <span class="text-danger">{{ t.attempt_count|add:"-"|add:t.pass_count }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if t.avg_score %}
+                            <span class="badge {% if t.avg_score >= 70 %}bg-success{% elif t.avg_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ t.avg_score|floatformat:1 }}%</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="?test={{ t.pk }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>Batafsil</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if selected_test and test_stats %}
+<!-- Tanlangan test statistikasi -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-bar-chart me-2"></i>{{ selected_test.lesson.title }} — Statistika
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    <div class="fs-3 fw-bold text-primary">{{ test_stats.total }}</div>
+                    <small class="text-muted">Jami urinish</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    <div class="fs-3 fw-bold text-success">{{ test_stats.passed }}</div>
+                    <small class="text-muted">O'tganlar</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    <div class="fs-3 fw-bold text-danger">{{ test_stats.failed }}</div>
+                    <small class="text-muted">Yiqilganlar</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    <div class="fs-3 fw-bold text-info">{{ test_stats.pass_rate }}%</div>
+                    <small class="text-muted">O'tish foizi</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    <div class="fs-3 fw-bold text-warning">{{ test_stats.avg_score }}%</div>
+                    <small class="text-muted">O'rtacha ball</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="text-center">
+                    {% if test_stats.best_score %}
+                    <div class="fs-3 fw-bold text-success">{{ test_stats.best_score.score }}%</div>
+                    <small class="text-muted">Eng yuqori</small>
+                    {% else %}
+                    <div class="fs-3 fw-bold text-muted">—</div>
+                    <small class="text-muted">Eng yuqori</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tanlangan test natijalari -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-people me-2"></i>{{ selected_test.lesson.title }} — Natijalar</span>
+        <span class="badge bg-primary">{{ test_results|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% if test_results %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>O'quvchi</th>
+                        <th>Ball</th>
+                        <th>Holat</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in test_results %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if r.student.photo %}
+                                <img src="{{ r.student.photo.url }}" class="user-avatar-sm">
+                                {% else %}
+                                <div class="user-avatar-placeholder">{{ r.student.get_initials }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-bold">{{ r.student.full_name }}</div>
+                                    <small class="text-muted">{{ r.student.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge {% if r.score >= 70 %}bg-success{% elif r.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ r.score }}%</span>
+                        </td>
+                        <td>
+                            {% if r.passed %}
+                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>O'tdi</span>
+                            {% else %}
+                            <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>Yiqildi</span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ r.completed_at|date:"d.m.Y H:i" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-clipboard fs-1 opacity-25"></i>
+            <p class="mt-2">Natijalar yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Oxirgi natijalar -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between">
+        <span><i class="bi bi-clock-history me-2"></i>Oxirgi natijalar</span>
+        <span class="badge bg-secondary">{{ recent_results|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_results %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Test (Dars)</th>
+                        <th>Kurs</th>
+                        <th>Ball</th>
+                        <th>Holat</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recent_results %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if r.student.photo %}
+                                <img src="{{ r.student.photo.url }}" class="user-avatar-sm">
+                                {% else %}
+                                <div class="user-avatar-placeholder">{{ r.student.get_initials }}</div>
+                                {% endif %}
+                                <span class="fw-bold">{{ r.student.full_name }}</span>
+                            </div>
+                        </td>
+                        <td>{{ r.test.lesson.title }}</td>
+                        <td><small class="text-muted">{{ r.test.lesson.profession.name }}</small></td>
+                        <td>
+                            <span class="badge {% if r.score >= 70 %}bg-success{% elif r.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ r.score }}%</span>
+                        </td>
+                        <td>
+                            {% if r.passed %}
+                            <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+                            {% else %}
+                            <span class="text-danger"><i class="bi bi-x-circle-fill"></i></span>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ r.completed_at|date:"d.m.Y H:i" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-clipboard fs-1 opacity-25"></i>
+            <p class="mt-2">Hali natijalar yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

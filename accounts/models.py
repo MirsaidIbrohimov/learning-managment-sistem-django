@@ -541,6 +541,8 @@ class Test(models.Model):
     time_limit = models.IntegerField(default=30, verbose_name="Vaqt chegarasi (daqiqa)")
     passing_score = models.IntegerField(default=60, verbose_name="O'tish bali (%)")
     allow_retry = models.BooleanField(default=False, verbose_name="Qayta ishlashga ruxsat")
+    shuffle_questions = models.BooleanField(default=False, verbose_name="Savollar tartibini aralashtirish")
+    shuffle_answers = models.BooleanField(default=False, verbose_name="Javoblar tartibini aralashtirish")
     
     def __str__(self):
         return self.lesson.title

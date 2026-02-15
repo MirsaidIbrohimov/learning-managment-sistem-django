@@ -1,87 +1,523 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Savol qo'shish - LMS{% endblock %}
+{% block title %}Savol qo'shish - {{ test.lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --aq-card: rgba(255,255,255,0.85);
+    --aq-border: rgba(0,0,0,0.06);
+    --aq-text: #1d1d1f;
+    --aq-secondary: #86868b;
+    --aq-accent: #007aff;
+    --aq-accent-light: rgba(0,122,255,0.08);
+    --aq-success: #34c759;
+    --aq-success-light: rgba(52,199,89,0.1);
+    --aq-danger: #ff3b30;
+    --aq-warning: #ff9f0a;
+    --aq-bg: #f2f2f7;
+    --aq-input-bg: #f2f2f7;
+    --aq-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --aq-card: rgba(28,28,30,0.85);
+    --aq-border: rgba(255,255,255,0.08);
+    --aq-text: #f5f5f7;
+    --aq-secondary: #98989d;
+    --aq-accent-light: rgba(0,122,255,0.18);
+    --aq-success-light: rgba(52,199,89,0.18);
+    --aq-bg: #000000;
+    --aq-input-bg: rgba(255,255,255,0.06);
+    --aq-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.aq-page {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+/* Back button */
+.aq-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 14px;
+    background: var(--aq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--aq-border);
+    color: var(--aq-accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    margin-bottom: 1.5rem;
+}
+.aq-back:hover { transform: translateX(-4px); color: var(--aq-accent); box-shadow: var(--aq-shadow); }
+
+/* Main card */
+.aq-card {
+    background: var(--aq-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--aq-border);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--aq-shadow);
+    animation: aqSlideUp 0.5s ease;
+}
+@keyframes aqSlideUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Card header */
+.aq-card-header {
+    background: linear-gradient(135deg, var(--aq-accent), #5856d6);
+    padding: 2rem 1.75rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.aq-card-header::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -15%;
+    width: 180px;
+    height: 180px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+.aq-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+.aq-header-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+    animation: aqBounce 0.6s ease 0.3s backwards;
+}
+@keyframes aqBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+.aq-card-header h3 {
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+.aq-card-header p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* Form body */
+.aq-form-body {
+    padding: 1.75rem;
+}
+
+/* Section label */
+.aq-section {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--aq-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--aq-border);
+}
+.aq-section i { color: var(--aq-accent); font-size: 1rem; }
+
+/* Input groups */
+.aq-input-group {
+    margin-bottom: 1.25rem;
+    animation: aqFadeIn 0.4s ease backwards;
+}
+.aq-input-group:nth-child(1) { animation-delay: 0.1s; }
+.aq-input-group:nth-child(2) { animation-delay: 0.15s; }
+.aq-input-group:nth-child(3) { animation-delay: 0.2s; }
+.aq-input-group:nth-child(4) { animation-delay: 0.25s; }
+.aq-input-group:nth-child(5) { animation-delay: 0.3s; }
+
+@keyframes aqFadeIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.aq-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--aq-text);
+    margin-bottom: 0.4rem;
+}
+.aq-label .aq-optional {
+    font-weight: 400;
+    color: var(--aq-secondary);
+    font-size: 0.75rem;
+}
+
+.aq-input-group input[type="text"],
+.aq-input-group textarea,
+.aq-input-group input[type="file"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--aq-border);
+    border-radius: 14px;
+    background: var(--aq-input-bg);
+    color: var(--aq-text);
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    outline: none;
+}
+.aq-input-group input[type="text"]:focus,
+.aq-input-group textarea:focus {
+    border-color: var(--aq-accent);
+    box-shadow: 0 0 0 4px var(--aq-accent-light);
+    background: var(--aq-card);
+}
+.aq-input-group textarea {
+    resize: vertical;
+    min-height: 90px;
+}
+
+/* Answer cards */
+.aq-answer-card {
+    background: var(--aq-bg);
+    border: 1.5px solid var(--aq-border);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s ease;
+    animation: aqFadeIn 0.4s ease backwards;
+}
+.aq-answer-card:nth-child(1) { animation-delay: 0.2s; }
+.aq-answer-card:nth-child(2) { animation-delay: 0.25s; }
+.aq-answer-card:nth-child(3) { animation-delay: 0.3s; }
+
+.aq-answer-card:hover { border-color: var(--aq-accent); }
+.aq-answer-card.selected {
+    border-color: var(--aq-success);
+    background: var(--aq-success-light);
+    box-shadow: 0 4px 16px rgba(52,199,89,0.15);
+}
+
+.aq-answer-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+.aq-answer-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+.aq-answer-card:nth-child(1) .aq-answer-badge { background: rgba(0,122,255,0.1); color: var(--aq-accent); }
+.aq-answer-card:nth-child(2) .aq-answer-badge { background: rgba(175,82,222,0.1); color: #af52de; }
+.aq-answer-card:nth-child(3) .aq-answer-badge { background: rgba(255,159,10,0.1); color: var(--aq-warning); }
+.aq-answer-card.selected .aq-answer-badge {
+    background: var(--aq-success) !important;
+    color: #fff !important;
+}
+
+.aq-answer-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--aq-text);
+    flex: 1;
+}
+.aq-answer-card.selected .aq-answer-label { color: var(--aq-success); }
+
+/* Radio as toggle */
+.aq-radio-wrap {
+    position: relative;
+}
+.aq-radio-wrap input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+}
+.aq-radio-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--aq-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    font-size: 0.7rem;
+    color: transparent;
+}
+.aq-radio-wrap input:checked + .aq-radio-check {
+    background: var(--aq-success);
+    border-color: var(--aq-success);
+    color: #fff;
+    animation: aqPop 0.3s ease;
+}
+@keyframes aqPop {
+    0% { transform: scale(0.7); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Buttons */
+.aq-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--aq-border);
+    margin-top: 1.5rem;
+}
+.aq-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+}
+.aq-btn:active { transform: scale(0.97); }
+
+.aq-btn-primary {
+    background: var(--aq-accent);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,122,255,0.3);
+    flex: 1;
+}
+.aq-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,122,255,0.4); }
+
+.aq-btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--aq-border);
+    color: var(--aq-text);
+}
+.aq-btn-outline:hover { border-color: var(--aq-accent); color: var(--aq-accent); }
+
+.aq-btn-ghost {
+    background: transparent;
+    color: var(--aq-secondary);
+}
+.aq-btn-ghost:hover { color: var(--aq-danger); }
+
+/* File input style */
+.aq-file-input {
+    position: relative;
+}
+.aq-file-input input[type="file"] {
+    opacity: 0;
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+}
+.aq-file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px dashed var(--aq-border);
+    border-radius: 14px;
+    color: var(--aq-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.25s;
+    cursor: pointer;
+}
+.aq-file-label:hover {
+    border-color: var(--aq-accent);
+    color: var(--aq-accent);
+    background: var(--aq-accent-light);
+}
+.aq-file-label.has-file {
+    border-color: var(--aq-success);
+    color: var(--aq-success);
+    background: var(--aq-success-light);
+}
+
+@media (max-width: 640px) {
+    .aq-page { padding: 1rem 0.75rem 2rem; }
+    .aq-card { border-radius: 20px; }
+    .aq-form-body { padding: 1.25rem; }
+    .aq-actions { flex-direction: column; }
+    .aq-btn { width: 100%; justify-content: center; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'manage_test_questions' test.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
+<div class="aq-page">
+    <a href="{% url 'manage_test_questions' test.pk %}" class="aq-back">
+        <i class="bi bi-arrow-left"></i> Savollarga qaytish
     </a>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header" style="background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-blue); margin: 0;">
-                        <i class="bi bi-plus-circle me-2"></i>Savol qo'shish
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Savol matni</label>
-                            {{ form.question_text }}
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label" style="color: var(--text-color);">Savol rasmi (ixtiyoriy)</label>
-                            {{ form.question_image }}
-                            <small class="text-muted">Agar savolda rasm kerak bo'lsa yuklang</small>
-                        </div>
-                        
-                        <hr>
-                        <h5 style="color: var(--text-color);" class="mb-3">Javob variantlari</h5>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">1-javob</label>
-                            {{ form.answer1 }}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">2-javob</label>
-                            {{ form.answer2 }}
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label" style="color: var(--text-color);">3-javob</label>
-                            {{ form.answer3 }}
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label" style="color: var(--text-color);">To'g'ri javobni tanlang:</label>
-                            <div class="d-flex gap-4">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="correct_answer" value="1" id="correct1" required>
-                                    <label class="form-check-label" for="correct1" style="color: var(--text-color);">1-javob</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="correct_answer" value="2" id="correct2">
-                                    <label class="form-check-label" for="correct2" style="color: var(--text-color);">2-javob</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="correct_answer" value="3" id="correct3">
-                                    <label class="form-check-label" for="correct3" style="color: var(--text-color);">3-javob</label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-2"></i>Saqlash
-                            </button>
-                            <button type="submit" name="add_another" class="btn btn-outline-primary">
-                                <i class="bi bi-plus-lg me-2"></i>Saqlash va yana qo'shish
-                            </button>
-                            <a href="{% url 'manage_test_questions' test.pk %}" class="btn btn-outline-secondary">
-                                Bekor qilish
-                            </a>
-                        </div>
-                    </form>
-                </div>
+    <div class="aq-card">
+        <!-- Header -->
+        <div class="aq-card-header">
+            <div class="aq-header-icon">
+                <i class="bi bi-plus-circle-fill"></i>
             </div>
+            <h3>Yangi savol qo'shish</h3>
+            <p>{{ test.lesson.title }}</p>
+        </div>
+
+        <!-- Form -->
+        <div class="aq-form-body">
+            <form method="POST" enctype="multipart/form-data" id="questionForm">
+                {% csrf_token %}
+
+                <!-- Question section -->
+                <div class="aq-section">
+                    <i class="bi bi-chat-square-text-fill"></i> Savol ma'lumotlari
+                </div>
+
+                <div class="aq-input-group">
+                    <label class="aq-label">Savol matni</label>
+                    <textarea name="question_text" placeholder="Savolni yozing..." required class="form-control" style="border-radius:14px; border:1.5px solid var(--aq-border); background:var(--aq-input-bg); padding:0.75rem 1rem; min-height:90px; transition: all 0.25s;" onfocus="this.style.borderColor='var(--aq-accent)';this.style.boxShadow='0 0 0 4px var(--aq-accent-light)'" onblur="this.style.borderColor='var(--aq-border)';this.style.boxShadow='none'">{{ form.question_text.value|default:'' }}</textarea>
+                </div>
+
+                <div class="aq-input-group">
+                    <label class="aq-label">Savol rasmi <span class="aq-optional">(ixtiyoriy)</span></label>
+                    <div class="aq-file-input">
+                        <input type="file" name="question_image" accept="image/*" id="qImage" onchange="updateFileLabel(this)">
+                        <div class="aq-file-label" id="fileLabel">
+                            <i class="bi bi-image"></i>
+                            <span>Rasm tanlash uchun bosing</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answers section -->
+                <div class="aq-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-list-check"></i> Javob variantlari
+                </div>
+
+                <div class="aq-answer-card" id="answerCard1">
+                    <div class="aq-answer-header">
+                        <div class="aq-answer-badge">A</div>
+                        <div class="aq-answer-label">1-javob</div>
+                        <div class="aq-radio-wrap" onclick="selectAnswer(1)">
+                            <input type="radio" name="correct_answer" value="1" id="correct1" required>
+                            <div class="aq-radio-check"><i class="bi bi-check2"></i></div>
+                        </div>
+                    </div>
+                    <input type="text" name="answer1" placeholder="Birinchi javob variantini kiriting" required class="form-control" style="border-radius:12px; border:1.5px solid var(--aq-border); background:var(--aq-input-bg); padding:0.65rem 0.85rem; transition: all 0.25s;" onfocus="this.style.borderColor='var(--aq-accent)';this.style.boxShadow='0 0 0 4px var(--aq-accent-light)'" onblur="this.style.borderColor='var(--aq-border)';this.style.boxShadow='none'">
+                </div>
+
+                <div class="aq-answer-card" id="answerCard2">
+                    <div class="aq-answer-header">
+                        <div class="aq-answer-badge">B</div>
+                        <div class="aq-answer-label">2-javob</div>
+                        <div class="aq-radio-wrap" onclick="selectAnswer(2)">
+                            <input type="radio" name="correct_answer" value="2" id="correct2">
+                            <div class="aq-radio-check"><i class="bi bi-check2"></i></div>
+                        </div>
+                    </div>
+                    <input type="text" name="answer2" placeholder="Ikkinchi javob variantini kiriting" required class="form-control" style="border-radius:12px; border:1.5px solid var(--aq-border); background:var(--aq-input-bg); padding:0.65rem 0.85rem; transition: all 0.25s;" onfocus="this.style.borderColor='var(--aq-accent)';this.style.boxShadow='0 0 0 4px var(--aq-accent-light)'" onblur="this.style.borderColor='var(--aq-border)';this.style.boxShadow='none'">
+                </div>
+
+                <div class="aq-answer-card" id="answerCard3">
+                    <div class="aq-answer-header">
+                        <div class="aq-answer-badge">C</div>
+                        <div class="aq-answer-label">3-javob</div>
+                        <div class="aq-radio-wrap" onclick="selectAnswer(3)">
+                            <input type="radio" name="correct_answer" value="3" id="correct3">
+                            <div class="aq-radio-check"><i class="bi bi-check2"></i></div>
+                        </div>
+                    </div>
+                    <input type="text" name="answer3" placeholder="Uchinchi javob variantini kiriting" required class="form-control" style="border-radius:12px; border:1.5px solid var(--aq-border); background:var(--aq-input-bg); padding:0.65rem 0.85rem; transition: all 0.25s;" onfocus="this.style.borderColor='var(--aq-accent)';this.style.boxShadow='0 0 0 4px var(--aq-accent-light)'" onblur="this.style.borderColor='var(--aq-border)';this.style.boxShadow='none'">
+                </div>
+
+                <p style="color: var(--aq-secondary); font-size: 0.8rem; margin-top: 0.5rem;">
+                    <i class="bi bi-info-circle me-1"></i> To'g'ri javobni belgilash uchun o'ng tarafdagi doirachani bosing
+                </p>
+
+                <!-- Actions -->
+                <div class="aq-actions">
+                    <button type="submit" class="aq-btn aq-btn-primary">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                    <button type="submit" name="add_another" class="aq-btn aq-btn-outline">
+                        <i class="bi bi-plus-lg"></i> Saqlash va yana
+                    </button>
+                    <a href="{% url 'manage_test_questions' test.pk %}" class="aq-btn aq-btn-ghost">
+                        Bekor
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+function selectAnswer(n) {
+    document.getElementById('correct' + n).checked = true;
+    document.querySelectorAll('.aq-answer-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('answerCard' + n).classList.add('selected');
+}
+
+function updateFileLabel(input) {
+    const label = document.getElementById('fileLabel');
+    if (input.files.length > 0) {
+        label.classList.add('has-file');
+        label.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>' + input.files[0].name + '</span>';
+    } else {
+        label.classList.remove('has-file');
+        label.innerHTML = '<i class="bi bi-image"></i><span>Rasm tanlash uchun bosing</span>';
+    }
+}
+
+// Auto-select answer card when clicking anywhere on it
+document.querySelectorAll('.aq-answer-card').forEach((card, i) => {
+    card.addEventListener('click', function(e) {
+        if (e.target.tagName !== 'INPUT' || e.target.type !== 'text') {
+            selectAnswer(i + 1);
+        }
+    });
+});
+</script>
 {% endblock %}

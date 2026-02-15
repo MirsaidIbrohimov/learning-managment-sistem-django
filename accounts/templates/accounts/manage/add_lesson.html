@@ -1,133 +1,441 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Dars qo'shish - LMS{% endblock %}
+{% block title %}
+{% if lesson_type == 'video' %}Video darslik{% elif lesson_type == 'homework' %}Uyga vazifa{% else %}Test{% endif %} qo'shish - LMS
+{% endblock %}
 
 {% block extra_css %}
 {% if lesson_type == 'homework' %}
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-    .ql-editor {
-        min-height: 200px;
-        font-size: 16px;
-    }
-    .ql-toolbar.ql-snow {
-        border-radius: 8px 8px 0 0;
-        background: #f8f9fa;
-    }
-    .ql-container.ql-snow {
-        border-radius: 0 0 8px 8px;
-    }
+    .ql-editor { min-height: 200px; font-size: 16px; }
+    .ql-toolbar.ql-snow { border-radius: 14px 14px 0 0; border-color: var(--al-border) !important; }
+    .ql-container.ql-snow { border-radius: 0 0 14px 14px; border-color: var(--al-border) !important; }
 </style>
 {% endif %}
+<style>
+:root {
+    --al-card: rgba(255,255,255,0.85);
+    --al-border: rgba(0,0,0,0.06);
+    --al-text: #1d1d1f;
+    --al-secondary: #86868b;
+    --al-accent: {% if lesson_type == 'video' %}#007aff{% elif lesson_type == 'homework' %}#ff9f0a{% else %}#34c759{% endif %};
+    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.08){% elif lesson_type == 'homework' %}rgba(255,159,10,0.08){% else %}rgba(52,199,89,0.08){% endif %};
+    --al-bg: #f2f2f7;
+    --al-input-bg: #f2f2f7;
+    --al-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --al-card: rgba(28,28,30,0.85);
+    --al-border: rgba(255,255,255,0.08);
+    --al-text: #f5f5f7;
+    --al-secondary: #98989d;
+    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.18){% elif lesson_type == 'homework' %}rgba(255,159,10,0.18){% else %}rgba(52,199,89,0.18){% endif %};
+    --al-bg: rgba(0,0,0,0.3);
+    --al-input-bg: rgba(255,255,255,0.06);
+    --al-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.al-page { max-width: 700px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.al-back {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.25rem; border-radius: 14px;
+    background: var(--al-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--al-border); color: var(--al-accent);
+    text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    transition: all 0.25s; margin-bottom: 1.5rem;
+}
+.al-back:hover { transform: translateX(-4px); color: var(--al-accent); box-shadow: var(--al-shadow); }
+
+.al-card {
+    background: var(--al-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--al-border); border-radius: 24px;
+    overflow: hidden; box-shadow: var(--al-shadow);
+    animation: alSlideUp 0.5s ease;
+}
+@keyframes alSlideUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.al-header {
+    background: linear-gradient(135deg, var(--al-accent), {% if lesson_type == 'video' %}#5856d6{% elif lesson_type == 'homework' %}#ff6b35{% else %}#00b341{% endif %});
+    padding: 2rem 1.75rem; text-align: center; position: relative; overflow: hidden;
+}
+.al-header::before {
+    content: ''; position: absolute; top: -40%; right: -15%;
+    width: 180px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.al-header-icon {
+    width: 70px; height: 70px; border-radius: 20px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2rem; color: #fff;
+    position: relative; z-index: 1;
+    animation: alBounce 0.6s ease 0.3s backwards;
+}
+@keyframes alBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+.al-header h3 { color: #fff; font-size: 1.3rem; font-weight: 700; margin: 0; position: relative; z-index: 1; }
+.al-header p { color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 0.25rem 0 0; position: relative; z-index: 1; }
+
+.al-body { padding: 1.75rem; }
+
+.al-section {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.8rem; font-weight: 700; color: var(--al-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--al-border);
+}
+.al-section i { color: var(--al-accent); font-size: 1rem; }
+
+.al-group { margin-bottom: 1.25rem; }
+.al-label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--al-text); margin-bottom: 0.4rem; }
+.al-hint { font-size: 0.78rem; color: var(--al-secondary); margin-top: 0.25rem; }
+
+.al-group .form-control, .al-group .form-select {
+    border-radius: 14px !important; border: 1.5px solid var(--al-border) !important;
+    background: var(--al-input-bg) !important; padding: 0.75rem 1rem !important;
+    color: var(--al-text) !important; transition: all 0.25s !important;
+}
+.al-group .form-control:focus, .al-group .form-select:focus {
+    border-color: var(--al-accent) !important;
+    box-shadow: 0 0 0 4px var(--al-accent-light) !important;
+}
+
+/* Toggle switches */
+.al-toggle {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1rem; border-radius: 14px;
+    background: var(--al-bg); margin-bottom: 0.6rem;
+    transition: all 0.25s; cursor: pointer;
+}
+.al-toggle:hover { background: var(--al-accent-light); }
+.al-toggle.active { background: var(--al-accent-light); border: 1px solid var(--al-accent); }
+
+.al-toggle-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.al-toggle-info { flex: 1; }
+.al-toggle-name { font-size: 0.88rem; font-weight: 600; color: var(--al-text); }
+.al-toggle-desc { font-size: 0.75rem; color: var(--al-secondary); }
+
+.al-switch {
+    width: 46px; height: 26px; border-radius: 13px;
+    background: #ccc; position: relative; transition: background 0.3s; flex-shrink: 0;
+}
+.al-switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #fff; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.al-switch.on { background: var(--al-accent); }
+.al-switch.on::after { transform: translateX(20px); }
+
+/* Test type cards */
+.al-type-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
+}
+.al-type-card {
+    position: relative; padding: 1rem; border-radius: 16px;
+    border: 2px solid var(--al-border); background: var(--al-bg);
+    cursor: pointer; transition: all 0.3s ease; text-align: center;
+    overflow: hidden;
+}
+.al-type-card:hover { border-color: var(--al-accent); transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.al-type-card.active {
+    border-color: var(--al-accent); background: var(--al-accent-light);
+    box-shadow: 0 4px 16px rgba(52,199,89,0.15);
+    animation: alTypePop 0.35s ease;
+}
+@keyframes alTypePop {
+    0% { transform: scale(0.95); }
+    50% { transform: scale(1.04); }
+    100% { transform: scale(1); }
+}
+.al-type-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 0.6rem;
+    transition: transform 0.3s;
+}
+.al-type-card.active .al-type-icon { transform: scale(1.1); }
+.al-type-name { font-size: 0.88rem; font-weight: 700; color: var(--al-text); margin-bottom: 0.15rem; }
+.al-type-desc { font-size: 0.72rem; color: var(--al-secondary); }
+.al-type-check {
+    position: absolute; top: 0.6rem; right: 0.6rem;
+    color: var(--al-accent); font-size: 1.1rem;
+    opacity: 0; transform: scale(0); transition: all 0.3s;
+}
+.al-type-card.active .al-type-check { opacity: 1; transform: scale(1); }
+
+@media (max-width: 500px) { .al-type-cards { grid-template-columns: 1fr; } }
+
+.al-actions {
+    display: flex; gap: 0.75rem; flex-wrap: wrap;
+    padding-top: 1.25rem; border-top: 1px solid var(--al-border); margin-top: 1.5rem;
+}
+.al-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 14px;
+    font-weight: 700; font-size: 0.9rem; border: none; cursor: pointer;
+    transition: all 0.25s; text-decoration: none;
+}
+.al-btn:active { transform: scale(0.97); }
+.al-btn-primary { background: var(--al-accent); color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.15); flex: 1; }
+.al-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.al-btn-ghost { background: transparent; color: var(--al-secondary); }
+.al-btn-ghost:hover { color: var(--al-accent); }
+
+.al-info-card {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.85rem 1rem; border-radius: 14px;
+    background: var(--al-accent-light); margin-bottom: 1.25rem;
+    font-size: 0.85rem; color: var(--al-accent); font-weight: 500;
+}
+.al-info-card i { font-size: 1.1rem; flex-shrink: 0; }
+
+@media (max-width: 640px) {
+    .al-page { padding: 1rem 0.75rem 2rem; }
+    .al-body { padding: 1.25rem; }
+    .al-actions { flex-direction: column; }
+    .al-btn { width: 100%; justify-content: center; }
+}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
+<div class="al-page">
+    <a href="{% url 'manage_lessons' profession.pk %}" class="al-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
     </a>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header" style="background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-blue); margin: 0;">
-                        {% if lesson_type == 'video' %}
-                        <i class="bi bi-play-circle me-2"></i>Video darslik qo'shish
-                        {% elif lesson_type == 'homework' %}
-                        <i class="bi bi-file-earmark-text me-2"></i>Uyga vazifa qo'shish
-                        {% else %}
-                        <i class="bi bi-question-circle me-2"></i>Test qo'shish
-                        {% endif %}
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST">
-                        {% csrf_token %}
-                        {% if form.errors %}
-                        <div class="alert alert-danger">
-                            {% for field, errors in form.errors.items %}
-                                {% for error in errors %}<p class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</p>{% endfor %}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Bo'lim</label>
-                            <select name="section" class="form-select">
-                                <option value="">-- Bo'limsiz --</option>
-                                {% for s in sections %}
-                                <option value="{{ s.pk }}" {% if section and section.pk == s.pk %}selected{% endif %}>{{ s.title }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">
-                                {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% else %}Test nomi{% endif %}
-                            </label>
-                            {{ form.title }}
-                        </div>
-                        
-                        {% if lesson_type == 'video' %}
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);"><i class="bi bi-vimeo text-info me-1"></i>Vimeo havolasi</label>
-                            {{ form.vimeo_url }}
-                            <small class="text-muted d-block mt-1">Masalan: https://vimeo.com/123456789</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);"><i class="bi bi-youtube text-danger me-1"></i>YouTube havolasi</label>
-                            {{ form.youtube_url }}
-                            <small class="text-muted d-block mt-1">Masalan: https://www.youtube.com/watch?v=VIDEO_ID yoki https://youtu.be/VIDEO_ID</small>
-                        </div>
-                        <div class="alert alert-info py-2 mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Vimeo YOKI YouTube havolasidan birini kiriting
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Davomiyligi (daqiqa) *</label>
-                            {{ form.duration }}
-                            <small class="text-muted">O'quvchi shu vaqtning yarmini ko'rgandan so'ng "Ko'rdim" tugmasi faollashadi</small>
-                        </div>
-                        {% elif lesson_type == 'homework' %}
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Vazifa tavsifi</label>
-                            <div id="editor"></div>
-                            <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
-                        </div>
-                        {% else %}
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text-color);">Test turi</label>
-                            {{ form.test_type }}
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" style="color: var(--text-color);">Vaqt chegarasi (daqiqa)</label>
-                                {{ form.time_limit }}
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" style="color: var(--text-color);">O'tish bali (%)</label>
-                                {{ form.passing_score }}
-                            </div>
-                        </div>
-                        <div class="mb-3 form-check">
-                            {{ form.allow_retry }}
-                            <label class="form-check-label" style="color: var(--text-color);">Qayta ishlashga ruxsat berish</label>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-2"></i>Saqlash
-                            </button>
-                            <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-secondary">
-                                Bekor qilish
-                            </a>
-                        </div>
-                    </form>
-                </div>
+    <div class="al-card">
+        <div class="al-header">
+            <div class="al-header-icon">
+                {% if lesson_type == 'video' %}
+                <i class="bi bi-play-circle-fill"></i>
+                {% elif lesson_type == 'homework' %}
+                <i class="bi bi-file-earmark-text-fill"></i>
+                {% else %}
+                <i class="bi bi-journal-check"></i>
+                {% endif %}
             </div>
+            <h3>
+                {% if lesson_type == 'video' %}Video darslik
+                {% elif lesson_type == 'homework' %}Uyga vazifa
+                {% else %}Test{% endif %} qo'shish
+            </h3>
+            <p>{{ profession.name }}</p>
+        </div>
+
+        <div class="al-body">
+            <form method="POST" id="lessonForm">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="al-info-card" style="background: rgba(255,59,48,0.08); color: #ff3b30;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        {% for field, errors in form.errors.items %}
+                        {% for error in errors %}<div>{{ error }}</div>{% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="al-section">
+                    <i class="bi bi-info-circle-fill"></i> Asosiy ma'lumotlar
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">Bo'lim</label>
+                    <select name="section" class="form-select">
+                        <option value="">-- Bo'limsiz --</option>
+                        {% for s in sections %}
+                        <option value="{{ s.pk }}" {% if section and section.pk == s.pk %}selected{% endif %}>{{ s.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">
+                        {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% else %}Test nomi{% endif %}
+                    </label>
+                    {{ form.title }}
+                </div>
+
+                {% if lesson_type == 'video' %}
+                <div class="al-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-camera-video-fill"></i> Video havolasi
+                </div>
+
+                <div class="al-info-card">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span>Vimeo YOKI YouTube havolasidan birini kiriting</span>
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label"><i class="bi bi-vimeo text-info me-1"></i> Vimeo havolasi</label>
+                    {{ form.vimeo_url }}
+                    <div class="al-hint">Masalan: https://vimeo.com/123456789</div>
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label"><i class="bi bi-youtube text-danger me-1"></i> YouTube havolasi</label>
+                    {{ form.youtube_url }}
+                    <div class="al-hint">Masalan: https://www.youtube.com/watch?v=VIDEO_ID</div>
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">Davomiyligi (daqiqa)</label>
+                    {{ form.duration }}
+                    <div class="al-hint">O'quvchi shu vaqtning yarmini ko'rgandan so'ng "Ko'rdim" tugmasi faollashadi</div>
+                </div>
+
+                {% elif lesson_type == 'homework' %}
+                <div class="al-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-pencil-fill"></i> Vazifa tavsifi
+                </div>
+
+                <div class="al-group">
+                    <div id="editor"></div>
+                    <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
+                </div>
+
+                {% else %}
+                <div class="al-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-sliders"></i> Test sozlamalari
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">Test turi</label>
+                    <input type="hidden" name="test_type" id="test_type_input" value="lesson">
+                    <div class="al-type-cards">
+                        <div class="al-type-card active" data-value="lesson" onclick="selectTestType(this)">
+                            <div class="al-type-icon" style="background: rgba(0,122,255,0.1); color: #007aff;">
+                                <i class="bi bi-book-fill"></i>
+                            </div>
+                            <div class="al-type-name">Dars yuzasidan</div>
+                            <div class="al-type-desc">Darsga oid test</div>
+                            <div class="al-type-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-type-card" data-value="midterm" onclick="selectTestType(this)">
+                            <div class="al-type-icon" style="background: rgba(255,159,10,0.1); color: #ff9f0a;">
+                                <i class="bi bi-clipboard2-check-fill"></i>
+                            </div>
+                            <div class="al-type-name">Oraliq test</div>
+                            <div class="al-type-desc">Yarim yillik tekshiruv</div>
+                            <div class="al-type-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-type-card" data-value="practice" onclick="selectTestType(this)">
+                            <div class="al-type-icon" style="background: rgba(175,82,222,0.1); color: #af52de;">
+                                <i class="bi bi-lightning-fill"></i>
+                            </div>
+                            <div class="al-type-name">Tajriba</div>
+                            <div class="al-type-desc">Mashq uchun test</div>
+                            <div class="al-type-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="al-group">
+                        <label class="al-label"><i class="bi bi-clock me-1"></i> Vaqt (daqiqa)</label>
+                        {{ form.time_limit }}
+                    </div>
+                    <div class="al-group">
+                        <label class="al-label"><i class="bi bi-percent me-1"></i> O'tish bali</label>
+                        {{ form.passing_score }}
+                    </div>
+                </div>
+
+                <div class="al-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-gear-fill"></i> Qo'shimcha sozlamalar
+                </div>
+
+                <div class="al-toggle" onclick="toggleSwitch(this, 'allow_retry')">
+                    <div class="al-toggle-icon" style="background: rgba(175,82,222,0.1); color: #af52de;">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                    <div class="al-toggle-info">
+                        <div class="al-toggle-name">Qayta ishlash</div>
+                        <div class="al-toggle-desc">O'quvchi testni qayta topshirishi mumkin</div>
+                    </div>
+                    <div class="al-switch" id="switch_allow_retry"></div>
+                    <input type="checkbox" name="allow_retry" id="id_allow_retry" style="display:none;">
+                </div>
+
+                <div class="al-toggle" onclick="toggleSwitch(this, 'shuffle_questions')">
+                    <div class="al-toggle-icon" style="background: var(--al-accent-light); color: var(--al-accent);">
+                        <i class="bi bi-shuffle"></i>
+                    </div>
+                    <div class="al-toggle-info">
+                        <div class="al-toggle-name">Random savollar</div>
+                        <div class="al-toggle-desc">Har safar savollar tartibi aralashtiriladi</div>
+                    </div>
+                    <div class="al-switch" id="switch_shuffle_questions"></div>
+                    <input type="checkbox" name="shuffle_questions" id="id_shuffle_questions" style="display:none;">
+                </div>
+
+                <div class="al-toggle" onclick="toggleSwitch(this, 'shuffle_answers')">
+                    <div class="al-toggle-icon" style="background: rgba(255,159,10,0.1); color: #ff9f0a;">
+                        <i class="bi bi-arrow-left-right"></i>
+                    </div>
+                    <div class="al-toggle-info">
+                        <div class="al-toggle-name">Random javoblar</div>
+                        <div class="al-toggle-desc">Har safar javoblar tartibi aralashtiriladi</div>
+                    </div>
+                    <div class="al-switch" id="switch_shuffle_answers"></div>
+                    <input type="checkbox" name="shuffle_answers" id="id_shuffle_answers" style="display:none;">
+                </div>
+                {% endif %}
+
+                <div class="al-actions">
+                    <button type="submit" class="al-btn al-btn-primary">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                    <a href="{% url 'manage_lessons' profession.pk %}" class="al-btn al-btn-ghost">
+                        Bekor qilish
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+{% if lesson_type == 'test' %}
+<script>
+function selectTestType(card) {
+    document.querySelectorAll('.al-type-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('test_type_input').value = card.dataset.value;
+}
+
+function toggleSwitch(toggle, name) {
+    const sw = document.getElementById('switch_' + name);
+    const input = document.getElementById('id_' + name);
+    const isOn = sw.classList.contains('on');
+
+    if (isOn) {
+        sw.classList.remove('on');
+        toggle.classList.remove('active');
+        input.checked = false;
+    } else {
+        sw.classList.add('on');
+        toggle.classList.add('active');
+        input.checked = true;
+    }
+}
+</script>
+{% endif %}
 
 {% if lesson_type == 'homework' %}
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>

@@ -286,6 +286,12 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
+    # Faqat bitta kursda o'qiy oladi
+    existing_enrollment = CourseEnrollment.objects.filter(user=request.user).first()
+    if existing_enrollment:
+        messages.warning(request, f"Siz allaqachon '{existing_enrollment.profession.name}' kursida o'qiyapsiz. Yangi kursga yozilish uchun avval hozirgi kursdan chiqing.")
+        return redirect('professions')
+    
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
     if not profession.is_paid:
         CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
@@ -310,6 +316,31 @@ def enroll_course(request, pk):
         return redirect('profession_detail', pk=pk)
     
     return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
+
+
+@login_required
+def unenroll_course(request, pk):
+    if not request.user.is_student:
+        messages.error(request, "Faqat o'quvchilar kursdan chiqishi mumkin!")
+        return redirect('professions')
+    
+    profession = get_object_or_404(Profession, pk=pk)
+    enrollment = CourseEnrollment.objects.filter(user=request.user, profession=profession).first()
+    
+    if not enrollment:
+        messages.warning(request, "Siz bu kursga yozilmagansiz!")
+        return redirect('professions')
+    
+    if request.method == 'POST':
+        enrollment.delete()
+        # Also remove user's profession field if it matches
+        if request.user.profession == profession:
+            request.user.profession = None
+            request.user.save(update_fields=['profession'])
+        messages.success(request, f"'{profession.name}' kursidan muvaffaqiyatli chiqdingiz!")
+        return redirect('professions')
+    
+    return redirect('professions')
 
 
 # Lesson views
@@ -485,7 +516,19 @@ def start_test(request, pk):
             messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
             return redirect('test_result', pk=existing_result.pk)
     
-    questions = test.questions.all()
+    questions = list(test.questions.all().prefetch_related('answers'))
+    
+    if test.shuffle_questions:
+        import random
+        random.shuffle(questions)
+    
+    if test.shuffle_answers:
+        import random
+        for q in questions:
+            answers_list = list(q.answers.all())
+            random.shuffle(answers_list)
+            q._prefetched_objects_cache['answers'] = answers_list
+    
     request.session[f'test_{test.pk}_start'] = timezone.now().isoformat()
     
     return render(request, 'accounts/lessons/test_take.html', {
@@ -1815,7 +1858,9 @@ def add_lesson(request, pk):
                     test_type=form.cleaned_data['test_type'],
                     time_limit=form.cleaned_data['time_limit'],
                     passing_score=form.cleaned_data['passing_score'],
-                    allow_retry=form.cleaned_data.get('allow_retry', False)
+                    allow_retry=form.cleaned_data.get('allow_retry', False),
+                    shuffle_questions=form.cleaned_data.get('shuffle_questions', False),
+                    shuffle_answers=form.cleaned_data.get('shuffle_answers', False),
                 )
                 # Xabar yuborish
                 send_course_notification(
@@ -1901,7 +1946,10 @@ def edit_lesson(request, pk):
                 'description': lesson.homework.description,
             })
         else:
-            return redirect('manage_test_questions', pk=lesson.test.pk)
+            if hasattr(lesson, 'test') and lesson.test:
+                return redirect('manage_test_questions', pk=lesson.test.pk)
+            else:
+                return redirect('manage_lessons', pk=lesson.profession.pk)
     
     return render(request, 'accounts/manage/edit_lesson.html', {
         'lesson': lesson,
@@ -2336,6 +2384,98 @@ def my_homework_list(request):
     })
 
 
+@login_required
+def admin_test_analytics(request):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    from django.db.models import Count, Avg, Q, F
+    
+    professions = Profession.objects.prefetch_related(
+        'lessons__test__results', 'lessons__test__questions'
+    ).all()
+    
+    # Umumiy statistika
+    total_tests = Test.objects.count()
+    total_attempts = TestResult.objects.count()
+    total_passed = TestResult.objects.filter(passed=True).count()
+    avg_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    pass_rate = round((total_passed / total_attempts * 100) if total_attempts > 0 else 0, 1)
+    
+    # Oxirgi natijalar
+    recent_results = TestResult.objects.select_related(
+        'test__lesson__profession', 'student'
+    ).order_by('-completed_at')[:15]
+    
+    # Kurs tanlanganda
+    selected_profession_id = request.GET.get('profession')
+    selected_test_id = request.GET.get('test')
+    selected_profession = None
+    profession_tests = []
+    selected_test = None
+    test_results = []
+    test_stats = {}
+    
+    if selected_profession_id:
+        try:
+            selected_profession = Profession.objects.get(pk=selected_profession_id)
+            profession_tests = Test.objects.filter(
+                lesson__profession=selected_profession
+            ).select_related('lesson').annotate(
+                attempt_count=Count('results'),
+                pass_count=Count('results', filter=Q(results__passed=True)),
+                avg_score=Avg('results__score')
+            )
+        except Profession.DoesNotExist:
+            pass
+    
+    if selected_test_id:
+        try:
+            selected_test = Test.objects.select_related('lesson__profession').get(pk=selected_test_id)
+            selected_profession = selected_test.lesson.profession
+            test_results = TestResult.objects.filter(
+                test=selected_test
+            ).select_related('student').order_by('-completed_at')
+            
+            total_t = test_results.count()
+            passed_t = test_results.filter(passed=True).count()
+            test_stats = {
+                'total': total_t,
+                'passed': passed_t,
+                'failed': total_t - passed_t,
+                'pass_rate': round((passed_t / total_t * 100) if total_t > 0 else 0, 1),
+                'avg_score': round(test_results.aggregate(avg=Avg('score'))['avg'] or 0, 1),
+                'best_score': test_results.order_by('-score').first(),
+                'worst_score': test_results.order_by('score').first(),
+            }
+            
+            # Also get profession_tests for this profession
+            profession_tests = Test.objects.filter(
+                lesson__profession=selected_profession
+            ).select_related('lesson').annotate(
+                attempt_count=Count('results'),
+                pass_count=Count('results', filter=Q(results__passed=True)),
+                avg_score=Avg('results__score')
+            )
+        except Test.DoesNotExist:
+            pass
+    
+    return render(request, 'accounts/admin/test_analytics.html', {
+        'professions': professions,
+        'total_tests': total_tests,
+        'total_attempts': total_attempts,
+        'total_passed': total_passed,
+        'pass_rate': pass_rate,
+        'avg_score': round(avg_score, 1),
+        'recent_results': recent_results,
+        'selected_profession': selected_profession,
+        'profession_tests': profession_tests,
+        'selected_test': selected_test,
+        'test_results': test_results,
+        'test_stats': test_stats,
+    })
+
+
 # Test results for teachers
 @login_required
 def all_test_results(request):
@@ -2491,7 +2631,7 @@ def admin_professions(request):
     if not request.user.is_admin:
         return redirect('home')
     
-    professions = Profession.objects.annotate(
+    professions = Profession.objects.prefetch_related('enrollments__user').annotate(
         student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
         teacher_count=Count('students', filter=Q(students__role='teacher'))
     )
@@ -2566,6 +2706,28 @@ def admin_profession_toggle_block(request, pk):
             profession.blocked_reason = None
             messages.success(request, f"'{profession.name}' kursi blokdan chiqarildi!")
         profession.save()
+    
+    return redirect('admin_professions')
+
+
+@login_required
+def admin_remove_student_from_course(request, profession_pk, user_pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    profession = get_object_or_404(Profession, pk=profession_pk)
+    student = get_object_or_404(CustomUser, pk=user_pk)
+    
+    if request.method == 'POST':
+        enrollment = CourseEnrollment.objects.filter(user=student, profession=profession).first()
+        if enrollment:
+            enrollment.delete()
+            if student.profession == profession:
+                student.profession = None
+                student.save(update_fields=['profession'])
+            messages.success(request, f"{student.full_name} '{profession.name}' kursidan chiqarildi!")
+        else:
+            messages.warning(request, f"{student.full_name} bu kursga yozilmagan!")
     
     return redirect('admin_professions')
 

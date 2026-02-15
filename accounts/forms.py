@@ -343,6 +343,18 @@ class TestForm(forms.Form):
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
+    shuffle_questions = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Savollar tartibini aralashtirish"
+    )
+    shuffle_answers = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Javoblar tartibini aralashtirish"
+    )
 
 
 class TestQuestionForm(forms.ModelForm):
