@@ -13,13 +13,52 @@ from coin.models import CoinTransaction, ActivityLog
 
 def get_openai_client():
     """Get OpenAI client if API key is configured."""
-    if not getattr(settings, 'OPENAI_API_KEY', None):
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    
+    # Check if API key exists and is not empty
+    if not api_key or not api_key.strip():
         return None
+    
     try:
         from openai import OpenAI
-        return OpenAI(api_key=settings.OPENAI_API_KEY, timeout=30)
-    except Exception:
+        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        return client
+    except ImportError:
+        print("ERROR: OpenAI paketi o'rnatilmagan. 'pip install openai' buyrug'ini bajaring.")
         return None
+    except Exception as e:
+        print(f"ERROR: OpenAI client yaratishda xatolik: {str(e)}")
+        return None
+
+
+def validate_and_reformat_response(response_text, user_query):
+    """
+    Validate va reformat AI javobini.
+    - Kod bloklarini to'g'ri yopish
+    - Linklarni to'g'ri formatlash
+    """
+    if not response_text:
+        return response_text
+    
+    import re
+    
+    # 1. Ochiq qolgan kod bloklarini yopish
+    code_block_count = len(re.findall(r'```', response_text))
+    if code_block_count % 2 != 0:
+        # Ochiq kod bloki bor - yopish
+        response_text += '\n```'
+    
+    # 2. Linklarni to'g'ri formatlash
+    # Agar link oddiy matn ichida bo'lsa va markdown link emas bo'lsa
+    url_pattern = r'(?<!\[)(?<!\]\()(https?://[^\s\)\]<>]+)(?!\))'
+    def replace_url(match):
+        url = match.group(1)
+        # Agar allaqachon markdown link ichida emas bo'lsa
+        return f'[{url}]({url})'
+    
+    response_text = re.sub(url_pattern, replace_url, response_text)
+    
+    return response_text
 
 
 @login_required
@@ -85,7 +124,8 @@ def send_message(request, pk):
     # Log transaction
     CoinTransaction.objects.create(
         user=request.user,
-        amount=-1,
+        amount=1,
+        action='remove',
         reason="AI yordamchi bilan suhbat"
     )
     
@@ -106,59 +146,233 @@ def send_message(request, pk):
     client = get_openai_client()
     
     if not client:
-        ai_response = "⚠️ AI xizmati hozirda mavjud emas. Iltimos, keyinroq urinib ko'ring."
+        api_key = getattr(settings, 'OPENAI_API_KEY', None)
+        if not api_key or not api_key.strip():
+            ai_response = """⚠️ AI xizmati sozlashmagan.
+
+**Muammo:** OPENAI_API_KEY topilmadi yoki bo'sh.
+
+**Yechim:**
+1. Loyiha ildizida `.env` faylini yarating (agar yo'q bo'lsa)
+2. Quyidagi qatorni qo'shing:
+   ```
+   OPENAI_API_KEY=sk-sizning-api-kalitingiz
+   ```
+3. OpenAI API kalitini https://platform.openai.com/api-keys dan oling
+4. Serverni qayta ishga tushiring"""
+        else:
+            # Check if openai package is installed
+            try:
+                import openai
+                ai_response = """⚠️ AI xizmati bilan bog'lanishda muammo.
+
+API kalit mavjud, lekin xizmatga ulanishda xatolik yuz berdi.
+
+**Tekshirish:**
+1. API kalitning to'g'riligini tekshiring
+2. Internet ulanishini tekshiring
+3. Keyinroq urinib ko'ring"""
+            except ImportError:
+                ai_response = """⚠️ OpenAI paketi o'rnatilmagan.
+
+**Yechim:**
+Quyidagi buyruqni bajaring:
+```
+pip install openai
+```
+
+Keyin serverni qayta ishga tushiring."""
     else:
         try:
             # Build messages history
             system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering.
 
-JAVOB FORMATI:
+⚠️ QAT'IY FORMAT QOIDALARI - BU QOIDALARNI MAJBURIY BAJARING:
+
+1. KODLAR - FAQAT CODE BLOCK ICHIDA:
+   ❌ XATO: "Kod quyidagicha: def salom(): print('Salom')"
+   ✅ TO'G'RI: 
+   ```python
+   def salom():
+       print('Salom')
+   ```
+   
+   QOIDA: Har qanday kod faqat ```til_nomi va ``` orasida bo'lsin. Kodni oddiy matn ichiga qo'shmang!
+
+2. HAVOLALAR - FAQAT RAW URL YOKI MARKDOWN LINK:
+   ❌ XATO: "Havola: https://example.com - bu yerda ko'rasiz"
+   ✅ TO'G'RI: https://example.com
+   YOKI: [Ko'rish](https://example.com)
+   
+   QOIDA: Havolalarni matn ichiga qo'shib yozmang. Faqat URL yoki [matn](URL) formatida.
+
+3. IZOHLAR - FAQAT SO'RALGANDA:
+   ❌ XATO: "Bu kod quyidagicha ishlaydi: [kod] Endi tushuntiraman..."
+   ✅ TO'G'RI: 
+   ```python
+   # Kod
+   ```
+   
+   QOIDA: Keraksiz tushuntirishlar qo'shmang. Kod o'zi gapirsin.
+
+4. STRUKTURA:
+   - Kod so'ralganda: Faqat kod bloklari
+   - Havola so'ralganda: Faqat URL
+   - Tushuntirish so'ralganda: Qisqa va aniq
+
+JAVOB FORMATI VA QOIDALAR:
 
 1. STRUKTURA:
-   - Avval qisqa tushuntirish (1-2 gap)
-   - Keyin kod bloklari
-   - Oxirida "Qanday ishlatish" bo'limi
+   - Avval qisqa va tushunarli tushuntirish (1-3 gap)
+   - Keyin kod bloklari yoki misollar
+   - Oxirida "Qanday ishlatish" yoki "Eslatma" bo'limi
 
-2. KOD BLOKLARI:
-   - Har doim Markdown code block ishlatilsin
-   - Code block boshida til nomi bo'lsin: ```python, ```html, ```css, ```javascript
-   - Kod ichida oddiy matn bo'lmasin
-   - Izohlar faqat kod tashqarisida
-
-3. KO'P FAYLLAR:
-   - Har bir fayl alohida sarlavha bilan:
+2. KOD BLOKLARI (MUHIM - BU QOIDALARNI QAT'IY BAJARING):
+   - Har doim Markdown formatda yozing va kod bloklarini to'liq yoping
+   - Format: ```til_nomi bilan boshlash va ``` bilan tugatish
+   - Til nomlari: python, javascript, html, css, sql, json, bash, shell, java, php, ruby
+   - Kod ichida faqat kod bo'lsin, izohlar kod tashqarisida
+   - Har bir kod bloki to'liq va ishlaydigan bo'lsin
+   - Kod bloklarini hech qachon ochiq qoldirmang - har doim ``` bilan yoping
    
+   TO'G'RI FORMAT (BU FORMATNI ISHLATING):
+   ```python
+   def salom():
+       print("Salom, Dunyo!")
+   ```
+   
+   YOKI:
+   ```javascript
+   console.log("Hello, World!");
+   ```
+   
+   XATO FORMAT (BU FORMATNI ISHLATMANG):
+   ```python
+   def salom():
+       print("Salom, Dunyo!")
+   (yopilmagan kod bloki)
+
+3. KO'P FAYLLAR (MUHIM - HAR BIR KOD BLOKINI YOPING):
+   - Har bir fayl alohida sarlavha bilan:
+   - Har bir kod blokini ``` bilan yoping
+   
+   TO'G'RI FORMAT:
    **HTML (index.html)**
    ```html
-   <h1>Salom</h1>
+   <!DOCTYPE html>
+   <html>
+   <head>
+       <title>Salom</title>
+   </head>
+   <body>
+       <h1>Salom</h1>
+   </body>
+   </html>
    ```
    
    **CSS (style.css)**
    ```css
-   h1 { color: red; }
+   h1 {
+       color: red;
+       font-size: 2rem;
+   }
+   ```
+   
+   **JavaScript (script.js)**
+   ```javascript
+   console.log("Hello, World!");
    ```
 
-4. FORMATLASH:
-   - Havolalar: [matn](URL)
+4. HAVOLALAR VA LINKLAR:
+   - Har doim to'liq URL bilan: [matn](https://example.com)
+   - Tashqi linklar uchun: [matn](https://example.com) - yangi oynada ochiladi
+   - Ichki linklar uchun: [matn](#section) yoki [matn](/path)
+   - Linklarni aniq va tushunarli qiling
+
+5. FORMATLASH:
+   - **Qalin matn** - muhim so'zlar uchun
+   - *Yotiq matn* - urg'u berish uchun
+   - `kod` - inline kod uchun
    - Ro'yxatlar: - yoki 1. 2. 3.
-   - Muhim so'zlar: **qalin**
+   - Jadval: Markdown table formatida
 
-5. USLUB:
-   - Boshlovchilar uchun tushunarli
+6. JADVAL FORMATI:
+   ```markdown
+   | Ustun 1 | Ustun 2 | Ustun 3 |
+   |---------|---------|---------|
+   | Ma'lumot 1 | Ma'lumot 2 | Ma'lumot 3 |
+   ```
+
+7. USLUB VA TON:
+   - Boshlovchilar uchun tushunarli va sodda
    - Do'stona va rag'batlantiruvchi
-   - Qisqa va aniq
+   - Qisqa va aniq javoblar
+   - Misollar bilan tushuntirish
+   - Xatolarni oldini olish uchun eslatmalar
 
-6. TAQIQLANGAN:
-   - < yoki > belgilarini escape qilish
-   - \\n yoki \\u000A ko'rinishlar
-   - Kod ichida tushuntirish yozish"""
+8. TAQIQLANGAN (BU XATOLARNI QILMANG):
+   - HTML belgilarini escape qilish (< >) - kod bloklarida to'g'ri ishlatilsin
+   - \\n yoki \\u000A kabi escape belgilar - oddiy yangi qator ishlating
+   - Kod ichida tushuntirish yozish - izohlar kod tashqarisida bo'lsin
+   - To'liq bo'lmagan kod bloklari - har doim ``` bilan yoping
+   - Ishlanmaydigan kodlar - faqat to'liq va ishlaydigan kod yozing
+   - Kod bloklarini ochiq qoldirish - har doim ``` bilan yoping
+
+9. MAXSUS HOLATLAR:
+   - Agar kod xatosi bo'lsa, xatoni tushuntiring va to'g'ri kodni ko'rsating
+   - Agar bir nechta variant bo'lsa, ularni sanab o'ting
+   - Agar resurs kerak bo'lsa, linklar bilan ta'minlang
+
+10. OXIRIDA:
+    - "Qanday ishlatish" bo'limi qo'shing
+    - Yoki "Eslatma" bo'limi bilan xatolarni oldini oling
+    - Qo'shimcha ma'lumot uchun linklar qo'shing
+
+11. KOD BLOKLARI FORMATI (MUHIM - BU QOIDALARNI QAT'IY BAJARING):
+    - Har bir kod bloki ```til_nomi bilan boshlanadi va ``` bilan tugaydi
+    - Kod bloklarini hech qachon ochiq qoldirmang
+    - Har bir kod bloki alohida va to'liq bo'lsin
+    - Kod bloklaridan oldin va keyin bo'sh qator qoldiring
+    
+    TO'G'RI FORMAT (BU FORMATNI ISHLATING):
+    
+    ```javascript
+    console.log("Hello, World!");
+    ```
+    
+    YOKI:
+    
+    ```html
+    <!DOCTYPE html>
+    <html>
+    <body>
+        <h1>Hello, World!</h1>
+    </body>
+    </html>
+    ```
+    
+    XATO FORMAT (BU FORMATNI ISHLATMANG):
+    - Ochiq kod bloki: ```javascript
+    - Yopilmagan kod bloki
+    - Kod bloklarini birlashtirish"""
             
             history = [
                 {"role": "system", "content": system_prompt}
             ]
             
-            for msg in session.messages.all():
+            # History'ni yig'ish
+            messages_list = list(session.messages.all())
+            total_messages = len(messages_list)
+            
+            for idx, msg in enumerate(messages_list):
                 if msg.role == 'user':
+                    # Format qoidasini faqat oxirgi (yangi) user xabariga qo'shish
+                    is_last_user_message = idx == total_messages - 1 or (idx < total_messages - 1 and messages_list[idx + 1].role == 'assistant')
+                    format_instruction = ""
+                    
+                    if is_last_user_message:
+                        format_instruction = "\n\n⚠️ MUHIM: Javobda kodlar faqat ```til_nomi va ``` orasida, linklar faqat URL formatida bo'lsin!"
+                    
                     if msg.image:
                         # Handle image message
                         try:
@@ -166,7 +380,7 @@ JAVOB FORMATI:
                             msg.image.seek(0)
                             content_parts = []
                             if msg.content:
-                                content_parts.append({"type": "text", "text": msg.content})
+                                content_parts.append({"type": "text", "text": msg.content + format_instruction})
                             content_parts.append({
                                 "type": "image_url",
                                 "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
@@ -174,10 +388,10 @@ JAVOB FORMATI:
                             history.append({"role": "user", "content": content_parts})
                         except Exception:
                             if msg.content:
-                                history.append({"role": "user", "content": msg.content})
+                                history.append({"role": "user", "content": msg.content + format_instruction})
                     else:
                         if msg.content:
-                            history.append({"role": "user", "content": msg.content})
+                            history.append({"role": "user", "content": msg.content + format_instruction})
                 else:
                     if msg.content:
                         history.append({"role": "assistant", "content": msg.content})
@@ -186,9 +400,18 @@ JAVOB FORMATI:
                 model="gpt-4o-mini",
                 messages=history,
                 max_tokens=2000,
+                temperature=0.2,  # Past temperature - qat'iy format uchun
             )
             
             ai_response = response.choices[0].message.content
+            
+            # Response validation va reformat (agar kerak bo'lsa)
+            if ai_response:
+                try:
+                    ai_response = validate_and_reformat_response(ai_response, content)
+                except Exception as e:
+                    print(f"Response reformat error: {str(e)}")
+                    # Xatolik bo'lsa ham original javobni qaytarish
             
         except Exception as e:
             import traceback
@@ -242,19 +465,32 @@ def admin_required(view_func):
 @admin_required
 def admin_chats(request):
     """Admin view to see all chats."""
-    sessions = ChatSession.objects.select_related('user').all()
+    sessions = ChatSession.objects.select_related('user').prefetch_related('messages').all()
     
     # Filter by user
     user_id = request.GET.get('user')
     if user_id:
         sessions = sessions.filter(user_id=user_id)
     
+    # Filter by active status
+    is_active_filter = request.GET.get('is_active')
+    if is_active_filter is not None:
+        sessions = sessions.filter(is_active=is_active_filter == '1')
+    
+    # Calculate statistics
+    total_sessions = ChatSession.objects.count()
+    active_sessions = ChatSession.objects.filter(is_active=True).count()
+    inactive_sessions = total_sessions - active_sessions
+    
     paginator = Paginator(sessions, 20)
     page = request.GET.get('page')
-    sessions = paginator.get_page(page)
+    sessions_page = paginator.get_page(page)
     
     return render(request, 'ai_yordamchi/admin/chats.html', {
-        'sessions': sessions,
+        'sessions': sessions_page,
+        'total_sessions': total_sessions,
+        'active_sessions': active_sessions,
+        'inactive_sessions': inactive_sessions,
     })
 
 

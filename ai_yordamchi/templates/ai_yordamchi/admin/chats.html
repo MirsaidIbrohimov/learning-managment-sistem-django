@@ -3,21 +3,214 @@
 {% block title %}AI Chatlar - Admin{% endblock %}
 
 {% block admin_content %}
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        animation: fadeInUp 0.5s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stats-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 3s ease-in-out infinite;
+    }
+    
+    .stats-card h3 {
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stats-card p {
+        margin: 0.5rem 0 0 0;
+        opacity: 0.95;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .stat-box {
+        background: var(--card-bg);
+        border: 2px solid var(--border);
+        border-radius: 14px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s;
+        animation: slideIn 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .stat-box:nth-child(1) { animation-delay: 0.1s; }
+    .stat-box:nth-child(2) { animation-delay: 0.2s; }
+    .stat-box:nth-child(3) { animation-delay: 0.3s; }
+    
+    .stat-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        border-color: #667eea;
+    }
+    
+    .stat-box .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .stat-box .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+    
+    .table-hover tbody tr {
+        transition: all 0.2s;
+        animation: slideIn 0.4s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .table-hover tbody tr:nth-child(1) { animation-delay: 0.1s; }
+    .table-hover tbody tr:nth-child(2) { animation-delay: 0.15s; }
+    .table-hover tbody tr:nth-child(3) { animation-delay: 0.2s; }
+    .table-hover tbody tr:nth-child(4) { animation-delay: 0.25s; }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.08);
+        transform: translateX(5px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .card {
+        animation: fadeInUp 0.7s ease-out;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-bottom: 2px solid var(--border);
+        border-radius: 16px 16px 0 0;
+    }
+    
+    .btn {
+        transition: all 0.3s;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .stat-box {
+            padding: 1.25rem;
+        }
+    }
+</style>
+
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
-                <i class="bi bi-robot me-2"></i>AI Chatlar
+                <i class="bi bi-robot me-2"></i>AI Chatlar Boshqaruvi
             </h2>
-            <p class="text-muted mb-0">Barcha foydalanuvchilarning AI suhbatlari</p>
+            <p class="text-muted mb-0">Barcha foydalanuvchilarning AI suhbatlarini ko'rib chiqing va boshqaring</p>
+        </div>
+        <div>
+            <a href="/admin/ai_yordamchi/chatsession/" class="btn btn-primary">
+                <i class="bi bi-gear me-2"></i>Django Admin
+            </a>
         </div>
     </div>
     
-    <div class="card">
-        <div class="card-body">
+    <!-- Statistics -->
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_sessions|default:0 }}</div>
+            <div class="stat-label">Jami Suhbatlar</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ active_sessions|default:0 }}</div>
+            <div class="stat-label">Faol Suhbatlar</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ inactive_sessions|default:0 }}</div>
+            <div class="stat-label">Nofaol Suhbatlar</div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-list-ul me-2"></i>Suhbatlar Ro'yxati
+                </h5>
+                <div class="d-flex gap-2">
+                    <a href="?user=" class="btn btn-sm btn-outline-secondary">Barchasi</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
                         <tr>
                             <th>ID</th>
                             <th>Foydalanuvchi</th>
@@ -32,10 +225,10 @@
                     <tbody>
                         {% for session in sessions %}
                         <tr>
-                            <td>{{ session.pk }}</td>
+                            <td><strong>#{{ session.pk }}</strong></td>
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.875rem;">
                                         {{ session.user.first_name.0 }}{{ session.user.last_name.0 }}
                                     </div>
                                     <div>
@@ -44,30 +237,49 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>{{ session.title|truncatechars:40 }}</td>
                             <td>
-                                <span class="badge bg-info">{{ session.messages.count }}</span>
+                                <div class="fw-medium">{{ session.title|truncatechars:40 }}</div>
                             </td>
-                            <td>{{ session.created_at|date:"d.m.Y H:i" }}</td>
-                            <td>{{ session.updated_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="badge bg-info text-decoration-none">
+                                    <i class="bi bi-chat-dots me-1"></i>{{ session.messages.count }}
+                                </a>
+                            </td>
+                            <td>
+                                <small>{{ session.created_at|date:"d.m.Y" }}</small><br>
+                                <small class="text-muted">{{ session.created_at|date:"H:i" }}</small>
+                            </td>
+                            <td>
+                                <small>{{ session.updated_at|date:"d.m.Y" }}</small><br>
+                                <small class="text-muted">{{ session.updated_at|date:"H:i" }}</small>
+                            </td>
                             <td>
                                 {% if session.is_active %}
-                                <span class="badge bg-success">Faol</span>
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle me-1"></i>Faol
+                                </span>
                                 {% else %}
-                                <span class="badge bg-secondary">Nofaol</span>
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-x-circle me-1"></i>Nofaol
+                                </span>
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="btn btn-sm btn-outline-primary" title="Batafsil ko'rish">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="btn btn-sm btn-outline-info" title="Tahrirlash">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
-                                <i class="bi bi-chat-square-dots fs-1 d-block mb-2"></i>
-                                Hali chatlar yo'q
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <i class="bi bi-chat-square-dots fs-1 d-block mb-2 opacity-50"></i>
+                                <p class="mb-0">Hali chatlar yo'q</p>
                             </td>
                         </tr>
                         {% endfor %}

@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
 <style>
     :root {
         --chat-bg: #0d0d0d;
@@ -15,6 +16,8 @@
         --text-secondary: #9b9b9b;
         --accent-color: #10a37f;
         --code-bg: #1e1e1e;
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
     
     [data-bs-theme="light"] {
@@ -29,44 +32,79 @@
     
     body { background: var(--chat-bg) !important; }
     
+    /* Animatsiyalar */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+    }
+    
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }
+    
     .chat-wrapper {
-        max-width: 900px;
+        max-width: 1000px;
         margin: 0 auto;
         display: flex;
         flex-direction: column;
         height: calc(100vh - 70px);
+        animation: fadeInUp 0.4s ease-out;
     }
     
     .chat-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.75rem 1.5rem;
-        background: var(--sidebar-bg);
-        border-bottom: 1px solid var(--border-color);
+        padding: 1rem 1.5rem;
+        background: var(--gradient-primary);
+        border-bottom: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(10px);
     }
     
     .chat-title {
         font-weight: 600;
-        color: var(--text-primary);
+        color: white;
         margin: 0;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
+        gap: 0.75rem;
+        font-size: 1.1rem;
     }
     
     .ai-dot {
-        width: 8px;
-        height: 8px;
-        background: var(--accent-color);
+        width: 10px;
+        height: 10px;
+        background: #10b981;
         border-radius: 50%;
         animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
     }
     
     .header-actions {
@@ -76,50 +114,77 @@
     }
     
     .coin-badge {
-        background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        color: #000;
-        padding: 0.4rem 0.9rem;
-        border-radius: 20px;
+        background: rgba(255,255,255,0.25);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
         font-weight: 600;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        border: 1px solid rgba(255,255,255,0.3);
+        transition: all 0.3s;
+    }
+    
+    .coin-badge:hover {
+        background: rgba(255,255,255,0.35);
+        transform: scale(1.05);
     }
     
     .btn-header {
-        background: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
-        transition: all 0.2s;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        transition: all 0.3s;
         text-decoration: none;
     }
     
     .btn-header:hover {
-        background: var(--message-user-bg);
-        color: var(--text-primary);
+        background: rgba(255,255,255,0.3);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     
     .messages-container {
         flex: 1;
         overflow-y: auto;
-        padding: 0;
+        padding: 1rem 0;
+        scroll-behavior: smooth;
     }
     
-    .messages-container::-webkit-scrollbar { width: 8px; }
+    .messages-container::-webkit-scrollbar { 
+        width: 8px; 
+    }
+    
+    .messages-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
     .messages-container::-webkit-scrollbar-thumb {
         background: var(--border-color);
         border-radius: 4px;
     }
     
-    .message {
-        padding: 1.5rem 0;
-        border-bottom: 1px solid var(--border-color);
+    .messages-container::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
     }
     
-    .message:last-child { border-bottom: none; }
+    .message {
+        padding: 1.25rem 0;
+        animation: slideInRight 0.4s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .message:nth-child(1) { animation-delay: 0.1s; }
+    .message:nth-child(2) { animation-delay: 0.2s; }
+    .message:nth-child(3) { animation-delay: 0.3s; }
+    .message:nth-child(4) { animation-delay: 0.4s; }
     
     .message-inner {
-        max-width: 800px;
+        max-width: 850px;
         margin: 0 auto;
         padding: 0 1.5rem;
         display: flex;
@@ -127,25 +192,32 @@
     }
     
     .message-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 6px;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 600;
         flex-shrink: 0;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        transition: transform 0.3s;
+    }
+    
+    .message:hover .message-avatar {
+        transform: scale(1.1) rotate(5deg);
     }
     
     .message.user .message-avatar {
-        background: linear-gradient(135deg, #5436DA, #764ba2);
+        background: var(--gradient-primary);
         color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
     
     .message.assistant .message-avatar {
-        background: var(--accent-color);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
     }
     
     .message-body {
@@ -158,60 +230,119 @@
         font-size: 0.9rem;
         color: var(--text-primary);
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .message-content {
         color: var(--text-primary);
-        line-height: 1.7;
+        line-height: 1.8;
         font-size: 1rem;
     }
     
     .message.user .message-content {
         white-space: pre-wrap;
+        word-wrap: break-word;
     }
     
-    /* Markdown */
-    .markdown-body { color: var(--text-primary); }
-    .markdown-body p { margin-bottom: 1rem; }
-    .markdown-body p:last-child { margin-bottom: 0; }
+    /* Markdown Styles */
+    .markdown-body { 
+        color: var(--text-primary);
+        font-size: 1rem;
+        line-height: 1.8;
+    }
     
-    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    .markdown-body p { 
+        margin-bottom: 1rem; 
+    }
+    
+    .markdown-body p:last-child { 
+        margin-bottom: 0; 
+    }
+    
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
         color: var(--text-primary);
         margin: 1.5rem 0 1rem;
         font-weight: 600;
+        line-height: 1.3;
     }
+    
+    .markdown-body h1 { font-size: 1.75rem; }
+    .markdown-body h2 { font-size: 1.5rem; }
+    .markdown-body h3 { font-size: 1.25rem; }
+    .markdown-body h4 { font-size: 1.1rem; }
     
     .markdown-body ul, .markdown-body ol {
         margin: 1rem 0;
         padding-left: 1.5rem;
     }
     
-    .markdown-body li { margin: 0.4rem 0; }
-    
-    .markdown-body a {
-        color: #58a6ff;
-        text-decoration: none;
+    .markdown-body li { 
+        margin: 0.5rem 0; 
     }
     
-    .markdown-body a:hover { text-decoration: underline; }
+    .markdown-body a,
+    .markdown-body .markdown-link {
+        color: #58a6ff;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: all 0.2s;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
     
-    .markdown-body strong { font-weight: 600; }
+    .markdown-body a:hover,
+    .markdown-body .markdown-link:hover { 
+        color: #79b8ff;
+        border-bottom-color: #58a6ff;
+        transform: translateY(-1px);
+    }
+    
+    .markdown-body a:visited,
+    .markdown-body .markdown-link:visited {
+        color: #bc8cff;
+    }
+    
+    .markdown-body a i,
+    .markdown-body .markdown-link i {
+        font-size: 0.85em;
+    }
+    
+    .markdown-body strong { 
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .markdown-body em {
+        font-style: italic;
+        color: var(--text-secondary);
+    }
     
     /* Code Blocks */
     .code-block-wrapper {
         position: relative;
-        margin: 1rem 0;
-        border-radius: 10px;
+        margin: 1.5rem 0;
+        border-radius: 12px;
         overflow: hidden;
         background: #0d1117;
         border: 1px solid #30363d;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+    }
+    
+    .code-block-wrapper:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
     
     .code-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 16px;
+        padding: 10px 16px;
         background: #161b22;
         border-bottom: 1px solid #30363d;
     }
@@ -219,19 +350,21 @@
     .code-lang {
         font-size: 12px;
         color: #8b949e;
-        font-weight: 500;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .copy-btn {
         background: transparent;
-        border: none;
+        border: 1px solid #30363d;
         color: #8b949e;
         font-size: 12px;
         cursor: pointer;
         display: flex;
         align-items: center;
         gap: 6px;
-        padding: 4px 8px;
+        padding: 6px 12px;
         border-radius: 6px;
         transition: all 0.2s;
     }
@@ -239,9 +372,13 @@
     .copy-btn:hover {
         background: #30363d;
         color: #c9d1d9;
+        border-color: #58a6ff;
     }
     
-    .copy-btn.copied { color: #3fb950; }
+    .copy-btn.copied { 
+        color: #3fb950;
+        border-color: #3fb950;
+    }
     
     .markdown-body pre {
         margin: 0;
@@ -251,9 +388,9 @@
     }
     
     .markdown-body pre code {
-        font-family: 'Consolas', 'Monaco', monospace;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
         font-size: 14px;
-        line-height: 1.5;
+        line-height: 1.6;
         color: #c9d1d9;
         background: transparent !important;
     }
@@ -262,35 +399,76 @@
         background: #30363d;
         padding: 3px 8px;
         border-radius: 6px;
-        font-family: 'Consolas', monospace;
+        font-family: 'Consolas', 'Monaco', monospace;
         font-size: 13px;
         color: #ff7b72;
+        border: 1px solid #404850;
     }
     
     [data-bs-theme="light"] .markdown-body p code,
     [data-bs-theme="light"] .markdown-body li code {
         background: #eff1f3;
         color: #cf222e;
+        border-color: #d1d9e0;
     }
     
     .markdown-body blockquote {
-        border-left: 3px solid var(--accent-color);
+        border-left: 4px solid var(--accent-color);
         margin: 1rem 0;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.25rem;
         background: rgba(16, 163, 127, 0.1);
+        border-radius: 0 8px 8px 0;
+        font-style: italic;
+    }
+    
+    .markdown-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    
+    .markdown-body table th,
+    .markdown-body table td {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        text-align: left;
+    }
+    
+    .markdown-body table th {
+        background: var(--sidebar-bg);
+        font-weight: 600;
+    }
+    
+    .markdown-body hr {
+        border: none;
+        border-top: 2px solid var(--border-color);
+        margin: 2rem 0;
     }
     
     .message-image {
-        max-width: 350px;
-        border-radius: 10px;
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 12px;
         margin-top: 1rem;
-        border: 1px solid var(--border-color);
+        border: 2px solid var(--border-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+        cursor: pointer;
+    }
+    
+    .message-image:hover {
+        transform: scale(1.02);
     }
     
     .message-time {
         font-size: 0.75rem;
         color: var(--text-secondary);
         margin-top: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
     
     .empty-chat {
@@ -301,54 +479,69 @@
         height: 100%;
         color: var(--text-secondary);
         text-align: center;
-        padding: 2rem;
+        padding: 3rem 2rem;
+        animation: fadeInUp 0.6s ease-out;
     }
     
     .ai-logo {
-        width: 70px;
-        height: 70px;
-        background: var(--accent-color);
+        width: 80px;
+        height: 80px;
+        background: var(--gradient-primary);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 1.5rem;
+        animation: pulse 2s infinite;
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
     }
     
-    .ai-logo i { font-size: 2rem; color: white; }
+    .ai-logo i { 
+        font-size: 2.5rem; 
+        color: white; 
+    }
     
     .empty-chat h4 {
         color: var(--text-primary);
         font-weight: 600;
         margin-bottom: 0.5rem;
+        font-size: 1.5rem;
     }
     
     .chat-input-container {
-        padding: 1rem 1.5rem 1.5rem;
+        padding: 1.25rem 1.5rem 1.5rem;
         background: var(--chat-bg);
         border-top: 1px solid var(--border-color);
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
     }
     
-    .input-wrapper { max-width: 800px; margin: 0 auto; }
+    .input-wrapper { max-width: 850px; margin: 0 auto; }
     
     .chat-form {
         display: flex;
         align-items: flex-end;
         gap: 0.75rem;
         background: var(--sidebar-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
-        padding: 0.75rem;
-        transition: border-color 0.2s;
+        border: 2px solid var(--border-color);
+        border-radius: 20px;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
     
-    .chat-form:focus-within { border-color: var(--accent-color); }
+    .chat-form:focus-within { 
+        border-color: var(--accent-color);
+        box-shadow: 0 6px 25px rgba(16, 163, 127, 0.2);
+        transform: translateY(-2px);
+    }
     
     .input-group-wrapper { flex: 1; }
     
     .chat-input {
         width: 100%;
-        padding: 0.5rem;
+        padding: 0.75rem;
         border: none;
         background: transparent;
         color: var(--text-primary);
@@ -356,19 +549,29 @@
         resize: none;
         min-height: 24px;
         max-height: 200px;
-        line-height: 1.5;
+        line-height: 1.6;
     }
     
-    .chat-input::placeholder { color: var(--text-secondary); }
-    .chat-input:focus { outline: none; }
+    .chat-input::placeholder { 
+        color: var(--text-secondary); 
+    }
     
-    .preview-container { margin-top: 0.5rem; display: flex; align-items: center; }
+    .chat-input:focus { 
+        outline: none; 
+    }
+    
+    .preview-container { 
+        margin-top: 0.5rem; 
+        display: flex; 
+        align-items: center; 
+    }
     
     .image-preview {
-        max-width: 100px;
-        max-height: 70px;
-        border-radius: 8px;
+        max-width: 120px;
+        max-height: 80px;
+        border-radius: 10px;
         display: none;
+        border: 2px solid var(--border-color);
     }
     
     .remove-image {
@@ -376,36 +579,45 @@
         color: white;
         border: none;
         border-radius: 50%;
-        width: 20px;
-        height: 20px;
-        font-size: 10px;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
         cursor: pointer;
         display: none;
         margin-left: 8px;
+        transition: all 0.2s;
+    }
+    
+    .remove-image:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
     }
     
     .form-actions { display: flex; gap: 0.5rem; }
     
     .btn-attach, .btn-send {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
         border: none;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s;
     }
     
     .btn-attach {
         background: transparent;
         color: var(--text-secondary);
+        border: 2px solid var(--border-color);
     }
     
     .btn-attach:hover {
         background: var(--message-user-bg);
         color: var(--text-primary);
+        border-color: var(--accent-color);
+        transform: rotate(15deg);
     }
     
     .file-input-wrapper { position: relative; }
@@ -421,25 +633,32 @@
     }
     
     .btn-send {
-        background: var(--accent-color);
+        background: var(--gradient-primary);
         color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
     
-    .btn-send:hover { opacity: 0.9; }
+    .btn-send:hover { 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
     
     .btn-send:disabled {
         background: var(--border-color);
         color: var(--text-secondary);
         cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
     }
     
     .alert-warning-custom {
         background: rgba(251, 191, 36, 0.1);
-        border: 1px solid rgba(251, 191, 36, 0.3);
+        border: 2px solid rgba(251, 191, 36, 0.3);
         color: #fbbf24;
         border-radius: 12px;
         padding: 1rem;
         text-align: center;
+        animation: fadeInUp 0.4s ease-out;
     }
     
     .modal-modern .modal-content {
@@ -496,8 +715,8 @@
     }
     
     .typing-dots span {
-        width: 6px;
-        height: 6px;
+        width: 8px;
+        height: 8px;
         background: white;
         border-radius: 50%;
         animation: typing 1.4s infinite ease-in-out;
@@ -511,10 +730,87 @@
         40% { transform: scale(1); opacity: 1; }
     }
     
+    /* Loading animation for AI response */
+    .ai-loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(16, 163, 127, 0.3);
+        border-radius: 50%;
+        border-top-color: var(--accent-color);
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Responsive */
     @media (max-width: 768px) {
-        .message-inner { padding: 0 1rem; }
-        .chat-header { padding: 0.75rem 1rem; }
-        .chat-input-container { padding: 1rem; }
+        .chat-wrapper {
+            height: calc(100vh - 60px);
+        }
+        
+        .chat-header {
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .chat-title {
+            font-size: 0.95rem;
+        }
+        
+        .message-inner { 
+            padding: 0 1rem; 
+            gap: 0.75rem;
+        }
+        
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 0.8rem;
+        }
+        
+        .chat-input-container { 
+            padding: 1rem; 
+        }
+        
+        .chat-form {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .btn-attach, .btn-send {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .code-block-wrapper {
+            border-radius: 8px;
+        }
+        
+        .markdown-body {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .chat-header {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .coin-badge {
+            font-size: 0.75rem;
+            padding: 0.4rem 0.75rem;
+        }
+        
+        .message-inner {
+            padding: 0 0.75rem;
+        }
+        
+        .markdown-body h1 { font-size: 1.5rem; }
+        .markdown-body h2 { font-size: 1.25rem; }
+        .markdown-body h3 { font-size: 1.1rem; }
     }
 </style>
 {% endblock %}
@@ -556,8 +852,10 @@
                     <div class="message-body">
                         <div class="message-role">
                             {% if msg.role == 'user' %}
+                                <i class="bi bi-person-circle"></i>
                                 {{ user.first_name }} {{ user.last_name }}
                             {% else %}
+                                <i class="bi bi-robot"></i>
                                 AI Yordamchi
                             {% endif %}
                         </div>
@@ -570,11 +868,16 @@
                             {% endif %}
                         </div>
                         {% if msg.image %}
-                        <img src="{{ msg.image.url }}" alt="Rasm" class="message-image">
+                        <img src="{{ msg.image.url }}" alt="Rasm" class="message-image" onclick="window.open(this.src, '_blank')">
                         {% endif %}
                         <div class="message-time">
+                            <i class="bi bi-clock"></i>
                             {{ msg.created_at|date:"H:i" }}
-                            {% if msg.coins_spent %} · -{{ msg.coins_spent }} coin{% endif %}
+                            {% if msg.coins_spent %} 
+                            <span style="color: #fbbf24;">
+                                · <i class="bi bi-coin"></i> -{{ msg.coins_spent }} coin
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -654,28 +957,67 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
-// Custom renderer
+// Enhanced markdown renderer with better link and code handling
 const renderer = new marked.Renderer();
 
-renderer.code = function(code, lang) {
-    const language = lang || 'plaintext';
+// Code block renderer - improved to handle all code blocks properly
+renderer.code = function(code, lang, escaped) {
+    // Ensure code is properly escaped
+    if (!escaped) {
+        code = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+    
+    const language = (lang || 'plaintext').toLowerCase();
     let highlighted;
+    
     try {
-        highlighted = hljs.highlight(code, { language: hljs.getLanguage(language) ? language : 'plaintext' }).value;
+        // Try to highlight with specified language
+        if (hljs.getLanguage(language)) {
+            highlighted = hljs.highlight(code, { language: language }).value;
+        } else {
+            // Auto-detect language
+            highlighted = hljs.highlightAuto(code).value;
+        }
     } catch(e) {
+        // Fallback to plain text
         highlighted = code;
     }
     
-    const escapedCode = code.replace(/`/g, '\\`').replace(/\$/g, '\\$');
+    // Escape code for JavaScript template literal
+    const escapedCode = code
+        .replace(/\\/g, '\\\\')
+        .replace(/`/g, '\\`')
+        .replace(/\$/g, '\\$')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
     
-    return `<div class="code-block-wrapper">
+    // Generate unique ID for each code block
+    const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+    
+    return `<div class="code-block-wrapper" id="${codeId}">
         <div class="code-header">
             <span class="code-lang">${language}</span>
-            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`)">
-                <i class="bi bi-clipboard"></i> Nusxalash
+            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
             </button>
         </div>
-        <pre><code class="hljs">${highlighted}</code></pre>
+        <pre><code class="hljs language-${language}">${highlighted}</code></pre>
+    </div>`;
+};
+
+// Link renderer - opens external links in new tab with icon
+renderer.link = function(href, title, text) {
+    const isExternal = href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//');
+    const target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const titleAttr = title ? ` title="${title}"` : '';
+    const icon = isExternal ? '<i class="bi bi-box-arrow-up-right me-1"></i>' : '<i class="bi bi-link-45deg me-1"></i>';
+    return `<a href="${href}"${target}${titleAttr} class="markdown-link">${icon}${text}</a>`;
+};
+
+// Table renderer
+renderer.table = function(header, body) {
+    return `<div style="overflow-x: auto; margin: 1rem 0;">
+        <table>${header}${body}</table>
     </div>`;
 };
 
@@ -684,36 +1026,350 @@ marked.setOptions({
     breaks: true,
     gfm: true,
     headerIds: false,
-    mangle: false
+    mangle: false,
+    pedantic: false,
+    sanitize: false,
+    smartLists: true,
+    smartypants: false
 });
 
-// Copy function
-function copyCode(btn, code) {
-    const text = code.replace(/\\`/g, '`').replace(/\\\$/g, '$');
-    navigator.clipboard.writeText(text).then(() => {
-        btn.classList.add('copied');
-        btn.innerHTML = '<i class="bi bi-check2"></i> Nusxalandi!';
-        setTimeout(() => {
-            btn.classList.remove('copied');
-            btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
-        }, 2000);
-    });
+// Copy function with better feedback and error handling
+function copyCode(btn, code, codeId) {
+    // Decode escaped code
+    let text = code
+        .replace(/\\\\/g, '\\')
+        .replace(/\\`/g, '`')
+        .replace(/\\\$/g, '$')
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r');
+    
+    // Alternative: get code from DOM if available
+    const codeBlock = document.getElementById(codeId);
+    if (codeBlock) {
+        const codeElement = codeBlock.querySelector('code');
+        if (codeElement) {
+            text = codeElement.textContent || codeElement.innerText;
+        }
+    }
+    
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            showCopySuccess(btn);
+        }).catch(() => {
+            // Fallback method
+            fallbackCopyText(text, btn);
+        });
+    } else {
+        // Fallback for older browsers
+        fallbackCopyText(text, btn);
+    }
 }
 
-// Render AI messages from script tags (no escaping)
-document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach(script => {
-    const id = script.id.replace('ai-content-', '');
-    const target = document.getElementById('ai-msg-' + id);
-    if (target && script.textContent) {
-        target.innerHTML = marked.parse(script.textContent);
+function showCopySuccess(btn) {
+    const copyText = btn.querySelector('.copy-text');
+    const originalText = copyText ? copyText.textContent : 'Nusxalash';
+    
+    btn.classList.add('copied');
+    if (copyText) {
+        copyText.textContent = 'Nusxalandi!';
+    } else {
+        btn.innerHTML = '<i class="bi bi-check2"></i> Nusxalandi!';
+    }
+    btn.style.color = '#3fb950';
+    
+    setTimeout(() => {
+        btn.classList.remove('copied');
+        if (copyText) {
+            copyText.textContent = originalText;
+        } else {
+            btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
+        }
+        btn.style.color = '';
+    }, 2000);
+}
+
+function fallbackCopyText(text, btn) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess(btn);
+        } else {
+            alert('Nusxalashda xatolik yuz berdi. Iltimos, kodni qo\'lda nusxalang.');
+        }
+    } catch (err) {
+        alert('Nusxalashda xatolik yuz berdi. Iltimos, kodni qo\'lda nusxalang.');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+// Simple typing animation function
+function typeText(element, text, speed = 5) {
+    element.innerHTML = '';
+    let index = 0;
+    let currentText = '';
+    
+    function typeChar() {
+        if (index < text.length) {
+            currentText += text[index];
+            
+            // Parse markdown on each character for better visual effect
+            try {
+                element.innerHTML = marked.parse(currentText);
+                
+                // Highlight code blocks as they appear
+                element.querySelectorAll('pre code').forEach((block) => {
+                    if (!block.closest('.code-block-wrapper')) {
+                        // Wrap in code-block-wrapper if not already wrapped
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-block-wrapper';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        wrapper.id = codeId;
+                        
+                        const langMatch = block.className.match(/language-(\w+)/);
+                        const lang = langMatch ? langMatch[1] : 'plaintext';
+                        const codeText = block.textContent || block.innerText;
+                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+                        
+                        const header = document.createElement('div');
+                        header.className = 'code-header';
+                        header.innerHTML = `
+                            <span class="code-lang">${lang}</span>
+                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                            </button>
+                        `;
+                        
+                        const pre = document.createElement('pre');
+                        pre.appendChild(block.cloneNode(true));
+                        
+                        wrapper.appendChild(header);
+                        wrapper.appendChild(pre);
+                        
+                        block.parentElement.replaceChild(wrapper, block.parentElement);
+                    }
+                    
+                    hljs.highlightElement(block);
+                });
+                
+                // Ensure links are properly formatted
+                element.querySelectorAll('a').forEach((link) => {
+                    if (!link.querySelector('i')) {
+                        const icon = document.createElement('i');
+                        icon.className = 'bi bi-link-45deg me-1';
+                        link.insertBefore(icon, link.firstChild);
+                    }
+                    const href = link.getAttribute('href');
+                    if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+                
+            } catch(e) {
+                // If markdown parsing fails, just show text
+                element.textContent = currentText;
+            }
+            
+            index++;
+            setTimeout(typeChar, speed);
+        } else {
+            // Finished - final parse and setup
+            try {
+                element.innerHTML = marked.parse(currentText);
+                
+                // Final code block processing
+                element.querySelectorAll('pre code').forEach((block) => {
+                    if (!block.closest('.code-block-wrapper')) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-block-wrapper';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        wrapper.id = codeId;
+                        
+                        const langMatch = block.className.match(/language-(\w+)/);
+                        const lang = langMatch ? langMatch[1] : 'plaintext';
+                        const codeText = block.textContent || block.innerText;
+                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+                        
+                        wrapper.innerHTML = `
+                            <div class="code-header">
+                                <span class="code-lang">${lang}</span>
+                                <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                                    <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                                </button>
+                            </div>
+                            <pre>${block.outerHTML}</pre>
+                        `;
+                        
+                        block.parentElement.replaceChild(wrapper, block.parentElement);
+                    }
+                    hljs.highlightElement(block);
+                });
+                
+                // Ensure copy buttons exist
+                element.querySelectorAll('.code-block-wrapper').forEach((wrapper) => {
+                    if (!wrapper.querySelector('.copy-btn')) {
+                        const header = wrapper.querySelector('.code-header');
+                        const codeElement = wrapper.querySelector('code');
+                        if (header && codeElement) {
+                            const codeText = codeElement.textContent || codeElement.innerText;
+                            const codeId = wrapper.id || 'code-' + Math.random().toString(36).substr(2, 9);
+                            wrapper.id = codeId;
+                            const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+                            
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
+                            copyBtn.onclick = function() {
+                                copyCode(this, codeText, codeId);
+                            };
+                            header.appendChild(copyBtn);
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error('Error:', e);
+            }
+        }
+    }
+    
+    typeChar();
+}
+
+// Render AI messages immediately (typing effect disabled for reliability)
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach((script, idx) => {
+        const id = script.id.replace('ai-content-', '');
+        const target = document.getElementById('ai-msg-' + id);
+        if (target && script.textContent) {
+            try {
+                let content = script.textContent.trim();
+                
+                // Pre-process content to ensure code blocks are properly formatted
+                content = content.replace(/(```[a-zA-Z]*\n[\s\S]*?)(?=\n```|$)/g, function(match) {
+                    if (!match.endsWith('```') && match.includes('```')) {
+                        const codeBlocks = match.match(/```/g);
+                        if (codeBlocks && codeBlocks.length % 2 !== 0) {
+                            return match + '\n```';
+                        }
+                    }
+                    return match;
+                });
+                
+                // Render markdown immediately
+                target.innerHTML = marked.parse(content);
+                
+                // Process code blocks
+                target.querySelectorAll('pre code').forEach((block) => {
+                    // Wrap in code-block-wrapper if not already wrapped
+                    if (!block.closest('.code-block-wrapper')) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-block-wrapper';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        wrapper.id = codeId;
+                        
+                        const langMatch = block.className.match(/language-(\w+)/);
+                        const lang = langMatch ? langMatch[1] : 'plaintext';
+                        const codeText = block.textContent || block.innerText;
+                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+                        
+                        wrapper.innerHTML = `
+                            <div class="code-header">
+                                <span class="code-lang">${lang}</span>
+                                <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                                    <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                                </button>
+                            </div>
+                            <pre>${block.outerHTML}</pre>
+                        `;
+                        
+                        block.parentElement.replaceChild(wrapper, block.parentElement);
+                    }
+                    
+                    // Highlight code
+                    hljs.highlightElement(block);
+                });
+                
+                // Ensure all code blocks have copy buttons
+                target.querySelectorAll('.code-block-wrapper').forEach((wrapper) => {
+                    if (!wrapper.querySelector('.copy-btn')) {
+                        const header = wrapper.querySelector('.code-header');
+                        const codeElement = wrapper.querySelector('code');
+                        if (header && codeElement) {
+                            const codeText = codeElement.textContent || codeElement.innerText;
+                            const codeId = wrapper.id || 'code-' + Math.random().toString(36).substr(2, 9);
+                            wrapper.id = codeId;
+                            const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+                            
+                            const copyBtn = document.createElement('button');
+                            copyBtn.className = 'copy-btn';
+                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
+                            copyBtn.onclick = function() {
+                                copyCode(this, codeText, codeId);
+                            };
+                            header.appendChild(copyBtn);
+                        }
+                    }
+                });
+                
+                // Ensure links are properly formatted
+                target.querySelectorAll('a').forEach((link) => {
+                    if (!link.querySelector('i')) {
+                        const icon = document.createElement('i');
+                        const href = link.getAttribute('href');
+                        if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//'))) {
+                            icon.className = 'bi bi-box-arrow-up-right me-1';
+                        } else {
+                            icon.className = 'bi bi-link-45deg me-1';
+                        }
+                        link.insertBefore(icon, link.firstChild);
+                    }
+                    const href = link.getAttribute('href');
+                    if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//'))) {
+                        link.setAttribute('target', '_blank');
+                        link.setAttribute('rel', 'noopener noreferrer');
+                    }
+                });
+                
+            } catch(e) {
+                console.error('Markdown parsing error:', e);
+                target.innerHTML = script.textContent;
+            }
+        }
+    });
+    
+    // Auto-scroll to bottom
+    const container = document.getElementById('messagesContainer');
+    if (container) {
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    // Scroll on typing
+    const observer = new MutationObserver(() => {
+        if (container) {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    });
+    
+    if (container) {
+        observer.observe(container, { childList: true, subtree: true });
     }
 });
 
-// Auto-scroll
-const container = document.getElementById('messagesContainer');
-if (container) container.scrollTop = container.scrollHeight;
-
-// Textarea
+// Textarea auto-resize
 const textarea = document.getElementById('chatInput');
 const form = document.getElementById('chatForm');
 const sendBtn = document.getElementById('sendBtn');
@@ -755,6 +1411,22 @@ function removeImagePreview() {
     document.getElementById('imageInput').value = '';
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('removeImage').style.display = 'none';
+}
+
+// Smooth scroll on new messages
+const observer = new MutationObserver(() => {
+    const container = document.getElementById('messagesContainer');
+    if (container) {
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+});
+
+const messagesContainer = document.getElementById('messagesContainer');
+if (messagesContainer) {
+    observer.observe(messagesContainer, { childList: true, subtree: true });
 }
 </script>
 {% endblock %}

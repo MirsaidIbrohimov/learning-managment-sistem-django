@@ -4,26 +4,53 @@
 
 {% block admin_content %}
 <style>
+    .session-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .session-header h2 {
+        color: white;
+        margin: 0;
+    }
+    .session-info {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
     .chat-message {
         display: flex;
         gap: 1rem;
         margin-bottom: 1.5rem;
-        padding: 1rem;
+        padding: 1.25rem;
         border-radius: 12px;
         background: var(--card-bg);
+        border: 1px solid var(--border);
+        transition: all 0.2s;
     }
-    
+    .chat-message:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
     .chat-message.user {
-        background: rgba(13, 110, 253, 0.1);
+        background: rgba(13, 110, 253, 0.08);
+        border-left: 4px solid #0d6efd;
     }
-    
     .chat-message.assistant {
-        background: rgba(16, 185, 129, 0.1);
+        background: rgba(16, 185, 129, 0.08);
+        border-left: 4px solid #10b981;
     }
-    
     .message-avatar {
-        width: 44px;
-        height: 44px;
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -31,73 +58,128 @@
         font-weight: 600;
         color: white;
         flex-shrink: 0;
+        font-size: 1.1rem;
     }
-    
     .chat-message.user .message-avatar {
         background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
     }
-    
     .chat-message.assistant .message-avatar {
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     }
-    
     .message-body {
         flex: 1;
+        min-width: 0;
     }
-    
     .message-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
-    
     .message-sender {
         font-weight: 600;
+        color: var(--text);
+        font-size: 0.95rem;
     }
-    
     .message-time {
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
     }
-    
     .message-content {
-        line-height: 1.7;
+        line-height: 1.8;
+        color: var(--text);
+        word-wrap: break-word;
     }
-    
+    .message-content pre {
+        background: rgba(0,0,0,0.05);
+        padding: 1rem;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 0.5rem 0;
+    }
     .message-image {
-        max-width: 300px;
+        max-width: 100%;
+        max-height: 400px;
         border-radius: 8px;
         margin-top: 0.75rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+    .stats-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
     }
 </style>
 
 <div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{% url 'ai_yordamchi:admin_chats' %}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i>
-            </a>
-            <div>
-                <h2 class="mb-1">
-                    <i class="bi bi-chat-dots me-2"></i>{{ session.title }}
-                </h2>
-                <p class="text-muted mb-0">
-                    <strong>{{ session.user.full_name }}</strong> (@{{ session.user.username }})
-                    • Yaratilgan: {{ session.created_at|date:"d.m.Y H:i" }}
-                </p>
+    <!-- Session Header -->
+    <div class="session-header">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <a href="{% url 'ai_yordamchi:admin_chats' %}" class="btn btn-light btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i>Orqaga
+                </a>
+                <div>
+                    <h2 class="mb-2">
+                        <i class="bi bi-chat-dots me-2"></i>{{ session.title }}
+                    </h2>
+                    <div class="session-info">
+                        <div class="info-item">
+                            <i class="bi bi-person-circle"></i>
+                            <span><strong>{{ session.user.full_name }}</strong> (@{{ session.user.username }})</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-calendar3"></i>
+                            <span>Yaratilgan: {{ session.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Yangilangan: {{ session.updated_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-chat-left-text"></i>
+                            <span>{{ chat_messages.count }} xabar</span>
+                        </div>
+                        {% if session.is_active %}
+                        <div class="info-item">
+                            <span class="badge bg-success">Faol</span>
+                        </div>
+                        {% else %}
+                        <div class="info-item">
+                            <span class="badge bg-secondary">Nofaol</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="btn btn-light">
+                    <i class="bi bi-pencil me-1"></i>Tahrirlash
+                </a>
             </div>
         </div>
     </div>
     
-    <div class="card">
-        <div class="card-header">
+    <!-- Messages -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-chat-left-text me-2"></i>
-                Xabarlar ({{ chat_messages.count }})
+                Xabarlar
+                <span class="badge bg-primary ms-2">{{ chat_messages.count }}</span>
             </h5>
+            <a href="/admin/ai_yordamchi/chatmessage/?session__id__exact={{ session.pk }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-list-ul me-1"></i>Barcha xabarlarni ko'rish
+            </a>
         </div>
-        <div class="card-body">
+        <div class="card-body" style="max-height: 70vh; overflow-y: auto;">
             {% if chat_messages %}
                 {% for msg in chat_messages %}
                 <div class="chat-message {{ msg.role }}">
@@ -112,24 +194,30 @@
                         <div class="message-header">
                             <span class="message-sender">
                                 {% if msg.role == 'user' %}
-                                    {{ session.user.full_name }}
+                                    <i class="bi bi-person me-1"></i>{{ session.user.full_name }}
                                 {% else %}
-                                    AI Yordamchi
+                                    <i class="bi bi-robot me-1"></i>AI Yordamchi
                                 {% endif %}
                             </span>
                             <span class="message-time">
-                                {{ msg.created_at|date:"d.m.Y H:i" }}
+                                <i class="bi bi-clock"></i>{{ msg.created_at|date:"d.m.Y H:i" }}
                                 {% if msg.coins_spent %}
-                                <span class="badge bg-warning text-dark ms-2">
-                                    <i class="bi bi-coin"></i> -{{ msg.coins_spent }}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-coin"></i> -{{ msg.coins_spent }} coin
                                 </span>
                                 {% endif %}
                             </span>
                         </div>
                         <div class="message-content">
-                            {{ msg.content|linebreaks }}
+                            {% if msg.role == 'assistant' %}
+                                <div style="white-space: pre-wrap;">{{ msg.content }}</div>
+                            {% else %}
+                                {{ msg.content|linebreaks }}
+                            {% endif %}
                             {% if msg.image %}
-                            <img src="{{ msg.image.url }}" alt="Uploaded image" class="message-image">
+                            <div class="mt-2">
+                                <img src="{{ msg.image.url }}" alt="Uploaded image" class="message-image" onclick="window.open(this.src, '_blank')">
+                            </div>
                             {% endif %}
                         </div>
                     </div>
@@ -137,8 +225,8 @@
                 {% endfor %}
             {% else %}
                 <div class="text-center py-5 text-muted">
-                    <i class="bi bi-chat-square-dots fs-1 d-block mb-2"></i>
-                    <p>Bu suhbatda xabarlar yo'q</p>
+                    <i class="bi bi-chat-square-dots fs-1 d-block mb-2 opacity-50"></i>
+                    <p class="mb-0">Bu suhbatda xabarlar yo'q</p>
                 </div>
             {% endif %}
         </div>
