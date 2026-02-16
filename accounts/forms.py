@@ -13,7 +13,7 @@ def _clean_name_field(name, field_label):
     cleaned = ''
     for char in name:
         cat = unicodedata.category(char)
-        if cat.startswith('L') or cat.startswith('M') or char in " -'ʻʼ":
+        if cat.startswith('L') or cat.startswith('M') or char in " -'\u02bb\u02bc":
             cleaned += char
     cleaned = cleaned.strip()
     if not cleaned:
