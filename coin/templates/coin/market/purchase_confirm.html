@@ -69,7 +69,13 @@
 
         <div class="stat-box">
             <small class="text-muted d-block">Narxi</small>
+            {% if has_discount %}
+            <b style="text-decoration:line-through;opacity:0.5;font-size:0.85rem;"><i class="bi bi-coin"></i> {{ product.coin_price }}</b>
+            <br>
+            <b class="text-success"><i class="bi bi-coin"></i> {{ final_price }}</b>
+            {% else %}
             <b><i class="bi bi-coin"></i> {{ product.coin_price }}</b>
+            {% endif %}
         </div>
 
         <div class="stat-box">
@@ -79,17 +85,24 @@
 
         <div class="stat-box">
             <small class="text-muted d-block">Qoladi</small>
-            <b class="{% if user.coins < product.coin_price %}text-danger{% else %}text-success{% endif %}">
-                {{ user.coins|add:product.coin_price|add:"-"|add:product.coin_price|add:product.coin_price }}
+            <b class="text-success">
+                <i class="bi bi-wallet2"></i> {{ user.coins|add:"-"|add:final_price }}
             </b>
         </div>
 
     </div>
 
+    {% if has_discount %}
+    <div class="alert alert-success rounded-4 small mb-3">
+        <i class="bi bi-patch-check-fill me-1"></i>
+        Premium chegirma: <b>-5%</b> — Siz <b>{{ product.coin_price|add:"-"|add:final_price }}</b> coin tejadingiz!
+    </div>
+    {% endif %}
+
     <!-- INFO -->
     <div class="alert alert-info rounded-4 small mb-4">
         <i class="bi bi-info-circle me-1"></i>
-        Xariddan so'ng balansingizdan <b>{{ product.coin_price }}</b> coin yechiladi.
+        Xariddan so'ng balansingizdan <b>{{ final_price }}</b> coin yechiladi.
     </div>
 
     <!-- ACTIONS -->

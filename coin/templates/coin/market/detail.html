@@ -452,9 +452,25 @@
         <div class="product-content">
             <!-- Price Bar -->
             <div class="price-bar">
-                <div class="price-display">
-                    <i class="bi bi-coin"></i>
-                    <span>{{ product.coin_price }} coin</span>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    {% if has_discount %}
+                    <div class="price-display" style="text-decoration:line-through;opacity:0.5;font-size:1rem;">
+                        <i class="bi bi-coin"></i>
+                        <span>{{ product.coin_price }}</span>
+                    </div>
+                    <div class="price-display" style="background:rgba(16,185,129,0.3);">
+                        <i class="bi bi-coin"></i>
+                        <span>{{ discounted_price }} coin</span>
+                    </div>
+                    <span style="background:#10b981;color:#fff;padding:0.3rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:700;">
+                        <i class="bi bi-patch-check-fill me-1"></i>Premium -5%
+                    </span>
+                    {% else %}
+                    <div class="price-display">
+                        <i class="bi bi-coin"></i>
+                        <span>{{ product.coin_price }} coin</span>
+                    </div>
+                    {% endif %}
                 </div>
                 
                 {% if product.stock > 0 %}
@@ -485,10 +501,10 @@
                 </span>
                 
                 {% if product.stock > 0 %}
-                    {% if user.coins >= product.coin_price %}
+                    {% if can_purchase %}
                     <a href="{% url 'coin:market_purchase' product.pk %}" class="action-btn buy-btn">
                         <i class="bi bi-cart-check"></i>
-                        Sotib olish
+                        Sotib olish{% if has_discount %} ({{ discounted_price }} coin){% endif %}
                     </a>
                     {% else %}
                     <button class="action-btn buy-btn" disabled>

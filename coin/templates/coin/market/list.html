@@ -516,6 +516,11 @@
                 <button class="like-btn" onclick="toggleLike(this, event)">
                     <i class="bi bi-heart"></i>
                 </button>
+                {% if user.is_premium %}
+                <span style="position:absolute;top:12px;left:12px;background:#10b981;color:#fff;padding:0.25rem 0.6rem;border-radius:12px;font-size:0.7rem;font-weight:700;z-index:2;">
+                    <i class="bi bi-patch-check-fill me-1"></i>-5%
+                </span>
+                {% endif %}
             </div>
             
             <div class="product-body">
@@ -525,7 +530,12 @@
                 <div class="product-footer">
                     <div class="product-price">
                         <i class="bi bi-coin"></i>
+                        {% if user.is_premium %}
+                        <span style="text-decoration:line-through;opacity:0.5;font-size:0.8em;">{{ product.coin_price }}</span>
+                        <span class="text-success fw-bold">{{ product.discounted_price }}</span>
+                        {% else %}
                         <span>{{ product.coin_price }}</span>
+                        {% endif %}
                     </div>
                     <a href="{% url 'coin:market_detail' product.pk %}" class="view-btn">
                         Ko'rish

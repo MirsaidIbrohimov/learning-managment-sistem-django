@@ -1,3 +1,4 @@
+import math
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -8,6 +9,14 @@ from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
     CoinTransaction, ActivityLog
 )
+
+PREMIUM_DISCOUNT = 0.05  # 5% chegirma
+
+
+def get_discounted_price(product, user):
+    if user.is_premium:
+        return math.floor(product.coin_price * (1 - PREMIUM_DISCOUNT))
+    return product.coin_price
 
 PREMIUM_PLANS = {
     'weekly': {'name': 'Haftalik', 'price': 350, 'days': 7},
@@ -21,6 +30,10 @@ PREMIUM_PLANS = {
 @login_required
 def market_list(request):
     products = Product.objects.filter(is_active=True)
+    
+    if request.user.is_premium:
+        for p in products:
+            p.discounted_price = get_discounted_price(p, request.user)
     
     pending_request = None
     if request.user.is_authenticated:
@@ -201,11 +214,17 @@ def market_detail(request, pk):
             messages.success(request, "Izoh qo'shildi (+1 coin)!")
             return redirect('coin:market_detail', pk=pk)
     
+    discounted_price = get_discounted_price(product, request.user)
+    has_discount = request.user.is_premium and discounted_price < product.coin_price
+    can_purchase = request.user.coins >= discounted_price and product.stock > 0
+    
     return render(request, 'coin/market/detail.html', {
         'product': product,
         'comments': comments,
         'is_liked': is_liked,
         'can_purchase': can_purchase,
+        'discounted_price': discounted_price,
+        'has_discount': has_discount,
     })
 
 
@@ -235,8 +254,10 @@ def market_like(request, pk):
 @login_required
 def market_purchase(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    final_price = get_discounted_price(product, request.user)
+    has_discount = request.user.is_premium and final_price < product.coin_price
     
-    if request.user.coins < product.coin_price:
+    if request.user.coins < final_price:
         messages.error(request, "Coinlaringiz yetarli emas!")
         return redirect('coin:market_detail', pk=pk)
     
@@ -245,7 +266,7 @@ def market_purchase(request, pk):
         return redirect('coin:market_detail', pk=pk)
     
     if request.method == 'POST':
-        request.user.coins -= product.coin_price
+        request.user.coins -= final_price
         request.user.save()
         
         product.stock -= 1
@@ -254,25 +275,30 @@ def market_purchase(request, pk):
         ProductPurchase.objects.create(
             product=product,
             user=request.user,
-            coins_spent=product.coin_price
+            coins_spent=final_price
         )
         
+        discount_label = " (Premium -5%)" if has_discount else ""
         CoinTransaction.objects.create(
             user=request.user,
-            amount=product.coin_price,
+            amount=final_price,
             action='remove',
-            reason=f"Mahsulot sotib olindi: {product.name}"
+            reason=f"Mahsulot sotib olindi: {product.name}{discount_label}"
         )
         ActivityLog.objects.create(
             user=request.user,
             action_type='purchase_product',
-            description=f"Mahsulot sotib oldi: {product.name} ({product.coin_price} coin)"
+            description=f"Mahsulot sotib oldi: {product.name} ({final_price} coin{discount_label})"
         )
         
         messages.success(request, f"'{product.name}' muvaffaqiyatli sotib olindi!")
         return redirect('coin:market_list')
     
-    return render(request, 'coin/market/purchase_confirm.html', {'product': product})
+    return render(request, 'coin/market/purchase_confirm.html', {
+        'product': product,
+        'final_price': final_price,
+        'has_discount': has_discount,
+    })
 
 
 # ============== ADMIN: COIN MARKET ==============
