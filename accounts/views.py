@@ -91,6 +91,14 @@ def login_view(request):
             user.last_activity = timezone.now()
             user.save(update_fields=["last_activity"])
 
+            # 💎 Premium kunlik bonus: 5 coin
+            today = timezone.now().date()
+            if user.is_premium and user.last_daily_login != today:
+                user.last_daily_login = today
+                user.save(update_fields=["last_daily_login"])
+                user.add_coins(5, "Premium kunlik bonus")
+                messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
+
             ActivityLog.objects.create(
                 user=user,
                 action_type='login',
