@@ -68,6 +68,7 @@ urlpatterns = [
     path('messages/<int:pk>/', views.message_detail, name='message_detail'),
     path('messages/<int:pk>/read/', views.mark_message_read, name='mark_message_read'),
     path('messages/mark-all-read/', views.mark_all_messages_read, name='mark_all_messages_read'),
+    path('messages/delete-read/', views.delete_read_messages, name='delete_read_messages'),
     
     # Admin Panel
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),

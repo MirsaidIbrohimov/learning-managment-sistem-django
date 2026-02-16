@@ -74,6 +74,67 @@
     color: #fff;
 }
 
+.btn-delete-read {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+
+.btn-delete-read:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.25);
+    color: #ef4444;
+}
+
+/* Delete confirm modal */
+.delete-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.delete-confirm-overlay.show {
+    display: flex;
+}
+
+.delete-confirm-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    animation: scaleIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
 /* ===== FILTER TABS ===== */
 .inbox-tabs {
     display: flex;
@@ -338,7 +399,8 @@
         width: 100%;
     }
 
-    .btn-mark-all {
+    .btn-mark-all,
+    .btn-delete-read {
         width: 100%;
         justify-content: center;
     }
@@ -411,8 +473,8 @@
             {% endif %}
         </h2>
 
-        {% if unread_count > 0 %}
         <div class="inbox-actions">
+            {% if unread_count > 0 %}
             <form method="POST" action="{% url 'mark_all_messages_read' %}">
                 {% csrf_token %}
                 <button type="submit" class="btn-mark-all">
@@ -420,9 +482,39 @@
                     Barchasini o'qilgan deb belgilash
                 </button>
             </form>
+            {% endif %}
+            {% if read_count > 0 %}
+            <button type="button" class="btn-delete-read" onclick="document.getElementById('deleteConfirm').classList.add('show')">
+                <i class="bi bi-trash3"></i>
+                O'qilganlarni o'chirish ({{ read_count }})
+            </button>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
+
+    <!-- Delete Confirmation -->
+    {% if read_count > 0 %}
+    <div class="delete-confirm-overlay" id="deleteConfirm">
+        <div class="delete-confirm-card">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;color:#ef4444;">
+                <i class="bi bi-trash3"></i>
+            </div>
+            <h5 class="fw-bold mb-2">O'qilgan xabarlarni o'chirish</h5>
+            <p class="text-muted mb-3">{{ read_count }} ta o'qilgan shaxsiy xabar o'chiriladi. Bu amalni qaytarib bo'lmaydi!</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" style="border-radius:10px;" onclick="document.getElementById('deleteConfirm').classList.remove('show')">
+                    Bekor qilish
+                </button>
+                <form method="POST" action="{% url 'delete_read_messages' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger px-4" style="border-radius:10px;">
+                        <i class="bi bi-trash3 me-1"></i>O'chirish
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- FILTER TABS -->
     <div class="inbox-tabs">

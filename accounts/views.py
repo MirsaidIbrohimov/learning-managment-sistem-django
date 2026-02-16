@@ -1133,9 +1133,12 @@ def messages_view(request):
     # O'qilmagan xabarlar sonini yangilash
     unread_count = all_messages.filter(is_read=False).count()
     
+    read_count = personal_messages.filter(is_read=True).count()
+    
     return render(request, 'accounts/messages.html', {
         'messages_list': all_messages,
         'unread_count': unread_count,
+        'read_count': read_count,
     })
 
 
@@ -1177,6 +1180,14 @@ def mark_all_messages_read(request):
         else:
             general_q &= Q(message_type='all')
         Message.objects.filter(general_q).update(is_read=True)
+    return redirect('messages')
+
+
+@login_required
+def delete_read_messages(request):
+    if request.method == 'POST':
+        deleted_count = Message.objects.filter(recipient=request.user, is_read=True).delete()[0]
+        messages.success(request, f"{deleted_count} ta o'qilgan xabar o'chirildi!")
     return redirect('messages')
 
 

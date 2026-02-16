@@ -251,15 +251,11 @@
 
 
 
-                    <!-- USER DROPDOWN -->
-                    <div class="dropdown">
-
+                    <!-- USER DROPDOWN (Desktop) -->
+                    <div class="dropdown d-none d-lg-block">
                         <a class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
                             aria-expanded="false" role="button">
-
-                            <!-- AVATAR -->
                             <div class="position-relative">
-
                                 {% if user.photo %}
                                 <img src="{{ user.photo.url }}" class="rounded-circle shadow-sm"
                                     style="width:42px;height:42px;object-fit:cover"
@@ -270,105 +266,66 @@
                                     {{ user.get_full_name|default:user.username|slice:":1"|upper }}
                                 </div>
                                 {% endif %}
-
-                                <!-- ONLINE DOT -->
-                                <span
-                                    class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle"></span>
+                                <span class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle"></span>
                             </div>
-
                             <i class="bi bi-chevron-down small text-muted"></i>
                         </a>
-
-                        <!-- DROPDOWN CARD -->
                         <ul class="dropdown-menu dropdown-menu-end p-2 shadow-lg rounded-4" style="min-width:260px;">
-
-                            <!-- USER INFO -->
                             <li class="px-2 py-2">
                                 <div class="d-flex align-items-center gap-3">
-
                                     {% if user.photo %}
-                                    <img src="{{ user.photo.url }}" class="rounded-circle"
-                                        style="width:52px;height:52px;object-fit:cover">
+                                    <img src="{{ user.photo.url }}" class="rounded-circle" style="width:52px;height:52px;object-fit:cover">
                                     {% else %}
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                                        style="width:52px;height:52px;">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:52px;height:52px;">
                                         {{ user.get_full_name|default:user.username|slice:":1"|upper }}
                                     </div>
                                     {% endif %}
-
                                     <div>
                                         <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
-                                        {% if user.email %}
-                                        <small class="text-muted">{{ user.email }}</small>
-                                        {% endif %}
+                                        {% if user.email %}<small class="text-muted">{{ user.email }}</small>{% endif %}
                                     </div>
-
                                 </div>
                                 <span class="role-badge role-{{ user.role }}">
-                                    {% if user.role == 'admin' %}
-                                    Admin
-                                    {% elif user.role == 'teacher' %}
-                                    Ustoz
-                                    {% else %}
-                                    O'quvchi
-                                    {% endif %}
+                                    {% if user.role == 'admin' %}Admin{% elif user.role == 'teacher' %}Ustoz{% else %}O'quvchi{% endif %}
                                 </span>
                             </li>
-
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-
-                            <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'profile' %}">
-                                    <i class="bi bi-person me-2"></i>Profil
-                                </a>
-                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
                             <li>
                                 <a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
-                                    <span class="d-inline-flex align-items-center">
-                                        <i class="bi bi-envelope me-2"></i>Xabarlar
-                                    </span>
-                                    {% if unread_messages_count|default:0|add:0 > 0 %}
-                                    <span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>
-                                    {% endif %}
+                                    <span class="d-inline-flex align-items-center"><i class="bi bi-envelope me-2"></i>Xabarlar</span>
+                                    {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>{% endif %}
                                 </a>
                             </li>
-                            <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}">
-                                    <i class="bi bi-journal-text me-2"></i>Vazifalarim
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}">
-                                    <i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'my_devices' %}">
-                                    <i class="bi bi-laptop me-1"></i>Qurilmalar
-                                </a>
-                            </li>
-                            <li>
-                                <a class="dropdown-item rounded-3" href="{% url 'site_settings' %}">
-                                    <i class="bi bi-gear me-2"></i>Sozlamalar
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i>Vazifalarim</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i>Qurilmalar</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i>Sozlamalar</a></li>
                             {% if user.is_admin %}
-                            <li class="nav-item">
-                                <a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}">
-                                    <i class="bi bi-speedometer2 me-2"></i>Panel
-                                </a>
-                            </li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel</a></li>
                             {% endif %}
-                            <li>
-                                <a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}">
-                                    <i class="bi bi-box-arrow-right me-2"></i>Chiqish
-                                </a>
-                            </li>
-
+                            <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Chiqish</a></li>
                         </ul>
                     </div>
+
+                    <!-- USER PROFILE BUTTON (Mobile) - triggers offcanvas -->
+                    <a class="d-flex d-lg-none align-items-center gap-2 text-decoration-none" 
+                       data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
+                        <div class="position-relative">
+                            {% if user.photo %}
+                            <img src="{{ user.photo.url }}" class="rounded-circle shadow-sm"
+                                style="width:42px;height:42px;object-fit:cover"
+                                alt="{{ user.get_full_name|default:user.username }}">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                                style="width:42px;height:42px;">
+                                {{ user.get_full_name|default:user.username|slice:":1"|upper }}
+                            </div>
+                            {% endif %}
+                            <span class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle"></span>
+                        </div>
+                        <i class="bi bi-chevron-down small text-muted"></i>
+                    </a>
 
                 </div>
             </div>
@@ -376,6 +333,193 @@
 
         </div>
     </nav>
+
+    <!-- Mobile Profile Offcanvas -->
+    <style>
+        #mobileProfileMenu {
+            border-top-left-radius: 28px !important;
+            border-top-right-radius: 28px !important;
+            border: none !important;
+            background: var(--card) !important;
+            max-height: 80vh;
+            box-shadow: 0 -10px 60px rgba(0,0,0,0.25) !important;
+        }
+        #mobileProfileMenu::before {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 5px;
+            background: var(--text-muted);
+            opacity: 0.3;
+            border-radius: 99px;
+            margin: 10px auto 0;
+        }
+        #mobileProfileMenu .offcanvas-header {
+            padding: 16px 20px 14px;
+        }
+        #mobileProfileMenu .offcanvas-body {
+            padding: 8px 16px 24px !important;
+            overflow-y: auto;
+        }
+        .mob-profile-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: var(--bg);
+            border-radius: 18px;
+            margin-bottom: 16px;
+        }
+        .mob-profile-card .mob-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid var(--border);
+        }
+        .mob-profile-card .mob-avatar-init {
+            width: 52px;
+            height: 52px;
+            min-width: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        .mob-menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .mob-menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 14px 6px;
+            border-radius: 16px;
+            background: var(--bg);
+            text-decoration: none !important;
+            color: var(--text) !important;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .mob-menu-item:active {
+            transform: scale(0.93);
+            background: rgba(13,110,253,0.1);
+        }
+        .mob-menu-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        .mob-icon-blue { background: rgba(13,110,253,0.1); color: #0d6efd; }
+        .mob-icon-green { background: rgba(16,185,129,0.1); color: #10b981; }
+        .mob-icon-purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+        .mob-icon-orange { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .mob-icon-pink { background: rgba(236,72,153,0.1); color: #ec4899; }
+        .mob-icon-cyan { background: rgba(6,182,212,0.1); color: #06b6d4; }
+        .mob-icon-red { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .mob-logout-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(239,68,68,0.08);
+            color: #ef4444 !important;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-decoration: none !important;
+            border: 1px solid rgba(239,68,68,0.15);
+            transition: all 0.2s ease;
+        }
+        .mob-logout-btn:active {
+            transform: scale(0.97);
+            background: rgba(239,68,68,0.18);
+        }
+    </style>
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mobileProfileMenu" aria-labelledby="mobileProfileLabel">
+        <div class="offcanvas-header py-2">
+            <span></span>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Yopish"></button>
+        </div>
+        <div class="offcanvas-body">
+            <!-- User Card -->
+            <div class="mob-profile-card">
+                {% if user.photo %}
+                <img src="{{ user.photo.url }}" class="mob-avatar" alt="{{ user.get_full_name|default:user.username }}">
+                {% else %}
+                <div class="mob-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+                {% endif %}
+                <div style="min-width:0;">
+                    <div class="fw-bold" style="font-size:1.05rem;" id="mobileProfileLabel">{{ user.get_full_name|default:user.username }}</div>
+                    {% if user.email %}<div class="text-muted" style="font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;">{{ user.email }}</div>{% endif %}
+                    <span class="role-badge role-{{ user.role }} mt-1 d-inline-block" style="font-size:.7rem;">
+                        {% if user.role == 'admin' %}👑 Admin{% elif user.role == 'teacher' %}📚 Ustoz{% else %}🎓 O'quvchi{% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="mob-menu-grid">
+                <a href="{% url 'profile' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-person-fill"></i></div>
+                    <span>Profil</span>
+                </a>
+                <a href="{% url 'messages' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-green position-relative">
+                        <i class="bi bi-envelope-fill"></i>
+                        {% if unread_messages_count|default:0|add:0 > 0 %}
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:.55rem;padding:3px 5px;">{{ unread_messages_count }}</span>
+                        {% endif %}
+                    </div>
+                    <span>Xabarlar</span>
+                </a>
+                <a href="{% url 'my_homework_list' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-journal-check"></i></div>
+                    <span>Vazifalarim</span>
+                </a>
+                <a href="{% url 'my_book_rentals' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-book-half"></i></div>
+                    <span>Kitoblarim</span>
+                </a>
+                <a href="{% url 'my_devices' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-cyan"><i class="bi bi-laptop"></i></div>
+                    <span>Qurilmalar</span>
+                </a>
+                <a href="{% url 'site_settings' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-pink"><i class="bi bi-gear-fill"></i></div>
+                    <span>Sozlamalar</span>
+                </a>
+                {% if user.is_admin %}
+                <a href="{% url 'admin_dashboard' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-speedometer2"></i></div>
+                    <span>Panel</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Logout -->
+            <a href="{% url 'logout' %}" class="mob-logout-btn">
+                <i class="bi bi-box-arrow-right"></i>Chiqish
+            </a>
+        </div>
+    </div>
     {% endif %}
 
     <main class="main-container">
