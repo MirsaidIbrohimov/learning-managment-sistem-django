@@ -5,126 +5,708 @@
 
 {% block extra_css %}
 <style>
-.code-editor {
-    font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 14px;
-    background: #1e1e1e;
-    color: #d4d4d4;
-    border-radius: 12px;
-    padding: 16px;
-    min-height: 400px;
-    resize: vertical;
-}
-.form-card {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-}
-.url-box {
-    background: var(--bs-tertiary-bg);
-    border-radius: 10px;
-    padding: 12px 16px;
-    font-family: monospace;
-}
+    /* ── Keyframes ──────────────────────────────────── */
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes codeFloat {
+        0%, 100% { transform: translateY(0) scale(1); opacity: .15; }
+        50%      { transform: translateY(-30px) scale(1.1); opacity: .3; }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50%      { transform: translateY(-18px) rotate(5deg); }
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: .5; }
+    }
+    @keyframes successPop {
+        0%   { transform: scale(0.8); opacity: 0; }
+        60%  { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes checkSpin {
+        0%   { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* ── Hero ───────────────────────────────────────── */
+    .edit-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 8s ease infinite;
+        border-radius: 1.5rem;
+        padding: 2.5rem 2rem;
+        margin-bottom: 2rem;
+        color: #fff;
+    }
+    .edit-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255,255,255,.12) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,.08) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    .hero-particle {
+        position: absolute;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        color: rgba(255,255,255,.12);
+        pointer-events: none;
+        animation: codeFloat 6s ease-in-out infinite;
+    }
+    .hero-particle:nth-child(1) { top: 12%; left: 6%;  animation-delay: 0s;   font-size: 1.4rem; }
+    .hero-particle:nth-child(2) { top: 55%; left: 12%; animation-delay: 1.5s; }
+    .hero-particle:nth-child(3) { top: 20%; right: 8%; animation-delay: 3s;  font-size: 1.5rem; }
+    .hero-particle:nth-child(4) { top: 65%; right: 15%; animation-delay: .8s; }
+    .hero-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        position: relative;
+        z-index: 1;
+    }
+    .hero-subtitle {
+        opacity: 0;
+        animation: fadeInUp .8s ease .3s forwards;
+        font-size: 1.05rem;
+        margin-top: .4rem;
+        color: rgba(255,255,255,.85);
+        position: relative;
+        z-index: 1;
+    }
+    .hero-back {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        color: rgba(255,255,255,.8);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: .9rem;
+        margin-bottom: 1rem;
+        padding: .4rem .9rem;
+        border-radius: 999px;
+        background: rgba(255,255,255,.12);
+        backdrop-filter: blur(10px);
+        transition: all .3s;
+    }
+    .hero-back:hover {
+        color: #fff;
+        background: rgba(255,255,255,.22);
+        transform: translateX(-3px);
+    }
+
+    /* ── URL bar ────────────────────────────────────── */
+    .url-bar {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        padding: .8rem 1.2rem;
+        border-radius: 14px;
+        background: var(--bs-tertiary-bg);
+        border: 1px solid var(--bs-border-color);
+        font-family: 'Courier New', monospace;
+        font-size: .88rem;
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeInUp .6s ease .1s forwards;
+        transition: border-color .3s;
+    }
+    .url-bar:hover {
+        border-color: #667eea;
+    }
+    .url-bar-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(102,126,234,.12), rgba(118,75,162,.12));
+        color: #667eea;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .url-bar-text {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--bs-body-color);
+    }
+    .url-copy-btn {
+        background: none;
+        border: none;
+        color: var(--bs-secondary-color);
+        padding: .3rem .5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all .2s;
+        flex-shrink: 0;
+    }
+    .url-copy-btn:hover {
+        background: rgba(102,126,234,.1);
+        color: #667eea;
+    }
+    .url-copy-btn.copied {
+        color: #10b981;
+    }
+
+    /* ── Status card ────────────────────────────────── */
+    .status-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+        opacity: 0;
+        animation: fadeInUp .6s ease .15s forwards;
+    }
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .6rem 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: .85rem;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-body-bg);
+    }
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    .status-dot-green {
+        background: #10b981;
+        box-shadow: 0 0 6px rgba(16,185,129,.5);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    .status-dot-gray {
+        background: #94a3b8;
+    }
+    .status-views {
+        color: #667eea;
+    }
+    .status-date {
+        color: var(--bs-secondary-color);
+    }
+
+    /* ── Form card ─────────────────────────────────── */
+    .form-card {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,.06);
+        opacity: 0;
+        animation: fadeInUp .7s ease .2s forwards;
+        transition: box-shadow .3s;
+    }
+    .form-card:hover {
+        box-shadow: 0 15px 50px rgba(0,0,0,.1);
+    }
+    [data-bs-theme="dark"] .form-card {
+        box-shadow: 0 10px 40px rgba(0,0,0,.3);
+    }
+    [data-bs-theme="dark"] .form-card:hover {
+        box-shadow: 0 15px 50px rgba(0,0,0,.4);
+    }
+    .form-section {
+        padding: 2rem;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .form-section:last-child {
+        border-bottom: none;
+    }
+    .form-section-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .section-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+    }
+    .icon-info {
+        background: linear-gradient(135deg, rgba(102,126,234,.15), rgba(118,75,162,.15));
+        color: #667eea;
+    }
+    .icon-code {
+        background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(217,119,6,.15));
+        color: #f59e0b;
+    }
+    .icon-toggle {
+        background: linear-gradient(135deg, rgba(16,185,129,.15), rgba(5,150,105,.15));
+        color: #10b981;
+    }
+
+    /* ── Inputs ─────────────────────────────────────── */
+    .form-control, .form-select {
+        border-radius: 12px;
+        padding: .7rem 1rem;
+        transition: border-color .3s, box-shadow .3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,.15);
+    }
+    .form-label {
+        font-weight: 600;
+        font-size: .9rem;
+        margin-bottom: .4rem;
+    }
+
+    /* ── File upload mini ───────────────────────────── */
+    .upload-mini {
+        border: 2px dashed var(--bs-border-color);
+        border-radius: 14px;
+        padding: 1.2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all .3s;
+    }
+    .upload-mini:hover {
+        border-color: #667eea;
+        background: rgba(102,126,234,.03);
+    }
+    .upload-mini-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0 auto .6rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(102,126,234,.1), rgba(118,75,162,.1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #667eea;
+        animation: float 5s ease-in-out infinite;
+    }
+    .file-selected-mini {
+        display: none;
+        margin-top: .8rem;
+        padding: .6rem 1rem;
+        border-radius: 10px;
+        background: rgba(16,185,129,.08);
+        border: 1px solid rgba(16,185,129,.2);
+        font-size: .85rem;
+        animation: successPop .4s ease;
+    }
+    .file-selected-mini.show { display: flex; align-items: center; gap: .5rem; }
+    .file-selected-mini .text-success { font-weight: 600; }
+
+    /* ── Code editor ───────────────────────────────── */
+    .code-editor-wrap {
+        position: relative;
+        border-radius: 1rem;
+        overflow: hidden;
+        border: 1px solid var(--bs-border-color);
+    }
+    .code-editor-header {
+        background: #1e1e2e;
+        padding: .65rem 1rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .editor-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    .editor-dot-red { background: #ff5f57; }
+    .editor-dot-yellow { background: #febc2e; }
+    .editor-dot-green { background: #28c840; }
+    .editor-filename {
+        margin-left: .8rem;
+        font-size: .8rem;
+        color: rgba(255,255,255,.5);
+        font-family: 'Courier New', monospace;
+    }
+    .code-editor {
+        font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
+        font-size: 14px;
+        line-height: 1.7;
+        background: #1e1e2e;
+        color: #cdd6f4;
+        padding: 1.2rem;
+        min-height: 380px;
+        resize: vertical;
+        border: none;
+        border-radius: 0;
+        width: 100%;
+    }
+    .code-editor:focus {
+        box-shadow: none;
+        outline: none;
+    }
+
+    /* ── Toggle switch ─────────────────────────────── */
+    .toggle-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 1.4rem;
+        border-radius: 14px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-body-bg);
+        transition: all .3s;
+    }
+    .toggle-card:hover {
+        border-color: #667eea;
+    }
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: .8rem;
+    }
+    .toggle-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .toggle-active {
+        background: rgba(16,185,129,.1);
+        color: #10b981;
+    }
+    .form-switch .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: #10b981;
+        border-color: #10b981;
+    }
+    .form-switch .form-check-input:focus {
+        box-shadow: 0 0 0 3px rgba(16,185,129,.2);
+    }
+
+    /* ── Submit section ────────────────────────────── */
+    .submit-section {
+        padding: 2rem;
+        background: var(--bs-tertiary-bg);
+        border-radius: 0 0 1.5rem 1.5rem;
+    }
+    .btn-save {
+        padding: .9rem 2.5rem;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 1rem;
+        border: none;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        transition: all .3s;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        box-shadow: 0 6px 20px rgba(102,126,234,.3);
+    }
+    .btn-save:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(102,126,234,.4);
+        color: #fff;
+    }
+    .btn-save:active { transform: translateY(-1px); }
+    .btn-cancel {
+        padding: .9rem 2rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        transition: all .3s;
+        text-decoration: none;
+    }
+    .btn-cancel:hover {
+        background: var(--bs-tertiary-bg);
+        transform: translateY(-2px);
+    }
+    .btn-delete {
+        padding: .9rem 2rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: 1px solid rgba(239,68,68,.3);
+        background: rgba(239,68,68,.06);
+        color: #ef4444;
+        transition: all .3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+    }
+    .btn-delete:hover {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(239,68,68,.3);
+    }
+
+    /* ── Copy toast ─────────────────────────────────── */
+    .copy-toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        background: #1e293b;
+        color: #fff;
+        padding: .7rem 1.4rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: .85rem;
+        z-index: 9999;
+        pointer-events: none;
+        transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .4s;
+        opacity: 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,.3);
+    }
+    .copy-toast.show {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+
+    /* ── Responsive ────────────────────────────────── */
+    @media (max-width: 768px) {
+        .edit-hero { padding: 1.8rem 1.2rem; border-radius: 1rem; }
+        .hero-title { font-size: 1.6rem; }
+        .form-section { padding: 1.5rem 1.2rem; }
+        .submit-section { padding: 1.5rem 1.2rem; }
+        .status-bar { flex-direction: column; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    
     <div class="row justify-content-center">
         <div class="col-lg-10">
-            
-            <a href="{% url 'my_deploys' %}" class="btn btn-outline-secondary rounded-pill mb-4">
-                <i class="bi bi-arrow-left me-1"></i>Orqaga
-            </a>
-            
-            <div class="form-card p-4">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="mb-0">
-                        <i class="bi bi-pencil me-2"></i>Sahifani tahrirlash
-                    </h3>
-                    <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-outline-primary rounded-pill">
-                        <i class="bi bi-box-arrow-up-right me-1"></i>Ko'rish
+
+            <!-- ── Hero ────────────────────────────── -->
+            <div class="edit-hero">
+                <span class="hero-particle">&lt;/&gt;</span>
+                <span class="hero-particle">{ }</span>
+                <span class="hero-particle">edit</span>
+                <span class="hero-particle">save</span>
+
+                <div class="position-relative" style="z-index:1;">
+                    <a href="{% url 'my_deploys' %}" class="hero-back">
+                        <i class="bi bi-arrow-left"></i> Orqaga
                     </a>
+                    <div class="hero-title">
+                        <i class="bi bi-pencil-square me-2"></i>Sahifani tahrirlash
+                    </div>
+                    <div class="hero-subtitle">
+                        {{ deploy.title }} loyihasini yangilang va o'zgarishlarni saqlang
+                    </div>
                 </div>
-                
-                <div class="url-box mb-4">
-                    <strong>URL:</strong> {{ deploy.get_url }}
-                </div>
-                
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    
-                    <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Loyiha nomi *</label>
-                            <input type="text" name="title" class="form-control form-control-lg" 
-                                   value="{{ deploy.title }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Fayl nomi</label>
-                            <input type="text" class="form-control form-control-lg" 
-                                   value="{{ deploy.file_name }}" disabled>
-                            <small class="text-muted">Fayl nomini o'zgartirib bo'lmaydi</small>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-4 mt-2">
-                        <div class="col-md-6">
-                            <label class="form-label">Kurs (ixtiyoriy)</label>
-                            <select name="profession" class="form-select">
-                                <option value="">Tanlanmagan</option>
-                                {% for p in professions %}
-                                <option value="{{ p.pk }}" {% if deploy.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Tavsif (ixtiyoriy)</label>
-                            <input type="text" name="description" class="form-control" 
-                                   value="{{ deploy.description|default:'' }}" placeholder="Qisqacha tavsif...">
-                        </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <label class="form-label">Yangi HTML fayl yuklash (ixtiyoriy)</label>
-                        <input type="file" name="html_file" class="form-control" accept=".html,.htm">
-                        <small class="text-muted">Agar yangi fayl yuklasangiz, eski kod o'rniga yangi fayl kodi ishlatiladi</small>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <label class="form-label">HTML kodi</label>
-                        <textarea name="html_content" class="code-editor form-control" rows="15">{{ deploy.html_content }}</textarea>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <div class="form-check">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
-                                   {% if deploy.is_active %}checked{% endif %}>
-                            <label class="form-check-label" for="isActive">
-                                Faol (ommaga ko'rinadi)
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex gap-3 mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg px-5 rounded-pill">
-                            <i class="bi bi-check-lg me-2"></i>Saqlash
-                        </button>
-                        <a href="{% url 'my_deploys' %}" class="btn btn-outline-secondary btn-lg rounded-pill">
-                            Bekor qilish
-                        </a>
-                        <a href="{% url 'delete_deploy' deploy.pk %}" class="btn btn-outline-danger btn-lg rounded-pill ms-auto">
-                            <i class="bi bi-trash me-1"></i>O'chirish
-                        </a>
-                    </div>
-                </form>
             </div>
-            
+
+            <!-- ── URL Bar ─────────────────────────── -->
+            <div class="url-bar">
+                <div class="url-bar-icon"><i class="bi bi-link-45deg"></i></div>
+                <div class="url-bar-text" id="deployUrl">{{ deploy.get_url }}</div>
+                <a href="{{ deploy.get_url }}" target="_blank" class="url-copy-btn" title="Sahifani ko'rish">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+                <button type="button" class="url-copy-btn" onclick="copyUrl()" title="URL nusxalash">
+                    <i class="bi bi-clipboard" id="copyIcon"></i>
+                </button>
+            </div>
+
+            <!-- ── Status Bar ──────────────────────── -->
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot {% if deploy.is_active %}status-dot-green{% else %}status-dot-gray{% endif %}"></span>
+                    {% if deploy.is_active %}Faol{% else %}Nofaol{% endif %}
+                </div>
+                <div class="status-item status-views">
+                    <i class="bi bi-eye"></i> {{ deploy.views_count }} ko'rish
+                </div>
+                <div class="status-item status-date">
+                    <i class="bi bi-calendar3"></i> {{ deploy.created_at|date:"d.m.Y" }}
+                </div>
+                <div class="status-item">
+                    <i class="bi bi-folder2"></i> {{ deploy.folder_name }}
+                </div>
+            </div>
+
+            <!-- ── Form Card ───────────────────────── -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="form-card">
+
+                    <!-- Section: Ma'lumotlar -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <span class="section-icon icon-info"><i class="bi bi-info-circle"></i></span>
+                            Loyiha ma'lumotlari
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Loyiha nomi <span class="text-danger">*</span></label>
+                                <input type="text" name="title" class="form-control"
+                                       value="{{ deploy.title }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Papka nomi</label>
+                                <input type="text" class="form-control"
+                                       value="{{ deploy.folder_name }}" disabled>
+                                <small class="text-muted">Papka nomini o'zgartirib bo'lmaydi</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kurs (ixtiyoriy)</label>
+                                <select name="profession" class="form-select">
+                                    <option value="">Tanlanmagan</option>
+                                    {% for p in professions %}
+                                    <option value="{{ p.pk }}" {% if deploy.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tavsif (ixtiyoriy)</label>
+                                <input type="text" name="description" class="form-control"
+                                       value="{{ deploy.description|default:'' }}" placeholder="Qisqacha tavsif...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: File upload -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <span class="section-icon icon-info"><i class="bi bi-cloud-upload"></i></span>
+                            Yangi fayl yuklash (ixtiyoriy)
+                        </div>
+                        <div class="upload-mini" onclick="document.getElementById('htmlFile').click()">
+                            <div class="upload-mini-icon">
+                                <i class="bi bi-cloud-arrow-up-fill"></i>
+                            </div>
+                            <div class="fw-semibold">Yangi HTML fayl yuklash</div>
+                            <small class="text-muted">Agar yangi fayl yuklasangiz, eski kod o'rniga yangi fayl ishlatiladi</small>
+                        </div>
+                        <input type="file" id="htmlFile" name="html_file" accept=".html,.htm"
+                               style="display:none" onchange="handleFileSelect(this)">
+                        <div class="file-selected-mini" id="fileSelected">
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span class="text-success" id="fileNameText"></span>
+                        </div>
+                    </div>
+
+                    <!-- Section: Code editor -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <span class="section-icon icon-code"><i class="bi bi-code-slash"></i></span>
+                            HTML kodi
+                        </div>
+                        <div class="code-editor-wrap">
+                            <div class="code-editor-header">
+                                <span class="editor-dot editor-dot-red"></span>
+                                <span class="editor-dot editor-dot-yellow"></span>
+                                <span class="editor-dot editor-dot-green"></span>
+                                <span class="editor-filename">{{ deploy.folder_name }}/index.html</span>
+                            </div>
+                            <textarea name="html_content" class="code-editor form-control" rows="15">{{ deploy.html_content }}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section: Status toggle -->
+                    <div class="form-section">
+                        <div class="form-section-title">
+                            <span class="section-icon icon-toggle"><i class="bi bi-toggles"></i></span>
+                            Holat
+                        </div>
+                        <div class="toggle-card">
+                            <div class="toggle-label">
+                                <div class="toggle-icon toggle-active">
+                                    <i class="bi bi-globe2"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Faol holat</div>
+                                    <small class="text-muted">Yoqilsa sahifa ommaga ko'rinadi</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch mb-0">
+                                <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
+                                       {% if deploy.is_active %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit -->
+                    <div class="submit-section">
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <button type="submit" class="btn-save">
+                                <i class="bi bi-check-lg"></i> Saqlash
+                            </button>
+                            <a href="{% url 'my_deploys' %}" class="btn-cancel">
+                                Bekor qilish
+                            </a>
+                            <a href="{% url 'delete_deploy' deploy.pk %}" class="btn-delete ms-auto">
+                                <i class="bi bi-trash3"></i> O'chirish
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+
         </div>
     </div>
-    
 </div>
+
+<!-- Copy toast -->
+<div class="copy-toast" id="copyToast">
+    <i class="bi bi-check-circle me-1"></i> URL nusxalandi!
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyUrl() {
+    const url = window.location.origin + document.getElementById('deployUrl').textContent.trim();
+    navigator.clipboard.writeText(url).then(() => {
+        const icon = document.getElementById('copyIcon');
+        icon.className = 'bi bi-check-lg';
+        icon.closest('.url-copy-btn').classList.add('copied');
+        const toast = document.getElementById('copyToast');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+            icon.className = 'bi bi-clipboard';
+            icon.closest('.url-copy-btn').classList.remove('copied');
+        }, 2000);
+    });
+}
+
+function handleFileSelect(input) {
+    if (!input.files || !input.files[0]) return;
+    document.getElementById('fileNameText').textContent = input.files[0].name;
+    document.getElementById('fileSelected').classList.add('show');
+}
+</script>
 {% endblock %}
