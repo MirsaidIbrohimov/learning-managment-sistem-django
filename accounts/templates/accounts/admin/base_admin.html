@@ -8,10 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Admin Panel - LMS{% endblock %}</title>
     
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="IT Creative Zomin - Zomin IT Park, IT Shaxarcha. Zomin hududida eng yaxshi dasturlash kurslari. Python, Django, Web dasturlash, Frontend, Backend kurslari.">
-    <meta name="keywords" content="it park zomin, zomin it park, it shaxarcha zomin, zomin it shaxarcha, it creative zomin, zomin it creative, zomin it academy, zomin dasturlash kurslari, it kurslar zomin, zomin hududida it park, jizzax zomin it park, zomin yoshlar uchun it markaz, zomin dasturchilar maktabi, zomin web dasturlash kursi, zomin python kurslari, zomin frontend backend kurslari, zomin it o'quv markazi, suyunov husan, husanbek coder">
-    <meta name="author" content="Suyunov Husan - Husanbek Coder, IT Creative Zomin">
+    <meta name="description" content="IT Creative Zomin - Zomin IT Park, IT Shaxarcha. Zomin hududida eng yaxshi dasturlash kurslari.">
     <meta name="robots" content="noindex, nofollow">
     
     <link rel="stylesheet" href="{% static 'css/base_admin.css' %}">
@@ -20,6 +17,231 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
+    <style>
+    /* ===== Admin Layout ===== */
+    .admin-topbar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 280px;
+        height: 64px;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        z-index: 999;
+        transition: left 0.3s ease;
+    }
+
+    .admin-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .admin-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .sidebar-toggle {
+        display: none;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(13, 110, 253, 0.08);
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-toggle:active {
+        transform: scale(0.92);
+    }
+
+    .topbar-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text-color);
+    }
+
+    .topbar-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px 6px 6px;
+        border: 1px solid var(--border-color);
+        border-radius: 50px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: var(--text-color);
+    }
+
+    .topbar-profile-btn:hover {
+        background: rgba(13, 110, 253, 0.05);
+        border-color: var(--primary-blue);
+    }
+
+    .topbar-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .topbar-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .admin-theme-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .admin-theme-btn:hover {
+        background: rgba(13, 110, 253, 0.08);
+        color: var(--primary-blue);
+    }
+
+    .main-content {
+        margin-left: 280px;
+        padding-top: 88px;
+        padding-left: 30px;
+        padding-right: 30px;
+        padding-bottom: 30px;
+        min-height: 100vh;
+    }
+
+    /* ===== Sidebar Overlay (mobile) ===== */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1049;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* ===== Sidebar nav groups ===== */
+    .sidebar-group-label {
+        color: rgba(255,255,255,0.35);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        padding: 16px 15px 6px;
+        margin-top: 6px;
+    }
+
+    .sidebar-close {
+        display: none;
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 992px) {
+        .sidebar {
+            width: 280px !important;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1050;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-brand span,
+        .sidebar-nav .nav-link span:not(.sidebar-badge) {
+            display: inline !important;
+        }
+
+        .sidebar-nav .nav-link {
+            justify-content: flex-start !important;
+            padding: 12px 15px !important;
+        }
+
+        .sidebar-nav .nav-link i:first-child {
+            margin-right: 10px !important;
+        }
+
+        .admin-topbar {
+            left: 0;
+        }
+
+        .sidebar-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-content {
+            margin-left: 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .admin-topbar {
+            padding: 0 14px;
+        }
+
+        .topbar-name {
+            display: none;
+        }
+
+        .main-content {
+            padding: 78px 14px 20px;
+        }
+    }
+    </style>
+
     {% block extra_css %}{% endblock %}
 
 </head>
@@ -27,24 +249,80 @@
 <body>
     <div id="weather_effect"></div>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-brand" style="text-decoration: none;">
-            <a href="{% url 'home' %}" class="nav-link"> <i class="bi bi-mortarboard-fill me-2 "></i>
-                <span>LMS Admin</span></a>
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <!-- Sidebar -->
+    <div class="sidebar" id="adminSidebar">
+        <button class="sidebar-close" id="sidebarClose" aria-label="Yopish">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <div class="sidebar-brand" style="text-decoration: none;">
+            <a href="{% url 'home' %}" class="nav-link">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                <span>LMS Admin</span>
+            </a>
         </div>
 
         <nav class="sidebar-nav">
+            <div class="sidebar-group-label">Asosiy</div>
+
             <a href="{% url 'admin_dashboard' %}"
                 class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
                 <i class="bi bi-speedometer2"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="{% url 'admin_statistics' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_statistics' %}active{% endif %}">
+                <i class="bi bi-graph-up"></i>
+                <span>Statistika</span>
+            </a>
+            <a href="{% url 'admin_reports' %}" class="nav-link {% if 'report' in request.path %}active{% endif %}">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Hisobotlar</span>
+            </a>
+
+            <div class="sidebar-group-label">O'quv jarayoni</div>
+
             <a href="{% url 'admin_professions' %}"
                 class="nav-link {% if 'profession' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-briefcase"></i>
                 <span>Kasblar</span>
+            </a>
+            <a href="{% url 'admin_lesson_statistics' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_lesson_statistics' %}active{% endif %}">
+                <i class="bi bi-bar-chart"></i>
+                <span>Darslar tahlili</span>
+            </a>
+            <a href="{% url 'admin_test_analytics' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_test_analytics' %}active{% endif %}">
+                <i class="bi bi-journal-check"></i>
+                <span>Test hulosalari</span>
+            </a>
+            <a href="{% url 'homework_submissions' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}">
+                <i class="bi bi-file-check"></i>
+                <span>Vazifalar</span>
+                {% if admin_pending_homeworks %}<span class="sidebar-badge">{{ admin_pending_homeworks }}</span>{% endif %}
+            </a>
+            <a href="{% url 'admin_sections_management' %}"
+                class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-layers"></i>
+                <span>Bo'limlar</span>
+            </a>
+
+            <div class="sidebar-group-label">Foydalanuvchilar</div>
+
+            <a href="{% url 'admin_users' %}"
+                class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-people"></i>
+                <span>Foydalanuvchilar</span>
+            </a>
+            <a href="{% url 'admin_parents' %}"
+                class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-people-fill"></i>
+                <span>Ota-onalar</span>
             </a>
             <a href="{% url 'admin_enrollment_requests' %}"
                 class="nav-link {% if 'enrollment' in request.resolver_match.url_name %}active{% endif %}">
@@ -58,52 +336,13 @@
                 <span>Parol tiklash</span>
                 {% if admin_pending_passwords %}<span class="sidebar-badge">{{ admin_pending_passwords }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_users' %}"
-                class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people"></i>
-                <span>Foydalanuvchilar</span>
-            </a>
-            <a href="{% url 'admin_parents' %}"
-                class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-people-fill"></i>
-                <span>Ota-onalar</span>
-            </a>
-            <a href="{% url 'admin_statistics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_statistics' %}active{% endif %}">
-                <i class="bi bi-graph-up"></i>
-                <span>Statistika</span>
-            </a>
-            <a href="{% url 'admin_lesson_statistics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_lesson_statistics' %}active{% endif %}">
-                <i class="bi bi-bar-chart"></i>
-                <span>Darslar tahlili</span>
-            </a>
-            <a href="{% url 'admin_test_analytics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_test_analytics' %}active{% endif %}">
-                <i class="bi bi-journal-check"></i>
-                <span>Test hulosalari</span>
-            </a>
-            <a href="{% url 'admin_messages' %}"
-                class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-envelope"></i>
-                <span>Xabarlar</span>
-            </a>
-            <a href="{% url 'admin_books' %}"
-                class="nav-link {% if 'book' in request.resolver_match.url_name or 'admin_book' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-book"></i>
-                <span>Kutubxona</span>
-            </a>
+
+            <div class="sidebar-group-label">Moliya & Market</div>
 
             <a href="{% url 'admin_payments' %}"
                 class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-credit-card"></i>
                 <span>To'lovlar</span>
-            </a>
-            <a href="{% url 'homework_submissions' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}">
-                <i class="bi bi-file-check"></i>
-                <span>Vazifalar</span>
-                {% if admin_pending_homeworks %}<span class="sidebar-badge">{{ admin_pending_homeworks }}</span>{% endif %}
             </a>
             <a href="{% url 'coin:admin_products' %}"
                 class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}">
@@ -115,19 +354,47 @@
                 <i class="bi bi-bag-check"></i>
                 <span>Xaridlar</span>
             </a>
-            <a href="{% url 'coin:admin_activities' %}"
-                class="nav-link {% if 'activities' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-activity"></i>
-                <span>Harakatlar</span>
+            <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}">
+                <i class="bi bi-coin"></i>
+                <span>Coin berish</span>
             </a>
-            <a href="{% url 'admin_sections_management' %}"
-                class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-layers"></i>
-                <span>Bo'limlar boshqaruvi</span>
+            <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}">
+                <i class="bi bi-patch-check-fill"></i>
+                <span>Premium</span>
+                {% if admin_pending_premium %}<span class="sidebar-badge">{{ admin_pending_premium }}</span>{% endif %}
+            </a>
+            <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}">
+                <i class="bi bi-percent"></i>
+                <span>Chegirmalar</span>
+            </a>
+
+            <div class="sidebar-group-label">Kontent</div>
+
+            <a href="{% url 'admin_messages' %}"
+                class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-envelope"></i>
+                <span>Xabarlar</span>
+            </a>
+            <a href="{% url 'admin_books' %}"
+                class="nav-link {% if 'book' in request.resolver_match.url_name or 'admin_book' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-book"></i>
+                <span>Kutubxona</span>
             </a>
             <a href="{% url 'blog:admin_posts' %}" class="nav-link {% if 'blog' in request.path %}active{% endif %}">
                 <i class="bi bi-newspaper"></i>
                 <span>Blog</span>
+            </a>
+            <a href="{% url 'admin_deploys' %}" class="nav-link {% if 'deploys' in request.path %}active{% endif %}">
+                <i class="bi bi-code-slash"></i>
+                <span>Deploylar</span>
+            </a>
+
+            <div class="sidebar-group-label">Tizim</div>
+
+            <a href="{% url 'coin:admin_activities' %}"
+                class="nav-link {% if 'activities' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-activity"></i>
+                <span>Harakatlar</span>
             </a>
             <a href="{% url 'ai_yordamchi:admin_chats' %}" class="nav-link {% if 'ai_yordamchi' in request.path %}active{% endif %}">
                 <i class="bi bi-robot"></i>
@@ -138,66 +405,57 @@
                 <span>Yordam xatlari</span>
                 {% if admin_pending_help %}<span class="sidebar-badge">{{ admin_pending_help }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}">
-                <i class="bi bi-coin"></i>
-                <span>Coin berish</span>
-            </a>
-            <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}">
-                <i class="bi bi-patch-check-fill"></i>
-                <span>Premium boshqaruv</span>
-                {% if admin_pending_premium %}<span class="sidebar-badge">{{ admin_pending_premium }}</span>{% endif %}
-            </a>
-            <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}">
-                <i class="bi bi-percent"></i>
-                <span>Chegirmalar</span>
-            </a>
-            <a href="{% url 'admin_deploys' %}" class="nav-link {% if 'deploys' in request.path %}active{% endif %}">
-                <i class="bi bi-code-slash"></i>
-                <span>Deploylar</span>
-            </a>
-            <a href="{% url 'admin_reports' %}" class="nav-link {% if 'report' in request.path %}active{% endif %}">
-                <i class="bi bi-file-earmark-bar-graph"></i>
-                <span>Hisobotlar</span>
-            </a>
-
         </nav>
-
-        <!-- SEO META -->
-<meta name="keywords" content="Suyunov Husan, IT Creative, Django admin panel, profile dropdown, responsive navbar">
-<meta name="description" content="Responsive admin profile dropdown by Suyunov Husan - IT Creative.">
-
-<div class="topbar d-flex justify-content-end align-items-center px-3">
-
-    <!-- 🌙 Theme Toggle -->
-    <button class="theme-toggle-admin me-3" id="themeToggle">
-        <i class="bi bi-moon-fill" id="themeIcon"></i>
-    </button>
-
-    <!-- 👤 Profile Dropdown -->
-    <div class="dropdown">
-        <button class="btn profile-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="profile-avatar">
-                {{ user.first_name.0 }}{{ user.last_name.0 }}
-            </div>
-            <span class="profile-name d-none d-md-inline">
-                {{ user.first_name }} {{ user.last_name }}
-            </span>
-        </button>
-
-        <ul class="dropdown-menu dropdown-menu-end shadow">
-            
-            <li><hr class="dropdown-divider"></li>
-           
-            <li>
-                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
-                    <i class="bi bi-box-arrow-right me-2"></i>Chiqish
-                </a>
-            </li>
-        </ul>
     </div>
 
-</div>
+    <!-- Top Bar -->
+    <div class="admin-topbar">
+        <div class="admin-topbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menyu">
+                <i class="bi bi-list"></i>
+            </button>
+            <span class="topbar-title d-none d-md-inline">{% block topbar_title %}Admin Panel{% endblock %}</span>
+        </div>
 
+        <div class="admin-topbar-right">
+            <button class="admin-theme-btn" id="themeToggle" title="Tema">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
+
+            <div class="dropdown">
+                <button class="topbar-profile-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="topbar-avatar">
+                        {{ user.first_name.0 }}{{ user.last_name.0 }}
+                    </div>
+                    <span class="topbar-name">{{ user.first_name }}</span>
+                    <i class="bi bi-chevron-down" style="font-size:0.7rem;opacity:0.5;"></i>
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;padding:8px;">
+                    <li class="px-3 py-2">
+                        <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
+                        <small class="text-muted">Admin</small>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item rounded-3" href="{% url 'home' %}">
+                            <i class="bi bi-house me-2"></i>Saytga o'tish
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item rounded-3" href="{% url 'profile' %}">
+                            <i class="bi bi-person me-2"></i>Profil
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right me-2"></i>Chiqish
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -216,6 +474,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Theme Toggle
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon = document.getElementById('themeIcon');
         const html = document.documentElement;
@@ -227,23 +486,48 @@
         themeToggle.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-bs-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-
             html.setAttribute('data-bs-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateIcon(newTheme);
         });
 
         function updateIcon(theme) {
-            if (theme === 'dark') {
-                themeIcon.classList.remove('bi-moon-fill');
-                themeIcon.classList.add('bi-sun-fill');
-            } else {
-                themeIcon.classList.remove('bi-sun-fill');
-                themeIcon.classList.add('bi-moon-fill');
-            }
+            themeIcon.classList.toggle('bi-moon-fill', theme === 'light');
+            themeIcon.classList.toggle('bi-sun-fill', theme === 'dark');
         }
+
+        // Sidebar Toggle (mobile)
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+
+        function openSidebar() {
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        toggleBtn.addEventListener('click', openSidebar);
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        // Close sidebar on nav link click (mobile)
+        sidebar.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) closeSidebar();
+            });
+        });
     </script>
     <script src="{% static 'effects/weather_effect.js' %}?v=3"></script>
+
+    {% block extra_js %}{% endblock %}
 
 </body>
 
