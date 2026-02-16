@@ -155,6 +155,71 @@
     box-shadow: 0 8px 20px rgba(26, 183, 234, 0.3);
     color: white;
 }
+
+/* Next Lesson Button */
+.next-lesson-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--soft-bg);
+    border-radius: 14px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.25s ease;
+}
+
+.next-lesson-btn:hover {
+    background: rgba(13, 110, 253, 0.08);
+    transform: translateX(4px);
+    color: inherit;
+}
+
+.next-lesson-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.next-lesson-title {
+    font-weight: 700;
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.next-lesson-type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.next-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.next-video { background: rgba(13,110,253,0.1); color: #0d6efd; }
+.next-test { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.next-hw { background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+@media (max-width: 576px) {
+    .next-lesson-btn {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .next-lesson-type {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
 </style>
 {% endblock %}
 
@@ -245,13 +310,34 @@
                     </button>
                 </div>
                 {% else %}
-                <div class="alert alert-success text-center">
+                <div class="alert alert-success text-center mb-0">
                     <i class="bi bi-check-circle me-2"></i>
                     Siz bu videoni ko'rgansiz va 1 coin oldingiz!
                 </div>
                 {% endif %}
             {% endif %}
         </div>
+
+        {% if next_lesson %}
+        <div class="card-footer bg-transparent border-top p-3">
+            <a href="{% url 'lesson_view' next_lesson.pk %}" class="next-lesson-btn">
+                <div class="next-lesson-info">
+                    <small class="text-muted">Keyingi dars</small>
+                    <span class="next-lesson-title">{{ next_lesson.title }}</span>
+                </div>
+                <div class="next-lesson-type">
+                    {% if next_lesson.lesson_type == 'video' %}
+                    <span class="next-badge next-video"><i class="bi bi-play-circle-fill me-1"></i>Video</span>
+                    {% elif next_lesson.lesson_type == 'test' %}
+                    <span class="next-badge next-test"><i class="bi bi-journal-check me-1"></i>Test</span>
+                    {% elif next_lesson.lesson_type == 'homework' %}
+                    <span class="next-badge next-hw"><i class="bi bi-file-earmark-text me-1"></i>Topshiriq</span>
+                    {% endif %}
+                    <i class="bi bi-arrow-right-circle-fill fs-4 text-primary"></i>
+                </div>
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

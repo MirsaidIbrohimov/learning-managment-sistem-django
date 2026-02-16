@@ -420,6 +420,33 @@ def lesson_view(request, pk):
     
     context = {'lesson': lesson, 'profession': profession}
     
+    # Keyingi darsni topish
+    next_lesson = None
+    if lesson.section:
+        next_lesson = Lesson.objects.filter(
+            profession=profession,
+            section=lesson.section,
+            order__gt=lesson.order
+        ).first()
+        if not next_lesson:
+            next_section = Section.objects.filter(
+                profession=profession,
+                is_active=True,
+                order__gt=lesson.section.order
+            ).first()
+            if next_section:
+                next_lesson = Lesson.objects.filter(
+                    profession=profession,
+                    section=next_section
+                ).first()
+    else:
+        next_lesson = Lesson.objects.filter(
+            profession=profession,
+            section__isnull=True,
+            order__gt=lesson.order
+        ).first()
+    context['next_lesson'] = next_lesson
+    
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
