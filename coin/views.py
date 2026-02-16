@@ -205,13 +205,17 @@ def market_detail(request, pk):
                 user=request.user,
                 content=content
             )
-            request.user.add_coins(1, f"Mahsulotga izoh: {product.name}")
+            if request.user.is_premium:
+                request.user.add_coins(1, f"Mahsulotga izoh (Premium): {product.name}")
+                messages.success(request, "Izoh qo'shildi (+1 coin Premium bonus)! ✨")
+            else:
+                request.user.remove_coins(1, f"Mahsulotga izoh yozish: {product.name}")
+                messages.success(request, "Izoh qo'shildi (-1 coin)")
             ActivityLog.objects.create(
                 user=request.user,
                 action_type='comment_product',
                 description=f"Mahsulotga izoh qoldirdi: {product.name}"
             )
-            messages.success(request, "Izoh qo'shildi (+1 coin)!")
             return redirect('coin:market_detail', pk=pk)
     
     discounted_price = get_discounted_price(product, request.user)
@@ -234,18 +238,20 @@ def market_like(request, pk):
     like = ProductLike.objects.filter(product=product, user=request.user).first()
     
     if like:
+        coin_back = 2 if request.user.is_premium else 1
         if like.coin_awarded:
-            request.user.remove_coins(1, f"Mahsulotga like bekor qilindi: {product.name}")
+            request.user.remove_coins(coin_back, f"Mahsulotga like bekor qilindi: {product.name}")
         like.delete()
     else:
+        coin_amount = 2 if request.user.is_premium else 1
         like = ProductLike.objects.create(product=product, user=request.user)
-        request.user.add_coins(1, f"Mahsulotga like: {product.name}")
+        request.user.add_coins(coin_amount, f"Mahsulotga like: {product.name}")
         like.coin_awarded = True
         like.save()
         ActivityLog.objects.create(
             user=request.user,
             action_type='like_product',
-            description=f"Mahsulotga like bosdi: {product.name}"
+            description=f"Mahsulotga like bosdi: {product.name} (+{coin_amount} coin)"
         )
     
     return redirect('coin:market_detail', pk=pk)

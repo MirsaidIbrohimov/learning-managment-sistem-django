@@ -62,14 +62,17 @@ def post_detail(request, pk):
             comment.user = request.user
             comment.save()
             
-            # Award coin for comment
-            request.user.add_coins(1, f"Izoh qoldirildi: {post.title}")
+            if request.user.is_premium:
+                request.user.add_coins(1, f"Postga izoh (Premium): {post.title}")
+                messages.success(request, "Izoh qoldirildi (+1 coin Premium bonus)! ✨")
+            else:
+                request.user.remove_coins(1, f"Postga izoh yozish: {post.title}")
+                messages.success(request, "Izoh qoldirildi (-1 coin)")
             ActivityLog.objects.create(
                 user=request.user,
-                action_type='Postga izoh qoldirdi',
+                action_type='comment_post',
                 description=f"Postga izoh qoldirdi: {post.title}"
             )
-            messages.success(request, "Izoh qoldirildi (+1 coin)!")
             return redirect('blog:post_detail', pk=pk)
     else:
         form = CommentForm()
@@ -107,21 +110,21 @@ def toggle_like(request, pk):
     like = PostLike.objects.filter(post=post, user=request.user).first()
     
     if like:
-        # Unlike - coin qaytarib olish
+        coin_back = 2 if request.user.is_premium else 1
         if like.coin_awarded:
-            request.user.remove_coins(1, f"Postga like olib tashlandi: {post.title}")
-            messages.info(request, "Like olib tashlandi (-1 coin)")
+            request.user.remove_coins(coin_back, f"Postga like olib tashlandi: {post.title}")
+            messages.info(request, f"Like olib tashlandi (-{coin_back} coin)")
         like.delete()
     else:
-        # Like - coin berish
+        coin_amount = 2 if request.user.is_premium else 1
         like = PostLike.objects.create(post=post, user=request.user, coin_awarded=True)
-        request.user.add_coins(1, f"Postga like bosildi: {post.title}")
+        request.user.add_coins(coin_amount, f"Postga like bosildi: {post.title}")
         ActivityLog.objects.create(
             user=request.user,
             action_type='like_post',
-            description=f"Postga like bosdi: {post.title}"
+            description=f"Postga like bosdi: {post.title} (+{coin_amount} coin)"
         )
-        messages.success(request, "Like bosildi (+1 coin)")
+        messages.success(request, f"Like bosildi (+{coin_amount} coin)")
         
     return redirect('blog:post_detail', pk=pk)
 
@@ -193,17 +196,19 @@ def toggle_comment_like(request, pk):
     like = CommentLike.objects.filter(comment=comment, user=request.user).first()
     
     if like:
+        coin_back = 2 if request.user.is_premium else 1
         like.delete()
-        comment.user.remove_coins(1, f"Izohga like olib tashlandi")
-        messages.info(request, "Like olib tashlandi (-1 coin izoh egasidan)")
+        comment.user.remove_coins(coin_back, f"Izohga like olib tashlandi")
+        messages.info(request, f"Like olib tashlandi (-{coin_back} coin izoh egasidan)")
     else:
+        coin_amount = 2 if request.user.is_premium else 1
         CommentLike.objects.create(comment=comment, user=request.user)
-        comment.user.add_coins(1, f"Izohga like olindi")
+        comment.user.add_coins(coin_amount, f"Izohga like olindi")
         ActivityLog.objects.create(
             user=comment.user,
             action_type='comment_liked',
-            description=f"Izohga like olindi: {comment.content[:30]}"
+            description=f"Izohga like olindi: {comment.content[:30]} (+{coin_amount} coin)"
         )
-        messages.success(request, "Like bosildi (+1 coin izoh egasiga)")
+        messages.success(request, f"Like bosildi (+{coin_amount} coin izoh egasiga)")
     
     return redirect('blog:post_detail', pk=comment.post.pk)
