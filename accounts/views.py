@@ -3662,12 +3662,22 @@ def admin_discount_delete(request, pk):
 def my_deploys(request):
     """O'quvchining deploy qilgan sahifalari"""
     deploys = HTMLDeploy.objects.filter(user=request.user)
-    return render(request, 'accounts/coding/my_deploys.html', {'deploys': deploys})
+    return render(request, 'accounts/coding/my_deploys.html', {
+        'deploys': deploys,
+        'is_premium': request.user.is_premium,
+        'user_coins': request.user.coins,
+    })
 
 
 @login_required
 def create_deploy(request):
     """Yangi HTML deploy qilish"""
+    # Premium tekshiruvi - premium bo'lmaganlar 15 coin to'laydi
+    if not request.user.is_premium:
+        if request.user.coins < 15:
+            messages.error(request, "Sizda yetarli coin yo'q! Deploy qilish uchun 15 coin kerak.")
+            return redirect('my_deploys')
+    
     import os
     import zipfile
     import shutil
@@ -3810,6 +3820,10 @@ def create_deploy(request):
             html_content=html_content if deploy_type == 'html' else None,
             description=description,
         )
+        
+        # Premium bo'lmaganlardan coin yechish
+        if not request.user.is_premium:
+            request.user.remove_coins(15, f"'{title}' loyihasini deploy qilish")
         
         # Barcha foydalanuvchilarga xabar yuborish
         all_users = CustomUser.objects.filter(role='student', is_blocked=False).exclude(pk=request.user.pk)

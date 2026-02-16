@@ -1,186 +1,650 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}Coding - Mening sahifalarim | IT Creative{% endblock %}
+{% block title %}Coding - Mening Deploylarim{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* ── Keyframes ────────────────────────────────────── */
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%      { opacity: .7; transform: scale(1.15); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50%      { transform: translateY(-18px) rotate(5deg); }
+    }
+    @keyframes typing {
+        from { width: 0; }
+        to   { width: 100%; }
+    }
+    @keyframes blink {
+        50% { border-color: transparent; }
+    }
+    @keyframes shimmer {
+        0%   { background-position: -200% center; }
+        100% { background-position: 200% center; }
+    }
+    @keyframes codeFloat {
+        0%, 100% { transform: translateY(0) scale(1); opacity: .15; }
+        50%      { transform: translateY(-30px) scale(1.1); opacity: .3; }
+    }
+    @keyframes bracketBounce {
+        0%, 100% { transform: translateX(0); }
+        25%      { transform: translateX(-12px); }
+        75%      { transform: translateX(12px); }
+    }
+    @keyframes counterPop {
+        0%   { transform: scale(0); opacity: 0; }
+        60%  { transform: scale(1.2); }
+        100% { transform: scale(1); opacity: 1; }
+    }
 
-/* ===== iOS VARIABLES ===== */
-:root{
-    --ios-card-bg: rgba(255,255,255,0.85);
-    --ios-border: rgba(0,0,0,.08);
-    --ios-shadow: 0 10px 30px rgba(0,0,0,.12);
-    --ios-blur: blur(14px);
-}
+    /* ── Hero Section ─────────────────────────────────── */
+    .deploy-hero {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 8s ease infinite;
+        border-radius: 1.5rem;
+        padding: 3rem 2rem;
+        margin-bottom: 2rem;
+        color: #fff;
+    }
+    .deploy-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(255,255,255,.12) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,.08) 0%, transparent 50%);
+        pointer-events: none;
+    }
 
-[data-bs-theme="dark"]{
-    --ios-card-bg: rgba(25,25,35,0.75);
-    --ios-border: rgba(255,255,255,.08);
-    --ios-shadow: 0 10px 30px rgba(0,0,0,.45);
-}
+    /* floating code particles */
+    .hero-particle {
+        position: absolute;
+        font-family: 'Courier New', monospace;
+        font-size: 1.1rem;
+        color: rgba(255,255,255,.12);
+        pointer-events: none;
+        animation: codeFloat 6s ease-in-out infinite;
+    }
+    .hero-particle:nth-child(1) { top: 10%; left: 8%;  animation-delay: 0s;   font-size: 1.4rem; }
+    .hero-particle:nth-child(2) { top: 60%; left: 15%; animation-delay: 1.5s; }
+    .hero-particle:nth-child(3) { top: 25%; right: 10%; animation-delay: 3s;  font-size: 1.6rem; }
+    .hero-particle:nth-child(4) { top: 70%; right: 18%; animation-delay: .8s; }
+    .hero-particle:nth-child(5) { top: 40%; left: 50%; animation-delay: 2.2s; font-size: 1.3rem; }
+    .hero-particle:nth-child(6) { bottom: 10%; left: 35%; animation-delay: 4s; }
 
-/* ===== PAGE HEADER ===== */
-.page-title{
-    font-weight:700;
-    letter-spacing:-0.3px;
-}
+    .hero-title-wrap {
+        display: inline-block;
+        font-size: 2.4rem;
+        font-weight: 800;
+        max-width: 100%;
+    }
+    .hero-subtitle {
+        opacity: 0;
+        animation: fadeInUp .8s ease .6s forwards;
+        font-size: 1.1rem;
+        margin-top: .5rem;
+        color: rgba(255,255,255,.85);
+    }
 
-/* ===== CARD ===== */
-.deploy-card{
-    background: var(--ios-card-bg);
-    backdrop-filter: var(--ios-blur);
-    border:1px solid var(--ios-border);
-    border-radius:22px;
-    padding:20px;
-    height:100%;
-    transition:.35s cubic-bezier(.4,0,.2,1);
-}
+    /* ── Premium / Coin Banner ────────────────────────── */
+    .premium-banner {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        padding: .55rem 1.2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: .92rem;
+        margin-top: 1rem;
+    }
+    .premium-banner.is-premium {
+        background: linear-gradient(135deg, #10b981, #059669);
+        box-shadow: 0 0 20px rgba(16,185,129,.45);
+        animation: pulse 2.5s ease-in-out infinite;
+    }
+    .premium-banner.not-premium {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background-size: 200% auto;
+        animation: shimmer 3s linear infinite;
+    }
 
-.deploy-card:hover{
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: var(--ios-shadow);
-}
+    /* ── Stats Bar ────────────────────────────────────── */
+    .stats-bar {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        flex: 1;
+        min-width: 140px;
+        background: rgba(255,255,255,.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 1rem;
+        padding: 1.2rem;
+        text-align: center;
+        animation: counterPop .6s ease forwards;
+        opacity: 0;
+    }
+    .stat-card:nth-child(1) { animation-delay: .2s; }
+    .stat-card:nth-child(2) { animation-delay: .4s; }
+    .stat-card:nth-child(3) { animation-delay: .6s; }
+    .stat-card .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    .stat-card .stat-label {
+        font-size: .82rem;
+        opacity: .7;
+        margin-top: .2rem;
+    }
+    [data-bs-theme="dark"] .stat-card {
+        background: rgba(255,255,255,.06);
+        border-color: rgba(255,255,255,.08);
+    }
 
-.deploy-card.inactive{
-    opacity:.55;
-}
+    /* ── Deploy Card ──────────────────────────────────── */
+    .deploy-card {
+        background: rgba(255,255,255,.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,.25);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        transition: transform .35s ease, box-shadow .35s ease;
+        opacity: 0;
+        transform: translateY(30px);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .deploy-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .deploy-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(102,126,234,.2), 0 0 30px rgba(102,126,234,.08);
+    }
+    [data-bs-theme="dark"] .deploy-card {
+        background: rgba(255,255,255,.07);
+        border-color: rgba(255,255,255,.1);
+    }
+    [data-bs-theme="dark"] .deploy-card:hover {
+        box-shadow: 0 20px 50px rgba(102,126,234,.15), 0 0 30px rgba(118,75,162,.12);
+    }
 
-/* ===== URL BOX ===== */
-.url-box{
-    background: rgba(0,0,0,.04);
-    border-radius:12px;
-    padding:10px 14px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size:.82rem;
-    word-break: break-all;
-}
+    .deploy-type-badge {
+        display: inline-block;
+        padding: .2rem .65rem;
+        border-radius: 50px;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+    }
+    .deploy-status {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .2rem .7rem;
+        border-radius: 50px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+    .deploy-status.active {
+        background: rgba(16,185,129,.15);
+        color: #10b981;
+    }
+    .deploy-status.active .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        animation: pulse 1.5s ease-in-out infinite;
+    }
+    .deploy-status.inactive {
+        background: rgba(156,163,175,.15);
+        color: #9ca3af;
+    }
+    .deploy-status.inactive .status-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: #9ca3af;
+    }
 
-[data-bs-theme="dark"] .url-box{
-    background: rgba(255,255,255,.06);
-}
+    .deploy-card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin: .8rem 0 .2rem;
+    }
+    .deploy-card-folder {
+        font-size: .82rem;
+        opacity: .55;
+        font-family: 'Courier New', monospace;
+    }
+    .deploy-card-desc {
+        font-size: .88rem;
+        opacity: .7;
+        margin: .6rem 0;
+        flex-grow: 1;
+    }
 
-/* ===== STAT BADGE ===== */
-.stat-badge{
-    background: linear-gradient(135deg,#5b8cff,#7b61ff);
-    color:#fff;
-    padding:6px 14px;
-    border-radius:999px;
-    font-size:.75rem;
-    font-weight:600;
-}
+    /* URL box */
+    .url-box {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        background: rgba(102,126,234,.06);
+        border: 1px solid rgba(102,126,234,.15);
+        border-radius: .75rem;
+        padding: .45rem .75rem;
+        margin-bottom: .8rem;
+        font-size: .8rem;
+        overflow: hidden;
+    }
+    .url-box a {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #667eea;
+        text-decoration: none;
+    }
+    .url-box .copy-btn {
+        background: none;
+        border: none;
+        color: #667eea;
+        cursor: pointer;
+        padding: .2rem;
+        border-radius: .4rem;
+        transition: background .2s;
+        flex-shrink: 0;
+    }
+    .url-box .copy-btn:hover {
+        background: rgba(102,126,234,.12);
+    }
 
-/* ===== BUTTONS ===== */
-.btn-ios{
-    border-radius:999px;
-    font-weight:600;
-}
+    .deploy-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: .8rem;
+        opacity: .6;
+        margin-bottom: .8rem;
+    }
+    .deploy-actions {
+        display: flex;
+        gap: .5rem;
+        flex-wrap: wrap;
+        margin-top: auto;
+    }
+    .deploy-actions .btn {
+        font-size: .82rem;
+        border-radius: .6rem;
+        padding: .35rem .8rem;
+    }
+    .btn-deploy-view {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        border: none;
+    }
+    .btn-deploy-view:hover {
+        opacity: .9;
+        color: #fff;
+    }
+    .btn-deploy-edit {
+        border: 1px solid rgba(102,126,234,.3);
+        color: #667eea;
+        background: transparent;
+    }
+    .btn-deploy-edit:hover {
+        background: rgba(102,126,234,.08);
+        color: #667eea;
+    }
+    .btn-deploy-delete {
+        border: 1px solid rgba(239,68,68,.25);
+        color: #ef4444;
+        background: transparent;
+    }
+    .btn-deploy-delete:hover {
+        background: rgba(239,68,68,.08);
+        color: #ef4444;
+    }
 
-/* ===== EMPTY STATE ===== */
-.empty-box{
-    background: var(--ios-card-bg);
-    backdrop-filter: var(--ios-blur);
-    border:1px solid var(--ios-border);
-    border-radius:24px;
-    padding:50px 30px;
-}
+    /* ── New Deploy Button ────────────────────────────── */
+    .btn-new-deploy {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        border: none;
+        border-radius: .8rem;
+        padding: .6rem 1.5rem;
+        font-weight: 600;
+        font-size: .95rem;
+        transition: transform .2s, box-shadow .3s;
+    }
+    .btn-new-deploy:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102,126,234,.35);
+        color: #fff;
+    }
+    .btn-new-deploy:disabled {
+        opacity: .55;
+        cursor: not-allowed;
+        color: #fff;
+    }
 
+    /* ── Empty State ──────────────────────────────────── */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 1rem;
+        opacity: 0;
+        animation: fadeInUp .8s ease .3s forwards;
+    }
+    .empty-brackets {
+        font-size: 5rem;
+        font-weight: 800;
+        font-family: 'Courier New', monospace;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        margin-bottom: 1.5rem;
+    }
+    .empty-brackets .bracket-left,
+    .empty-brackets .bracket-right {
+        display: inline-block;
+        animation: bracketBounce 2s ease-in-out infinite;
+    }
+    .empty-brackets .bracket-right {
+        animation-delay: 1s;
+    }
+    .empty-brackets .bracket-slash {
+        animation: float 3s ease-in-out infinite;
+    }
+    .empty-state h4 { font-weight: 700; margin-bottom: .5rem; }
+    .empty-state p  { opacity: .6; }
+
+    /* ── Toast ────────────────────────────────────────── */
+    .copy-toast {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        padding: .75rem 1.5rem;
+        border-radius: .8rem;
+        font-size: .9rem;
+        font-weight: 600;
+        box-shadow: 0 10px 30px rgba(102,126,234,.35);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all .4s cubic-bezier(.68,-.55,.27,1.55);
+        z-index: 9999;
+        pointer-events: none;
+    }
+    .copy-toast.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @media (max-width: 576px) {
+        .deploy-hero { padding: 2rem 1.2rem; border-radius: 1rem; }
+        .hero-title-wrap { font-size: 1.5rem; }
+        .stat-card { min-width: 100px; padding: .8rem; }
+        .stat-card .stat-number { font-size: 1.5rem; }
+        .deploy-actions { flex-direction: column; }
+        .deploy-actions .btn { width: 100%; text-align: center; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<!-- Toast -->
+<div class="copy-toast" id="copyToast">
+    <i class="bi bi-check-circle me-1"></i> URL nusxalandi!
+</div>
 
-    <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
-        <div>
-            <h2 class="page-title mb-1">
-                <i class="bi bi-code-slash me-2"></i>Coding
-            </h2>
-            <p class="text-muted mb-0">HTML sahifalaringizni deploy qiling va ulashing</p>
+<!-- Hero Section -->
+<div class="deploy-hero">
+    <span class="hero-particle">&lt;/&gt;</span>
+    <span class="hero-particle">{ }</span>
+    <span class="hero-particle">&&</span>
+    <span class="hero-particle">=&gt;</span>
+    <span class="hero-particle">[ ]</span>
+    <span class="hero-particle">#!</span>
+
+    <div class="position-relative" style="z-index:1;">
+        <div class="hero-title-wrap">
+            <i class="bi bi-code-slash me-2"></i>Coding Deploylar
+        </div>
+        <div class="hero-subtitle">
+            Loyihalaringizni bir necha soniyada dunyo bilan ulashing
         </div>
 
-        <a href="{% url 'create_deploy' %}" class="btn btn-primary btn-ios px-4">
-            <i class="bi bi-plus-lg me-1"></i>Yangi sahifa
-        </a>
+        {% if is_premium %}
+            <div class="premium-banner is-premium">
+                <i class="bi bi-gem"></i> Premium — Bepul deploy
+            </div>
+        {% else %}
+            <div class="premium-banner not-premium">
+                <i class="bi bi-coin"></i> Har bir deploy: 15 coin
+                <span style="margin-left:.4rem;opacity:.85;">|</span>
+                <span style="margin-left:.4rem;"><i class="bi bi-wallet2 me-1"></i>{{ user_coins }} coin</span>
+            </div>
+        {% endif %}
     </div>
+</div>
 
-    {% if deploys %}
-    <div class="row g-4">
+<!-- Stats Bar -->
+{% with total_views=0 active_count=0 %}
+<div class="stats-bar">
+    <div class="stat-card">
+        <div class="stat-number" data-count="{{ deploys|length }}">0</div>
+        <div class="stat-label">Jami Deploylar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" data-count-views>0</div>
+        <div class="stat-label">Jami Ko'rishlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number" data-count-active>0</div>
+        <div class="stat-label">Faol Deploylar</div>
+    </div>
+</div>
+{% endwith %}
 
-        {% for deploy in deploys %}
-        <div class="col-md-6 col-lg-4">
+<!-- Action Bar -->
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+    <h5 class="fw-bold mb-0"><i class="bi bi-grid-3x3-gap me-2"></i>Mening Deploylarim</h5>
 
-            <div class="deploy-card {% if not deploy.is_active %}inactive{% endif %}">
+    {% if is_premium or user_coins >= 15 %}
+        <a href="{% url 'create_deploy' %}" class="btn btn-new-deploy">
+            <i class="bi bi-plus-lg me-1"></i> Yangi sahifa
+        </a>
+    {% else %}
+        <span data-bs-toggle="tooltip" data-bs-placement="top" title="Yetarli coin yo'q (15 coin kerak)">
+            <a class="btn btn-new-deploy disabled" aria-disabled="true" tabindex="-1">
+                <i class="bi bi-lock me-1"></i> Yangi sahifa
+            </a>
+        </span>
+    {% endif %}
+</div>
 
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div>
-                        <h5 class="mb-1 fw-semibold">{{ deploy.title }}</h5>
-                        <small class="text-muted">{{ deploy.folder_name }}</small>
-                    </div>
-
-                    {% if deploy.is_active %}
-                        <span class="badge rounded-pill bg-success">Faol</span>
-                    {% else %}
-                        <span class="badge rounded-pill bg-secondary">Nofaol</span>
-                    {% endif %}
-                </div>
-
-                {% if deploy.description %}
-                <p class="text-muted small mb-3">
-                    {{ deploy.description|truncatewords:15 }}
-                </p>
+<!-- Deploy Grid -->
+{% if deploys %}
+<div class="row g-4">
+    {% for deploy in deploys %}
+    <div class="col-md-6 col-lg-4 deploy-col" style="animation-delay: {{ forloop.counter0 }}00ms;">
+        <div class="deploy-card" data-reveal
+             data-views="{{ deploy.views_count }}"
+             data-active="{% if deploy.is_active %}1{% else %}0{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="deploy-type-badge">{{ deploy.deploy_type }}</span>
+                {% if deploy.is_active %}
+                    <span class="deploy-status active"><span class="status-dot"></span> Faol</span>
+                {% else %}
+                    <span class="deploy-status inactive"><span class="status-dot"></span> Nofaol</span>
                 {% endif %}
-
-                <div class="url-box mb-3">
-                    <i class="bi bi-link-45deg me-1"></i>{{ deploy.get_url }}
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="stat-badge">
-                        <i class="bi bi-eye me-1"></i>{{ deploy.views_count }} ko‘rish
-                    </span>
-                    <small class="text-muted">{{ deploy.created_at|date:"d.m.Y" }}</small>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <a href="{{ deploy.get_url }}" target="_blank"
-                       class="btn btn-primary btn-sm btn-ios flex-grow-1">
-                        <i class="bi bi-box-arrow-up-right me-1"></i>Ko‘rish
-                    </a>
-
-                    <a href="{% url 'edit_deploy' deploy.pk %}"
-                       class="btn btn-outline-primary btn-sm btn-ios">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-
-                    <a href="{% url 'delete_deploy' deploy.pk %}"
-                       class="btn btn-outline-danger btn-sm btn-ios">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-
             </div>
 
+            <div class="deploy-card-title">{{ deploy.title }}</div>
+            <div class="deploy-card-folder">/{{ deploy.folder_name }}</div>
+            {% if deploy.description %}
+                <div class="deploy-card-desc">{{ deploy.description|truncatewords:20 }}</div>
+            {% else %}
+                <div class="deploy-card-desc" style="opacity:.35;font-style:italic;">Tavsif yo'q</div>
+            {% endif %}
+
+            {% if deploy.get_url %}
+            <div class="url-box">
+                <i class="bi bi-link-45deg" style="opacity:.5;flex-shrink:0;"></i>
+                <a href="{{ deploy.get_url }}" target="_blank" rel="noopener">{{ deploy.get_url }}</a>
+                <button class="copy-btn" onclick="copyURL('{{ deploy.get_url }}')" title="Nusxalash">
+                    <i class="bi bi-clipboard"></i>
+                </button>
+            </div>
+            {% endif %}
+
+            <div class="deploy-meta">
+                <span><i class="bi bi-eye me-1"></i>{{ deploy.views_count }}</span>
+                <span><i class="bi bi-calendar3 me-1"></i>{{ deploy.created_at|date:"d M, Y" }}</span>
+                {% if deploy.profession %}
+                    <span><i class="bi bi-briefcase me-1"></i>{{ deploy.profession }}</span>
+                {% endif %}
+            </div>
+
+            <div class="deploy-actions">
+                {% if deploy.get_url %}
+                <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-deploy-view">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ko'rish
+                </a>
+                {% endif %}
+                <a href="{% url 'edit_deploy' deploy.pk %}" class="btn btn-deploy-edit">
+                    <i class="bi bi-pencil me-1"></i>Tahrirlash
+                </a>
+                <a href="{% url 'delete_deploy' deploy.pk %}" class="btn btn-deploy-delete">
+                    <i class="bi bi-trash3 me-1"></i>O'chirish
+                </a>
+            </div>
         </div>
-        {% endfor %}
-
     </div>
-
-    {% else %}
-    <!-- EMPTY -->
-    <div class="text-center py-5">
-        <div class="empty-box mx-auto" style="max-width:420px;">
-            <i class="bi bi-code-slash fs-1 text-muted"></i>
-            <h5 class="mt-3">Hali sahifa yaratmagansiz</h5>
-            <p class="text-muted">HTML kodingizni yozing va deploy qiling 🚀</p>
-
-            <a href="{% url 'create_deploy' %}" class="btn btn-primary btn-ios px-4 mt-2">
-                <i class="bi bi-plus-lg me-1"></i>Yangi sahifa yaratish
-            </a>
-        </div>
-    </div>
-    {% endif %}
-
+    {% endfor %}
 </div>
+{% else %}
+<!-- Empty State -->
+<div class="empty-state">
+    <div class="empty-brackets">
+        <span class="bracket-left">&lt;</span>
+        <span class="bracket-slash">/</span>
+        <span class="bracket-right">&gt;</span>
+    </div>
+    <h4>Hali deploylar yo'q</h4>
+    <p>Birinchi loyihangizni deploy qiling va dunyo bilan ulashing!</p>
+    {% if is_premium or user_coins >= 15 %}
+        <a href="{% url 'create_deploy' %}" class="btn btn-new-deploy mt-3">
+            <i class="bi bi-rocket-takeoff me-1"></i> Birinchi deploy
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    /* ── Intersection Observer — fade-in cards ────────── */
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                const col = entry.target;
+                const delay = col.style.animationDelay || '0ms';
+                const card = col.querySelector('.deploy-card');
+                if (card) {
+                    card.style.transition = 'opacity .6s ease ' + delay + ', transform .6s ease ' + delay;
+                    card.classList.add('visible');
+                }
+                observer.unobserve(col);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.deploy-col').forEach(function(col) {
+        observer.observe(col);
+    });
+
+    /* ── Animated Counters ────────────────────────────── */
+    var totalViews = 0;
+    var activeCount = 0;
+    document.querySelectorAll('.deploy-card[data-reveal]').forEach(function(card) {
+        totalViews += parseInt(card.dataset.views || '0', 10);
+        if (card.dataset.active === '1') activeCount++;
+    });
+
+    function animateCounter(el, target) {
+        if (!el) return;
+        var start = 0;
+        var duration = 1200;
+        var startTime = null;
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            var progress = Math.min((timestamp - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.floor(eased * target);
+            if (progress < 1) requestAnimationFrame(step);
+            else el.textContent = target;
+        }
+        requestAnimationFrame(step);
+    }
+
+    var statNumbers = document.querySelectorAll('.stat-number');
+    setTimeout(function() {
+        if (statNumbers[0]) animateCounter(statNumbers[0], parseInt(statNumbers[0].dataset.count || '0', 10));
+        if (statNumbers[1]) animateCounter(statNumbers[1], totalViews);
+        if (statNumbers[2]) animateCounter(statNumbers[2], activeCount);
+    }, 400);
+
+    /* ── Copy URL ─────────────────────────────────────── */
+    window.copyURL = function(url) {
+        navigator.clipboard.writeText(url).then(function() {
+            var toast = document.getElementById('copyToast');
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 2200);
+        });
+    };
+
+    /* ── Bootstrap Tooltips ───────────────────────────── */
+    var tooltipEls = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    tooltipEls.forEach(function(el) {
+        new bootstrap.Tooltip(el);
+    });
+})();
+</script>
 {% endblock %}
