@@ -139,6 +139,91 @@
 .al-switch.on { background: var(--al-accent); }
 .al-switch.on::after { transform: translateX(20px); }
 
+/* Section selector cards */
+.al-section-cards {
+    display: flex; flex-direction: column; gap: 0.5rem;
+}
+.al-section-card {
+    position: relative; display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.85rem 1rem; border-radius: 14px;
+    border: 2px solid var(--al-border); background: var(--al-bg);
+    cursor: pointer; transition: all 0.3s ease; overflow: hidden;
+}
+.al-section-card:hover {
+    border-color: var(--al-accent); transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+}
+.al-section-card.active {
+    border-color: var(--al-accent); background: var(--al-accent-light);
+    box-shadow: 0 4px 16px var(--al-accent-light);
+    animation: alTypePop 0.3s ease;
+}
+.al-section-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; transition: transform 0.3s;
+    background: var(--al-accent-light); color: var(--al-accent);
+}
+.al-section-card.active .al-section-icon {
+    background: var(--al-accent); color: #fff; transform: scale(1.08);
+}
+.al-section-card-info { flex: 1; min-width: 0; }
+.al-section-card-name {
+    font-size: 0.9rem; font-weight: 700; color: var(--al-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.al-section-card-order {
+    font-size: 0.72rem; color: var(--al-secondary); margin-top: 0.1rem;
+}
+.al-section-check {
+    color: var(--al-accent); font-size: 1.1rem; flex-shrink: 0;
+    opacity: 0; transform: scale(0); transition: all 0.3s;
+}
+.al-section-card.active .al-section-check {
+    opacity: 1; transform: scale(1);
+}
+.al-section-none {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.7rem 1rem; border-radius: 14px;
+    border: 2px dashed var(--al-border); background: transparent;
+    cursor: pointer; transition: all 0.3s; margin-bottom: 0.25rem;
+}
+.al-section-none:hover {
+    border-color: var(--al-secondary);
+}
+.al-section-none.active {
+    border-color: var(--al-accent); border-style: solid;
+    background: var(--al-accent-light);
+}
+.al-section-none-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+    background: var(--al-bg); color: var(--al-secondary);
+}
+.al-section-none.active .al-section-none-icon {
+    background: var(--al-accent); color: #fff;
+}
+.al-section-none-text {
+    font-size: 0.85rem; font-weight: 600; color: var(--al-secondary);
+}
+.al-section-none.active .al-section-none-text {
+    color: var(--al-accent);
+}
+.al-section-none-check {
+    margin-left: auto; color: var(--al-accent); font-size: 1rem;
+    opacity: 0; transform: scale(0); transition: all 0.3s;
+}
+.al-section-none.active .al-section-none-check {
+    opacity: 1; transform: scale(1);
+}
+.al-section-empty {
+    text-align: center; padding: 1.5rem; border-radius: 14px;
+    border: 2px dashed var(--al-border); color: var(--al-secondary);
+    font-size: 0.85rem;
+}
+.al-section-empty i { font-size: 1.5rem; display: block; margin-bottom: 0.4rem; }
+
 /* Test type cards */
 .al-type-cards {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;
@@ -257,12 +342,33 @@
 
                 <div class="al-group">
                     <label class="al-label">Bo'lim</label>
-                    <select name="section" class="form-select">
-                        <option value="">-- Bo'limsiz --</option>
+                    <input type="hidden" name="section" id="sectionInput" value="{% if section %}{{ section.pk }}{% endif %}">
+                    {% if sections %}
+                    <div class="al-section-cards">
+                        <div class="al-section-none {% if not section %}active{% endif %}" onclick="selectSection(this, '')">
+                            <div class="al-section-none-icon"><i class="bi bi-dash-circle"></i></div>
+                            <div class="al-section-none-text">Bo'limsiz</div>
+                            <div class="al-section-none-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
                         {% for s in sections %}
-                        <option value="{{ s.pk }}" {% if section and section.pk == s.pk %}selected{% endif %}>{{ s.title }}</option>
+                        <div class="al-section-card {% if section and section.pk == s.pk %}active{% endif %}" onclick="selectSection(this, '{{ s.pk }}')" data-pk="{{ s.pk }}">
+                            <div class="al-section-icon">
+                                <i class="bi bi-folder2"></i>
+                            </div>
+                            <div class="al-section-card-info">
+                                <div class="al-section-card-name">{{ s.title }}</div>
+                                <div class="al-section-card-order">{{ s.order }}-tartib</div>
+                            </div>
+                            <div class="al-section-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
                         {% endfor %}
-                    </select>
+                    </div>
+                    {% else %}
+                    <div class="al-section-empty">
+                        <i class="bi bi-folder-x"></i>
+                        Hali bo'lim yaratilmagan
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="al-group">
@@ -410,6 +516,14 @@
         </div>
     </div>
 </div>
+
+<script>
+function selectSection(el, pk) {
+    document.querySelectorAll('.al-section-card, .al-section-none').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('sectionInput').value = pk;
+}
+</script>
 
 {% if lesson_type == 'test' %}
 <script>
