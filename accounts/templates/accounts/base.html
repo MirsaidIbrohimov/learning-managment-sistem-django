@@ -51,6 +51,207 @@
 </head>
 
 <body>
+<!-- 📡 Offline Overlay -->
+<div class="offline-overlay" id="offlineOverlay">
+    <div class="offline-card">
+        <div class="offline-icon-wrap">
+            <div class="offline-ring"></div>
+            <i class="bi bi-wifi-off offline-icon"></i>
+        </div>
+        <h2 class="offline-title">Internet aloqasi yo'q</h2>
+        <p class="offline-subtitle">Tarmoq bilan aloqa uzildi yoki juda past. Iltimos, internetni tekshiring.</p>
+        <div class="offline-status" id="offlineStatus">
+            <span class="offline-dot"></span> Kutilmoqda...
+        </div>
+        <button class="offline-btn" onclick="checkConnection()">
+            <i class="bi bi-arrow-clockwise me-2"></i>Qayta urinish
+        </button>
+    </div>
+</div>
+
+<style>
+.offline-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(15,23,42,.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s cubic-bezier(.4,0,.2,1);
+}
+.offline-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.offline-card {
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    padding: 2.5rem 2rem;
+    border-radius: 28px;
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: 0 25px 80px rgba(0,0,0,.35);
+    transform: translateY(40px) scale(.95);
+    transition: transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+.offline-overlay.show .offline-card {
+    transform: translateY(0) scale(1);
+}
+.offline-icon-wrap {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(239,68,68,.12), rgba(239,68,68,.06));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.offline-icon {
+    font-size: 2.5rem;
+    color: #ef4444;
+    animation: offlinePulse 2s ease-in-out infinite;
+}
+.offline-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid rgba(239,68,68,.2);
+    animation: offlineRing 2s ease-in-out infinite;
+}
+@keyframes offlinePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%      { transform: scale(1.1); opacity: .7; }
+}
+@keyframes offlineRing {
+    0%, 100% { transform: scale(1); opacity: .5; }
+    50%      { transform: scale(1.15); opacity: 0; }
+}
+.offline-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 .5rem;
+    color: var(--bs-body-color, #1e293b);
+}
+.offline-subtitle {
+    font-size: .95rem;
+    color: var(--bs-secondary-color, #64748b);
+    margin: 0 0 1.5rem;
+    line-height: 1.6;
+}
+.offline-status {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #f59e0b;
+    margin-bottom: 1.5rem;
+    padding: .5rem 1rem;
+    border-radius: 999px;
+    background: rgba(245,158,11,.08);
+}
+.offline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    animation: offlineDot 1.5s ease-in-out infinite;
+}
+@keyframes offlineDot {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: .3; }
+}
+.offline-status.connected {
+    color: #10b981;
+    background: rgba(16,185,129,.08);
+}
+.offline-status.connected .offline-dot {
+    background: #10b981;
+    animation: none;
+}
+.offline-btn {
+    padding: .8rem 2rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: .95rem;
+    border: none;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    cursor: pointer;
+    transition: all .3s;
+    box-shadow: 0 6px 20px rgba(239,68,68,.25);
+}
+.offline-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(239,68,68,.35);
+}
+.offline-btn:active { transform: translateY(0); }
+.offline-btn.loading {
+    pointer-events: none;
+    opacity: .7;
+}
+.offline-btn.loading i {
+    animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+    .offline-card { padding: 2rem 1.5rem; border-radius: 22px; }
+    .offline-title { font-size: 1.3rem; }
+}
+</style>
+
+<script>
+(function() {
+    const overlay = document.getElementById('offlineOverlay');
+    const status = document.getElementById('offlineStatus');
+    let hideTimer = null;
+
+    function showOffline() {
+        overlay.classList.add('show');
+        status.className = 'offline-status';
+        status.innerHTML = '<span class="offline-dot"></span> Kutilmoqda...';
+    }
+
+    function hideOffline() {
+        status.className = 'offline-status connected';
+        status.innerHTML = '<span class="offline-dot"></span> Aloqa tiklandi!';
+        hideTimer = setTimeout(() => { overlay.classList.remove('show'); }, 1200);
+    }
+
+    window.addEventListener('offline', showOffline);
+    window.addEventListener('online', () => { clearTimeout(hideTimer); hideOffline(); });
+
+    if (!navigator.onLine) showOffline();
+
+    window.checkConnection = function() {
+        const btn = document.querySelector('.offline-btn');
+        btn.classList.add('loading');
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Tekshirilmoqda...';
+
+        fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+            .then(() => { hideOffline(); })
+            .catch(() => {
+                status.className = 'offline-status';
+                status.innerHTML = '<span class="offline-dot"></span> Hali ham aloqa yo\'q';
+            })
+            .finally(() => {
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-2"></i>Qayta urinish';
+            });
+    };
+})();
+</script>
+
 <!-- 🎉 Bayram va Eslatma Banner -->
 <div class="announcement-bar" id="announcementBar">
     <div class="announcement-content">
