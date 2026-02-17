@@ -728,6 +728,90 @@
     color: var(--tl-primary);
     margin-top: .3rem;
 }
+
+/* Pricing Compare */
+.retry-pricing-compare {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 1.2rem;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--tl-border);
+    background: var(--tl-card);
+}
+
+.retry-pricing-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 1.1rem 0.8rem;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+}
+
+.retry-pricing-item.retry-pricing-active {
+    opacity: 1;
+    background: rgba(99,102,241,0.04);
+}
+
+[data-bs-theme="dark"] .retry-pricing-item.retry-pricing-active {
+    background: rgba(99,102,241,0.08);
+}
+
+.retry-pricing-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+
+.retry-pricing-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--tl-text-muted);
+}
+
+.retry-pricing-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.retry-pricing-vs {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--tl-border);
+    color: var(--tl-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin: 0 -18px;
+    z-index: 1;
+}
+
+@media (max-width: 480px) {
+    .retry-pricing-item {
+        padding: 0.9rem 0.5rem;
+    }
+    .retry-pricing-amount {
+        font-size: 1rem;
+    }
+    .retry-pricing-label {
+        font-size: 0.72rem;
+    }
+}
 </style>
 {% endblock %}
 
@@ -904,6 +988,29 @@
                 </div>
                 {% endif %}
 
+                <!-- Narxlar taqqoslash -->
+                <div class="retry-pricing-compare">
+                    <div class="retry-pricing-item {% if not request.user.is_premium %}retry-pricing-active{% endif %}">
+                        <div class="retry-pricing-icon" style="background:rgba(100,116,139,0.1);color:#64748b;">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div class="retry-pricing-label">Oddiy obunachi</div>
+                        <div class="retry-pricing-amount" style="color:#ef4444;">
+                            <i class="bi bi-coin"></i> 30 coin
+                        </div>
+                    </div>
+                    <div class="retry-pricing-vs">VS</div>
+                    <div class="retry-pricing-item {% if request.user.is_premium %}retry-pricing-active{% endif %}">
+                        <div class="retry-pricing-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                            <i class="bi bi-gem"></i>
+                        </div>
+                        <div class="retry-pricing-label">Premium obunachi</div>
+                        <div class="retry-pricing-amount" style="color:#10b981;">
+                            <i class="bi bi-coin"></i> 10 coin
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Ogohlantirish -->
                 <div class="retry-warning">
                     <div class="retry-warning-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
@@ -912,7 +1019,7 @@
                         {% if request.user.is_premium %}<strong>10 coin</strong>{% else %}<strong>30 coin</strong>{% endif %}
                         avtomatik yechib olinadi. Bu amal bekor qilinmaydi.
                         {% if not request.user.is_premium %}
-                        <span class="retry-warning-tip"><i class="bi bi-gem"></i> Premium obuna bilan faqat 10 coin to'laysiz!</span>
+                        <span class="retry-warning-tip"><i class="bi bi-gem"></i> Premium obuna bilan faqat 10 coin to'laysiz — 20 coin tejamasiz!</span>
                         {% endif %}
                     </div>
                 </div>
