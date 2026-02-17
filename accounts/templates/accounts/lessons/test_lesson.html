@@ -546,6 +546,144 @@
         font-size: 1.1rem;
     }
 }
+
+/* ==================== RETRY COST ==================== */
+@keyframes retryCostSlide {
+    from { opacity: 0; transform: translateY(15px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes retryShimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+@keyframes retryPulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.05); }
+}
+
+.retry-cost-card {
+    background: var(--tl-bg);
+    border: 1.5px solid var(--tl-border);
+    border-radius: 18px;
+    padding: 1.2rem;
+    margin-bottom: 1.25rem;
+    animation: retryCostSlide .5s ease;
+}
+.retry-cost-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.retry-cost-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(99,102,241,.12), rgba(139,92,246,.12));
+    color: var(--tl-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+.retry-cost-info { flex: 1; }
+.retry-cost-title {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--tl-text-muted);
+    margin-bottom: .35rem;
+}
+.retry-cost-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    flex-wrap: wrap;
+}
+.retry-cost-old {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--tl-text-muted);
+    text-decoration: line-through;
+    opacity: .5;
+}
+.retry-cost-current {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+.retry-cost-current.premium {
+    color: var(--tl-success);
+}
+.retry-cost-current.normal {
+    color: var(--tl-warning);
+}
+.retry-premium-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(34,197,94,.1), rgba(16,185,129,.1));
+    color: var(--tl-success);
+}
+.retry-save-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .2rem .6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(99,102,241,.08), rgba(139,92,246,.08));
+    color: var(--tl-primary);
+}
+.retry-balance {
+    margin-top: .8rem;
+    padding-top: .8rem;
+    border-top: 1px solid var(--tl-border);
+    font-size: .85rem;
+    color: var(--tl-text-muted);
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.retry-balance strong {
+    color: var(--tl-text);
+}
+
+/* Retry button additions */
+.retry-btn {
+    position: relative;
+}
+.retry-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 0 0 16px 16px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+    background-size: 200% 100%;
+    animation: retryShimmer 2.5s linear infinite;
+}
+.retry-coin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .2rem .7rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.2);
+    font-size: .8rem;
+    font-weight: 700;
+    margin-left: .5rem;
+}
+.disabled-retry {
+    opacity: .5;
+    pointer-events: none;
+    background: linear-gradient(135deg, #94a3b8, #64748b) !important;
+}
 </style>
 {% endblock %}
 
@@ -676,14 +814,67 @@
 
             <!-- Action -->
             <div class="action-section">
+                {% if result and test.allow_retry %}
+                <!-- Retry cost card -->
+                <div class="retry-cost-card">
+                    <div class="retry-cost-header">
+                        <div class="retry-cost-icon-wrap">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <div class="retry-cost-info">
+                            <div class="retry-cost-title">Qayta topshirish narxi</div>
+                            {% if request.user.is_premium %}
+                            <div class="retry-cost-row">
+                                <span class="retry-cost-old">30 <i class="bi bi-coin"></i></span>
+                                <span class="retry-cost-current premium">10 <i class="bi bi-coin"></i></span>
+                                <span class="retry-premium-tag"><i class="bi bi-gem"></i> Premium chegirma</span>
+                            </div>
+                            {% else %}
+                            <div class="retry-cost-row">
+                                <span class="retry-cost-current normal">30 <i class="bi bi-coin"></i></span>
+                                <span class="retry-save-tag"><i class="bi bi-gem"></i> Premium bilan 10 coin</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="retry-balance">
+                        <i class="bi bi-wallet2"></i> Balansingiz: <strong>{{ request.user.coins }}</strong> coin
+                    </div>
+                </div>
+
+                {% if request.user.is_premium and request.user.coins >= 10 or not request.user.is_premium and request.user.coins >= 30 %}
+                <a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">
+                    <i class="bi bi-arrow-repeat"></i>
+                    Qayta topshirish
+                    <span class="retry-coin-badge">
+                        {% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i>
+                    </span>
+                </a>
+                {% else %}
+                <div class="start-btn retry-btn disabled-retry">
+                    <i class="bi bi-lock-fill"></i>
+                    Coin yetarli emas
+                    <span class="retry-coin-badge">
+                        {% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i> kerak
+                    </span>
+                </div>
+                {% endif %}
+
+                {% elif result and not test.allow_retry %}
+                <div class="start-btn" style="opacity:.5;pointer-events:none;">
+                    <i class="bi bi-lock-fill"></i>
+                    Qayta topshirish yoqilmagan
+                </div>
+                {% else %}
                 <a href="{% url 'start_test' test.pk %}" class="start-btn">
                     <i class="bi bi-play-fill"></i>
-                    {% if result %}Qayta topshirish{% else %}Testni boshlash{% endif %}
+                    Testni boshlash
                 </a>
+                {% endif %}
                 
                 <div class="coin-note">
                     <i class="bi bi-coin"></i>
-                    <span>Muvaffaqiyatli topshirsangiz +1 coin!</span>
+                    <span>Birinchi muvaffaqiyatli topshiriqda +1 coin!</span>
                 </div>
             </div>
         </div>

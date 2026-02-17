@@ -550,6 +550,14 @@ def start_test(request, pk):
         if existing_result and not test.allow_retry:
             messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
             return redirect('test_result', pk=existing_result.pk)
+        
+        # Qayta topshirish uchun coin yechish
+        if existing_result and test.allow_retry:
+            retry_cost = 10 if request.user.is_premium else 30
+            if request.user.coins < retry_cost:
+                messages.error(request, f"Qayta topshirish uchun {retry_cost} coin kerak. Sizda {request.user.coins} coin bor.")
+                return redirect('lesson_view', pk=test.lesson.pk)
+            request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
     questions = list(test.questions.all().prefetch_related('answers'))
     
