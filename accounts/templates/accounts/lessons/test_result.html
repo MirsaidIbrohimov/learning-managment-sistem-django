@@ -518,6 +518,138 @@
     color: #fff;
 }
 
+/* ==================== RETRY INFO PANEL ==================== */
+.retry-coin-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    padding: .2rem .65rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,.2);
+    font-size: .8rem;
+    font-weight: 700;
+    margin-left: .4rem;
+}
+
+.retry-info-panel {
+    max-width: 480px;
+    margin: 1.5rem auto 0;
+    background: var(--r-card);
+    border: 1px solid var(--r-border);
+    border-radius: 18px;
+    overflow: hidden;
+}
+
+.retry-info-prices {
+    display: flex;
+    align-items: center;
+}
+
+.retry-info-price {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 1rem .6rem;
+    opacity: .45;
+    transition: all .3s ease;
+}
+
+.retry-info-price.retry-info-current {
+    opacity: 1;
+    background: rgba(99,102,241,.04);
+}
+
+[data-bs-theme="dark"] .retry-info-price.retry-info-current {
+    background: rgba(99,102,241,.08);
+}
+
+.retry-info-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.retry-info-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--r-text-muted);
+}
+
+.retry-info-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.retry-info-divider {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--r-border);
+    color: var(--r-text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .65rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    margin: 0 -16px;
+    z-index: 1;
+}
+
+.retry-info-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    padding: .85rem 1.1rem;
+    background: rgba(245,158,11,.06);
+    border-top: 1px solid var(--r-border);
+    font-size: .82rem;
+    color: var(--r-text);
+    line-height: 1.5;
+}
+
+[data-bs-theme="dark"] .retry-info-warn {
+    background: rgba(251,191,36,.06);
+}
+
+.retry-info-warn i {
+    color: var(--r-warning);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.retry-info-warn em {
+    display: block;
+    color: var(--r-primary);
+    font-style: normal;
+    font-weight: 700;
+    font-size: .78rem;
+    margin-top: 2px;
+}
+
+.retry-info-balance {
+    padding: .7rem 1.1rem;
+    border-top: 1px solid var(--r-border);
+    font-size: .83rem;
+    color: var(--r-text-muted);
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+.retry-info-balance strong {
+    color: var(--r-text);
+}
+
 /* ==================== CONFETTI ==================== */
 .confetti-container {
     position: fixed;
@@ -1074,12 +1206,57 @@ function showCelebrationModal() {
                     </a>
                     {% endif %}
                     {% if result.test.allow_retry %}
+                    {% if request.user.is_premium and request.user.coins >= 10 or not request.user.is_premium and request.user.coins >= 30 %}
                     <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
                         <i class="bi bi-arrow-repeat"></i>
                         Qayta ishlash
+                        <span class="retry-coin-tag">{% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i></span>
                     </a>
+                    {% else %}
+                    <span class="action-btn retry" style="opacity:.5;pointer-events:none;">
+                        <i class="bi bi-lock-fill"></i>
+                        Coin yetarli emas
+                        <span class="retry-coin-tag">{% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i></span>
+                    </span>
+                    {% endif %}
                     {% endif %}
                 </div>
+
+                {% if result.test.allow_retry %}
+                <!-- Qayta ishlash narxi -->
+                <div class="retry-info-panel">
+                    <div class="retry-info-prices">
+                        <div class="retry-info-price {% if not request.user.is_premium %}retry-info-current{% endif %}">
+                            <div class="retry-info-icon" style="background:rgba(100,116,139,0.1);color:#64748b;">
+                                <i class="bi bi-person"></i>
+                            </div>
+                            <span class="retry-info-label">Oddiy</span>
+                            <span class="retry-info-amount" style="color:#ef4444;">30 <i class="bi bi-coin"></i></span>
+                        </div>
+                        <div class="retry-info-divider">VS</div>
+                        <div class="retry-info-price {% if request.user.is_premium %}retry-info-current{% endif %}">
+                            <div class="retry-info-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                                <i class="bi bi-gem"></i>
+                            </div>
+                            <span class="retry-info-label">Premium</span>
+                            <span class="retry-info-amount" style="color:#10b981;">10 <i class="bi bi-coin"></i></span>
+                        </div>
+                    </div>
+                    <div class="retry-info-warn">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>
+                            Qayta ishlashda hisobingizdan
+                            <strong>{% if request.user.is_premium %}10{% else %}30{% endif %} coin</strong> yechiladi.
+                            {% if not request.user.is_premium %}
+                            <em>Premium bilan faqat 10 coin — 20 coin tejang!</em>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="retry-info-balance">
+                        <i class="bi bi-wallet2"></i> Balansingiz: <strong>{{ request.user.coins }}</strong> coin
+                    </div>
+                </div>
+                {% endif %}
                 
             </div>
         </div>
