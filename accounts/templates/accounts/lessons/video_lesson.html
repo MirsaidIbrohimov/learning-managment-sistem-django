@@ -156,69 +156,211 @@
     color: white;
 }
 
-/* Next Lesson Button */
-.next-lesson-btn {
+/* ── Next Action Bar ────────────────────────────── */
+@keyframes nextSlideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes nextArrowBounce {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(6px); }
+}
+@keyframes nextPulseRing {
+    0%   { transform: scale(1); opacity: .4; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes nextShimmer {
+    0%   { background-position: -200% center; }
+    100% { background-position: 200% center; }
+}
+
+.next-action-bar {
+    margin-top: 1.5rem;
+    animation: nextSlideUp .6s ease .3s both;
+}
+.next-action-card {
+    position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 18px;
-    background: var(--soft-bg);
-    border-radius: 14px;
+    gap: 1rem;
+    padding: 1.2rem 1.5rem;
+    border-radius: 20px;
     text-decoration: none;
     color: inherit;
-    transition: all 0.25s ease;
+    overflow: hidden;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
 }
-
-.next-lesson-btn:hover {
-    background: rgba(13, 110, 253, 0.08);
-    transform: translateX(4px);
+.next-action-card:hover {
+    transform: translateY(-4px);
     color: inherit;
 }
+.next-action-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity .3s;
+}
+.next-action-card:hover::before { opacity: 1; }
 
-.next-lesson-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
+/* Type: Test */
+.next-type-test {
+    background: linear-gradient(135deg, rgba(139,92,246,.08), rgba(124,58,237,.05));
+    border: 1.5px solid rgba(139,92,246,.2);
+}
+.next-type-test:hover {
+    border-color: rgba(139,92,246,.4);
+    box-shadow: 0 12px 35px rgba(139,92,246,.15);
+}
+.next-type-test::before {
+    background: linear-gradient(135deg, rgba(139,92,246,.04), rgba(124,58,237,.08));
+}
+.next-type-test .next-icon-wrap {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    box-shadow: 0 6px 20px rgba(139,92,246,.3);
 }
 
-.next-lesson-title {
+/* Type: Homework */
+.next-type-hw {
+    background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(217,119,6,.05));
+    border: 1.5px solid rgba(245,158,11,.2);
+}
+.next-type-hw:hover {
+    border-color: rgba(245,158,11,.4);
+    box-shadow: 0 12px 35px rgba(245,158,11,.15);
+}
+.next-type-hw::before {
+    background: linear-gradient(135deg, rgba(245,158,11,.04), rgba(217,119,6,.08));
+}
+.next-type-hw .next-icon-wrap {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 20px rgba(245,158,11,.3);
+}
+
+/* Type: Video */
+.next-type-video {
+    background: linear-gradient(135deg, rgba(13,110,253,.08), rgba(10,88,202,.05));
+    border: 1.5px solid rgba(13,110,253,.2);
+}
+.next-type-video:hover {
+    border-color: rgba(13,110,253,.4);
+    box-shadow: 0 12px 35px rgba(13,110,253,.15);
+}
+.next-type-video::before {
+    background: linear-gradient(135deg, rgba(13,110,253,.04), rgba(10,88,202,.08));
+}
+.next-type-video .next-icon-wrap {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    box-shadow: 0 6px 20px rgba(13,110,253,.3);
+}
+
+/* Type: Back to sections */
+.next-type-back {
+    background: linear-gradient(135deg, rgba(100,116,139,.06), rgba(71,85,105,.04));
+    border: 1.5px solid rgba(100,116,139,.15);
+}
+.next-type-back:hover {
+    border-color: rgba(100,116,139,.3);
+    box-shadow: 0 12px 35px rgba(100,116,139,.1);
+}
+.next-type-back::before {
+    background: linear-gradient(135deg, rgba(100,116,139,.03), rgba(71,85,105,.06));
+}
+.next-type-back .next-icon-wrap {
+    background: linear-gradient(135deg, #64748b, #475569);
+    box-shadow: 0 6px 20px rgba(100,116,139,.25);
+}
+
+/* Icon */
+.next-icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    position: relative;
+    transition: transform .3s;
+}
+.next-action-card:hover .next-icon-wrap {
+    transform: scale(1.08);
+}
+.next-icon-ring {
+    position: absolute;
+    inset: -4px;
+    border-radius: 20px;
+    border: 2px solid currentColor;
+    opacity: .15;
+    animation: nextPulseRing 2s ease-out infinite;
+}
+
+/* Info */
+.next-info { flex: 1; min-width: 0; }
+.next-label {
+    font-size: .78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    opacity: .6;
+    margin-bottom: .15rem;
+}
+.next-title {
+    font-size: 1.05rem;
     font-weight: 700;
-    font-size: 1rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
-
-.next-lesson-type {
-    display: flex;
+.next-badge-type {
+    display: inline-flex;
     align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-}
-
-.next-badge {
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.78rem;
+    gap: .3rem;
+    font-size: .72rem;
     font-weight: 700;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    margin-top: .3rem;
+}
+.next-type-test .next-badge-type { background: rgba(139,92,246,.12); color: #8b5cf6; }
+.next-type-hw .next-badge-type   { background: rgba(245,158,11,.12); color: #f59e0b; }
+.next-type-video .next-badge-type { background: rgba(13,110,253,.12); color: #0d6efd; }
+.next-type-back .next-badge-type { background: rgba(100,116,139,.1); color: #64748b; }
+
+/* Arrow */
+.next-arrow {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    opacity: .5;
+    transition: all .3s;
+}
+.next-action-card:hover .next-arrow {
+    opacity: 1;
+    animation: nextArrowBounce .8s ease infinite;
 }
 
-.next-video { background: rgba(13,110,253,0.1); color: #0d6efd; }
-.next-test { background: rgba(139,92,246,0.1); color: #8b5cf6; }
-.next-hw { background: rgba(245,158,11,0.1); color: #f59e0b; }
+/* Shimmer line */
+.next-shimmer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 0 0 20px 20px;
+    background: linear-gradient(90deg, transparent 0%, currentColor 50%, transparent 100%);
+    background-size: 200% 100%;
+    opacity: 0;
+    animation: nextShimmer 3s linear infinite;
+}
+.next-action-card:hover .next-shimmer { opacity: .3; }
 
 @media (max-width: 576px) {
-    .next-lesson-btn {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-    .next-lesson-type {
-        width: 100%;
-        justify-content: space-between;
-    }
+    .next-action-card { padding: 1rem 1.2rem; gap: .8rem; }
+    .next-icon-wrap { width: 44px; height: 44px; font-size: 1.1rem; border-radius: 13px; }
+    .next-title { font-size: .95rem; }
 }
 </style>
 {% endblock %}
@@ -318,27 +460,74 @@
             {% endif %}
         </div>
 
+    </div>
+
+    <!-- ── Next Action Bar ──────────────────────── -->
+    <div class="next-action-bar">
         {% if next_lesson %}
-        <div class="card-footer bg-transparent border-top p-3">
-            <a href="{% url 'lesson_view' next_lesson.pk %}" class="next-lesson-btn">
-                <div class="next-lesson-info">
-                    <small class="text-muted">Keyingi dars</small>
-                    <span class="next-lesson-title">{{ next_lesson.title }}</span>
+            {% if next_lesson.lesson_type == 'test' %}
+            <a href="{% url 'lesson_view' next_lesson.pk %}" class="next-action-card next-type-test">
+                <div class="next-icon-wrap">
+                    <i class="bi bi-journal-check"></i>
+                    <div class="next-icon-ring"></div>
                 </div>
-                <div class="next-lesson-type">
-                    {% if next_lesson.lesson_type == 'video' %}
-                    <span class="next-badge next-video"><i class="bi bi-play-circle-fill me-1"></i>Video</span>
-                    {% elif next_lesson.lesson_type == 'test' %}
-                    <span class="next-badge next-test"><i class="bi bi-journal-check me-1"></i>Test</span>
-                    {% elif next_lesson.lesson_type == 'homework' %}
-                    <span class="next-badge next-hw"><i class="bi bi-file-earmark-text me-1"></i>Topshiriq</span>
-                    {% endif %}
-                    <i class="bi bi-arrow-right-circle-fill fs-4 text-primary"></i>
+                <div class="next-info">
+                    <div class="next-label">Keyingi qadam</div>
+                    <div class="next-title">{{ next_lesson.title }}</div>
+                    <span class="next-badge-type"><i class="bi bi-journal-check"></i> Testga o'tish</span>
                 </div>
+                <i class="bi bi-arrow-right-circle-fill next-arrow"></i>
+                <div class="next-shimmer"></div>
             </a>
-        </div>
+
+            {% elif next_lesson.lesson_type == 'homework' %}
+            <a href="{% url 'lesson_view' next_lesson.pk %}" class="next-action-card next-type-hw">
+                <div class="next-icon-wrap">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div class="next-icon-ring"></div>
+                </div>
+                <div class="next-info">
+                    <div class="next-label">Keyingi qadam</div>
+                    <div class="next-title">{{ next_lesson.title }}</div>
+                    <span class="next-badge-type"><i class="bi bi-pencil-square"></i> Uyga vazifaga o'tish</span>
+                </div>
+                <i class="bi bi-arrow-right-circle-fill next-arrow"></i>
+                <div class="next-shimmer"></div>
+            </a>
+
+            {% else %}
+            <a href="{% url 'lesson_view' next_lesson.pk %}" class="next-action-card next-type-video">
+                <div class="next-icon-wrap">
+                    <i class="bi bi-play-circle-fill"></i>
+                    <div class="next-icon-ring"></div>
+                </div>
+                <div class="next-info">
+                    <div class="next-label">Keyingi dars</div>
+                    <div class="next-title">{{ next_lesson.title }}</div>
+                    <span class="next-badge-type"><i class="bi bi-play-circle"></i> Video dars</span>
+                </div>
+                <i class="bi bi-arrow-right-circle-fill next-arrow"></i>
+                <div class="next-shimmer"></div>
+            </a>
+            {% endif %}
+
+        {% else %}
+        <a href="{% url 'profession_detail' profession.pk %}" class="next-action-card next-type-back">
+            <div class="next-icon-wrap">
+                <i class="bi bi-grid-1x2"></i>
+                <div class="next-icon-ring"></div>
+            </div>
+            <div class="next-info">
+                <div class="next-label">Dars tugadi</div>
+                <div class="next-title">Bo'limlarga qaytish</div>
+                <span class="next-badge-type"><i class="bi bi-arrow-return-left"></i> {{ profession.name }}</span>
+            </div>
+            <i class="bi bi-arrow-right-circle-fill next-arrow"></i>
+            <div class="next-shimmer"></div>
+        </a>
         {% endif %}
     </div>
+
 </div>
 {% endblock %}
 
