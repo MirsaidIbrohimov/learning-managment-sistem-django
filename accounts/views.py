@@ -539,25 +539,26 @@ def submit_homework(request, pk):
 def start_test(request, pk):
     test = get_object_or_404(Test, pk=pk)
     
+    profession = test.lesson.profession
+    
     if request.user.is_student:
-        profession = test.lesson.profession
         if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
             messages.error(request, "Avval kursga yoziling!")
             return redirect('profession_detail', pk=profession.pk)
-        
-        # Check if already taken and retry not allowed
-        existing_result = TestResult.objects.filter(test=test, student=request.user).first()
-        if existing_result and not test.allow_retry:
-            messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
-            return redirect('test_result', pk=existing_result.pk)
-        
-        # Qayta topshirish uchun coin yechish
-        if existing_result and test.allow_retry:
-            retry_cost = 10 if request.user.is_premium else 30
-            if request.user.coins < retry_cost:
-                messages.error(request, f"Qayta topshirish uchun {retry_cost} coin kerak. Sizda {request.user.coins} coin bor.")
-                return redirect('lesson_view', pk=test.lesson.pk)
-            request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
+    
+    # Check if already taken and retry not allowed
+    existing_result = TestResult.objects.filter(test=test, student=request.user).first()
+    if existing_result and not test.allow_retry:
+        messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
+        return redirect('test_result', pk=existing_result.pk)
+    
+    # Qayta topshirish uchun coin yechish
+    if existing_result and test.allow_retry:
+        retry_cost = 10 if request.user.is_premium else 30
+        if request.user.coins < retry_cost:
+            messages.error(request, f"Qayta topshirish uchun {retry_cost} coin kerak. Sizda {request.user.coins} coin bor.")
+            return redirect('lesson_view', pk=test.lesson.pk)
+        request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
     questions = list(test.questions.all().prefetch_related('answers'))
     
