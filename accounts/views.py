@@ -107,6 +107,11 @@ def login_view(request):
             )
 
             messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
+
+            # Premium reklama (premium bo'lmagan studentlar uchun)
+            if user.role == 'student' and not user.is_premium:
+                request.session['show_premium_ad'] = True
+
             return redirect('home')
 
         else:
@@ -1136,11 +1141,30 @@ def leaderboard(request):
     # Barcha yo'nalishlar (filter uchun)
     professions = Profession.objects.all()
     
+    # Joriy foydalanuvchining o'rni (premium bo'lmasa kerak)
+    user_rank = None
+    user_in_list = False
+    students_list = students[:100]
+    if request.user.role == 'student':
+        # Umumiy reytingdagi o'rnini topish
+        all_students_ids = list(students.values_list('pk', flat=True))
+        if request.user.pk in all_students_ids:
+            user_rank = all_students_ids.index(request.user.pk) + 1
+            user_in_list = True
+        else:
+            # Filtrlangan natijada yo'q, lekin umumiy reytingda bor
+            all_ranked = CustomUser.objects.filter(role='student').order_by('-coins').values_list('pk', flat=True)
+            all_ranked_list = list(all_ranked)
+            if request.user.pk in all_ranked_list:
+                user_rank = all_ranked_list.index(request.user.pk) + 1
+    
     return render(request, 'accounts/leaderboard.html', {
-        'students': students[:100],
+        'students': students_list,
         'professions': professions,
         'selected_profession': profession_id,
         'search_query': search_query,
+        'user_rank': user_rank,
+        'user_in_list': user_in_list,
     })
 
 
@@ -6185,4 +6209,10 @@ def toggle_section_block(request, section):
             'success': False,
             'error': str(e)
         }, status=400)
+
+
+@login_required
+def clear_premium_ad(request):
+    request.session.pop('show_premium_ad', None)
+    return JsonResponse({'ok': True})
 

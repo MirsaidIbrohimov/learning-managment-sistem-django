@@ -215,4 +215,7 @@ urlpatterns = [
     
     # O'quvchi: Ijaradagi kitoblar
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),
+
+    # Premium reklama flagini tozalash
+    path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
 ]

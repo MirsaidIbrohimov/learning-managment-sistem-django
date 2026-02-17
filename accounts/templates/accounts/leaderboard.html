@@ -1374,6 +1374,271 @@
             font-size: 1rem;
         }
     }
+
+    /* Non-premium: xira qatorlar */
+    .lb-row.lb-blurred {
+        pointer-events: none;
+        user-select: none;
+    }
+    .lb-row.lb-blurred .lb-user-avatar,
+    .lb-row.lb-blurred .lb-user-placeholder {
+        filter: blur(5px);
+    }
+    .lb-row.lb-blurred .lb-user-name,
+    .lb-row.lb-blurred .lb-username {
+        filter: blur(4px);
+    }
+    .lb-row.lb-blurred .lb-coin span {
+        filter: blur(4px);
+    }
+    .lb-row.lb-blurred .lb-chevron {
+        display: none;
+    }
+    .lb-row.lb-blurred .lb-lock-icon {
+        display: flex;
+    }
+    .lb-lock-icon {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        color: var(--lb-text-secondary);
+        font-size: 1rem;
+    }
+
+    /* Top-3 xira */
+    .top-3-item.lb-blurred-top {
+        pointer-events: none;
+        user-select: none;
+    }
+    .top-3-item.lb-blurred-top .avatar-circle img,
+    .top-3-item.lb-blurred-top .avatar-circle span {
+        filter: blur(5px);
+    }
+    .top-3-item.lb-blurred-top .player-name-top3 {
+        filter: blur(4px);
+    }
+    .top-3-item.lb-blurred-top .coins-value span {
+        filter: blur(4px);
+    }
+
+    /* O'z pozitsiyasi highlight */
+    .lb-your-rank-card {
+        background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.10));
+        border: 2px solid rgba(99,102,241,0.35);
+        border-radius: var(--lb-radius-md);
+        padding: 1rem 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        animation: fadeInUp 0.5s ease;
+    }
+    .lb-your-rank-card .yr-rank {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    .lb-your-rank-card .yr-info { flex: 1; }
+    .lb-your-rank-card .yr-label {
+        font-size: 0.78rem;
+        color: var(--lb-text-secondary);
+        font-weight: 500;
+    }
+    .lb-your-rank-card .yr-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--lb-text);
+    }
+    .lb-your-rank-card .yr-coins {
+        color: var(--lb-coin);
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    /* Premium overlay */
+    .premium-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 9990;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: overlayFadeIn 0.4s ease;
+    }
+    @keyframes overlayFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    .premium-overlay.hiding {
+        animation: overlayFadeOut 0.4s ease forwards;
+    }
+    @keyframes overlayFadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    .premium-card {
+        background: linear-gradient(145deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        max-width: 440px;
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        animation: cardPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+        box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 80px rgba(99,102,241,0.15);
+    }
+    @keyframes cardPopIn {
+        from { opacity: 0; transform: scale(0.8) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .premium-card::before {
+        content: '';
+        position: absolute;
+        top: -60%; left: -20%;
+        width: 140%; height: 140%;
+        background: radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 60%);
+        animation: float 6s ease-in-out infinite;
+    }
+    .premium-card::after {
+        content: '';
+        position: absolute;
+        bottom: -40%; right: -20%;
+        width: 100%; height: 100%;
+        background: radial-gradient(ellipse, rgba(168,85,247,0.1) 0%, transparent 60%);
+        animation: float 8s ease-in-out infinite reverse;
+    }
+    .premium-card > * { position: relative; z-index: 1; }
+    .premium-gem-icon {
+        width: 90px; height: 90px;
+        background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+        border-radius: 26px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2.5rem;
+        animation: gemFloat 3s ease-in-out infinite;
+        box-shadow: 0 10px 40px rgba(99,102,241,0.4);
+    }
+    @keyframes gemFloat {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-10px) rotate(3deg); }
+    }
+    .premium-card h2 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(90deg, #fff, #c7d2fe, #fff);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: shimmer 3s linear infinite;
+    }
+    .premium-card .premium-subtitle {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.92rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .premium-features {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 1.8rem;
+        text-align: left;
+    }
+    .premium-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.08);
+        font-size: 0.88rem;
+        color: rgba(255,255,255,0.9);
+        animation: slideInLeft 0.4s ease both;
+    }
+    .premium-feature:nth-child(1) { animation-delay: 0.3s; }
+    .premium-feature:nth-child(2) { animation-delay: 0.4s; }
+    .premium-feature:nth-child(3) { animation-delay: 0.5s; }
+    .premium-feature:nth-child(4) { animation-delay: 0.6s; }
+    .premium-feature i {
+        font-size: 1.1rem;
+        color: #a78bfa;
+        flex-shrink: 0;
+    }
+    .premium-card .btn-premium-buy {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        margin-bottom: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+        animation: fadeInUp 0.4s ease 0.7s both;
+    }
+    .premium-card .btn-premium-buy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(99,102,241,0.5);
+        color: #fff;
+    }
+    .premium-card .btn-view-rating {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 16px;
+        color: rgba(255,255,255,0.8);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        animation: fadeInUp 0.4s ease 0.8s both;
+    }
+    .premium-card .btn-view-rating:hover {
+        background: rgba(255,255,255,0.14);
+        color: #fff;
+    }
+    /* Sparkle particles on premium card */
+    .sparkle-particle {
+        position: absolute;
+        width: 4px; height: 4px;
+        background: #a78bfa;
+        border-radius: 50%;
+        opacity: 0;
+        animation: sparkleAnim 2s ease-in-out infinite;
+    }
+    @keyframes sparkleAnim {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(1); }
+    }
+    .sparkle-particle:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; }
+    .sparkle-particle:nth-child(2) { top: 25%; right: 15%; animation-delay: 0.5s; }
+    .sparkle-particle:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 1s; }
+    .sparkle-particle:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 1.5s; }
+    .sparkle-particle:nth-child(5) { top: 50%; left: 5%; animation-delay: 0.7s; }
 </style>
 
 <div class="lb-container">
@@ -1419,14 +1684,51 @@
     </div>
 
     {% if students %}
+
+    {% if not request.user.is_premium and not request.user.is_staff and request.user.role == 'student' and user_rank %}
+    <!-- Premium reklama overlay -->
+    <div class="premium-overlay" id="premiumOverlay">
+        <div class="premium-card">
+            <div class="sparkle-particle"></div>
+            <div class="sparkle-particle"></div>
+            <div class="sparkle-particle"></div>
+            <div class="sparkle-particle"></div>
+            <div class="sparkle-particle"></div>
+            <div class="premium-gem-icon">
+                <i class="bi bi-gem"></i>
+            </div>
+            <h2>Premium rejimni faollashtiring!</h2>
+            <p class="premium-subtitle">Reytingda barcha o'quvchilarni ko'ring, maxsus imkoniyatlardan foydalaning va o'z o'rningizni mustahkamlang!</p>
+            <div class="premium-features">
+                <div class="premium-feature"><i class="bi bi-trophy-fill"></i>To'liq reyting — barcha o'quvchilarni oching</div>
+                <div class="premium-feature"><i class="bi bi-star-fill"></i>Har kuni +5 coin bonus</div>
+                <div class="premium-feature"><i class="bi bi-patch-check-fill"></i>Profilingizda premium belgi</div>
+                <div class="premium-feature"><i class="bi bi-lightning-fill"></i>Maxsus ismlar va ranglar</div>
+            </div>
+            <a href="{% url 'buy_premium' %}" class="btn-premium-buy"><i class="bi bi-gem me-2"></i>Premium olish</a>
+            <button type="button" class="btn-view-rating" onclick="closePremiumOverlay()"><i class="bi bi-eye me-1"></i>Reytingni ko'rish</button>
+        </div>
+    </div>
+
+    <div class="lb-your-rank-card">
+        <div class="yr-rank">{{ user_rank }}</div>
+        <div class="yr-info">
+            <div class="yr-label">Sizning o'rningiz</div>
+            <div class="yr-name">{{ request.user.full_name }}</div>
+        </div>
+        <div class="yr-coins">
+            <i class="bi bi-coin"></i> {{ request.user.coins }}
+        </div>
+    </div>
+    {% endif %}
+
     {% with top3=students|slice:":3" %}
     {% if top3|length >= 3 %}
     <div class="top-3-podium">
         {% for student in top3 %}
         {% if forloop.counter == 2 %}
-        <!-- 2nd place (left) -->
-        <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
-            class="top-3-item top-3-position-2">
+        <a href="{% if student == request.user %}{% url 'profile' %}{% elif request.user.is_premium or request.user.is_staff %}{% url 'student_public_profile' student.pk %}{% else %}#{% endif %}"
+            class="top-3-item top-3-position-2 {% if not request.user.is_premium and not request.user.is_staff and student != request.user %}lb-blurred-top{% endif %}">
             <div class="crown-badge">2</div>
             <div class="avatar-circle">
                 {% if student.photo %}
@@ -1444,9 +1746,8 @@
             </div>
         </a>
         {% elif forloop.counter == 1 %}
-        <!-- 1st place (center) -->
-        <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
-            class="top-3-item top-3-position-1">
+        <a href="{% if student == request.user %}{% url 'profile' %}{% elif request.user.is_premium or request.user.is_staff %}{% url 'student_public_profile' student.pk %}{% else %}#{% endif %}"
+            class="top-3-item top-3-position-1 {% if not request.user.is_premium and not request.user.is_staff and student != request.user %}lb-blurred-top{% endif %}">
             <div class="crown-badge">1</div>
             <div class="avatar-circle">
                 {% if student.photo %}
@@ -1464,9 +1765,8 @@
             </div>
         </a>
         {% elif forloop.counter == 3 %}
-        <!-- 3rd place (right) -->
-        <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
-            class="top-3-item top-3-position-3">
+        <a href="{% if student == request.user %}{% url 'profile' %}{% elif request.user.is_premium or request.user.is_staff %}{% url 'student_public_profile' student.pk %}{% else %}#{% endif %}"
+            class="top-3-item top-3-position-3 {% if not request.user.is_premium and not request.user.is_staff and student != request.user %}lb-blurred-top{% endif %}">
             <div class="crown-badge">3</div>
             <div class="avatar-circle">
                 {% if student.photo %}
@@ -1499,6 +1799,7 @@
 
         {% for student in students %}
         {% if forloop.counter > 3 %}
+        {% if request.user.is_premium or request.user.is_staff or student == request.user %}
         <a href="{% if student == request.user %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
             class="lb-row {% if student == request.user %}is-you{% endif %} {% if student.is_premium %}is-premium{% endif %}"
             style="animation-delay: {{ forloop.counter|add:'-3' }}00ms">
@@ -1534,6 +1835,35 @@
 
             <i class="bi bi-chevron-right lb-chevron"></i>
         </a>
+        {% else %}
+        <div class="lb-row lb-blurred"
+            style="animation-delay: {{ forloop.counter|add:'-3' }}00ms">
+            <div>
+                <span class="lb-rank">{{ forloop.counter }}</span>
+            </div>
+
+            <div class="lb-user">
+                {% if student.photo %}
+                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar">
+                {% else %}
+                <div class="lb-user-placeholder">{{ student.get_initials }}</div>
+                {% endif %}
+                <div class="lb-user-info">
+                    <div class="lb-user-name">{{ student.first_name }} {{ student.last_name }}</div>
+                    <div class="lb-username">@{{ student.username }}</div>
+                </div>
+            </div>
+
+            <div>
+                <span class="lb-coin coin-fmt" data-coins="{{ student.coins }}">
+                    <i class="bi bi-coin"></i>
+                    <span>{{ student.coins }}</span>
+                </span>
+            </div>
+
+            <div class="lb-lock-icon"><i class="bi bi-lock-fill"></i></div>
+        </div>
+        {% endif %}
         {% endif %}
         {% endfor %}
     </div>
@@ -1556,6 +1886,14 @@
 </div>
 
 <script>
+    function closePremiumOverlay() {
+        var overlay = document.getElementById('premiumOverlay');
+        if (overlay) {
+            overlay.classList.add('hiding');
+            setTimeout(function () { overlay.remove(); }, 400);
+        }
+    }
+
     function formatCoins(n) {
         if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
         if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
