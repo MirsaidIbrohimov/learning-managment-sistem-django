@@ -322,7 +322,7 @@
             </thead>
             <tbody>
                 {% for student in students %}
-                <tr class="{% if student.current_record and student.current_record.is_paid %}rp{% elif student.is_blocked %}rb{% else %}ru{% endif %}">
+                <tr class="{% if student.current_record and student.current_record.is_paid %}rp{% elif student.is_blocked %}rb{% else %}ru{% endif %}" data-student="{{ student.pk }}">
 
                     <td data-label="" class="td-check"><input type="checkbox" class="p-check bulk-check" value="{{ student.pk }}" onclick="updateBulk()"></td>
                     <td data-label="#">{{ forloop.counter0|add:students.start_index }}</td>
@@ -338,15 +338,15 @@
                         <span class="pm">{% if student.current_record %}{{ student.current_record.amount|floatformat:0 }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee|floatformat:0 }}{% else %}200000{% endif %}</span>
                     </td>
 
-                    <td data-label="To'langan" class="text-end">
+                    <td data-label="To'langan" class="text-end td-paid-amount">
                         <span class="pm g">{% if student.current_record %}{{ student.current_record.paid_amount|floatformat:0 }}{% else %}0{% endif %}</span>
                     </td>
 
-                    <td data-label="Qarz" class="text-end">
+                    <td data-label="Qarz" class="text-end td-debt">
                         <span class="pm r">{% if student.current_record %}{{ student.current_record.debt|floatformat:0 }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee|floatformat:0 }}{% else %}200000{% endif %}</span>
                     </td>
 
-                    <td data-label="To'lov" class="text-center">
+                    <td data-label="To'lov" class="text-center td-pay">
                         {% if student.current_record and student.current_record.is_paid %}
                         <span class="bp paid"><i class="bi bi-check-circle-fill me-1"></i>To'langan</span>
                         {% else %}
@@ -367,7 +367,7 @@
                             <button class="dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport"><i class="bi bi-three-dots"></i></button>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 {% if not student.current_record or not student.current_record.is_paid %}
-                                <li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault();openPayModal({{ student.pk }},'{{ student.full_name }}',{% if student.current_record %}{{ student.current_record.amount }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-check-circle"></i>To'landi belgilash</a></li>
+                                <li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault();openPayModal({{ student.pk }},this.dataset.name,{% if student.current_record %}{{ student.current_record.amount }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})" data-name="{{ student.full_name }}"><i class="bi bi-check-circle"></i>To'landi belgilash</a></li>
                                 {% else %}
                                 <li>
                                     <form method="post" action="{% url 'admin_mark_unpaid' student.pk %}">
@@ -383,7 +383,7 @@
                                 <li><a class="dropdown-item {% if student.is_blocked %}text-success{% else %}text-danger{% endif %}" href="{% url 'admin_toggle_block_payment' student.pk %}?month={{ selected_month }}&year={{ selected_year }}" onclick="return confirm('{{ student.full_name }}ni {% if student.is_blocked %}blokdan chiqarishni{% else %}bloklashni{% endif %} xohlaysizmi?')"><i class="bi bi-{% if student.is_blocked %}unlock{% else %}lock{% endif %}"></i>{% if student.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}</a></li>
                                 <li><hr class="dropdown-divider" style="margin:4px 0"></li>
                                 <li><a class="dropdown-item" href="{% url 'admin_payment_history' student.pk %}"><i class="bi bi-clock-history"></i>To'lov tarixi</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault();openFeeModal({{ student.pk }},'{{ student.full_name }}',{% if student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})"><i class="bi bi-gear"></i>Oylik to'lovni belgilash</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault();openFeeModal({{ student.pk }},this.dataset.name,{% if student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})" data-name="{{ student.full_name }}"><i class="bi bi-gear"></i>Oylik to'lovni belgilash</a></li>
                             </ul>
                         </div>
                     </td>
@@ -528,12 +528,85 @@
 </div>
 
 <script>
+var payModalInstance = null;
 function openPayModal(pk,name,fee){
+    document.getElementById('payForm').dataset.pk = pk;
     document.getElementById('payForm').action='/dashboard/payments/'+pk+'/paid/';
     document.getElementById('payStudentName').textContent=name;
     document.getElementById('payAmount').value=fee;
-    new bootstrap.Modal(document.getElementById('payModal')).show();
+    payModalInstance = new bootstrap.Modal(document.getElementById('payModal'));
+    payModalInstance.show();
 }
+
+// AJAX to'lov belgilash
+document.getElementById('payForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var form = this;
+    var pk = form.dataset.pk;
+    var btn = form.querySelector('button[type="submit"]');
+    var origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saqlanmoqda...';
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Qatorni yangilash
+            var row = document.querySelector('tr[data-student="'+pk+'"]');
+            if (row) {
+                row.className = 'rp';
+                // To'lov badge
+                var payTd = row.querySelector('.td-pay');
+                if (payTd) payTd.innerHTML = '<span class="bp paid"><i class="bi bi-check-circle-fill me-1"></i>To\'langan</span>';
+                // To'langan summa
+                var paidTd = row.querySelector('.td-paid-amount');
+                if (paidTd) paidTd.innerHTML = '<span class="pm g">'+Number(data.paid_amount).toLocaleString('uz')+'</span>';
+                // Qarz
+                var debtTd = row.querySelector('.td-debt');
+                if (debtTd) debtTd.innerHTML = '<span class="pm r">'+Number(data.debt).toLocaleString('uz')+'</span>';
+                // Flash animatsiya
+                row.style.transition = 'background 0.5s ease';
+                row.style.background = 'rgba(25,135,84,0.15)';
+                setTimeout(function(){ row.style.background = ''; }, 1500);
+            }
+            // Toast
+            showPayToast('✅ ' + data.name + ' to\'lovi belgilandi!', 'success');
+            payModalInstance.hide();
+        }
+    })
+    .catch(function() {
+        showPayToast('Xatolik yuz berdi!', 'danger');
+    })
+    .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    });
+});
+
+function showPayToast(msg, type) {
+    var container = document.getElementById('payToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'payToastContainer';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
+        document.body.appendChild(container);
+    }
+    var toast = document.createElement('div');
+    toast.style.cssText = 'padding:14px 22px;border-radius:14px;font-weight:600;font-size:.9rem;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateX(30px);transition:all .3s ease;background:'+(type==='success'?'linear-gradient(135deg,#198754,#157347)':'linear-gradient(135deg,#dc3545,#b02a37)')+';';
+    toast.textContent = msg;
+    container.appendChild(toast);
+    requestAnimationFrame(function(){ toast.style.opacity='1'; toast.style.transform='translateX(0)'; });
+    setTimeout(function(){
+        toast.style.opacity='0'; toast.style.transform='translateX(30px)';
+        setTimeout(function(){ toast.remove(); }, 300);
+    }, 3000);
+}
+
 function openFeeModal(pk,name,f){
     document.getElementById('feeForm').action='/dashboard/payments/'+pk+'/set-fee/?month={{ selected_month }}&year={{ selected_year }}';
     document.getElementById('feeStudentName').textContent=name;

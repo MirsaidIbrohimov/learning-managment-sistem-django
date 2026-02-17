@@ -1452,6 +1452,8 @@ def admin_mark_paid(request, pk):
             message_type='system', recipient=user, sender=request.user
         )
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'name': user.full_name, 'paid_amount': record.paid_amount, 'debt': record.debt})
     messages.success(request, f"{user.full_name} to'lovi belgilandi!")
     return redirect(f'/dashboard/payments/?month={month}&year={year}')
 
@@ -1473,6 +1475,8 @@ def admin_mark_unpaid(request, pk):
         record.paid_date = None
         record.save()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True, 'name': user.full_name})
     messages.warning(request, f"{user.full_name} to'lovi bekor qilindi!")
     return redirect(f'/dashboard/payments/?month={month}&year={year}')
 
