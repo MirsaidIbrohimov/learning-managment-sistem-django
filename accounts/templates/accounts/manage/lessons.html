@@ -3,190 +3,746 @@
 {% block title %}Darslarni boshqarish - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'profession_detail' profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
-    </a>
+<style>
+/* ===== VARIABLES ===== */
+:root {
+    --ls-fon: #F2F2F7;
+    --ls-karta: #FFFFFF;
+    --ls-text: #1C1C1E;
+    --ls-text2: #8E8E93;
+    --ls-blue: #007AFF;
+    --ls-green: #34C759;
+    --ls-orange: #FF9500;
+    --ls-red: #FF3B30;
+    --ls-indigo: #5856D6;
+    --ls-sep: rgba(60,60,67,0.1);
+    --ls-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --ls-shadow-lg: 0 8px 30px rgba(0,0,0,0.10);
+}
+[data-bs-theme="dark"] {
+    --ls-fon: #000000;
+    --ls-karta: #1C1C1E;
+    --ls-text: #FFFFFF;
+    --ls-text2: #98989D;
+    --ls-blue: #0A84FF;
+    --ls-green: #30D158;
+    --ls-orange: #FF9F0A;
+    --ls-red: #FF453A;
+    --ls-indigo: #5E5CE6;
+    --ls-sep: rgba(84,84,88,0.36);
+    --ls-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --ls-shadow-lg: 0 8px 30px rgba(0,0,0,0.45);
+}
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+/* ===== ANIMATIONS ===== */
+@keyframes lsFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes lsSlideRight {
+    from { opacity: 0; transform: translateX(-16px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes lsScaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes lsShimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes lsPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+}
+@keyframes lsCountUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== BASE ===== */
+.ls-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+}
+
+/* ===== HEADER ===== */
+.ls-header {
+    animation: lsFadeUp 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+    margin-bottom: 28px;
+}
+.ls-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 12px;
+    background: var(--ls-karta);
+    color: var(--ls-blue);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid var(--ls-sep);
+    box-shadow: var(--ls-shadow);
+    transition: all 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+    margin-bottom: 20px;
+}
+.ls-back:hover {
+    transform: translateX(-4px);
+    box-shadow: var(--ls-shadow-lg);
+    color: var(--ls-blue);
+}
+.ls-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+.ls-page-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ls-text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ls-page-title i {
+    font-size: 22px;
+    color: var(--ls-blue);
+    background: linear-gradient(135deg, rgba(0,122,255,0.12), rgba(88,86,214,0.12));
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ls-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.ls-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+    position: relative;
+    overflow: hidden;
+}
+.ls-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
+}
+.ls-btn:hover::after { opacity: 1; }
+.ls-btn:active { transform: scale(0.97); }
+
+.ls-btn-section {
+    background: var(--ls-karta);
+    color: var(--ls-green);
+    border: 1.5px solid var(--ls-green);
+    box-shadow: 0 2px 8px rgba(52,199,89,0.12);
+}
+.ls-btn-section:hover { background: var(--ls-green); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(52,199,89,0.25); }
+
+.ls-btn-add {
+    background: linear-gradient(135deg, var(--ls-blue), var(--ls-indigo));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0,122,255,0.3);
+}
+.ls-btn-add:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,122,255,0.35); color: #fff; }
+
+/* Dropdown */
+.ls-dropdown { position: relative; }
+.ls-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    background: var(--ls-karta);
+    border-radius: 14px;
+    box-shadow: var(--ls-shadow-lg);
+    border: 1px solid var(--ls-sep);
+    padding: 6px;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(0.96);
+    transition: all 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.ls-dropdown.open .ls-dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+.ls-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    color: var(--ls-text);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.ls-dropdown-item:hover { background: var(--ls-fon); color: var(--ls-text); }
+.ls-dropdown-item i { font-size: 18px; }
+
+/* ===== SECTION HEADING ===== */
+.ls-section-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ls-text);
+    margin-bottom: 16px;
+    animation: lsFadeUp 0.45s 0.1s both;
+}
+.ls-section-heading i { color: var(--ls-orange); font-size: 20px; }
+
+/* ===== SECTION CARD ===== */
+.ls-section {
+    background: var(--ls-karta);
+    border-radius: 16px;
+    border: 1px solid var(--ls-sep);
+    box-shadow: var(--ls-shadow);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+    animation: lsFadeUp 0.5s both cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.ls-section:hover {
+    box-shadow: var(--ls-shadow-lg);
+    transform: translateY(-2px);
+}
+
+/* Section header */
+.ls-section-head {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-bottom: 0.5px solid var(--ls-sep);
+    cursor: pointer;
+    transition: background 0.2s;
+    user-select: none;
+}
+.ls-section-head:hover { background: rgba(0,122,255,0.03); }
+.ls-section-chevron {
+    color: var(--ls-text2);
+    transition: transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+    font-size: 14px;
+    flex-shrink: 0;
+}
+.ls-section.collapsed .ls-section-chevron { transform: rotate(-90deg); }
+.ls-section.collapsed .ls-section-body { display: none; }
+.ls-section-icon {
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, rgba(255,149,0,0.15), rgba(255,149,0,0.05));
+    color: var(--ls-orange);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+    flex-shrink: 0;
+}
+.ls-section-info { flex: 1; min-width: 0; }
+.ls-section-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ls-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.ls-section-desc {
+    font-size: 13px;
+    color: var(--ls-text2);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ls-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--ls-blue), var(--ls-indigo));
+    color: #fff;
+    animation: lsCountUp 0.3s 0.5s both;
+}
+.ls-section-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.ls-icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--ls-sep);
+    background: var(--ls-fon);
+    color: var(--ls-text2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s;
+    font-size: 15px;
+}
+.ls-icon-btn:hover { transform: scale(1.1); }
+.ls-icon-btn.edit:hover { background: var(--ls-blue); color: #fff; border-color: var(--ls-blue); }
+.ls-icon-btn.delete:hover { background: var(--ls-red); color: #fff; border-color: var(--ls-red); }
+.ls-icon-btn.questions:hover { background: var(--ls-green); color: #fff; border-color: var(--ls-green); }
+
+/* Section body / lessons table */
+.ls-section-body { transition: all 0.3s; }
+.ls-lesson-row {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 0.5px solid var(--ls-sep);
+    transition: all 0.2s;
+    animation: lsSlideRight 0.35s both;
+}
+.ls-lesson-row:last-child { border-bottom: none; }
+.ls-lesson-row:hover { background: rgba(0,122,255,0.03); }
+
+.ls-lesson-num {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: var(--ls-fon);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--ls-text2);
+}
+.ls-lesson-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--ls-text);
+    min-width: 0;
+    overflow: hidden;
+}
+.ls-lesson-name span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ls-type-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+.ls-type-icon.video { background: rgba(0,122,255,0.12); color: var(--ls-blue); }
+.ls-type-icon.homework { background: rgba(255,149,0,0.12); color: var(--ls-orange); }
+.ls-type-icon.test { background: rgba(52,199,89,0.12); color: var(--ls-green); }
+
+.ls-type-badge {
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.ls-type-badge.video { background: rgba(0,122,255,0.1); color: var(--ls-blue); }
+.ls-type-badge.homework { background: rgba(255,149,0,0.1); color: var(--ls-orange); }
+.ls-type-badge.test { background: rgba(52,199,89,0.1); color: var(--ls-green); }
+
+.ls-lesson-date {
+    font-size: 13px;
+    color: var(--ls-text2);
+    white-space: nowrap;
+}
+.ls-lesson-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.ls-empty {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--ls-text2);
+    font-size: 14px;
+}
+.ls-empty i { font-size: 24px; display: block; margin-bottom: 6px; opacity: 0.4; }
+
+/* ===== NO SECTION CARD ===== */
+.ls-nosection {
+    background: var(--ls-karta);
+    border-radius: 16px;
+    border: 1px solid var(--ls-sep);
+    box-shadow: var(--ls-shadow);
+    overflow: hidden;
+    animation: lsFadeUp 0.5s 0.3s both;
+    transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.ls-nosection:hover { box-shadow: var(--ls-shadow-lg); }
+.ls-nosection-head {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--ls-sep);
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ls-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ls-nosection-head i { color: var(--ls-indigo); font-size: 20px; }
+
+.ls-big-empty {
+    text-align: center;
+    padding: 48px 24px;
+}
+.ls-big-empty-icon {
+    width: 80px; height: 80px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, rgba(0,122,255,0.1), rgba(88,86,214,0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 36px;
+    color: var(--ls-blue);
+    animation: lsScaleIn 0.5s 0.5s both, lsPulse 3s 1s infinite;
+}
+.ls-big-empty h4 { font-weight: 700; color: var(--ls-text); margin-bottom: 8px; font-size: 18px; }
+.ls-big-empty p { color: var(--ls-text2); font-size: 14px; margin: 0; }
+
+/* ===== ALERT ===== */
+.ls-alert {
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    animation: lsFadeUp 0.4s both;
+    border: 1px solid transparent;
+}
+.ls-alert-success { background: rgba(52,199,89,0.1); color: var(--ls-green); border-color: rgba(52,199,89,0.2); }
+.ls-alert-error { background: rgba(255,59,48,0.1); color: var(--ls-red); border-color: rgba(255,59,48,0.2); }
+.ls-alert-warning { background: rgba(255,149,0,0.1); color: var(--ls-orange); border-color: rgba(255,149,0,0.2); }
+.ls-alert-info { background: rgba(0,122,255,0.1); color: var(--ls-blue); border-color: rgba(0,122,255,0.2); }
+.ls-alert-close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 0;
+    transition: opacity 0.2s;
+}
+.ls-alert-close:hover { opacity: 1; }
+
+/* ===== RESPONSIVE: TABLET ===== */
+@media (max-width: 992px) {
+    .ls-lesson-row {
+        grid-template-columns: 36px 1fr auto;
+        gap: 8px;
+        padding: 12px 16px;
+    }
+    .ls-lesson-date { display: none; }
+    .ls-type-badge { display: none; }
+}
+
+/* ===== RESPONSIVE: MOBILE ===== */
+@media (max-width: 576px) {
+    .ls-wrap { padding: 14px 8px 32px; }
+
+    .ls-back { padding: 8px 14px; font-size: 13px; border-radius: 10px; margin-bottom: 14px; }
+
+    .ls-top-bar { gap: 12px; }
+    .ls-page-title { font-size: 18px; gap: 8px; }
+    .ls-page-title i { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+
+    .ls-actions { width: 100%; }
+    .ls-btn { padding: 10px 14px; font-size: 13px; border-radius: 10px; flex: 1; justify-content: center; }
+
+    .ls-section { border-radius: 14px; margin-bottom: 12px; }
+    .ls-section-head { padding: 14px 14px; gap: 10px; }
+    .ls-section-icon { width: 34px; height: 34px; border-radius: 9px; font-size: 15px; }
+    .ls-section-name { font-size: 14px; gap: 8px; }
+    .ls-section-desc { font-size: 12px; }
+    .ls-badge { font-size: 11px; padding: 2px 8px; }
+    .ls-icon-btn { width: 32px; height: 32px; border-radius: 8px; font-size: 13px; }
+
+    .ls-lesson-row {
+        grid-template-columns: 30px 1fr auto;
+        gap: 8px;
+        padding: 10px 14px;
+    }
+    .ls-lesson-num { width: 26px; height: 26px; font-size: 12px; border-radius: 6px; }
+    .ls-type-icon { width: 28px; height: 28px; font-size: 13px; border-radius: 7px; }
+    .ls-lesson-name { font-size: 13px; gap: 8px; }
+    .ls-lesson-actions .ls-icon-btn { width: 30px; height: 30px; font-size: 12px; }
+
+    .ls-empty { padding: 20px 12px; font-size: 13px; }
+
+    .ls-nosection { border-radius: 14px; }
+    .ls-nosection-head { padding: 14px 16px; font-size: 15px; }
+    .ls-big-empty { padding: 32px 16px; }
+    .ls-big-empty-icon { width: 64px; height: 64px; border-radius: 18px; font-size: 28px; }
+    .ls-big-empty h4 { font-size: 16px; }
+    .ls-big-empty p { font-size: 13px; }
+
+    .ls-dropdown-menu { min-width: 190px; }
+}
+
+/* ===== EXTRA SMALL ===== */
+@media (max-width: 380px) {
+    .ls-wrap { padding: 10px 5px 28px; }
+    .ls-page-title { font-size: 15px; }
+    .ls-actions { flex-direction: column; }
+    .ls-btn { width: 100%; }
+    .ls-section-head { flex-wrap: wrap; }
+    .ls-section-actions { width: 100%; justify-content: flex-end; margin-top: 4px; }
+    .ls-lesson-row { grid-template-columns: 1fr auto; }
+    .ls-lesson-num { display: none; }
+}
+</style>
+
+<div class="ls-wrap">
+    <!-- Back Button -->
+    <div class="ls-header">
+        <a href="{% url 'profession_detail' profession.pk %}" class="ls-back">
+            <i class="bi bi-chevron-left"></i> Orqaga
+        </a>
+
+        {% if messages %}
+            {% for message in messages %}
+            <div class="ls-alert ls-alert-{{ message.tags }}">
+                <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-circle-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+                <span>{{ message }}</span>
+                <button class="ls-alert-close" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button>
             </div>
-        {% endfor %}
-    {% endif %}
+            {% endfor %}
+        {% endif %}
 
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h3 style="color: var(--primary-blue);">
-            <i class="bi bi-gear me-2"></i>{{ profession.name }} - Darslar
-        </h3>
-        
-        <div class="d-flex gap-2">
-            <a href="{% url 'add_section' profession.pk %}" class="btn btn-outline-success">
-                <i class="bi bi-folder-plus me-2"></i>Bo'lim qo'shish
-            </a>
-            <div class="dropdown">
-                <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-plus-lg me-2"></i>Dars qo'shish
-                </button>
-                <ul class="dropdown-menu">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=video">
-                            <i class="bi bi-play-circle me-2 text-primary"></i>Video darslik
+        <!-- Title + Actions -->
+        <div class="ls-top-bar">
+            <h1 class="ls-page-title">
+                <i class="bi bi-gear-fill"></i>
+                <span>{{ profession.name }} — Darslar</span>
+            </h1>
+            <div class="ls-actions">
+                <a href="{% url 'add_section' profession.pk %}" class="ls-btn ls-btn-section">
+                    <i class="bi bi-folder-plus"></i> Bo'lim qo'shish
+                </a>
+                <div class="ls-dropdown" id="addLessonDropdown">
+                    <button class="ls-btn ls-btn-add" onclick="this.parentElement.classList.toggle('open')">
+                        <i class="bi bi-plus-lg"></i> Dars qo'shish
+                        <i class="bi bi-chevron-down" style="font-size:12px;"></i>
+                    </button>
+                    <div class="ls-dropdown-menu">
+                        <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=video">
+                            <div class="ls-type-icon video"><i class="bi bi-play-circle-fill"></i></div>
+                            Video darslik
                         </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=homework">
-                            <i class="bi bi-file-earmark-text me-2 text-warning"></i>Uyga vazifa
+                        <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=homework">
+                            <div class="ls-type-icon homework"><i class="bi bi-file-earmark-text-fill"></i></div>
+                            Uyga vazifa
                         </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=test">
-                            <i class="bi bi-question-circle me-2 text-success"></i>Test
+                        <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=test">
+                            <div class="ls-type-icon test"><i class="bi bi-question-circle-fill"></i></div>
+                            Test
                         </a>
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Sections -->
+    <!-- ===== SECTIONS ===== -->
     {% if sections %}
-    <div class="mb-4">
-        <h5 class="mb-3" style="color: var(--text-color);">
-            <i class="bi bi-folder2-open me-2"></i>Bo'limlar
-        </h5>
-        {% for section in sections %}
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>{{ section.title }}</strong>
-                    <span class="badge bg-secondary ms-2">{{ section.lessons.count }} dars</span>
-                    {% if section.description %}
-                    <small class="text-muted d-block">{{ section.description|truncatechars:100 }}</small>
-                    {% endif %}
+    <div class="ls-section-heading">
+        <i class="bi bi-folder2-open"></i> Bo'limlar
+    </div>
+
+    {% for section in sections %}
+    <div class="ls-section" style="animation-delay: {{ forloop.counter0 }}50ms;">
+        <div class="ls-section-head" onclick="this.parentElement.classList.toggle('collapsed')">
+            <i class="bi bi-chevron-down ls-section-chevron"></i>
+            <div class="ls-section-icon"><i class="bi bi-folder-fill"></i></div>
+            <div class="ls-section-info">
+                <div class="ls-section-name">
+                    {{ section.title }}
+                    <span class="ls-badge"><i class="bi bi-journal"></i> {{ section.lessons.count }} dars</span>
                 </div>
-                <div>
-                    <a href="{% url 'edit_section' section.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a href="{% url 'delete_section' section.pk %}" class="btn btn-sm btn-outline-danger" title="O'chirish">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                {% if section.lessons.all %}
-                <div class="table-responsive">
-                    <table class="table mb-0" style="color: var(--text-color);">
-                        <tbody>
-                            {% for lesson in section.lessons.all %}
-                            <tr>
-                                <td style="width: 50px;">{{ forloop.counter }}</td>
-                                <td>
-                                    {% if lesson.lesson_type == 'video' %}
-                                        <i class="bi bi-play-circle text-primary me-2"></i>
-                                    {% elif lesson.lesson_type == 'homework' %}
-                                        <i class="bi bi-file-earmark-text text-warning me-2"></i>
-                                    {% else %}
-                                        <i class="bi bi-question-circle text-success me-2"></i>
-                                    {% endif %}
-                                    {{ lesson.title }}
-                                </td>
-                                <td><span class="badge bg-secondary">{{ lesson.get_lesson_type_display }}</span></td>
-                                <td>{{ lesson.created_at|date:"d.m.Y" }}</td>
-                                <td style="width: 150px;">
-                                    {% if lesson.lesson_type == 'test' and lesson.test %}
-                                    <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="btn btn-sm btn-outline-success" title="Savollar">
-                                        <i class="bi bi-list-ol"></i>
-                                    </a>
-                                    {% endif %}
-                                    <a href="{% url 'edit_lesson' lesson.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'delete_lesson' lesson.pk %}" class="btn btn-sm btn-outline-danger" title="O'chirish">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                {% else %}
-                <div class="text-center py-3 text-muted">
-                    <i class="bi bi-inbox"></i> Bu bo'limda hali darslar yo'q
-                </div>
+                {% if section.description %}
+                <div class="ls-section-desc">{{ section.description|truncatechars:100 }}</div>
                 {% endif %}
             </div>
+            <div class="ls-section-actions" onclick="event.stopPropagation()">
+                <a href="{% url 'edit_section' section.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                    <i class="bi bi-pencil-fill"></i>
+                </a>
+                <a href="{% url 'delete_section' section.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                    <i class="bi bi-trash-fill"></i>
+                </a>
+            </div>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    <!-- Lessons without section -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0" style="color: var(--text-color);">
-                <i class="bi bi-collection me-2"></i>Bo'limsiz darslar
-            </h5>
-        </div>
-        <div class="card-body">
-            {% if lessons_without_section %}
-            <div class="table-responsive">
-                <table class="table" style="color: var(--text-color);">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Nomi</th>
-                            <th>Turi</th>
-                            <th>Yaratilgan</th>
-                            <th>Amallar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for lesson in lessons_without_section %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>
-                                {% if lesson.lesson_type == 'video' %}
-                                    <i class="bi bi-play-circle text-primary me-2"></i>
-                                {% elif lesson.lesson_type == 'homework' %}
-                                    <i class="bi bi-file-earmark-text text-warning me-2"></i>
-                                {% else %}
-                                    <i class="bi bi-question-circle text-success me-2"></i>
-                                {% endif %}
-                                {{ lesson.title }}
-                            </td>
-                            <td><span class="badge bg-secondary">{{ lesson.get_lesson_type_display }}</span></td>
-                            <td>{{ lesson.created_at|date:"d.m.Y" }}</td>
-                            <td>
-                                {% if lesson.lesson_type == 'test' and lesson.test %}
-                                <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="btn btn-sm btn-outline-success" title="Savollar">
-                                    <i class="bi bi-list-ol"></i>
-                                </a>
-                                {% endif %}
-                                <a href="{% url 'edit_lesson' lesson.pk %}" class="btn btn-sm btn-outline-primary" title="Tahrirlash">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="{% url 'delete_lesson' lesson.pk %}" class="btn btn-sm btn-outline-danger" title="O'chirish">
-                                    <i class="bi bi-trash"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="ls-section-body">
+            {% if section.lessons.all %}
+                {% for lesson in section.lessons.all %}
+                <div class="ls-lesson-row" style="animation-delay: {{ forloop.counter }}00ms;">
+                    <div class="ls-lesson-num">{{ forloop.counter }}</div>
+                    <div class="ls-lesson-name">
+                        <div class="ls-type-icon {{ lesson.lesson_type }}">
+                            {% if lesson.lesson_type == 'video' %}
+                                <i class="bi bi-play-circle-fill"></i>
+                            {% elif lesson.lesson_type == 'homework' %}
+                                <i class="bi bi-file-earmark-text-fill"></i>
+                            {% else %}
+                                <i class="bi bi-question-circle-fill"></i>
+                            {% endif %}
+                        </div>
+                        <span>{{ lesson.title }}</span>
+                    </div>
+                    <span class="ls-type-badge {{ lesson.lesson_type }}">{{ lesson.get_lesson_type_display }}</span>
+                    <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
+                    <div class="ls-lesson-actions">
+                        {% if lesson.lesson_type == 'test' and lesson.test %}
+                        <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
+                            <i class="bi bi-list-ol"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                            <i class="bi bi-trash-fill"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
             {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
-                <h4 class="mt-3" style="color: var(--text-color);">Hozircha darslar mavjud emas</h4>
-                <p class="text-muted">Yangi dars qo'shish uchun yuqoridagi "Dars qo'shish" tugmasini bosing</p>
-            </div>
+                <div class="ls-empty">
+                    <i class="bi bi-inbox"></i>
+                    Bu bo'limda hali darslar yo'q
+                </div>
             {% endif %}
         </div>
     </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- ===== LESSONS WITHOUT SECTION ===== -->
+    <div class="ls-nosection">
+        <div class="ls-nosection-head">
+            <i class="bi bi-collection-fill"></i> Bo'limsiz darslar
+        </div>
+        {% if lessons_without_section %}
+            {% for lesson in lessons_without_section %}
+            <div class="ls-lesson-row" style="animation-delay: {{ forloop.counter }}00ms;">
+                <div class="ls-lesson-num">{{ forloop.counter }}</div>
+                <div class="ls-lesson-name">
+                    <div class="ls-type-icon {{ lesson.lesson_type }}">
+                        {% if lesson.lesson_type == 'video' %}
+                            <i class="bi bi-play-circle-fill"></i>
+                        {% elif lesson.lesson_type == 'homework' %}
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        {% else %}
+                            <i class="bi bi-question-circle-fill"></i>
+                        {% endif %}
+                    </div>
+                    <span>{{ lesson.title }}</span>
+                </div>
+                <span class="ls-type-badge {{ lesson.lesson_type }}">{{ lesson.get_lesson_type_display }}</span>
+                <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
+                <div class="ls-lesson-actions">
+                    {% if lesson.lesson_type == 'test' and lesson.test %}
+                    <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
+                        <i class="bi bi-list-ol"></i>
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
+                        <i class="bi bi-pencil-fill"></i>
+                    </a>
+                    <a href="{% url 'delete_lesson' lesson.pk %}" class="ls-icon-btn delete" title="O'chirish">
+                        <i class="bi bi-trash-fill"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="ls-big-empty">
+                <div class="ls-big-empty-icon"><i class="bi bi-inbox"></i></div>
+                <h4>Hozircha darslar mavjud emas</h4>
+                <p>Yangi dars qo'shish uchun yuqoridagi "Dars qo'shish" tugmasini bosing</p>
+            </div>
+        {% endif %}
+    </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Close dropdown on outside click
+    document.addEventListener('click', function(e) {
+        var dd = document.getElementById('addLessonDropdown');
+        if (dd && !dd.contains(e.target)) {
+            dd.classList.remove('open');
+        }
+    });
+
+    // Staggered animation for section cards
+    document.querySelectorAll('.ls-section').forEach(function(el, i) {
+        el.style.animationDelay = (i * 80) + 'ms';
+    });
+
+    // Staggered animation for lesson rows
+    document.querySelectorAll('.ls-lesson-row').forEach(function(el, i) {
+        el.style.animationDelay = (150 + i * 50) + 'ms';
+    });
+
+    // Intersection Observer for scroll-triggered animations
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.ls-section, .ls-nosection, .ls-lesson-row').forEach(function(el) {
+        observer.observe(el);
+    });
+});
+</script>
 {% endblock %}
