@@ -181,63 +181,145 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
     font-weight: 700; font-size: 24px; color: var(--ios-indigo);
 }
 
+/* ===== TABLET RESPONSIVE ===== */
+@media (max-width: 992px) {
+    .ios-karta.d-flex.flex-column {
+        height: auto !important;
+        max-height: none !important;
+    }
+    .chat-konteyner {
+        height: 350px;
+    }
+}
+
 /* ===== MOBILE RESPONSIVE ===== */
 @media (max-width: 576px) {
-    .karta-sarlavha {
-        padding: 12px 14px;
-        font-size: 15px;
-    }
-    .holat-paneli {
-        padding: 12px 14px;
-        gap: 10px;
-    }
-    .holat-paneli i { font-size: 1.1rem !important; }
-    .holat-paneli span { font-size: 14px; }
+    .asosiy-konteyner { padding: 6px; }
 
-    .ma-lumot-qatori { padding: 0 14px; }
+    .ios-karta {
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: none;
+    }
+
+    .karta-sarlavha {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .holat-paneli {
+        padding: 10px 12px;
+        gap: 8px;
+        border-radius: 10px 10px 0 0;
+        flex-wrap: wrap;
+    }
+    .holat-paneli i { font-size: 1rem !important; }
+    .holat-paneli span { font-size: 13px; }
+
+    .ma-lumot-qatori { padding: 0 12px; }
     .ma-lumot-element {
         font-size: 13px;
-        padding: 10px 0;
+        padding: 9px 0;
+        gap: 4px;
         flex-wrap: wrap;
-        gap: 2px;
+    }
+    .ma-lumot-element span:last-child {
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 60%;
     }
 
     .fayl-box {
-        margin: 10px 12px;
-        padding: 10px;
-        gap: 10px;
+        margin: 8px 10px;
+        padding: 8px;
+        gap: 8px;
+        border-radius: 10px;
+        flex-wrap: nowrap;
     }
     .fayl-ikonka {
-        width: 34px; height: 34px;
-        font-size: 14px;
+        width: 32px; height: 32px;
+        font-size: 13px;
         border-radius: 8px;
+        flex-shrink: 0;
     }
+    .fayl-box .flex-grow-1 { min-width: 0; }
+    .fayl-box .text-truncate { font-size: 12px !important; }
+    .fayl-box small { font-size: 11px !important; }
+    .fayl-box .btn { padding: 4px 8px !important; flex-shrink: 0; }
+    .fayl-box .bi-download { font-size: 1rem !important; }
 
+    /* Chat section - fixed to viewport on mobile */
+    .ios-karta.d-flex.flex-column {
+        height: auto !important;
+        max-height: none !important;
+    }
     .chat-konteyner {
-        height: 350px;
-        padding: 12px;
-        gap: 8px;
+        height: 280px;
+        padding: 10px;
+        gap: 6px;
     }
     .xabar-pufagi {
         max-width: 85%;
-        padding: 8px 12px;
+        padding: 7px 11px;
         font-size: 14px;
         border-radius: 16px;
+        line-height: 1.35;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
-    .xabar-vaqti { font-size: 10px; }
+    .xabar-vaqti { font-size: 10px; margin-top: 2px; }
 
-    .chat-pastki-qism { padding: 8px 10px; }
-    .chat-input-guruhi {
-        padding: 4px 10px;
-        gap: 8px;
+    .chat-pastki-qism {
+        padding: 6px 8px;
     }
-    .chat-input-guruhi input { font-size: 14px; padding: 6px 0; }
+    .chat-input-guruhi {
+        padding: 3px 8px;
+        gap: 6px;
+        border-radius: 18px;
+    }
+    .chat-input-guruhi input {
+        font-size: 14px;
+        padding: 6px 0;
+        min-width: 0;
+    }
+    .chat-input-guruhi .bi-plus-circle { font-size: 1.15rem !important; }
+    .chat-input-guruhi .bi-arrow-up-circle-fill { font-size: 1.5rem !important; }
 
     .baho-aylanasi {
-        width: 60px; height: 60px;
-        font-size: 20px;
+        width: 56px; height: 56px;
+        font-size: 18px;
         border-width: 2.5px;
+        margin: 10px auto;
     }
+
+    /* Qayta topshirish form */
+    .ios-karta.p-3 { padding: 0.75rem !important; }
+    .ios-karta h6 { font-size: 0.88rem; }
+    .ios-karta .form-control { font-size: 14px; padding: 10px; }
+    .ios-karta .btn { font-size: 14px; padding: 10px; }
+    .ios-karta textarea.form-control { min-height: 80px; }
+
+    /* O'qituvchi izohi */
+    .ios-karta .small { font-size: 12px !important; }
+
+    /* Yuborilgan matn */
+    .ios-karta > .p-3 { padding: 0.65rem !important; }
+    .ios-karta > .p-3 .p-2 {
+        font-size: 13px !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ===== EXTRA SMALL (< 380px) ===== */
+@media (max-width: 380px) {
+    .asosiy-konteyner { padding: 4px; }
+    .chat-konteyner { height: 240px; }
+    .xabar-pufagi { max-width: 90%; font-size: 13px; }
+    .ma-lumot-element { flex-direction: column; gap: 2px; }
+    .ma-lumot-element span:last-child { text-align: left; max-width: 100%; }
 }
 </style>
 
@@ -246,8 +328,9 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
         <a href="{% url 'my_homework_list' %}" class="text-decoration-none flex-shrink-0" style="color: var(--ios-blue);">
             <i class="bi bi-chevron-left"></i> Orqaga
         </a>
-        <h5 class="mb-0 fw-bold text-center flex-grow-1" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(0.9rem, 3.5vw, 1.25rem);">{{ submission.homework.lesson.title }}</h5>
-        <div style="width: 50px;" class="flex-shrink-0 d-none d-sm-block"></div></div>
+        <h5 class="mb-0 fw-bold text-center flex-grow-1" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(0.85rem, 3.5vw, 1.25rem);">{{ submission.homework.lesson.title }}</h5>
+        <div style="width: 50px;" class="flex-shrink-0 d-none d-sm-block"></div>
+    </div>
 
     <div class="sahifa-to-ri">
         <div>
@@ -264,7 +347,7 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
                 <div class="ma-lumot-qatori">
                     <div class="ma-lumot-element">
                         <span class="ma-lumot-label">Sana</span>
-                        <span>{{ submission.submitted_at|date:"d.m.Y" }}</span>
+                        <span>{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
                     </div>
                     <div class="ma-lumot-element">
                         <span class="ma-lumot-label">Kurs</span>
