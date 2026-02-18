@@ -299,10 +299,10 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Faqat bitta kursda o'qiy oladi
-    existing_enrollment = CourseEnrollment.objects.filter(user=request.user).first()
-    if existing_enrollment:
-        messages.warning(request, f"Siz allaqachon '{existing_enrollment.profession.name}' kursida o'qiyapsiz. Yangi kursga yozilish uchun avval hozirgi kursdan chiqing.")
+    # Maksimum 3 ta kursda o'qiy oladi
+    existing_count = CourseEnrollment.objects.filter(user=request.user).count()
+    if existing_count >= 3:
+        messages.warning(request, "Siz allaqachon 3 ta kursda o'qiyapsiz. Yangi kursga yozilish uchun avval biror kursdan chiqing.")
         return redirect('professions')
     
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
@@ -1124,10 +1124,10 @@ def export_system_pdf(request):
 def leaderboard(request):
     students = CustomUser.objects.filter(role='student').order_by('-coins')
     
-    # Yo'nalish bo'yicha filter
+    # Yo'nalish bo'yicha filter (enrollments orqali)
     profession_id = request.GET.get('profession')
     if profession_id:
-        students = students.filter(profession_id=profession_id)
+        students = students.filter(enrollments__profession_id=profession_id).distinct()
     
     # Qidiruv
     search_query = request.GET.get('q', '').strip()
