@@ -322,10 +322,12 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Maksimum 3 ta kursda o'qiy oladi
-    existing_count = CourseEnrollment.objects.filter(user=request.user).count()
-    if existing_count >= 3:
-        messages.warning(request, "Siz allaqachon 3 ta kursda o'qiyapsiz. Yangi kursga yozilish uchun avval biror kursdan chiqing.")
+    # Maksimum 3 ta kursda o'qiy oladi (enrollment + pending so'rovlar)
+    enrolled_count = CourseEnrollment.objects.filter(user=request.user).count()
+    pending_count = CourseEnrollmentRequest.objects.filter(user=request.user, status='pending').count()
+    total_active = enrolled_count + pending_count
+    if total_active >= 3:
+        messages.warning(request, f"Siz allaqachon {enrolled_count} ta kursda o'qiyapsiz va {pending_count} ta so'rovingiz kutilmoqda. Maksimum 3 ta kurs. Yangi kursga yozilish uchun avval biror kursdan chiqing.")
         return redirect('professions')
     
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
@@ -341,10 +343,12 @@ def enroll_course(request, pk):
         if existing_request.status == 'pending':
             messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz admin tomonidan ko'rib chiqilmoqda.")
             return redirect('profession_detail', pk=pk)
-        elif existing_request.status == 'rejected':
-            admin_msg = existing_request.admin_message or "Sizga ushbu kursni o'qish imkoniyati berilmadi."
-            messages.error(request, admin_msg)
+        elif existing_request.status == 'approved':
+            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz allaqachon tasdiqlangan.")
             return redirect('profession_detail', pk=pk)
+        elif existing_request.status == 'rejected':
+            # Rad etilgan so'rovni o'chirib, qayta so'rov yuborishga ruxsat berish
+            existing_request.delete()
     
     if request.method == 'POST':
         CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
