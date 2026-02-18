@@ -491,7 +491,8 @@ def mark_video_watched(request, pk):
         progress.save()
         
         if not progress.coin_awarded:
-            request.user.add_coins(1, f"Video darslik ko'rildi: {video.lesson.title}")
+            coin_amount = 2 if request.user.is_premium else 1
+            request.user.add_coins(coin_amount, f"Video darslik ko'rildi: {video.lesson.title}")
             progress.coin_awarded = True
             progress.save()
         
@@ -649,7 +650,8 @@ def submit_test(request, pk):
     ).exclude(pk=result.pk).exists()
     
     if result.passed and not previous_coin_awarded and not result.coin_awarded:
-        request.user.add_coins(1, f"Test muvaffaqiyatli topshirildi: {test.lesson.title}")
+        coin_amount = 2 if request.user.is_premium else 1
+        request.user.add_coins(coin_amount, f"Test muvaffaqiyatli topshirildi: {test.lesson.title}")
         result.coin_awarded = True
         result.save()
         
@@ -657,10 +659,10 @@ def submit_test(request, pk):
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, 1 coin oldi"
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, {coin_amount} coin oldi"
         )
         
-        messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli topshirildi! +1 coin oldingiz!")
+        messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli topshirildi! +{coin_amount} coin oldingiz!")
     
     # Avtomatik xabar yuborish
     from .notifications import on_test_completed
@@ -760,8 +762,11 @@ def classmates_view(request, pk):
     """Kursdoshlar ro'yxati"""
     profession = get_object_or_404(Profession, pk=pk)
     
-    # Foydalanuvchi shu kursga yozilganmi?
+    # Faqat premium foydalanuvchilar, admin va o'qituvchilar kirishi mumkin
     if not request.user.is_admin and not request.user.is_teacher:
+        if not request.user.is_premium:
+            messages.warning(request, "Kursdoshlar bo'limi faqat Premium foydalanuvchilar uchun! 💎")
+            return redirect('profession_detail', pk=pk)
         if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
             messages.error(request, "Avval kursga yoziling!")
             return redirect('profession_detail', pk=pk)
@@ -2293,6 +2298,8 @@ def grade_homework(request, pk):
                 coin_amount = 5
                 if not submission.is_late:
                     coin_amount = 10
+                if submission.student.is_premium:
+                    coin_amount *= 2
                 submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                 submission.coin_awarded = True
                 submission.save()
@@ -2337,6 +2344,10 @@ def grade_homework(request, pk):
                         coin_amount += 5
                     elif submission.grade >= 80:
                         coin_amount += 3
+                    
+                    # Premium 2x bonus
+                    if submission.student.is_premium:
+                        coin_amount *= 2
                     
                     submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                     submission.coin_awarded = True

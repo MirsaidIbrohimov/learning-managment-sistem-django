@@ -341,9 +341,15 @@
                 <div class="alert alert-success py-2 mb-3">
                     <i class="bi bi-check-circle me-1"></i> Kursga yozilgansiz
                 </div>
+                {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}
                 <a href="{% url 'classmates' profession.pk %}" class="btn btn-outline-primary w-100 ios-btn mb-2">
                     <i class="bi bi-people me-2"></i>Kursdoshlar
                 </a>
+                {% else %}
+                <a href="{% url 'coin:buy_premium' %}" class="btn btn-outline-secondary w-100 ios-btn mb-2">
+                    <i class="bi bi-lock me-2"></i>Kursdoshlar <span class="badge bg-warning text-dark ms-1">Premium</span>
+                </a>
+                {% endif %}
                 <form method="POST" action="{% url 'unenroll_course' profession.pk %}" class="unenroll-form mb-3">
                     {% csrf_token %}
                     <button type="button" class="btn w-100 ios-btn btn-unenroll-detail" onclick="confirmUnenrollDetail(this)">
