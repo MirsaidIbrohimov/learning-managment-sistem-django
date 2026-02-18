@@ -542,18 +542,34 @@
             border-top-right-radius: 28px !important;
             border: none !important;
             background: var(--card) !important;
-            max-height: 80vh;
+            max-height: 90vh;
+            min-height: 180px;
             box-shadow: 0 -10px 60px rgba(0,0,0,0.25) !important;
+            transition: none !important;
         }
-        #mobileProfileMenu::before {
-            content: '';
-            display: block;
+        .mob-resize-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0 2px;
+            cursor: ns-resize;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .mob-resize-bar {
             width: 40px;
             height: 5px;
             background: var(--text-muted);
-            opacity: 0.3;
+            opacity: 0.35;
             border-radius: 99px;
-            margin: 10px auto 0;
+            transition: opacity 0.2s, width 0.2s;
+        }
+        .mob-resize-handle:active .mob-resize-bar,
+        .mob-resize-handle.dragging .mob-resize-bar {
+            opacity: 0.7;
+            width: 60px;
+            background: var(--primary, #0d6efd);
         }
         #mobileProfileMenu .offcanvas-header {
             padding: 16px 20px 14px;
@@ -655,6 +671,9 @@
         }
     </style>
     <div class="offcanvas offcanvas-bottom" tabindex="-1" id="mobileProfileMenu" aria-labelledby="mobileProfileLabel">
+        <div class="mob-resize-handle" id="mobResizeHandle">
+            <div class="mob-resize-bar"></div>
+        </div>
         <div class="offcanvas-header py-2">
             <span></span>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Yopish"></button>
@@ -721,6 +740,63 @@
             </a>
         </div>
     </div>
+    <script>
+    (function(){
+        var handle = document.getElementById('mobResizeHandle');
+        var menu = document.getElementById('mobileProfileMenu');
+        if (!handle || !menu) return;
+
+        var startY, startH, dragging = false;
+        var minH = 180, maxH = window.innerHeight * 0.9;
+        var SAVED_KEY = 'mobMenuHeight';
+
+        // Saqlangan o'lchamni yuklash
+        var saved = localStorage.getItem(SAVED_KEY);
+        if (saved) {
+            menu.style.height = Math.min(parseInt(saved), maxH) + 'px';
+        }
+
+        function getY(e) {
+            return e.touches ? e.touches[0].clientY : e.clientY;
+        }
+
+        function onStart(e) {
+            dragging = true;
+            startY = getY(e);
+            startH = menu.offsetHeight;
+            handle.classList.add('dragging');
+            document.body.style.overflow = 'hidden';
+            e.preventDefault();
+        }
+
+        function onMove(e) {
+            if (!dragging) return;
+            var dy = startY - getY(e);
+            var newH = Math.max(minH, Math.min(maxH, startH + dy));
+            menu.style.height = newH + 'px';
+            e.preventDefault();
+        }
+
+        function onEnd() {
+            if (!dragging) return;
+            dragging = false;
+            handle.classList.remove('dragging');
+            document.body.style.overflow = '';
+            localStorage.setItem(SAVED_KEY, menu.offsetHeight);
+        }
+
+        handle.addEventListener('mousedown', onStart);
+        handle.addEventListener('touchstart', onStart, {passive: false});
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('touchmove', onMove, {passive: false});
+        document.addEventListener('mouseup', onEnd);
+        document.addEventListener('touchend', onEnd);
+
+        window.addEventListener('resize', function(){
+            maxH = window.innerHeight * 0.9;
+        });
+    })();
+    </script>
     {% endif %}
 
     <main class="main-container">
