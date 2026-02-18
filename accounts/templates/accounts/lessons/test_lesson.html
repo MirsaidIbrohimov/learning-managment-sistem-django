@@ -953,14 +953,14 @@
                             <div class="retry-cost-title">Qayta topshirish narxi</div>
                             {% if request.user.is_premium %}
                             <div class="retry-cost-row">
-                                <span class="retry-cost-old">30 <i class="bi bi-coin"></i></span>
-                                <span class="retry-cost-current premium">10 <i class="bi bi-coin"></i></span>
+                                <span class="retry-cost-old">10 <i class="bi bi-coin"></i></span>
+                                <span class="retry-cost-current premium">5 <i class="bi bi-coin"></i></span>
                                 <span class="retry-premium-tag"><i class="bi bi-gem"></i> Premium chegirma</span>
                             </div>
                             {% else %}
                             <div class="retry-cost-row">
-                                <span class="retry-cost-current normal">30 <i class="bi bi-coin"></i></span>
-                                <span class="retry-save-tag"><i class="bi bi-gem"></i> Premium bilan 10 coin</span>
+                                <span class="retry-cost-current normal">10 <i class="bi bi-coin"></i></span>
+                                <span class="retry-save-tag"><i class="bi bi-gem"></i> Premium bilan 5 coin</span>
                             </div>
                             {% endif %}
                         </div>
@@ -970,12 +970,12 @@
                     </div>
                 </div>
 
-                {% if request.user.is_premium and request.user.coins >= 10 or not request.user.is_premium and request.user.coins >= 30 %}
+                {% if request.user.is_premium and request.user.coins >= 5 or not request.user.is_premium and request.user.coins >= 10 %}
                 <a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">
                     <i class="bi bi-arrow-repeat"></i>
                     Qayta topshirish
                     <span class="retry-coin-badge">
-                        {% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i>
+                        {% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i>
                     </span>
                 </a>
                 {% else %}
@@ -983,7 +983,7 @@
                     <i class="bi bi-lock-fill"></i>
                     Coin yetarli emas
                     <span class="retry-coin-badge">
-                        {% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i> kerak
+                        {% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i> kerak
                     </span>
                 </div>
                 {% endif %}
@@ -996,7 +996,7 @@
                         </div>
                         <div class="retry-pricing-label">Oddiy obunachi</div>
                         <div class="retry-pricing-amount" style="color:#ef4444;">
-                            <i class="bi bi-coin"></i> 30 coin
+                            <i class="bi bi-coin"></i> 10 coin
                         </div>
                     </div>
                     <div class="retry-pricing-vs">VS</div>
@@ -1006,7 +1006,7 @@
                         </div>
                         <div class="retry-pricing-label">Premium obunachi</div>
                         <div class="retry-pricing-amount" style="color:#10b981;">
-                            <i class="bi bi-coin"></i> 10 coin
+                            <i class="bi bi-coin"></i> 5 coin
                         </div>
                     </div>
                 </div>
@@ -1015,11 +1015,11 @@
                 <div class="retry-warning">
                     <div class="retry-warning-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
                     <div class="retry-warning-text">
-                        <strong>Diqqat!</strong> Qayta topshirish tugmasini bosganingizda hisobingizdan
-                        {% if request.user.is_premium %}<strong>10 coin</strong>{% else %}<strong>30 coin</strong>{% endif %}
-                        avtomatik yechib olinadi. Bu amal bekor qilinmaydi.
+                        <strong>Diqqat!</strong> Qayta topshirish uchun
+                        {% if request.user.is_premium %}<strong>5 coin</strong>{% else %}<strong>10 coin</strong>{% endif %}
+                        yechiladi. Ammo testdan o'tsangiz — bu coin qaytariladi! Har bir to'g'ri javob uchun +1 coin.
                         {% if not request.user.is_premium %}
-                        <span class="retry-warning-tip"><i class="bi bi-gem"></i> Premium obuna bilan faqat 10 coin to'laysiz — 20 coin tejamasiz!</span>
+                        <span class="retry-warning-tip"><i class="bi bi-gem"></i> Premium obuna bilan faqat 5 coin to'laysiz — 5 coin tejamasiz!</span>
                         {% endif %}
                     </div>
                 </div>
@@ -1038,7 +1038,7 @@
                 
                 <div class="coin-note">
                     <i class="bi bi-coin"></i>
-                    <span>Birinchi muvaffaqiyatli topshiriqda +1 coin!</span>
+                    <span>Har bir to'g'ri javob uchun +1 coin! O'tsangiz kirish puli qaytariladi 🎉</span>
                 </div>
             </div>
         </div>
