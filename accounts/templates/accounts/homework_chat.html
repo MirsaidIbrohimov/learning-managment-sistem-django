@@ -314,6 +314,127 @@
 .hw-revision-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,59,48,0.3); }
 .hw-revision-btn:active { transform: scale(0.98); }
 
+/* ===== COIN WARNING ===== */
+.hw-coin-warn {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: fadeSlideUp 0.4s 0.2s both;
+    position: relative;
+    overflow: hidden;
+}
+.hw-coin-warn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 1.5px;
+    background: linear-gradient(135deg, var(--hw-orange), var(--hw-red));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+.hw-coin-warn-icon {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    animation: scaleIn 0.4s 0.4s both;
+}
+.hw-coin-warn-icon.normal {
+    background: linear-gradient(135deg, rgba(255,149,0,0.15), rgba(255,59,48,0.08));
+    color: var(--hw-orange);
+}
+.hw-coin-warn-icon.premium {
+    background: linear-gradient(135deg, rgba(88,86,214,0.15), rgba(0,122,255,0.08));
+    color: var(--hw-indigo);
+}
+.hw-coin-warn-info { flex: 1; }
+.hw-coin-warn-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--hw-text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.hw-coin-warn-text {
+    font-size: 13px;
+    color: var(--hw-text2);
+    line-height: 1.5;
+    margin: 0;
+}
+.hw-coin-amount {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 14px;
+    animation: lsPulse 2s 1s infinite;
+}
+.hw-coin-amount.cost {
+    background: linear-gradient(135deg, rgba(255,59,48,0.12), rgba(255,149,0,0.08));
+    color: var(--hw-red);
+}
+.hw-coin-amount.premium-cost {
+    background: linear-gradient(135deg, rgba(88,86,214,0.12), rgba(0,122,255,0.08));
+    color: var(--hw-indigo);
+}
+.hw-coin-balance {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    background: rgba(52,199,89,0.1);
+    color: var(--hw-green);
+    font-weight: 700;
+    font-size: 12px;
+    margin-left: 6px;
+}
+.hw-premium-tip {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(88,86,214,0.08), rgba(0,122,255,0.05));
+    font-size: 12px;
+    color: var(--hw-indigo);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.hw-premium-tip a {
+    color: var(--hw-indigo);
+    font-weight: 700;
+    text-decoration: none;
+}
+.hw-premium-tip a:hover { text-decoration: underline; }
+@keyframes lsPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+.hw-not-enough {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(255,59,48,0.1), rgba(255,59,48,0.04));
+    color: var(--hw-red);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 /* ===== FEEDBACK ===== */
 .hw-feedback-body { padding: 16px 20px; }
 .hw-feedback-title { font-weight: 700; font-size: 15px; color: var(--hw-text); margin-bottom: 8px; }
@@ -634,6 +755,42 @@
                     <i class="bi bi-arrow-repeat"></i> Qayta topshirish
                 </div>
                 <div class="hw-revision-body">
+                    <!-- Coin ogohlantirish -->
+                    <div class="hw-coin-warn">
+                        <div class="hw-coin-warn-icon {% if request.user.is_premium %}premium{% else %}normal{% endif %}">
+                            <i class="bi bi-coin"></i>
+                        </div>
+                        <div class="hw-coin-warn-info">
+                            <div class="hw-coin-warn-title">
+                                Qayta topshirish narxi:
+                                {% if request.user.is_premium %}
+                                <span class="hw-coin-amount premium-cost"><i class="bi bi-coin"></i> -{{ resubmit_cost }}</span>
+                                {% else %}
+                                <span class="hw-coin-amount cost"><i class="bi bi-coin"></i> -{{ resubmit_cost }}</span>
+                                {% endif %}
+                                <span class="hw-coin-balance"><i class="bi bi-wallet2"></i> {{ request.user.coins }} coin</span>
+                            </div>
+                            <p class="hw-coin-warn-text">
+                                {% if request.user.is_premium %}
+                                Premium obunangiz tufayli siz atigi <strong>{{ resubmit_cost }} coin</strong> to'laysiz (oddiy: 5 coin).
+                                {% else %}
+                                Har bir qayta topshirish uchun <strong>{{ resubmit_cost }} coin</strong> yechiladi.
+                                {% endif %}
+                            </p>
+                            {% if not request.user.is_premium %}
+                            <div class="hw-premium-tip">
+                                <i class="bi bi-gem"></i> Premium obunchilar faqat 3 coin to'laydi.
+                                <a href="{% url 'buy_premium' %}">Premium olish →</a>
+                            </div>
+                            {% endif %}
+                            {% if request.user.coins < resubmit_cost %}
+                            <div class="hw-not-enough">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Coinlaringiz yetarli emas! Avval coin yig'ing.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
                     <form method="POST" enctype="multipart/form-data" id="resubmit-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="resubmit">
@@ -643,8 +800,8 @@
                         <textarea name="new_text_content" class="form-control mb-3" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
                         {% endif %}
                         <textarea name="note" class="form-control mb-3" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
-                        <button type="submit" class="hw-revision-btn" id="resubmit-btn">
-                            <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish
+                        <button type="submit" class="hw-revision-btn" id="resubmit-btn" {% if request.user.coins < resubmit_cost %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}>
+                            <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish (−{{ resubmit_cost }} <i class="bi bi-coin"></i>)
                         </button>
                     </form>
                 </div>
@@ -720,7 +877,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const resubmitForm = document.getElementById('resubmit-form');
     if (resubmitForm) {
-        resubmitForm.addEventListener('submit', function() {
+        resubmitForm.addEventListener('submit', function(e) {
+            var cost = '{{ resubmit_cost }}';
+            if (!confirm('Qayta topshirish uchun ' + cost + ' coin yechiladi. Davom etasizmi?')) {
+                e.preventDefault();
+                return;
+            }
             const btn = document.getElementById('resubmit-btn');
             if (btn) {
                 btn.disabled = true;

@@ -208,35 +208,58 @@ def profession_detail(request, pk):
                 video__lesson__profession=profession
             ).values_list('video__lesson_id', flat=True)
             
-            # Test results
-            completed_tests = TestResult.objects.filter(
+            # Test results - eng oxirgi natijani olish
+            test_results = TestResult.objects.filter(
                 student=request.user,
                 test__lesson__profession=profession
-            ).values_list('test__lesson_id', flat=True)
+            ).order_by('test__lesson_id', '-completed_at')
             
-            # Homework submissions
-            submitted_homeworks = HomeworkSubmission.objects.filter(
+            # Har bir test uchun eng oxirgi natijani saqlash
+            latest_test_results = {}
+            for tr in test_results:
+                if tr.test.lesson_id not in latest_test_results:
+                    latest_test_results[tr.test.lesson_id] = tr
+            
+            # Homework submissions - eng oxirgi topshiriqni olish
+            hw_submissions = HomeworkSubmission.objects.filter(
                 student=request.user,
                 homework__lesson__profession=profession
-            ).values('homework__lesson_id', 'grade')
+            ).order_by('homework__lesson_id', '-submitted_at')
+            
+            latest_hw_submissions = {}
+            for hw in hw_submissions:
+                if hw.homework.lesson_id not in latest_hw_submissions:
+                    latest_hw_submissions[hw.homework.lesson_id] = hw
             
             for vid in watched_videos:
                 lesson_progress[vid] = {'completed': True, 'type': 'video'}
             
-            for test_id in completed_tests:
-                lesson_progress[test_id] = {'completed': True, 'type': 'test'}
+            for lesson_id, tr in latest_test_results.items():
+                lesson_progress[lesson_id] = {
+                    'completed': tr.passed,
+                    'type': 'test',
+                    'passed': tr.passed,
+                    'score': tr.score,
+                    'attempted': True,
+                }
             
-            for hw in submitted_homeworks:
-                lesson_progress[hw['homework__lesson_id']] = {
-                    'completed': True, 
+            for lesson_id, hw in latest_hw_submissions.items():
+                is_completed = hw.status in ('accepted', 'graded')
+                lesson_progress[lesson_id] = {
+                    'completed': is_completed,
                     'type': 'homework',
-                    'graded': hw['grade'] is not None
+                    'graded': hw.grade is not None,
+                    'status': hw.status,
+                    'attempted': True,
                 }
         
         # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
         section_is_locked = {}
         if request.user.is_student and not (request.user.is_teacher or request.user.is_admin):
-            completed_lesson_ids = set(lesson_progress.keys())
+            # Faqat haqiqatan completed=True bo'lgan darslarni hisoblash
+            completed_lesson_ids = set(
+                lid for lid, prog in lesson_progress.items() if prog.get('completed')
+            )
             for i, section in enumerate(sections):
                 if i == 0:
                     section_is_locked[section.id] = False  # 1-bo'lim har doim ochiq
@@ -374,13 +397,14 @@ def _is_section_locked_for_student(user, section, profession):
         user=user, watched=True,
         video__lesson__profession=profession
     ).values_list('video__lesson_id', flat=True))
-    completed_tests = set(TestResult.objects.filter(
-        student=user, test__lesson__profession=profession
+    passed_tests = set(TestResult.objects.filter(
+        student=user, test__lesson__profession=profession, passed=True
     ).values_list('test__lesson_id', flat=True))
-    submitted_homeworks = set(HomeworkSubmission.objects.filter(
-        student=user, homework__lesson__profession=profession
+    accepted_homeworks = set(HomeworkSubmission.objects.filter(
+        student=user, homework__lesson__profession=profession,
+        status__in=['accepted', 'graded']
     ).values_list('homework__lesson_id', flat=True))
-    completed_lesson_ids = watched_videos | completed_tests | submitted_homeworks
+    completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks
     for prev_section in sections_list[:section_idx]:
         for prev_lesson in prev_section.lessons.all():
             if prev_lesson.pk not in completed_lesson_ids:
@@ -408,13 +432,14 @@ def lesson_view(request, pk):
                 user=request.user, watched=True,
                 video__lesson__profession=profession
             ).values_list('video__lesson_id', flat=True))
-            completed_tests = set(TestResult.objects.filter(
-                student=request.user, test__lesson__profession=profession
+            passed_tests = set(TestResult.objects.filter(
+                student=request.user, test__lesson__profession=profession, passed=True
             ).values_list('test__lesson_id', flat=True))
-            submitted_homeworks = set(HomeworkSubmission.objects.filter(
-                student=request.user, homework__lesson__profession=profession
+            accepted_homeworks = set(HomeworkSubmission.objects.filter(
+                student=request.user, homework__lesson__profession=profession,
+                status__in=['accepted', 'graded']
             ).values_list('homework__lesson_id', flat=True))
-            completed_lesson_ids = watched_videos | completed_tests | submitted_homeworks
+            completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks
             all_sections_done = all(
                 l.pk in completed_lesson_ids
                 for s in sections for l in s.lessons.all()
@@ -2410,6 +2435,14 @@ def homework_chat(request, pk):
             has_new_content = new_file or new_text
             
             if has_new_content:
+                # Qayta topshirish uchun coin yechish
+                resubmit_cost = 3 if request.user.is_premium else 5
+                if request.user.coins < resubmit_cost:
+                    messages.error(request, f"Qayta topshirish uchun {resubmit_cost} coin kerak. Sizda {request.user.coins} coin bor.")
+                    return redirect('homework_chat', pk=pk)
+                
+                request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
+                
                 from .models import HomeworkRevision
                 # Eski faylni revision sifatida saqlash (agar fayl mavjud bo'lsa)
                 if submission.file:
@@ -2449,10 +2482,12 @@ def homework_chat(request, pk):
                 messages.error(request, "Fayl yoki matn kiriting!")
             return redirect('homework_chat', pk=pk)
     
+    resubmit_cost = 3 if request.user.is_premium else 5
     return render(request, 'accounts/homework_chat.html', {
         'submission': submission,
         'chat_messages': chat_messages,
         'revisions': revisions,
+        'resubmit_cost': resubmit_cost,
     })
 
 

@@ -216,6 +216,21 @@
     color: white;
 }
 
+.status-badge.failed {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+.status-badge.revision {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+}
+
+.status-badge.reviewing {
+    background: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+}
+
 .progress-ring {
     width: 36px;
     height: 36px;
@@ -474,10 +489,38 @@
                         <div class="lesson-status">
                             {% with progress=lesson_progress|get_item:lesson.pk %}
                             {% if progress %}
-                                {% if progress.graded %}
-                                <span class="status-badge graded">
-                                    <i class="bi bi-star-fill"></i>Baholangan
-                                </span>
+                                {% if progress.type == 'test' %}
+                                    {% if progress.passed %}
+                                    <span class="status-badge completed">
+                                        <i class="bi bi-check-circle-fill"></i>O'tdi ({{ progress.score }}%)
+                                    </span>
+                                    {% else %}
+                                    <span class="status-badge failed">
+                                        <i class="bi bi-x-circle-fill"></i>Muvaffaqiyatsiz
+                                    </span>
+                                    {% endif %}
+                                {% elif progress.type == 'homework' %}
+                                    {% if progress.status == 'graded' %}
+                                    <span class="status-badge graded">
+                                        <i class="bi bi-star-fill"></i>Baholangan
+                                    </span>
+                                    {% elif progress.status == 'accepted' %}
+                                    <span class="status-badge completed">
+                                        <i class="bi bi-check-circle-fill"></i>Qabul qilindi
+                                    </span>
+                                    {% elif progress.status == 'revision' %}
+                                    <span class="status-badge revision">
+                                        <i class="bi bi-arrow-repeat"></i>Qayta topshiring
+                                    </span>
+                                    {% elif progress.status == 'reviewing' %}
+                                    <span class="status-badge reviewing">
+                                        <i class="bi bi-hourglass-split"></i>Tekshirilmoqda
+                                    </span>
+                                    {% else %}
+                                    <span class="status-badge reviewing">
+                                        <i class="bi bi-clock"></i>Kutilmoqda
+                                    </span>
+                                    {% endif %}
                                 {% else %}
                                 <span class="status-badge completed">
                                     <i class="bi bi-check-circle-fill"></i>Bajarilgan
@@ -564,9 +607,43 @@
                     <div class="lesson-status">
                         {% with progress=lesson_progress|get_item:lesson.pk %}
                         {% if progress %}
-                        <span class="status-badge completed">
-                            <i class="bi bi-check-circle-fill"></i>Bajarilgan
-                        </span>
+                            {% if progress.type == 'test' %}
+                                {% if progress.passed %}
+                                <span class="status-badge completed">
+                                    <i class="bi bi-check-circle-fill"></i>O'tdi ({{ progress.score }}%)
+                                </span>
+                                {% else %}
+                                <span class="status-badge failed">
+                                    <i class="bi bi-x-circle-fill"></i>Muvaffaqiyatsiz
+                                </span>
+                                {% endif %}
+                            {% elif progress.type == 'homework' %}
+                                {% if progress.status == 'graded' %}
+                                <span class="status-badge graded">
+                                    <i class="bi bi-star-fill"></i>Baholangan
+                                </span>
+                                {% elif progress.status == 'accepted' %}
+                                <span class="status-badge completed">
+                                    <i class="bi bi-check-circle-fill"></i>Qabul qilindi
+                                </span>
+                                {% elif progress.status == 'revision' %}
+                                <span class="status-badge revision">
+                                    <i class="bi bi-arrow-repeat"></i>Qayta topshiring
+                                </span>
+                                {% elif progress.status == 'reviewing' %}
+                                <span class="status-badge reviewing">
+                                    <i class="bi bi-hourglass-split"></i>Tekshirilmoqda
+                                </span>
+                                {% else %}
+                                <span class="status-badge reviewing">
+                                    <i class="bi bi-clock"></i>Kutilmoqda
+                                </span>
+                                {% endif %}
+                            {% else %}
+                            <span class="status-badge completed">
+                                <i class="bi bi-check-circle-fill"></i>Bajarilgan
+                            </span>
+                            {% endif %}
                         {% else %}
                         <span class="status-badge pending">
                             <i class="bi bi-circle"></i>Bajarilmagan
