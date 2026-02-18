@@ -3,453 +3,706 @@
 {% block content %}
 <style>
 :root {
-    /* iOS Light Palette */
-    --ios-fon: #F2F2F7;
-    --ios-karta: #FFFFFF;
-    --ios-text: #000000;
-    --ios-text-secondary: #8E8E93;
-    --ios-blue: #007AFF;
-    --ios-green: #34C759;
-    --ios-orange: #FF9500;
-    --ios-red: #FF3B30;
-    --ios-indigo: #5856D6;
-    --ios-separator: #C6C6C8;
-    --ios-blur-bg: rgba(255, 255, 255, 0.7);
+    --hw-fon: #F2F2F7;
+    --hw-karta: #FFFFFF;
+    --hw-text: #1C1C1E;
+    --hw-text2: #8E8E93;
+    --hw-blue: #007AFF;
+    --hw-green: #34C759;
+    --hw-orange: #FF9500;
+    --hw-red: #FF3B30;
+    --hw-indigo: #5856D6;
+    --hw-sep: rgba(60,60,67,0.12);
+    --hw-blur: rgba(255,255,255,0.72);
+    --hw-bubble-other: #E9E9EB;
+    --hw-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    --hw-shadow-hover: 0 8px 32px rgba(0,0,0,0.10);
 }
-
 [data-bs-theme="dark"] {
-    /* iOS Dark Palette */
-    --ios-fon: #000000;
-    --ios-karta: #1C1C1E;
-    --ios-text: #FFFFFF;
-    --ios-text-secondary: #8E8E93;
-    --ios-blue: #0A84FF;
-    --ios-green: #30D158;
-    --ios-orange: #FF9F0A;
-    --ios-red: #FF453A;
-    --ios-indigo: #5E5CE6;
-    --ios-separator: #38383A;
-    --ios-blur-bg: rgba(28, 28, 30, 0.8);
+    --hw-fon: #000000;
+    --hw-karta: #1C1C1E;
+    --hw-text: #FFFFFF;
+    --hw-text2: #98989D;
+    --hw-blue: #0A84FF;
+    --hw-green: #30D158;
+    --hw-orange: #FF9F0A;
+    --hw-red: #FF453A;
+    --hw-indigo: #5E5CE6;
+    --hw-sep: rgba(84,84,88,0.36);
+    --hw-blur: rgba(28,28,30,0.72);
+    --hw-bubble-other: #2C2C2E;
+    --hw-shadow: 0 2px 16px rgba(0,0,0,0.3);
+    --hw-shadow-hover: 0 8px 32px rgba(0,0,0,0.4);
 }
 
-body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
-.asosiy-konteyner { max-width: 1000px; margin: 0 auto; padding: 20px; }
-
-/* Sahifa strukturasi */
-.sahifa-to-ri {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 25px;
+/* ===== ANIMATIONS ===== */
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-@media (max-width: 992px) { .sahifa-to-ri { grid-template-columns: 1fr; } }
-@media (max-width: 576px) {
-    .asosiy-konteyner { padding: 10px; }
+@keyframes fadeSlideRight {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeSlideLeft {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(88,86,214,0.3); }
+    50% { box-shadow: 0 0 0 12px rgba(88,86,214,0); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes bubblePop {
+    0% { opacity: 0; transform: scale(0.3) translateY(10px); }
+    50% { transform: scale(1.05) translateY(-2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes statusPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
 }
 
-/* iOS Card Style */
-.ios-karta {
-    background: var(--ios-karta);
-    border-radius: 14px;
-    border: none;
-    margin-bottom: 20px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* ===== BASE ===== */
+.hw-wrap {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 24px 20px;
 }
 
-.karta-sarlavha {
-    padding: 15px 20px;
-    border-bottom: 0.5px solid var(--ios-separator);
-    font-weight: 600;
-    font-size: 17px;
-}
-
-/* Status Banner */
-.holat-paneli {
-    padding: 16px 20px;
-    border-radius: 14px 14px 0 0;
+/* ===== HEADER ===== */
+.hw-header {
     display: flex;
     align-items: center;
     gap: 12px;
+    margin-bottom: 24px;
+    animation: fadeSlideUp 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
 }
-.holat-paneli.pending { background: rgba(255, 149, 0, 0.15); color: var(--ios-orange); }
-.holat-paneli.reviewing { background: rgba(0, 122, 255, 0.15); color: var(--ios-blue); }
-.holat-paneli.revision { background: rgba(255, 59, 48, 0.15); color: var(--ios-red); }
-.holat-paneli.accepted { background: rgba(52, 199, 89, 0.15); color: var(--ios-green); }
-.holat-paneli.graded { background: rgba(88, 86, 214, 0.15); color: var(--ios-indigo); }
-
-/* Info List */
-.ma-lumot-qatori {
+.hw-back {
     display: flex;
-    flex-direction: column;
-    padding: 0 20px;
+    align-items: center;
+    justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    background: var(--hw-karta);
+    color: var(--hw-blue);
+    text-decoration: none;
+    box-shadow: var(--hw-shadow);
+    transition: all 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
+    flex-shrink: 0;
+    border: 1px solid var(--hw-sep);
 }
-.ma-lumot-element {
-    padding: 12px 0;
-    border-bottom: 0.5px solid var(--ios-separator);
+.hw-back:hover {
+    transform: translateX(-3px);
+    box-shadow: var(--hw-shadow-hover);
+    color: var(--hw-blue);
+}
+.hw-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--hw-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* ===== GRID LAYOUT ===== */
+.hw-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+}
+
+/* ===== CARD ===== */
+.hw-card {
+    background: var(--hw-karta);
+    border-radius: 16px;
+    border: 1px solid var(--hw-sep);
+    box-shadow: var(--hw-shadow);
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.hw-card:hover {
+    box-shadow: var(--hw-shadow-hover);
+}
+.hw-card.anim-1 { animation: fadeSlideUp 0.5s 0.1s both cubic-bezier(0.25,0.46,0.45,0.94); }
+.hw-card.anim-2 { animation: fadeSlideUp 0.5s 0.2s both cubic-bezier(0.25,0.46,0.45,0.94); }
+.hw-card.anim-3 { animation: fadeSlideUp 0.5s 0.3s both cubic-bezier(0.25,0.46,0.45,0.94); }
+.hw-card.anim-chat { animation: fadeSlideLeft 0.6s 0.15s both cubic-bezier(0.25,0.46,0.45,0.94); }
+.hw-card + .hw-card { margin-top: 16px; }
+
+/* ===== STATUS BANNER ===== */
+.hw-status {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.hw-status-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    animation: scaleIn 0.4s 0.3s both;
+}
+.hw-status-text { font-weight: 600; font-size: 16px; }
+.hw-status-sub { font-size: 13px; margin-top: 2px; opacity: 0.8; }
+
+.hw-status.pending { background: linear-gradient(135deg, rgba(255,149,0,0.12), rgba(255,149,0,0.05)); }
+.hw-status.pending .hw-status-icon { background: var(--hw-orange); color: #fff; }
+.hw-status.pending .hw-status-text { color: var(--hw-orange); }
+
+.hw-status.reviewing { background: linear-gradient(135deg, rgba(0,122,255,0.12), rgba(0,122,255,0.05)); }
+.hw-status.reviewing .hw-status-icon { background: var(--hw-blue); color: #fff; animation: statusPulse 2s infinite; }
+.hw-status.reviewing .hw-status-text { color: var(--hw-blue); }
+
+.hw-status.revision { background: linear-gradient(135deg, rgba(255,59,48,0.12), rgba(255,59,48,0.05)); }
+.hw-status.revision .hw-status-icon { background: var(--hw-red); color: #fff; }
+.hw-status.revision .hw-status-text { color: var(--hw-red); }
+
+.hw-status.accepted { background: linear-gradient(135deg, rgba(52,199,89,0.12), rgba(52,199,89,0.05)); }
+.hw-status.accepted .hw-status-icon { background: var(--hw-green); color: #fff; }
+.hw-status.accepted .hw-status-text { color: var(--hw-green); }
+
+.hw-status.graded { background: linear-gradient(135deg, rgba(88,86,214,0.12), rgba(88,86,214,0.05)); }
+.hw-status.graded .hw-status-icon { background: var(--hw-indigo); color: #fff; }
+.hw-status.graded .hw-status-text { color: var(--hw-indigo); }
+
+/* ===== INFO ROWS ===== */
+.hw-info { padding: 4px 0; }
+.hw-info-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 13px 20px;
     font-size: 15px;
+    border-bottom: 0.5px solid var(--hw-sep);
+    transition: background 0.2s;
 }
-.ma-lumot-element:last-child { border-bottom: none; }
-.ma-lumot-label { color: var(--ios-text-secondary); }
+.hw-info-row:last-child { border-bottom: none; }
+.hw-info-row:hover { background: rgba(0,122,255,0.03); }
+.hw-info-label { color: var(--hw-text2); }
+.hw-info-value { font-weight: 500; color: var(--hw-text); }
 
-/* Fayl Box */
-.fayl-box {
-    margin: 15px 20px;
-    padding: 12px;
-    background: var(--ios-fon);
+/* ===== FILE BOX ===== */
+.hw-file {
+    margin: 12px 16px 16px;
+    padding: 14px;
+    background: var(--hw-fon);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.25s;
+    border: 1px solid transparent;
+}
+.hw-file:hover { border-color: var(--hw-blue); transform: translateY(-1px); }
+.hw-file-icon {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--hw-blue), #5856D6);
+    color: #fff;
     border-radius: 12px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
 }
-.fayl-ikonka {
-    width: 40px; height: 40px;
-    background: var(--ios-blue);
-    color: white;
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-}
-
-/* Chat iOS Style */
-.chat-konteyner {
-    height: 500px;
-    overflow-y: auto;
-    padding: 20px;
+.hw-file-info { flex: 1; min-width: 0; }
+.hw-file-name { font-weight: 600; font-size: 14px; color: var(--hw-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hw-file-sub { font-size: 12px; color: var(--hw-text2); margin-top: 2px; }
+.hw-file-dl {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--hw-blue);
+    color: #fff;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: all 0.25s;
+    flex-shrink: 0;
 }
-.xabar-pufagi {
-    max-width: 75%;
-    padding: 8px 16px;
-    border-radius: 18px;
-    font-size: 16px;
-    line-height: 1.3;
-    position: relative;
-}
-.xabar-mine {
-    align-self: flex-end;
-    background: var(--ios-blue);
-    color: white;
-}
-.xabar-other {
-    align-self: flex-start;
-    background: var(--ios-separator);
-    color: var(--ios-text);
-}
-.xabar-vaqti {
-    font-size: 11px;
-    margin-top: 4px;
-    opacity: 0.6;
-    display: block;
-    text-align: right;
+.hw-file-dl:hover { transform: scale(1.1); background: #005ec4; color: #fff; }
+
+/* ===== TEXT CONTENT ===== */
+.hw-text-content {
+    margin: 12px 16px 16px;
+    padding: 14px;
+    background: var(--hw-fon);
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--hw-text);
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
-/* iOS Input */
-.chat-pastki-qism {
-    padding: 10px 15px;
-    background: var(--ios-blur-bg);
-    backdrop-filter: blur(10px);
-    border-top: 0.5px solid var(--ios-separator);
+/* ===== GRADE ===== */
+.hw-grade-wrap { text-align: center; padding: 20px 16px 24px; }
+.hw-grade {
+    width: 80px; height: 80px;
+    border: 4px solid var(--hw-indigo);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--hw-indigo);
+    animation: scaleIn 0.5s 0.4s both, pulseGlow 2s 1s infinite;
+    background: linear-gradient(135deg, rgba(88,86,214,0.08), transparent);
 }
-.chat-input-guruhi {
+.hw-grade-label { font-size: 14px; color: var(--hw-text2); font-weight: 500; }
+
+/* ===== REVISION FORM ===== */
+.hw-revision {
+    border-top: 3px solid var(--hw-red);
+}
+.hw-revision-header {
+    padding: 16px 20px;
     display: flex;
     align-items: center;
     gap: 10px;
-    background: var(--ios-karta);
-    border: 0.5px solid var(--ios-separator);
-    border-radius: 20px;
-    padding: 5px 15px;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--hw-red);
 }
-.chat-input-guruhi input {
+.hw-revision-body { padding: 0 20px 20px; }
+.hw-revision .form-control {
+    border: 1px solid var(--hw-sep);
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 14px;
+    background: var(--hw-fon);
+    color: var(--hw-text);
+    transition: all 0.25s;
+}
+.hw-revision .form-control:focus {
+    border-color: var(--hw-blue);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.12);
+}
+.hw-revision-btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--hw-red), #c0392b);
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+.hw-revision-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,59,48,0.3); }
+.hw-revision-btn:active { transform: scale(0.98); }
+
+/* ===== FEEDBACK ===== */
+.hw-feedback-body { padding: 16px 20px; }
+.hw-feedback-title { font-weight: 700; font-size: 15px; color: var(--hw-text); margin-bottom: 8px; }
+.hw-feedback-text { font-size: 14px; color: var(--hw-text2); line-height: 1.6; margin: 0; }
+
+/* ===== CHAT ===== */
+.hw-chat-card {
+    display: flex;
+    flex-direction: column;
+    height: 620px;
+    position: sticky;
+    top: 20px;
+}
+.hw-chat-header {
+    padding: 16px 20px;
+    border-bottom: 0.5px solid var(--hw-sep);
+    font-weight: 700;
+    font-size: 17px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--hw-text);
+}
+.hw-chat-header i { color: var(--hw-blue); }
+.hw-chat-dot {
+    width: 8px; height: 8px;
+    background: var(--hw-green);
+    border-radius: 50%;
+    animation: statusPulse 2s infinite;
+}
+
+/* Chat messages */
+.hw-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    scroll-behavior: smooth;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 59px,
+        var(--hw-sep) 59px,
+        var(--hw-sep) 60px
+    );
+    background-size: 100% 60px;
+    background-attachment: local;
+}
+.hw-chat-body::-webkit-scrollbar { width: 4px; }
+.hw-chat-body::-webkit-scrollbar-thumb { background: var(--hw-sep); border-radius: 4px; }
+
+.hw-bubble {
+    max-width: 78%;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 15px;
+    line-height: 1.4;
+    position: relative;
+    animation: bubblePop 0.35s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    word-break: break-word;
+    transition: transform 0.15s;
+}
+.hw-bubble:hover { transform: scale(1.01); }
+
+.hw-bubble-mine {
+    align-self: flex-end;
+    background: linear-gradient(135deg, var(--hw-blue), #005ec4);
+    color: #fff;
+    border-bottom-right-radius: 6px;
+}
+.hw-bubble-other {
+    align-self: flex-start;
+    background: var(--hw-bubble-other);
+    color: var(--hw-text);
+    border-bottom-left-radius: 6px;
+}
+.hw-bubble-time {
+    font-size: 11px;
+    opacity: 0.55;
+    margin-top: 4px;
+    display: block;
+    text-align: right;
+}
+.hw-bubble-file {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    font-size: 13px;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.hw-bubble-file:hover { background: rgba(255,255,255,0.25); color: inherit; }
+.hw-bubble-other .hw-bubble-file { background: rgba(0,0,0,0.06); }
+.hw-bubble-other .hw-bubble-file:hover { background: rgba(0,0,0,0.1); }
+
+.hw-chat-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.3;
+    gap: 8px;
+}
+.hw-chat-empty i { font-size: 48px; }
+
+/* Chat input */
+.hw-chat-footer {
+    padding: 10px 14px;
+    background: var(--hw-blur);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 0.5px solid var(--hw-sep);
+}
+.hw-chat-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--hw-fon);
+    border: 1px solid var(--hw-sep);
+    border-radius: 24px;
+    padding: 5px 6px 5px 14px;
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+.hw-chat-input-row:focus-within {
+    border-color: var(--hw-blue);
+    box-shadow: 0 0 0 3px rgba(0,122,255,0.1);
+}
+.hw-chat-input-row input[type="text"] {
     flex: 1;
     border: none;
     background: transparent;
     padding: 8px 0;
-    color: var(--ios-text);
+    font-size: 15px;
+    color: var(--hw-text);
     outline: none;
+    min-width: 0;
 }
-
-/* Grade Circle */
-.baho-aylanasi {
-    width: 70px; height: 70px;
-    border: 3px solid var(--ios-indigo);
+.hw-chat-input-row input::placeholder { color: var(--hw-text2); }
+.hw-attach-btn {
+    background: none;
+    border: none;
+    color: var(--hw-blue);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.2s;
+    display: flex;
+    align-items: center;
+}
+.hw-attach-btn:hover { transform: rotate(90deg); }
+.hw-send-btn {
+    width: 36px; height: 36px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 15px auto;
-    font-weight: 700; font-size: 24px; color: var(--ios-indigo);
+    border: none;
+    background: var(--hw-blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    font-size: 16px;
 }
+.hw-send-btn:hover { background: #005ec4; transform: scale(1.08); }
+.hw-send-btn:active { transform: scale(0.95); }
 
-/* ===== TABLET RESPONSIVE ===== */
+/* ===== RESPONSIVE: TABLET ===== */
 @media (max-width: 992px) {
-    .ios-karta.d-flex.flex-column {
-        height: auto !important;
-        max-height: none !important;
-    }
-    .chat-konteyner {
-        height: 350px;
-    }
+    .hw-grid { grid-template-columns: 1fr; }
+    .hw-chat-card { height: auto; position: static; }
+    .hw-chat-body { height: 380px; flex: none; }
+    .hw-card.anim-chat { animation-name: fadeSlideUp; }
 }
 
-/* ===== MOBILE RESPONSIVE ===== */
+/* ===== RESPONSIVE: MOBILE ===== */
 @media (max-width: 576px) {
-    .asosiy-konteyner { padding: 6px; }
+    .hw-wrap { padding: 12px 8px; }
+    .hw-header { margin-bottom: 16px; gap: 10px; }
+    .hw-back { width: 34px; height: 34px; border-radius: 10px; }
+    .hw-title { font-size: 16px; }
 
-    .ios-karta {
-        border-radius: 10px;
-        margin-bottom: 10px;
-        box-shadow: none;
-    }
+    .hw-card { border-radius: 14px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+    .hw-card + .hw-card { margin-top: 12px; }
 
-    .karta-sarlavha {
-        padding: 10px 12px;
-        font-size: 14px;
-    }
+    .hw-status { padding: 14px 16px; gap: 12px; }
+    .hw-status-icon { width: 38px; height: 38px; border-radius: 12px; font-size: 17px; }
+    .hw-status-text { font-size: 15px; }
+    .hw-status-sub { font-size: 12px; }
 
-    .holat-paneli {
-        padding: 10px 12px;
-        gap: 8px;
-        border-radius: 10px 10px 0 0;
-        flex-wrap: wrap;
-    }
-    .holat-paneli i { font-size: 1rem !important; }
-    .holat-paneli span { font-size: 13px; }
+    .hw-info-row { padding: 11px 16px; font-size: 14px; }
 
-    .ma-lumot-qatori { padding: 0 12px; }
-    .ma-lumot-element {
-        font-size: 13px;
-        padding: 9px 0;
-        gap: 4px;
-        flex-wrap: wrap;
-    }
-    .ma-lumot-element span:last-child {
-        text-align: right;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        max-width: 60%;
-    }
+    .hw-file { margin: 10px 12px 14px; padding: 12px; gap: 10px; }
+    .hw-file-icon { width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+    .hw-file-name { font-size: 13px; }
+    .hw-file-dl { width: 34px; height: 34px; }
 
-    .fayl-box {
-        margin: 8px 10px;
-        padding: 8px;
-        gap: 8px;
-        border-radius: 10px;
-        flex-wrap: nowrap;
-    }
-    .fayl-ikonka {
-        width: 32px; height: 32px;
-        font-size: 13px;
-        border-radius: 8px;
-        flex-shrink: 0;
-    }
-    .fayl-box .flex-grow-1 { min-width: 0; }
-    .fayl-box .text-truncate { font-size: 12px !important; }
-    .fayl-box small { font-size: 11px !important; }
-    .fayl-box .btn { padding: 4px 8px !important; flex-shrink: 0; }
-    .fayl-box .bi-download { font-size: 1rem !important; }
+    .hw-text-content { margin: 10px 12px 14px; padding: 12px; font-size: 13px; }
 
-    /* Chat section - fixed to viewport on mobile */
-    .ios-karta.d-flex.flex-column {
-        height: auto !important;
-        max-height: none !important;
-    }
-    .chat-konteyner {
-        height: 280px;
-        padding: 10px;
-        gap: 6px;
-    }
-    .xabar-pufagi {
-        max-width: 85%;
-        padding: 7px 11px;
-        font-size: 14px;
-        border-radius: 16px;
-        line-height: 1.35;
-        word-break: break-word;
-        overflow-wrap: break-word;
-    }
-    .xabar-vaqti { font-size: 10px; margin-top: 2px; }
+    .hw-grade { width: 68px; height: 68px; font-size: 24px; border-width: 3px; }
+    .hw-grade-wrap { padding: 16px 12px 20px; }
 
-    .chat-pastki-qism {
-        padding: 6px 8px;
-    }
-    .chat-input-guruhi {
-        padding: 3px 8px;
-        gap: 6px;
-        border-radius: 18px;
-    }
-    .chat-input-guruhi input {
-        font-size: 14px;
-        padding: 6px 0;
-        min-width: 0;
-    }
-    .chat-input-guruhi .bi-plus-circle { font-size: 1.15rem !important; }
-    .chat-input-guruhi .bi-arrow-up-circle-fill { font-size: 1.5rem !important; }
+    .hw-revision-header { padding: 14px 16px; font-size: 15px; }
+    .hw-revision-body { padding: 0 16px 16px; }
+    .hw-revision .form-control { padding: 11px 12px; font-size: 14px; border-radius: 10px; }
+    .hw-revision-btn { padding: 13px; font-size: 14px; border-radius: 12px; }
 
-    .baho-aylanasi {
-        width: 56px; height: 56px;
-        font-size: 18px;
-        border-width: 2.5px;
-        margin: 10px auto;
-    }
+    .hw-feedback-body { padding: 14px 16px; }
 
-    /* Qayta topshirish form */
-    .ios-karta.p-3 { padding: 0.75rem !important; }
-    .ios-karta h6 { font-size: 0.88rem; }
-    .ios-karta .form-control { font-size: 14px; padding: 10px; }
-    .ios-karta .btn { font-size: 14px; padding: 10px; }
-    .ios-karta textarea.form-control { min-height: 80px; }
+    .hw-chat-header { padding: 14px 16px; font-size: 15px; }
+    .hw-chat-body { height: 300px; padding: 12px; gap: 6px; }
+    .hw-bubble { max-width: 86%; padding: 9px 14px; font-size: 14px; border-radius: 18px; }
+    .hw-bubble-mine { border-bottom-right-radius: 5px; }
+    .hw-bubble-other { border-bottom-left-radius: 5px; }
+    .hw-bubble-time { font-size: 10px; }
 
-    /* O'qituvchi izohi */
-    .ios-karta .small { font-size: 12px !important; }
-
-    /* Yuborilgan matn */
-    .ios-karta > .p-3 { padding: 0.65rem !important; }
-    .ios-karta > .p-3 .p-2 {
-        font-size: 13px !important;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+    .hw-chat-footer { padding: 8px 10px; }
+    .hw-chat-input-row { padding: 4px 5px 4px 12px; border-radius: 22px; gap: 8px; }
+    .hw-chat-input-row input[type="text"] { font-size: 14px; padding: 7px 0; }
+    .hw-send-btn { width: 33px; height: 33px; font-size: 15px; }
+    .hw-attach-btn { font-size: 20px; }
 }
 
-/* ===== EXTRA SMALL (< 380px) ===== */
+/* ===== RESPONSIVE: EXTRA SMALL ===== */
 @media (max-width: 380px) {
-    .asosiy-konteyner { padding: 4px; }
-    .chat-konteyner { height: 240px; }
-    .xabar-pufagi { max-width: 90%; font-size: 13px; }
-    .ma-lumot-element { flex-direction: column; gap: 2px; }
-    .ma-lumot-element span:last-child { text-align: left; max-width: 100%; }
+    .hw-wrap { padding: 8px 5px; }
+    .hw-title { font-size: 14px; }
+    .hw-chat-body { height: 260px; }
+    .hw-bubble { max-width: 90%; font-size: 13px; }
+    .hw-info-row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 14px; }
+    .hw-info-value { font-size: 13px; }
+    .hw-status { padding: 12px 14px; }
+    .hw-status-icon { width: 34px; height: 34px; font-size: 15px; }
 }
 </style>
 
-<div class="asosiy-konteyner">
-    <div class="mb-4 d-flex align-items-center justify-content-between gap-2">
-        <a href="{% url 'my_homework_list' %}" class="text-decoration-none flex-shrink-0" style="color: var(--ios-blue);">
-            <i class="bi bi-chevron-left"></i> Orqaga
+<div class="hw-wrap">
+    <!-- Header -->
+    <div class="hw-header">
+        <a href="{% url 'my_homework_list' %}" class="hw-back">
+            <i class="bi bi-chevron-left"></i>
         </a>
-        <h5 class="mb-0 fw-bold text-center flex-grow-1" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(0.85rem, 3.5vw, 1.25rem);">{{ submission.homework.lesson.title }}</h5>
-        <div style="width: 50px;" class="flex-shrink-0 d-none d-sm-block"></div>
+        <h1 class="hw-title">{{ submission.homework.lesson.title }}</h1>
     </div>
 
-    <div class="sahifa-to-ri">
+    <div class="hw-grid">
+        <!-- LEFT: Info Column -->
         <div>
-            <div class="ios-karta overflow-hidden">
-                <div class="holat-paneli {{ submission.status }}">
-                    <i class="bi {% if submission.status == 'graded' %}bi-star-fill{% else %}bi-info-circle-fill{% endif %} fs-4"></i>
+            <!-- Status + Info Card -->
+            <div class="hw-card anim-1">
+                <div class="hw-status {{ submission.status }}">
+                    <div class="hw-status-icon">
+                        <i class="bi {% if submission.status == 'graded' %}bi-star-fill{% elif submission.status == 'accepted' %}bi-check-lg{% elif submission.status == 'revision' %}bi-arrow-repeat{% elif submission.status == 'reviewing' %}bi-eye-fill{% else %}bi-clock-fill{% endif %}"></i>
+                    </div>
                     <div>
-                        <span class="fw-bold d-block">
+                        <div class="hw-status-text">
                             {% if submission.status == 'pending' %}Kutilmoqda{% elif submission.status == 'reviewing' %}Tekshirilmoqda{% elif submission.status == 'revision' %}Qayta ishlash{% elif submission.status == 'accepted' %}Qabul qilindi{% elif submission.status == 'graded' %}Baholandi{% endif %}
-                        </span>
+                        </div>
+                        <div class="hw-status-sub">
+                            {% if submission.status == 'pending' %}O'qituvchi tekshirishini kuting{% elif submission.status == 'reviewing' %}Hozirda ko'rib chiqilmoqda{% elif submission.status == 'revision' %}Tuzatib qayta yuboring{% elif submission.status == 'accepted' %}Vazifa muvaffaqiyatli{% elif submission.status == 'graded' %}Baho qo'yildi{% endif %}
+                        </div>
                     </div>
                 </div>
 
-                <div class="ma-lumot-qatori">
-                    <div class="ma-lumot-element">
-                        <span class="ma-lumot-label">Sana</span>
-                        <span>{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+                <div class="hw-info">
+                    <div class="hw-info-row">
+                        <span class="hw-info-label"><i class="bi bi-calendar3 me-2"></i>Sana</span>
+                        <span class="hw-info-value">{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
                     </div>
-                    <div class="ma-lumot-element">
-                        <span class="ma-lumot-label">Kurs</span>
-                        <span>{{ submission.homework.lesson.profession.name }}</span>
+                    <div class="hw-info-row">
+                        <span class="hw-info-label"><i class="bi bi-book me-2"></i>Kurs</span>
+                        <span class="hw-info-value">{{ submission.homework.lesson.profession.name }}</span>
                     </div>
-                    <div class="ma-lumot-element">
-                        <span class="ma-lumot-label">Urinish</span>
-                        <span>{{ submission.version }}-urinish</span>
+                    <div class="hw-info-row">
+                        <span class="hw-info-label"><i class="bi bi-arrow-repeat me-2"></i>Urinish</span>
+                        <span class="hw-info-value">{{ submission.version }}-urinish</span>
                     </div>
                 </div>
 
                 {% if submission.submission_type == 'file' and submission.file %}
-                <div class="fayl-box">
-                    <div class="fayl-ikonka"><i class="bi bi-file-earmark-arrow-down"></i></div>
-                    <div class="flex-grow-1 overflow-hidden">
-                        <div class="text-truncate fw-medium" style="font-size: 14px;">{{ submission.file.name|cut:"homework_submissions/" }}</div>
-                        <small class="text-secondary">Yuborilgan fayl</small>
+                <div class="hw-file">
+                    <div class="hw-file-icon"><i class="bi bi-file-earmark-arrow-down"></i></div>
+                    <div class="hw-file-info">
+                        <div class="hw-file-name">{{ submission.file.name|cut:"homework_submissions/" }}</div>
+                        <div class="hw-file-sub">Yuborilgan fayl</div>
                     </div>
-                    <a href="{{ submission.file.url }}" target="_blank" class="btn btn-link text-decoration-none" style="color: var(--ios-blue);">
-                        <i class="bi bi-download fs-5"></i>
+                    <a href="{{ submission.file.url }}" target="_blank" class="hw-file-dl">
+                        <i class="bi bi-download"></i>
                     </a>
                 </div>
                 {% elif submission.submission_type == 'text' and submission.text_content %}
-                <div class="p-3">
-                    <div class="fw-medium mb-1" style="font-size: 14px;"><i class="bi bi-file-text me-1"></i> Yuborilgan matn</div>
-                    <div class="p-2 rounded-3" style="background: var(--ios-fon); font-size: 14px; overflow-x: auto; overflow-wrap: break-word; word-break: break-word;">{{ submission.text_content|safe|truncatewords_html:50 }}</div>
+                <div class="hw-text-content">
+                    <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--hw-text2);"><i class="bi bi-file-text me-1"></i> Yuborilgan matn</div>
+                    {{ submission.text_content|safe|truncatewords_html:50 }}
                 </div>
                 {% endif %}
 
                 {% if submission.status == 'graded' %}
-                <div class="text-center pb-3">
-                    <div class="baho-aylanasi">{{ submission.grade }}</div>
-                    <p class="small text-secondary">Sizning natijangiz</p>
+                <div class="hw-grade-wrap">
+                    <div class="hw-grade">{{ submission.grade }}</div>
+                    <div class="hw-grade-label">Sizning natijangiz</div>
                 </div>
                 {% endif %}
             </div>
 
+            <!-- Revision Form -->
             {% if submission.status == 'revision' %}
-            <div class="ios-karta p-3 border-top border-danger border-4">
-                <h6 class="fw-bold text-danger"><i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish</h6>
-                <form method="POST" enctype="multipart/form-data" id="resubmit-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="resubmit">
-                    {% if submission.submission_type == 'file' %}
-                    <input type="file" name="new_file" class="form-control mb-2 rounded-3 border-0 bg-light" required>
-                    {% else %}
-                    <textarea name="new_text_content" class="form-control mb-2 rounded-3 border-0 bg-light" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
-                    {% endif %}
-                    <textarea name="note" class="form-control mb-2 rounded-3 border-0 bg-light" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
-                    <button type="submit" class="btn w-100 rounded-3 fw-bold" id="resubmit-btn" style="background: var(--ios-red); color: white;">
-                        <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish
-                    </button>
-                </form>
+            <div class="hw-card anim-2 hw-revision">
+                <div class="hw-revision-header">
+                    <i class="bi bi-arrow-repeat"></i> Qayta topshirish
+                </div>
+                <div class="hw-revision-body">
+                    <form method="POST" enctype="multipart/form-data" id="resubmit-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="resubmit">
+                        {% if submission.submission_type == 'file' %}
+                        <input type="file" name="new_file" class="form-control mb-3" required>
+                        {% else %}
+                        <textarea name="new_text_content" class="form-control mb-3" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
+                        {% endif %}
+                        <textarea name="note" class="form-control mb-3" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
+                        <button type="submit" class="hw-revision-btn" id="resubmit-btn">
+                            <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish
+                        </button>
+                    </form>
+                </div>
             </div>
             {% endif %}
 
+            <!-- Teacher Feedback -->
             {% if submission.feedback %}
-            <div class="ios-karta p-3">
-                <h6 class="fw-bold mb-2">O'qituvchi izohi</h6>
-                <p class="mb-0 small text-secondary">{{ submission.feedback }}</p>
+            <div class="hw-card anim-3">
+                <div class="hw-feedback-body">
+                    <div class="hw-feedback-title"><i class="bi bi-chat-quote me-2"></i>O'qituvchi izohi</div>
+                    <p class="hw-feedback-text">{{ submission.feedback }}</p>
+                </div>
             </div>
             {% endif %}
         </div>
 
-        <div class="ios-karta d-flex flex-column overflow-hidden" style="height: 600px; max-height: 70vh;">
-            <div class="karta-sarlavha">
-                <i class="bi bi-chat-fill me-2" style="color: var(--ios-blue);"></i> Muhokama
+        <!-- RIGHT: Chat Column -->
+        <div class="hw-card anim-chat hw-chat-card">
+            <div class="hw-chat-header">
+                <i class="bi bi-chat-fill"></i>
+                <span>Muhokama</span>
+                <div class="hw-chat-dot ms-auto"></div>
             </div>
-            
-            <div class="chat-konteyner" id="chatMaydoni">
+
+            <div class="hw-chat-body" id="chatMaydoni">
                 {% if chat_messages %}
                     {% for msg in chat_messages %}
-                    <div class="xabar-pufagi {% if msg.sender == request.user %}xabar-mine{% else %}xabar-other{% endif %}">
+                    <div class="hw-bubble {% if msg.sender == request.user %}hw-bubble-mine{% else %}hw-bubble-other{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
                         <div>{{ msg.message }}</div>
                         {% if msg.file %}
-                        <a href="{{ msg.file.url }}" target="_blank" class="mt-1 d-block text-white small opacity-75">
-                            <i class="bi bi-paperclip"></i> Fayl biriktirilgan
+                        <a href="{{ msg.file.url }}" target="_blank" class="hw-bubble-file">
+                            <i class="bi bi-paperclip"></i> Fayl
                         </a>
                         {% endif %}
-                        <span class="xabar-vaqti">{{ msg.created_at|date:"H:i" }}</span>
+                        <span class="hw-bubble-time">{{ msg.created_at|date:"H:i" }}</span>
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-5 opacity-25">
-                        <i class="bi bi-chat-dots fs-1"></i>
-                        <p class="small mt-2">Xabarlar mavjud emas</p>
+                    <div class="hw-chat-empty">
+                        <i class="bi bi-chat-dots"></i>
+                        <p class="small mb-0">Xabarlar mavjud emas</p>
                     </div>
                 {% endif %}
             </div>
 
-            <div class="chat-pastki-qism">
+            <div class="hw-chat-footer">
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     <input type="hidden" name="action" value="send_message">
-                    <div class="chat-input-guruhi">
-                        <label class="mb-0" style="cursor: pointer;">
-                            <i class="bi bi-plus-circle fs-5" style="color: var(--ios-blue);"></i>
+                    <div class="hw-chat-input-row">
+                        <label class="hw-attach-btn mb-0">
+                            <i class="bi bi-plus-circle-fill"></i>
                             <input type="file" name="message_file" class="d-none" onchange="this.form.submit()">
                         </label>
-                        <input type="text" name="message" placeholder="Xabar..." autocomplete="off">
-                        <button type="submit" class="btn btn-link p-0">
-                            <i class="bi bi-arrow-up-circle-fill fs-3" style="color: var(--ios-blue);"></i>
+                        <input type="text" name="message" placeholder="Xabar yozing..." autocomplete="off">
+                        <button type="submit" class="hw-send-btn">
+                            <i class="bi bi-arrow-up"></i>
                         </button>
                     </div>
                 </form>
@@ -461,19 +714,34 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const chat = document.getElementById('chatMaydoni');
-    if (chat) chat.scrollTop = chat.scrollHeight;
-    
-    // Qayta topshirish tugmasini bir marta bosish
+    if (chat) {
+        chat.scrollTop = chat.scrollHeight;
+    }
+
     const resubmitForm = document.getElementById('resubmit-form');
     if (resubmitForm) {
         resubmitForm.addEventListener('submit', function() {
             const btn = document.getElementById('resubmit-btn');
             if (btn) {
                 btn.disabled = true;
+                btn.style.opacity = '0.7';
                 btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i> Yuborilmoqda...';
             }
         });
     }
+
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.hw-card').forEach(function(card) {
+        observer.observe(card);
+    });
 });
 </script>
 {% endblock %}
