@@ -43,6 +43,9 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
     gap: 25px;
 }
 @media (max-width: 992px) { .sahifa-to-ri { grid-template-columns: 1fr; } }
+@media (max-width: 576px) {
+    .asosiy-konteyner { padding: 10px; }
+}
 
 /* iOS Card Style */
 .ios-karta {
@@ -180,12 +183,12 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
 </style>
 
 <div class="asosiy-konteyner">
-    <div class="mb-4 d-flex align-items-center justify-content-between">
-        <a href="{% url 'my_homework_list' %}" class="text-decoration-none" style="color: var(--ios-blue);">
+    <div class="mb-4 d-flex align-items-center justify-content-between gap-2">
+        <a href="{% url 'my_homework_list' %}" class="text-decoration-none flex-shrink-0" style="color: var(--ios-blue);">
             <i class="bi bi-chevron-left"></i> Orqaga
         </a>
-        <h5 class="mb-0 fw-bold text-center flex-grow-1">{{ submission.homework.lesson.title }}</h5>
-        <div style="width: 50px;"></div> </div>
+        <h5 class="mb-0 fw-bold text-center flex-grow-1" style="min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(0.9rem, 3.5vw, 1.25rem);">{{ submission.homework.lesson.title }}</h5>
+        <div style="width: 50px;" class="flex-shrink-0 d-none d-sm-block"></div></div>
 
     <div class="sahifa-to-ri">
         <div>
@@ -267,7 +270,7 @@ body { background-color: var(--ios-fon); color: var(--ios-text); font-family: -a
             {% endif %}
         </div>
 
-        <div class="ios-karta d-flex flex-column overflow-hidden" style="height: 600px;">
+        <div class="ios-karta d-flex flex-column overflow-hidden" style="height: 600px; max-height: 70vh;">
             <div class="karta-sarlavha">
                 <i class="bi bi-chat-fill me-2" style="color: var(--ios-blue);"></i> Muhokama
             </div>
