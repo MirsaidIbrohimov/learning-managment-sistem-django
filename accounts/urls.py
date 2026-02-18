@@ -78,6 +78,7 @@ urlpatterns = [
     path('dashboard/professions/<int:pk>/delete/', views.admin_profession_delete, name='admin_profession_delete'),
     path('dashboard/professions/<int:pk>/toggle-block/', views.admin_profession_toggle_block, name='admin_profession_toggle_block'),
     path('dashboard/professions/<int:profession_pk>/remove-student/<int:user_pk>/', views.admin_remove_student_from_course, name='admin_remove_student_from_course'),
+    path('dashboard/professions/<int:profession_pk>/add-student/', views.admin_add_student_to_course, name='admin_add_student_to_course'),
     path('dashboard/users/', views.admin_users, name='admin_users'),
     path('dashboard/users/<int:pk>/', views.admin_user_view, name='admin_user_view'),
     path('dashboard/users/<int:pk>/edit/', views.admin_user_edit, name='admin_user_edit'),

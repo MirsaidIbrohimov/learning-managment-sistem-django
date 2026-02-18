@@ -170,8 +170,10 @@ def home_view(request):
 def professions_view(request):
     professions = Profession.objects.all()
     enrolled_ids = []
-    if request.user.is_student:
-        enrolled_ids = request.user.enrollments.values_list('profession_id', flat=True)
+    if request.user.is_authenticated and request.user.is_student:
+        enrolled_ids = list(request.user.enrollments.values_list('profession_id', flat=True))
+        # Sort: enrolled courses first, then the rest
+        professions = sorted(professions, key=lambda p: (p.pk not in enrolled_ids, p.pk))
     return render(request, 'accounts/professions.html', {'professions': professions, 'enrolled_ids': enrolled_ids})
 
 
@@ -2789,7 +2791,8 @@ def admin_professions(request):
         student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
         teacher_count=Count('students', filter=Q(students__role='teacher'))
     )
-    return render(request, 'accounts/admin/professions.html', {'professions': professions})
+    all_students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
+    return render(request, 'accounts/admin/professions.html', {'professions': professions, 'all_students': all_students})
 
 
 @login_required
@@ -2882,6 +2885,29 @@ def admin_remove_student_from_course(request, profession_pk, user_pk):
             messages.success(request, f"{student.full_name} '{profession.name}' kursidan chiqarildi!")
         else:
             messages.warning(request, f"{student.full_name} bu kursga yozilmagan!")
+    
+    return redirect('admin_professions')
+
+
+@login_required
+def admin_add_student_to_course(request, profession_pk):
+    """Admin: O'quvchini kursga qo'shish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    profession = get_object_or_404(Profession, pk=profession_pk)
+    
+    if request.method == 'POST':
+        user_pk = request.POST.get('user_pk')
+        if user_pk:
+            student = get_object_or_404(CustomUser, pk=user_pk, role='student')
+            if CourseEnrollment.objects.filter(user=student, profession=profession).exists():
+                messages.info(request, f"{student.full_name} allaqachon '{profession.name}' kursiga yozilgan!")
+            else:
+                CourseEnrollment.objects.create(user=student, profession=profession)
+                # Remove any pending enrollment request
+                CourseEnrollmentRequest.objects.filter(user=student, profession=profession).delete()
+                messages.success(request, f"{student.full_name} '{profession.name}' kursiga muvaffaqiyatli qo'shildi!")
     
     return redirect('admin_professions')
 

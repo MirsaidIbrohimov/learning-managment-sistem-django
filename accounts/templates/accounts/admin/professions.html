@@ -446,6 +446,10 @@
                 <button type="button" class="c-action" onclick="toggleStudents(this, {{ profession.pk }})" title="O'quvchilar">
                     <i class="bi bi-people"></i> O'quvchilar ({{ profession.student_count }})
                 </button>
+                <button type="button" class="c-action success"
+                        data-bs-toggle="modal" data-bs-target="#addStudentModal{{ profession.pk }}">
+                    <i class="bi bi-person-plus"></i> Qo'shish
+                </button>
                 <button type="button" class="c-action {% if profession.is_blocked %}success{% else %}danger{% endif %}"
                         data-bs-toggle="modal" data-bs-target="#blockModal{{ profession.pk }}">
                     <i class="bi {% if profession.is_blocked %}bi-unlock{% else %}bi-lock{% endif %}"></i>
@@ -495,6 +499,45 @@
     </div>
 {% endfor %}
 </div>
+
+<!-- Add Student Modals -->
+{% for profession in professions %}
+<div class="modal fade" id="addStudentModal{{ profession.pk }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; border: 1px solid var(--card-border); background: var(--card-bg); backdrop-filter: blur(20px);">
+            <form method="POST" action="{% url 'admin_add_student_to_course' profession.pk %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-person-plus text-success me-2"></i>O'quvchi qo'shish
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="fw-semibold mb-1">{{ profession.name }}</p>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem;" class="mb-3">Kursga qo'shmoqchi bo'lgan o'quvchini tanlang</p>
+                    <div class="mb-3">
+                        <input type="text" class="form-control mb-2" style="border-radius: 12px;"
+                               placeholder="O'quvchi qidirish..." onkeyup="filterStudents(this, {{ profession.pk }})">
+                        <select name="user_pk" class="form-select" id="studentSelect{{ profession.pk }}" 
+                                style="border-radius: 12px;" size="6" required>
+                            {% for student in all_students %}
+                            <option value="{{ student.pk }}">{{ student.full_name }} — {{ student.phone }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4">
+                        <i class="bi bi-person-plus me-1"></i>Qo'shish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <!-- Block Modals (outside cards to avoid overflow:hidden issue) -->
 {% for profession in professions %}
@@ -559,6 +602,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('paidCount').textContent = paid;
     document.getElementById('totalStudents').textContent = totalStudents;
 });
+
+function filterStudents(input, profId) {
+    const filter = input.value.toLowerCase();
+    const select = document.getElementById('studentSelect' + profId);
+    const options = select.querySelectorAll('option');
+    options.forEach(opt => {
+        opt.style.display = opt.textContent.toLowerCase().includes(filter) ? '' : 'none';
+    });
+}
 
 function toggleStudents(btn, profId) {
     const panel = document.getElementById('studentsPanel' + profId);
