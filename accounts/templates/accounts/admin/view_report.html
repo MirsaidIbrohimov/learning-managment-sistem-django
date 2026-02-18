@@ -2,219 +2,482 @@
 
 {% block title %}{{ report.title }} - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== View Report Styles ===== */
+.vr-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 20px 25px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.vr-header .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vr-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.vr-header-actions .btn {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Report Info Bar */
+.vr-info-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.vr-info-item {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.vr-info-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.vr-info-icon.period { background: rgba(13, 110, 253, 0.1); color: #0d6efd; }
+.vr-info-icon.type { background: rgba(25, 135, 84, 0.1); color: #198754; }
+.vr-info-icon.created { background: rgba(111, 66, 193, 0.1); color: #6f42c1; }
+
+.vr-info-text label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.vr-info-text span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+/* Stat Sections */
+.vr-sections {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.vr-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.vr-section-header {
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+}
+
+.vr-section-header.users { background: linear-gradient(135deg, #0d6efd, #0a58ca); }
+.vr-section-header.courses { background: linear-gradient(135deg, #198754, #157347); }
+.vr-section-header.activity { background: linear-gradient(135deg, #0dcaf0, #0aa2c0); }
+.vr-section-header.deploy { background: linear-gradient(135deg, #fd7e14, #e85d04); }
+.vr-section-header.coins { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+.vr-section-header.certs { background: linear-gradient(135deg, #6c757d, #495057); }
+
+.vr-section-body {
+    padding: 0;
+    flex: 1;
+}
+
+.vr-section-body table {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.vr-section-body table td {
+    padding: 12px 20px;
+    border-color: var(--border-color);
+    font-size: 0.88rem;
+}
+
+.vr-section-body table td:last-child {
+    text-align: right;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.vr-section-body table tr:last-child td {
+    border-bottom: none;
+}
+
+.vr-section-body table tr.highlight-green {
+    background: rgba(25, 135, 84, 0.06);
+}
+
+.vr-section-body table tr.highlight-blue {
+    background: rgba(13, 110, 253, 0.06);
+}
+
+.vr-section-body table tr.highlight-red {
+    background: rgba(220, 53, 69, 0.06);
+}
+
+/* Actions Footer */
+.vr-footer {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.vr-footer .btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 992px) {
+    .vr-sections {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .vr-header {
+        padding: 16px 18px;
+    }
+
+    .vr-header .page-title {
+        font-size: 1.15rem;
+    }
+
+    .vr-header-actions {
+        width: 100%;
+    }
+
+    .vr-header-actions .btn {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 12px;
+        font-size: 0.82rem;
+    }
+
+    .vr-info-bar {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .vr-info-item {
+        padding: 14px 16px;
+    }
+
+    .vr-sections {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .vr-footer {
+        padding: 16px;
+        flex-direction: column;
+    }
+
+    .vr-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .vr-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .vr-header-actions {
+        flex-direction: column;
+    }
+
+    .vr-header-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .vr-info-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+
+    .vr-info-text span {
+        font-size: 0.82rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-file-earmark-bar-graph me-2"></i>{{ report.title }}</h1>
-    <div class="d-flex gap-2">
+<!-- Header -->
+<div class="vr-header">
+    <h1 class="page-title">
+        <i class="bi bi-file-earmark-bar-graph"></i>
+        {{ report.title }}
+    </h1>
+    <div class="vr-header-actions">
         <a href="{% url 'download_report' report.pk %}" class="btn btn-success">
-            <i class="bi bi-file-pdf me-1"></i>PDF yuklab olish
+            <i class="bi bi-file-pdf"></i>PDF yuklab olish
         </a>
         <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Orqaga
+            <i class="bi bi-arrow-left"></i>Orqaga
         </a>
     </div>
 </div>
 
-<!-- Report Info -->
-<div class="alert alert-info mb-4">
-    <div class="row">
-        <div class="col-md-4">
-            <i class="bi bi-calendar-range me-1"></i>
-            <strong>Davr:</strong> {{ report.date_from|date:"d.m.Y" }} - {{ report.date_to|date:"d.m.Y" }}
+<!-- Report Info Bar -->
+<div class="vr-info-bar">
+    <div class="vr-info-item">
+        <div class="vr-info-icon period"><i class="bi bi-calendar-range"></i></div>
+        <div class="vr-info-text">
+            <label>Davr</label>
+            <span>{{ report.date_from|date:"d.m.Y" }} — {{ report.date_to|date:"d.m.Y" }}</span>
         </div>
-        <div class="col-md-4">
-            <i class="bi bi-tag me-1"></i>
-            <strong>Turi:</strong> {{ report.get_report_type_display }}
+    </div>
+    <div class="vr-info-item">
+        <div class="vr-info-icon type"><i class="bi bi-tag"></i></div>
+        <div class="vr-info-text">
+            <label>Turi</label>
+            <span>{{ report.get_report_type_display }}</span>
         </div>
-        <div class="col-md-4">
-            <i class="bi bi-clock me-1"></i>
-            <strong>Yaratilgan:</strong> {{ report.created_at|date:"d.m.Y H:i" }}
+    </div>
+    <div class="vr-info-item">
+        <div class="vr-info-icon created"><i class="bi bi-clock-history"></i></div>
+        <div class="vr-info-text">
+            <label>Yaratilgan</label>
+            <span>{{ report.created_at|date:"d.m.Y H:i" }}</span>
         </div>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row g-4 mb-4">
+<!-- Statistics Sections -->
+<div class="vr-sections">
     <!-- Foydalanuvchilar -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-people me-2"></i>Foydalanuvchilar
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Jami foydalanuvchilar</td>
-                        <td class="text-end fw-bold">{{ report.total_users }}</td>
-                    </tr>
-                    <tr>
-                        <td>O'quvchilar</td>
-                        <td class="text-end fw-bold">{{ report.total_students }}</td>
-                    </tr>
-                    <tr>
-                        <td>O'qituvchilar</td>
-                        <td class="text-end fw-bold">{{ report.total_teachers }}</td>
-                    </tr>
-                    <tr class="table-success">
-                        <td>Yangi (davr ichida)</td>
-                        <td class="text-end fw-bold">+{{ report.new_users }}</td>
-                    </tr>
-                </table>
-            </div>
+    <div class="vr-section">
+        <div class="vr-section-header users">
+            <i class="bi bi-people"></i>Foydalanuvchilar
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Jami foydalanuvchilar</td>
+                    <td>{{ report.total_users }}</td>
+                </tr>
+                <tr>
+                    <td>O'quvchilar</td>
+                    <td>{{ report.total_students }}</td>
+                </tr>
+                <tr>
+                    <td>O'qituvchilar</td>
+                    <td>{{ report.total_teachers }}</td>
+                </tr>
+                <tr class="highlight-green">
+                    <td>Yangi (davr ichida)</td>
+                    <td style="color:#198754;">+{{ report.new_users }}</td>
+                </tr>
+            </table>
         </div>
     </div>
-    
-    <!-- Kurslar -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-success text-white">
-                <i class="bi bi-book me-2"></i>Kurslar va Darslar
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Jami kurslar</td>
-                        <td class="text-end fw-bold">{{ report.total_courses }}</td>
-                    </tr>
-                    <tr>
-                        <td>Jami darslar</td>
-                        <td class="text-end fw-bold">{{ report.total_lessons }}</td>
-                    </tr>
-                    <tr>
-                        <td>Videodarslar</td>
-                        <td class="text-end fw-bold">{{ report.total_videos }}</td>
-                    </tr>
-                    <tr>
-                        <td>Testlar</td>
-                        <td class="text-end fw-bold">{{ report.total_tests }}</td>
-                    </tr>
-                    <tr>
-                        <td>Uy vazifalari</td>
-                        <td class="text-end fw-bold">{{ report.total_homeworks }}</td>
-                    </tr>
-                </table>
-            </div>
+
+    <!-- Kurslar va Darslar -->
+    <div class="vr-section">
+        <div class="vr-section-header courses">
+            <i class="bi bi-book"></i>Kurslar va Darslar
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Jami kurslar</td>
+                    <td>{{ report.total_courses }}</td>
+                </tr>
+                <tr>
+                    <td>Jami darslar</td>
+                    <td>{{ report.total_lessons }}</td>
+                </tr>
+                <tr>
+                    <td>Videodarslar</td>
+                    <td>{{ report.total_videos }}</td>
+                </tr>
+                <tr>
+                    <td>Testlar</td>
+                    <td>{{ report.total_tests }}</td>
+                </tr>
+                <tr>
+                    <td>Uy vazifalari</td>
+                    <td>{{ report.total_homeworks }}</td>
+                </tr>
+            </table>
         </div>
     </div>
-    
-    <!-- Davr faoliyati -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-info text-white">
-                <i class="bi bi-activity me-2"></i>Davr Faoliyati
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Yangi yozilishlar</td>
-                        <td class="text-end fw-bold">{{ report.new_enrollments }}</td>
-                    </tr>
-                    <tr>
-                        <td>Test topshiruvlar</td>
-                        <td class="text-end fw-bold">{{ report.test_submissions }}</td>
-                    </tr>
-                    <tr>
-                        <td>Vazifa topshiruvlar</td>
-                        <td class="text-end fw-bold">{{ report.homework_submissions }}</td>
-                    </tr>
-                    <tr>
-                        <td>Video ko'rishlar</td>
-                        <td class="text-end fw-bold">{{ report.video_views }}</td>
-                    </tr>
-                    <tr class="table-primary">
-                        <td>Jami harakatlar</td>
-                        <td class="text-end fw-bold">{{ report.total_activities }}</td>
-                    </tr>
-                </table>
-            </div>
+
+    <!-- Davr Faoliyati -->
+    <div class="vr-section">
+        <div class="vr-section-header activity">
+            <i class="bi bi-activity"></i>Davr Faoliyati
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Yangi yozilishlar</td>
+                    <td>{{ report.new_enrollments }}</td>
+                </tr>
+                <tr>
+                    <td>Test topshiruvlar</td>
+                    <td>{{ report.test_submissions }}</td>
+                </tr>
+                <tr>
+                    <td>Vazifa topshiruvlar</td>
+                    <td>{{ report.homework_submissions }}</td>
+                </tr>
+                <tr>
+                    <td>Video ko'rishlar</td>
+                    <td>{{ report.video_views }}</td>
+                </tr>
+                <tr class="highlight-blue">
+                    <td>Jami harakatlar</td>
+                    <td style="color:#0d6efd;">{{ report.total_activities }}</td>
+                </tr>
+            </table>
         </div>
     </div>
-    
-    <!-- Deploy -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-warning text-dark">
-                <i class="bi bi-code-slash me-2"></i>Coding / Deploy
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Jami loyihalar</td>
-                        <td class="text-end fw-bold">{{ report.total_deploys }}</td>
-                    </tr>
-                    <tr class="table-success">
-                        <td>Yangi loyihalar (davr)</td>
-                        <td class="text-end fw-bold">+{{ report.new_deploys }}</td>
-                    </tr>
-                    <tr>
-                        <td>Jami ko'rishlar</td>
-                        <td class="text-end fw-bold">{{ report.deploy_views }}</td>
-                    </tr>
-                </table>
-            </div>
+
+    <!-- Coding / Deploy -->
+    <div class="vr-section">
+        <div class="vr-section-header deploy">
+            <i class="bi bi-code-slash"></i>Coding / Deploy
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Jami loyihalar</td>
+                    <td>{{ report.total_deploys }}</td>
+                </tr>
+                <tr class="highlight-green">
+                    <td>Yangi loyihalar (davr)</td>
+                    <td style="color:#198754;">+{{ report.new_deploys }}</td>
+                </tr>
+                <tr>
+                    <td>Jami ko'rishlar</td>
+                    <td>{{ report.deploy_views }}</td>
+                </tr>
+            </table>
         </div>
     </div>
-    
-    <!-- Coinlar -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header" style="background: linear-gradient(135deg, #f59e0b, #facc15); color: #000;">
-                <i class="bi bi-coin me-2"></i>Coin Statistikasi
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Jami coinlar (hozir)</td>
-                        <td class="text-end fw-bold">{{ report.total_coins }}</td>
-                    </tr>
-                    <tr class="table-success">
-                        <td>Ishlangan (davr)</td>
-                        <td class="text-end fw-bold text-success">+{{ report.coins_earned }}</td>
-                    </tr>
-                    <tr class="table-danger">
-                        <td>Sarflangan (davr)</td>
-                        <td class="text-end fw-bold text-danger">-{{ report.coins_spent }}</td>
-                    </tr>
-                </table>
-            </div>
+
+    <!-- Coin Statistikasi -->
+    <div class="vr-section">
+        <div class="vr-section-header coins">
+            <i class="bi bi-coin"></i>Coin Statistikasi
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Jami coinlar (hozir)</td>
+                    <td>{{ report.total_coins }}</td>
+                </tr>
+                <tr class="highlight-green">
+                    <td>Ishlangan (davr)</td>
+                    <td style="color:#198754;">+{{ report.coins_earned }}</td>
+                </tr>
+                <tr class="highlight-red">
+                    <td>Sarflangan (davr)</td>
+                    <td style="color:#dc3545;">-{{ report.coins_spent }}</td>
+                </tr>
+            </table>
         </div>
     </div>
-    
+
     <!-- Sertifikatlar -->
-    <div class="col-md-6 col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-secondary text-white">
-                <i class="bi bi-award me-2"></i>Sertifikatlar
-            </div>
-            <div class="card-body">
-                <table class="table table-sm mb-0">
-                    <tr>
-                        <td>Jami sertifikatlar</td>
-                        <td class="text-end fw-bold">{{ report.total_certificates }}</td>
-                    </tr>
-                    <tr class="table-success">
-                        <td>Yangi (davr ichida)</td>
-                        <td class="text-end fw-bold">+{{ report.new_certificates }}</td>
-                    </tr>
-                </table>
-            </div>
+    <div class="vr-section">
+        <div class="vr-section-header certs">
+            <i class="bi bi-award"></i>Sertifikatlar
+        </div>
+        <div class="vr-section-body">
+            <table class="table table-sm mb-0">
+                <tr>
+                    <td>Jami sertifikatlar</td>
+                    <td>{{ report.total_certificates }}</td>
+                </tr>
+                <tr class="highlight-green">
+                    <td>Yangi (davr ichida)</td>
+                    <td style="color:#198754;">+{{ report.new_certificates }}</td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Actions -->
-<div class="card">
-    <div class="card-body text-center">
-        <a href="{% url 'download_report' report.pk %}" class="btn btn-lg btn-success me-2">
-            <i class="bi bi-file-pdf me-2"></i>PDF Yuklab olish
-        </a>
-        <form action="{% url 'delete_report' report.pk %}" method="post" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-lg btn-outline-danger" 
-                    onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')">
-                <i class="bi bi-trash me-1"></i>O'chirish
-            </button>
-        </form>
-    </div>
+<!-- Actions Footer -->
+<div class="vr-footer">
+    <a href="{% url 'download_report' report.pk %}" class="btn btn-success btn-lg">
+        <i class="bi bi-file-pdf"></i>PDF Yuklab olish
+    </a>
+    <form action="{% url 'delete_report' report.pk %}" method="post" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-danger btn-lg"
+                onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')">
+            <i class="bi bi-trash"></i>O'chirish
+        </button>
+    </form>
 </div>
 {% endblock %}

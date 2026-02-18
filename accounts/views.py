@@ -351,8 +351,8 @@ def enroll_course(request, pk):
             existing_request.delete()
     
     if request.method == 'POST':
-        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
         messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
+        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
         return redirect('profession_detail', pk=pk)
     
     return render(request, 'accounts/enroll_confirm.html', {'profession': profession})

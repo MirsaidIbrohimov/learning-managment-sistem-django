@@ -2,123 +2,383 @@
 
 {% block title %}Hisobot Yaratish - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== Generate Report Styles ===== */
+.gr-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 20px 25px;
+    background: var(--card-bg);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.gr-header .page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+}
+
+/* Type Selector Cards */
+.gr-type-selector {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.gr-type-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.gr-type-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.gr-type-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 14px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    text-align: center;
+    transition: all 0.25s ease;
+    gap: 10px;
+}
+
+.gr-type-card:hover {
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.15);
+}
+
+.gr-type-option input[type="radio"]:checked + .gr-type-card {
+    border-color: var(--primary-blue);
+    background: rgba(13, 110, 253, 0.06);
+    box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2);
+}
+
+.gr-type-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.gr-type-icon.daily { background: rgba(253, 126, 20, 0.12); color: #fd7e14; }
+.gr-type-icon.weekly { background: rgba(13, 110, 253, 0.12); color: #0d6efd; }
+.gr-type-icon.monthly { background: rgba(25, 135, 84, 0.12); color: #198754; }
+.gr-type-icon.custom { background: rgba(111, 66, 193, 0.12); color: #6f42c1; }
+
+.gr-type-label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-color);
+}
+
+/* Form Card */
+.gr-form-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.gr-form-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gr-form-body {
+    padding: 24px;
+}
+
+/* Date Inputs */
+.gr-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.gr-dates.hidden {
+    display: none;
+}
+
+.gr-date-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 6px;
+}
+
+.gr-date-group .form-control {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text-color);
+}
+
+.gr-date-group .help-text {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* Info Box */
+.gr-info-box {
+    background: rgba(13, 110, 253, 0.06);
+    border: 1px solid rgba(13, 110, 253, 0.15);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.gr-info-box .info-title {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gr-info-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.gr-info-box ul li {
+    font-size: 0.85rem;
+    color: #6c757d;
+    padding: 3px 0;
+}
+
+/* Form Actions */
+.gr-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.gr-form-actions .btn {
+    padding: 10px 24px;
+    border-radius: 12px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .gr-header {
+        padding: 16px 18px;
+    }
+
+    .gr-header .page-title {
+        font-size: 1.15rem;
+    }
+
+    .gr-type-selector {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .gr-type-card {
+        padding: 16px 10px;
+    }
+
+    .gr-type-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 1.1rem;
+    }
+
+    .gr-dates {
+        grid-template-columns: 1fr;
+    }
+
+    .gr-form-body {
+        padding: 18px;
+    }
+
+    .gr-form-actions {
+        flex-direction: column;
+    }
+
+    .gr-form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .gr-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gr-type-selector {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .gr-type-card {
+        padding: 14px 8px;
+        gap: 8px;
+    }
+
+    .gr-type-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+
+    .gr-type-label {
+        font-size: 0.8rem;
+    }
+
+    .gr-info-box {
+        padding: 14px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<div class="top-bar">
+<!-- Header -->
+<div class="gr-header">
     <h1 class="page-title"><i class="bi bi-file-earmark-plus me-2"></i>Yangi Hisobot Yaratish</h1>
-    <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">
+    <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary" style="border-radius:10px;font-weight:600;">
         <i class="bi bi-arrow-left me-1"></i>Orqaga
     </a>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-gear me-2"></i>Hisobot sozlamalari
+<form method="post">
+    {% csrf_token %}
+
+    <!-- Type Selector -->
+    <div class="gr-type-selector">
+        <label class="gr-type-option">
+            <input type="radio" name="report_type" value="daily">
+            <div class="gr-type-card">
+                <div class="gr-type-icon daily"><i class="bi bi-calendar-day"></i></div>
+                <div class="gr-type-label">Kunlik</div>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Hisobot turi</label>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="report_type" 
-                                           id="typeDaily" value="daily">
-                                    <label class="form-check-label" for="typeDaily">
-                                        <i class="bi bi-calendar-day me-1"></i>Kunlik
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="report_type" 
-                                           id="typeWeekly" value="weekly">
-                                    <label class="form-check-label" for="typeWeekly">
-                                        <i class="bi bi-calendar-week me-1"></i>Haftalik
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="report_type" 
-                                           id="typeMonthly" value="monthly" checked>
-                                    <label class="form-check-label" for="typeMonthly">
-                                        <i class="bi bi-calendar-month me-1"></i>Oylik
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="report_type" 
-                                           id="typeCustom" value="custom">
-                                    <label class="form-check-label" for="typeCustom">
-                                        <i class="bi bi-calendar-range me-1"></i>Maxsus
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4" id="customDates">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Boshlanish sanasi</label>
-                            <input type="date" name="date_from" class="form-control">
-                            <small class="text-muted">Bo'sh qoldirsangiz avtomatik hisoblanadi</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tugash sanasi</label>
-                            <input type="date" name="date_to" class="form-control">
-                            <small class="text-muted">Bo'sh qoldirsangiz bugungi sana olinadi</small>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Hisobot quyidagilarni o'z ichiga oladi:</strong>
-                        <ul class="mb-0 mt-2">
-                            <li>Foydalanuvchilar statistikasi (jami, yangi)</li>
-                            <li>Kurslar va darslar soni</li>
-                            <li>Test va vazifa topshiruvlar</li>
-                            <li>Video ko'rishlar</li>
-                            <li>Deploy qilingan loyihalar</li>
-                            <li>Coin statistikasi</li>
-                            <li>Sertifikatlar</li>
-                            <li>Barcha harakatlar</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">Bekor qilish</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-file-earmark-plus me-1"></i>Hisobot yaratish
-                        </button>
-                    </div>
-                </form>
+        </label>
+        <label class="gr-type-option">
+            <input type="radio" name="report_type" value="weekly">
+            <div class="gr-type-card">
+                <div class="gr-type-icon weekly"><i class="bi bi-calendar-week"></i></div>
+                <div class="gr-type-label">Haftalik</div>
+            </div>
+        </label>
+        <label class="gr-type-option">
+            <input type="radio" name="report_type" value="monthly" checked>
+            <div class="gr-type-card">
+                <div class="gr-type-icon monthly"><i class="bi bi-calendar-month"></i></div>
+                <div class="gr-type-label">Oylik</div>
+            </div>
+        </label>
+        <label class="gr-type-option">
+            <input type="radio" name="report_type" value="custom">
+            <div class="gr-type-card">
+                <div class="gr-type-icon custom"><i class="bi bi-calendar-range"></i></div>
+                <div class="gr-type-label">Maxsus</div>
+            </div>
+        </label>
+    </div>
+
+    <!-- Form Card -->
+    <div class="gr-form-card">
+        <div class="gr-form-header">
+            <i class="bi bi-gear"></i>Hisobot sozlamalari
+        </div>
+        <div class="gr-form-body">
+            <!-- Date Inputs (hidden by default, shown for custom) -->
+            <div class="gr-dates hidden" id="customDates">
+                <div class="gr-date-group">
+                    <label>Boshlanish sanasi</label>
+                    <input type="date" name="date_from" class="form-control">
+                    <div class="help-text">Bo'sh qoldirsangiz avtomatik hisoblanadi</div>
+                </div>
+                <div class="gr-date-group">
+                    <label>Tugash sanasi</label>
+                    <input type="date" name="date_to" class="form-control">
+                    <div class="help-text">Bo'sh qoldirsangiz bugungi sana olinadi</div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="gr-info-box">
+                <div class="info-title">
+                    <i class="bi bi-info-circle"></i>Hisobot quyidagilarni o'z ichiga oladi:
+                </div>
+                <ul>
+                    <li>Foydalanuvchilar statistikasi (jami, yangi)</li>
+                    <li>Kurslar va darslar soni</li>
+                    <li>Test va vazifa topshiruvlar</li>
+                    <li>Video ko'rishlar</li>
+                    <li>Deploy qilingan loyihalar</li>
+                    <li>Coin statistikasi</li>
+                    <li>Sertifikatlar</li>
+                    <li>Barcha harakatlar</li>
+                </ul>
+            </div>
+
+            <!-- Actions -->
+            <div class="gr-form-actions">
+                <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">Bekor qilish</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-file-earmark-plus"></i>Hisobot yaratish
+                </button>
             </div>
         </div>
     </div>
-</div>
+</form>
+{% endblock %}
 
+{% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const radioButtons = document.querySelectorAll('input[name="report_type"]');
+    const radios = document.querySelectorAll('input[name="report_type"]');
     const customDates = document.getElementById('customDates');
-    
-    radioButtons.forEach(radio => {
+
+    radios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.value === 'custom') {
-                customDates.style.display = 'flex';
+                customDates.classList.remove('hidden');
             } else {
-                customDates.style.display = 'none';
+                customDates.classList.add('hidden');
             }
         });
     });
-    
-    // Initial state
-    customDates.style.display = 'none';
 });
 </script>
 {% endblock %}
