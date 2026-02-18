@@ -324,7 +324,14 @@
         font-size: 0.95rem;
         line-height: 1.85;
         overflow-x: auto;
+        overflow-y: hidden;
         max-width: 100%;
+    }
+    .gh-page .gh-text-body > div,
+    .gh-page .gh-text-body > pre {
+        max-width: 100%;
+        overflow-x: auto;
+        border-radius: 10px;
     }
     .gh-page .gh-text-body pre {
         background: rgba(99, 102, 241, 0.05);
@@ -339,6 +346,10 @@
         padding: 0.15rem 0.4rem;
         border-radius: 5px;
         font-size: 0.85em;
+    }
+    .gh-page .gh-text-body a {
+        color: var(--bs-link-color, #0d6efd);
+        word-break: break-all;
     }
     .gh-page .gh-text-body img,
     .gh-page .gh-text-body table,
@@ -1176,7 +1187,7 @@
                         <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
                     </div>
                 </div>
-                <div class="gh-text-body"><pre style="margin:0; font-family:monospace; font-size:0.88rem; line-height:1.7; white-space:pre-wrap; word-break:break-word;">{{ submission.text_content }}</pre></div>
+                <div class="gh-text-body">{{ submission.text_content|safe }}</div>
                 {% endif %}
             </div>
 
