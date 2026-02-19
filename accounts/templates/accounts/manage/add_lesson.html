@@ -505,7 +505,7 @@
                 {% endif %}
 
                 <div class="al-actions">
-                    <button type="submit" class="al-btn al-btn-primary">
+                    <button type="submit" class="al-btn al-btn-primary" id="submitBtn">
                         <i class="bi bi-check-lg"></i> Saqlash
                     </button>
                     <a href="{% url 'manage_lessons' profession.pk %}" class="al-btn al-btn-ghost">
@@ -523,6 +523,22 @@ function selectSection(el, pk) {
     el.classList.add('active');
     document.getElementById('sectionInput').value = pk;
 }
+
+// Double-submit prevention
+(function() {
+    const form = document.querySelector('form');
+    let submitted = false;
+    form.addEventListener('submit', function(e) {
+        if (submitted) {
+            e.preventDefault();
+            return false;
+        }
+        submitted = true;
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+    });
+})();
 </script>
 
 {% if lesson_type == 'test' %}
