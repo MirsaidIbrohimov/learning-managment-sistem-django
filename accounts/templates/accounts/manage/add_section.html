@@ -3,51 +3,371 @@
 {% block title %}Bo'lim qo'shish - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
+<style>
+:root {
+    --as-card: rgba(255,255,255,0.85);
+    --as-border: rgba(0,0,0,0.06);
+    --as-text: #1d1d1f;
+    --as-secondary: #86868b;
+    --as-accent: #6366f1;
+    --as-accent2: #8b5cf6;
+    --as-accent-light: rgba(99,102,241,0.08);
+    --as-bg: #f2f2f7;
+    --as-input-bg: #f2f2f7;
+    --as-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --as-card: rgba(28,28,30,0.85);
+    --as-border: rgba(255,255,255,0.08);
+    --as-text: #f5f5f7;
+    --as-secondary: #98989d;
+    --as-accent-light: rgba(99,102,241,0.18);
+    --as-bg: rgba(0,0,0,0.3);
+    --as-input-bg: rgba(255,255,255,0.06);
+    --as-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+@keyframes asSlideUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes asBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+@keyframes asShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+.as-page { max-width: 650px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.as-back {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.25rem; border-radius: 14px;
+    background: var(--as-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--as-border); color: var(--as-accent);
+    text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    transition: all 0.25s; margin-bottom: 1.5rem;
+}
+.as-back:hover { transform: translateX(-4px); color: var(--as-accent); box-shadow: var(--as-shadow); }
+
+.as-card {
+    background: var(--as-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--as-border); border-radius: 24px;
+    overflow: hidden; box-shadow: var(--as-shadow);
+    animation: asSlideUp 0.5s ease;
+}
+
+.as-header {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: 2rem 1.75rem; text-align: center; position: relative; overflow: hidden;
+}
+.as-header::before {
+    content: ''; position: absolute; top: -40%; right: -15%;
+    width: 180px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.as-header::after {
+    content: ''; position: absolute; bottom: -30%; left: -10%;
+    width: 140px; height: 140px; background: rgba(255,255,255,0.06); border-radius: 50%;
+}
+.as-header-icon {
+    width: 70px; height: 70px; border-radius: 20px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2rem; color: #fff;
+    position: relative; z-index: 1;
+    animation: asBounce 0.6s ease 0.3s backwards;
+}
+.as-header h3 { color: #fff; font-size: 1.3rem; font-weight: 700; margin: 0; position: relative; z-index: 1; }
+.as-header p { color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 0.25rem 0 0; position: relative; z-index: 1; }
+
+.as-body { padding: 1.75rem; }
+
+.as-section-label {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.78rem; font-weight: 700; color: var(--as-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--as-border);
+}
+.as-section-label i { color: var(--as-accent); font-size: 1rem; }
+
+.as-group { margin-bottom: 1.25rem; }
+
+.as-label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    color: var(--as-text); margin-bottom: 0.4rem;
+}
+
+.as-hint {
+    font-size: 0.78rem; color: var(--as-secondary); margin-top: 0.3rem;
+    display: flex; align-items: center; gap: 0.3rem;
+}
+
+.as-input {
+    width: 100%; border-radius: 14px; border: 1.5px solid var(--as-border);
+    background: var(--as-input-bg); padding: 0.8rem 1rem;
+    color: var(--as-text); font-size: 0.95rem;
+    transition: all 0.25s; outline: none;
+}
+
+.as-input:focus {
+    border-color: var(--as-accent);
+    box-shadow: 0 0 0 4px var(--as-accent-light);
+}
+
+textarea.as-input { resize: vertical; min-height: 80px; }
+
+/* Order visual */
+.as-order-wrap {
+    display: flex; align-items: center; gap: 12px;
+}
+
+.as-order-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    border: 1.5px solid var(--as-border); background: var(--as-bg);
+    color: var(--as-text); font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.as-order-btn:hover {
+    background: var(--as-accent-light); border-color: var(--as-accent); color: var(--as-accent);
+}
+.as-order-btn:active { transform: scale(0.92); }
+
+.as-order-input {
+    flex: 1; border-radius: 14px; border: 1.5px solid var(--as-border);
+    background: var(--as-input-bg); padding: 0.8rem 1rem;
+    color: var(--as-text); font-size: 1.1rem; font-weight: 700;
+    text-align: center; outline: none; transition: all 0.25s;
+    -moz-appearance: textfield;
+}
+.as-order-input::-webkit-inner-spin-button,
+.as-order-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.as-order-input:focus {
+    border-color: var(--as-accent);
+    box-shadow: 0 0 0 4px var(--as-accent-light);
+}
+
+/* Preview */
+.as-preview {
+    margin-top: 1.5rem; padding: 1rem 1.25rem;
+    border-radius: 16px; border: 2px dashed var(--as-border);
+    background: var(--as-bg); transition: all 0.3s;
+    min-height: 60px;
+}
+.as-preview.has-content {
+    border-color: var(--as-accent); border-style: solid;
+    background: var(--as-accent-light);
+}
+.as-preview-label {
+    font-size: 0.7rem; font-weight: 700; color: var(--as-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;
+}
+.as-preview-title {
+    font-size: 1.05rem; font-weight: 700; color: var(--as-text);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.as-preview-title i { color: var(--as-accent); }
+.as-preview-desc {
+    font-size: 0.82rem; color: var(--as-secondary); margin-top: 0.3rem;
+}
+.as-preview-empty {
+    font-size: 0.85rem; color: var(--as-secondary);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* Actions */
+.as-actions {
+    display: flex; gap: 0.75rem; margin-top: 1.75rem;
+    padding-top: 1.25rem; border-top: 1px solid var(--as-border);
+}
+
+.as-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 14px;
+    font-weight: 700; font-size: 0.9rem; border: none;
+    cursor: pointer; transition: all 0.3s; text-decoration: none;
+}
+
+.as-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    flex: 1;
+}
+.as-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    color: #fff;
+}
+.as-btn-primary:active { transform: scale(0.97); }
+.as-btn-primary:disabled {
+    opacity: 0.7; transform: none !important;
+    box-shadow: none !important; cursor: not-allowed;
+}
+
+.as-btn-ghost {
+    background: transparent; color: var(--as-secondary);
+    border: 1.5px solid var(--as-border);
+}
+.as-btn-ghost:hover {
+    border-color: var(--as-accent); color: var(--as-accent);
+    background: var(--as-accent-light);
+}
+
+@media (max-width: 576px) {
+    .as-page { padding: 1rem 0.75rem 2rem; }
+    .as-body { padding: 1.25rem; }
+    .as-header { padding: 1.5rem 1.25rem; }
+    .as-header-icon { width: 56px; height: 56px; font-size: 1.6rem; border-radius: 16px; }
+    .as-header h3 { font-size: 1.1rem; }
+    .as-actions { flex-direction: column; }
+    .as-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="as-page">
+    <a href="{% url 'manage_lessons' profession.pk %}" class="as-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
     </a>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header" style="background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-blue); margin: 0;">
-                        <i class="bi bi-folder-plus me-2"></i>Yangi bo'lim qo'shish
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Bo'lim nomi</label>
-                            <input type="text" name="title" class="form-control" placeholder="Masalan: 1-bo'lim: Kirish" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Tavsif (ixtiyoriy)</label>
-                            <textarea name="description" class="form-control" rows="3" placeholder="Bo'lim haqida qisqacha..."></textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Tartib raqami</label>
-                            <input type="number" name="order" class="form-control" value="0" min="0">
-                            <small class="text-muted">Kichik raqamli bo'limlar birinchi ko'rsatiladi</small>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-2"></i>Saqlash
-                            </button>
-                            <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-secondary">
-                                Bekor qilish
-                            </a>
-                        </div>
-                    </form>
-                </div>
+    <div class="as-card">
+        <!-- Header -->
+        <div class="as-header">
+            <div class="as-header-icon">
+                <i class="bi bi-folder-plus"></i>
             </div>
+            <h3>Yangi bo'lim qo'shish</h3>
+            <p>{{ profession.name }}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="as-body">
+            <form method="POST" id="sectionForm">
+                {% csrf_token %}
+
+                <div class="as-section-label">
+                    <i class="bi bi-info-circle-fill"></i> Asosiy ma'lumotlar
+                </div>
+
+                <div class="as-group">
+                    <label class="as-label">Bo'lim nomi</label>
+                    <input type="text" name="title" class="as-input" id="sectionTitle"
+                           placeholder="Masalan: 1-bo'lim: Kirish" required
+                           value="{{ form.title.value|default:'' }}">
+                </div>
+
+                <div class="as-group">
+                    <label class="as-label">Tavsif (ixtiyoriy)</label>
+                    <textarea name="description" class="as-input" id="sectionDesc"
+                              placeholder="Bo'lim haqida qisqacha...">{{ form.description.value|default:'' }}</textarea>
+                </div>
+
+                <div class="as-section-label" style="margin-top:1.5rem;">
+                    <i class="bi bi-sort-numeric-down"></i> Tartib
+                </div>
+
+                <div class="as-group">
+                    <label class="as-label">Tartib raqami</label>
+                    <div class="as-order-wrap">
+                        <button type="button" class="as-order-btn" onclick="changeOrder(-1)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number" name="order" class="as-order-input" id="sectionOrder"
+                               value="{{ form.order.value|default:'0' }}" min="0">
+                        <button type="button" class="as-order-btn" onclick="changeOrder(1)">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <div class="as-hint">
+                        <i class="bi bi-info-circle"></i> Kichik raqamli bo'limlar birinchi ko'rsatiladi
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="as-preview" id="preview">
+                    <div class="as-preview-label">Ko'rinishi</div>
+                    <div class="as-preview-empty" id="previewEmpty">
+                        <i class="bi bi-eye-slash"></i> Nom kiriting...
+                    </div>
+                    <div id="previewContent" style="display:none;">
+                        <div class="as-preview-title">
+                            <i class="bi bi-folder2-open"></i>
+                            <span id="previewTitle"></span>
+                        </div>
+                        <div class="as-preview-desc" id="previewDesc"></div>
+                    </div>
+                </div>
+
+                <div class="as-actions">
+                    <button type="submit" class="as-btn as-btn-primary" id="submitBtn">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                    <a href="{% url 'manage_lessons' profession.pk %}" class="as-btn as-btn-ghost">
+                        Bekor qilish
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+// Live preview
+const titleInput = document.getElementById('sectionTitle');
+const descInput = document.getElementById('sectionDesc');
+const preview = document.getElementById('preview');
+const previewEmpty = document.getElementById('previewEmpty');
+const previewContent = document.getElementById('previewContent');
+const previewTitle = document.getElementById('previewTitle');
+const previewDesc = document.getElementById('previewDesc');
+
+function updatePreview() {
+    const title = titleInput.value.trim();
+    const desc = descInput.value.trim();
+    if (title) {
+        previewEmpty.style.display = 'none';
+        previewContent.style.display = 'block';
+        previewTitle.textContent = title;
+        previewDesc.textContent = desc || '';
+        previewDesc.style.display = desc ? 'block' : 'none';
+        preview.classList.add('has-content');
+    } else {
+        previewEmpty.style.display = 'flex';
+        previewContent.style.display = 'none';
+        preview.classList.remove('has-content');
+    }
+}
+
+titleInput.addEventListener('input', updatePreview);
+descInput.addEventListener('input', updatePreview);
+updatePreview();
+
+// Order buttons
+function changeOrder(delta) {
+    const input = document.getElementById('sectionOrder');
+    let val = parseInt(input.value) || 0;
+    val = Math.max(0, val + delta);
+    input.value = val;
+}
+
+// Double-submit prevention
+(function() {
+    const form = document.getElementById('sectionForm');
+    let submitted = false;
+    form.addEventListener('submit', function(e) {
+        if (submitted) {
+            e.preventDefault();
+            return false;
+        }
+        submitted = true;
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+    });
+})();
+</script>
 {% endblock %}
