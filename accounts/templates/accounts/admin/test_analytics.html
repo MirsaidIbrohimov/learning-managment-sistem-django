@@ -3,297 +3,974 @@
 
 {% block title %}Test Hulosalari - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== Animations ===== */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-18px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.88); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes barGrow {
+    from { width: 0; }
+}
+@keyframes popIn {
+    0% { opacity: 0; transform: scale(0.6); }
+    70% { transform: scale(1.08); }
+    100% { opacity: 1; transform: scale(1); }
+}
+@keyframes ringPulse {
+    0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+    100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+}
+@keyframes countPop {
+    from { opacity: 0; transform: translateY(10px) scale(0.8); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-f { animation: fadeUp 0.5s ease both; }
+.anim-f1 { animation-delay: 0.05s; }
+.anim-f2 { animation-delay: 0.1s; }
+.anim-f3 { animation-delay: 0.15s; }
+.anim-f4 { animation-delay: 0.2s; }
+.anim-s { animation: slideIn 0.45s ease both; }
+.anim-p { animation: popIn 0.5s ease both; }
+
+/* ===== Header ===== */
+.ta-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 22px 28px;
+    background: var(--card-bg);
+    border-radius: 18px;
+    border: 1px solid var(--border-color);
+    animation: fadeUp 0.4s ease both;
+}
+
+.ta-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-color);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ta-title i {
+    background: linear-gradient(135deg, #10b981, #059669);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
+}
+
+/* ===== Stat Cards ===== */
+.ta-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.ta-stat {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 22px 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ta-stat::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    transition: height 0.3s;
+}
+
+.ta-stat:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+}
+
+.ta-stat:hover::after { height: 4px; }
+
+.ta-stat.purple::after { background: linear-gradient(90deg, #8b5cf6, #6366f1); }
+.ta-stat.blue::after { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+.ta-stat.green::after { background: linear-gradient(90deg, #10b981, #059669); }
+.ta-stat.orange::after { background: linear-gradient(90deg, #f59e0b, #d97706); }
+
+.ta-stat-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin: 0 auto 12px;
+    transition: transform 0.3s;
+}
+
+.ta-stat:hover .ta-stat-icon { transform: scale(1.1) rotate(-5deg); }
+
+.ta-stat.purple .ta-stat-icon { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+.ta-stat.blue .ta-stat-icon { background: rgba(59,130,246,0.1); color: #3b82f6; }
+.ta-stat.green .ta-stat-icon { background: rgba(16,185,129,0.1); color: #10b981; }
+.ta-stat.orange .ta-stat-icon { background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+.ta-stat-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1.1;
+    animation: countPop 0.6s ease both;
+}
+
+.ta-stat-lbl {
+    font-size: 0.78rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* ===== Filter ===== */
+.ta-filter {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease both;
+}
+
+.ta-filter form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.ta-filter .fg {
+    flex: 1;
+    min-width: 180px;
+}
+
+.ta-filter .fg label {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+}
+
+.ta-filter .fg .form-select {
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    transition: all 0.25s;
+}
+
+.ta-filter .fg .form-select:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+
+.ta-filter .btn-reset {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 2px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.ta-filter .btn-reset:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239,68,68,0.05);
+}
+
+/* ===== Section Card ===== */
+.ta-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: box-shadow 0.3s;
+}
+
+.ta-card:hover {
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}
+
+.ta-card-head {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ta-card-head h6 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ta-badge {
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+/* ===== Test Detail Stats Ring ===== */
+.ta-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    padding: 24px;
+}
+
+.ta-detail-item {
+    text-align: center;
+    padding: 16px 8px;
+    background: var(--bg-color);
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.ta-detail-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.ta-detail-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+    animation: countPop 0.5s ease both;
+}
+
+.ta-detail-num.primary { color: #3b82f6; }
+.ta-detail-num.success { color: #10b981; }
+.ta-detail-num.danger { color: #ef4444; }
+.ta-detail-num.info { color: #06b6d4; }
+.ta-detail-num.warning { color: #f59e0b; }
+.ta-detail-num.emerald { color: #059669; }
+
+.ta-detail-lbl {
+    font-size: 0.75rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* ===== Donut Visual ===== */
+.ta-donut-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 20px 24px 8px;
+}
+
+.ta-donut {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.ta-donut svg {
+    transform: rotate(-90deg);
+    width: 120px;
+    height: 120px;
+}
+
+.ta-donut-bg {
+    fill: none;
+    stroke: var(--border-color);
+    stroke-width: 10;
+}
+
+.ta-donut-fill {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ta-donut-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ta-donut-percent {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-color);
+}
+
+.ta-donut-label {
+    font-size: 0.68rem;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.ta-donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ta-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.ta-legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.ta-legend-dot.passed { background: #10b981; }
+.ta-legend-dot.failed { background: #ef4444; }
+
+.ta-legend-count {
+    font-weight: 800;
+    margin-left: 4px;
+}
+
+/* ===== Table ===== */
+.ta-table {
+    width: 100%;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.ta-table thead th {
+    background: var(--bg-color);
+    border-color: var(--border-color);
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    letter-spacing: 0.5px;
+    padding: 10px 16px;
+    white-space: nowrap;
+}
+
+.ta-table tbody td {
+    padding: 12px 16px;
+    border-color: var(--border-color);
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+
+.ta-table tbody tr {
+    transition: all 0.2s;
+}
+
+.ta-table tbody tr:hover {
+    background: rgba(16, 185, 129, 0.03);
+}
+
+/* User row */
+.ta-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ta-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.ta-avatar-ph {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.ta-name { font-weight: 600; color: var(--text-color); }
+.ta-sub { font-size: 0.75rem; color: #6c757d; }
+
+/* Score badges */
+.ta-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ta-score.high { background: rgba(16,185,129,0.1); color: #059669; }
+.ta-score.mid { background: rgba(245,158,11,0.1); color: #d97706; }
+.ta-score.low { background: rgba(239,68,68,0.1); color: #dc2626; }
+
+/* Progress bar */
+.ta-progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ta-progress {
+    flex: 1;
+    height: 8px;
+    border-radius: 50px;
+    background: var(--bg-color);
+    overflow: hidden;
+    min-width: 50px;
+}
+
+.ta-progress-bar {
+    height: 100%;
+    border-radius: 50px;
+    animation: barGrow 1.2s ease both;
+}
+
+.ta-progress-bar.high { background: linear-gradient(90deg, #10b981, #059669); }
+.ta-progress-bar.mid { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.ta-progress-bar.low { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.ta-progress-lbl {
+    font-size: 0.78rem;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: right;
+}
+
+/* Status pill */
+.ta-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.ta-status.passed {
+    background: rgba(16,185,129,0.1);
+    color: #059669;
+}
+
+.ta-status.failed {
+    background: rgba(239,68,68,0.1);
+    color: #dc2626;
+}
+
+/* Detail button */
+.ta-detail-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.25s;
+}
+
+.ta-detail-btn:hover {
+    background: rgba(16,185,129,0.08);
+    border-color: #10b981;
+    color: #10b981;
+}
+
+/* Rank */
+.ta-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 800;
+    background: var(--bg-color);
+    color: #6c757d;
+}
+
+/* Empty state */
+.ta-empty {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.ta-empty-icon {
+    width: 68px;
+    height: 68px;
+    border-radius: 18px;
+    background: var(--bg-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    font-size: 1.7rem;
+    color: #6c757d;
+    opacity: 0.35;
+}
+
+.ta-empty p {
+    color: #6c757d;
+    font-size: 0.88rem;
+    font-weight: 500;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 992px) {
+    .ta-detail-stats { grid-template-columns: repeat(3, 1fr); }
+    .ta-donut-wrap { flex-direction: column; gap: 16px; }
+}
+
+@media (max-width: 768px) {
+    .ta-header {
+        padding: 16px 18px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ta-title { font-size: 1.2rem; }
+
+    .ta-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    .ta-stat { padding: 16px 12px; }
+    .ta-stat-icon { width: 46px; height: 46px; font-size: 1.2rem; }
+    .ta-stat-num { font-size: 1.4rem; }
+
+    .ta-filter form { flex-direction: column; }
+    .ta-filter .fg { min-width: unset; width: 100%; }
+    .ta-filter .btn-reset { width: 100%; justify-content: center; }
+
+    .ta-detail-stats { grid-template-columns: repeat(2, 1fr); padding: 16px; }
+}
+
+@media (max-width: 480px) {
+    .ta-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ta-stat { padding: 14px 10px; }
+    .ta-stat-icon { width: 40px; height: 40px; font-size: 1rem; margin-bottom: 8px; }
+    .ta-stat-num { font-size: 1.2rem; }
+    .ta-stat-lbl { font-size: 0.72rem; }
+    .ta-detail-stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .ta-detail-num { font-size: 1.3rem; }
+}
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<!-- Top Bar -->
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-journal-check me-2"></i>Test Hulosalari</h1>
+<!-- Header -->
+<div class="ta-header">
+    <h1 class="ta-title">
+        <i class="bi bi-journal-check"></i>
+        Test Hulosalari
+    </h1>
 </div>
 
-<!-- Umumiy statistika -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon purple mx-auto mb-2"><i class="bi bi-clipboard"></i></div>
-            <div class="stat-number">{{ total_tests }}</div>
-            <div class="stat-label">Jami testlar</div>
-        </div>
+<!-- Stat Cards -->
+<div class="ta-stats">
+    <div class="ta-stat purple anim-f anim-f1">
+        <div class="ta-stat-icon"><i class="bi bi-clipboard-data-fill"></i></div>
+        <div class="ta-stat-num">{{ total_tests }}</div>
+        <div class="ta-stat-lbl">Jami testlar</div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon blue mx-auto mb-2"><i class="bi bi-pencil-square"></i></div>
-            <div class="stat-number">{{ total_attempts }}</div>
-            <div class="stat-label">Jami urinishlar</div>
-        </div>
+    <div class="ta-stat blue anim-f anim-f2">
+        <div class="ta-stat-icon"><i class="bi bi-pencil-square"></i></div>
+        <div class="ta-stat-num">{{ total_attempts }}</div>
+        <div class="ta-stat-lbl">Jami urinishlar</div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon green mx-auto mb-2"><i class="bi bi-check-circle"></i></div>
-            <div class="stat-number">{{ pass_rate }}%</div>
-            <div class="stat-label">O'tish foizi</div>
-        </div>
+    <div class="ta-stat green anim-f anim-f3">
+        <div class="ta-stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="ta-stat-num">{{ pass_rate }}%</div>
+        <div class="ta-stat-lbl">O'tish foizi</div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon orange mx-auto mb-2"><i class="bi bi-percent"></i></div>
-            <div class="stat-number">{{ avg_score }}%</div>
-            <div class="stat-label">O'rtacha ball</div>
-        </div>
+    <div class="ta-stat orange anim-f anim-f4">
+        <div class="ta-stat-icon"><i class="bi bi-speedometer2"></i></div>
+        <div class="ta-stat-num">{{ avg_score }}%</div>
+        <div class="ta-stat-lbl">O'rtacha ball</div>
     </div>
 </div>
 
-<!-- Kurs tanlash -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label small">Kursni tanlang</label>
-                <select name="profession" class="form-select" onchange="this.form.submit()">
-                    <option value="">-- Kurs tanlang --</option>
-                    {% for p in professions %}
-                    <option value="{{ p.pk }}" {% if selected_profession and selected_profession.pk == p.pk %}selected{% endif %}>{{ p.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-5">
-                {% if profession_tests %}
-                <label class="form-label small">Testni tanlang</label>
-                <select name="test" class="form-select" onchange="this.form.submit()">
-                    <option value="">-- Test tanlang --</option>
-                    {% for t in profession_tests %}
-                    <option value="{{ t.pk }}" {% if selected_test and selected_test.pk == t.pk %}selected{% endif %}>{{ t.lesson.title }} ({{ t.attempt_count }} urinish)</option>
-                    {% endfor %}
-                </select>
-                {% endif %}
-            </div>
-            <div class="col-md-2">
-                <a href="{% url 'admin_test_analytics' %}" class="btn btn-outline-secondary w-100"><i class="bi bi-arrow-counterclockwise me-1"></i>Tozalash</a>
-            </div>
-        </form>
-    </div>
+<!-- Filter -->
+<div class="ta-filter">
+    <form method="GET">
+        <div class="fg">
+            <label>Kursni tanlang</label>
+            <select name="profession" class="form-select" onchange="this.form.submit()">
+                <option value="">— Kurs tanlang —</option>
+                {% for p in professions %}
+                <option value="{{ p.pk }}" {% if selected_profession and selected_profession.pk == p.pk %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if profession_tests %}
+        <div class="fg">
+            <label>Testni tanlang</label>
+            <select name="test" class="form-select" onchange="this.form.submit()">
+                <option value="">— Test tanlang —</option>
+                {% for t in profession_tests %}
+                <option value="{{ t.pk }}" {% if selected_test and selected_test.pk == t.pk %}selected{% endif %}>{{ t.lesson.title }} ({{ t.attempt_count }} urinish)</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <a href="{% url 'admin_test_analytics' %}" class="btn-reset">
+            <i class="bi bi-arrow-counterclockwise"></i>Tozalash
+        </a>
+    </form>
 </div>
 
 {% if selected_profession and profession_tests %}
 <!-- Kurs testlari jadvali -->
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between">
-        <span><i class="bi bi-clipboard-check me-2"></i>{{ selected_profession.name }} — Testlar</span>
-        <span class="badge bg-primary">{{ profession_tests|length }}</span>
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-clipboard-check-fill" style="color:#3b82f6;"></i> {{ selected_profession.name }} — Testlar</h6>
+        <span class="ta-badge bg-primary text-white">{{ profession_tests|length }}</span>
     </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Test (Dars)</th>
-                        <th>Urinishlar</th>
-                        <th>O'tganlar</th>
-                        <th>O'rtacha ball</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for t in profession_tests %}
-                    <tr>
-                        <td class="fw-bold">{{ t.lesson.title }}</td>
-                        <td>{{ t.attempt_count }}</td>
-                        <td>
-                            {% if t.attempt_count > 0 %}
-                            <span class="text-success">{{ t.pass_count }}</span> / <span class="text-danger">{{ t.attempt_count|add:"-"|add:t.pass_count }}</span>
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if t.avg_score %}
-                            <span class="badge {% if t.avg_score >= 70 %}bg-success{% elif t.avg_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ t.avg_score|floatformat:1 }}%</span>
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-end">
-                            <a href="?test={{ t.pk }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>Batafsil</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="ta-table">
+            <thead>
+                <tr>
+                    <th>Test (Dars)</th>
+                    <th class="text-center">Urinishlar</th>
+                    <th class="text-center">O'tganlar</th>
+                    <th>O'rtacha ball</th>
+                    <th class="text-end"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in profession_tests %}
+                <tr style="animation: fadeUp 0.4s ease both; animation-delay: {{ forloop.counter0 }}50ms;">
+                    <td><span class="fw-bold">{{ t.lesson.title }}</span></td>
+                    <td class="text-center">
+                        <span class="fw-bold">{{ t.attempt_count }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if t.attempt_count > 0 %}
+                        <span style="color:#10b981;font-weight:700;">{{ t.pass_count }}</span>
+                        <span style="color:#6c757d;"> / </span>
+                        <span style="color:#ef4444;font-weight:700;">{{ t.attempt_count|add:"-"|add:t.pass_count }}</span>
+                        {% else %}
+                        <span class="ta-sub">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.avg_score %}
+                        <div class="ta-progress-wrap" style="max-width:140px;">
+                            <div class="ta-progress">
+                                <div class="ta-progress-bar {% if t.avg_score >= 70 %}high{% elif t.avg_score >= 50 %}mid{% else %}low{% endif %}" style="width:{{ t.avg_score|floatformat:0 }}%;"></div>
+                            </div>
+                            <span class="ta-progress-lbl">{{ t.avg_score|floatformat:1 }}%</span>
+                        </div>
+                        {% else %}
+                        <span class="ta-sub">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="?profession={{ selected_profession.pk }}&test={{ t.pk }}" class="ta-detail-btn">
+                            <i class="bi bi-eye-fill"></i>Batafsil
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endif %}
 
 {% if selected_test and test_stats %}
 <!-- Tanlangan test statistikasi -->
-<div class="card mb-4">
-    <div class="card-header">
-        <i class="bi bi-bar-chart me-2"></i>{{ selected_test.lesson.title }} — Statistika
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-bar-chart-fill" style="color:#8b5cf6;"></i> {{ selected_test.lesson.title }} — Statistika</h6>
     </div>
-    <div class="card-body">
-        <div class="row g-3">
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    <div class="fs-3 fw-bold text-primary">{{ test_stats.total }}</div>
-                    <small class="text-muted">Jami urinish</small>
-                </div>
+
+    <!-- Donut + Stats -->
+    <div class="ta-donut-wrap">
+        <div class="ta-donut anim-p">
+            <svg viewBox="0 0 120 120">
+                <circle class="ta-donut-bg" cx="60" cy="60" r="48"></circle>
+                <circle class="ta-donut-fill" cx="60" cy="60" r="48"
+                    stroke="#10b981"
+                    stroke-dasharray="{{ test_stats.pass_rate|floatformat:0 }} {{ 100|add:'-'|add:test_stats.pass_rate|floatformat:'0' }}"
+                    stroke-dashoffset="0"
+                    style="--circumference: 301.6; stroke-dasharray: calc({{ test_stats.pass_rate }} * 3.016) calc((100 - {{ test_stats.pass_rate }}) * 3.016);">
+                </circle>
+            </svg>
+            <div class="ta-donut-center">
+                <div class="ta-donut-percent">{{ test_stats.pass_rate }}%</div>
+                <div class="ta-donut-label">O'tish foizi</div>
             </div>
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    <div class="fs-3 fw-bold text-success">{{ test_stats.passed }}</div>
-                    <small class="text-muted">O'tganlar</small>
-                </div>
+        </div>
+        <div class="ta-donut-legend">
+            <div class="ta-legend-item">
+                <span class="ta-legend-dot passed"></span>
+                O'tganlar <span class="ta-legend-count" style="color:#10b981;">{{ test_stats.passed }}</span>
             </div>
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    <div class="fs-3 fw-bold text-danger">{{ test_stats.failed }}</div>
-                    <small class="text-muted">Yiqilganlar</small>
-                </div>
+            <div class="ta-legend-item">
+                <span class="ta-legend-dot failed"></span>
+                Yiqilganlar <span class="ta-legend-count" style="color:#ef4444;">{{ test_stats.failed }}</span>
             </div>
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    <div class="fs-3 fw-bold text-info">{{ test_stats.pass_rate }}%</div>
-                    <small class="text-muted">O'tish foizi</small>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    <div class="fs-3 fw-bold text-warning">{{ test_stats.avg_score }}%</div>
-                    <small class="text-muted">O'rtacha ball</small>
-                </div>
-            </div>
-            <div class="col-6 col-md-2">
-                <div class="text-center">
-                    {% if test_stats.best_score %}
-                    <div class="fs-3 fw-bold text-success">{{ test_stats.best_score.score }}%</div>
-                    <small class="text-muted">Eng yuqori</small>
-                    {% else %}
-                    <div class="fs-3 fw-bold text-muted">—</div>
-                    <small class="text-muted">Eng yuqori</small>
-                    {% endif %}
-                </div>
-            </div>
+        </div>
+    </div>
+
+    <div class="ta-detail-stats">
+        <div class="ta-detail-item anim-f anim-f1">
+            <div class="ta-detail-num primary">{{ test_stats.total }}</div>
+            <div class="ta-detail-lbl">Jami urinish</div>
+        </div>
+        <div class="ta-detail-item anim-f anim-f2">
+            <div class="ta-detail-num success">{{ test_stats.passed }}</div>
+            <div class="ta-detail-lbl">O'tganlar</div>
+        </div>
+        <div class="ta-detail-item anim-f anim-f3">
+            <div class="ta-detail-num danger">{{ test_stats.failed }}</div>
+            <div class="ta-detail-lbl">Yiqilganlar</div>
+        </div>
+        <div class="ta-detail-item anim-f anim-f4">
+            <div class="ta-detail-num info">{{ test_stats.pass_rate }}%</div>
+            <div class="ta-detail-lbl">O'tish foizi</div>
+        </div>
+        <div class="ta-detail-item anim-f" style="animation-delay:0.25s;">
+            <div class="ta-detail-num warning">{{ test_stats.avg_score }}%</div>
+            <div class="ta-detail-lbl">O'rtacha ball</div>
+        </div>
+        <div class="ta-detail-item anim-f" style="animation-delay:0.3s;">
+            {% if test_stats.best_score %}
+            <div class="ta-detail-num emerald">{{ test_stats.best_score.score }}%</div>
+            {% else %}
+            <div class="ta-detail-num" style="color:#6c757d;">—</div>
+            {% endif %}
+            <div class="ta-detail-lbl">Eng yuqori</div>
         </div>
     </div>
 </div>
 
-<!-- Tanlangan test natijalari -->
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between">
-        <span><i class="bi bi-people me-2"></i>{{ selected_test.lesson.title }} — Natijalar</span>
-        <span class="badge bg-primary">{{ test_results|length }}</span>
+<!-- Test natijalari -->
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-people-fill" style="color:#10b981;"></i> {{ selected_test.lesson.title }} — Natijalar</h6>
+        <span class="ta-badge bg-success text-white">{{ test_results|length }}</span>
     </div>
-    <div class="card-body p-0">
-        {% if test_results %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>O'quvchi</th>
-                        <th>Ball</th>
-                        <th>Holat</th>
-                        <th>Sana</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in test_results %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                {% if r.student.photo %}
-                                <img src="{{ r.student.photo.url }}" class="user-avatar-sm">
-                                {% else %}
-                                <div class="user-avatar-placeholder">{{ r.student.get_initials }}</div>
-                                {% endif %}
-                                <div>
-                                    <div class="fw-bold">{{ r.student.full_name }}</div>
-                                    <small class="text-muted">{{ r.student.username }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge {% if r.score >= 70 %}bg-success{% elif r.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ r.score }}%</span>
-                        </td>
-                        <td>
-                            {% if r.passed %}
-                            <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>O'tdi</span>
+    {% if test_results %}
+    <div class="table-responsive">
+        <table class="ta-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;">#</th>
+                    <th>O'quvchi</th>
+                    <th>Ball</th>
+                    <th>Holat</th>
+                    <th>Sana</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in test_results %}
+                <tr style="animation: fadeUp 0.35s ease both; animation-delay: {{ forloop.counter0 }}30ms;">
+                    <td><span class="ta-rank">{{ forloop.counter }}</span></td>
+                    <td>
+                        <div class="ta-user">
+                            {% if r.student.photo %}
+                            <img src="{{ r.student.photo.url }}" class="ta-avatar">
                             {% else %}
-                            <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>Yiqildi</span>
+                            <div class="ta-avatar-ph">{{ r.student.get_initials }}</div>
                             {% endif %}
-                        </td>
-                        <td><small class="text-muted">{{ r.completed_at|date:"d.m.Y H:i" }}</small></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-clipboard fs-1 opacity-25"></i>
-            <p class="mt-2">Natijalar yo'q</p>
-        </div>
-        {% endif %}
+                            <div>
+                                <div class="ta-name">{{ r.student.full_name }}</div>
+                                <div class="ta-sub">@{{ r.student.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="ta-progress-wrap" style="max-width:120px;">
+                            <div class="ta-progress">
+                                <div class="ta-progress-bar {% if r.score >= 70 %}high{% elif r.score >= 50 %}mid{% else %}low{% endif %}" style="width:{{ r.score }}%;"></div>
+                            </div>
+                            <span class="ta-progress-lbl">{{ r.score }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        {% if r.passed %}
+                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i>O'tdi</span>
+                        {% else %}
+                        <span class="ta-status failed"><i class="bi bi-x-circle-fill"></i>Yiqildi</span>
+                        {% endif %}
+                    </td>
+                    <td><span class="ta-sub">{{ r.completed_at|date:"d.m.Y H:i" }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <div class="ta-empty">
+        <div class="ta-empty-icon"><i class="bi bi-clipboard"></i></div>
+        <p>Natijalar yo'q</p>
+    </div>
+    {% endif %}
 </div>
 {% endif %}
 
 <!-- Oxirgi natijalar -->
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between">
-        <span><i class="bi bi-clock-history me-2"></i>Oxirgi natijalar</span>
-        <span class="badge bg-secondary">{{ recent_results|length }}</span>
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-clock-history" style="color:#6c757d;"></i> Oxirgi natijalar</h6>
+        <span class="ta-badge bg-secondary text-white">{{ recent_results|length }}</span>
     </div>
-    <div class="card-body p-0">
-        {% if recent_results %}
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>O'quvchi</th>
-                        <th>Test (Dars)</th>
-                        <th>Kurs</th>
-                        <th>Ball</th>
-                        <th>Holat</th>
-                        <th>Sana</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for r in recent_results %}
-                    <tr>
-                        <td>
-                            <div class="d-flex align-items-center gap-2">
-                                {% if r.student.photo %}
-                                <img src="{{ r.student.photo.url }}" class="user-avatar-sm">
-                                {% else %}
-                                <div class="user-avatar-placeholder">{{ r.student.get_initials }}</div>
-                                {% endif %}
-                                <span class="fw-bold">{{ r.student.full_name }}</span>
-                            </div>
-                        </td>
-                        <td>{{ r.test.lesson.title }}</td>
-                        <td><small class="text-muted">{{ r.test.lesson.profession.name }}</small></td>
-                        <td>
-                            <span class="badge {% if r.score >= 70 %}bg-success{% elif r.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}">{{ r.score }}%</span>
-                        </td>
-                        <td>
-                            {% if r.passed %}
-                            <span class="text-success"><i class="bi bi-check-circle-fill"></i></span>
+    {% if recent_results %}
+    <div class="table-responsive">
+        <table class="ta-table">
+            <thead>
+                <tr>
+                    <th>O'quvchi</th>
+                    <th>Test (Dars)</th>
+                    <th>Kurs</th>
+                    <th>Ball</th>
+                    <th class="text-center">Holat</th>
+                    <th>Sana</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recent_results %}
+                <tr style="animation: slideIn 0.4s ease both; animation-delay: {{ forloop.counter0 }}40ms;">
+                    <td>
+                        <div class="ta-user">
+                            {% if r.student.photo %}
+                            <img src="{{ r.student.photo.url }}" class="ta-avatar">
                             {% else %}
-                            <span class="text-danger"><i class="bi bi-x-circle-fill"></i></span>
+                            <div class="ta-avatar-ph">{{ r.student.get_initials }}</div>
                             {% endif %}
-                        </td>
-                        <td><small class="text-muted">{{ r.completed_at|date:"d.m.Y H:i" }}</small></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-clipboard fs-1 opacity-25"></i>
-            <p class="mt-2">Hali natijalar yo'q</p>
-        </div>
-        {% endif %}
+                            <span class="ta-name">{{ r.student.full_name }}</span>
+                        </div>
+                    </td>
+                    <td><span class="fw-semibold">{{ r.test.lesson.title }}</span></td>
+                    <td><span class="ta-sub">{{ r.test.lesson.profession.name }}</span></td>
+                    <td>
+                        <span class="ta-score {% if r.score >= 70 %}high{% elif r.score >= 50 %}mid{% else %}low{% endif %}">
+                            {{ r.score }}%
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        {% if r.passed %}
+                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i></span>
+                        {% else %}
+                        <span class="ta-status failed"><i class="bi bi-x-circle-fill"></i></span>
+                        {% endif %}
+                    </td>
+                    <td><span class="ta-sub">{{ r.completed_at|date:"d.m.Y H:i" }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% else %}
+    <div class="ta-empty">
+        <div class="ta-empty-icon"><i class="bi bi-clipboard"></i></div>
+        <p>Hali natijalar yo'q</p>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate donut chart
+    const donut = document.querySelector('.ta-donut-fill');
+    if (donut) {
+        const circumference = 2 * Math.PI * 48; // r=48
+        const passRate = parseFloat('{{ test_stats.pass_rate|default:"0" }}');
+        const filled = (passRate / 100) * circumference;
+        const empty = circumference - filled;
+
+        donut.style.strokeDasharray = `${filled} ${empty}`;
+        donut.style.strokeDashoffset = circumference.toString();
+
+        setTimeout(() => {
+            donut.style.transition = 'stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            donut.style.strokeDashoffset = '0';
+        }, 300);
+    }
+
+    // Intersection observer for staggered animations
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animationPlayState = 'running';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.15 });
+
+    document.querySelectorAll('.ta-stat, .ta-detail-item, .ta-card').forEach(el => {
+        observer.observe(el);
+    });
+});
+</script>
 {% endblock %}
