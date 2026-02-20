@@ -3,98 +3,635 @@
 {% block title %}Kutubxona - Kitoblar{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid py-4">
+<style>
+    /* ===== Books Page ===== */
+    .bk-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+
+    /* Animations */
+    @keyframes bkSlideIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bkFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes bkCountUp {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Header */
+    .bk-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: bkSlideIn 0.4s ease-out;
+    }
+    .bk-header-left h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-color, #212529);
+    }
+    .bk-header-left h1 i { color: #6366f1; font-size: 1.75rem; }
+    .bk-header-sub {
+        font-size: 0.85rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.35rem;
+    }
+    .bk-header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .bk-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bk-btn-primary {
+        background: #6366f1;
+        color: #fff;
+    }
+    .bk-btn-primary:hover {
+        background: #4f46e5;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .bk-btn-outline {
+        background: transparent;
+        color: #6366f1;
+        border: 1.5px solid #6366f1;
+    }
+    .bk-btn-outline:hover {
+        background: rgba(99, 102, 241, 0.08);
+        color: #4f46e5;
+        transform: translateY(-2px);
+    }
+
+    /* Stats */
+    .bk-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .bk-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        text-align: center;
+        animation: bkSlideIn 0.5s ease-out backwards;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bk-stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .bk-stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .bk-stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .bk-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .bk-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.6rem;
+    }
+    .bk-stat-icon.primary { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+    .bk-stat-icon.info { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+    .bk-stat-icon.success { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+    .bk-stat-val {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-color, #212529);
+        animation: bkCountUp 0.6s ease-out backwards;
+        animation-delay: 0.3s;
+    }
+    .bk-stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.15rem;
+    }
+
+    /* Search/Filter Card */
+    .bk-filter-card {
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+        animation: bkSlideIn 0.4s ease-out 0.1s backwards;
+    }
+    .bk-filter-row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+    }
+    .bk-filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+    .bk-filter-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+    }
+    .bk-filter-group input {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        font-size: 0.88rem;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        transition: all 0.2s;
+    }
+    .bk-filter-group input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    .bk-filter-btn {
+        padding: 0.55rem 1.25rem;
+        border-radius: 10px;
+        border: none;
+        background: #6366f1;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .bk-filter-btn:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+    }
+    .bk-filter-reset {
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .bk-filter-reset:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    /* Sort Bar */
+    .bk-sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        animation: bkFadeIn 0.4s ease-out 0.15s backwards;
+    }
+    .bk-sort-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-right: 0.25rem;
+        white-space: nowrap;
+    }
+    .bk-sort-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .bk-sort-btn:hover {
+        border-color: #6366f1;
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.05);
+    }
+    .bk-sort-btn.active {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    /* Book Grid */
+    .bk-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.25rem;
+    }
+
+    /* Book Card */
+    .bk-card {
+        border: 1px solid var(--border-color, #dee2e6);
+        border-radius: 16px;
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        animation: bkSlideIn 0.4s ease-out backwards;
+    }
+    .bk-card:hover {
+        border-color: #6366f1;
+        box-shadow: 0 8px 28px rgba(99, 102, 241, 0.15);
+        transform: translateY(-5px);
+    }
+    .bk-card-cover {
+        width: 100%;
+        height: 170px;
+        object-fit: cover;
+        display: block;
+    }
+    .bk-card-cover-placeholder {
+        width: 100%;
+        height: 170px;
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-secondary-color, #adb5bd);
+        font-size: 3.5rem;
+    }
+    .bk-card-body {
+        padding: 1.15rem;
+    }
+    .bk-card-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        margin: 0 0 0.2rem 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .bk-card-author {
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.75rem;
+    }
+    .bk-card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.85rem;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    /* Availability badge */
+    .bk-avail-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .bk-avail-badge.available {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+    .bk-avail-badge.unavailable {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    .bk-isbn {
+        font-size: 0.72rem;
+        color: var(--bs-secondary-color, #adb5bd);
+    }
+
+    /* Card actions */
+    .bk-card-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .bk-edit-btn {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+        padding: 0.45rem 0.75rem;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: #6366f1;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .bk-edit-btn:hover {
+        background: rgba(99, 102, 241, 0.08);
+        border-color: #6366f1;
+        color: #4f46e5;
+        transform: translateY(-1px);
+    }
+    .bk-delete-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.45rem 0.65rem;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #adb5bd);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .bk-delete-btn:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.06);
+        transform: translateY(-1px);
+    }
+
+    /* Empty state */
+    .bk-empty {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        animation: bkFadeIn 0.5s ease-out;
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+    }
+    .bk-empty i {
+        font-size: 3.5rem;
+        color: var(--bs-secondary-color, #adb5bd);
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .bk-empty h5 {
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        margin-bottom: 0.4rem;
+    }
+    .bk-empty p {
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.88rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 767px) {
+        .bk-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .bk-header-actions {
+            width: 100%;
+        }
+        .bk-header-actions .bk-btn {
+            flex: 1;
+            justify-content: center;
+        }
+        .bk-stats {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        .bk-stat-card { padding: 0.85rem 0.5rem; }
+        .bk-stat-val { font-size: 1.35rem; }
+        .bk-stat-icon { width: 36px; height: 36px; font-size: 1rem; }
+        .bk-filter-row { flex-direction: column; }
+        .bk-filter-group { min-width: 100%; }
+        .bk-sort-bar { gap: 0.35rem; }
+        .bk-sort-btn { padding: 0.35rem 0.65rem; font-size: 0.75rem; }
+        .bk-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+        .bk-card-cover, .bk-card-cover-placeholder { height: 130px; }
+        .bk-card-cover-placeholder { font-size: 2.5rem; }
+        .bk-card-body { padding: 0.85rem; }
+        .bk-card-title { font-size: 0.85rem; }
+    }
+    @media (max-width: 480px) {
+        .bk-page { padding: 1rem 0.5rem; }
+        .bk-header { padding: 1rem; border-radius: 12px; }
+        .bk-header-left h1 { font-size: 1.2rem; }
+        .bk-stat-label { font-size: 0.65rem; }
+        .bk-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.6rem;
+        }
+        .bk-card-cover, .bk-card-cover-placeholder { height: 110px; }
+        .bk-card-actions { flex-direction: column; gap: 0.35rem; }
+    }
+</style>
+
+<div class="bk-page">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-book me-2"></i>Kutubxona - Kitoblar</h4>
-            <p class="text-muted mb-0">Barcha kitoblar ro'yxati</p>
+    <div class="bk-header">
+        <div class="bk-header-left">
+            <h1><i class="bi bi-book"></i> Kutubxona</h1>
+            <div class="bk-header-sub">Barcha kitoblar ro'yxati va boshqaruvi</div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'admin_book_rentals' %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left-right me-2"></i>Ijaralar
+        <div class="bk-header-actions">
+            <a href="{% url 'admin_book_rentals' %}" class="bk-btn bk-btn-outline">
+                <i class="bi bi-arrow-left-right"></i> Ijaralar
             </a>
-            <a href="{% url 'admin_book_add' %}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-2"></i>Yangi kitob
+            <a href="{% url 'admin_book_add' %}" class="bk-btn bk-btn-primary">
+                <i class="bi bi-plus-lg"></i> Yangi kitob
             </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="bk-stats">
+        <div class="bk-stat-card">
+            <div class="bk-stat-icon primary"><i class="bi bi-book"></i></div>
+            <div class="bk-stat-val">{{ total_books }}</div>
+            <div class="bk-stat-label">Jami kitoblar</div>
+        </div>
+        <div class="bk-stat-card">
+            <div class="bk-stat-icon info"><i class="bi bi-stack"></i></div>
+            <div class="bk-stat-val">{{ total_copies }}</div>
+            <div class="bk-stat-label">Jami nusxalar</div>
+        </div>
+        <div class="bk-stat-card">
+            <div class="bk-stat-icon success"><i class="bi bi-check2-circle"></i></div>
+            <div class="bk-stat-val">{{ available_total }}</div>
+            <div class="bk-stat-label">Mavjud nusxalar</div>
         </div>
     </div>
 
     <!-- Search -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-10">
-                    <label class="form-label">Qidirish</label>
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Kitob nomi yoki muallif..." value="{{ search }}">
+    <div class="bk-filter-card">
+        <form method="get">
+            {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+            <div class="bk-filter-row">
+                <div class="bk-filter-group" style="flex:3;">
+                    <label><i class="bi bi-search"></i> Qidirish</label>
+                    <input type="text" name="search" placeholder="Kitob nomi yoki muallif..." value="{{ search }}">
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-search me-1"></i>Qidirish
+                <div style="display:flex; gap:0.5rem; align-items:flex-end;">
+                    <button type="submit" class="bk-filter-btn">
+                        <i class="bi bi-search"></i> Qidirish
                     </button>
+                    {% if search %}
+                    <a href="{% url 'admin_books' %}{% if sort %}?sort={{ sort }}{% endif %}" class="bk-filter-reset">
+                        <i class="bi bi-x-lg"></i> Tozalash
+                    </a>
+                    {% endif %}
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sort Bar -->
+    <div class="bk-sort-bar">
+        <span class="bk-sort-label"><i class="bi bi-sort-down"></i> Saralash:</span>
+        <a href="?sort=title{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == 'title' or not sort %}active{% endif %}">
+            <i class="bi bi-sort-alpha-down"></i> Nomi A-Z
+        </a>
+        <a href="?sort=-title{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == '-title' %}active{% endif %}">
+            <i class="bi bi-sort-alpha-up"></i> Nomi Z-A
+        </a>
+        <a href="?sort=author{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == 'author' %}active{% endif %}">
+            <i class="bi bi-person"></i> Muallif A-Z
+        </a>
+        <a href="?sort=available{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == 'available' %}active{% endif %}">
+            <i class="bi bi-check2-circle"></i> Mavjud ↓
+        </a>
+        <a href="?sort=newest{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == 'newest' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> Yangi
+        </a>
+        <a href="?sort=oldest{% if search %}&search={{ search }}{% endif %}"
+           class="bk-sort-btn {% if sort == 'oldest' %}active{% endif %}">
+            <i class="bi bi-clock"></i> Eski
+        </a>
     </div>
 
     <!-- Books Grid -->
-    <div class="row">
+    {% if books %}
+    <div class="bk-grid">
         {% for book in books %}
-        <div class="col-md-6 col-lg-4 col-xl-3 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    {% if book.cover_image %}
-                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" 
-                         class="img-fluid rounded mb-3" style="max-height: 150px; object-fit: cover; width: 100%;">
-                    {% else %}
-                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" 
-                         style="height: 150px;">
-                        <i class="bi bi-book text-muted" style="font-size: 4rem;"></i>
-                    </div>
-                    {% endif %}
-                    
-                    <h6 class="fw-bold mb-1">{{ book.title }}</h6>
-                    <p class="text-muted small mb-2">{{ book.author }}</p>
-                    
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="badge {% if book.available_copies > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                            {{ book.available_copies }}/{{ book.total_copies }} mavjud
-                        </span>
-                        {% if book.isbn %}
-                        <small class="text-muted">ISBN: {{ book.isbn }}</small>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'admin_book_edit' book.pk %}" class="btn btn-sm btn-outline-primary flex-grow-1">
-                            <i class="bi bi-pencil me-1"></i>Tahrirlash
-                        </a>
-                        <form method="post" action="{% url 'admin_book_delete' book.pk %}" 
-                              onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </form>
-                    </div>
-                </div>
+        <div class="bk-card" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="bk-card-cover">
+            {% else %}
+            <div class="bk-card-cover-placeholder">
+                <i class="bi bi-book"></i>
             </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
-                    <i class="bi bi-book text-muted" style="font-size: 4rem;"></i>
-                    <h5 class="mt-3 mb-2">Kitoblar topilmadi</h5>
-                    <p class="text-muted mb-3">Hali kutubxonaga kitob qo'shilmagan</p>
-                    <a href="{% url 'admin_book_add' %}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg me-2"></i>Kitob qo'shish
+            {% endif %}
+
+            <div class="bk-card-body">
+                <h6 class="bk-card-title">{{ book.title }}</h6>
+                <div class="bk-card-author"><i class="bi bi-pen me-1"></i>{{ book.author }}</div>
+
+                <div class="bk-card-meta">
+                    <span class="bk-avail-badge {% if book.available_copies > 0 %}available{% else %}unavailable{% endif %}">
+                        <i class="bi bi-{% if book.available_copies > 0 %}check-circle{% else %}x-circle{% endif %}"></i>
+                        {{ book.available_copies }}/{{ book.total_copies }} mavjud
+                    </span>
+                    {% if book.isbn %}
+                    <span class="bk-isbn">ISBN: {{ book.isbn }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="bk-card-actions">
+                    <a href="{% url 'admin_book_edit' book.pk %}" class="bk-edit-btn">
+                        <i class="bi bi-pencil"></i> Tahrirlash
                     </a>
+                    <form method="post" action="{% url 'admin_book_delete' book.pk %}"
+                          onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')" style="display:contents;">
+                        {% csrf_token %}
+                        <button type="submit" class="bk-delete-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="bk-empty">
+        <i class="bi bi-book"></i>
+        <h5>Kitoblar topilmadi</h5>
+        <p>{% if search %}Qidiruv natijasi bo'sh. Boshqa kalit so'z bilan sinab ko'ring.{% else %}Hali kutubxonaga kitob qo'shilmagan.{% endif %}</p>
+        {% if search %}
+        <a href="{% url 'admin_books' %}" class="bk-btn bk-btn-outline">
+            <i class="bi bi-x-lg"></i> Qidiruvni tozalash
+        </a>
+        {% else %}
+        <a href="{% url 'admin_book_add' %}" class="bk-btn bk-btn-primary">
+            <i class="bi bi-plus-lg"></i> Kitob qo'shish
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
