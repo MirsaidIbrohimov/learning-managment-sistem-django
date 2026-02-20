@@ -3,363 +3,819 @@
 {% block title %}{{ user_obj.full_name }} | Admin Panel{% endblock %}
 
 {% block admin_content %}
+<style>
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-25px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(25px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes pulseRing {
+    0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    70% { box-shadow: 0 0 0 12px rgba(99,102,241,0); }
+    100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-<a href="{% url 'admin_users' %}" class="btn btn-outline-secondary rounded-pill mb-4">
-    <i class="bi bi-arrow-left me-1"></i>Orqaga
+.uv-anim-1 { animation: fadeInUp 0.5s ease both; }
+.uv-anim-2 { animation: fadeInUp 0.5s ease 0.1s both; }
+.uv-anim-3 { animation: fadeInUp 0.5s ease 0.2s both; }
+.uv-anim-4 { animation: fadeInUp 0.5s ease 0.3s both; }
+.uv-anim-5 { animation: fadeInUp 0.5s ease 0.4s both; }
+.uv-anim-left { animation: fadeInLeft 0.5s ease 0.15s both; }
+.uv-anim-right { animation: fadeInRight 0.5s ease 0.15s both; }
+
+/* ==================== BACK BUTTON ==================== */
+.uv-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 20px; border-radius: 14px;
+    background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color); text-decoration: none;
+    font-weight: 600; font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+.uv-back:hover {
+    background: #6366f1; color: #fff; border-color: #6366f1;
+    transform: translateX(-4px);
+}
+
+/* ==================== PROFILE CARD ==================== */
+.uv-profile-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 24px; padding: 0; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
+.uv-profile-card:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.12); }
+
+.uv-profile-banner {
+    height: 100px;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    position: relative;
+}
+.uv-profile-banner::after {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.uv-avatar-wrap {
+    display: flex; justify-content: center;
+    margin-top: -55px; position: relative; z-index: 2;
+}
+.uv-avatar {
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 4px solid var(--bs-body-bg);
+    box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    object-fit: cover;
+    animation: scaleIn 0.5s ease 0.2s both;
+    transition: transform 0.3s ease;
+}
+.uv-avatar:hover { transform: scale(1.05); }
+.uv-avatar-placeholder {
+    width: 110px; height: 110px; border-radius: 50%;
+    border: 4px solid var(--bs-body-bg);
+    box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 2.5rem; font-weight: 700;
+    animation: scaleIn 0.5s ease 0.2s both;
+}
+
+.uv-online-dot {
+    position: absolute; bottom: 8px; right: calc(50% - 48px);
+    width: 18px; height: 18px; border-radius: 50%;
+    border: 3px solid var(--bs-body-bg);
+    z-index: 3;
+}
+.uv-online-dot.online { background: #22c55e; animation: pulseRing 2s infinite; }
+.uv-online-dot.offline { background: #94a3b8; }
+.uv-online-dot.blocked { background: #ef4444; }
+
+.uv-profile-body { padding: 16px 24px 28px; text-align: center; }
+.uv-name { font-size: 1.4rem; font-weight: 800; margin: 8px 0 2px; color: var(--bs-body-color); }
+.uv-username { font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 12px; }
+
+.uv-role-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 18px; border-radius: 50px;
+    font-weight: 700; font-size: 0.8rem; letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.uv-role-badge.admin { background: rgba(239,68,68,0.15); color: #ef4444; }
+.uv-role-badge.teacher { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-role-badge.student { background: rgba(99,102,241,0.15); color: #6366f1; }
+
+.uv-premium-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 50px; margin-left: 6px;
+    font-weight: 700; font-size: 0.75rem;
+    background: linear-gradient(135deg, #f59e0b, #eab308);
+    color: #000; letter-spacing: 0.3px;
+}
+
+.uv-coin-display {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; border-radius: 16px; margin-top: 14px;
+    background: linear-gradient(135deg, rgba(250,204,21,0.15) 0%, rgba(245,158,11,0.1) 100%);
+    border: 1px solid rgba(250,204,21,0.25);
+    font-weight: 800; font-size: 1.15rem; color: #f59e0b;
+}
+.uv-coin-display i { font-size: 1.3rem; animation: float 3s ease-in-out infinite; }
+
+/* ==================== ACTION BUTTONS ==================== */
+.uv-actions { padding: 0 24px 28px; display: flex; flex-direction: column; gap: 8px; }
+.uv-action-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px; border-radius: 14px;
+    font-weight: 600; font-size: 0.88rem;
+    text-decoration: none; border: none;
+    transition: all 0.3s ease; cursor: pointer;
+    position: relative; overflow: hidden;
+}
+.uv-action-btn::after {
+    content: ''; position: absolute; right: 16px;
+    font-family: 'bootstrap-icons'; font-size: 0.8rem;
+    opacity: 0; transform: translateX(-8px);
+    transition: all 0.3s ease;
+}
+.uv-action-btn:hover::after { opacity: 0.5; transform: translateX(0); }
+.uv-action-btn:hover { transform: translateX(4px); }
+.uv-action-btn:active { transform: translateX(2px) scale(0.98); }
+
+.uv-action-btn.primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+}
+.uv-action-btn.primary:hover { box-shadow: 0 6px 20px rgba(99,102,241,0.45); color: #fff; }
+
+.uv-action-btn.outline {
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color);
+}
+.uv-action-btn.outline:hover {
+    background: rgba(99,102,241,0.08);
+    border-color: rgba(99,102,241,0.3); color: #6366f1;
+}
+
+.uv-action-btn.success {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.2); color: #22c55e;
+}
+.uv-action-btn.success:hover {
+    background: #22c55e; color: #fff;
+    box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+}
+
+.uv-action-btn.warning {
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2); color: #f59e0b;
+}
+.uv-action-btn.warning:hover {
+    background: #f59e0b; color: #000;
+    box-shadow: 0 4px 15px rgba(245,158,11,0.3);
+}
+
+.uv-action-btn.danger {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2); color: #ef4444;
+}
+.uv-action-btn.danger:hover {
+    background: #ef4444; color: #fff;
+    box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+}
+
+.uv-action-btn .uv-act-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+}
+.uv-action-btn.primary .uv-act-icon { background: rgba(255,255,255,0.2); }
+.uv-action-btn.outline .uv-act-icon { background: rgba(99,102,241,0.1); color: #6366f1; }
+.uv-action-btn.success .uv-act-icon { background: rgba(34,197,94,0.15); }
+.uv-action-btn.warning .uv-act-icon { background: rgba(245,158,11,0.15); }
+.uv-action-btn.danger .uv-act-icon { background: rgba(239,68,68,0.15); }
+
+.uv-action-count {
+    margin-left: auto; padding: 3px 10px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700;
+    background: rgba(255,255,255,0.15);
+}
+.uv-action-btn.outline .uv-action-count {
+    background: var(--bs-body-bg); color: var(--bs-secondary-color);
+}
+
+/* ==================== INFO CARD ==================== */
+.uv-info-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
+.uv-info-card:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.12); }
+
+.uv-info-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex; align-items: center; gap: 12px;
+}
+.uv-info-header-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+}
+.uv-info-header h5 { margin: 0; font-weight: 700; font-size: 1.05rem; }
+
+.uv-info-body { padding: 24px 28px; }
+
+.uv-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0;
+}
+.uv-info-item {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    animation: fadeInUp 0.4s ease both;
+}
+.uv-info-item:nth-child(odd) { padding-right: 20px; border-right: 1px solid var(--bs-border-color); }
+.uv-info-item:nth-child(even) { padding-left: 20px; }
+.uv-info-item:nth-last-child(-n+2) { border-bottom: none; }
+
+.uv-info-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--bs-secondary-color);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+}
+.uv-info-value {
+    font-size: 0.95rem; font-weight: 600; color: var(--bs-body-color);
+}
+.uv-info-value a { color: #6366f1; text-decoration: none; }
+.uv-info-value a:hover { text-decoration: underline; }
+
+.uv-status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 14px; border-radius: 50px;
+    font-weight: 700; font-size: 0.78rem;
+}
+.uv-status-pill.online { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-status-pill.offline { background: rgba(148,163,184,0.15); color: #94a3b8; }
+.uv-status-pill.blocked { background: rgba(239,68,68,0.15); color: #ef4444; }
+.uv-status-pill .uv-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.uv-status-pill.online .uv-dot { background: #22c55e; }
+.uv-status-pill.offline .uv-dot { background: #94a3b8; }
+.uv-status-pill.blocked .uv-dot { background: #ef4444; }
+
+.uv-doc-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 10px;
+    font-size: 0.82rem; font-weight: 600;
+    background: rgba(99,102,241,0.1); color: #6366f1;
+    text-decoration: none; border: 1px solid rgba(99,102,241,0.15);
+    transition: all 0.25s ease;
+}
+.uv-doc-btn:hover {
+    background: #6366f1; color: #fff; border-color: #6366f1;
+    transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+}
+
+/* ==================== COIN STATS ==================== */
+.uv-coin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.uv-coin-stat {
+    border-radius: 20px; padding: 24px 20px; text-align: center;
+    position: relative; overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.uv-coin-stat:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); }
+.uv-coin-stat::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.uv-coin-stat.balance {
+    background: linear-gradient(135deg, rgba(250,204,21,0.12), rgba(245,158,11,0.08));
+    border: 1px solid rgba(250,204,21,0.25);
+}
+.uv-coin-stat.balance::before { background: linear-gradient(90deg, #facc15, #f59e0b); }
+.uv-coin-stat.earned {
+    background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(22,163,74,0.08));
+    border: 1px solid rgba(34,197,94,0.25);
+}
+.uv-coin-stat.earned::before { background: linear-gradient(90deg, #22c55e, #16a34a); }
+.uv-coin-stat.spent {
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.08));
+    border: 1px solid rgba(239,68,68,0.25);
+}
+.uv-coin-stat.spent::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.uv-coin-stat-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 12px;
+}
+.uv-coin-stat.balance .uv-coin-stat-icon { background: rgba(250,204,21,0.2); color: #f59e0b; }
+.uv-coin-stat.earned .uv-coin-stat-icon { background: rgba(34,197,94,0.2); color: #22c55e; }
+.uv-coin-stat.spent .uv-coin-stat-icon { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+.uv-coin-stat-num {
+    font-size: 1.8rem; font-weight: 800; line-height: 1;
+    margin-bottom: 4px; animation: countUp 0.6s ease both;
+}
+.uv-coin-stat.balance .uv-coin-stat-num { color: #f59e0b; }
+.uv-coin-stat.earned .uv-coin-stat-num { color: #22c55e; }
+.uv-coin-stat.spent .uv-coin-stat-num { color: #ef4444; }
+.uv-coin-stat-label {
+    font-size: 0.8rem; font-weight: 600; color: var(--bs-secondary-color);
+}
+
+/* ==================== COURSE ANALYSIS ==================== */
+.uv-course-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 24px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s ease;
+}
+.uv-course-card:hover { box-shadow: 0 12px 48px rgba(0,0,0,0.12); }
+
+.uv-course-header {
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--bs-border-color);
+    flex-wrap: wrap; gap: 12px;
+}
+.uv-course-title {
+    display: flex; align-items: center; gap: 12px;
+}
+.uv-course-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.1rem;
+}
+.uv-course-name { font-weight: 700; font-size: 1rem; }
+.uv-course-date { font-size: 0.78rem; color: var(--bs-secondary-color); }
+
+.uv-progress-wrap {
+    display: flex; align-items: center; gap: 10px;
+}
+.uv-progress-bar {
+    width: 140px; height: 8px; border-radius: 50px;
+    background: var(--bs-tertiary-bg); overflow: hidden;
+}
+.uv-progress-fill {
+    height: 100%; border-radius: 50px;
+    background: linear-gradient(90deg, #6366f1, #22c55e);
+    transition: width 1s ease;
+}
+.uv-progress-pct {
+    font-weight: 800; font-size: 0.85rem; color: #6366f1;
+    min-width: 42px; text-align: right;
+}
+
+.uv-course-body { padding: 24px 28px; }
+
+.uv-stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.uv-stat-box {
+    text-align: center; padding: 20px 14px; border-radius: 16px;
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.3s ease;
+}
+.uv-stat-box:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.uv-stat-box-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 10px;
+}
+.uv-stat-box-icon.video { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.uv-stat-box-icon.test { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-stat-box-icon.homework { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.uv-stat-box-icon.grade { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+
+.uv-stat-box-num { font-size: 1.3rem; font-weight: 800; color: var(--bs-body-color); }
+.uv-stat-box-num small { font-size: 0.7rem; font-weight: 600; color: var(--bs-secondary-color); }
+.uv-stat-box-label { font-size: 0.75rem; font-weight: 600; color: var(--bs-secondary-color); margin-top: 2px; }
+
+.uv-stat-badges { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 8px; }
+.uv-mini-badge {
+    padding: 2px 8px; border-radius: 6px;
+    font-size: 0.68rem; font-weight: 700;
+}
+.uv-mini-badge.success { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-mini-badge.warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
+
+/* ==================== STUCK LESSONS ==================== */
+.uv-stuck-section {
+    margin-top: 20px; padding-top: 20px;
+    border-top: 1px solid var(--bs-border-color);
+}
+.uv-stuck-title {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; font-size: 0.9rem; color: #ef4444; margin-bottom: 14px;
+}
+.uv-stuck-list { display: flex; flex-direction: column; gap: 8px; }
+.uv-stuck-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 12px;
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+.uv-stuck-item:hover {
+    background: rgba(239,68,68,0.05);
+    border-color: rgba(239,68,68,0.2);
+}
+.uv-stuck-name { flex: 1; font-weight: 600; font-size: 0.85rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.uv-stuck-checks { display: flex; gap: 6px; flex-shrink: 0; }
+.uv-stuck-check {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem;
+}
+.uv-stuck-check.done { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-stuck-check.not-done { background: rgba(239,68,68,0.15); color: #ef4444; }
+.uv-stuck-check.na { background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); }
+
+/* ==================== CERTIFICATES ==================== */
+.uv-cert-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+.uv-cert-item:last-child { border-bottom: none; }
+.uv-cert-item:hover { padding-left: 6px; }
+.uv-cert-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(250,204,21,0.2), rgba(245,158,11,0.15));
+    display: flex; align-items: center; justify-content: center;
+    color: #f59e0b; font-size: 1.1rem; flex-shrink: 0;
+}
+.uv-cert-info { flex: 1; min-width: 0; }
+.uv-cert-name { font-weight: 700; font-size: 0.9rem; }
+.uv-cert-meta { font-size: 0.78rem; color: var(--bs-secondary-color); }
+
+/* ==================== ACTIVITY LOG ==================== */
+.uv-activity-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: all 0.2s ease;
+}
+.uv-activity-item:last-child { border-bottom: none; }
+.uv-activity-item:hover { padding-left: 4px; }
+.uv-activity-icon {
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0;
+}
+.uv-activity-icon.login { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.uv-activity-icon.deploy { background: rgba(34,197,94,0.15); color: #22c55e; }
+.uv-activity-icon.test { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+.uv-activity-icon.video { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.uv-activity-icon.other { background: var(--bs-tertiary-bg); color: var(--bs-secondary-color); }
+.uv-activity-text { font-size: 0.85rem; font-weight: 500; color: var(--bs-body-color); line-height: 1.4; }
+.uv-activity-time { font-size: 0.75rem; color: var(--bs-secondary-color); margin-top: 2px; }
+
+/* ==================== SECTION HEADER ==================== */
+.uv-section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 20px;
+}
+.uv-section-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1rem;
+}
+.uv-section-header h4 { margin: 0; font-weight: 800; font-size: 1.15rem; }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 991px) {
+    .uv-info-grid { grid-template-columns: 1fr; }
+    .uv-info-item:nth-child(odd) { padding-right: 0; border-right: none; }
+    .uv-info-item:nth-child(even) { padding-left: 0; }
+    .uv-coin-stats { grid-template-columns: 1fr; }
+    .uv-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 575px) {
+    .uv-stats-grid { grid-template-columns: 1fr 1fr; }
+    .uv-course-header { flex-direction: column; align-items: flex-start; }
+    .uv-profile-body { padding: 12px 16px 24px; }
+    .uv-actions { padding: 0 16px 24px; }
+    .uv-info-body { padding: 16px; }
+    .uv-course-body { padding: 16px; }
+}
+</style>
+
+<!-- Back Button -->
+<a href="{% url 'admin_users' %}" class="uv-back uv-anim-1">
+    <i class="bi bi-arrow-left"></i>Orqaga
 </a>
 
-<div class="row g-4">
+<div class="row g-4 mt-1">
 
 <!-- ================= LEFT PROFILE ================= -->
-<div class="col-lg-4">
+<div class="col-lg-4 uv-anim-left">
+    <div class="uv-profile-card">
+        <div class="uv-profile-banner"></div>
 
-<div class="card text-center p-4 h-100">
+        <div class="uv-avatar-wrap">
+            {% if user_obj.photo and user_obj.photo.url %}
+            <img src="{{ user_obj.photo.url }}" class="uv-avatar" alt="{{ user_obj.full_name }}">
+            {% else %}
+            <div class="uv-avatar-placeholder">{{ user_obj.get_initials }}</div>
+            {% endif %}
+            <span class="uv-online-dot {% if user_obj.is_blocked %}blocked{% elif user_obj.is_online %}online{% else %}offline{% endif %}"></span>
+        </div>
 
-    <!-- AVATAR -->
-    <div class="mb-3">
+        <div class="uv-profile-body">
+            <div class="uv-name">{{ user_obj.full_name }}</div>
+            <div class="uv-username">@{{ user_obj.username }}</div>
 
-        {% if user_obj.photo and user_obj.photo.url %}
-            <img src="{{ user_obj.photo.url }}"
-                 class="rounded-circle"
-                 style="width:140px;height:140px;object-fit:cover;border:4px solid #6366f1;">
-        {% else %}
-            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold mx-auto"
-                 style="width:140px;height:140px;font-size:3rem;">
-                {{ user_obj.get_initials }}
+            <div>
+                <span class="uv-role-badge {% if user_obj.role == 'admin' %}admin{% elif user_obj.role == 'teacher' %}teacher{% else %}student{% endif %}">
+                    {% if user_obj.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin
+                    {% elif user_obj.role == 'teacher' %}<i class="bi bi-mortarboard"></i> O'qituvchi
+                    {% else %}<i class="bi bi-person"></i> O'quvchi{% endif %}
+                </span>
+                {% if user_obj.is_premium %}
+                <span class="uv-premium-badge"><i class="bi bi-gem"></i> Premium</span>
+                {% endif %}
             </div>
-        {% endif %}
 
+            <div class="uv-coin-display">
+                <i class="bi bi-coin"></i>
+                {{ user_obj.coins }} coin
+            </div>
+        </div>
+
+        <div class="uv-actions">
+            <a href="{% url 'admin_user_edit' user_obj.pk %}" class="uv-action-btn primary">
+                <span class="uv-act-icon"><i class="bi bi-pencil-square"></i></span>
+                Tahrirlash
+            </a>
+
+            <a href="{% url 'user_statistics' user_obj.pk %}" class="uv-action-btn outline">
+                <span class="uv-act-icon"><i class="bi bi-graph-up"></i></span>
+                Statistika
+            </a>
+
+            {% if user_obj.is_student %}
+            <a href="{% url 'issue_certificate' user_obj.pk %}" class="uv-action-btn success">
+                <span class="uv-act-icon"><i class="bi bi-award"></i></span>
+                Sertifikat berish
+            </a>
+            {% endif %}
+
+            {% if not user_obj.is_admin %}
+            <a href="{% url 'admin_user_block' user_obj.pk %}" class="uv-action-btn {% if user_obj.is_blocked %}success{% else %}danger{% endif %}">
+                <span class="uv-act-icon"><i class="bi bi-{% if user_obj.is_blocked %}unlock{% else %}lock{% endif %}"></i></span>
+                {% if user_obj.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}
+            </a>
+            {% endif %}
+
+            <a href="{% url 'admin_user_devices' user_obj.pk %}" class="uv-action-btn outline">
+                <span class="uv-act-icon"><i class="bi bi-laptop"></i></span>
+                Qurilmalar
+                <span class="uv-action-count">{{ user_obj.devices.count }}</span>
+            </a>
+        </div>
     </div>
-
-    <h4 class="fw-bold mb-0">{{ user_obj.full_name }}</h4>
-    <small class="text-muted">@{{ user_obj.username }}</small>
-
-    <!-- ROLE -->
-    <div class="my-3">
-        <span class="badge rounded-pill px-4 py-2
-            {% if user_obj.role == 'admin' %}bg-danger
-            {% elif user_obj.role == 'teacher' %}bg-success
-            {% else %}bg-primary{% endif %}">
-            {% if user_obj.role == 'admin' %}Admin
-            {% elif user_obj.role == 'teacher' %}O‘qituvchi
-            {% else %}O‘quvchi{% endif %}
-        </span>
-    </div>
-
-    <!-- COINS -->
-    <div class="mb-3">
-        <span class="badge rounded-pill fs-6 px-4 py-2 text-dark"
-              style="background:linear-gradient(135deg,#facc15,#f59e0b);">
-            <i class="bi bi-coin me-1"></i>{{ user_obj.coins }} coin
-        </span>
-    </div>
-
-    <hr>
-
-    <!-- ACTIONS -->
-    <div class="d-grid gap-2">
-
-        <a href="{% url 'admin_user_edit' user_obj.pk %}" class="btn btn-primary rounded-pill">
-            <i class="bi bi-pencil me-1"></i>Tahrirlash
-        </a>
-
-        <a href="{% url 'user_statistics' user_obj.pk %}" class="btn btn-outline-info rounded-pill">
-            <i class="bi bi-graph-up me-1"></i>Statistika
-        </a>
-
-        {% if user_obj.is_student %}
-        <a href="{% url 'issue_certificate' user_obj.pk %}" class="btn btn-outline-success rounded-pill">
-            <i class="bi bi-award me-1"></i>Sertifikat berish
-        </a>
-        {% endif %}
-
-        {% if not user_obj.is_admin %}
-        <a href="{% url 'admin_user_block' user_obj.pk %}"
-           class="btn {% if user_obj.is_blocked %}btn-success{% else %}btn-warning{% endif %} rounded-pill">
-            <i class="bi bi-{% if user_obj.is_blocked %}unlock{% else %}lock{% endif %} me-1"></i>
-            {% if user_obj.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}
-        </a>
-        {% endif %}
-
-        <a href="{% url 'admin_user_devices' user_obj.pk %}" class="btn btn-outline-secondary rounded-pill">
-            <i class="bi bi-laptop me-1"></i>Qurilmalar ({{ user_obj.devices.count }})
-        </a>
-
-    </div>
-
-</div>
 </div>
 
 <!-- ================= RIGHT INFO ================= -->
-<div class="col-lg-8 d-flex flex-column gap-4">
+<div class="col-lg-8 d-flex flex-column gap-4 uv-anim-right">
 
-<!-- INFO CARD -->
-<div class="card p-4">
+    <!-- INFO CARD -->
+    <div class="uv-info-card">
+        <div class="uv-info-header">
+            <div class="uv-info-header-icon"><i class="bi bi-person-lines-fill"></i></div>
+            <h5>Shaxsiy ma'lumotlar</h5>
+        </div>
+        <div class="uv-info-body">
+            <div class="uv-info-grid">
+                <div class="uv-info-item" style="animation-delay:0.1s">
+                    <div class="uv-info-label"><i class="bi bi-telephone me-1"></i> Telefon</div>
+                    <div class="uv-info-value">{{ user_obj.phone|default:"—" }}</div>
+                </div>
+                <div class="uv-info-item" style="animation-delay:0.15s">
+                    <div class="uv-info-label"><i class="bi bi-calendar-plus me-1"></i> Ro'yxatdan o'tgan</div>
+                    <div class="uv-info-value">{{ user_obj.date_joined|date:"d.m.Y H:i" }}</div>
+                </div>
+                <div class="uv-info-item" style="animation-delay:0.2s">
+                    <div class="uv-info-label"><i class="bi bi-geo-alt me-1"></i> Manzil</div>
+                    <div class="uv-info-value">{{ user_obj.address|default:"—" }}</div>
+                </div>
+                <div class="uv-info-item" style="animation-delay:0.25s">
+                    <div class="uv-info-label"><i class="bi bi-cake2 me-1"></i> Tug'ilgan sana</div>
+                    <div class="uv-info-value">{% if user_obj.birth_date %}{{ user_obj.birth_date|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+                </div>
+                <div class="uv-info-item" style="animation-delay:0.3s">
+                    <div class="uv-info-label"><i class="bi bi-clock-history me-1"></i> Oxirgi faollik</div>
+                    <div class="uv-info-value">{% if user_obj.last_activity %}{{ user_obj.last_activity|date:"d.m.Y H:i" }}{% else %}—{% endif %}</div>
+                </div>
+                <div class="uv-info-item" style="animation-delay:0.35s">
+                    <div class="uv-info-label"><i class="bi bi-wifi me-1"></i> Status</div>
+                    <div class="uv-info-value">
+                        {% if user_obj.is_blocked %}
+                        <span class="uv-status-pill blocked"><span class="uv-dot"></span> Bloklangan</span>
+                        {% elif user_obj.is_online %}
+                        <span class="uv-status-pill online"><span class="uv-dot"></span> Online</span>
+                        {% else %}
+                        <span class="uv-status-pill offline"><span class="uv-dot"></span> Offline</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
-<h5 class="fw-bold mb-3">
-    <i class="bi bi-person-lines-fill me-2"></i>Ma’lumotlar
-</h5>
-
-<div class="row g-3">
-
-<div class="col-md-6">
-    <small class="text-muted">Telefon</small>
-    <div>{{ user_obj.phone|default:"-" }}</div>
-</div>
-
-<div class="col-md-6">
-    <small class="text-muted">Ro‘yxatdan o‘tgan</small>
-    <div>{{ user_obj.date_joined|date:"d.m.Y H:i" }}</div>
-</div>
-
-<div class="col-md-6">
-    <small class="text-muted">Manzil</small>
-    <div>{{ user_obj.address|default:"-" }}</div>
-</div>
-
-<div class="col-md-6">
-    <small class="text-muted">Tug‘ilgan sana</small>
-    <div>
-        {% if user_obj.birth_date %}{{ user_obj.birth_date|date:"d.m.Y" }}{% else %}-{% endif %}
+            {% if user_obj.id_card or user_obj.birth_certificate %}
+            <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--bs-border-color);">
+                <div class="uv-info-label mb-2"><i class="bi bi-folder me-1"></i> Hujjatlar</div>
+                <div class="d-flex flex-wrap gap-2">
+                    {% if user_obj.id_card and user_obj.id_card.url %}
+                    <a href="{{ user_obj.id_card.url }}" target="_blank" class="uv-doc-btn">
+                        <i class="bi bi-person-badge"></i> ID karta
+                    </a>
+                    {% endif %}
+                    {% if user_obj.birth_certificate and user_obj.birth_certificate.url %}
+                    <a href="{{ user_obj.birth_certificate.url }}" target="_blank" class="uv-doc-btn">
+                        <i class="bi bi-file-earmark-text"></i> Guvohnoma
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
-</div>
 
-{% if user_obj.id_card or user_obj.birth_certificate %}
-<div class="col-12">
-    <small class="text-muted">Hujjatlar</small><br>
-
-    {% if user_obj.id_card and user_obj.id_card.url %}
-        <a href="{{ user_obj.id_card.url }}" target="_blank"
-           class="btn btn-sm btn-outline-info rounded-pill me-2">
-            <i class="bi bi-person-badge me-1"></i>ID karta
-        </a>
-    {% endif %}
-
-    {% if user_obj.birth_certificate and user_obj.birth_certificate.url %}
-        <a href="{{ user_obj.birth_certificate.url }}" target="_blank"
-           class="btn btn-sm btn-outline-info rounded-pill">
-            <i class="bi bi-file-earmark-text me-1"></i>Guvohnoma
-        </a>
-    {% endif %}
-</div>
-{% endif %}
-
-<div class="col-md-6">
-    <small class="text-muted">Oxirgi faollik</small>
-    <div>
-        {% if user_obj.last_activity %}
-            {{ user_obj.last_activity|date:"d.m.Y H:i" }}
-        {% else %}-{% endif %}
+    <!-- CERTIFICATES -->
+    {% if certificates %}
+    <div class="uv-info-card uv-anim-3">
+        <div class="uv-info-header">
+            <div class="uv-info-header-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308);">
+                <i class="bi bi-award"></i>
+            </div>
+            <h5>Sertifikatlar</h5>
+        </div>
+        <div class="uv-info-body">
+            {% for cert in certificates %}
+            <div class="uv-cert-item">
+                <div class="uv-cert-icon"><i class="bi bi-patch-check-fill"></i></div>
+                <div class="uv-cert-info">
+                    <div class="uv-cert-name">{{ cert.profession.name }}</div>
+                    <div class="uv-cert-meta">{{ cert.issued_at|date:"d.m.Y" }} · {{ cert.issued_by.full_name }}</div>
+                </div>
+                {% if cert.file and cert.file.url %}
+                <a href="{{ cert.file.url }}" target="_blank" class="uv-doc-btn" style="flex-shrink:0;">
+                    <i class="bi bi-download"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
     </div>
-</div>
-
-<div class="col-md-6">
-    <small class="text-muted">Status</small><br>
-
-    {% if user_obj.is_blocked %}
-        <span class="badge bg-danger rounded-pill px-3">Bloklangan</span>
-    {% elif user_obj.is_online %}
-        <span class="badge bg-success rounded-pill px-3">Online</span>
-    {% else %}
-        <span class="badge bg-secondary rounded-pill px-3">Offline</span>
     {% endif %}
-</div>
-
-</div>
-</div>
-
-<!-- CERTIFICATES -->
-{% if certificates %}
-<div class="card p-4">
-
-<h5 class="fw-bold mb-3">
-    <i class="bi bi-award me-2"></i>Sertifikatlar
-</h5>
-
-<div class="table-responsive">
-<table class="table table-hover align-middle">
-
-<thead>
-<tr>
-    <th>Yo‘nalish</th>
-    <th>Sana</th>
-    <th>Bergan</th>
-    <th>Fayl</th>
-</tr>
-</thead>
-
-<tbody>
-{% for cert in certificates %}
-<tr>
-    <td>{{ cert.profession.name }}</td>
-    <td>{{ cert.issued_at|date:"d.m.Y" }}</td>
-    <td>{{ cert.issued_by.full_name }}</td>
-    <td>
-        {% if cert.file and cert.file.url %}
-        <a href="{{ cert.file.url }}" target="_blank"
-           class="btn btn-sm btn-outline-primary rounded-pill">
-            <i class="bi bi-download"></i>
-        </a>
-        {% endif %}
-    </td>
-</tr>
-{% endfor %}
-</tbody>
-
-</table>
-</div>
-
-</div>
-{% endif %}
 
 </div>
 </div>
 
 <!-- ================= STUDENT ANALYSIS ================= -->
 {% if user_obj.role == 'student' and analysis_data %}
-<div class="row mt-4">
-<div class="col-12">
-    <h4 class="fw-bold mb-4">
-        <i class="bi bi-graph-up-arrow me-2 text-primary"></i>O'quvchi Tahlili
-    </h4>
-</div>
+
+<div class="uv-section-header mt-4 uv-anim-3">
+    <div class="uv-section-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    <h4>O'quvchi Tahlili</h4>
 </div>
 
-<!-- Coin Stats Card -->
-<div class="row g-4 mb-4">
-    <div class="col-md-4">
-        <div class="card text-center p-4" style="background: linear-gradient(135deg, #facc15, #f59e0b); color: #000;">
-            <h3 class="mb-0 fw-bold">{{ user_obj.coins }}</h3>
-            <small>Joriy coinlar</small>
-        </div>
+<!-- Coin Stats -->
+<div class="uv-coin-stats uv-anim-4">
+    <div class="uv-coin-stat balance">
+        <div class="uv-coin-stat-icon"><i class="bi bi-coin"></i></div>
+        <div class="uv-coin-stat-num">{{ user_obj.coins }}</div>
+        <div class="uv-coin-stat-label">Joriy coinlar</div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center p-4 bg-success text-white">
-            <h3 class="mb-0 fw-bold">+{{ coin_earned }}</h3>
-            <small>Jami ishlangan</small>
-        </div>
+    <div class="uv-coin-stat earned">
+        <div class="uv-coin-stat-icon"><i class="bi bi-arrow-up-circle"></i></div>
+        <div class="uv-coin-stat-num">+{{ coin_earned }}</div>
+        <div class="uv-coin-stat-label">Jami ishlangan</div>
     </div>
-    <div class="col-md-4">
-        <div class="card text-center p-4 bg-danger text-white">
-            <h3 class="mb-0 fw-bold">-{{ coin_spent }}</h3>
-            <small>Jami sarflangan</small>
-        </div>
+    <div class="uv-coin-stat spent">
+        <div class="uv-coin-stat-icon"><i class="bi bi-arrow-down-circle"></i></div>
+        <div class="uv-coin-stat-num">-{{ coin_spent }}</div>
+        <div class="uv-coin-stat-label">Jami sarflangan</div>
     </div>
 </div>
 
-<!-- Course Analysis Cards -->
+<!-- Course Analysis -->
 {% for data in analysis_data %}
-<div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div>
-            <i class="bi bi-book me-2"></i>
-            <strong>{{ data.profession.name }}</strong>
-            <small class="text-muted ms-2">Yozilgan: {{ data.enrollment.enrolled_at|date:"d.m.Y" }}</small>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <div class="progress" style="width: 150px; height: 10px;">
-                <div class="progress-bar bg-success" style="width: {{ data.overall_progress }}%"></div>
+<div class="uv-course-card mt-4 uv-anim-5">
+    <div class="uv-course-header">
+        <div class="uv-course-title">
+            <div class="uv-course-icon"><i class="bi bi-book"></i></div>
+            <div>
+                <div class="uv-course-name">{{ data.profession.name }}</div>
+                <div class="uv-course-date">Yozilgan: {{ data.enrollment.enrolled_at|date:"d.m.Y" }}</div>
             </div>
-            <span class="badge bg-primary">{{ data.overall_progress }}%</span>
+        </div>
+        <div class="uv-progress-wrap">
+            <div class="uv-progress-bar">
+                <div class="uv-progress-fill" style="width:{{ data.overall_progress }}%"></div>
+            </div>
+            <div class="uv-progress-pct">{{ data.overall_progress }}%</div>
         </div>
     </div>
-    <div class="card-body">
-        <div class="row g-4">
-            <!-- Video Progress -->
-            <div class="col-md-3">
-                <div class="text-center p-3 rounded" style="background: var(--bs-tertiary-bg);">
-                    <i class="bi bi-play-circle fs-2 text-info mb-2 d-block"></i>
-                    <h4 class="mb-0">{{ data.watched_videos }}/{{ data.total_videos }}</h4>
-                    <small class="text-muted">Video ko'rilgan</small>
+    <div class="uv-course-body">
+        <div class="uv-stats-grid">
+            <div class="uv-stat-box">
+                <div class="uv-stat-box-icon video"><i class="bi bi-play-circle-fill"></i></div>
+                <div class="uv-stat-box-num">{{ data.watched_videos }}<small>/{{ data.total_videos }}</small></div>
+                <div class="uv-stat-box-label">Video ko'rilgan</div>
+            </div>
+            <div class="uv-stat-box">
+                <div class="uv-stat-box-icon test"><i class="bi bi-check2-square"></i></div>
+                <div class="uv-stat-box-num">{{ data.tests_taken }} <small>({{ data.avg_test_score }}%)</small></div>
+                <div class="uv-stat-box-label">Test topshirgan</div>
+                <div class="uv-stat-badges">
+                    <span class="uv-mini-badge success">{{ data.passed_tests }} o'tdi</span>
                 </div>
             </div>
-            
-            <!-- Test Stats -->
-            <div class="col-md-3">
-                <div class="text-center p-3 rounded" style="background: var(--bs-tertiary-bg);">
-                    <i class="bi bi-check2-square fs-2 text-success mb-2 d-block"></i>
-                    <h4 class="mb-0">{{ data.tests_taken }} <small class="text-muted fs-6">({{ data.avg_test_score }}%)</small></h4>
-                    <small class="text-muted">Test topshirgan</small>
-                    <div class="mt-1">
-                        <span class="badge bg-success">{{ data.passed_tests }} o'tdi</span>
-                    </div>
+            <div class="uv-stat-box">
+                <div class="uv-stat-box-icon homework"><i class="bi bi-file-earmark-check"></i></div>
+                <div class="uv-stat-box-num">{{ data.submitted_homeworks }}<small>/{{ data.total_homeworks }}</small></div>
+                <div class="uv-stat-box-label">Vazifa topshirgan</div>
+                <div class="uv-stat-badges">
+                    {% if data.pending_homeworks > 0 %}
+                    <span class="uv-mini-badge warning">{{ data.pending_homeworks }} kutilmoqda</span>
+                    {% endif %}
+                    {% if data.graded_homeworks > 0 %}
+                    <span class="uv-mini-badge success">{{ data.graded_homeworks }} baholangan</span>
+                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Homework Stats -->
-            <div class="col-md-3">
-                <div class="text-center p-3 rounded" style="background: var(--bs-tertiary-bg);">
-                    <i class="bi bi-file-earmark-check fs-2 text-warning mb-2 d-block"></i>
-                    <h4 class="mb-0">{{ data.submitted_homeworks }}/{{ data.total_homeworks }}</h4>
-                    <small class="text-muted">Vazifa topshirgan</small>
-                    <div class="mt-1">
-                        {% if data.pending_homeworks > 0 %}
-                        <span class="badge bg-warning text-dark">{{ data.pending_homeworks }} kutilmoqda</span>
-                        {% endif %}
-                        {% if data.graded_homeworks > 0 %}
-                        <span class="badge bg-success">{{ data.graded_homeworks }} baholangan</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Average Grade -->
-            <div class="col-md-3">
-                <div class="text-center p-3 rounded" style="background: var(--bs-tertiary-bg);">
-                    <i class="bi bi-star fs-2 text-primary mb-2 d-block"></i>
-                    <h4 class="mb-0">{{ data.avg_homework_grade }}</h4>
-                    <small class="text-muted">O'rtacha baho</small>
-                </div>
+            <div class="uv-stat-box">
+                <div class="uv-stat-box-icon grade"><i class="bi bi-star-fill"></i></div>
+                <div class="uv-stat-box-num">{{ data.avg_homework_grade }}</div>
+                <div class="uv-stat-box-label">O'rtacha baho</div>
             </div>
         </div>
-        
-        <!-- Stuck Lessons -->
+
         {% if data.stuck_lessons %}
-        <div class="mt-4">
-            <h6 class="fw-bold text-danger mb-3">
-                <i class="bi bi-exclamation-triangle me-2"></i>Tugatilmagan darslar
-            </h6>
-            <div class="table-responsive">
-                <table class="table table-sm table-hover">
-                    <thead>
-                        <tr>
-                            <th>Dars</th>
-                            <th class="text-center">Video</th>
-                            <th class="text-center">Test</th>
-                            <th class="text-center">Vazifa</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for stuck in data.stuck_lessons %}
-                        <tr>
-                            <td>{{ stuck.lesson.title }}</td>
-                            <td class="text-center">
-                                <span class="badge {% if '0/' in stuck.video_progress %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                                    {{ stuck.video_progress }}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                {% if stuck.test_done == None %}
-                                <span class="badge bg-secondary">-</span>
-                                {% elif stuck.test_done %}
-                                <span class="badge bg-success"><i class="bi bi-check"></i></span>
-                                {% else %}
-                                <span class="badge bg-danger"><i class="bi bi-x"></i></span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                {% if stuck.hw_done == None %}
-                                <span class="badge bg-secondary">-</span>
-                                {% elif stuck.hw_done %}
-                                <span class="badge bg-success"><i class="bi bi-check"></i></span>
-                                {% else %}
-                                <span class="badge bg-danger"><i class="bi bi-x"></i></span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="uv-stuck-section">
+            <div class="uv-stuck-title">
+                <i class="bi bi-exclamation-triangle-fill"></i> Tugatilmagan darslar
+            </div>
+            <div class="uv-stuck-list">
+                {% for stuck in data.stuck_lessons %}
+                <div class="uv-stuck-item">
+                    <div class="uv-stuck-name">{{ stuck.lesson.title }}</div>
+                    <div class="uv-stuck-checks">
+                        <span class="uv-stuck-check {% if '0/' in stuck.video_progress %}not-done{% else %}done{% endif %}" title="Video: {{ stuck.video_progress }}">
+                            <i class="bi bi-play-fill"></i>
+                        </span>
+                        {% if stuck.test_done == None %}
+                        <span class="uv-stuck-check na" title="Test yo'q"><i class="bi bi-dash"></i></span>
+                        {% elif stuck.test_done %}
+                        <span class="uv-stuck-check done" title="Test o'tdi"><i class="bi bi-check-lg"></i></span>
+                        {% else %}
+                        <span class="uv-stuck-check not-done" title="Test o'tmadi"><i class="bi bi-x-lg"></i></span>
+                        {% endif %}
+                        {% if stuck.hw_done == None %}
+                        <span class="uv-stuck-check na" title="Vazifa yo'q"><i class="bi bi-dash"></i></span>
+                        {% elif stuck.hw_done %}
+                        <span class="uv-stuck-check done" title="Vazifa topshirgan"><i class="bi bi-check-lg"></i></span>
+                        {% else %}
+                        <span class="uv-stuck-check not-done" title="Vazifa topshirmagan"><i class="bi bi-x-lg"></i></span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
         </div>
         {% endif %}
@@ -369,46 +825,33 @@
 
 <!-- Recent Activities -->
 {% if recent_activities %}
-<div class="card">
-    <div class="card-header">
-        <i class="bi bi-activity me-2"></i>Oxirgi harakatlar
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Amal</th>
-                        <th>Tavsif</th>
-                        <th>Vaqt</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for activity in recent_activities %}
-                    <tr>
-                        <td>
-                            {% if activity.action_type == 'login' %}
-                            <span class="badge bg-info"><i class="bi bi-box-arrow-in-right"></i></span>
-                            {% elif activity.action_type == 'deploy_create' %}
-                            <span class="badge bg-success"><i class="bi bi-rocket"></i></span>
-                            {% elif activity.action_type == 'submit_test' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-check2-square"></i></span>
-                            {% elif activity.action_type == 'watch_video' %}
-                            <span class="badge bg-primary"><i class="bi bi-play-circle"></i></span>
-                            {% else %}
-                            <span class="badge bg-secondary"><i class="bi bi-activity"></i></span>
-                            {% endif %}
-                        </td>
-                        <td class="small">{{ activity.description|truncatewords:10 }}</td>
-                        <td class="small text-muted">{{ activity.created_at|timesince }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<div class="uv-info-card mt-4 uv-anim-5">
+    <div class="uv-info-header">
+        <div class="uv-info-header-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);">
+            <i class="bi bi-activity"></i>
         </div>
+        <h5>Oxirgi harakatlar</h5>
+    </div>
+    <div class="uv-info-body">
+        {% for activity in recent_activities %}
+        <div class="uv-activity-item">
+            <div class="uv-activity-icon {% if activity.action_type == 'login' %}login{% elif activity.action_type == 'deploy_create' %}deploy{% elif activity.action_type == 'submit_test' %}test{% elif activity.action_type == 'watch_video' %}video{% else %}other{% endif %}">
+                {% if activity.action_type == 'login' %}<i class="bi bi-box-arrow-in-right"></i>
+                {% elif activity.action_type == 'deploy_create' %}<i class="bi bi-rocket"></i>
+                {% elif activity.action_type == 'submit_test' %}<i class="bi bi-check2-square"></i>
+                {% elif activity.action_type == 'watch_video' %}<i class="bi bi-play-circle"></i>
+                {% else %}<i class="bi bi-activity"></i>{% endif %}
+            </div>
+            <div>
+                <div class="uv-activity-text">{{ activity.description|truncatewords:12 }}</div>
+                <div class="uv-activity-time">{{ activity.created_at|timesince }} oldin</div>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
+
 {% endif %}
 
 {% endblock %}
