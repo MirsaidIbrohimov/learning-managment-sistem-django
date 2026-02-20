@@ -5659,9 +5659,32 @@ def admin_books(request):
             Q(title__icontains=search) | Q(author__icontains=search)
         )
     
+    # Saralash
+    sort = request.GET.get('sort', 'title')
+    sort_map = {
+        'title': 'title',
+        '-title': '-title',
+        'author': 'author',
+        '-author': '-author',
+        'available': '-available_copies',
+        '-available': 'available_copies',
+        'newest': '-created_at',
+        'oldest': 'created_at',
+    }
+    books = books.order_by(sort_map.get(sort, 'title'))
+    
+    # Statistikalar
+    total_books = Book.objects.count()
+    total_copies = sum(b.total_copies for b in Book.objects.all())
+    available_total = sum(b.available_copies for b in Book.objects.all())
+    
     context = {
         'books': books,
         'search': search,
+        'sort': sort,
+        'total_books': total_books,
+        'total_copies': total_copies,
+        'available_total': available_total,
     }
     return render(request, 'accounts/admin/books.html', context)
 
@@ -5767,6 +5790,18 @@ def admin_book_rentals(request):
             Q(student__last_name__icontains=search)
         )
     
+    # Saralash
+    sort = request.GET.get('sort', 'newest')
+    sort_map = {
+        'newest': '-created_at',
+        'oldest': 'created_at',
+        'book': 'book__title',
+        'student': 'student__first_name',
+        'return': 'return_date',
+        '-return': '-return_date',
+    }
+    rentals = rentals.order_by(sort_map.get(sort, '-created_at'))
+    
     # Statistikalar
     from datetime import date
     today = date.today()
@@ -5781,6 +5816,7 @@ def admin_book_rentals(request):
         'stats': stats,
         'status': status,
         'search': search,
+        'sort': sort,
     }
     return render(request, 'accounts/admin/book_rentals.html', context)
 

@@ -4,177 +4,754 @@
 {% block title %}Kitob ijaralari{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid py-4">
+<style>
+    /* ===== Book Rentals Page ===== */
+    .br-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+
+    /* Animations */
+    @keyframes brSlideIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes brFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes brCountUp {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Header */
+    .br-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: brSlideIn 0.4s ease-out;
+    }
+    .br-header-left h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-color, #212529);
+    }
+    .br-header-left h1 i {
+        color: #6366f1;
+        font-size: 1.75rem;
+    }
+    .br-header-sub {
+        font-size: 0.85rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.35rem;
+    }
+    .br-header-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .br-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .br-btn-primary {
+        background: #6366f1;
+        color: #fff;
+    }
+    .br-btn-primary:hover {
+        background: #4f46e5;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .br-btn-outline {
+        background: transparent;
+        color: #6366f1;
+        border: 1.5px solid #6366f1;
+    }
+    .br-btn-outline:hover {
+        background: rgba(99, 102, 241, 0.08);
+        color: #4f46e5;
+        transform: translateY(-2px);
+    }
+
+    /* Stats */
+    .br-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .br-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        text-align: center;
+        animation: brSlideIn 0.5s ease-out backwards;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .br-stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .br-stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .br-stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .br-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .br-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.6rem;
+    }
+    .br-stat-icon.primary { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+    .br-stat-icon.danger { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+    .br-stat-icon.success { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+
+    .br-stat-val {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-color, #212529);
+        animation: brCountUp 0.6s ease-out backwards;
+        animation-delay: 0.3s;
+    }
+    .br-stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.15rem;
+    }
+
+    /* Filter / Search Card */
+    .br-filter-card {
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+        animation: brSlideIn 0.4s ease-out 0.1s backwards;
+    }
+    .br-filter-row {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+    .br-filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+    .br-filter-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+    }
+    .br-filter-group input,
+    .br-filter-group select {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        font-size: 0.88rem;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        transition: all 0.2s;
+    }
+    .br-filter-group input:focus,
+    .br-filter-group select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    .br-filter-btn {
+        padding: 0.55rem 1.25rem;
+        border-radius: 10px;
+        border: none;
+        background: #6366f1;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .br-filter-btn:hover {
+        background: #4f46e5;
+        transform: translateY(-1px);
+    }
+    .br-filter-reset {
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .br-filter-reset:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    /* Sort Tabs */
+    .br-sort-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+        animation: brFadeIn 0.4s ease-out 0.15s backwards;
+    }
+    .br-sort-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-right: 0.25rem;
+        white-space: nowrap;
+    }
+    .br-sort-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+        white-space: nowrap;
+    }
+    .br-sort-btn:hover {
+        border-color: #6366f1;
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.05);
+    }
+    .br-sort-btn.active {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    /* Table Card */
+    .br-table-card {
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        animation: brSlideIn 0.4s ease-out 0.2s backwards;
+    }
+
+    /* Rental Cards (mobile) */
+    .br-rental-cards { display: none; }
+
+    .br-rental-item {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        animation: brFadeIn 0.4s ease-out backwards;
+        transition: background 0.2s;
+    }
+    .br-rental-item:hover {
+        background: rgba(99, 102, 241, 0.03);
+    }
+    .br-rental-item:last-child {
+        border-bottom: none;
+    }
+
+    .br-rental-top {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 0.6rem;
+    }
+    .br-book-cover {
+        width: 42px;
+        height: 54px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .br-book-placeholder {
+        width: 42px;
+        height: 54px;
+        border-radius: 8px;
+        background: var(--bg-color, #f0f2f5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--bs-secondary-color, #adb5bd);
+        font-size: 1.2rem;
+    }
+    .br-book-info h6 {
+        margin: 0;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+    }
+    .br-book-info small {
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.78rem;
+    }
+
+    .br-rental-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.5rem;
+        align-items: center;
+        font-size: 0.82rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+    .br-rental-meta i {
+        margin-right: 0.25rem;
+        font-size: 0.85rem;
+    }
+
+    .br-student-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    .br-student-initials {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 700;
+        background: rgba(99, 102, 241, 0.12);
+        color: #6366f1;
+        flex-shrink: 0;
+    }
+
+    /* Status badges */
+    .br-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.3rem 0.65rem;
+        border-radius: 8px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .br-badge-active { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+    .br-badge-returned { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .br-badge-overdue { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    .br-badge-warn { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .br-badge-info { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+
+    /* Return button */
+    .br-return-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        border: none;
+        background: rgba(16, 185, 129, 0.12);
+        color: #10b981;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .br-return-btn:hover {
+        background: #10b981;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .br-done-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #10b981;
+    }
+
+    /* Desktop table */
+    .br-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .br-table thead th {
+        padding: 0.85rem 1rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--bs-secondary-color, #6c757d);
+        background: var(--bg-color, #f8f9fa);
+        border-bottom: 1.5px solid var(--border-color, #dee2e6);
+        white-space: nowrap;
+    }
+    .br-table tbody tr {
+        transition: background 0.2s;
+        animation: brFadeIn 0.35s ease-out backwards;
+    }
+    .br-table tbody tr:hover {
+        background: rgba(99, 102, 241, 0.03);
+    }
+    .br-table tbody tr.overdue-row {
+        background: rgba(239, 68, 68, 0.04);
+    }
+    .br-table tbody tr.overdue-row:hover {
+        background: rgba(239, 68, 68, 0.07);
+    }
+    .br-table td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border-color, #f0f0f0);
+        vertical-align: middle;
+        font-size: 0.88rem;
+    }
+    .br-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Empty state */
+    .br-empty {
+        text-align: center;
+        padding: 3.5rem 1.5rem;
+        animation: brFadeIn 0.5s ease-out;
+    }
+    .br-empty i {
+        font-size: 3.5rem;
+        color: var(--bs-secondary-color, #adb5bd);
+        margin-bottom: 1rem;
+        display: block;
+    }
+    .br-empty h5 {
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        margin-bottom: 0.4rem;
+    }
+    .br-empty p {
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.88rem;
+        margin-bottom: 1.25rem;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 991px) {
+        .br-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @media (max-width: 767px) {
+        .br-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .br-header-actions {
+            width: 100%;
+        }
+        .br-header-actions .br-btn {
+            flex: 1;
+            justify-content: center;
+        }
+        .br-stats {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+        }
+        .br-stat-card {
+            padding: 0.85rem 0.5rem;
+        }
+        .br-stat-val {
+            font-size: 1.35rem;
+        }
+        .br-stat-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+        }
+        .br-filter-row {
+            flex-direction: column;
+        }
+        .br-filter-group {
+            min-width: 100%;
+        }
+        .br-sort-bar {
+            gap: 0.35rem;
+        }
+        .br-sort-btn {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.75rem;
+        }
+        /* Hide table, show cards on mobile */
+        .br-table-wrapper { display: none !important; }
+        .br-rental-cards { display: block !important; }
+    }
+
+    @media (max-width: 480px) {
+        .br-page { padding: 1rem 0.5rem; }
+        .br-header { padding: 1rem; border-radius: 12px; }
+        .br-header-left h1 { font-size: 1.2rem; }
+        .br-stat-label { font-size: 0.65rem; }
+    }
+</style>
+
+<div class="br-page">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h4 class="mb-1"><i class="bi bi-arrow-left-right me-2"></i>Kitob ijaralari</h4>
-            <p class="text-muted mb-0">Berilgan va qaytarilgan kitoblar</p>
+    <div class="br-header">
+        <div class="br-header-left">
+            <h1><i class="bi bi-arrow-left-right"></i> Kitob ijaralari</h1>
+            <div class="br-header-sub">Berilgan va qaytarilgan kitoblar boshqaruvi</div>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{% url 'admin_books' %}" class="btn btn-outline-primary">
-                <i class="bi bi-book me-2"></i>Kitoblar
+        <div class="br-header-actions">
+            <a href="{% url 'admin_books' %}" class="br-btn br-btn-outline">
+                <i class="bi bi-book"></i> Kitoblar
             </a>
-            <a href="{% url 'admin_give_book' %}" class="btn btn-primary">
-                <i class="bi bi-plus-lg me-2"></i>Kitob berish
+            <a href="{% url 'admin_give_book' %}" class="br-btn br-btn-primary">
+                <i class="bi bi-plus-lg"></i> Kitob berish
             </a>
         </div>
     </div>
 
     <!-- Stats -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm bg-primary text-white">
-                <div class="card-body text-center py-3">
-                    <h3 class="mb-1">{{ stats.total }}</h3>
-                    <small>Faol ijaralar</small>
-                </div>
-            </div>
+    <div class="br-stats">
+        <div class="br-stat-card">
+            <div class="br-stat-icon primary"><i class="bi bi-book-half"></i></div>
+            <div class="br-stat-val">{{ stats.total }}</div>
+            <div class="br-stat-label">Faol ijaralar</div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm bg-danger text-white">
-                <div class="card-body text-center py-3">
-                    <h3 class="mb-1">{{ stats.overdue }}</h3>
-                    <small>Muddati o'tgan</small>
-                </div>
-            </div>
+        <div class="br-stat-card">
+            <div class="br-stat-icon danger"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="br-stat-val">{{ stats.overdue }}</div>
+            <div class="br-stat-label">Muddati o'tgan</div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
-                <div class="card-body text-center py-3">
-                    <h3 class="mb-1">{{ stats.returned_today }}</h3>
-                    <small>Bugun qaytarilgan</small>
-                </div>
-            </div>
+        <div class="br-stat-card">
+            <div class="br-stat-icon success"><i class="bi bi-check-circle"></i></div>
+            <div class="br-stat-val">{{ stats.returned_today }}</div>
+            <div class="br-stat-label">Bugun qaytarilgan</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label">Qidirish</label>
-                    <input type="text" name="search" class="form-control" 
-                           placeholder="Kitob yoki o'quvchi..." value="{{ search }}">
+    <div class="br-filter-card">
+        <form method="get" id="brFilterForm">
+            <!-- preserve current sort -->
+            {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+            <div class="br-filter-row">
+                <div class="br-filter-group" style="flex:2;">
+                    <label><i class="bi bi-search"></i> Qidirish</label>
+                    <input type="text" name="search" placeholder="Kitob nomi yoki o'quvchi..." value="{{ search }}">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Holat</label>
-                    <select name="status" class="form-select">
+                <div class="br-filter-group" style="flex:1;">
+                    <label><i class="bi bi-funnel"></i> Holat</label>
+                    <select name="status">
                         <option value="">Barchasi</option>
                         <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
                         <option value="returned" {% if status == 'returned' %}selected{% endif %}>Qaytarilgan</option>
                         <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati o'tgan</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-filter me-1"></i>Filtrlash
+                <div style="display:flex; gap:0.5rem; align-items:flex-end;">
+                    <button type="submit" class="br-filter-btn">
+                        <i class="bi bi-filter"></i> Filtrlash
                     </button>
+                    {% if search or status %}
+                    <a href="{% url 'admin_book_rentals' %}" class="br-filter-reset">
+                        <i class="bi bi-x-lg"></i> Tozalash
+                    </a>
+                    {% endif %}
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 
-    <!-- Rentals Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+    <!-- Sort Bar -->
+    <div class="br-sort-bar">
+        <span class="br-sort-label"><i class="bi bi-sort-down"></i> Saralash:</span>
+        {% with base_params=search|yesno:","|add:"" %}
+        <a href="?sort=newest{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == 'newest' or not sort %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> Yangi
+        </a>
+        <a href="?sort=oldest{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == 'oldest' %}active{% endif %}">
+            <i class="bi bi-clock"></i> Eski
+        </a>
+        <a href="?sort=book{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == 'book' %}active{% endif %}">
+            <i class="bi bi-book"></i> Kitob
+        </a>
+        <a href="?sort=student{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == 'student' %}active{% endif %}">
+            <i class="bi bi-person"></i> O'quvchi
+        </a>
+        <a href="?sort=return{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == 'return' %}active{% endif %}">
+            <i class="bi bi-calendar-event"></i> Qaytarish ↑
+        </a>
+        <a href="?sort=-return{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}"
+           class="br-sort-btn {% if sort == '-return' %}active{% endif %}">
+            <i class="bi bi-calendar-event"></i> Qaytarish ↓
+        </a>
+        {% endwith %}
+    </div>
+
+    <!-- Table Card -->
+    <div class="br-table-card">
+        {% if rentals %}
+        <!-- Desktop Table -->
+        <div class="br-table-wrapper">
+            <div style="overflow-x:auto;">
+                <table class="br-table">
+                    <thead>
                         <tr>
                             <th>Kitob</th>
                             <th>O'quvchi</th>
                             <th>Berilgan sana</th>
                             <th>Qaytarish sanasi</th>
                             <th>Holat</th>
-                            <th class="text-end">Amal</th>
+                            <th style="text-align:right;">Amal</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for rental in rentals %}
-                        <tr class="{% if rental.is_overdue %}table-danger{% endif %}">
+                        <tr class="{% if rental.is_overdue %}overdue-row{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
                             <td>
-                                <div class="d-flex align-items-center">
+                                <div style="display:flex; align-items:center; gap:0.65rem;">
                                     {% if rental.book.cover_image %}
-                                    <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }}"
-                                         class="rounded me-3" style="width: 40px; height: 50px; object-fit: cover;">
+                                    <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }}" class="br-book-cover">
                                     {% else %}
-                                    <div class="bg-light rounded d-flex align-items-center justify-content-center me-3"
-                                         style="width: 40px; height: 50px;">
-                                        <i class="bi bi-book text-muted"></i>
-                                    </div>
+                                    <div class="br-book-placeholder"><i class="bi bi-book"></i></div>
                                     {% endif %}
                                     <div>
-                                        <strong>{{ rental.book.title }}</strong>
-                                        <br><small class="text-muted">{{ rental.book.author }}</small>
+                                        <div style="font-weight:700; font-size:0.88rem;">{{ rental.book.title }}</div>
+                                        <div style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d);">{{ rental.book.author }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
                                     {% if rental.student.photo %}
-                                    <img src="{{ rental.student.photo.url }}" class="rounded-circle me-2" 
-                                         style="width: 35px; height: 35px; object-fit: cover;">
+                                    <img src="{{ rental.student.photo.url }}" class="br-student-avatar">
                                     {% else %}
-                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                                         style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    <div class="br-student-initials">
                                         {{ rental.student.first_name.0|upper }}{{ rental.student.last_name.0|upper }}
                                     </div>
                                     {% endif %}
                                     <div>
-                                        {{ rental.student.full_name }}
-                                        <br><small class="text-muted">{{ rental.student.phone }}</small>
+                                        <div style="font-weight:600;">{{ rental.student.full_name }}</div>
+                                        <div style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d);">{{ rental.student.phone }}</div>
                                     </div>
                                 </div>
                             </td>
                             <td>
-                                <i class="bi bi-calendar me-1"></i>{{ rental.given_date|date:"d.m.Y" }}
-                                <br><small class="text-muted">{{ rental.given_by.full_name }}</small>
+                                <div style="display:flex; align-items:center; gap:0.3rem;">
+                                    <i class="bi bi-calendar3" style="color:#6366f1;"></i>
+                                    {{ rental.given_date|date:"d.m.Y" }}
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d); margin-top:0.15rem;">
+                                    {{ rental.given_by.full_name }}
+                                </div>
                             </td>
                             <td>
-                                <i class="bi bi-calendar-check me-1"></i>{{ rental.return_date|date:"d.m.Y" }}
+                                <div style="display:flex; align-items:center; gap:0.3rem;">
+                                    <i class="bi bi-calendar-check" style="color:#10b981;"></i>
+                                    {{ rental.return_date|date:"d.m.Y" }}
+                                </div>
                                 {% if rental.status == 'active' %}
                                     {% if rental.days_until_return < 0 %}
-                                    <br><span class="badge bg-danger">{{ rental.days_until_return|abs_value }} kun kechikdi</span>
+                                    <span class="br-badge br-badge-overdue" style="margin-top:0.25rem;">
+                                        <i class="bi bi-exclamation-circle"></i> {{ rental.days_until_return|abs_value }} kun kechikdi
+                                    </span>
                                     {% elif rental.days_until_return == 0 %}
-                                    <br><span class="badge bg-warning text-dark">Bugun!</span>
+                                    <span class="br-badge br-badge-warn" style="margin-top:0.25rem;">
+                                        <i class="bi bi-clock"></i> Bugun!
+                                    </span>
                                     {% elif rental.days_until_return <= 3 %}
-                                    <br><span class="badge bg-info">{{ rental.days_until_return }} kun qoldi</span>
+                                    <span class="br-badge br-badge-info" style="margin-top:0.25rem;">
+                                        <i class="bi bi-hourglass-split"></i> {{ rental.days_until_return }} kun qoldi
+                                    </span>
                                     {% endif %}
                                 {% endif %}
                             </td>
                             <td>
                                 {% if rental.status == 'active' %}
-                                <span class="badge bg-primary">Faol</span>
+                                <span class="br-badge br-badge-active"><i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> Faol</span>
                                 {% elif rental.status == 'returned' %}
-                                <span class="badge bg-success">Qaytarilgan</span>
-                                <br><small class="text-muted">{{ rental.actual_return_date|date:"d.m.Y" }}</small>
+                                <span class="br-badge br-badge-returned"><i class="bi bi-check-circle"></i> Qaytarilgan</span>
+                                <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d); margin-top:0.2rem;">
+                                    {{ rental.actual_return_date|date:"d.m.Y" }}
+                                </div>
                                 {% else %}
-                                <span class="badge bg-danger">Muddati o'tgan</span>
+                                <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati o'tgan</span>
                                 {% endif %}
                             </td>
-                            <td class="text-end">
+                            <td style="text-align:right;">
                                 {% if rental.status == 'active' or rental.status == 'overdue' %}
-                                <form method="post" action="{% url 'admin_return_book' rental.pk %}" class="d-inline">
+                                <form method="post" action="{% url 'admin_return_book' rental.pk %}" style="display:inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success" 
+                                    <button type="submit" class="br-return-btn"
                                             onclick="return confirm('Kitob qaytarilganini tasdiqlaysizmi?')">
-                                        <i class="bi bi-check-lg me-1"></i>Qaytarib berildi
+                                        <i class="bi bi-check-lg"></i> Qaytarildi
                                     </button>
                                 </form>
                                 {% else %}
-                                <span class="text-success">
-                                    <i class="bi bi-check-circle me-1"></i>Yakunlangan
+                                <span class="br-done-label">
+                                    <i class="bi bi-check-circle-fill"></i> Yakunlangan
                                 </span>
                                 {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <i class="bi bi-arrow-left-right text-muted" style="font-size: 3rem;"></i>
-                                <p class="mt-3 mb-0 text-muted">Ijaralar topilmadi</p>
                             </td>
                         </tr>
                         {% endfor %}
@@ -182,6 +759,90 @@
                 </table>
             </div>
         </div>
+
+        <!-- Mobile Cards -->
+        <div class="br-rental-cards">
+            {% for rental in rentals %}
+            <div class="br-rental-item {% if rental.is_overdue %}overdue-row{% endif %}" style="animation-delay: {{ forloop.counter0 }}00ms;">
+                <div class="br-rental-top">
+                    {% if rental.book.cover_image %}
+                    <img src="{{ rental.book.cover_image.url }}" alt="{{ rental.book.title }}" class="br-book-cover">
+                    {% else %}
+                    <div class="br-book-placeholder"><i class="bi bi-book"></i></div>
+                    {% endif %}
+                    <div class="br-book-info" style="flex:1; min-width:0;">
+                        <h6>{{ rental.book.title }}</h6>
+                        <small>{{ rental.book.author }}</small>
+                    </div>
+                    {% if rental.status == 'active' %}
+                    <span class="br-badge br-badge-active"><i class="bi bi-circle-fill" style="font-size:0.45rem;"></i> Faol</span>
+                    {% elif rental.status == 'returned' %}
+                    <span class="br-badge br-badge-returned"><i class="bi bi-check-circle"></i> Qaytarilgan</span>
+                    {% else %}
+                    <span class="br-badge br-badge-overdue"><i class="bi bi-exclamation-triangle"></i> Muddati o'tgan</span>
+                    {% endif %}
+                </div>
+
+                <div class="br-rental-meta">
+                    <span style="display:flex; align-items:center; gap:0.35rem;">
+                        {% if rental.student.photo %}
+                        <img src="{{ rental.student.photo.url }}" class="br-student-avatar" style="width:24px; height:24px;">
+                        {% else %}
+                        <span class="br-student-initials" style="width:24px; height:24px; font-size:0.6rem;">
+                            {{ rental.student.first_name.0|upper }}{{ rental.student.last_name.0|upper }}
+                        </span>
+                        {% endif %}
+                        {{ rental.student.full_name }}
+                    </span>
+                    <span><i class="bi bi-calendar3"></i> {{ rental.given_date|date:"d.m.Y" }}</span>
+                    <span><i class="bi bi-calendar-check"></i> {{ rental.return_date|date:"d.m.Y" }}</span>
+                    {% if rental.status == 'active' %}
+                        {% if rental.days_until_return < 0 %}
+                        <span class="br-badge br-badge-overdue">{{ rental.days_until_return|abs_value }} kun kechikdi</span>
+                        {% elif rental.days_until_return == 0 %}
+                        <span class="br-badge br-badge-warn">Bugun!</span>
+                        {% elif rental.days_until_return <= 3 %}
+                        <span class="br-badge br-badge-info">{{ rental.days_until_return }} kun qoldi</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                <div style="margin-top:0.65rem; display:flex; justify-content:flex-end;">
+                    {% if rental.status == 'active' or rental.status == 'overdue' %}
+                    <form method="post" action="{% url 'admin_return_book' rental.pk %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="br-return-btn"
+                                onclick="return confirm('Kitob qaytarilganini tasdiqlaysizmi?')">
+                            <i class="bi bi-check-lg"></i> Qaytarildi
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="br-done-label">
+                        <i class="bi bi-check-circle-fill"></i> Yakunlangan
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="br-empty">
+            <i class="bi bi-arrow-left-right"></i>
+            <h5>Ijaralar topilmadi</h5>
+            <p>{% if search or status %}Qidiruv natijasi bo'sh. Filtrlarni o'zgartiring.{% else %}Hali kitob berilmagan.{% endif %}</p>
+            {% if search or status %}
+            <a href="{% url 'admin_book_rentals' %}" class="br-btn br-btn-outline">
+                <i class="bi bi-x-lg"></i> Filtrlarni tozalash
+            </a>
+            {% else %}
+            <a href="{% url 'admin_give_book' %}" class="br-btn br-btn-primary">
+                <i class="bi bi-plus-lg"></i> Kitob berish
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
