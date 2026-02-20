@@ -4,209 +4,304 @@
 
 {% block extra_css %}
 <style>
-/* ===== Reports Page Styles ===== */
-.reports-header {
+/* ===== Reports Page ===== */
+.rp-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Animations */
+@keyframes rpSlideIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rpFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes rpCountUp {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes rpPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Header */
+.rp-header {
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-    padding: 20px 25px;
-    background-color: var(--card-bg);
-    border-radius: 15px;
-    border: 1px solid var(--border-color);
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 1.75rem;
+    border: 1px solid var(--border-color, #dee2e6);
+    background: var(--card-bg, #fff);
+    animation: rpSlideIn 0.4s ease-out;
 }
-
-.reports-header .page-title {
+.rp-header-left h1 {
     font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
+    font-weight: 800;
     margin: 0;
-}
-
-.reports-header .btn-new-report {
-    background: linear-gradient(135deg, #0d6efd, #0a58ca);
-    border: none;
-    padding: 10px 20px;
-    border-radius: 12px;
-    font-weight: 600;
-    color: #fff;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-}
-
-.reports-header .btn-new-report:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 20px rgba(13, 110, 253, 0.4);
-    color: #fff;
-}
-
-/* Summary Stats */
-.reports-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.report-stat-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    padding: 20px;
     display: flex;
     align-items: center;
-    gap: 16px;
-    transition: all 0.3s ease;
+    gap: 0.75rem;
+    color: var(--text-color, #212529);
+}
+.rp-header-left h1 i { color: #6366f1; font-size: 1.75rem; }
+.rp-header-sub {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color, #6c757d);
+    margin-top: 0.35rem;
+}
+.rp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.rp-btn-primary {
+    background: #6366f1;
+    color: #fff;
+}
+.rp-btn-primary:hover {
+    background: #4f46e5;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+.rp-btn-outline {
+    background: transparent;
+    color: #6366f1;
+    border: 1.5px solid #6366f1;
+}
+.rp-btn-outline:hover {
+    background: rgba(99, 102, 241, 0.08);
+    color: #4f46e5;
+    transform: translateY(-2px);
 }
 
-.report-stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+/* Stats */
+.rp-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
 }
-
-.report-stat-icon {
-    width: 52px;
-    height: 52px;
+.rp-stat-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1.15rem;
     border-radius: 14px;
+    border: 1px solid var(--border-color, #dee2e6);
+    background: var(--card-bg, #fff);
+    animation: rpSlideIn 0.5s ease-out backwards;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.rp-stat-card:nth-child(1) { animation-delay: 0.05s; }
+.rp-stat-card:nth-child(2) { animation-delay: 0.1s; }
+.rp-stat-card:nth-child(3) { animation-delay: 0.15s; }
+.rp-stat-card:nth-child(4) { animation-delay: 0.2s; }
+.rp-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.rp-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     flex-shrink: 0;
 }
-
-.report-stat-icon.total { background: linear-gradient(135deg, #0d6efd, #0a58ca); color: #fff; }
-.report-stat-icon.monthly { background: linear-gradient(135deg, #198754, #157347); color: #fff; }
-.report-stat-icon.weekly { background: linear-gradient(135deg, #6f42c1, #5a32a3); color: #fff; }
-.report-stat-icon.daily { background: linear-gradient(135deg, #fd7e14, #e85d04); color: #fff; }
-
-.report-stat-info .stat-num {
+.rp-stat-icon.total { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+.rp-stat-icon.monthly { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.rp-stat-icon.weekly { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+.rp-stat-icon.daily { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.rp-stat-val {
     font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-color);
+    font-weight: 800;
+    color: var(--text-color, #212529);
     line-height: 1.2;
+    animation: rpCountUp 0.6s ease-out backwards;
+    animation-delay: 0.35s;
+}
+.rp-stat-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--bs-secondary-color, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
-.report-stat-info .stat-lbl {
-    font-size: 0.82rem;
-    color: #6c757d;
-    font-weight: 500;
+/* Filter */
+.rp-filter-card {
+    border-radius: 14px;
+    border: 1px solid var(--border-color, #dee2e6);
+    background: var(--card-bg, #fff);
+    padding: 1.25rem;
+    margin-bottom: 1.75rem;
+    animation: rpSlideIn 0.4s ease-out 0.1s backwards;
 }
-
-/* Filter Card */
-.filter-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-}
-
-.filter-card form {
+.rp-filter-row {
     display: flex;
-    flex-wrap: wrap;
+    gap: 0.75rem;
     align-items: flex-end;
-    gap: 12px;
+    flex-wrap: wrap;
 }
-
-.filter-card .filter-group {
+.rp-filter-group {
     flex: 1;
-    min-width: 200px;
+    min-width: 180px;
 }
-
-.filter-card .filter-group label {
+.rp-filter-group label {
     display: block;
     font-size: 0.78rem;
-    font-weight: 600;
-    color: #6c757d;
+    font-weight: 700;
+    color: var(--bs-secondary-color, #6c757d);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+    margin-bottom: 0.4rem;
 }
-
-.filter-card .filter-group .form-select {
-    background-color: var(--bg-color);
-    border: 2px solid var(--border-color);
-    color: var(--text-color);
-    padding: 10px 14px;
+.rp-filter-group select {
+    width: 100%;
+    padding: 0.55rem 0.85rem;
+    border: 1.5px solid var(--border-color, #dee2e6);
     border-radius: 10px;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    background: var(--bg-color, #f8f9fa);
+    color: var(--text-color, #212529);
+    transition: all 0.2s;
 }
-
-.filter-card .btn-filter {
-    padding: 10px 24px;
+.rp-filter-group select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+.rp-filter-btn {
+    padding: 0.55rem 1.25rem;
     border-radius: 10px;
+    border: none;
+    background: #6366f1;
+    color: #fff;
+    font-size: 0.85rem;
     font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     white-space: nowrap;
 }
-
-/* Reports Table Card */
-.reports-table-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 15px;
-    overflow: hidden;
+.rp-filter-btn:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+}
+.rp-filter-reset {
+    padding: 0.55rem 1rem;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-color, #dee2e6);
+    background: transparent;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.rp-filter-reset:hover {
+    border-color: #ef4444;
+    color: #ef4444;
 }
 
-.reports-table-card .card-header-custom {
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border-color);
+/* Table Card */
+.rp-table-card {
+    border-radius: 16px;
+    border: 1px solid var(--border-color, #dee2e6);
+    background: var(--card-bg, #fff);
+    overflow: hidden;
+    animation: rpSlideIn 0.4s ease-out 0.2s backwards;
+}
+.rp-table-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
-.reports-table-card .card-header-custom h6 {
+.rp-table-head h6 {
     margin: 0;
-    font-weight: 600;
-    color: var(--text-color);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-color, #212529);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
-
-.reports-table-card .reports-count {
-    font-size: 0.82rem;
-    color: #6c757d;
-    font-weight: 500;
+.rp-table-head h6 i { color: #6366f1; }
+.rp-table-count {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color, #6c757d);
+    background: var(--bg-color, #f0f2f5);
+    padding: 0.3rem 0.7rem;
+    border-radius: 8px;
 }
 
 /* Desktop Table */
-.reports-desktop-table {
-    display: block;
+.rp-table {
+    width: 100%;
+    border-collapse: collapse;
 }
-
-.reports-desktop-table table {
-    margin: 0;
-}
-
-.reports-desktop-table table thead th {
-    background: var(--bg-color);
-    border-color: var(--border-color);
-    font-weight: 600;
-    color: #6c757d;
+.rp-table thead th {
+    padding: 0.8rem 1rem;
+    font-size: 0.72rem;
+    font-weight: 700;
     text-transform: uppercase;
-    font-size: 0.75rem;
     letter-spacing: 0.5px;
-    padding: 12px 16px;
+    color: var(--bs-secondary-color, #6c757d);
+    background: var(--bg-color, #f8f9fa);
+    border-bottom: 1.5px solid var(--border-color, #dee2e6);
     white-space: nowrap;
 }
-
-.reports-desktop-table table tbody td {
-    padding: 14px 16px;
-    border-color: var(--border-color);
-    vertical-align: middle;
+.rp-table tbody tr {
+    transition: background 0.2s;
+    animation: rpFadeIn 0.35s ease-out backwards;
 }
+.rp-table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.03);
+}
+.rp-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border-color, #f0f0f0);
+    vertical-align: middle;
+    font-size: 0.88rem;
+}
+.rp-table tbody tr:last-child td { border-bottom: none; }
 
-.report-title-cell {
+/* Report title cell */
+.rp-title-cell {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
 }
-
-.report-title-icon {
+.rp-type-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
@@ -215,81 +310,118 @@
     justify-content: center;
     font-size: 1rem;
     flex-shrink: 0;
+    transition: transform 0.2s;
 }
+.rp-table tbody tr:hover .rp-type-icon {
+    transform: scale(1.1);
+}
+.rp-type-icon.daily { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.rp-type-icon.weekly { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+.rp-type-icon.monthly { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.rp-type-icon.custom { background: rgba(107, 114, 128, 0.12); color: #6b7280; }
 
-.report-title-icon.daily { background: rgba(253, 126, 20, 0.12); color: #fd7e14; }
-.report-title-icon.weekly { background: rgba(13, 110, 253, 0.12); color: #0d6efd; }
-.report-title-icon.monthly { background: rgba(25, 135, 84, 0.12); color: #198754; }
-.report-title-icon.custom { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
-
-.report-title-text strong {
+.rp-title-text strong {
     display: block;
-    font-size: 0.92rem;
-    color: var(--text-color);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-color, #212529);
 }
-
-.report-title-text small {
-    color: #6c757d;
-    font-size: 0.78rem;
-}
-
-.report-badge {
-    padding: 5px 12px;
-    border-radius: 8px;
+.rp-title-text small {
+    color: var(--bs-secondary-color, #6c757d);
     font-size: 0.75rem;
-    font-weight: 600;
 }
 
-.report-actions .btn {
-    width: 34px;
-    height: 34px;
-    padding: 0;
+/* Type badges */
+.rp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.3rem 0.65rem;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.rp-badge-daily { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.rp-badge-weekly { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.rp-badge-monthly { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.rp-badge-custom { background: rgba(107, 114, 128, 0.1); color: #6b7280; }
+
+/* Number pills */
+.rp-num-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    min-width: 36px;
+    padding: 0.25rem 0.5rem;
     border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+.rp-num-pill.primary { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+.rp-num-pill.muted { background: var(--bg-color, #f0f2f5); color: var(--bs-secondary-color, #6c757d); }
+
+/* Action buttons */
+.rp-actions {
+    display: flex;
+    gap: 0.35rem;
+    justify-content: flex-end;
+}
+.rp-act-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border-color, #dee2e6);
+    background: transparent;
+    color: var(--bs-secondary-color, #adb5bd);
     font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-/* Mobile Cards View */
-.reports-mobile-cards {
-    display: none;
-    padding: 16px;
+.rp-act-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
+.rp-act-btn.view:hover { border-color: #6366f1; color: #6366f1; background: rgba(99, 102, 241, 0.06); }
+.rp-act-btn.pdf:hover { border-color: #10b981; color: #10b981; background: rgba(16, 185, 129, 0.06); }
+.rp-act-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.06); }
 
-.report-mobile-card {
-    background: var(--bg-color);
-    border: 1px solid var(--border-color);
+/* Desktop table wrapper */
+.rp-desktop { display: block; }
+
+/* Mobile Cards */
+.rp-mobile { display: none; padding: 0.75rem; }
+.rp-mobile-card {
+    border: 1px solid var(--border-color, #dee2e6);
     border-radius: 14px;
-    padding: 16px;
-    margin-bottom: 12px;
-    transition: all 0.2s ease;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--bg-color, #f8f9fa);
+    animation: rpFadeIn 0.35s ease-out backwards;
+    transition: all 0.2s;
 }
-
-.report-mobile-card:last-child {
-    margin-bottom: 0;
-}
-
-.report-mobile-card:active {
-    transform: scale(0.98);
-}
-
-.rmc-top {
+.rp-mobile-card:last-child { margin-bottom: 0; }
+.rp-mobile-card:active { transform: scale(0.98); }
+.rp-mc-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 12px;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
-
-.rmc-title {
+.rp-mc-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.65rem;
     flex: 1;
     min-width: 0;
 }
-
-.rmc-title-icon {
+.rp-mc-icon {
     width: 38px;
     height: 38px;
     border-radius: 10px;
@@ -299,495 +431,418 @@
     font-size: 0.95rem;
     flex-shrink: 0;
 }
-
-.rmc-title-icon.daily { background: rgba(253, 126, 20, 0.12); color: #fd7e14; }
-.rmc-title-icon.weekly { background: rgba(13, 110, 253, 0.12); color: #0d6efd; }
-.rmc-title-icon.monthly { background: rgba(25, 135, 84, 0.12); color: #198754; }
-.rmc-title-icon.custom { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
-
-.rmc-title-text {
+.rp-mc-text {
     flex: 1;
     min-width: 0;
 }
-
-.rmc-title-text strong {
+.rp-mc-text strong {
     display: block;
-    font-size: 0.9rem;
-    color: var(--text-color);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-color, #212529);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
-.rmc-title-text small {
-    color: #6c757d;
+.rp-mc-text small {
+    color: var(--bs-secondary-color, #6c757d);
     font-size: 0.75rem;
 }
-
-.rmc-stats {
+.rp-mc-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
 }
-
-.rmc-stat {
+.rp-mc-stat {
     text-align: center;
-    padding: 10px 6px;
-    background: var(--card-bg);
+    padding: 0.6rem 0.35rem;
+    background: var(--card-bg, #fff);
     border-radius: 10px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-color, #dee2e6);
 }
-
-.rmc-stat .num {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-color);
+.rp-mc-stat-num {
+    font-size: 1.05rem;
+    font-weight: 800;
     line-height: 1.2;
 }
-
-.rmc-stat .lbl {
-    font-size: 0.7rem;
-    color: #6c757d;
-    font-weight: 500;
-    margin-top: 2px;
+.rp-mc-stat-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color, #6c757d);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-top: 0.15rem;
 }
-
-.rmc-bottom {
+.rp-mc-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
-
-.rmc-date {
-    font-size: 0.78rem;
-    color: #6c757d;
-}
-
-.rmc-actions {
+.rp-mc-date {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #6c757d);
     display: flex;
-    gap: 6px;
-}
-
-.rmc-actions .btn {
-    width: 36px;
-    height: 36px;
-    padding: 0;
-    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    font-size: 0.9rem;
+    gap: 0.3rem;
+}
+.rp-mc-actions {
+    display: flex;
+    gap: 0.35rem;
 }
 
-/* Empty State */
-.reports-empty {
+/* Empty state */
+.rp-empty {
     text-align: center;
-    padding: 60px 20px;
+    padding: 3.5rem 1.5rem;
+    animation: rpFadeIn 0.5s ease-out;
 }
-
-.reports-empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 20px;
-    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(111, 66, 193, 0.1));
+.rp-empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: rgba(99, 102, 241, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 20px;
+    margin: 0 auto 1.25rem;
     font-size: 2rem;
-    color: #0d6efd;
+    color: #6366f1;
+    animation: rpPulse 2s ease-in-out infinite;
 }
-
-.reports-empty h5 {
+.rp-empty h5 {
     font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 8px;
+    color: var(--text-color, #212529);
+    margin-bottom: 0.4rem;
 }
-
-.reports-empty p {
-    color: #6c757d;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
+.rp-empty p {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.88rem;
+    margin-bottom: 1.25rem;
 }
 
 /* ===== Responsive ===== */
 @media (max-width: 992px) {
-    .reports-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .rp-stats { grid-template-columns: repeat(2, 1fr); }
 }
-
-@media (max-width: 768px) {
-    .reports-header {
-        padding: 16px 18px;
-    }
-
-    .reports-header .page-title {
-        font-size: 1.2rem;
-    }
-
-    .reports-header .btn-new-report {
-        padding: 8px 16px;
-        font-size: 0.88rem;
-    }
-
-    .reports-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-    }
-
-    .report-stat-card {
-        padding: 14px;
-        gap: 12px;
-    }
-
-    .report-stat-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 1.1rem;
-        border-radius: 12px;
-    }
-
-    .report-stat-info .stat-num {
-        font-size: 1.2rem;
-    }
-
-    .filter-card {
-        padding: 16px;
-    }
-
-    .filter-card form {
+@media (max-width: 767px) {
+    .rp-header {
         flex-direction: column;
+        align-items: flex-start;
     }
-
-    .filter-card .filter-group {
-        width: 100%;
-        min-width: unset;
+    .rp-header .rp-btn { width: 100%; justify-content: center; }
+    .rp-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
     }
-
-    .filter-card .btn-filter {
-        width: 100%;
-    }
-
-    /* Hide desktop table, show mobile cards */
-    .reports-desktop-table {
-        display: none !important;
-    }
-
-    .reports-mobile-cards {
-        display: block !important;
-    }
+    .rp-stat-card { padding: 0.85rem; gap: 0.65rem; }
+    .rp-stat-icon { width: 40px; height: 40px; font-size: 1rem; border-radius: 10px; }
+    .rp-stat-val { font-size: 1.2rem; }
+    .rp-filter-row { flex-direction: column; }
+    .rp-filter-group { min-width: 100%; }
+    .rp-desktop { display: none !important; }
+    .rp-mobile { display: block !important; }
 }
-
 @media (max-width: 480px) {
-    .reports-stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
-    .report-stat-card {
-        padding: 12px;
-        gap: 10px;
-    }
-
-    .report-stat-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1rem;
-    }
-
-    .report-stat-info .stat-num {
-        font-size: 1.05rem;
-    }
-
-    .report-stat-info .stat-lbl {
-        font-size: 0.75rem;
-    }
-
-    .rmc-stats {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
-
-    .rmc-stat {
-        padding: 8px 4px;
-    }
-
-    .rmc-stat .num {
-        font-size: 0.95rem;
-    }
-
-    .reports-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .reports-header .btn-new-report {
-        justify-content: center;
-    }
+    .rp-page { padding: 1rem 0.5rem; }
+    .rp-header { padding: 1rem; border-radius: 12px; }
+    .rp-header-left h1 { font-size: 1.2rem; }
+    .rp-stats { gap: 0.4rem; }
+    .rp-stat-card { padding: 0.75rem; }
+    .rp-stat-icon { width: 36px; height: 36px; font-size: 0.9rem; }
+    .rp-stat-val { font-size: 1.05rem; }
+    .rp-stat-label { font-size: 0.65rem; }
+    .rp-mc-stats { gap: 0.35rem; }
+    .rp-mc-stat { padding: 0.5rem 0.25rem; }
+    .rp-mc-stat-num { font-size: 0.9rem; }
 }
 </style>
 {% endblock %}
 
 {% block admin_content %}
-<!-- Header -->
-<div class="reports-header">
-    <h1 class="page-title"><i class="bi bi-file-earmark-bar-graph me-2"></i>Oylik Hisobotlar</h1>
-    <a href="{% url 'generate_report' %}" class="btn-new-report">
-        <i class="bi bi-plus-lg"></i>Yangi hisobot
-    </a>
-</div>
-
-<!-- Summary Stats -->
-<div class="reports-stats">
-    <div class="report-stat-card">
-        <div class="report-stat-icon total"><i class="bi bi-file-earmark-bar-graph"></i></div>
-        <div class="report-stat-info">
-            <div class="stat-num">{{ reports|length }}</div>
-            <div class="stat-lbl">Jami hisobotlar</div>
+<div class="rp-page">
+    <!-- Header -->
+    <div class="rp-header">
+        <div class="rp-header-left">
+            <h1><i class="bi bi-file-earmark-bar-graph"></i> Hisobotlar</h1>
+            <div class="rp-header-sub">Tizim hisobotlari va statistikalar</div>
         </div>
-    </div>
-    <div class="report-stat-card">
-        <div class="report-stat-icon monthly"><i class="bi bi-calendar-month"></i></div>
-        <div class="report-stat-info">
-            {% with monthly_count=0 %}
-            <div class="stat-num" id="monthlyCount">—</div>
-            {% endwith %}
-            <div class="stat-lbl">Oylik</div>
-        </div>
-    </div>
-    <div class="report-stat-card">
-        <div class="report-stat-icon weekly"><i class="bi bi-calendar-week"></i></div>
-        <div class="report-stat-info">
-            <div class="stat-num" id="weeklyCount">—</div>
-            <div class="stat-lbl">Haftalik</div>
-        </div>
-    </div>
-    <div class="report-stat-card">
-        <div class="report-stat-icon daily"><i class="bi bi-calendar-day"></i></div>
-        <div class="report-stat-info">
-            <div class="stat-num" id="dailyCount">—</div>
-            <div class="stat-lbl">Kunlik</div>
-        </div>
-    </div>
-</div>
-
-<!-- Filter -->
-<div class="filter-card">
-    <form method="get">
-        <div class="filter-group">
-            <label>Hisobot turi</label>
-            <select name="type" class="form-select">
-                <option value="">Barchasi</option>
-                <option value="daily" {% if request.GET.type == 'daily' %}selected{% endif %}>Kunlik</option>
-                <option value="weekly" {% if request.GET.type == 'weekly' %}selected{% endif %}>Haftalik</option>
-                <option value="monthly" {% if request.GET.type == 'monthly' %}selected{% endif %}>Oylik</option>
-                <option value="custom" {% if request.GET.type == 'custom' %}selected{% endif %}>Maxsus</option>
-            </select>
-        </div>
-        <button class="btn btn-primary btn-filter" type="submit">
-            <i class="bi bi-funnel me-1"></i>Filter
-        </button>
-    </form>
-</div>
-
-<!-- Reports Table / Cards -->
-<div class="reports-table-card">
-    <div class="card-header-custom">
-        <h6><i class="bi bi-list-ul me-2"></i>Hisobotlar ro'yxati</h6>
-        <span class="reports-count">{{ reports|length }} ta hisobot</span>
-    </div>
-
-    {% if reports %}
-    <!-- Desktop Table View -->
-    <div class="reports-desktop-table">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Hisobot</th>
-                        <th>Turi</th>
-                        <th>Davr</th>
-                        <th class="text-center">Yangi foydalanuvchilar</th>
-                        <th class="text-center">Harakatlar</th>
-                        <th>Yaratilgan</th>
-                        <th class="text-end">Amallar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for report in reports %}
-                    <tr>
-                        <td>
-                            <div class="report-title-cell">
-                                <div class="report-title-icon {{ report.report_type }}">
-                                    {% if report.report_type == 'daily' %}
-                                    <i class="bi bi-calendar-day"></i>
-                                    {% elif report.report_type == 'weekly' %}
-                                    <i class="bi bi-calendar-week"></i>
-                                    {% elif report.report_type == 'monthly' %}
-                                    <i class="bi bi-calendar-month"></i>
-                                    {% else %}
-                                    <i class="bi bi-calendar-range"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="report-title-text">
-                                    <strong>{{ report.title }}</strong>
-                                    <small>{{ report.date_from|date:"d.m.Y" }} — {{ report.date_to|date:"d.m.Y" }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            {% if report.report_type == 'daily' %}
-                            <span class="badge bg-warning text-dark report-badge">Kunlik</span>
-                            {% elif report.report_type == 'weekly' %}
-                            <span class="badge bg-primary report-badge">Haftalik</span>
-                            {% elif report.report_type == 'monthly' %}
-                            <span class="badge bg-success report-badge">Oylik</span>
-                            {% else %}
-                            <span class="badge bg-secondary report-badge">Maxsus</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <small class="text-muted">{{ report.date_from|date:"d.m.Y" }} - {{ report.date_to|date:"d.m.Y" }}</small>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-primary rounded-pill" style="min-width:32px;">{{ report.new_users }}</span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-secondary rounded-pill" style="min-width:32px;">{{ report.total_activities }}</span>
-                        </td>
-                        <td>
-                            <small class="text-muted">{{ report.created_at|date:"d.m.Y H:i" }}</small>
-                        </td>
-                        <td class="text-end">
-                            <div class="report-actions">
-                                <a href="{% url 'view_report' report.pk %}" class="btn btn-outline-primary" title="Ko'rish">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{% url 'download_report' report.pk %}" class="btn btn-outline-success" title="PDF yuklab olish">
-                                    <i class="bi bi-file-pdf"></i>
-                                </a>
-                                <form action="{% url 'delete_report' report.pk %}" method="post" style="display:inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-outline-danger"
-                                            onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')" title="O'chirish">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Mobile Cards View -->
-    <div class="reports-mobile-cards">
-        {% for report in reports %}
-        <div class="report-mobile-card">
-            <div class="rmc-top">
-                <div class="rmc-title">
-                    <div class="rmc-title-icon {{ report.report_type }}">
-                        {% if report.report_type == 'daily' %}
-                        <i class="bi bi-calendar-day"></i>
-                        {% elif report.report_type == 'weekly' %}
-                        <i class="bi bi-calendar-week"></i>
-                        {% elif report.report_type == 'monthly' %}
-                        <i class="bi bi-calendar-month"></i>
-                        {% else %}
-                        <i class="bi bi-calendar-range"></i>
-                        {% endif %}
-                    </div>
-                    <div class="rmc-title-text">
-                        <strong>{{ report.title }}</strong>
-                        <small>{{ report.date_from|date:"d.m.Y" }} — {{ report.date_to|date:"d.m.Y" }}</small>
-                    </div>
-                </div>
-                {% if report.report_type == 'daily' %}
-                <span class="badge bg-warning text-dark report-badge">Kunlik</span>
-                {% elif report.report_type == 'weekly' %}
-                <span class="badge bg-primary report-badge">Haftalik</span>
-                {% elif report.report_type == 'monthly' %}
-                <span class="badge bg-success report-badge">Oylik</span>
-                {% else %}
-                <span class="badge bg-secondary report-badge">Maxsus</span>
-                {% endif %}
-            </div>
-
-            <div class="rmc-stats">
-                <div class="rmc-stat">
-                    <div class="num" style="color:#0d6efd;">{{ report.new_users }}</div>
-                    <div class="lbl">Yangi foydalanuvchi</div>
-                </div>
-                <div class="rmc-stat">
-                    <div class="num" style="color:#6c757d;">{{ report.total_activities }}</div>
-                    <div class="lbl">Harakatlar</div>
-                </div>
-                <div class="rmc-stat">
-                    <div class="num" style="color:#198754;">{{ report.total_users }}</div>
-                    <div class="lbl">Jami foydalanuvchi</div>
-                </div>
-            </div>
-
-            <div class="rmc-bottom">
-                <div class="rmc-date">
-                    <i class="bi bi-clock me-1"></i>{{ report.created_at|date:"d.m.Y H:i" }}
-                </div>
-                <div class="rmc-actions">
-                    <a href="{% url 'view_report' report.pk %}" class="btn btn-outline-primary" title="Ko'rish">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'download_report' report.pk %}" class="btn btn-outline-success" title="PDF">
-                        <i class="bi bi-file-pdf"></i>
-                    </a>
-                    <form action="{% url 'delete_report' report.pk %}" method="post" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger"
-                                onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')" title="O'chirish">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <div class="reports-empty">
-        <div class="reports-empty-icon">
-            <i class="bi bi-file-earmark-bar-graph"></i>
-        </div>
-        <h5>Hisobotlar mavjud emas</h5>
-        <p>Yangi hisobot yaratish uchun quyidagi tugmani bosing</p>
-        <a href="{% url 'generate_report' %}" class="btn btn-primary">
-            <i class="bi bi-plus-lg me-1"></i>Yangi hisobot yaratish
+        <a href="{% url 'generate_report' %}" class="rp-btn rp-btn-primary">
+            <i class="bi bi-plus-lg"></i> Yangi hisobot
         </a>
     </div>
-    {% endif %}
+
+    <!-- Stats -->
+    <div class="rp-stats">
+        <div class="rp-stat-card">
+            <div class="rp-stat-icon total"><i class="bi bi-file-earmark-bar-graph"></i></div>
+            <div>
+                <div class="rp-stat-val">{{ reports|length }}</div>
+                <div class="rp-stat-label">Jami hisobotlar</div>
+            </div>
+        </div>
+        <div class="rp-stat-card">
+            <div class="rp-stat-icon monthly"><i class="bi bi-calendar-month"></i></div>
+            <div>
+                <div class="rp-stat-val" id="monthlyCount">—</div>
+                <div class="rp-stat-label">Oylik</div>
+            </div>
+        </div>
+        <div class="rp-stat-card">
+            <div class="rp-stat-icon weekly"><i class="bi bi-calendar-week"></i></div>
+            <div>
+                <div class="rp-stat-val" id="weeklyCount">—</div>
+                <div class="rp-stat-label">Haftalik</div>
+            </div>
+        </div>
+        <div class="rp-stat-card">
+            <div class="rp-stat-icon daily"><i class="bi bi-calendar-day"></i></div>
+            <div>
+                <div class="rp-stat-val" id="dailyCount">—</div>
+                <div class="rp-stat-label">Kunlik</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="rp-filter-card">
+        <form method="get">
+            <div class="rp-filter-row">
+                <div class="rp-filter-group">
+                    <label><i class="bi bi-funnel"></i> Hisobot turi</label>
+                    <select name="type">
+                        <option value="">Barchasi</option>
+                        <option value="daily" {% if request.GET.type == 'daily' %}selected{% endif %}>Kunlik</option>
+                        <option value="weekly" {% if request.GET.type == 'weekly' %}selected{% endif %}>Haftalik</option>
+                        <option value="monthly" {% if request.GET.type == 'monthly' %}selected{% endif %}>Oylik</option>
+                        <option value="custom" {% if request.GET.type == 'custom' %}selected{% endif %}>Maxsus</option>
+                    </select>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:flex-end;">
+                    <button type="submit" class="rp-filter-btn">
+                        <i class="bi bi-filter"></i> Filtrlash
+                    </button>
+                    {% if request.GET.type %}
+                    <a href="{% url 'admin_reports' %}" class="rp-filter-reset">
+                        <i class="bi bi-x-lg"></i> Tozalash
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Reports Table -->
+    <div class="rp-table-card">
+        <div class="rp-table-head">
+            <h6><i class="bi bi-list-ul"></i> Hisobotlar ro'yxati</h6>
+            <span class="rp-table-count">{{ reports|length }} ta</span>
+        </div>
+
+        {% if reports %}
+        <!-- Desktop Table -->
+        <div class="rp-desktop">
+            <div style="overflow-x:auto;">
+                <table class="rp-table">
+                    <thead>
+                        <tr>
+                            <th>Hisobot</th>
+                            <th>Turi</th>
+                            <th>Davr</th>
+                            <th style="text-align:center;">Yangi foydalanuvchilar</th>
+                            <th style="text-align:center;">Harakatlar</th>
+                            <th>Yaratilgan</th>
+                            <th style="text-align:right;">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr style="animation-delay: {{ forloop.counter0 }}50ms;" data-type="{{ report.report_type }}">
+                            <td>
+                                <div class="rp-title-cell">
+                                    <div class="rp-type-icon {{ report.report_type }}">
+                                        {% if report.report_type == 'daily' %}
+                                        <i class="bi bi-calendar-day"></i>
+                                        {% elif report.report_type == 'weekly' %}
+                                        <i class="bi bi-calendar-week"></i>
+                                        {% elif report.report_type == 'monthly' %}
+                                        <i class="bi bi-calendar-month"></i>
+                                        {% else %}
+                                        <i class="bi bi-calendar-range"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="rp-title-text">
+                                        <strong>{{ report.title }}</strong>
+                                        <small>{{ report.date_from|date:"d.m.Y" }} — {{ report.date_to|date:"d.m.Y" }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if report.report_type == 'daily' %}
+                                <span class="rp-badge rp-badge-daily"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Kunlik</span>
+                                {% elif report.report_type == 'weekly' %}
+                                <span class="rp-badge rp-badge-weekly"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Haftalik</span>
+                                {% elif report.report_type == 'monthly' %}
+                                <span class="rp-badge rp-badge-monthly"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Oylik</span>
+                                {% else %}
+                                <span class="rp-badge rp-badge-custom"><i class="bi bi-circle-fill" style="font-size:0.4rem;"></i> Maxsus</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);">
+                                    <i class="bi bi-calendar3 me-1" style="color:#6366f1;"></i>
+                                    {{ report.date_from|date:"d.m.Y" }} – {{ report.date_to|date:"d.m.Y" }}
+                                </span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="rp-num-pill primary">{{ report.new_users }}</span>
+                            </td>
+                            <td style="text-align:center;">
+                                <span class="rp-num-pill muted">{{ report.total_activities }}</span>
+                            </td>
+                            <td>
+                                <span style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d);">
+                                    <i class="bi bi-clock me-1"></i>{{ report.created_at|date:"d.m.Y H:i" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="rp-actions">
+                                    <a href="{% url 'view_report' report.pk %}" class="rp-act-btn view" title="Ko'rish">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{% url 'download_report' report.pk %}" class="rp-act-btn pdf" title="PDF yuklab olish">
+                                        <i class="bi bi-file-pdf"></i>
+                                    </a>
+                                    <form action="{% url 'delete_report' report.pk %}" method="post" style="display:contents;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="rp-act-btn delete"
+                                                onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')" title="O'chirish">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="rp-mobile">
+            {% for report in reports %}
+            <div class="rp-mobile-card" style="animation-delay: {{ forloop.counter0 }}80ms;" data-type="{{ report.report_type }}">
+                <div class="rp-mc-top">
+                    <div class="rp-mc-title">
+                        <div class="rp-mc-icon {{ report.report_type }}">
+                            {% if report.report_type == 'daily' %}
+                            <i class="bi bi-calendar-day"></i>
+                            {% elif report.report_type == 'weekly' %}
+                            <i class="bi bi-calendar-week"></i>
+                            {% elif report.report_type == 'monthly' %}
+                            <i class="bi bi-calendar-month"></i>
+                            {% else %}
+                            <i class="bi bi-calendar-range"></i>
+                            {% endif %}
+                        </div>
+                        <div class="rp-mc-text">
+                            <strong>{{ report.title }}</strong>
+                            <small>{{ report.date_from|date:"d.m.Y" }} — {{ report.date_to|date:"d.m.Y" }}</small>
+                        </div>
+                    </div>
+                    {% if report.report_type == 'daily' %}
+                    <span class="rp-badge rp-badge-daily">Kunlik</span>
+                    {% elif report.report_type == 'weekly' %}
+                    <span class="rp-badge rp-badge-weekly">Haftalik</span>
+                    {% elif report.report_type == 'monthly' %}
+                    <span class="rp-badge rp-badge-monthly">Oylik</span>
+                    {% else %}
+                    <span class="rp-badge rp-badge-custom">Maxsus</span>
+                    {% endif %}
+                </div>
+
+                <div class="rp-mc-stats">
+                    <div class="rp-mc-stat">
+                        <div class="rp-mc-stat-num" style="color:#6366f1;">{{ report.new_users }}</div>
+                        <div class="rp-mc-stat-label">Yangi foydalanuvchi</div>
+                    </div>
+                    <div class="rp-mc-stat">
+                        <div class="rp-mc-stat-num" style="color:#6b7280;">{{ report.total_activities }}</div>
+                        <div class="rp-mc-stat-label">Harakatlar</div>
+                    </div>
+                    <div class="rp-mc-stat">
+                        <div class="rp-mc-stat-num" style="color:#10b981;">{{ report.total_users }}</div>
+                        <div class="rp-mc-stat-label">Jami foydalanuvchi</div>
+                    </div>
+                </div>
+
+                <div class="rp-mc-bottom">
+                    <div class="rp-mc-date">
+                        <i class="bi bi-clock"></i> {{ report.created_at|date:"d.m.Y H:i" }}
+                    </div>
+                    <div class="rp-mc-actions">
+                        <a href="{% url 'view_report' report.pk %}" class="rp-act-btn view" title="Ko'rish">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'download_report' report.pk %}" class="rp-act-btn pdf" title="PDF">
+                            <i class="bi bi-file-pdf"></i>
+                        </a>
+                        <form action="{% url 'delete_report' report.pk %}" method="post" style="display:contents;">
+                            {% csrf_token %}
+                            <button type="submit" class="rp-act-btn delete"
+                                    onclick="return confirm('Hisobotni o\'chirishni tasdiqlaysizmi?')" title="O'chirish">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="rp-empty">
+            <div class="rp-empty-icon">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+            </div>
+            <h5>Hisobotlar mavjud emas</h5>
+            <p>{% if request.GET.type %}Bu turdagi hisobotlar topilmadi.{% else %}Yangi hisobot yaratish uchun quyidagi tugmani bosing.{% endif %}</p>
+            {% if request.GET.type %}
+            <a href="{% url 'admin_reports' %}" class="rp-btn rp-btn-outline">
+                <i class="bi bi-x-lg"></i> Filtrni tozalash
+            </a>
+            {% else %}
+            <a href="{% url 'generate_report' %}" class="rp-btn rp-btn-primary">
+                <i class="bi bi-plus-lg"></i> Yangi hisobot yaratish
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Count report types from the rendered list
-    const rows = document.querySelectorAll('.reports-desktop-table tbody tr');
-    let monthly = 0, weekly = 0, daily = 0;
-    rows.forEach(row => {
-        const badge = row.querySelector('.report-badge');
-        if (badge) {
-            const text = badge.textContent.trim();
-            if (text === 'Oylik') monthly++;
-            else if (text === 'Haftalik') weekly++;
-            else if (text === 'Kunlik') daily++;
-        }
+    var rows = document.querySelectorAll('[data-type]');
+    var monthly = 0, weekly = 0, daily = 0;
+    rows.forEach(function(el) {
+        var t = el.dataset.type;
+        if (t === 'monthly') monthly++;
+        else if (t === 'weekly') weekly++;
+        else if (t === 'daily') daily++;
     });
-    const mc = document.getElementById('monthlyCount');
-    const wc = document.getElementById('weeklyCount');
-    const dc = document.getElementById('dailyCount');
+    // Deduplicate (desktop + mobile both have data-type)
+    monthly = Math.ceil(monthly / 2);
+    weekly = Math.ceil(weekly / 2);
+    daily = Math.ceil(daily / 2);
+
+    var mc = document.getElementById('monthlyCount');
+    var wc = document.getElementById('weeklyCount');
+    var dc = document.getElementById('dailyCount');
     if (mc) mc.textContent = monthly;
     if (wc) wc.textContent = weekly;
     if (dc) dc.textContent = daily;
