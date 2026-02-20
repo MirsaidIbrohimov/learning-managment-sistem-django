@@ -672,16 +672,16 @@ def submit_test(request, pk):
     result.passed = score >= test.passing_score
     result.save()
     
-    # Har bir to'g'ri javob uchun +1 coin
-    if correct > 0:
-        request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
-    
     # Testdan o'tsa - kirish puli qaytariladi
     existing_results_count = TestResult.objects.filter(
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
     
     if result.passed:
+        # Har bir to'g'ri javob uchun +1 coin (faqat o'tganda)
+        if correct > 0:
+            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+        
         # Kirish pulini qaytarish (qayta topshirgan bo'lsa)
         if existing_results_count > 0:
             refund_amount = 5 if request.user.is_premium else 10
@@ -705,16 +705,13 @@ def submit_test(request, pk):
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
     else:
-        # Testdan o'tmadi
+        # Testdan o'tmadi - coin berilmaydi
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} to'g'ri, +{correct} coin"
+            description=f"Test topshirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} to'g'ri"
         )
-        if correct > 0:
-            messages.warning(request, f"Testdan o'ta olmadingiz. +{correct} coin oldingiz (to'g'ri javoblar uchun).")
-        else:
-            messages.warning(request, f"Testdan o'ta olmadingiz. To'g'ri javob yo'q.")
+        messages.warning(request, f"Testdan o'ta olmadingiz. {correct}/{total} to'g'ri javob.")
     
     # Avtomatik xabar yuborish
     from .notifications import on_test_completed
