@@ -573,6 +573,40 @@ def submit_homework(request, pk):
 
 
 @login_required
+def edit_homework(request, pk):
+    """Topshiriqni 1 soat ichida tahrirlash"""
+    submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
+    
+    if not submission.can_edit:
+        messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
+        return redirect('lesson_view', pk=submission.homework.lesson.pk)
+    
+    if request.method == 'POST':
+        submission_type = request.POST.get('submission_type', submission.submission_type)
+        
+        if submission_type == 'file':
+            new_file = request.FILES.get('file')
+            if new_file:
+                submission.file = new_file
+                submission.submission_type = 'file'
+                submission.save()
+                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+            else:
+                messages.error(request, "Fayl tanlang!")
+        else:
+            text_content = request.POST.get('text_content', '').strip()
+            if text_content:
+                submission.text_content = text_content
+                submission.submission_type = 'text'
+                submission.save()
+                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+            else:
+                messages.error(request, "Matn kiriting!")
+    
+    return redirect('lesson_view', pk=submission.homework.lesson.pk)
+
+
+@login_required
 def start_test(request, pk):
     test = get_object_or_404(Test, pk=pk)
     

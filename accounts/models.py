@@ -494,6 +494,25 @@ class HomeworkSubmission(models.Model):
     def unread_messages_count(self):
         return self.messages.filter(is_read=False).exclude(sender=self.student).count()
     
+    @property
+    def can_edit(self):
+        """Topshiriq yuborilgandan keyin 1 soat ichida tahrirlash mumkin"""
+        if self.status not in ('pending',):
+            return False
+        from django.utils import timezone
+        from datetime import timedelta
+        return timezone.now() < self.submitted_at + timedelta(hours=1)
+
+    @property
+    def edit_seconds_left(self):
+        """Tahrirlash uchun qolgan vaqt (soniyalarda)"""
+        if not self.can_edit:
+            return 0
+        from django.utils import timezone
+        from datetime import timedelta
+        delta = (self.submitted_at + timedelta(hours=1)) - timezone.now()
+        return max(0, int(delta.total_seconds()))
+
     def calculate_final_grade(self):
         if self.grade and self.is_late and self.homework.late_penalty:
             penalty = self.grade * self.homework.late_penalty / 100
