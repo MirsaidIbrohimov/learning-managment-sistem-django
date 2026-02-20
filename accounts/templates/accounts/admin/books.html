@@ -412,6 +412,142 @@
         transform: translateY(-1px);
     }
 
+    /* View Toggle */
+    .bk-view-toggle {
+        display: flex;
+        gap: 0.25rem;
+        margin-left: auto;
+        background: var(--bg-color, #f0f2f5);
+        border-radius: 8px;
+        padding: 0.2rem;
+    }
+    .bk-view-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 28px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--bs-secondary-color, #adb5bd);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 0.85rem;
+    }
+    .bk-view-btn.active {
+        background: var(--card-bg, #fff);
+        color: #6366f1;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .bk-view-btn:hover:not(.active) {
+        color: #6366f1;
+    }
+
+    /* List View */
+    .bk-list { display: none; }
+    .bk-list-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1.15rem;
+        border-bottom: 1px solid var(--border-color, #f0f0f0);
+        transition: background 0.2s;
+        animation: bkFadeIn 0.35s ease-out backwards;
+    }
+    .bk-list-item:last-child { border-bottom: none; }
+    .bk-list-item:hover { background: rgba(99, 102, 241, 0.03); }
+    .bk-list-cover {
+        width: 44px;
+        height: 56px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .bk-list-cover-ph {
+        width: 44px;
+        height: 56px;
+        border-radius: 8px;
+        background: var(--bg-color, #f0f2f5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: var(--bs-secondary-color, #adb5bd);
+        font-size: 1.1rem;
+    }
+    .bk-list-info { flex: 1; min-width: 0; }
+    .bk-list-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .bk-list-author {
+        font-size: 0.78rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+    .bk-list-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+    }
+    .bk-list-actions {
+        display: flex;
+        gap: 0.4rem;
+        flex-shrink: 0;
+    }
+    .bk-list-act-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #adb5bd);
+        font-size: 0.82rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .bk-list-act-btn:hover {
+        border-color: #6366f1;
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.05);
+        transform: translateY(-1px);
+    }
+    .bk-list-act-btn.danger:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+        background: rgba(239, 68, 68, 0.05);
+    }
+
+    /* List Card Wrapper */
+    .bk-list-card {
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        animation: bkSlideIn 0.4s ease-out 0.2s backwards;
+    }
+
+    /* Description tooltip */
+    .bk-card-desc {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-bottom: 0.65rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.4;
+    }
+
     /* Empty state */
     .bk-empty {
         text-align: center;
@@ -470,6 +606,11 @@
         .bk-card-cover-placeholder { font-size: 2.5rem; }
         .bk-card-body { padding: 0.85rem; }
         .bk-card-title { font-size: 0.85rem; }
+        .bk-view-toggle { display: none; }
+        /* Force grid on mobile */
+        .bk-list { display: none !important; }
+        .bk-grid.hidden-view { display: grid !important; }
+        .bk-list-meta { display: none; }
     }
     @media (max-width: 480px) {
         .bk-page { padding: 1rem 0.5rem; }
@@ -544,7 +685,7 @@
         </form>
     </div>
 
-    <!-- Sort Bar -->
+    <!-- Sort Bar + View Toggle -->
     <div class="bk-sort-bar">
         <span class="bk-sort-label"><i class="bi bi-sort-down"></i> Saralash:</span>
         <a href="?sort=title{% if search %}&search={{ search }}{% endif %}"
@@ -571,11 +712,23 @@
            class="bk-sort-btn {% if sort == 'oldest' %}active{% endif %}">
             <i class="bi bi-clock"></i> Eski
         </a>
+
+        <!-- View Toggle -->
+        <div class="bk-view-toggle">
+            <button class="bk-view-btn active" data-view="grid" title="Kartochka ko'rinishi">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </button>
+            <button class="bk-view-btn" data-view="list" title="Ro'yxat ko'rinishi">
+                <i class="bi bi-list-ul"></i>
+            </button>
+        </div>
     </div>
 
-    <!-- Books Grid -->
+    <!-- Books -->
     {% if books %}
-    <div class="bk-grid">
+
+    <!-- Grid View -->
+    <div class="bk-grid" id="bkGridView">
         {% for book in books %}
         <div class="bk-card" style="animation-delay: {{ forloop.counter0 }}50ms;">
             {% if book.cover_image %}
@@ -589,6 +742,9 @@
             <div class="bk-card-body">
                 <h6 class="bk-card-title">{{ book.title }}</h6>
                 <div class="bk-card-author"><i class="bi bi-pen me-1"></i>{{ book.author }}</div>
+                {% if book.description %}
+                <div class="bk-card-desc">{{ book.description }}</div>
+                {% endif %}
 
                 <div class="bk-card-meta">
                     <span class="bk-avail-badge {% if book.available_copies > 0 %}available{% else %}unavailable{% endif %}">
@@ -616,6 +772,45 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- List View -->
+    <div class="bk-list-card bk-list" id="bkListView">
+        {% for book in books %}
+        <div class="bk-list-item" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="bk-list-cover">
+            {% else %}
+            <div class="bk-list-cover-ph"><i class="bi bi-book"></i></div>
+            {% endif %}
+            <div class="bk-list-info">
+                <div class="bk-list-title">{{ book.title }}</div>
+                <div class="bk-list-author"><i class="bi bi-pen me-1"></i>{{ book.author }}</div>
+            </div>
+            <div class="bk-list-meta">
+                <span class="bk-avail-badge {% if book.available_copies > 0 %}available{% else %}unavailable{% endif %}">
+                    <i class="bi bi-{% if book.available_copies > 0 %}check-circle{% else %}x-circle{% endif %}"></i>
+                    {{ book.available_copies }}/{{ book.total_copies }}
+                </span>
+                {% if book.isbn %}
+                <span class="bk-isbn">{{ book.isbn }}</span>
+                {% endif %}
+            </div>
+            <div class="bk-list-actions">
+                <a href="{% url 'admin_book_edit' book.pk %}" class="bk-list-act-btn" title="Tahrirlash">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'admin_book_delete' book.pk %}"
+                      onsubmit="return confirm('Rostdan o\'chirmoqchimisiz?')" style="display:contents;">
+                    {% csrf_token %}
+                    <button type="submit" class="bk-list-act-btn danger" title="O'chirish">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
     {% else %}
     <!-- Empty State -->
     <div class="bk-empty">
@@ -634,4 +829,36 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+(function() {
+    const btns = document.querySelectorAll('.bk-view-btn');
+    const gridView = document.getElementById('bkGridView');
+    const listView = document.getElementById('bkListView');
+    if (!gridView || !listView) return;
+
+    const saved = localStorage.getItem('bk-view') || 'grid';
+    setView(saved);
+
+    btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            setView(this.dataset.view);
+        });
+    });
+
+    function setView(view) {
+        localStorage.setItem('bk-view', view);
+        btns.forEach(function(b) { b.classList.toggle('active', b.dataset.view === view); });
+        if (view === 'list') {
+            gridView.style.display = 'none';
+            gridView.classList.add('hidden-view');
+            listView.style.display = 'block';
+        } else {
+            gridView.style.display = '';
+            gridView.classList.remove('hidden-view');
+            listView.style.display = 'none';
+        }
+    }
+})();
+</script>
 {% endblock %}

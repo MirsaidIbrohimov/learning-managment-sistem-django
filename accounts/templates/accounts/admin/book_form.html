@@ -3,99 +3,629 @@
 {% block title %}{% if action == 'add' %}Yangi kitob{% else %}Kitobni tahrirlash{% endif %}{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="mb-4">
-        <a href="{% url 'admin_books' %}" class="text-decoration-none text-muted">
-            <i class="bi bi-arrow-left me-1"></i>Kitoblarga qaytish
-        </a>
-        <h4 class="mt-2 mb-0">
-            <i class="bi bi-book me-2"></i>
-            {% if action == 'add' %}Yangi kitob qo'shish{% else %}'{{ book.title }}' ni tahrirlash{% endif %}
-        </h4>
-    </div>
+<style>
+    /* ===== Book Form Page ===== */
+    .bf-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Kitob nomi *</label>
-                            <input type="text" name="title" class="form-control" required
-                                   value="{{ book.title|default:'' }}" placeholder="Masalan: Python asoslari">
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Muallif *</label>
-                            <input type="text" name="author" class="form-control" required
-                                   value="{{ book.author|default:'' }}" placeholder="Masalan: Abdullayev Vohid">
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">ISBN (ixtiyoriy)</label>
-                                <input type="text" name="isbn" class="form-control"
-                                       value="{{ book.isbn|default:'' }}" placeholder="978-3-16-148410-0">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nusxalar soni *</label>
-                                <input type="number" name="total_copies" class="form-control" min="1" required
-                                       value="{{ book.total_copies|default:1 }}">
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tavsif</label>
-                            <textarea name="description" class="form-control" rows="3" 
-                                      placeholder="Kitob haqida qisqacha ma'lumot...">{{ book.description|default:'' }}</textarea>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold">Muqova rasmi</label>
-                            <input type="file" name="cover_image" class="form-control" accept="image/*">
-                            {% if book.cover_image %}
-                            <small class="text-muted mt-1 d-block">
-                                Joriy rasm: {{ book.cover_image.name }}
-                            </small>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="bi bi-check-lg me-2"></i>
-                                {% if action == 'add' %}Qo'shish{% else %}Saqlash{% endif %}
-                            </button>
-                            <a href="{% url 'admin_books' %}" class="btn btn-secondary">Bekor qilish</a>
-                        </div>
-                    </form>
-                </div>
+    /* Animations */
+    @keyframes bfSlideIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bfFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    /* Back link */
+    .bf-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--bs-secondary-color, #6c757d);
+        text-decoration: none;
+        margin-bottom: 1.25rem;
+        transition: color 0.2s;
+    }
+    .bf-back:hover { color: #6366f1; }
+
+    /* Header */
+    .bf-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: bfSlideIn 0.4s ease-out;
+    }
+    .bf-header-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    .bf-header-icon.add {
+        background: rgba(99, 102, 241, 0.12);
+        color: #6366f1;
+    }
+    .bf-header-icon.edit {
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
+    }
+    .bf-header h1 {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-color, #212529);
+    }
+    .bf-header-sub {
+        font-size: 0.82rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.2rem;
+    }
+
+    /* Layout */
+    .bf-layout {
+        display: grid;
+        grid-template-columns: 1fr 280px;
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    /* Form Card */
+    .bf-form-card {
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        animation: bfSlideIn 0.4s ease-out 0.05s backwards;
+    }
+    .bf-form-body {
+        padding: 1.5rem;
+    }
+
+    /* Form Groups */
+    .bf-group {
+        margin-bottom: 1.25rem;
+    }
+    .bf-group:last-child {
+        margin-bottom: 0;
+    }
+    .bf-label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        margin-bottom: 0.45rem;
+    }
+    .bf-label i {
+        color: #6366f1;
+        font-size: 0.9rem;
+    }
+    .bf-label .bf-required {
+        color: #ef4444;
+        font-size: 0.75rem;
+    }
+    .bf-input,
+    .bf-textarea,
+    .bf-select {
+        width: 100%;
+        padding: 0.65rem 0.95rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bf-input:focus,
+    .bf-textarea:focus,
+    .bf-select:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        background: var(--card-bg, #fff);
+    }
+    .bf-input::placeholder,
+    .bf-textarea::placeholder {
+        color: var(--bs-secondary-color, #adb5bd);
+    }
+    .bf-textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    .bf-hint {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.3rem;
+    }
+
+    /* Row layout for two fields */
+    .bf-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    /* File Upload */
+    .bf-upload-zone {
+        position: relative;
+        border: 2px dashed var(--border-color, #dee2e6);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--bg-color, #f8f9fa);
+    }
+    .bf-upload-zone:hover {
+        border-color: #6366f1;
+        background: rgba(99, 102, 241, 0.04);
+    }
+    .bf-upload-zone.has-preview {
+        border-style: solid;
+        padding: 0.75rem;
+    }
+    .bf-upload-zone input[type="file"] {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .bf-upload-icon {
+        font-size: 2rem;
+        color: var(--bs-secondary-color, #adb5bd);
+        margin-bottom: 0.5rem;
+        transition: color 0.2s;
+    }
+    .bf-upload-zone:hover .bf-upload-icon {
+        color: #6366f1;
+    }
+    .bf-upload-text {
+        font-size: 0.82rem;
+        color: var(--bs-secondary-color, #6c757d);
+        font-weight: 600;
+    }
+    .bf-upload-hint {
+        font-size: 0.72rem;
+        color: var(--bs-secondary-color, #adb5bd);
+        margin-top: 0.2rem;
+    }
+    .bf-preview-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .bf-preview-img {
+        width: 80px;
+        height: 100px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border-color, #dee2e6);
+    }
+    .bf-preview-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .bf-preview-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-color, #212529);
+        word-break: break-all;
+    }
+    .bf-preview-change {
+        font-size: 0.75rem;
+        color: #6366f1;
+        margin-top: 0.2rem;
+    }
+
+    /* Separator */
+    .bf-separator {
+        height: 1px;
+        background: var(--border-color, #dee2e6);
+        margin: 1.25rem 0;
+    }
+
+    /* Actions */
+    .bf-actions {
+        display: flex;
+        gap: 0.65rem;
+        padding: 1.25rem 1.5rem;
+        border-top: 1px solid var(--border-color, #dee2e6);
+        background: var(--bg-color, rgba(248, 249, 250, 0.5));
+    }
+    .bf-submit-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.5rem;
+        border-radius: 10px;
+        border: none;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .bf-submit-btn.primary {
+        background: #6366f1;
+        color: #fff;
+    }
+    .bf-submit-btn.primary:hover {
+        background: #4f46e5;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+    .bf-cancel-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .bf-cancel-btn:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    /* Sidebar */
+    .bf-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .bf-sidebar-card {
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        animation: bfSlideIn 0.4s ease-out 0.15s backwards;
+    }
+    .bf-sidebar-head {
+        padding: 0.85rem 1.1rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: var(--bg-color, rgba(248, 249, 250, 0.5));
+    }
+    .bf-sidebar-head i {
+        color: #6366f1;
+        font-size: 1rem;
+    }
+    .bf-sidebar-head h6 {
+        margin: 0;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+    }
+    .bf-sidebar-body {
+        padding: 1rem 1.1rem;
+    }
+    .bf-help-item {
+        display: flex;
+        gap: 0.6rem;
+        margin-bottom: 0.85rem;
+    }
+    .bf-help-item:last-child { margin-bottom: 0; }
+    .bf-help-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        flex-shrink: 0;
+        background: rgba(99, 102, 241, 0.08);
+        color: #6366f1;
+    }
+    .bf-help-text {
+        font-size: 0.8rem;
+        color: var(--bs-secondary-color, #6c757d);
+        line-height: 1.45;
+    }
+    .bf-help-text strong {
+        color: var(--text-color, #212529);
+        font-weight: 700;
+        display: block;
+        margin-bottom: 0.1rem;
+        font-size: 0.78rem;
+    }
+
+    /* Current cover in edit mode sidebar */
+    .bf-current-cover {
+        text-align: center;
+        padding: 1rem 1.1rem;
+    }
+    .bf-current-cover img {
+        width: 100%;
+        max-height: 200px;
+        object-fit: contain;
+        border-radius: 10px;
+        border: 1px solid var(--border-color, #dee2e6);
+    }
+    .bf-current-cover-label {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.5rem;
+        font-weight: 600;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 991px) {
+        .bf-layout {
+            grid-template-columns: 1fr;
+        }
+        .bf-sidebar {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+        .bf-sidebar-card {
+            flex: 1;
+            min-width: 250px;
+        }
+    }
+    @media (max-width: 767px) {
+        .bf-page { padding: 1rem 0.5rem; }
+        .bf-header { padding: 1.15rem; border-radius: 12px; }
+        .bf-header h1 { font-size: 1.15rem; }
+        .bf-header-icon { width: 44px; height: 44px; font-size: 1.25rem; border-radius: 12px; }
+        .bf-form-body { padding: 1.15rem; }
+        .bf-row { grid-template-columns: 1fr; }
+        .bf-actions {
+            padding: 1rem 1.15rem;
+            flex-direction: column;
+        }
+        .bf-submit-btn, .bf-cancel-btn {
+            justify-content: center;
+            width: 100%;
+        }
+        .bf-sidebar {
+            flex-direction: column;
+        }
+        .bf-sidebar-card { min-width: auto; }
+    }
+    @media (max-width: 480px) {
+        .bf-header { gap: 0.75rem; }
+        .bf-upload-zone { padding: 1rem; }
+    }
+</style>
+
+<div class="bf-page">
+    <!-- Back Link -->
+    <a href="{% url 'admin_books' %}" class="bf-back">
+        <i class="bi bi-arrow-left"></i> Kitoblarga qaytish
+    </a>
+
+    <!-- Header -->
+    <div class="bf-header">
+        <div class="bf-header-icon {% if action == 'add' %}add{% else %}edit{% endif %}">
+            <i class="bi bi-{% if action == 'add' %}plus-circle{% else %}pencil-square{% endif %}"></i>
+        </div>
+        <div>
+            <h1>{% if action == 'add' %}Yangi kitob qo'shish{% else %}Kitobni tahrirlash{% endif %}</h1>
+            <div class="bf-header-sub">
+                {% if action == 'add' %}Kutubxonaga yangi kitob qo'shing{% else %}"{{ book.title }}" ma'lumotlarini yangilash{% endif %}
             </div>
         </div>
-        
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-transparent">
-                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Yordam</h6>
+    </div>
+
+    <!-- Layout -->
+    <div class="bf-layout">
+        <!-- Form -->
+        <div class="bf-form-card">
+            <form method="post" enctype="multipart/form-data" id="bookForm">
+                {% csrf_token %}
+                <div class="bf-form-body">
+                    <!-- Title -->
+                    <div class="bf-group">
+                        <label class="bf-label">
+                            <i class="bi bi-book"></i> Kitob nomi <span class="bf-required">*</span>
+                        </label>
+                        <input type="text" name="title" class="bf-input" required
+                               value="{{ book.title|default:'' }}" placeholder="Masalan: Python asoslari">
+                    </div>
+
+                    <!-- Author -->
+                    <div class="bf-group">
+                        <label class="bf-label">
+                            <i class="bi bi-person"></i> Muallif <span class="bf-required">*</span>
+                        </label>
+                        <input type="text" name="author" class="bf-input" required
+                               value="{{ book.author|default:'' }}" placeholder="Masalan: Abdullayev Vohid">
+                    </div>
+
+                    <!-- ISBN + Copies -->
+                    <div class="bf-row">
+                        <div class="bf-group">
+                            <label class="bf-label">
+                                <i class="bi bi-upc-scan"></i> ISBN
+                            </label>
+                            <input type="text" name="isbn" class="bf-input"
+                                   value="{{ book.isbn|default:'' }}" placeholder="978-3-16-148410-0">
+                            <div class="bf-hint">Ixtiyoriy</div>
+                        </div>
+                        <div class="bf-group">
+                            <label class="bf-label">
+                                <i class="bi bi-stack"></i> Nusxalar soni <span class="bf-required">*</span>
+                            </label>
+                            <input type="number" name="total_copies" class="bf-input" min="1" required
+                                   value="{{ book.total_copies|default:1 }}">
+                            {% if action == 'edit' %}
+                            <div class="bf-hint">Hozir {{ book.available_copies }} ta mavjud</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="bf-group">
+                        <label class="bf-label">
+                            <i class="bi bi-text-paragraph"></i> Tavsif
+                        </label>
+                        <textarea name="description" class="bf-textarea" rows="3"
+                                  placeholder="Kitob haqida qisqacha ma'lumot...">{{ book.description|default:'' }}</textarea>
+                    </div>
+
+                    <!-- Cover Image Upload -->
+                    <div class="bf-group">
+                        <label class="bf-label">
+                            <i class="bi bi-image"></i> Muqova rasmi
+                        </label>
+                        <div class="bf-upload-zone" id="uploadZone">
+                            <input type="file" name="cover_image" accept="image/*" id="coverInput">
+                            <div id="uploadPlaceholder">
+                                <div class="bf-upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                                <div class="bf-upload-text">Rasmni tanlang yoki shu yerga tashlang</div>
+                                <div class="bf-upload-hint">PNG, JPG, WEBP — 5MB gacha</div>
+                            </div>
+                            <div id="uploadPreview" style="display:none;">
+                                <div class="bf-preview-wrapper">
+                                    <img id="previewImg" class="bf-preview-img" src="" alt="Preview">
+                                    <div class="bf-preview-info">
+                                        <div class="bf-preview-name" id="previewName"></div>
+                                        <div class="bf-preview-change">Boshqa rasmni tanlash uchun bosing</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="text-muted small mb-2">
-                        <strong>Kitob nomi:</strong> To'liq kitob nomini kiriting
-                    </p>
-                    <p class="text-muted small mb-2">
-                        <strong>Muallif:</strong> Kitob muallifining ismi va familiyasi
-                    </p>
-                    <p class="text-muted small mb-2">
-                        <strong>Nusxalar soni:</strong> Kutubxonada nechta nusxa mavjudligini belgilang
-                    </p>
-                    <p class="text-muted small mb-0">
-                        <strong>Muqova rasmi:</strong> Kitobning old tomonini surat qilib yuklang
-                    </p>
+
+                <!-- Actions -->
+                <div class="bf-actions">
+                    <button type="submit" class="bf-submit-btn primary">
+                        <i class="bi bi-{% if action == 'add' %}plus-circle{% else %}check-lg{% endif %}"></i>
+                        {% if action == 'add' %}Qo'shish{% else %}Saqlash{% endif %}
+                    </button>
+                    <a href="{% url 'admin_books' %}" class="bf-cancel-btn">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="bf-sidebar">
+            {% if action == 'edit' and book.cover_image %}
+            <div class="bf-sidebar-card">
+                <div class="bf-sidebar-head">
+                    <i class="bi bi-image"></i>
+                    <h6>Joriy muqova</h6>
+                </div>
+                <div class="bf-current-cover">
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                    <div class="bf-current-cover-label">Yangi rasm yuklasangiz o'zgaradi</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="bf-sidebar-card">
+                <div class="bf-sidebar-head">
+                    <i class="bi bi-lightbulb"></i>
+                    <h6>Yordam</h6>
+                </div>
+                <div class="bf-sidebar-body">
+                    <div class="bf-help-item">
+                        <div class="bf-help-icon"><i class="bi bi-book"></i></div>
+                        <div class="bf-help-text">
+                            <strong>Kitob nomi</strong>
+                            To'liq kitob nomini kiriting
+                        </div>
+                    </div>
+                    <div class="bf-help-item">
+                        <div class="bf-help-icon"><i class="bi bi-person"></i></div>
+                        <div class="bf-help-text">
+                            <strong>Muallif</strong>
+                            Muallif ismi va familiyasini yozing
+                        </div>
+                    </div>
+                    <div class="bf-help-item">
+                        <div class="bf-help-icon"><i class="bi bi-stack"></i></div>
+                        <div class="bf-help-text">
+                            <strong>Nusxalar soni</strong>
+                            Kutubxonadagi jami nusxalar soni
+                        </div>
+                    </div>
+                    <div class="bf-help-item">
+                        <div class="bf-help-icon"><i class="bi bi-image"></i></div>
+                        <div class="bf-help-text">
+                            <strong>Muqova rasmi</strong>
+                            Kitob muqovasini surat qilib yuklang
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    const input = document.getElementById('coverInput');
+    const zone = document.getElementById('uploadZone');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    const preview = document.getElementById('uploadPreview');
+    const previewImg = document.getElementById('previewImg');
+    const previewName = document.getElementById('previewName');
+
+    if (!input) return;
+
+    input.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const file = this.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewName.textContent = file.name;
+                placeholder.style.display = 'none';
+                preview.style.display = 'block';
+                zone.classList.add('has-preview');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Drag & drop
+    zone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        zone.style.borderColor = '#6366f1';
+        zone.style.background = 'rgba(99,102,241,0.06)';
+    });
+    zone.addEventListener('dragleave', function() {
+        zone.style.borderColor = '';
+        zone.style.background = '';
+    });
+    zone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        zone.style.borderColor = '';
+        zone.style.background = '';
+        if (e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+})();
+</script>
 {% endblock %}
