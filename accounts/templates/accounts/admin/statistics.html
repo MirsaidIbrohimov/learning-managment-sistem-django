@@ -2,221 +2,497 @@
 
 {% block title %}Statistika - Admin Panel{% endblock %}
 
-{% block extra_css %}
-<style>
-/* ===== Statistics Responsive ===== */
-@media (max-width: 768px) {
-    .top-bar {
-        flex-direction: column;
-        gap: 12px;
-        text-align: center;
-        padding: 16px;
-    }
-
-    .top-bar .page-title {
-        font-size: 1.2rem;
-    }
-
-    .top-bar .btn {
-        width: 100%;
-        justify-content: center;
-    }
-
-    .stat-card {
-        padding: 16px;
-    }
-
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.2rem;
-        border-radius: 12px;
-    }
-
-    .stat-number {
-        font-size: 1.5rem;
-    }
-
-    .stat-label {
-        font-size: 0.8rem;
-    }
-
-    .card-header {
-        padding: 14px 16px;
-        font-size: 0.9rem;
-    }
-
-    .card-body {
-        padding: 14px 12px;
-    }
-
-    .table th,
-    .table td {
-        padding: 8px 6px;
-        font-size: 0.78rem;
-    }
-
-    .table .badge {
-        font-size: 0.7rem;
-        min-width: 32px !important;
-        padding: 4px 6px;
-    }
-
-    .progress {
-        height: 14px !important;
-        font-size: 0.65rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .stat-card {
-        padding: 14px 10px;
-    }
-
-    .stat-number {
-        font-size: 1.3rem;
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-    }
-
-    .stat-icon {
-        width: 42px;
-        height: 42px;
-        font-size: 1.1rem;
-    }
-
-    .table th,
-    .table td {
-        padding: 6px 4px;
-        font-size: 0.72rem;
-        white-space: nowrap;
-    }
-
-    .card-header {
-        padding: 12px 14px;
-        font-size: 0.85rem;
-    }
-
-    .card-body {
-        padding: 12px 10px;
-    }
-}
-</style>
-{% endblock %}
-
 {% block admin_content %}
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-graph-up me-2"></i>Statistika</h1>
-    <a href="{% url 'export_system_pdf' %}" class="btn btn-primary">
-        <i class="bi bi-file-pdf me-2"></i>PDF yuklab olish
+<style>
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeInUp {
+    from { opacity:0; transform:translateY(24px); }
+    to { opacity:1; transform:translateY(0); }
+}
+@keyframes scaleIn {
+    from { opacity:0; transform:scale(0.82); }
+    to { opacity:1; transform:scale(1); }
+}
+@keyframes countPop {
+    0% { transform:scale(0.6); opacity:0; }
+    60% { transform:scale(1.1); }
+    100% { transform:scale(1); opacity:1; }
+}
+@keyframes slideRight {
+    from { width:0; }
+    to { width:var(--target-w); }
+}
+@keyframes rowSlide {
+    from { opacity:0; transform:translateX(-14px); }
+    to { opacity:1; transform:translateX(0); }
+}
+@keyframes float {
+    0%,100% { transform:translateY(0); }
+    50% { transform:translateY(-5px); }
+}
+@keyframes pulseGlow {
+    0%,100% { box-shadow:0 0 0 0 var(--glow-color,rgba(99,102,241,.25)); }
+    50% { box-shadow:0 0 0 8px transparent; }
+}
+
+.as-a1 { animation:fadeInUp .5s ease both; }
+.as-a2 { animation:fadeInUp .5s ease .06s both; }
+.as-a3 { animation:fadeInUp .5s ease .12s both; }
+.as-a4 { animation:fadeInUp .5s ease .18s both; }
+.as-a5 { animation:fadeInUp .5s ease .24s both; }
+.as-a6 { animation:fadeInUp .5s ease .30s both; }
+.as-a7 { animation:fadeInUp .5s ease .36s both; }
+
+/* ==================== HEADER ==================== */
+.as-header {
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:16px; margin-bottom:28px;
+}
+.as-header-left {
+    display:flex; align-items:center; gap:14px;
+}
+.as-header-icon {
+    width:48px; height:48px; border-radius:16px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.3rem;
+    animation:scaleIn .5s ease both;
+}
+.as-header h1 { font-size:1.4rem; font-weight:800; margin:0; }
+.as-header-sub { font-size:.82rem; color:var(--bs-secondary-color); }
+
+.as-pdf-btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:11px 24px; border-radius:14px;
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+    color:#fff; font-weight:700; font-size:.88rem;
+    text-decoration:none; border:none;
+    transition:all .3s ease;
+    box-shadow:0 4px 14px rgba(239,68,68,.3);
+}
+.as-pdf-btn:hover {
+    transform:translateY(-2px); color:#fff;
+    box-shadow:0 8px 24px rgba(239,68,68,.4);
+}
+
+/* ==================== STAT CARDS ==================== */
+.as-stats {
+    display:grid; grid-template-columns:repeat(6,1fr);
+    gap:14px; margin-bottom:28px;
+}
+.as-stat {
+    background:var(--bs-body-bg); border:1px solid var(--bs-border-color);
+    border-radius:20px; padding:22px 16px; text-align:center;
+    position:relative; overflow:hidden;
+    transition:all .3s ease; cursor:default;
+    box-shadow:0 4px 16px rgba(0,0,0,.06);
+}
+.as-stat:hover {
+    transform:translateY(-5px);
+    box-shadow:0 12px 36px rgba(0,0,0,.12);
+}
+.as-stat::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+}
+.as-stat.users::before { background:linear-gradient(90deg,#3b82f6,#6366f1); }
+.as-stat.students::before { background:linear-gradient(90deg,#f59e0b,#eab308); }
+.as-stat.teachers::before { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.as-stat.admins::before { background:linear-gradient(90deg,#8b5cf6,#a855f7); }
+.as-stat.online::before { background:linear-gradient(90deg,#06b6d4,#0891b2); }
+.as-stat.blocked::before { background:linear-gradient(90deg,#ef4444,#dc2626); }
+
+.as-stat-icon {
+    width:48px; height:48px; border-radius:14px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:1.2rem; margin-bottom:12px;
+}
+.as-stat.users .as-stat-icon { background:rgba(59,130,246,.12); color:#3b82f6; }
+.as-stat.students .as-stat-icon { background:rgba(245,158,11,.12); color:#f59e0b; }
+.as-stat.teachers .as-stat-icon { background:rgba(34,197,94,.12); color:#22c55e; }
+.as-stat.admins .as-stat-icon { background:rgba(139,92,246,.12); color:#8b5cf6; }
+.as-stat.online .as-stat-icon { background:rgba(6,182,212,.12); color:#06b6d4; animation:pulseGlow 2s infinite; --glow-color:rgba(6,182,212,.2); }
+.as-stat.blocked .as-stat-icon { background:rgba(239,68,68,.12); color:#ef4444; }
+
+.as-stat-num {
+    font-size:1.8rem; font-weight:800; line-height:1;
+    color:var(--bs-body-color); margin-bottom:4px;
+    animation:countPop .6s ease both;
+}
+.as-stat-label {
+    font-size:.78rem; font-weight:600; color:var(--bs-secondary-color);
+}
+.as-stat-glow {
+    position:absolute; bottom:-25px; right:-25px;
+    width:80px; height:80px; border-radius:50%; opacity:.06;
+}
+.as-stat.users .as-stat-glow { background:#3b82f6; }
+.as-stat.students .as-stat-glow { background:#f59e0b; }
+.as-stat.teachers .as-stat-glow { background:#22c55e; }
+.as-stat.admins .as-stat-glow { background:#8b5cf6; }
+.as-stat.online .as-stat-glow { background:#06b6d4; }
+.as-stat.blocked .as-stat-glow { background:#ef4444; }
+
+/* ==================== CARD BASE ==================== */
+.as-card {
+    background:var(--bs-body-bg); border:1px solid var(--bs-border-color);
+    border-radius:24px; overflow:hidden;
+    box-shadow:0 8px 32px rgba(0,0,0,.08);
+    transition:box-shadow .3s ease;
+}
+.as-card:hover { box-shadow:0 12px 48px rgba(0,0,0,.12); }
+
+.as-card-header {
+    padding:20px 24px; border-bottom:1px solid var(--bs-border-color);
+    display:flex; align-items:center; gap:12px;
+}
+.as-card-icon {
+    width:40px; height:40px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1rem; flex-shrink:0;
+}
+.as-card-header h5 { margin:0; font-weight:700; font-size:1rem; }
+.as-card-body { padding:24px; }
+
+/* ==================== PROFESSION TABLE ==================== */
+.as-prof-table { width:100%; border-collapse:separate; border-spacing:0; }
+.as-prof-table thead th {
+    padding:12px 18px; font-size:.75rem; font-weight:700;
+    text-transform:uppercase; letter-spacing:.5px;
+    color:var(--bs-secondary-color);
+    border-bottom:1px solid var(--bs-border-color);
+    background:var(--bs-tertiary-bg);
+}
+.as-prof-table tbody tr {
+    transition:all .2s ease;
+    animation:rowSlide .4s ease both;
+}
+.as-prof-table tbody tr:nth-child(1) { animation-delay:.04s; }
+.as-prof-table tbody tr:nth-child(2) { animation-delay:.08s; }
+.as-prof-table tbody tr:nth-child(3) { animation-delay:.12s; }
+.as-prof-table tbody tr:nth-child(4) { animation-delay:.16s; }
+.as-prof-table tbody tr:nth-child(5) { animation-delay:.2s; }
+.as-prof-table tbody tr:nth-child(6) { animation-delay:.24s; }
+.as-prof-table tbody tr:nth-child(7) { animation-delay:.28s; }
+.as-prof-table tbody tr:nth-child(8) { animation-delay:.32s; }
+.as-prof-table tbody tr:hover { background:rgba(99,102,241,.04); }
+.as-prof-table tbody td {
+    padding:14px 18px; font-size:.9rem;
+    border-bottom:1px solid var(--bs-border-color);
+    vertical-align:middle;
+}
+.as-prof-table tbody tr:last-child td { border-bottom:none; }
+
+.as-prof-rank {
+    width:30px; height:30px; border-radius:10px;
+    background:var(--bs-tertiary-bg);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:.75rem; font-weight:800; color:var(--bs-secondary-color);
+}
+.as-prof-rank.top1 { background:linear-gradient(135deg,#facc15,#f59e0b); color:#000; }
+.as-prof-rank.top2 { background:linear-gradient(135deg,#cbd5e1,#94a3b8); color:#000; }
+.as-prof-rank.top3 { background:linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
+
+.as-prof-name { font-weight:700; color:var(--bs-body-color); }
+
+.as-badge {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:36px; padding:4px 12px; border-radius:10px;
+    font-weight:700; font-size:.82rem;
+}
+.as-badge.primary { background:rgba(99,102,241,.12); color:#6366f1; }
+.as-badge.success { background:rgba(34,197,94,.12); color:#22c55e; }
+.as-badge.secondary { background:var(--bs-tertiary-bg); color:var(--bs-secondary-color); }
+
+.as-progress-wrap { display:flex; align-items:center; gap:10px; }
+.as-progress-bar {
+    flex:1; height:8px; border-radius:50px;
+    background:var(--bs-tertiary-bg); overflow:hidden;
+    min-width:60px;
+}
+.as-progress-fill {
+    height:100%; border-radius:50px;
+    background:linear-gradient(90deg,#6366f1,#8b5cf6);
+    transition:width 1.2s ease;
+}
+.as-progress-pct {
+    font-weight:800; font-size:.82rem; color:#6366f1;
+    min-width:36px; text-align:right;
+}
+
+/* ==================== DAILY REGISTRATIONS ==================== */
+.as-daily-list { display:flex; flex-direction:column; gap:10px; }
+.as-daily-item {
+    display:flex; align-items:center; gap:14px;
+    padding:12px 16px; border-radius:14px;
+    background:var(--bs-tertiary-bg);
+    border:1px solid var(--bs-border-color);
+    transition:all .2s ease;
+    animation:rowSlide .4s ease both;
+}
+.as-daily-item:nth-child(1) { animation-delay:.04s; }
+.as-daily-item:nth-child(2) { animation-delay:.08s; }
+.as-daily-item:nth-child(3) { animation-delay:.12s; }
+.as-daily-item:nth-child(4) { animation-delay:.16s; }
+.as-daily-item:nth-child(5) { animation-delay:.20s; }
+.as-daily-item:nth-child(6) { animation-delay:.24s; }
+.as-daily-item:nth-child(7) { animation-delay:.28s; }
+.as-daily-item:hover { background:rgba(99,102,241,.05); border-color:rgba(99,102,241,.15); }
+
+.as-daily-date {
+    font-weight:700; font-size:.88rem; color:var(--bs-body-color);
+    flex:1;
+}
+.as-daily-day {
+    font-size:.72rem; color:var(--bs-secondary-color); font-weight:600;
+}
+.as-daily-count {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:38px; height:32px; border-radius:10px;
+    font-weight:800; font-size:.88rem;
+}
+.as-daily-count.has-data {
+    background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(22,163,74,.1));
+    color:#22c55e;
+}
+.as-daily-count.no-data {
+    background:var(--bs-body-bg); color:var(--bs-secondary-color);
+}
+.as-daily-bar-wrap {
+    width:80px; height:6px; border-radius:50px;
+    background:var(--bs-body-bg); overflow:hidden;
+}
+.as-daily-bar-fill {
+    height:100%; border-radius:50px;
+    background:linear-gradient(90deg,#22c55e,#16a34a);
+    transition:width 1s ease;
+}
+
+/* ==================== ROLES CHART ==================== */
+.as-role-list { display:flex; flex-direction:column; gap:16px; }
+.as-role-item { animation:fadeInUp .4s ease both; }
+.as-role-item:nth-child(1) { animation-delay:.06s; }
+.as-role-item:nth-child(2) { animation-delay:.12s; }
+.as-role-item:nth-child(3) { animation-delay:.18s; }
+
+.as-role-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:8px;
+}
+.as-role-info { display:flex; align-items:center; gap:10px; }
+.as-role-dot {
+    width:12px; height:12px; border-radius:4px; flex-shrink:0;
+}
+.as-role-dot.student { background:#6366f1; }
+.as-role-dot.teacher { background:#22c55e; }
+.as-role-dot.admin { background:#ef4444; }
+
+.as-role-name { font-weight:700; font-size:.9rem; color:var(--bs-body-color); }
+.as-role-count { font-weight:800; font-size:.95rem; color:var(--bs-body-color); }
+
+.as-role-bar {
+    height:10px; border-radius:50px;
+    background:var(--bs-tertiary-bg); overflow:hidden;
+}
+.as-role-fill {
+    height:100%; border-radius:50px;
+    transition:width 1.2s ease;
+}
+.as-role-fill.student { background:linear-gradient(90deg,#6366f1,#8b5cf6); }
+.as-role-fill.teacher { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.as-role-fill.admin { background:linear-gradient(90deg,#ef4444,#dc2626); }
+
+.as-role-pct {
+    text-align:right; font-size:.75rem; font-weight:700;
+    color:var(--bs-secondary-color); margin-top:4px;
+}
+
+/* ==================== EMPTY ==================== */
+.as-empty {
+    text-align:center; padding:48px 20px;
+}
+.as-empty-icon {
+    width:72px; height:72px; border-radius:20px; margin:0 auto 14px;
+    background:var(--bs-tertiary-bg);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.8rem; color:var(--bs-secondary-color);
+    animation:float 3s ease-in-out infinite;
+}
+.as-empty-text { font-size:.9rem; color:var(--bs-secondary-color); font-weight:600; }
+
+/* ==================== MOBILE PROFESSION CARDS ==================== */
+.as-prof-mobile { display:none; }
+
+.as-pm-card {
+    background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color);
+    border-radius:16px; padding:16px; transition:all .2s ease;
+    animation:fadeInUp .4s ease both;
+}
+.as-pm-card:nth-child(2) { animation-delay:.06s; }
+.as-pm-card:nth-child(3) { animation-delay:.12s; }
+.as-pm-card:nth-child(4) { animation-delay:.18s; }
+.as-pm-card-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:12px;
+}
+.as-pm-card-name { font-weight:700; font-size:.95rem; }
+.as-pm-card-stats {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+}
+.as-pm-stat {
+    text-align:center; padding:8px 4px; border-radius:10px;
+    background:var(--bs-body-bg);
+}
+.as-pm-stat-num { font-size:1rem; font-weight:800; }
+.as-pm-stat-label { font-size:.68rem; font-weight:600; color:var(--bs-secondary-color); }
+.as-pm-progress { margin-top:10px; }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width:1199px) {
+    .as-stats { grid-template-columns:repeat(3,1fr); }
+}
+@media (max-width:991px) {
+    .as-stats { grid-template-columns:repeat(3,1fr); }
+    .as-stat { padding:18px 12px; }
+    .as-stat-icon { width:42px; height:42px; }
+    .as-stat-num { font-size:1.5rem; }
+}
+@media (max-width:767px) {
+    .as-stats { grid-template-columns:repeat(2,1fr); gap:10px; }
+    .as-stat { padding:16px 12px; border-radius:16px; }
+    .as-stat-icon { width:38px; height:38px; border-radius:10px; font-size:1rem; }
+    .as-stat-num { font-size:1.3rem; }
+    .as-stat-label { font-size:.72rem; }
+    .as-header h1 { font-size:1.15rem; }
+    .as-header-icon { width:40px; height:40px; border-radius:12px; }
+    .as-card { border-radius:18px; }
+    .as-card-header { padding:16px 18px; }
+    .as-card-body { padding:16px 18px; }
+
+    .as-prof-desktop { display:none; }
+    .as-prof-mobile { display:flex; flex-direction:column; gap:10px; }
+}
+@media (max-width:575px) {
+    .as-stats { grid-template-columns:1fr 1fr; }
+    .as-header { flex-direction:column; align-items:flex-start; }
+    .as-daily-bar-wrap { width:50px; }
+}
+
+/* ==================== DARK ==================== */
+[data-bs-theme="dark"] .as-stat { box-shadow:0 4px 16px rgba(0,0,0,.25); }
+[data-bs-theme="dark"] .as-stat:hover { box-shadow:0 12px 36px rgba(0,0,0,.35); }
+[data-bs-theme="dark"] .as-card { box-shadow:0 8px 32px rgba(0,0,0,.25); }
+</style>
+
+<!-- ==================== HEADER ==================== -->
+<div class="as-header as-a1">
+    <div class="as-header-left">
+        <div class="as-header-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+        <div>
+            <h1>Tizim Statistikasi</h1>
+            <div class="as-header-sub">Barcha ko'rsatkichlar real vaqtda</div>
+        </div>
+    </div>
+    <a href="{% url 'export_system_pdf' %}" class="as-pdf-btn">
+        <i class="bi bi-file-earmark-pdf-fill"></i> PDF yuklab olish
     </a>
 </div>
 
-<!-- Umumiy statistika -->
-<div class="row mb-4">
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon blue mx-auto mb-2">
-                <i class="bi bi-people"></i>
-            </div>
-            <div class="stat-number">{{ total_users }}</div>
-            <div class="stat-label">Jami foydalanuvchilar</div>
-        </div>
+<!-- ==================== STAT CARDS ==================== -->
+<div class="as-stats">
+    <div class="as-stat users as-a1">
+        <div class="as-stat-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="as-stat-num">{{ total_users }}</div>
+        <div class="as-stat-label">Jami foydalanuvchilar</div>
+        <div class="as-stat-glow"></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon orange mx-auto mb-2">
-                <i class="bi bi-mortarboard"></i>
-            </div>
-            <div class="stat-number">{{ total_students }}</div>
-            <div class="stat-label">O'quvchilar</div>
-        </div>
+    <div class="as-stat students as-a2">
+        <div class="as-stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="as-stat-num">{{ total_students }}</div>
+        <div class="as-stat-label">O'quvchilar</div>
+        <div class="as-stat-glow"></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon green mx-auto mb-2">
-                <i class="bi bi-person-workspace"></i>
-            </div>
-            <div class="stat-number">{{ total_teachers }}</div>
-            <div class="stat-label">O'qituvchilar</div>
-        </div>
+    <div class="as-stat teachers as-a3">
+        <div class="as-stat-icon"><i class="bi bi-person-workspace"></i></div>
+        <div class="as-stat-num">{{ total_teachers }}</div>
+        <div class="as-stat-label">O'qituvchilar</div>
+        <div class="as-stat-glow"></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon purple mx-auto mb-2">
-                <i class="bi bi-shield-check"></i>
-            </div>
-            <div class="stat-number">{{ total_admins }}</div>
-            <div class="stat-label">Adminlar</div>
-        </div>
+    <div class="as-stat admins as-a4">
+        <div class="as-stat-icon"><i class="bi bi-shield-check"></i></div>
+        <div class="as-stat-num">{{ total_admins }}</div>
+        <div class="as-stat-label">Adminlar</div>
+        <div class="as-stat-glow"></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon cyan mx-auto mb-2">
-                <i class="bi bi-circle-fill"></i>
-            </div>
-            <div class="stat-number">{{ online_users }}</div>
-            <div class="stat-label">Hozir online</div>
-        </div>
+    <div class="as-stat online as-a5">
+        <div class="as-stat-icon"><i class="bi bi-wifi"></i></div>
+        <div class="as-stat-num">{{ online_users }}</div>
+        <div class="as-stat-label">Hozir online</div>
+        <div class="as-stat-glow"></div>
     </div>
-    <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-        <div class="stat-card text-center">
-            <div class="stat-icon red mx-auto mb-2">
-                <i class="bi bi-slash-circle"></i>
-            </div>
-            <div class="stat-number">{{ blocked_users }}</div>
-            <div class="stat-label">Bloklangan</div>
-        </div>
+    <div class="as-stat blocked as-a6">
+        <div class="as-stat-icon"><i class="bi bi-slash-circle-fill"></i></div>
+        <div class="as-stat-num">{{ blocked_users }}</div>
+        <div class="as-stat-label">Bloklangan</div>
+        <div class="as-stat-glow"></div>
     </div>
 </div>
 
-<div class="row">
-    <!-- Yo'nalishlar statistikasi -->
-    <div class="col-lg-8 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-briefcase me-2"></i>Yo'nalishlar bo'yicha statistika
+<div class="row g-4">
+<!-- ==================== PROFESSION STATS ==================== -->
+<div class="col-lg-8">
+    <div class="as-card as-a6">
+        <div class="as-card-header">
+            <div class="as-card-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                <i class="bi bi-briefcase-fill"></i>
             </div>
-            <div class="card-body">
-                {% if profession_stats %}
+            <h5>Yo'nalishlar bo'yicha statistika</h5>
+        </div>
+        <div class="as-card-body">
+            {% if profession_stats %}
+
+            <!-- Desktop Table -->
+            <div class="as-prof-desktop">
                 <div class="table-responsive">
-                    <table class="table">
+                    <table class="as-prof-table">
                         <thead>
                             <tr>
                                 <th>#</th>
-                                <th>Yo'nalish nomi</th>
-                                <th class="text-center">O'quvchilar</th>
-                                <th class="text-center">O'qituvchilar</th>
-                                <th class="text-center">Jami</th>
+                                <th>Yo'nalish</th>
+                                <th style="text-align:center;">O'quvchilar</th>
+                                <th style="text-align:center;">O'qituvchilar</th>
+                                <th style="text-align:center;">Jami</th>
                                 <th>Foiz</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for p in profession_stats %}
                             <tr>
-                                <td>{{ forloop.counter }}</td>
-                                <td><strong>{{ p.name }}</strong></td>
-                                <td class="text-center">
-                                    <span class="badge bg-primary" style="min-width: 40px;">{{ p.student_count }}</span>
+                                <td>
+                                    <span class="as-prof-rank {% if forloop.counter == 1 %}top1{% elif forloop.counter == 2 %}top2{% elif forloop.counter == 3 %}top3{% endif %}">
+                                        {{ forloop.counter }}
+                                    </span>
                                 </td>
-                                <td class="text-center">
-                                    <span class="badge bg-success" style="min-width: 40px;">{{ p.teacher_count }}</span>
+                                <td><span class="as-prof-name">{{ p.name }}</span></td>
+                                <td style="text-align:center;">
+                                    <span class="as-badge primary">{{ p.student_count }}</span>
                                 </td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary" style="min-width: 40px;">{{ p.total }}</span>
+                                <td style="text-align:center;">
+                                    <span class="as-badge success">{{ p.teacher_count }}</span>
+                                </td>
+                                <td style="text-align:center;">
+                                    <span class="as-badge secondary">{{ p.total }}</span>
                                 </td>
                                 <td>
                                     {% if total_users > 0 %}
-                                        {% widthratio p.total total_users 100 as percent %}
-                                        <div class="progress" style="height: 20px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ percent }}%;">
-                                                {{ percent }}%
-                                            </div>
+                                    {% widthratio p.total total_users 100 as percent %}
+                                    <div class="as-progress-wrap">
+                                        <div class="as-progress-bar">
+                                            <div class="as-progress-fill" style="width:{{ percent }}%;"></div>
                                         </div>
+                                        <span class="as-progress-pct">{{ percent }}%</span>
+                                    </div>
                                     {% else %}
-                                        0%
+                                    <span class="as-progress-pct">0%</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -224,97 +500,161 @@
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-2">Yo'nalishlar mavjud emas</p>
-                </div>
-                {% endif %}
             </div>
-        </div>
-    </div>
-    
-    <!-- Kunlik ro'yxatdan o'tish -->
-    <div class="col-lg-4 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-calendar-week me-2"></i>Oxirgi 7 kun
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Sana</th>
-                                <th class="text-center">Yangi foydalanuvchilar</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for day in daily_registrations %}
-                            <tr>
-                                <td>{{ day.date|date:"d.m.Y" }}</td>
-                                <td class="text-center">
-                                    <span class="badge {% if day.count > 0 %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ day.count }}
-                                    </span>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Rollar bo'yicha -->
-        <div class="card mt-3">
-            <div class="card-header">
-                <i class="bi bi-pie-chart me-2"></i>Rollar bo'yicha
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span style="color: var(--text-color);">O'quvchilar</span>
-                        <span style="color: var(--text-color);">{{ total_students }}</span>
+
+            <!-- Mobile Cards -->
+            <div class="as-prof-mobile">
+                {% for p in profession_stats %}
+                <div class="as-pm-card">
+                    <div class="as-pm-card-top">
+                        <div class="as-pm-card-name">
+                            <span class="as-prof-rank {% if forloop.counter == 1 %}top1{% elif forloop.counter == 2 %}top2{% elif forloop.counter == 3 %}top3{% endif %}" style="display:inline-flex;margin-right:8px;">{{ forloop.counter }}</span>
+                            {{ p.name }}
+                        </div>
+                    </div>
+                    <div class="as-pm-card-stats">
+                        <div class="as-pm-stat">
+                            <div class="as-pm-stat-num" style="color:#6366f1;">{{ p.student_count }}</div>
+                            <div class="as-pm-stat-label">O'quvchi</div>
+                        </div>
+                        <div class="as-pm-stat">
+                            <div class="as-pm-stat-num" style="color:#22c55e;">{{ p.teacher_count }}</div>
+                            <div class="as-pm-stat-label">O'qituvchi</div>
+                        </div>
+                        <div class="as-pm-stat">
+                            <div class="as-pm-stat-num">{{ p.total }}</div>
+                            <div class="as-pm-stat-label">Jami</div>
+                        </div>
                     </div>
                     {% if total_users > 0 %}
-                    {% widthratio total_students total_users 100 as student_percent %}
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-primary" style="width: {{ student_percent }}%;"></div>
+                    {% widthratio p.total total_users 100 as percent %}
+                    <div class="as-pm-progress">
+                        <div class="as-progress-wrap">
+                            <div class="as-progress-bar">
+                                <div class="as-progress-fill" style="width:{{ percent }}%;"></div>
+                            </div>
+                            <span class="as-progress-pct">{{ percent }}%</span>
+                        </div>
                     </div>
                     {% endif %}
                 </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span style="color: var(--text-color);">O'qituvchilar</span>
-                        <span style="color: var(--text-color);">{{ total_teachers }}</span>
-                    </div>
-                    {% if total_users > 0 %}
-                    {% widthratio total_teachers total_users 100 as teacher_percent %}
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-success" style="width: {{ teacher_percent }}%;"></div>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div>
-                    <div class="d-flex justify-content-between mb-1">
-                        <span style="color: var(--text-color);">Adminlar</span>
-                        <span style="color: var(--text-color);">{{ total_admins }}</span>
-                    </div>
-                    {% if total_users > 0 %}
-                    {% widthratio total_admins total_users 100 as admin_percent %}
-                    <div class="progress" style="height: 10px;">
-                        <div class="progress-bar bg-danger" style="width: {{ admin_percent }}%;"></div>
-                    </div>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
+
+            {% else %}
+            <div class="as-empty">
+                <div class="as-empty-icon"><i class="bi bi-inbox"></i></div>
+                <div class="as-empty-text">Yo'nalishlar mavjud emas</div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
+
+<!-- ==================== RIGHT COLUMN ==================== -->
+<div class="col-lg-4 d-flex flex-column gap-4">
+
+    <!-- Daily Registrations -->
+    <div class="as-card as-a7">
+        <div class="as-card-header">
+            <div class="as-card-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
+                <i class="bi bi-calendar-week-fill"></i>
+            </div>
+            <h5>Oxirgi 7 kun</h5>
+        </div>
+        <div class="as-card-body">
+            <div class="as-daily-list">
+                {% for day in daily_registrations %}
+                {% with max_count=daily_registrations.0.count %}
+                <div class="as-daily-item">
+                    <div>
+                        <div class="as-daily-date">{{ day.date|date:"d.m" }}</div>
+                        <div class="as-daily-day">{{ day.date|date:"l" }}</div>
+                    </div>
+                    <div class="as-daily-bar-wrap">
+                        <div class="as-daily-bar-fill" style="width:{% if day.count > 0 %}{% widthratio day.count 10 100 %}{% else %}0{% endif %}%;"></div>
+                    </div>
+                    <div class="as-daily-count {% if day.count > 0 %}has-data{% else %}no-data{% endif %}">
+                        {% if day.count > 0 %}+{% endif %}{{ day.count }}
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Roles Distribution -->
+    <div class="as-card as-a7" style="animation-delay:.42s">
+        <div class="as-card-header">
+            <div class="as-card-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308);">
+                <i class="bi bi-pie-chart-fill"></i>
+            </div>
+            <h5>Rollar taqsimoti</h5>
+        </div>
+        <div class="as-card-body">
+            <div class="as-role-list">
+                <div class="as-role-item">
+                    <div class="as-role-top">
+                        <div class="as-role-info">
+                            <div class="as-role-dot student"></div>
+                            <span class="as-role-name">O'quvchilar</span>
+                        </div>
+                        <span class="as-role-count">{{ total_students }}</span>
+                    </div>
+                    <div class="as-role-bar">
+                        {% if total_users > 0 %}
+                        {% widthratio total_students total_users 100 as student_pct %}
+                        <div class="as-role-fill student" style="width:{{ student_pct }}%;"></div>
+                        {% endif %}
+                    </div>
+                    {% if total_users > 0 %}
+                    <div class="as-role-pct">{{ student_pct }}%</div>
+                    {% endif %}
+                </div>
+
+                <div class="as-role-item">
+                    <div class="as-role-top">
+                        <div class="as-role-info">
+                            <div class="as-role-dot teacher"></div>
+                            <span class="as-role-name">O'qituvchilar</span>
+                        </div>
+                        <span class="as-role-count">{{ total_teachers }}</span>
+                    </div>
+                    <div class="as-role-bar">
+                        {% if total_users > 0 %}
+                        {% widthratio total_teachers total_users 100 as teacher_pct %}
+                        <div class="as-role-fill teacher" style="width:{{ teacher_pct }}%;"></div>
+                        {% endif %}
+                    </div>
+                    {% if total_users > 0 %}
+                    <div class="as-role-pct">{{ teacher_pct }}%</div>
+                    {% endif %}
+                </div>
+
+                <div class="as-role-item">
+                    <div class="as-role-top">
+                        <div class="as-role-info">
+                            <div class="as-role-dot admin"></div>
+                            <span class="as-role-name">Adminlar</span>
+                        </div>
+                        <span class="as-role-count">{{ total_admins }}</span>
+                    </div>
+                    <div class="as-role-bar">
+                        {% if total_users > 0 %}
+                        {% widthratio total_admins total_users 100 as admin_pct %}
+                        <div class="as-role-fill admin" style="width:{{ admin_pct }}%;"></div>
+                        {% endif %}
+                    </div>
+                    {% if total_users > 0 %}
+                    <div class="as-role-pct">{{ admin_pct }}%</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
 {% endblock %}
-
-
-
