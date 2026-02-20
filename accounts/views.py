@@ -66,62 +66,80 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
 
+    login_mode = request.POST.get('login_mode', 'username') if request.method == 'POST' else 'username'
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
-        if form.is_valid():
+        if login_mode == 'phone':
+            phone = request.POST.get('phone', '').strip()
+            password = request.POST.get('password', '').strip()
+
+            if not phone or not password:
+                messages.error(request, "Iltimos, barcha maydonlarni to'ldiring ⚠️")
+                return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'phone'})
+
+            try:
+                phone_user = CustomUser.objects.get(phone=phone)
+                user = authenticate(request, username=phone_user.username, password=password)
+            except CustomUser.DoesNotExist:
+                user = None
+
+            if user is None:
+                messages.error(request, "Telefon raqam yoki parol noto'g'ri ❌")
+                return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'phone'})
+
+        elif form.is_valid():
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
 
             user = authenticate(request, username=username, password=password)
 
-            # ❌ Username yoki parol xato
             if user is None:
-                messages.error(request, "Username yoki parol noto‘g‘ri ❌")
-                return render(request, 'accounts/login.html', {'form': form})
-
-            # ⛔ Bloklangan user
-            if hasattr(user, "is_blocked") and user.is_blocked:
-                messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
-                return render(request, 'accounts/login.html', {'form': form})
-
-            # ✅ Login successful
-            login(request, user)
-
-            user.last_activity = timezone.now()
-            user.save(update_fields=["last_activity"])
-
-            # 💎 Premium kunlik bonus: 5 coin
-            today = timezone.now().date()
-            if user.is_premium and user.last_daily_login != today:
-                user.last_daily_login = today
-                user.save(update_fields=["last_daily_login"])
-                user.add_coins(5, "Premium kunlik bonus")
-                messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
-
-            ActivityLog.objects.create(
-                user=user,
-                action_type='login',
-                description="Tizimga kirdi",
-                ip_address=request.META.get('REMOTE_ADDR')
-            )
-
-            messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
-
-            # Premium reklama (premium bo'lmagan studentlar uchun)
-            if user.role == 'student' and not user.is_premium:
-                request.session['show_premium_ad'] = True
-
-            return redirect('home')
-
+                messages.error(request, "Username yoki parol noto'g'ri ❌")
+                return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
         else:
-            # ❗ Form validation xatolari (bo‘sh qoldirilgan va h.k.)
-            messages.error(request, "Iltimos, barcha maydonlarni to‘g‘ri to‘ldiring ⚠️")
+            messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
+            return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
+
+        # ⛔ Bloklangan user
+        if hasattr(user, "is_blocked") and user.is_blocked:
+            messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
+            return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
+
+        # ✅ Login successful
+        login(request, user)
+
+        user.last_activity = timezone.now()
+        user.save(update_fields=["last_activity"])
+
+        # 💎 Premium kunlik bonus: 5 coin
+        today = timezone.now().date()
+        if user.is_premium and user.last_daily_login != today:
+            user.last_daily_login = today
+            user.save(update_fields=["last_daily_login"])
+            user.add_coins(5, "Premium kunlik bonus")
+            messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
+
+        ActivityLog.objects.create(
+            user=user,
+            action_type='login',
+            description="Tizimga kirdi",
+            ip_address=request.META.get('REMOTE_ADDR')
+        )
+
+        messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
+
+        # Premium reklama (premium bo'lmagan studentlar uchun)
+        if user.role == 'student' and not user.is_premium:
+            request.session['show_premium_ad'] = True
+
+        return redirect('home')
 
     else:
         form = LoginForm()
 
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'username'})
 
 
 def logout_view(request):

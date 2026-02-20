@@ -5,6 +5,127 @@
 {% block extra_css %}
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <style>
+      /* ===== LOGIN TABS ===== */
+      .login-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 1.5rem;
+        background: rgba(99, 102, 241, 0.06);
+        border-radius: 16px;
+        padding: 4px;
+        position: relative;
+      }
+      [data-bs-theme="dark"] .login-tabs {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .login-tab {
+        flex: 1;
+        text-align: center;
+        padding: 11px 14px;
+        border-radius: 13px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        color: var(--text-secondary, #6c757d);
+        border: none;
+        background: transparent;
+        position: relative;
+        z-index: 1;
+      }
+      .login-tab.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        transform: scale(1.02);
+      }
+      .login-tab:not(.active):hover {
+        color: #6366f1;
+        background: rgba(99, 102, 241, 0.08);
+      }
+
+      /* ===== PANEL TRANSITIONS ===== */
+      .login-panel {
+        display: none;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      .login-panel.active {
+        display: block;
+        animation: panelFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes panelFadeIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ===== PHONE INPUT ===== */
+      .phone-field { margin-bottom: 1rem; }
+      .phone-field .field-label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text-color, #334155);
+        letter-spacing: 0.02em;
+      }
+      .phone-input-group {
+        display: flex;
+        align-items: stretch;
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        background: var(--bg-color, #f8fafc);
+        transition: all 0.3s ease;
+      }
+      .phone-input-group:focus-within {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.08);
+      }
+      [data-bs-theme="dark"] .phone-input-group {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+      .phone-prefix {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 14px;
+        background: rgba(99, 102, 241, 0.06);
+        border-right: 1px solid var(--border-color, #e2e8f0);
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        white-space: nowrap;
+        user-select: none;
+      }
+      [data-bs-theme="dark"] .phone-prefix {
+        background: rgba(255, 255, 255, 0.05);
+        border-right-color: rgba(255, 255, 255, 0.1);
+      }
+      .phone-prefix .flag { font-size: 1.2rem; }
+      .phone-input-group input[type="tel"] {
+        flex: 1;
+        border: none;
+        padding: 15px 14px;
+        font-size: 1rem;
+        font-weight: 500;
+        background: transparent;
+        color: var(--text-color);
+        outline: none;
+        letter-spacing: 1px;
+      }
+      .phone-input-group input[type="tel"]::placeholder {
+        color: #94a3b8;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+      }
+
+      /* ===== BOTTOM LINKS ===== */
+      .auth-links {
+        animation: textFadeUp 0.6s 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -12,6 +133,10 @@
 
 <div class="blob one"></div>
 <div class="blob two"></div>
+<div class="blob three"></div>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
 
 <div class="toast-box" id="toastBox"></div>
 
@@ -25,72 +150,103 @@
     <p class="text-secondary small mb-0">IT Ijorkorlari Academy</p>
   </div>
 
-  <form method="POST" id="loginForm">
-    {% csrf_token %}
-
-  <!-- ========== USERNAME ========== -->
-<div class="form-floating mb-3 position-relative ios-input">
-
-  <!-- icon -->
-  <span class="input-icon">
-    <i class="bi bi-person"></i>
-  </span>
-
-  <!-- input -->
-  {{ form.username }}
-
-  <!-- label -->
-  <label for="{{ form.username.id_for_label }}">Username</label>
-
-</div>
-
-
-<!-- ========== PASSWORD ========== -->
-<div class="form-floating mb-4 position-relative ios-input">
-
-  <!-- icon -->
-  <span class="input-icon">
-    <i class="bi bi-lock"></i>
-  </span>
-
-  <!-- input -->
-  {{ form.password }}
-
-  <!-- show password -->
-  <button type="button" class="show-pass" onclick="togglePass()">
-    <i id="eyeIcon" class="bi bi-eye"></i>
-  </button>
-
-  <!-- label -->
-  <label for="{{ form.password.id_for_label }}">Parol</label>
-
-</div>
-
-
-    <button class="btn btn-primary w-100 py-3 fw-semibold">
-      <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+  <!-- Login tabs -->
+  <div class="login-tabs">
+    <button type="button" class="login-tab {% if login_mode != 'phone' %}active{% endif %}" data-target="usernamePanel">
+      <i class="bi bi-person me-1"></i>Username
     </button>
-  </form>
-
-  <div class="text-center small mt-3">
-    <a href="{% url 'password_reset_request' %}" class="text-warning fw-semibold text-decoration-none">
-      <i class="bi bi-key me-1"></i>Parolni unutdingizmi?
-    </a>
+    <button type="button" class="login-tab {% if login_mode == 'phone' %}active{% endif %}" data-target="phonePanel">
+      <i class="bi bi-phone me-1"></i>Mobil raqam
+    </button>
   </div>
 
-  <div class="text-center small mt-2">
-    Akkauntingiz mavjud bo'lmasa
-    <a href="{% url 'register' %}" class="text-info fw-semibold text-decoration-none">
-      Ro'yxatdan o'ting &rarr;
-    </a>
+  <!-- Username login form -->
+  <div id="usernamePanel" class="login-panel {% if login_mode != 'phone' %}active{% endif %}">
+    <form method="POST" id="loginForm">
+      {% csrf_token %}
+      <input type="hidden" name="login_mode" value="username">
+
+      <div class="form-floating mb-3 position-relative ios-input">
+        <span class="input-icon"><i class="bi bi-person"></i></span>
+        {{ form.username }}
+        <label for="{{ form.username.id_for_label }}">Username</label>
+      </div>
+
+      <div class="form-floating mb-4 position-relative ios-input">
+        <span class="input-icon"><i class="bi bi-lock"></i></span>
+        {{ form.password }}
+        <button type="button" class="show-pass" onclick="togglePass('{{ form.password.id_for_label }}', 'eyeIcon1')">
+          <i id="eyeIcon1" class="bi bi-eye"></i>
+        </button>
+        <label for="{{ form.password.id_for_label }}">Parol</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
+        <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
+      </button>
+    </form>
   </div>
 
-  <hr class="my-3">
+  <!-- Phone login form -->
+  <div id="phonePanel" class="login-panel {% if login_mode == 'phone' %}active{% endif %}">
+    <form method="POST" id="phoneLoginForm">
+      {% csrf_token %}
+      <input type="hidden" name="login_mode" value="phone">
 
-  <div class="text-center small">
-    <a href="{% url 'parent_login' %}" class="text-secondary text-decoration-none">
-      <i class="bi bi-people me-1"></i>Ota-ona sifatida kirish
-    </a>
+      <div class="phone-field">
+        <label class="field-label">
+          <i class="bi bi-phone me-1"></i>Telefon raqam
+        </label>
+        <div class="phone-input-group">
+          <div class="phone-prefix">
+            <img src="https://flagcdn.com/w40/uz.png" alt="UZ" class="flag" width="24" height="16" style="border-radius:3px;object-fit:cover;">
+            <span>+998</span>
+          </div>
+          <input type="tel" name="phone" id="phoneInput"
+                 placeholder="90 123 45 67"
+                 maxlength="12"
+                 autocomplete="tel"
+                 value="{{ request.POST.phone }}">
+        </div>
+      </div>
+
+      <div class="form-floating mb-4 position-relative ios-input">
+        <span class="input-icon"><i class="bi bi-lock"></i></span>
+        <input type="password" name="password" id="phonePassword"
+               class="form-control ps-5 pe-5" placeholder="Parol">
+        <button type="button" class="show-pass" onclick="togglePass('phonePassword', 'eyeIcon2')">
+          <i id="eyeIcon2" class="bi bi-eye"></i>
+        </button>
+        <label for="phonePassword">Parol</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
+        <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
+      </button>
+    </form>
+  </div>
+
+  <div class="auth-links">
+    <div class="text-center small mt-3">
+      <a href="{% url 'password_reset_request' %}" class="text-warning fw-semibold text-decoration-none">
+        <i class="bi bi-key me-1"></i>Parolni unutdingizmi?
+      </a>
+    </div>
+
+    <div class="text-center small mt-2">
+      Akkauntingiz mavjud bo'lmasa
+      <a href="{% url 'register' %}" class="text-info fw-semibold text-decoration-none">
+        Ro'yxatdan o'ting &rarr;
+      </a>
+    </div>
+
+    <hr class="my-3">
+
+    <div class="text-center small">
+      <a href="{% url 'parent_login' %}" class="text-secondary text-decoration-none">
+        <i class="bi bi-people me-1"></i>Ota-ona sifatida kirish
+      </a>
+    </div>
   </div>
 
 </div>
@@ -99,9 +255,26 @@
 <!-- ================= JS ================= -->
 <script>
 
-function togglePass(){
-  const input = document.getElementById("{{ form.password.id_for_label }}");
-  const icon = document.getElementById("eyeIcon");
+/* ===== Particles ===== */
+(function(){
+  const container = document.getElementById('particles');
+  if (!container) return;
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+    p.style.animationDuration = (8 + Math.random() * 14) + 's';
+    p.style.animationDelay = (Math.random() * 10) + 's';
+    p.style.opacity = (0.2 + Math.random() * 0.4).toString();
+    container.appendChild(p);
+  }
+})();
+
+/* ===== Toggle Password ===== */
+function togglePass(inputId, iconId){
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
   if(input.type === "password"){
     input.type = "text";
     icon.className = "bi bi-eye-slash";
@@ -111,14 +284,76 @@ function togglePass(){
   }
 }
 
+/* ===== Tab Switching ===== */
+document.querySelectorAll('.login-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById(tab.dataset.target);
+    // Force re-trigger animations
+    panel.style.animation = 'none';
+    panel.offsetHeight;
+    panel.style.animation = '';
+    panel.classList.add('active');
+    // Focus first input
+    const firstInput = panel.querySelector('input:not([type="hidden"])');
+    if (firstInput) setTimeout(() => firstInput.focus(), 300);
+  });
+});
+
+/* ===== Phone Input Formatting ===== */
+const phoneInput = document.getElementById('phoneInput');
+if (phoneInput) {
+  phoneInput.addEventListener('input', function() {
+    let val = this.value.replace(/\D/g, '');
+    if (val.length > 9) val = val.slice(0, 9);
+    let formatted = '';
+    if (val.length > 0) formatted = val.slice(0, 2);
+    if (val.length > 2) formatted += ' ' + val.slice(2, 5);
+    if (val.length > 5) formatted += ' ' + val.slice(5, 7);
+    if (val.length > 7) formatted += ' ' + val.slice(7, 9);
+    this.value = formatted;
+  });
+}
+
+/* ===== Phone Form Submit ===== */
+const phoneForm = document.getElementById('phoneLoginForm');
+if (phoneForm) {
+  phoneForm.addEventListener('submit', function() {
+    const input = document.getElementById('phoneInput');
+    const raw = input.value.replace(/\D/g, '');
+    const hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.name = 'phone';
+    hidden.value = '+998' + raw;
+    this.appendChild(hidden);
+    input.removeAttribute('name');
+  });
+}
+
+/* ===== Button Loading on Submit ===== */
+document.querySelectorAll('.auth-card form').forEach(form => {
+  form.addEventListener('submit', function() {
+    const btn = this.querySelector('.btn-primary');
+    if (btn) {
+      btn.classList.add('loading');
+      const span = btn.querySelector('span');
+      const icon = btn.querySelector('i');
+      if (span) span.style.opacity = '0';
+      if (icon) icon.style.opacity = '0';
+    }
+  });
+});
+
+/* ===== Toast ===== */
 function showToast(text){
   const box = document.getElementById("toastBox");
   const div = document.createElement("div");
   div.className = "toast-ios";
   div.innerHTML = `<i class="bi bi-exclamation-triangle me-2 text-danger"></i> ${text}`;
   box.appendChild(div);
-
-  setTimeout(()=>{ div.style.opacity="0"; },4500);
+  setTimeout(()=>{ div.style.opacity="0"; div.style.transform="translateX(40px)"; },4500);
   setTimeout(()=>{ div.remove(); },5000);
 }
 
@@ -132,12 +367,14 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   {% if form.username.errors %}
       showToast("Username noto'g'ri yoki mavjud emas");
-      document.getElementById("{{ form.username.id_for_label }}").classList.add("is-invalid");
+      const usernameEl = document.getElementById("{{ form.username.id_for_label }}");
+      if (usernameEl) usernameEl.classList.add("is-invalid");
   {% endif %}
 
   {% if form.password.errors %}
       showToast("Parol noto'g'ri kiritildi!");
-      document.getElementById("{{ form.password.id_for_label }}").classList.add("is-invalid");
+      const passEl = document.getElementById("{{ form.password.id_for_label }}");
+      if (passEl) passEl.classList.add("is-invalid");
   {% endif %}
 
 });
