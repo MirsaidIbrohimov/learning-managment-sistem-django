@@ -1126,7 +1126,7 @@ function showCelebrationModal() {
                     {% if result.coin_awarded %}
                     <div class="coin-banner">
                         <i class="bi bi-coin"></i>
-                        <span>Siz 1 coin qo'lga kiritdingiz!</span>
+                        <span>Siz yangi coinlarni qo'lga kiritdingiz!</span>
                     </div>
                     {% endif %}
                 </div>
@@ -1205,24 +1205,24 @@ function showCelebrationModal() {
                         Topshiriqqa o'tish
                     </a>
                     {% endif %}
-                    {% if result.test.allow_retry %}
-                    {% if request.user.is_premium and request.user.coins >= 10 or not request.user.is_premium and request.user.coins >= 30 %}
+                    {% if result.test.allow_retry and not result.passed %}
+                    {% if request.user.is_premium and request.user.coins >= 5 or not request.user.is_premium and request.user.coins >= 10 %}
                     <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
                         <i class="bi bi-arrow-repeat"></i>
                         Qayta ishlash
-                        <span class="retry-coin-tag">{% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i></span>
+                        <span class="retry-coin-tag">{% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
                     </a>
                     {% else %}
                     <span class="action-btn retry" style="opacity:.5;pointer-events:none;">
                         <i class="bi bi-lock-fill"></i>
                         Coin yetarli emas
-                        <span class="retry-coin-tag">{% if request.user.is_premium %}10{% else %}30{% endif %} <i class="bi bi-coin"></i></span>
+                        <span class="retry-coin-tag">{% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
                     </span>
                     {% endif %}
                     {% endif %}
                 </div>
 
-                {% if result.test.allow_retry %}
+                {% if result.test.allow_retry and not result.passed %}
                 <!-- Qayta ishlash narxi -->
                 <div class="retry-info-panel">
                     <div class="retry-info-prices">
@@ -1231,7 +1231,7 @@ function showCelebrationModal() {
                                 <i class="bi bi-person"></i>
                             </div>
                             <span class="retry-info-label">Oddiy</span>
-                            <span class="retry-info-amount" style="color:#ef4444;">30 <i class="bi bi-coin"></i></span>
+                            <span class="retry-info-amount" style="color:#ef4444;">10 <i class="bi bi-coin"></i></span>
                         </div>
                         <div class="retry-info-divider">VS</div>
                         <div class="retry-info-price {% if request.user.is_premium %}retry-info-current{% endif %}">
@@ -1239,16 +1239,16 @@ function showCelebrationModal() {
                                 <i class="bi bi-gem"></i>
                             </div>
                             <span class="retry-info-label">Premium</span>
-                            <span class="retry-info-amount" style="color:#10b981;">10 <i class="bi bi-coin"></i></span>
+                            <span class="retry-info-amount" style="color:#10b981;">5 <i class="bi bi-coin"></i></span>
                         </div>
                     </div>
                     <div class="retry-info-warn">
                         <i class="bi bi-exclamation-triangle-fill"></i>
                         <span>
                             Qayta ishlashda hisobingizdan
-                            <strong>{% if request.user.is_premium %}10{% else %}30{% endif %} coin</strong> yechiladi.
+                            <strong>{% if request.user.is_premium %}5{% else %}10{% endif %} coin</strong> yechiladi.
                             {% if not request.user.is_premium %}
-                            <em>Premium bilan faqat 10 coin — 20 coin tejang!</em>
+                            <em>Premium bilan faqat 5 coin — 5 coin tejang!</em>
                             {% endif %}
                         </span>
                     </div>

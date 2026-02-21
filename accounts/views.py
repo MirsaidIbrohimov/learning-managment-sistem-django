@@ -663,6 +663,7 @@ def start_test(request, pk):
             q._prefetched_objects_cache['answers'] = answers_list
     
     request.session[f'test_{test.pk}_start'] = timezone.now().isoformat()
+    request.session.pop(f'test_{test.pk}_submit_token', None)
     
     return render(request, 'accounts/lessons/test_take.html', {
         'test': test,
@@ -676,6 +677,15 @@ def submit_test(request, pk):
     
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
+    
+    # Takroriy yuborishni oldini olish (POST refresh)
+    submit_token = request.session.get(f'test_{test.pk}_submit_token')
+    if submit_token:
+        # Allaqachon yuborilgan — oxirgi natijaga yo'naltirish
+        last_result = TestResult.objects.filter(test=test, student=request.user).order_by('-id').first()
+        if last_result:
+            return redirect('test_result', pk=last_result.pk)
+    request.session[f'test_{test.pk}_submit_token'] = True
     
     start_time = request.session.get(f'test_{test.pk}_start')
     started_at = timezone.now()
@@ -730,28 +740,39 @@ def submit_test(request, pk):
     ).exclude(pk=result.pk).count()
     
     if result.passed:
-        # Har bir to'g'ri javob uchun +1 coin (faqat o'tganda)
-        if correct > 0:
-            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+        # Avval coin olinganmi tekshirish
+        already_got_coin = TestResult.objects.filter(
+            test=test, student=request.user, coin_awarded=True
+        ).exclude(pk=result.pk).exists()
+        
+        if not already_got_coin:
+            # Birinchi marta o'tmoqda — coin berish
+            if correct > 0:
+                request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+            result.coin_awarded = True
+            result.save()
         
         # Kirish pulini qaytarish (qayta topshirgan bo'lsa)
         if existing_results_count > 0:
             refund_amount = 5 if request.user.is_premium else 10
             request.user.add_coins(refund_amount, f"Test muvaffaqiyatli - kirish puli qaytarildi: {test.lesson.title}")
         
-        result.coin_awarded = True
-        result.save()
-        
-        total_earned = correct + (5 if request.user.is_premium and existing_results_count > 0 else 10 if existing_results_count > 0 else 0)
+        total_earned = (correct if not already_got_coin else 0) + (5 if request.user.is_premium and existing_results_count > 0 else 10 if existing_results_count > 0 else 0)
         
         # Activity log
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri, +{total_earned} coin"
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{total_earned} coin" if total_earned > 0 else "")
         )
         
-        if existing_results_count > 0:
+        if already_got_coin:
+            if existing_results_count > 0:
+                refund_amount = 5 if request.user.is_premium else 10
+                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! Siz bu test uchun coin allaqachon olib bo'lgansiz. {refund_amount} coin qaytarildi!")
+            else:
+                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
+        elif existing_results_count > 0:
             refund_amount = 5 if request.user.is_premium else 10
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin (to'g'ri javoblar) va {refund_amount} coin qaytarildi!")
         else:

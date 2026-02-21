@@ -65,7 +65,7 @@
 .test-sticky-header {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1030;
     background: var(--test-card);
     border-bottom: 1px solid var(--test-border);
     box-shadow: 0 4px 20px var(--test-shadow);
@@ -499,7 +499,7 @@
     background: var(--test-card);
     border-top: 1px solid var(--test-border);
     padding: 0.75rem 1rem;
-    z-index: 100;
+    z-index: 1030;
     box-shadow: 0 -4px 20px var(--test-shadow);
 }
 
@@ -1082,13 +1082,26 @@ function updateTimer() {
     }
     
     if (timeLeft <= 0) {
-        testForm.submit();
+        autoSubmitTest();
     } else {
         timeLeft--;
         setTimeout(updateTimer, 1000);
     }
 }
 updateTimer();
+
+var formSubmitted = false;
+
+function autoSubmitTest() {
+    if (formSubmitted) return;
+    formSubmitted = true;
+    var btn = testForm.querySelector('.submit-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Tekshirilmoqda...';
+    }
+    testForm.submit();
+}
 
 function updateProgress() {
     const answered = document.querySelectorAll('input[type="radio"]:checked').length;
@@ -1099,6 +1112,12 @@ function updateProgress() {
     document.getElementById('progressBar').style.width = pct + '%';
     document.getElementById('mobileProgressBar').style.width = pct + '%';
     document.getElementById('mobileAnswered').textContent = answered;
+    
+    // Hamma savollarga javob berilsa avtomatik yakunlash
+    if (answered === total) {
+        setTimeout(autoSubmitTest, 500);
+        return;
+    }
     
     document.querySelectorAll('.question-card').forEach((card, i) => {
         const qid = card.dataset.qid;
@@ -1157,7 +1176,7 @@ function showWarning(msg) {
         document.getElementById('warningMessage').textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
         document.getElementById('warnDangerBox').innerHTML = '<i class="bi bi-x-octagon-fill"></i><span>Test yakunlanmoqda...</span>';
         document.getElementById('warnDangerBox').classList.add('show');
-        setTimeout(() => testForm.submit(), 1500);
+        setTimeout(() => autoSubmitTest(), 1500);
     }
 }
 
