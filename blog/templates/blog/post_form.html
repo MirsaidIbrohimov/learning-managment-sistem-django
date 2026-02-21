@@ -1,80 +1,657 @@
 {% extends 'accounts/base.html' %}
 {% load widget_tweaks %}
 
-{% block title %}{% if edit_mode %}Postni tahrirlash{% else %}Post yaratish{% endif %} - Blog{% endblock %}
+{% block title %}{% if edit_mode %}Postni tahrirlash{% else %}Yangi post yaratish{% endif %} - Blog{% endblock %}
 
 {% block extra_css %}
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
-    .ql-editor {
-        min-height: 250px;
-        font-size: 16px;
+:root {
+    --pf-card: #ffffff;
+    --pf-card-hover: #f8fafc;
+    --pf-border: rgba(0, 0, 0, 0.08);
+    --pf-text: #1e293b;
+    --pf-text-muted: #64748b;
+    --pf-text-light: #94a3b8;
+    --pf-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --pf-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
+    --pf-radius: 20px;
+    --pf-radius-md: 14px;
+    --pf-radius-sm: 10px;
+    --pf-primary: #6366f1;
+    --pf-primary-light: rgba(99, 102, 241, 0.1);
+    --pf-bg: #f1f5f9;
+    --pf-input-bg: #f8fafc;
+    --pf-success: #10b981;
+    --pf-danger: #ef4444;
+}
+
+[data-bs-theme="dark"] {
+    --pf-card: #1e1e2e;
+    --pf-card-hover: #252538;
+    --pf-border: rgba(255, 255, 255, 0.08);
+    --pf-text: #f1f5f9;
+    --pf-text-muted: #94a3b8;
+    --pf-text-light: #64748b;
+    --pf-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --pf-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
+    --pf-bg: #111119;
+    --pf-input-bg: #16161f;
+    --pf-primary-light: rgba(99, 102, 241, 0.15);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+* { box-sizing: border-box; }
+
+.form-page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Back Button */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--pf-text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s;
+    animation: slideInLeft 0.4s ease both;
+}
+
+.back-link:hover {
+    color: var(--pf-primary);
+    transform: translateX(-4px);
+}
+
+/* Page Header */
+.form-page-header {
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease both;
+}
+
+.form-page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--pf-text);
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.form-page-header h1 i {
+    font-size: 1.5rem;
+    color: var(--pf-primary);
+}
+
+.form-page-header p {
+    color: var(--pf-text-muted);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Form Card */
+.form-card {
+    background: var(--pf-card);
+    border-radius: var(--pf-radius);
+    box-shadow: var(--pf-shadow);
+    overflow: hidden;
+    animation: fadeInScale 0.5s ease 0.1s both;
+    border: 1px solid var(--pf-border);
+}
+
+.form-card-body {
+    padding: 2rem;
+}
+
+/* Field Groups */
+.field-group {
+    margin-bottom: 1.75rem;
+    animation: fadeInUp 0.4s ease both;
+}
+
+.field-group:nth-child(1) { animation-delay: 0.15s; }
+.field-group:nth-child(2) { animation-delay: 0.2s; }
+.field-group:nth-child(3) { animation-delay: 0.25s; }
+.field-group:nth-child(4) { animation-delay: 0.3s; }
+.field-group:nth-child(5) { animation-delay: 0.35s; }
+
+.field-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--pf-text);
+    margin-bottom: 0.6rem;
+}
+
+.field-label i {
+    color: var(--pf-primary);
+    font-size: 1rem;
+}
+
+.field-label .required {
+    color: var(--pf-danger);
+    font-size: 0.75rem;
+}
+
+/* Input Styles */
+.pf-input,
+.pf-select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 2px solid var(--pf-border);
+    border-radius: var(--pf-radius-sm);
+    background: var(--pf-input-bg);
+    color: var(--pf-text);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.pf-input:focus,
+.pf-select:focus {
+    outline: none;
+    border-color: var(--pf-primary);
+    box-shadow: 0 0 0 4px var(--pf-primary-light);
+    background: var(--pf-card);
+}
+
+.pf-input::placeholder {
+    color: var(--pf-text-light);
+}
+
+.pf-input-lg {
+    font-size: 1.15rem;
+    font-weight: 600;
+    padding: 1rem 1.15rem;
+}
+
+/* Two column row */
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+/* File Upload */
+.file-upload-area {
+    position: relative;
+    border: 2px dashed var(--pf-border);
+    border-radius: var(--pf-radius-sm);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: var(--pf-input-bg);
+}
+
+.file-upload-area:hover {
+    border-color: var(--pf-primary);
+    background: var(--pf-primary-light);
+}
+
+.file-upload-area.has-file {
+    border-color: var(--pf-success);
+    border-style: solid;
+}
+
+.file-upload-area input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-icon {
+    font-size: 2rem;
+    color: var(--pf-text-light);
+    margin-bottom: 0.5rem;
+    transition: all 0.3s;
+}
+
+.file-upload-area:hover .upload-icon {
+    color: var(--pf-primary);
+    transform: translateY(-2px);
+}
+
+.upload-text {
+    color: var(--pf-text-muted);
+    font-size: 0.85rem;
+}
+
+.upload-text strong {
+    color: var(--pf-primary);
+}
+
+/* Image Preview */
+.image-preview {
+    margin-top: 1rem;
+    border-radius: var(--pf-radius-sm);
+    overflow: hidden;
+    display: none;
+    animation: fadeInScale 0.3s ease both;
+}
+
+.image-preview.active {
+    display: block;
+}
+
+.image-preview img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: var(--pf-radius-sm);
+}
+
+/* Current image (edit mode) */
+.current-image {
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--pf-primary-light);
+    border-radius: var(--pf-radius-sm);
+}
+
+.current-image img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.current-image span {
+    font-size: 0.85rem;
+    color: var(--pf-text-muted);
+}
+
+/* Quill Editor */
+.editor-wrapper {
+    border: 2px solid var(--pf-border);
+    border-radius: var(--pf-radius-sm);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.editor-wrapper:focus-within {
+    border-color: var(--pf-primary);
+    box-shadow: 0 0 0 4px var(--pf-primary-light);
+}
+
+.editor-wrapper .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 1px solid var(--pf-border);
+    background: var(--pf-input-bg);
+    padding: 0.75rem;
+}
+
+.editor-wrapper .ql-container.ql-snow {
+    border: none;
+    background: var(--pf-card);
+}
+
+.editor-wrapper .ql-editor {
+    min-height: 250px;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--pf-text);
+    padding: 1rem 1.15rem;
+}
+
+.editor-wrapper .ql-editor.ql-blank::before {
+    color: var(--pf-text-light);
+    font-style: normal;
+}
+
+[data-bs-theme="dark"] .editor-wrapper .ql-toolbar .ql-stroke {
+    stroke: var(--pf-text-muted);
+}
+
+[data-bs-theme="dark"] .editor-wrapper .ql-toolbar .ql-fill {
+    fill: var(--pf-text-muted);
+}
+
+[data-bs-theme="dark"] .editor-wrapper .ql-toolbar .ql-picker-label {
+    color: var(--pf-text-muted);
+}
+
+[data-bs-theme="dark"] .editor-wrapper .ql-toolbar button:hover .ql-stroke {
+    stroke: var(--pf-primary);
+}
+
+[data-bs-theme="dark"] .editor-wrapper .ql-toolbar button:hover .ql-fill {
+    fill: var(--pf-primary);
+}
+
+/* Checkbox */
+.pf-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--pf-input-bg);
+    border-radius: var(--pf-radius-sm);
+    border: 2px solid var(--pf-border);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.pf-checkbox:hover {
+    border-color: var(--pf-primary);
+    background: var(--pf-primary-light);
+}
+
+.pf-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--pf-primary);
+    cursor: pointer;
+}
+
+.pf-checkbox-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.pf-checkbox-label {
+    font-weight: 700;
+    color: var(--pf-text);
+    font-size: 0.9rem;
+}
+
+.pf-checkbox-hint {
+    font-size: 0.8rem;
+    color: var(--pf-text-muted);
+}
+
+/* Error text */
+.field-error {
+    color: var(--pf-danger);
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 2rem;
+    border-top: 1px solid var(--pf-border);
+    background: var(--pf-input-bg);
+    animation: fadeInUp 0.4s ease 0.4s both;
+}
+
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    border: 2px solid var(--pf-border);
+    background: transparent;
+    color: var(--pf-text-muted);
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    border-color: var(--pf-danger);
+    color: var(--pf-danger);
+    background: rgba(239, 68, 68, 0.05);
+    transform: translateY(-1px);
+}
+
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    border-radius: 25px;
+    border: none;
+    background: linear-gradient(135deg, var(--pf-primary), #8b5cf6);
+    color: white;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-submit:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-page {
+        padding: 1rem 0.75rem;
     }
-    .ql-toolbar.ql-snow {
-        border-radius: 8px 8px 0 0;
-        background: #f8f9fa;
+
+    .form-page-header h1 {
+        font-size: 1.35rem;
     }
-    .ql-container.ql-snow {
-        border-radius: 0 0 8px 8px;
+
+    .form-card-body {
+        padding: 1.25rem;
     }
+
+    .field-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .form-actions {
+        padding: 1rem 1.25rem;
+        flex-direction: column-reverse;
+        gap: 0.75rem;
+    }
+
+    .btn-cancel,
+    .btn-submit {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .editor-wrapper .ql-editor {
+        min-height: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-page {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .form-page-header h1 {
+        font-size: 1.2rem;
+    }
+
+    .form-card-body {
+        padding: 1rem;
+    }
+
+    .pf-input-lg {
+        font-size: 1rem;
+        padding: 0.85rem 1rem;
+    }
+
+    .file-upload-area {
+        padding: 1rem;
+    }
+
+    .upload-icon {
+        font-size: 1.5rem;
+    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white py-3">
-                    <h4 class="mb-0 fw-bold">{% if edit_mode %}Postni tahrirlash{% else %}Yangi post yaratish{% endif %}</h4>
+<div class="form-page">
+    <!-- Back Link -->
+    <a href="{% if edit_mode %}{% url 'blog:admin_posts' %}{% else %}{% url 'blog:post_list' %}{% endif %}" class="back-link">
+        <i class="bi bi-arrow-left"></i>
+        Orqaga qaytish
+    </a>
+
+    <!-- Page Header -->
+    <div class="form-page-header">
+        <h1>
+            {% if edit_mode %}
+            <i class="bi bi-pencil-square"></i>
+            Postni tahrirlash
+            {% else %}
+            <i class="bi bi-plus-circle"></i>
+            Yangi post yaratish
+            {% endif %}
+        </h1>
+        <p>{% if edit_mode %}Postni tahrirlang va saqlang{% else %}Blog uchun yangi post yozing{% endif %}</p>
+    </div>
+
+    <!-- Form Card -->
+    <form method="post" enctype="multipart/form-data" id="postForm" class="form-card">
+        {% csrf_token %}
+        <div class="form-card-body">
+            <!-- Title -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="bi bi-type-h1"></i>
+                    Sarlavha
+                    <span class="required">*</span>
+                </label>
+                {{ form.title|add_class:"pf-input pf-input-lg"|attr:"placeholder:Post sarlavhasini kiriting..." }}
+                {% if form.title.errors %}
+                <div class="field-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ form.title.errors.0 }}
                 </div>
-                <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data" id="postForm">
-                        {% csrf_token %}
+                {% endif %}
+            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Sarlavha</label>
-                            {{ form.title|add_class:"form-control form-control-lg" }}
-                            {% if form.title.errors %}
-                            <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+            <!-- Type & Image Row -->
+            <div class="field-row">
+                <div class="field-group">
+                    <label class="field-label">
+                        <i class="bi bi-tag"></i>
+                        Turi
+                    </label>
+                    {{ form.post_type|add_class:"pf-input pf-select" }}
+                </div>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Turi</label>
-                                {{ form.post_type|add_class:"form-select" }}
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Rasm yuklash</label>
-                                {{ form.image|add_class:"form-control" }}
-                            </div>
+                <div class="field-group">
+                    <label class="field-label">
+                        <i class="bi bi-image"></i>
+                        Rasm
+                    </label>
+                    <div class="file-upload-area" id="uploadArea">
+                        {{ form.image }}
+                        <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                        <div class="upload-text">
+                            <strong>Rasm tanlang</strong> yoki bu yerga tashlang
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Matn</label>
-                            <div id="editor"></div>
-                            <textarea name="content" id="contentField" style="display:none;">{{ form.content.value|default:'' }}</textarea>
-                            {% if form.content.errors %}
-                            <div class="text-danger small mt-1">{{ form.content.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-3">
-                            <a href="{% if edit_mode %}{% url 'blog:admin_posts' %}{% else %}{% url 'blog:post_list' %}{% endif %}" class="btn btn-light">Bekor qilish</a>
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="bi bi-check-lg me-2"></i>{% if edit_mode %}Saqlash{% else %}Chop etish{% endif %}
-                            </button>
-                        </div>
-                    </form>
+                    </div>
+                    {% if edit_mode and post.image %}
+                    <div class="current-image">
+                        <img src="{{ post.image.url }}" alt="">
+                        <span>Joriy rasm yuklangan</span>
+                    </div>
+                    {% endif %}
+                    <div class="image-preview" id="imagePreview">
+                        <img id="previewImg" src="" alt="Preview">
+                    </div>
                 </div>
             </div>
+
+            <!-- Content Editor -->
+            <div class="field-group">
+                <label class="field-label">
+                    <i class="bi bi-text-paragraph"></i>
+                    Matn
+                    <span class="required">*</span>
+                </label>
+                <div class="editor-wrapper">
+                    <div id="editor"></div>
+                </div>
+                <textarea name="content" id="contentField" style="display:none;">{{ form.content.value|default:'' }}</textarea>
+                {% if form.content.errors %}
+                <div class="field-error">
+                    <i class="bi bi-exclamation-circle"></i>
+                    {{ form.content.errors.0 }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Published Checkbox -->
+            <div class="field-group">
+                <label class="pf-checkbox">
+                    {{ form.is_published }}
+                    <div class="pf-checkbox-text">
+                        <span class="pf-checkbox-label">Nashr qilish</span>
+                        <span class="pf-checkbox-hint">Post barcha foydalanuvchilarga ko'rinadi</span>
+                    </div>
+                </label>
+            </div>
         </div>
-    </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+            <a href="{% if edit_mode %}{% url 'blog:admin_posts' %}{% else %}{% url 'blog:post_list' %}{% endif %}" class="btn-cancel">
+                <i class="bi bi-x-lg"></i>
+                Bekor qilish
+            </a>
+            <button type="submit" class="btn-submit">
+                {% if edit_mode %}
+                <i class="bi bi-check-lg"></i>
+                Saqlash
+                {% else %}
+                <i class="bi bi-send"></i>
+                Chop etish
+                {% endif %}
+            </button>
+        </div>
+    </form>
 </div>
 
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
+    // Quill Editor
     var quill = new Quill('#editor', {
         theme: 'snow',
         placeholder: 'Post matnini yozing...',
@@ -98,9 +675,33 @@
         quill.root.innerHTML = existingContent;
     }
 
-    // On form submit, copy content to hidden field
+    // On form submit
     document.getElementById('postForm').onsubmit = function() {
         document.getElementById('contentField').value = quill.root.innerHTML;
     };
+
+    // Image preview
+    var fileInput = document.querySelector('#uploadArea input[type="file"]');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            var area = document.getElementById('uploadArea');
+            var preview = document.getElementById('imagePreview');
+            var previewImg = document.getElementById('previewImg');
+
+            if (file) {
+                area.classList.add('has-file');
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    previewImg.src = ev.target.result;
+                    preview.classList.add('active');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                area.classList.remove('has-file');
+                preview.classList.remove('active');
+            }
+        });
+    }
 </script>
 {% endblock %}
