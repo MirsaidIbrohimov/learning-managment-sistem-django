@@ -38,7 +38,7 @@ class UpdateLastActivityMiddleware:
     def __call__(self, request):
         if request.user.is_authenticated:
             CustomUser.objects.filter(id=request.user.id).update(
-                last_login=timezone.now()
+                last_activity=timezone.now()
             )
         
         return self.get_response(request)

@@ -2,281 +2,883 @@
 
 {% block title %}Dashboard - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ===== Dashboard Animations ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseOnline {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes glowPulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* ===== Dashboard Layout ===== */
+.db-page {
+    animation: fadeInUp 0.4s ease both;
+}
+
+/* Top Bar */
+.db-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    animation: fadeInUp 0.4s ease both;
+}
+
+.db-topbar h1 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--text-color);
+}
+
+.db-topbar h1 i {
+    color: var(--primary-blue);
+}
+
+.db-topbar-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* ===== Stat Cards Grid ===== */
+.db-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.db-stat {
+    position: relative;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.5s ease both;
+}
+
+.db-stat:nth-child(1) { animation-delay: 0.05s; }
+.db-stat:nth-child(2) { animation-delay: 0.1s; }
+.db-stat:nth-child(3) { animation-delay: 0.15s; }
+.db-stat:nth-child(4) { animation-delay: 0.2s; }
+.db-stat:nth-child(5) { animation-delay: 0.25s; }
+.db-stat:nth-child(6) { animation-delay: 0.3s; }
+.db-stat:nth-child(7) { animation-delay: 0.35s; }
+
+.db-stat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 16px 16px 0 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.db-stat:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.db-stat:hover::before {
+    opacity: 1;
+}
+
+/* Color variants */
+.db-stat.blue::before { background: linear-gradient(90deg, #3b82f6, #2563eb); }
+.db-stat.green::before { background: linear-gradient(90deg, #10b981, #059669); }
+.db-stat.orange::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.db-stat.cyan::before { background: linear-gradient(90deg, #06b6d4, #0891b2); }
+.db-stat.pink::before { background: linear-gradient(90deg, #ec4899, #db2777); }
+.db-stat.red::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+.db-stat.purple::before { background: linear-gradient(90deg, #8b5cf6, #7c3aed); }
+
+.db-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin: 0 auto 0.75rem;
+    transition: transform 0.3s;
+}
+
+.db-stat:hover .db-stat-icon {
+    transform: scale(1.1);
+}
+
+.db-stat.blue .db-stat-icon { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.db-stat.green .db-stat-icon { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.db-stat.orange .db-stat-icon { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.db-stat.cyan .db-stat-icon { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
+.db-stat.pink .db-stat-icon { background: rgba(236, 72, 153, 0.12); color: #ec4899; }
+.db-stat.red .db-stat-icon { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.db-stat.purple .db-stat-icon { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+
+.db-stat-num {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+    animation: countUp 0.6s ease both;
+}
+
+.db-stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* Online card special glow */
+.db-stat.online-card .db-stat-icon {
+    animation: pulseOnline 2s infinite;
+}
+
+.db-stat.online-card .db-online-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 4px;
+    animation: glowPulse 1.5s infinite;
+}
+
+/* ===== Info Cards Row ===== */
+.db-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.db-info-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeInUp 0.5s ease both;
+}
+
+.db-info-card:nth-child(1) { animation-delay: 0.1s; }
+.db-info-card:nth-child(2) { animation-delay: 0.15s; }
+.db-info-card:nth-child(3) { animation-delay: 0.2s; }
+.db-info-card:nth-child(4) { animation-delay: 0.25s; }
+
+.db-info-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+}
+
+.db-info-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.db-info-icon.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.db-info-icon.green { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.db-info-icon.orange { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.db-info-icon.purple { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+.db-info-icon.cyan { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
+.db-info-icon.red { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+
+.db-info-text .db-info-num {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1.2;
+}
+
+.db-info-text .db-info-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+/* ===== Section Header ===== */
+.db-section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    animation: slideInLeft 0.4s ease both;
+}
+
+.db-section-header h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+.db-section-header i {
+    color: var(--primary-blue);
+    font-size: 1rem;
+}
+
+/* ===== Summary Cards (Test & Homework) ===== */
+.db-summary-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.db-summary-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    animation: fadeInScale 0.5s ease both;
+}
+
+.db-summary-card:nth-child(1) { animation-delay: 0.15s; }
+.db-summary-card:nth-child(2) { animation-delay: 0.2s; }
+
+.db-summary-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.db-summary-head i {
+    color: var(--primary-blue);
+}
+
+.db-summary-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    text-align: center;
+    padding: 1.25rem;
+    gap: 0.5rem;
+}
+
+.db-summary-item h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.2rem;
+    color: var(--text-color);
+}
+
+.db-summary-item h3.text-success { color: #10b981 !important; }
+.db-summary-item h3.text-warning { color: #f59e0b !important; }
+.db-summary-item h3.text-primary { color: #3b82f6 !important; }
+
+.db-summary-item small {
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* ===== Table Cards ===== */
+.db-table-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+}
+
+.db-table-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    animation: fadeInScale 0.5s ease both;
+}
+
+.db-table-card:nth-child(1) { animation-delay: 0.2s; }
+.db-table-card:nth-child(2) { animation-delay: 0.25s; }
+
+.db-table-head {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.db-table-head span {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.db-table-head span i {
+    color: var(--primary-blue);
+}
+
+.db-table-head a {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-blue);
+    text-decoration: none;
+    padding: 0.35rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(13, 110, 253, 0.2);
+    transition: all 0.2s;
+}
+
+.db-table-head a:hover {
+    background: rgba(13, 110, 253, 0.08);
+}
+
+.db-table-body {
+    padding: 0;
+}
+
+.db-table-body .table {
+    margin: 0;
+}
+
+.db-table-body .table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+    font-weight: 700;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.db-table-body .table td {
+    padding: 0.75rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.db-table-body .table tr:last-child td {
+    border-bottom: none;
+}
+
+.db-table-body .table tbody tr {
+    transition: background 0.2s;
+}
+
+.db-table-body .table tbody tr:hover {
+    background: rgba(13, 110, 253, 0.03);
+}
+
+.db-user-name {
+    font-weight: 700;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.db-user-sub {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* Online/Offline badges */
+.db-badge-online {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+}
+
+.db-badge-online::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: glowPulse 1.5s infinite;
+}
+
+.db-badge-offline {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.6rem;
+    border-radius: 20px;
+    background: rgba(108, 117, 125, 0.12);
+    color: #6c757d;
+}
+
+.db-badge-offline::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6c757d;
+}
+
+.db-empty {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* ===== Activity Card (Full Width) ===== */
+.db-full-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+    animation: fadeInScale 0.5s ease 0.3s both;
+}
+
+/* Activity badges */
+.db-act-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+}
+
+.db-act-badge.login { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
+.db-act-badge.logout { background: rgba(108, 117, 125, 0.12); color: #6c757d; }
+.db-act-badge.deploy { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.db-act-badge.edit { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.db-act-badge.delete { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.db-act-badge.homework { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.db-act-badge.test { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.db-act-badge.video { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
+.db-act-badge.enroll { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.db-act-badge.coin { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.db-act-badge.other { background: rgba(108, 117, 125, 0.08); color: #6c757d; }
+
+/* ===== Weekly Stats ===== */
+.db-weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    padding: 1.25rem;
+}
+
+.db-week-day {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    border-radius: 12px;
+    background: rgba(13, 110, 253, 0.03);
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease both;
+}
+
+.db-week-day:nth-child(1) { animation-delay: 0.3s; }
+.db-week-day:nth-child(2) { animation-delay: 0.35s; }
+.db-week-day:nth-child(3) { animation-delay: 0.4s; }
+.db-week-day:nth-child(4) { animation-delay: 0.45s; }
+.db-week-day:nth-child(5) { animation-delay: 0.5s; }
+.db-week-day:nth-child(6) { animation-delay: 0.55s; }
+.db-week-day:nth-child(7) { animation-delay: 0.6s; }
+
+.db-week-day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.db-week-date {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.db-week-val {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.db-week-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.db-week-badge.users { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.db-week-badge.enrolls { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+    .db-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .db-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .db-table-grid {
+        grid-template-columns: 1fr;
+    }
+    .db-weekly-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .db-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .db-info-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .db-summary-grid {
+        grid-template-columns: 1fr;
+    }
+    .db-topbar {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    .db-weekly-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .db-stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    .db-info-grid {
+        grid-template-columns: 1fr;
+    }
+    .db-stat {
+        padding: 1rem;
+    }
+    .db-stat-num {
+        font-size: 1.4rem;
+    }
+    .db-stat-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+    }
+    .db-weekly-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .db-summary-body {
+        grid-template-columns: repeat(3, 1fr);
+        padding: 1rem;
+    }
+    .db-summary-item h3 {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 400px) {
+    .db-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block admin_content %}
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h1>
-    <div class="d-flex gap-2">
-        <a href="{% url 'export_system_pdf' %}" class="btn btn-primary">
-            <i class="bi bi-file-pdf me-2"></i>PDF
-        </a>
-        <a href="/admin/" class="btn btn-outline-primary" target="_blank">
-            <i class="bi bi-gear me-2"></i>Django Admin
-        </a>
-    </div>
-</div>
+<div class="db-page">
 
-<!-- Asosiy statistika -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon blue mx-auto mb-2"><i class="bi bi-people"></i></div>
-            <div class="stat-number">{{ total_users }}</div>
-            <div class="stat-label">Foydalanuvchilar</div>
+    <!-- Top Bar -->
+    <div class="db-topbar">
+        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <div class="db-topbar-actions">
+            <a href="{% url 'export_system_pdf' %}" class="btn btn-primary">
+                <i class="bi bi-file-pdf me-1"></i>PDF
+            </a>
+            <a href="/admin/" class="btn btn-outline-primary" target="_blank">
+                <i class="bi bi-gear me-1"></i>Django Admin
+            </a>
         </div>
     </div>
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon green mx-auto mb-2"><i class="bi bi-person-workspace"></i></div>
-            <div class="stat-number">{{ total_teachers }}</div>
-            <div class="stat-label">O'qituvchilar</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon orange mx-auto mb-2"><i class="bi bi-mortarboard"></i></div>
-            <div class="stat-number">{{ total_students }}</div>
-            <div class="stat-label">O'quvchilar</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon cyan mx-auto mb-2"><i class="bi bi-circle-fill"></i></div>
-            <div class="stat-number">{{ online_users }}</div>
-            <div class="stat-label">Online</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon pink mx-auto mb-2"><i class="bi bi-people-fill"></i></div>
-            <div class="stat-number">{{ total_parents }}</div>
-            <div class="stat-label">Ota-onalar</div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon red mx-auto mb-2"><i class="bi bi-slash-circle"></i></div>
-            <div class="stat-number">{{ blocked_users }}</div>
-            <div class="stat-label">Bloklangan</div>
-        </div>
-    </div>
-</div>
 
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4 col-lg-2">
-        <div class="stat-card text-center">
-            <div class="stat-icon purple mx-auto mb-2"><i class="bi bi-coin"></i></div>
-            <div class="stat-number">{{ total_coins }}</div>
-            <div class="stat-label">Jami coinlar</div>
-        </div>
+    <!-- Asosiy Statistika -->
+    <div class="db-section-header">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <h2>Asosiy statistika</h2>
     </div>
-</div>
 
-<!-- O'quv statistikasi -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon blue me-3"><i class="bi bi-briefcase"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_professions }}</div>
-                    <div class="stat-label">Kurslar</div>
-                </div>
-            </div>
+    <div class="db-stats-grid">
+        <div class="db-stat blue">
+            <div class="db-stat-icon"><i class="bi bi-people"></i></div>
+            <div class="db-stat-num">{{ total_users }}</div>
+            <div class="db-stat-label">Foydalanuvchilar</div>
+        </div>
+        <div class="db-stat green">
+            <div class="db-stat-icon"><i class="bi bi-person-workspace"></i></div>
+            <div class="db-stat-num">{{ total_teachers }}</div>
+            <div class="db-stat-label">O'qituvchilar</div>
+        </div>
+        <div class="db-stat orange">
+            <div class="db-stat-icon"><i class="bi bi-mortarboard"></i></div>
+            <div class="db-stat-num">{{ total_students }}</div>
+            <div class="db-stat-label">O'quvchilar</div>
+        </div>
+        <div class="db-stat cyan online-card">
+            <div class="db-stat-icon"><i class="bi bi-broadcast"></i></div>
+            <div class="db-stat-num">{{ online_users }} <span class="db-online-dot"></span></div>
+            <div class="db-stat-label">Online</div>
+        </div>
+        <div class="db-stat pink">
+            <div class="db-stat-icon"><i class="bi bi-people-fill"></i></div>
+            <div class="db-stat-num">{{ total_parents }}</div>
+            <div class="db-stat-label">Ota-onalar</div>
+        </div>
+        <div class="db-stat red">
+            <div class="db-stat-icon"><i class="bi bi-slash-circle"></i></div>
+            <div class="db-stat-num">{{ blocked_users }}</div>
+            <div class="db-stat-label">Bloklangan</div>
+        </div>
+        <div class="db-stat purple">
+            <div class="db-stat-icon"><i class="bi bi-coin"></i></div>
+            <div class="db-stat-num">{{ total_coins }}</div>
+            <div class="db-stat-label">Jami coinlar</div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon green me-3"><i class="bi bi-play-circle"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_videos }}</div>
-                    <div class="stat-label">Video darslar</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon orange me-3"><i class="bi bi-question-circle"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_tests }}</div>
-                    <div class="stat-label">Testlar</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon purple me-3"><i class="bi bi-user-plus"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_enrollments }}</div>
-                    <div class="stat-label">Yozilganlar</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Mahsulot statistikasi -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon green me-3"><i class="bi bi-shop"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_products }}</div>
-                    <div class="stat-label">Mahsulotlar</div>
-                </div>
-            </div>
-        </div>
+    <!-- O'quv statistikasi -->
+    <div class="db-section-header">
+        <i class="bi bi-book"></i>
+        <h2>O'quv jarayoni</h2>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon blue me-3"><i class="bi bi-check-circle"></i></div>
-                <div>
-                    <div class="stat-number">{{ active_products }}</div>
-                    <div class="stat-label">Faol</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon orange me-3"><i class="bi bi-bag-check"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_purchases }}</div>
-                    <div class="stat-label">Xaridlar</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon purple me-3"><i class="bi bi-coin"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_coins_spent }}</div>
-                    <div class="stat-label">Sarflangan coin</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Deploy statistikasi -->
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon cyan me-3"><i class="bi bi-code-slash"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_deploys }}</div>
-                    <div class="stat-label">Jami loyihalar</div>
-                </div>
+    <div class="db-info-grid">
+        <div class="db-info-card">
+            <div class="db-info-icon blue"><i class="bi bi-briefcase"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_professions }}</div>
+                <div class="db-info-label">Kurslar</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon green"><i class="bi bi-play-circle"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_videos }}</div>
+                <div class="db-info-label">Video darslar</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon orange"><i class="bi bi-question-circle"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_tests }}</div>
+                <div class="db-info-label">Testlar</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon purple"><i class="bi bi-person-plus"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_enrollments }}</div>
+                <div class="db-info-label">Yozilganlar</div>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon green me-3"><i class="bi bi-check-circle"></i></div>
-                <div>
-                    <div class="stat-number">{{ active_deploys }}</div>
-                    <div class="stat-label">Faol</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon red me-3"><i class="bi bi-x-circle"></i></div>
-                <div>
-                    <div class="stat-number">{{ inactive_deploys }}</div>
-                    <div class="stat-label">Nofaol</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div class="stat-icon blue me-3"><i class="bi bi-eye"></i></div>
-                <div>
-                    <div class="stat-number">{{ total_deploy_views }}</div>
-                    <div class="stat-label">Ko'rishlar</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Test va Vazifalar -->
-<div class="row g-4 mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-check-circle me-2"></i>Test natijalari
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-4">
-                        <h3 style="color: var(--text-color);">{{ total_test_results }}</h3>
-                        <small class="text-muted">Jami</small>
-                    </div>
-                    <div class="col-4">
-                        <h3 class="text-success">{{ passed_tests }}</h3>
-                        <small class="text-muted">O'tgan</small>
-                    </div>
-                    <div class="col-4">
-                        <h3 class="text-primary">{{ avg_test_score }}%</h3>
-                        <small class="text-muted">O'rtacha</small>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Mahsulot statistikasi -->
+    <div class="db-section-header">
+        <i class="bi bi-shop-window"></i>
+        <h2>Market & Deploy</h2>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-file-text me-2"></i>Uyga vazifalar
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-4">
-                        <h3 style="color: var(--text-color);">{{ pending_homeworks|add:graded_homeworks }}</h3>
-                        <small class="text-muted">Jami</small>
-                    </div>
-                    <div class="col-4">
-                        <h3 class="text-warning">{{ pending_homeworks }}</h3>
-                        <small class="text-muted">Kutilmoqda</small>
-                    </div>
-                    <div class="col-4">
-                        <h3 class="text-success">{{ graded_homeworks }}</h3>
-                        <small class="text-muted">Baholangan</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row g-4">
-    <!-- Yo'nalishlar -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-briefcase me-2"></i>Kurslar statistikasi</span>
-                <a href="{% url 'admin_professions' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+    <div class="db-info-grid">
+        <div class="db-info-card">
+            <div class="db-info-icon green"><i class="bi bi-shop"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_products }}</div>
+                <div class="db-info-label">Mahsulotlar</div>
             </div>
-            <div class="card-body">
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon blue"><i class="bi bi-check-circle"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ active_products }}</div>
+                <div class="db-info-label">Faol mahsulot</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon orange"><i class="bi bi-bag-check"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_purchases }}</div>
+                <div class="db-info-label">Xaridlar</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon purple"><i class="bi bi-coin"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_coins_spent }}</div>
+                <div class="db-info-label">Sarflangan coin</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="db-info-grid" style="margin-top:-0.75rem;">
+        <div class="db-info-card">
+            <div class="db-info-icon cyan"><i class="bi bi-code-slash"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_deploys }}</div>
+                <div class="db-info-label">Jami loyihalar</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon green"><i class="bi bi-check-circle"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ active_deploys }}</div>
+                <div class="db-info-label">Faol deploy</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon red"><i class="bi bi-x-circle"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ inactive_deploys }}</div>
+                <div class="db-info-label">Nofaol deploy</div>
+            </div>
+        </div>
+        <div class="db-info-card">
+            <div class="db-info-icon blue"><i class="bi bi-eye"></i></div>
+            <div class="db-info-text">
+                <div class="db-info-num">{{ total_deploy_views }}</div>
+                <div class="db-info-label">Ko'rishlar</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test va Vazifalar -->
+    <div class="db-section-header">
+        <i class="bi bi-clipboard-data"></i>
+        <h2>Test va Vazifalar</h2>
+    </div>
+
+    <div class="db-summary-grid">
+        <div class="db-summary-card">
+            <div class="db-summary-head">
+                <i class="bi bi-check-circle"></i> Test natijalari
+            </div>
+            <div class="db-summary-body">
+                <div class="db-summary-item">
+                    <h3>{{ total_test_results }}</h3>
+                    <small>Jami</small>
+                </div>
+                <div class="db-summary-item">
+                    <h3 class="text-success">{{ passed_tests }}</h3>
+                    <small>O'tgan</small>
+                </div>
+                <div class="db-summary-item">
+                    <h3 class="text-primary">{{ avg_test_score }}%</h3>
+                    <small>O'rtacha</small>
+                </div>
+            </div>
+        </div>
+        <div class="db-summary-card">
+            <div class="db-summary-head">
+                <i class="bi bi-file-text"></i> Uyga vazifalar
+            </div>
+            <div class="db-summary-body">
+                <div class="db-summary-item">
+                    <h3>{{ pending_homeworks|add:graded_homeworks }}</h3>
+                    <small>Jami</small>
+                </div>
+                <div class="db-summary-item">
+                    <h3 class="text-warning">{{ pending_homeworks }}</h3>
+                    <small>Kutilmoqda</small>
+                </div>
+                <div class="db-summary-item">
+                    <h3 class="text-success">{{ graded_homeworks }}</h3>
+                    <small>Baholangan</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kurslar & Oxirgi faollar -->
+    <div class="db-section-header">
+        <i class="bi bi-table"></i>
+        <h2>Kurslar va Faollar</h2>
+    </div>
+
+    <div class="db-table-grid">
+        <!-- Kurslar statistikasi -->
+        <div class="db-table-card">
+            <div class="db-table-head">
+                <span><i class="bi bi-briefcase"></i> Kurslar statistikasi</span>
+                <a href="{% url 'admin_professions' %}">Barchasi</a>
+            </div>
+            <div class="db-table-body">
                 {% if profession_stats %}
                 <div class="table-responsive">
-                    <table class="table table-sm">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Kurs</th>
@@ -287,32 +889,30 @@
                         <tbody>
                             {% for p in profession_stats %}
                             <tr>
-                                <td>{{ p.name }}</td>
-                                <td class="text-center"><span class="badge bg-primary">{{ p.student_count }}</span></td>
-                                <td class="text-center"><span class="badge bg-success">{{ p.teacher_count }}</span></td>
+                                <td><span class="db-user-name">{{ p.name }}</span></td>
+                                <td class="text-center"><span class="badge bg-primary" style="border-radius:8px;">{{ p.student_count }}</span></td>
+                                <td class="text-center"><span class="badge bg-success" style="border-radius:8px;">{{ p.teacher_count }}</span></td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center py-3">Kurslar mavjud emas</p>
+                <div class="db-empty">Kurslar mavjud emas</div>
                 {% endif %}
             </div>
         </div>
-    </div>
 
-    <!-- Oxirgi faol foydalanuvchilar -->
-    <div class="col-lg-6 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-clock-history me-2"></i>Oxirgi faollar</span>
-                <a href="{% url 'admin_users' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+        <!-- Oxirgi faol foydalanuvchilar -->
+        <div class="db-table-card">
+            <div class="db-table-head">
+                <span><i class="bi bi-clock-history"></i> Oxirgi faollar</span>
+                <a href="{% url 'admin_users' %}">Barchasi</a>
             </div>
-            <div class="card-body">
+            <div class="db-table-body">
                 {% if recent_users %}
                 <div class="table-responsive">
-                    <table class="table table-sm">
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Foydalanuvchi</th>
@@ -324,15 +924,15 @@
                             {% for u in recent_users %}
                             <tr>
                                 <td>
-                                    <strong>{{ u.full_name }}</strong>
-                                    <br><small class="text-muted">@{{ u.username }}</small>
+                                    <span class="db-user-name">{{ u.full_name }}</span>
+                                    <div class="db-user-sub">@{{ u.username }}</div>
                                 </td>
-                                <td><small>{{ u.last_activity|timesince }}</small></td>
+                                <td><small class="text-muted">{{ u.last_activity|timesince }}</small></td>
                                 <td class="text-center">
                                     {% if u.is_online %}
-                                    <span class="badge bg-success">Online</span>
+                                    <span class="db-badge-online">Online</span>
                                     {% else %}
-                                    <span class="badge bg-secondary">Offline</span>
+                                    <span class="db-badge-offline">Offline</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -341,111 +941,103 @@
                     </table>
                 </div>
                 {% else %}
-                <p class="text-muted text-center py-3">Ma'lumot yo'q</p>
+                <div class="db-empty">Ma'lumot yo'q</div>
                 {% endif %}
             </div>
         </div>
     </div>
-</div>
 
-<!-- Oxirgi harakatlar -->
-<div class="row g-4 mb-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-activity me-2"></i>Oxirgi harakatlar</span>
-                <a href="{% url 'coin:admin_activities' %}" class="btn btn-sm btn-outline-primary">Barchasi</a>
+    <!-- Oxirgi harakatlar -->
+    <div class="db-section-header">
+        <i class="bi bi-activity"></i>
+        <h2>Oxirgi harakatlar</h2>
+    </div>
+
+    <div class="db-full-card">
+        <div class="db-table-head">
+            <span><i class="bi bi-activity"></i> Faoliyat jurnali</span>
+            <a href="{% url 'coin:admin_activities' %}">Barchasi</a>
+        </div>
+        <div class="db-table-body">
+            {% if recent_activities %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Foydalanuvchi</th>
+                            <th>Amal</th>
+                            <th>Tavsif</th>
+                            <th>Vaqt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in recent_activities %}
+                        <tr>
+                            <td><span class="db-user-name">{{ activity.user.full_name }}</span></td>
+                            <td>
+                                {% if activity.action_type == 'login' %}
+                                <span class="db-act-badge login"><i class="bi bi-box-arrow-in-right"></i> Kirish</span>
+                                {% elif activity.action_type == 'logout' %}
+                                <span class="db-act-badge logout"><i class="bi bi-box-arrow-right"></i> Chiqish</span>
+                                {% elif activity.action_type == 'deploy_create' %}
+                                <span class="db-act-badge deploy"><i class="bi bi-rocket"></i> Deploy</span>
+                                {% elif activity.action_type == 'deploy_edit' %}
+                                <span class="db-act-badge edit"><i class="bi bi-pencil"></i> Tahrirlash</span>
+                                {% elif activity.action_type == 'deploy_delete' %}
+                                <span class="db-act-badge delete"><i class="bi bi-trash"></i> O'chirish</span>
+                                {% elif activity.action_type == 'submit_homework' %}
+                                <span class="db-act-badge homework"><i class="bi bi-file-earmark-check"></i> Vazifa</span>
+                                {% elif activity.action_type == 'submit_test' %}
+                                <span class="db-act-badge test"><i class="bi bi-check2-square"></i> Test</span>
+                                {% elif activity.action_type == 'watch_video' %}
+                                <span class="db-act-badge video"><i class="bi bi-play-circle"></i> Video</span>
+                                {% elif activity.action_type == 'enroll_course' %}
+                                <span class="db-act-badge enroll"><i class="bi bi-person-plus"></i> Yozildi</span>
+                                {% elif activity.action_type == 'earn_coins' %}
+                                <span class="db-act-badge coin"><i class="bi bi-coin"></i> Coin</span>
+                                {% else %}
+                                <span class="db-act-badge other">{{ activity.get_action_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td><small class="text-muted">{{ activity.description|truncatewords:10 }}</small></td>
+                            <td><small class="text-muted">{{ activity.created_at|timesince }}</small></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="card-body">
-                {% if recent_activities %}
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Foydalanuvchi</th>
-                                <th>Amal</th>
-                                <th>Tavsif</th>
-                                <th>Vaqt</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for activity in recent_activities %}
-                            <tr>
-                                <td>
-                                    <strong>{{ activity.user.full_name }}</strong>
-                                </td>
-                                <td>
-                                    {% if activity.action_type == 'login' %}
-                                    <span class="badge bg-info"><i class="bi bi-box-arrow-in-right me-1"></i>Kirish</span>
-                                    {% elif activity.action_type == 'logout' %}
-                                    <span class="badge bg-secondary"><i class="bi bi-box-arrow-right me-1"></i>Chiqish</span>
-                                    {% elif activity.action_type == 'deploy_create' %}
-                                    <span class="badge bg-success"><i class="bi bi-rocket me-1"></i>Deploy</span>
-                                    {% elif activity.action_type == 'deploy_edit' %}
-                                    <span class="badge bg-primary"><i class="bi bi-pencil me-1"></i>Tahrirlash</span>
-                                    {% elif activity.action_type == 'deploy_delete' %}
-                                    <span class="badge bg-danger"><i class="bi bi-trash me-1"></i>O'chirish</span>
-                                    {% elif activity.action_type == 'submit_homework' %}
-                                    <span class="badge bg-primary"><i class="bi bi-file-earmark-check me-1"></i>Vazifa</span>
-                                    {% elif activity.action_type == 'submit_test' %}
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-check2-square me-1"></i>Test</span>
-                                    {% elif activity.action_type == 'watch_video' %}
-                                    <span class="badge bg-info"><i class="bi bi-play-circle me-1"></i>Video</span>
-                                    {% elif activity.action_type == 'enroll_course' %}
-                                    <span class="badge bg-success"><i class="bi bi-person-plus me-1"></i>Yozildi</span>
-                                    {% elif activity.action_type == 'earn_coins' %}
-                                    <span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i>Coin</span>
-                                    {% else %}
-                                    <span class="badge bg-light text-dark">{{ activity.get_action_type_display }}</span>
-                                    {% endif %}
-                                </td>
-                                <td class="text-muted small">{{ activity.description|truncatewords:10 }}</td>
-                                <td><small class="text-muted">{{ activity.created_at|timesince }}</small></td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            {% else %}
+            <div class="db-empty">Harakatlar mavjud emas</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Haftalik statistika -->
+    <div class="db-section-header">
+        <i class="bi bi-graph-up"></i>
+        <h2>Oxirgi 7 kun</h2>
+    </div>
+
+    <div class="db-full-card">
+        <div class="db-table-head">
+            <span><i class="bi bi-calendar-week"></i> Haftalik statistika</span>
+        </div>
+        <div class="db-weekly-grid">
+            {% for day in daily_stats %}
+            <div class="db-week-day">
+                <div class="db-week-date">{{ day.date|date:"d.m" }}</div>
+                <div class="db-week-val">
+                    <span class="db-week-badge users" title="Yangi foydalanuvchilar">
+                        <i class="bi bi-person-plus"></i> {{ day.users }}
+                    </span>
+                    <span class="db-week-badge enrolls" title="Kursga yozilganlar">
+                        <i class="bi bi-mortarboard"></i> {{ day.enrollments }}
+                    </span>
                 </div>
-                {% else %}
-                <p class="text-muted text-center py-3">Harakatlar mavjud emas</p>
-                {% endif %}
             </div>
+            {% endfor %}
         </div>
     </div>
-</div>
 
-<!-- Haftalik statistika -->
-<div class="card">
-    <div class="card-header">
-        <i class="bi bi-graph-up me-2"></i>Oxirgi 7 kun
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Sana</th>
-                        {% for day in daily_stats %}
-                        <th class="text-center">{{ day.date|date:"d.m" }}</th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Yangi foydalanuvchilar</td>
-                        {% for day in daily_stats %}
-                        <td class="text-center"><span class="badge bg-primary">{{ day.users }}</span></td>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td>Kursga yozilganlar</td>
-                        {% for day in daily_stats %}
-                        <td class="text-center"><span class="badge bg-success">{{ day.enrollments }}</span></td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 {% endblock %}
