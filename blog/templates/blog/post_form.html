@@ -675,9 +675,15 @@
         quill.root.innerHTML = existingContent;
     }
 
-    // On form submit
+    // On form submit - prevent double submission
+    var formSubmitted = false;
     document.getElementById('postForm').onsubmit = function() {
         document.getElementById('contentField').value = quill.root.innerHTML;
+        if (formSubmitted) return false;
+        formSubmitted = true;
+        var btn = this.querySelector('.btn-submit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
     };
 
     // Image preview
