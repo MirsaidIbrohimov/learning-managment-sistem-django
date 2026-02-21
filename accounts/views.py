@@ -1008,7 +1008,7 @@ def student_statistics(request, pk=None):
     videos_watched = videos_query.count()
     
     # Test results
-    tests_query = TestResult.objects.filter(student=student)
+    tests_query = TestResult.first_attempts().filter(student=student)
     if start_date:
         tests_query = tests_query.filter(completed_at__gte=start_date)
     test_results = tests_query
@@ -2623,9 +2623,9 @@ def admin_test_analytics(request):
     
     # Umumiy statistika
     total_tests = Test.objects.count()
-    total_attempts = TestResult.objects.count()
-    total_passed = TestResult.objects.filter(passed=True).count()
-    avg_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    total_attempts = TestResult.first_attempts().count()
+    total_passed = TestResult.first_attempts().filter(passed=True).count()
+    avg_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     pass_rate = round((total_passed / total_attempts * 100) if total_attempts > 0 else 0, 1)
     
     # Oxirgi natijalar
@@ -2645,12 +2645,13 @@ def admin_test_analytics(request):
     if selected_profession_id:
         try:
             selected_profession = Profession.objects.get(pk=selected_profession_id)
+            first_attempt_ids = TestResult.first_attempts().values_list('id', flat=True)
             profession_tests = Test.objects.filter(
                 lesson__profession=selected_profession
             ).select_related('lesson').annotate(
-                attempt_count=Count('results'),
-                pass_count=Count('results', filter=Q(results__passed=True)),
-                avg_score=Avg('results__score')
+                attempt_count=Count('results', filter=Q(results__id__in=first_attempt_ids)),
+                pass_count=Count('results', filter=Q(results__passed=True, results__id__in=first_attempt_ids)),
+                avg_score=Avg('results__score', filter=Q(results__id__in=first_attempt_ids))
             )
         except Profession.DoesNotExist:
             pass
@@ -2659,7 +2660,7 @@ def admin_test_analytics(request):
         try:
             selected_test = Test.objects.select_related('lesson__profession').get(pk=selected_test_id)
             selected_profession = selected_test.lesson.profession
-            test_results = TestResult.objects.filter(
+            test_results = TestResult.first_attempts().filter(
                 test=selected_test
             ).select_related('student').order_by('-completed_at')
             
@@ -2679,9 +2680,9 @@ def admin_test_analytics(request):
             profession_tests = Test.objects.filter(
                 lesson__profession=selected_profession
             ).select_related('lesson').annotate(
-                attempt_count=Count('results'),
-                pass_count=Count('results', filter=Q(results__passed=True)),
-                avg_score=Avg('results__score')
+                attempt_count=Count('results', filter=Q(results__id__in=first_attempt_ids)),
+                pass_count=Count('results', filter=Q(results__passed=True, results__id__in=first_attempt_ids)),
+                avg_score=Avg('results__score', filter=Q(results__id__in=first_attempt_ids))
             )
         except Test.DoesNotExist:
             pass
@@ -2769,9 +2770,9 @@ def admin_dashboard(request):
     total_coins = CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0
     
     # Test natijalari
-    total_test_results = TestResult.objects.count()
-    passed_tests = TestResult.objects.filter(passed=True).count()
-    avg_test_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    total_test_results = TestResult.first_attempts().count()
+    passed_tests = TestResult.first_attempts().filter(passed=True).count()
+    avg_test_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     
     # Uyga vazifalar
     pending_homeworks = HomeworkSubmission.objects.filter(status='pending').count()
@@ -4357,11 +4358,11 @@ def admin_lesson_statistics(request):
     
     # Ko'rilgan darslar soni
     total_video_views = VideoProgress.objects.filter(watched=True).count()
-    total_test_attempts = TestResult.objects.count()
+    total_test_attempts = TestResult.first_attempts().count()
     total_homework_submissions = HomeworkSubmission.objects.count()
     
     # O'rtacha test bali
-    avg_test_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    avg_test_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     
     # Tugallangan darslar foizi
     total_possible_views = CourseEnrollment.objects.count() * total_video_lessons if total_video_lessons > 0 else 1

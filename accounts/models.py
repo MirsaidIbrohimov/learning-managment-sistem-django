@@ -605,6 +605,15 @@ class TestResult(models.Model):
     
     def __str__(self):
         return f"{self.student.full_name} - {self.test.lesson.title}: {self.score}%"
+    
+    @staticmethod
+    def first_attempts():
+        """Har bir talaba uchun har bir testning faqat birinchi natijasini qaytaradi (statistika uchun)"""
+        from django.db.models import Min
+        first_ids = TestResult.objects.values('test', 'student').annotate(
+            first_id=Min('id')
+        ).values_list('first_id', flat=True)
+        return TestResult.objects.filter(id__in=first_ids)
 
 
 class TestUserAnswer(models.Model):

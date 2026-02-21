@@ -93,7 +93,7 @@ def parent_dashboard(request):
         homework__lesson__profession_id__in=profession_ids
     ).count()
     
-    test_results = TestResult.objects.filter(
+    test_results = TestResult.first_attempts().filter(
         student=selected_child,
         test__lesson__profession_id__in=profession_ids
     )
@@ -421,7 +421,7 @@ def parent_tests(request):
             'stats': {},
         })
     
-    test_results = TestResult.objects.filter(
+    test_results = TestResult.first_attempts().filter(
         student=selected_child
     ).select_related('test', 'test__lesson', 'test__lesson__profession').order_by('-completed_at')
     
