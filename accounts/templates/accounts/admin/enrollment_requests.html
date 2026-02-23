@@ -2,6 +2,447 @@
 
 {% block title %}So'rovlar - Admin Panel{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ===== Stat Summary Cards ===== */
+    .enroll-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .enroll-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .enroll-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .enroll-stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .enroll-stat-icon.pending {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+    }
+
+    .enroll-stat-icon.approved {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+    }
+
+    .enroll-stat-icon.rejected {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+    }
+
+    .enroll-stat-number {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-color);
+        line-height: 1;
+    }
+
+    .enroll-stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+
+    /* ===== Filter Card ===== */
+    .filter-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .filter-card .filter-title {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .filter-toggle-btn {
+        display: none;
+        width: 100%;
+        padding: 12px 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        color: var(--text-color);
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .filter-toggle-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .filter-toggle-btn i {
+        transition: transform 0.3s ease;
+    }
+
+    .filter-toggle-btn.active i {
+        transform: rotate(180deg);
+    }
+
+    /* ===== Mobile Cards (hidden on desktop) ===== */
+    .mobile-cards {
+        display: none;
+    }
+
+    .enroll-mobile-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .enroll-mobile-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+
+    .enroll-mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .enroll-mobile-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .enroll-mobile-avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .enroll-mobile-avatar-placeholder {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .enroll-mobile-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .enroll-mobile-username {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    .enroll-mobile-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 12px;
+    }
+
+    .enroll-mobile-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .enroll-mobile-detail-label {
+        font-size: 0.7rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+    }
+
+    .enroll-mobile-detail-value {
+        font-size: 0.85rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .enroll-mobile-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .enroll-mobile-actions .btn {
+        flex: 1;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+
+    /* ===== Empty State ===== */
+    .enroll-empty {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .enroll-empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bg-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 16px;
+    }
+
+    .enroll-empty h4 {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 6px;
+    }
+
+    .enroll-empty p {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+        .enroll-stats {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .enroll-stat-card {
+            padding: 14px 16px;
+        }
+
+        .enroll-stat-icon {
+            width: 42px;
+            height: 42px;
+            font-size: 1.1rem;
+        }
+
+        .enroll-stat-number {
+            font-size: 1.3rem;
+        }
+
+        .filter-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-card {
+            display: none;
+        }
+
+        .filter-card.show {
+            display: block;
+            animation: filterSlideDown 0.3s ease;
+        }
+
+        @keyframes filterSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hide table, show cards */
+        .desktop-table {
+            display: none !important;
+        }
+
+        .mobile-cards {
+            display: block;
+        }
+
+        .top-bar .page-title {
+            font-size: 1.15rem;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 992px) {
+        .enroll-stats {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .enroll-stat-card {
+            padding: 16px;
+        }
+    }
+
+    /* ===== Table Enhancements ===== */
+    .enrollment-table .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .enrollment-table .user-avatar-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        object-fit: cover;
+    }
+
+    .enrollment-table .user-avatar-init {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    .enrollment-table .user-name {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-color);
+    }
+
+    .enrollment-table .user-sub {
+        font-size: 0.78rem;
+        color: #6c757d;
+    }
+
+    .enrollment-table .btn-group .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.8rem;
+        padding: 6px 14px;
+    }
+
+    .enrollment-table .btn-group .btn:first-child {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+
+    .enrollment-table .btn-group .btn:last-child {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.78rem;
+    }
+
+    .status-badge.pending {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+    }
+
+    .status-badge.approved {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+    }
+
+    .status-badge.rejected {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    [data-bs-theme="dark"] .status-badge.pending {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+    }
+
+    [data-bs-theme="dark"] .status-badge.approved {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+    }
+
+    [data-bs-theme="dark"] .status-badge.rejected {
+        background: rgba(239, 68, 68, 0.18);
+        color: #f87171;
+    }
+
+    .profession-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: rgba(13, 110, 253, 0.1);
+        color: var(--primary-blue);
+    }
+
+    [data-bs-theme="dark"] .profession-badge {
+        background: rgba(13, 110, 253, 0.2);
+        color: #60a5fa;
+    }
+</style>
+{% endblock %}
+
 {% block admin_content %}
 <div class="top-bar">
     <h1 class="page-title">
@@ -12,12 +453,52 @@
     </h1>
 </div>
 
+<!-- Stats Summary -->
+<div class="enroll-stats">
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon pending">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ pending_count|default:"0" }}</div>
+            <div class="enroll-stat-label">Kutilmoqda</div>
+        </div>
+    </div>
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon approved">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ approved_count|default:"0" }}</div>
+            <div class="enroll-stat-label">Qabul qilingan</div>
+        </div>
+    </div>
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon rejected">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ rejected_count|default:"0" }}</div>
+            <div class="enroll-stat-label">Rad etilgan</div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Filter Toggle -->
+<button class="filter-toggle-btn" id="filterToggle" type="button">
+    <span><i class="bi bi-funnel me-2"></i>Filtrlash</span>
+    <i class="bi bi-chevron-down"></i>
+</button>
+
 <!-- Filters -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="GET" class="row g-3">
-            <div class="col-md-3">
-                <label class="form-label small">Holat</label>
+<div class="filter-card" id="filterCard">
+    <div class="filter-title">
+        <i class="bi bi-funnel"></i> Filtrlash
+    </div>
+    <form method="GET">
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <label class="form-label small fw-semibold">Holat</label>
                 <select name="status" class="form-select">
                     <option value="">Barchasi</option>
                     <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
@@ -25,8 +506,8 @@
                     <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label small">Kurs</label>
+            <div class="col-md-3 col-6">
+                <label class="form-label small fw-semibold">Kurs</label>
                 <select name="profession" class="form-select">
                     <option value="">Barcha kurslar</option>
                     {% for prof in professions %}
@@ -34,24 +515,24 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-4">
-                <label class="form-label small">Qidiruv</label>
+            <div class="col-md-4 col-12">
+                <label class="form-label small fw-semibold">Qidiruv</label>
                 <input type="text" name="q" class="form-control" placeholder="Ism, familiya, telefon..." value="{{ search|default:'' }}">
             </div>
-            <div class="col-md-2 d-flex align-items-end">
+            <div class="col-md-2 col-12 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-1"></i>Qidirish
                 </button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
-<!-- Requests Table -->
-<div class="card">
+<!-- Desktop Table -->
+<div class="card desktop-table">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0 enrollment-table">
                 <thead>
                     <tr>
                         <th>O'quvchi</th>
@@ -66,37 +547,41 @@
                     {% for req in enrollment_requests %}
                     <tr>
                         <td>
-                            <div class="d-flex align-items-center">
+                            <div class="user-cell">
                                 {% if req.user.photo %}
-                                <img src="{{ req.user.photo.url }}" alt="" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                <img src="{{ req.user.photo.url }}" alt="" class="user-avatar-img">
                                 {% else %}
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px; font-size: 14px;">
+                                <div class="user-avatar-init">
                                     {{ req.user.get_initials }}
                                 </div>
                                 {% endif %}
                                 <div>
-                                    <div class="fw-semibold">{{ req.user.full_name }}</div>
-                                    <small class="text-muted">{{ req.user.username }}</small>
+                                    <div class="user-name">{{ req.user.full_name }}</div>
+                                    <div class="user-sub">{{ req.user.username }}</div>
                                 </div>
                             </div>
                         </td>
                         <td>{{ req.user.phone }}</td>
                         <td>
-                            <span class="badge bg-info">{{ req.profession.name }}</span>
+                            <span class="profession-badge">{{ req.profession.name }}</span>
                         </td>
-                        <td>{{ req.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <span class="text-nowrap">{{ req.created_at|date:"d.m.Y" }}</span>
+                            <br>
+                            <small class="text-muted">{{ req.created_at|date:"H:i" }}</small>
+                        </td>
                         <td>
                             {% if req.status == 'pending' %}
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-clock me-1"></i>Kutilmoqda
+                            <span class="status-badge pending">
+                                <i class="bi bi-clock"></i> Kutilmoqda
                             </span>
                             {% elif req.status == 'approved' %}
-                            <span class="badge bg-success">
-                                <i class="bi bi-check-circle me-1"></i>Qabul qilingan
+                            <span class="status-badge approved">
+                                <i class="bi bi-check-circle"></i> Qabul qilingan
                             </span>
                             {% else %}
-                            <span class="badge bg-danger">
-                                <i class="bi bi-x-circle me-1"></i>Rad etilgan
+                            <span class="status-badge rejected">
+                                <i class="bi bi-x-circle"></i> Rad etilgan
                             </span>
                             {% endif %}
                         </td>
@@ -113,28 +598,41 @@
                                     <i class="bi bi-x-lg"></i> Rad
                                 </button>
                             </div>
-                            
+
                             <!-- Reject Modal -->
                             <div class="modal fade" id="rejectModal{{ req.pk }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="border-radius: 16px; border: none;">
                                         <form method="POST" action="{% url 'reject_enrollment_request' req.pk %}">
                                             {% csrf_token %}
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">So'rovni rad etish</h5>
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="bi bi-x-circle text-danger me-2"></i>So'rovni rad etish
+                                                </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                             </div>
                                             <div class="modal-body text-start">
-                                                <p><strong>O'quvchi:</strong> {{ req.user.full_name }}</p>
-                                                <p><strong>Kurs:</strong> {{ req.profession.name }}</p>
+                                                <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background: var(--bg-color);">
+                                                    {% if req.user.photo %}
+                                                    <img src="{{ req.user.photo.url }}" alt="" class="rounded-3" style="width: 44px; height: 44px; object-fit: cover;">
+                                                    {% else %}
+                                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; font-weight: 700; font-size: 0.85rem;">
+                                                        {{ req.user.get_initials }}
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-semibold">{{ req.user.full_name }}</div>
+                                                        <span class="profession-badge">{{ req.profession.name }}</span>
+                                                    </div>
+                                                </div>
                                                 <div class="mb-3">
-                                                    <label class="form-label">Rad etish sababi (ixtiyoriy)</label>
-                                                    <textarea name="admin_message" class="form-control" rows="3" placeholder="Sizga ushbu kursni o'qish imkoniyati berilmadi."></textarea>
+                                                    <label class="form-label fw-semibold">Rad etish sababi (ixtiyoriy)</label>
+                                                    <textarea name="admin_message" class="form-control" rows="3" placeholder="Sababni kiriting..."></textarea>
                                                 </div>
                                             </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                                                <button type="submit" class="btn btn-danger">
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qilish</button>
+                                                <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
                                                     <i class="bi bi-x-circle me-1"></i>Rad etish
                                                 </button>
                                             </div>
@@ -153,9 +651,14 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <i class="bi bi-inbox display-4 text-muted"></i>
-                            <p class="text-muted mt-2">Hozircha so'rovlar yo'q</p>
+                        <td colspan="6">
+                            <div class="enroll-empty">
+                                <div class="enroll-empty-icon">
+                                    <i class="bi bi-inbox"></i>
+                                </div>
+                                <h4>So'rovlar yo'q</h4>
+                                <p>Hozircha kursga yozilish so'rovlari mavjud emas</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -166,4 +669,98 @@
 
     {% with page_obj=enrollment_requests %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
 </div>
+
+<!-- Mobile Cards -->
+<div class="mobile-cards">
+    {% for req in enrollment_requests %}
+    <div class="enroll-mobile-card">
+        <div class="enroll-mobile-header">
+            <div class="enroll-mobile-user">
+                {% if req.user.photo %}
+                <img src="{{ req.user.photo.url }}" alt="" class="enroll-mobile-avatar">
+                {% else %}
+                <div class="enroll-mobile-avatar-placeholder">
+                    {{ req.user.get_initials }}
+                </div>
+                {% endif %}
+                <div style="min-width: 0;">
+                    <div class="enroll-mobile-name">{{ req.user.full_name }}</div>
+                    <div class="enroll-mobile-username">@{{ req.user.username }}</div>
+                </div>
+            </div>
+            {% if req.status == 'pending' %}
+            <span class="status-badge pending">
+                <i class="bi bi-clock"></i> Kutilmoqda
+            </span>
+            {% elif req.status == 'approved' %}
+            <span class="status-badge approved">
+                <i class="bi bi-check-circle"></i> Qabul
+            </span>
+            {% else %}
+            <span class="status-badge rejected">
+                <i class="bi bi-x-circle"></i> Rad
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="enroll-mobile-details">
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Kurs</span>
+                <span class="enroll-mobile-detail-value">{{ req.profession.name }}</span>
+            </div>
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Sana</span>
+                <span class="enroll-mobile-detail-value">{{ req.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Telefon</span>
+                <span class="enroll-mobile-detail-value">{{ req.user.phone|default:"—" }}</span>
+            </div>
+            {% if req.reviewed_by %}
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
+                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if req.status == 'pending' %}
+        <div class="enroll-mobile-actions">
+            <form method="POST" action="{% url 'approve_enrollment_request' req.pk %}" class="flex-fill">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-lg me-1"></i>Qabul
+                </button>
+            </form>
+            <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#rejectModal{{ req.pk }}">
+                <i class="bi bi-x-lg me-1"></i>Rad etish
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="enroll-empty">
+        <div class="enroll-empty-icon">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h4>So'rovlar yo'q</h4>
+        <p>Hozircha kursga yozilish so'rovlari mavjud emas</p>
+    </div>
+    {% endfor %}
+
+    {% with page_obj=enrollment_requests %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mobile filter toggle
+    const filterToggle = document.getElementById('filterToggle');
+    const filterCard = document.getElementById('filterCard');
+
+    filterToggle.addEventListener('click', () => {
+        filterToggle.classList.toggle('active');
+        filterCard.classList.toggle('show');
+    });
+</script>
 {% endblock %}

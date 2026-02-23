@@ -5227,6 +5227,8 @@ def admin_enrollment_requests(request):
     
     professions = Profession.objects.all()
     pending_count = CourseEnrollmentRequest.objects.filter(status='pending').count()
+    approved_count = CourseEnrollmentRequest.objects.filter(status='approved').count()
+    rejected_count = CourseEnrollmentRequest.objects.filter(status='rejected').count()
     
     context = {
         'enrollment_requests': requests_qs,
@@ -5235,6 +5237,8 @@ def admin_enrollment_requests(request):
         'profession_filter': profession_filter,
         'search': search,
         'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
     }
     return render(request, 'accounts/admin/enrollment_requests.html', context)
 
