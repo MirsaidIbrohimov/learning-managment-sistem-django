@@ -6,6 +6,11 @@
 {% block extra_css %}
 <style>
 
+/* ===== ANIMATIONS ===== */
+@keyframes pFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pFadeScale{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@keyframes pSlideIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
+
 /* ===== THEME ===== */
 .profile-wrap{--border:rgba(0,0,0,.08);--shadow:0 15px 40px rgba(0,0,0,.12)}
 [data-bs-theme="dark"] .profile-wrap{--border:rgba(255,255,255,.12);--shadow:0 30px 70px rgba(0,0,0,.7)}
@@ -16,7 +21,16 @@
     border:1px solid var(--border);
     border-radius:1.5rem;
     box-shadow:var(--shadow);
+    animation:pFadeScale .5s ease both;
 }
+.p-card:nth-child(1){animation-delay:.05s}
+.p-card:nth-child(2){animation-delay:.12s}
+.p-card:nth-child(3){animation-delay:.19s}
+.p-card:nth-child(4){animation-delay:.26s}
+.p-card:nth-child(5){animation-delay:.33s}
+
+/* ===== LEFT CARD ===== */
+.profile-left-card{animation:pFadeUp .5s ease both}
 
 /* ===== AVATAR ===== */
 .avatar{
@@ -45,9 +59,40 @@
 /* ===== MINI ITEM ===== */
 .mini-item{
     background:var(--bs-tertiary-bg);
-    border-radius:1rem;padding:.8rem;transition:.2s
+    border-radius:1rem;padding:.8rem;
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+    animation:pFadeUp .4s ease both;
 }
-.mini-item:hover{transform:translateY(-4px)}
+.mini-item:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
+
+/* ===== SECTION HEADERS ===== */
+.p-card h5{animation:pSlideIn .4s ease both}
+
+/* ===== INFO ITEMS ===== */
+.p-info-item{
+    padding:.75rem;border-radius:.75rem;
+    background:var(--bs-tertiary-bg);
+    transition:all .2s;
+    animation:pFadeUp .4s ease both;
+}
+.p-info-item:nth-child(1){animation-delay:.1s}
+.p-info-item:nth-child(2){animation-delay:.15s}
+.p-info-item:nth-child(3){animation-delay:.2s}
+.p-info-item:nth-child(4){animation-delay:.25s}
+.p-info-item:nth-child(5){animation-delay:.3s}
+.p-info-item small{font-size:.75rem}
+.p-info-item div:not(small){font-weight:600}
+
+/* ===== PROFILE BUTTONS ===== */
+.p-btn-grid .btn{
+    transition:all .3s cubic-bezier(.4,0,.2,1);
+    animation:pFadeUp .4s ease both;
+}
+.p-btn-grid .btn:nth-child(1){animation-delay:.15s}
+.p-btn-grid .btn:nth-child(2){animation-delay:.2s}
+.p-btn-grid .btn:nth-child(3){animation-delay:.25s}
+.p-btn-grid .btn:nth-child(4){animation-delay:.3s}
+.p-btn-grid .btn:hover{transform:translateY(-2px)}
 
 /* ===== PREMIUM PROFILE ===== */
 @keyframes pm-glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,.2),0 0 60px rgba(245,158,11,.05)}50%{box-shadow:0 0 35px rgba(245,158,11,.4),0 0 80px rgba(245,158,11,.1)}}
@@ -147,11 +192,107 @@
     animation:pm-shine 3s ease-in-out infinite;
 }
 
+/* Premium right-side cards */
+.p-card.pm-right-card{
+    border:1px solid rgba(245,158,11,.15);
+    position:relative;overflow:hidden;
+}
+.p-card.pm-right-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b);
+    background-size:200% 100%;animation:pm-gradient 3s linear infinite;
+}
+.p-card.pm-right-card .mini-item{
+    border:1px solid rgba(245,158,11,.1);
+}
+.p-card.pm-right-card .mini-item:hover{
+    border-color:rgba(245,158,11,.3);
+    box-shadow:0 8px 24px rgba(245,158,11,.1);
+}
+
+/* Premium buttons */
+.pm-btn-grid .btn-primary{
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    border:none;box-shadow:0 4px 15px rgba(245,158,11,.3);
+}
+.pm-btn-grid .btn-primary:hover{
+    box-shadow:0 6px 20px rgba(245,158,11,.4);
+}
+.pm-btn-grid .btn-outline-primary{
+    border-color:rgba(245,158,11,.4);color:#f59e0b;
+}
+.pm-btn-grid .btn-outline-primary:hover{
+    background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b;
+}
+.pm-btn-grid .btn-outline-success{
+    border-color:rgba(245,158,11,.3);color:#f59e0b;
+}
+.pm-btn-grid .btn-outline-success:hover{
+    background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b;
+}
+.pm-btn-grid .btn-outline-secondary{
+    border-color:rgba(245,158,11,.2);
+}
+.pm-btn-grid .btn-outline-secondary:hover{
+    border-color:rgba(245,158,11,.4);color:#f59e0b;background:rgba(245,158,11,.05);
+}
+
 /* Premium pulse ring on avatar */
 .pm-pulse-ring{
     position:absolute;inset:-6px;border-radius:50%;
     border:2px solid rgba(245,158,11,.4);
     animation:pm-pulse-ring 2s ease-out infinite;pointer-events:none;
+}
+
+/* ===== AVATAR LIGHTBOX ===== */
+.avatar-clickable{cursor:pointer;position:relative;transition:transform .3s}
+.avatar-clickable:hover{transform:scale(1.05)}
+.avatar-clickable::after{
+    content:'\f52a';font-family:'bootstrap-icons';
+    position:absolute;bottom:4px;right:4px;
+    width:32px;height:32px;border-radius:50%;
+    background:rgba(99,102,241,.85);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.85rem;opacity:0;transition:opacity .3s;
+    backdrop-filter:blur(4px);
+}
+.avatar-clickable:hover::after{opacity:1}
+
+.photo-lightbox{
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,.85);
+    backdrop-filter:blur(12px);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;visibility:hidden;transition:all .3s ease;
+    cursor:zoom-out;
+}
+.photo-lightbox.active{opacity:1;visibility:visible}
+
+.photo-lightbox-img{
+    max-width:90vw;max-height:85vh;
+    border-radius:20px;object-fit:contain;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:scale(.85);transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.photo-lightbox.active .photo-lightbox-img{transform:scale(1)}
+
+.photo-lightbox-close{
+    position:absolute;top:1.5rem;right:1.5rem;
+    width:44px;height:44px;border-radius:50%;
+    background:rgba(255,255,255,.12);border:none;
+    color:#fff;font-size:1.3rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .2s;backdrop-filter:blur(8px);
+}
+.photo-lightbox-close:hover{background:rgba(255,255,255,.25);transform:scale(1.1)}
+
+.photo-lightbox-name{
+    position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.1);backdrop-filter:blur(12px);
+    padding:.6rem 1.5rem;border-radius:2rem;
+    color:#fff;font-weight:700;font-size:.95rem;
+    display:flex;align-items:center;gap:.5rem;
+    white-space:nowrap;
 }
 
 /* Premium particles background */
@@ -189,7 +330,7 @@
 <!-- ================= LEFT ================= -->
 <div class="col-lg-4">
 
-<div class="p-card p-4 text-center {% if user.is_premium %}premium-card{% endif %}">
+<div class="p-card p-4 text-center profile-left-card {% if user.is_premium %}premium-card{% endif %}">
 
     {% if user.is_premium %}
     <div class="premium-particles">
@@ -207,14 +348,14 @@
         <span class="premium-sparkle">✦</span>
         <span class="premium-sparkle">✦</span>
         {% if user.photo %}
-            <img src="{{ user.photo.url }}" class="avatar">
+            <img src="{{ user.photo.url }}" class="avatar avatar-clickable" onclick="openPhotoLightbox('{{ user.photo.url }}')">
         {% else %}
             <div class="avatar-fallback">{{ user.get_initials }}</div>
         {% endif %}
     </div>
     {% else %}
     {% if user.photo %}
-        <img src="{{ user.photo.url }}" class="avatar mb-3">
+        <img src="{{ user.photo.url }}" class="avatar avatar-clickable mb-3" onclick="openPhotoLightbox('{{ user.photo.url }}')">
     {% else %}
         <div class="avatar-fallback mb-3">{{ user.get_initials }}</div>
     {% endif %}
@@ -223,7 +364,7 @@
     <h4 class="fw-bold mb-1 {% if user.is_premium %}premium-name{% endif %}">{{ user|premium_name }}</h4>
     {% if user.is_premium %}
     <div class="premium-badge mb-2">
-        <i class="bi bi-patch-check-fill"></i> Premium
+        <i class="bi bi-gem"></i> Premium
     </div>
     {% endif %}
     <p class="text-muted mb-2">@{{ user.username }}</p>
@@ -241,7 +382,7 @@
         <i class="bi bi-coin me-1"></i>{{ user.coins }} coin
     </div>
 
-    <div class="d-grid gap-2 mt-3">
+    <div class="d-grid gap-2 mt-3 p-btn-grid {% if user.is_premium %}pm-btn-grid{% endif %}">
         <a href="{% url 'profile_edit' %}" class="btn btn-primary rounded-pill">
             <i class="bi bi-pencil me-1"></i>Tahrirlash
         </a>
@@ -264,7 +405,7 @@
 <div class="col-lg-8 d-flex flex-column gap-4">
 
 <!-- INFO -->
-<div class="p-card p-4">
+<div class="p-card p-4 {% if user.is_premium %}pm-right-card{% endif %}">
 
 <h5 class="fw-bold mb-3">
     <i class="bi bi-person-lines-fill me-2"></i>Ma’lumotlar
@@ -273,35 +414,46 @@
 <div class="row g-3">
 
 <div class="col-md-6">
-    <small class="text-muted">Telefon</small>
-    <div>{{ user.phone }}</div>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-phone me-1"></i>Telefon</small>
+        <div>{{ user.phone }}</div>
+    </div>
 </div>
 
 <div class="col-md-6">
-    <small class="text-muted">Ro‘yxatdan o‘tgan</small>
-    <div>{{ user.date_joined|date:"d.m.Y" }}</div>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-calendar-check me-1"></i>Ro‘yxatdan o‘tgan</small>
+        <div>{{ user.date_joined|date:"d.m.Y" }}</div>
+    </div>
 </div>
 
 <div class="col-md-6">
-    <small class="text-muted">Manzil</small>
-    <div>{% if user.address %}{{ user.address }}{% else %}-{% endif %}</div>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>Manzil</small>
+        <div>{% if user.address %}{{ user.address }}{% else %}-{% endif %}</div>
+    </div>
 </div>
 
 <div class="col-md-6">
-    <small class="text-muted">Tug‘ilgan sana</small>
-    <div>{% if user.birth_date %}{{ user.birth_date|date:"d.m.Y" }}{% else %}-{% endif %}</div>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-calendar-heart me-1"></i>Tug‘ilgan sana</small>
+        <div>{% if user.birth_date %}{{ user.birth_date|date:"d.m.Y" }}{% else %}-{% endif %}</div>
+    </div>
 </div>
 
 {% if user.bio %}
 <div class="col-12">
-    <small class="text-muted">O‘zi haqida</small>
-    <p class="mb-0">{{ user.bio }}</p>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-chat-quote me-1"></i>O‘zi haqida</small>
+        <p class="mb-0" style="font-weight:400">{{ user.bio }}</p>
+    </div>
 </div>
 {% endif %}
 
 {% if user.id_card or user.birth_certificate %}
 <div class="col-12">
-    <small class="text-muted">Hujjatlar</small><br>
+    <div class="p-info-item">
+        <small class="text-muted"><i class="bi bi-folder me-1"></i>Hujjatlar</small><br>
     {% if user.id_card %}
         <a href="{{ user.id_card.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill me-2">
             <i class="bi bi-person-badge me-1"></i>ID karta
@@ -312,6 +464,7 @@
             <i class="bi bi-file-earmark-text me-1"></i>Guvohnoma
         </a>
     {% endif %}
+    </div>
 </div>
 {% endif %}
 
@@ -320,7 +473,7 @@
 
 <!-- ACTIVE COURSES -->
 {% if active_courses %}
-<div class="p-card p-4">
+<div class="p-card p-4 {% if user.is_premium %}pm-right-card{% endif %}">
 
 <h5 class="fw-bold mb-3">
     <i class="bi bi-book me-2"></i>Faol kurslarim
@@ -360,7 +513,7 @@
 
 <!-- COMPLETED COURSES -->
 {% if completed_courses %}
-<div class="p-card p-4">
+<div class="p-card p-4 {% if user.is_premium %}pm-right-card{% endif %}">
 
 <h5 class="fw-bold mb-3">
     <i class="bi bi-check-circle text-success me-2"></i>Tugallangan kurslarim
@@ -405,7 +558,7 @@
 
 <!-- DEPLOYED PROJECTS -->
 {% if deploys %}
-<div class="p-card p-4">
+<div class="p-card p-4 {% if user.is_premium %}pm-right-card{% endif %}">
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="fw-bold mb-0">
@@ -450,7 +603,7 @@
 {% endif %}
 
 <!-- CERTIFICATES -->
-<div class="p-card p-4">
+<div class="p-card p-4 {% if user.is_premium %}pm-right-card{% endif %}">
 
 <h5 class="fw-bold mb-3">
     <i class="bi bi-award me-2"></i>Sertifikatlarim
@@ -504,4 +657,42 @@
 </div>
 </div>
 </div>
+
+<!-- Photo Lightbox -->
+<div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox(event)">
+    <button class="photo-lightbox-close" onclick="closePhotoLightbox(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img src="" class="photo-lightbox-img" id="lightboxImg" alt="">
+    <div class="photo-lightbox-name">
+        <i class="bi bi-person-circle"></i>
+        {{ user.full_name }}
+    </div>
+</div>
+
+<script>
+function openPhotoLightbox(url) {
+    var lb = document.getElementById('photoLightbox');
+    document.getElementById('lightboxImg').src = url;
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePhotoLightbox(e) {
+    if (e.target.closest('.photo-lightbox-img')) return;
+    var lb = document.getElementById('photoLightbox');
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var lb = document.getElementById('photoLightbox');
+        if (lb.classList.contains('active')) {
+            lb.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});
+</script>
 {% endblock %}
