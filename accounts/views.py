@@ -5371,10 +5371,14 @@ def admin_password_reset_requests(request):
         )
     
     pending_count = PasswordResetRequest.objects.filter(status='pending').count()
+    approved_count = PasswordResetRequest.objects.filter(status='approved').count()
+    rejected_count = PasswordResetRequest.objects.filter(status='rejected').count()
     
     context = {
         'password_requests': requests_qs,
         'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
         'status_filter': status_filter,
         'search': search,
     }
