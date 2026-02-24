@@ -1,11 +1,15 @@
 import json
 import random
+import time
+import hashlib
+import hmac
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
+from django.conf import settings
 from django.db.models import Avg, Max, Count, Q
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
@@ -77,12 +81,28 @@ def game_play(request, slug, competition_id=None):
     prompt = random.choice(prompts)
     config = game.config or {}
 
+    session_key = f'game_session_{game.slug}'
+    game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
+    request.session[session_key] = {
+        'token': game_token,
+        'prompt_id': prompt.pk,
+        'competition_id': competition.pk if competition else None,
+        'started_at': time.time(),
+        'used': False,
+    }
+
     return render(request, 'games/student/game_play.html', {
         'game': game,
         'prompt': prompt,
         'competition': competition,
         'config': json.dumps(config),
+        'game_token': game_token,
     })
+
+
+MAX_HUMAN_WPM = 180
+MIN_SECONDS_PER_WORD = 0.15
+MIN_GAME_SECONDS = 3
 
 
 @login_required
@@ -93,7 +113,34 @@ def game_submit(request, slug):
     prompt_id = request.POST.get('prompt_id')
     competition_id = request.POST.get('competition_id')
     typed_text = request.POST.get('typed_text', '')
-    time_spent = float(request.POST.get('time_spent', 0))
+    game_token = request.POST.get('game_token', '')
+
+    session_key = f'game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "O'yin sessiyasi topilmadi. Iltimos qaytadan boshlang."}, status=403)
+
+    if game_session.get('used'):
+        return JsonResponse({'error': "Bu o'yin sessiyasi allaqachon ishlatilgan."}, status=403)
+
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri sessiya tokeni."}, status=403)
+
+    if str(game_session.get('prompt_id')) != str(prompt_id):
+        return JsonResponse({'error': "Topshiriq mos kelmadi."}, status=403)
+
+    session_comp_id = game_session.get('competition_id')
+    if str(session_comp_id or '') != str(competition_id or ''):
+        return JsonResponse({'error': "Musobaqa mos kelmadi."}, status=403)
+
+    server_started_at = game_session.get('started_at', 0)
+    server_elapsed = time.time() - server_started_at
+    time_spent = max(server_elapsed, MIN_GAME_SECONDS)
+
+    game_session['used'] = True
+    request.session[session_key] = game_session
+    request.session.modified = True
 
     prompt = get_object_or_404(Prompt, pk=prompt_id, game=game)
     competition = None
@@ -113,8 +160,17 @@ def game_submit(request, slug):
             correct += 1
 
     accuracy = (correct / total * 100) if total > 0 else 0
+
+    min_realistic_time = total * MIN_SECONDS_PER_WORD
+    if time_spent < min_realistic_time:
+        time_spent = min_realistic_time
+
     minutes = time_spent / 60 if time_spent > 0 else 0.01
     wpm = len(typed_words) / minutes if minutes > 0 else 0
+
+    if wpm > MAX_HUMAN_WPM:
+        wpm = MAX_HUMAN_WPM
+
     score = round(wpm * (accuracy / 100), 2)
 
     attempt = GameAttempt.objects.create(

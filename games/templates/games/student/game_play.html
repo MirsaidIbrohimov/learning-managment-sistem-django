@@ -492,8 +492,8 @@
     {% csrf_token %}
     <input type="hidden" name="prompt_id" value="{{ prompt.pk }}">
     <input type="hidden" name="competition_id" value="{{ competition.pk|default:'' }}">
+    <input type="hidden" name="game_token" value="{{ game_token }}">
     <input type="hidden" name="typed_text" id="hiddenTypedText">
-    <input type="hidden" name="time_spent" id="hiddenTimeSpent">
 </form>
 {% endblock %}
 
@@ -518,6 +518,7 @@
     let timerInterval = null;
     let tabSwitchCount = 0;
     let finished = false;
+    const typedWordsList = [];
 
     // Render words
     words.forEach((w, i) => {
@@ -585,6 +586,8 @@
         const wordEl = document.getElementById('word-' + currentIndex);
         const originalWord = words[currentIndex];
 
+        typedWordsList.push(typedWord);
+
         if (typedWord === originalWord) {
             wordEl.className = 'prompt-word correct';
             correctCount++;
@@ -642,8 +645,7 @@
 
         // Submit via AJAX
         const form = document.getElementById('submitForm');
-        document.getElementById('hiddenTypedText').value = getAllTypedText();
-        document.getElementById('hiddenTimeSpent').value = elapsed.toFixed(2);
+        document.getElementById('hiddenTypedText').value = typedWordsList.join(' ');
 
         const formData = new FormData(form);
 
