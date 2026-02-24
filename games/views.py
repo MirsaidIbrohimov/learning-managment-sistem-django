@@ -174,12 +174,15 @@ def my_results(request):
 @login_required
 def competition_leaderboard(request, competition_id):
     competition = get_object_or_404(Competition, pk=competition_id)
-    attempts = GameAttempt.objects.filter(competition=competition).select_related('user').order_by('-score', '-accuracy', 'time_spent')
+    all_attempts = GameAttempt.objects.filter(competition=competition).select_related('user').order_by('-score', '-accuracy', 'time_spent')
 
+    seen_users = set()
     ranked = []
-    for i, attempt in enumerate(attempts, 1):
-        attempt.rank = i
-        ranked.append(attempt)
+    for attempt in all_attempts:
+        if attempt.user_id not in seen_users:
+            seen_users.add(attempt.user_id)
+            attempt.rank = len(ranked) + 1
+            ranked.append(attempt)
 
     return render(request, 'games/student/leaderboard.html', {
         'competition': competition,
@@ -488,7 +491,7 @@ def _build_results_pdf(attempts, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 6*mm))
 
-    data = [['#', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
+    data = [['№', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
     for i, a in enumerate(attempts, 1):
         mode = a.competition.title if a.competition else 'Practice'
         data.append([
@@ -544,7 +547,7 @@ def admin_results_pdf(request):
     if user_filter:
         attempts = attempts.filter(user_id=user_filter)
 
-    return _build_results_pdf(attempts[:500], "O'yin natijalari - Admin")
+    return _build_results_pdf(attempts[:500], "O'yin natijalari")
 
 
 @login_required

@@ -336,7 +336,16 @@
                 {% if attempt.rank == 1 %}<span class="rank-emoji first">🥇</span>{% elif attempt.rank == 2 %}<span class="rank-emoji">🥈</span>{% elif attempt.rank == 3 %}<span class="rank-emoji">🥉</span>{% else %}{{ attempt.rank }}{% endif %}
             </div>
             <div class="lb-user">
-                <div class="name">{{ attempt.user.full_name }}</div>
+                <div class="name">
+                    {{ attempt.user.full_name }}
+                    {% if attempt.rank == 1 and competition.coin_1st %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">+{{ competition.coin_1st }} <i class="bi bi-coin"></i></span>
+                    {% elif attempt.rank == 2 and competition.coin_2nd %}
+                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_2nd }} <i class="bi bi-coin"></i></span>
+                    {% elif attempt.rank == 3 and competition.coin_3rd %}
+                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_3rd }} <i class="bi bi-coin"></i></span>
+                    {% endif %}
+                </div>
                 <div class="meta">@{{ attempt.user.username }}</div>
             </div>
             <div class="lb-stats">
