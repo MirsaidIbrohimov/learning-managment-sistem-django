@@ -1343,6 +1343,193 @@
     </script>
     {% endif %}
 
+<script>
+// === Browser Console Himoya (Kengaytirilgan) ===
+(function() {
+    // 1. Right-click bloklash
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+
+    // 2. DevTools shortcutlarini bloklash
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12') { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) { e.preventDefault(); return false; }
+        if (e.ctrlKey && e.key === 'u') { e.preventDefault(); return false; }
+    });
+
+    // 3. Console metodlarini o'chirish
+    var noop = function() {};
+    var consoleMethods = ['log','debug','info','warn','error','table','clear','dir','dirxml','trace','group','groupEnd','time','timeEnd','assert','profile'];
+    try { for (var i = 0; i < consoleMethods.length; i++) { console[consoleMethods[i]] = noop; } } catch(e) {}
+
+    // 4. DevTools ochilganini aniqlash
+    var devtoolsOpen = false;
+    var threshold = 160;
+    setInterval(function() {
+        var w = window.outerWidth - window.innerWidth > threshold;
+        var h = window.outerHeight - window.innerHeight > threshold;
+        if (w || h) {
+            if (!devtoolsOpen) {
+                devtoolsOpen = true;
+                document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#1a1a2e;color:#e94560;font-family:sans-serif;text-align:center;"><div><h1 style="font-size:3rem;">⛔ Ruxsat berilmagan!</h1><p style="font-size:1.2rem;color:#fff;margin-top:1rem;">Developer tools ishlatish taqiqlangan.</p></div></div>';
+            }
+        } else if (devtoolsOpen) { devtoolsOpen = false; location.reload(); }
+    }, 1000);
+
+    // 5. Debugger trap
+    (function ad() { try { (function(){return false;})['constructor']('debugger')['call'](); } catch(e){} setTimeout(ad, 100); })();
+
+    // 6. Drag/Select/Copy bloklash
+    document.addEventListener('selectstart', function(e) { e.preventDefault(); });
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+    document.addEventListener('copy', function(e) { e.preventDefault(); });
+
+    // ===== 7. FETCH VA XMLHTTPREQUEST HIMOYASI =====
+    // Console orqali fetch() ishlatishni oldini olish
+    var _origFetch = window.fetch;
+    var _allowedTokens = {};
+    window._registerFetch = function(id) { _allowedTokens[id] = true; return id; };
+
+    Object.defineProperty(window, 'fetch', {
+        value: function(url, opts) {
+            // Stack trace orqali consoldan chaqirilganini aniqlash
+            var err = new Error();
+            var stack = err.stack || '';
+            // Agar consoldan yoki eval dan chaqirilgan bo'lsa — bloklash
+            if (stack.indexOf('anonymous') > -1 && stack.split('\n').length < 4) {
+                return Promise.reject(new Error('⛔ Ruxsatsiz so\'rov bloklandi!'));
+            }
+            // URL tekshirish — faqat o'z domeniga ruxsat
+            if (typeof url === 'string' && url.indexOf('http') === 0) {
+                var a = document.createElement('a');
+                a.href = url;
+                if (a.hostname !== window.location.hostname) {
+                    return Promise.reject(new Error('⛔ Tashqi so\'rov bloklandi!'));
+                }
+            }
+            return _origFetch.apply(this, arguments);
+        },
+        writable: false,
+        configurable: false
+    });
+
+    // XMLHttpRequest himoyasi
+    var _origXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url) {
+        var err = new Error();
+        var stack = err.stack || '';
+        if (stack.indexOf('anonymous') > -1 && stack.split('\n').length < 4) {
+            throw new Error('⛔ Ruxsatsiz XHR bloklandi!');
+        }
+        return _origXHROpen.apply(this, arguments);
+    };
+
+    // ===== 8. EVAL VA FUNCTION CONSTRUCTOR BLOKLASH =====
+    // Consolda eval() va new Function() ishlatishni oldini olish
+    window.eval = function() { throw new Error('⛔ eval() bloklangan!'); };
+    try {
+        Object.defineProperty(Function.prototype, 'constructor', {
+            get: function() { return function() { throw new Error('⛔ Function constructor bloklangan!'); }; },
+            configurable: false
+        });
+    } catch(e) {}
+
+    // ===== 9. DOM ELEMENTLARNI HIMOYA QILISH =====
+    // Muhim elementlarni o'chirib tashlashga yo'l qo'ymaslik
+    var _origRemove = Element.prototype.remove;
+    Element.prototype.remove = function() {
+        // Premium overlay, login modal va muhim elementlarni himoya qilish
+        if (this.id && (
+            this.id.indexOf('Premium') > -1 ||
+            this.id.indexOf('premium') > -1 ||
+            this.id.indexOf('Overlay') > -1 ||
+            this.id.indexOf('overlay') > -1 ||
+            this.id.indexOf('paywall') > -1 ||
+            this.id.indexOf('blocked') > -1
+        )) {
+            return; // O'chirishni bloklash
+        }
+        return _origRemove.call(this);
+    };
+
+    // style.display orqali yashirishni aniqlash
+    var _protectedIds = ['loginPremiumOverlay'];
+    var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            // Element o'chirilganini aniqlash
+            m.removedNodes.forEach(function(node) {
+                if (node.nodeType === 1 && node.id) {
+                    for (var j = 0; j < _protectedIds.length; j++) {
+                        if (node.id === _protectedIds[j]) {
+                            location.reload();
+                            return;
+                        }
+                    }
+                }
+            });
+            // style o'zgarishini aniqlash
+            if (m.type === 'attributes' && m.attributeName === 'style' && m.target.id) {
+                for (var k = 0; k < _protectedIds.length; k++) {
+                    if (m.target.id === _protectedIds[k]) {
+                        var el = m.target;
+                        if (el.style.display === 'none' || el.style.visibility === 'hidden' || el.style.opacity === '0') {
+                            location.reload();
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+
+    // ===== 10. GLOBAL FUNKSIYALARNI MUZLATISH =====
+    // Muhim window funksiyalarini qayta yozishga yo'l qo'ymaslik
+    var _frozenProps = ['fetch', 'XMLHttpRequest', 'eval'];
+    _frozenProps.forEach(function(prop) {
+        try {
+            Object.defineProperty(window, prop, {
+                configurable: false,
+                writable: false
+            });
+        } catch(e) {}
+    });
+
+    // ===== 11. COOKIE / LOCALSTORAGE HIMOYASI =====
+    // document.cookie ni consoldan o'zgartirishni bloklash
+    var _origCookie = Object.getOwnPropertyDescriptor(Document.prototype, 'cookie');
+    try {
+        Object.defineProperty(document, 'cookie', {
+            get: function() { return _origCookie.get.call(this); },
+            set: function(val) {
+                var err = new Error();
+                var stack = err.stack || '';
+                if (stack.indexOf('anonymous') > -1 && stack.split('\n').length < 4) {
+                    return;
+                }
+                _origCookie.set.call(this, val);
+            },
+            configurable: false
+        });
+    } catch(e) {}
+
+    // ===== 12. FORMDATA HIMOYASI =====
+    // FormData ni consoldan soxta ma'lumotlar bilan yuborishni qiyinlashtirish
+    var _origFormData = window.FormData;
+    window.FormData = function(form) {
+        if (!form || !(form instanceof HTMLFormElement)) {
+            var err = new Error();
+            var stack = err.stack || '';
+            if (stack.indexOf('anonymous') > -1 && stack.split('\n').length < 4) {
+                throw new Error('⛔ Soxta FormData bloklandi!');
+            }
+        }
+        return new _origFormData(form);
+    };
+    window.FormData.prototype = _origFormData.prototype;
+
+})();
+</script>
+
 </body>
 
 </html>

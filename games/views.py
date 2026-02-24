@@ -93,18 +93,67 @@ def game_submit(request, slug):
     prompt_id = request.POST.get('prompt_id')
     competition_id = request.POST.get('competition_id')
     typed_text = request.POST.get('typed_text', '')
-    time_spent = float(request.POST.get('time_spent', 0))
+    try:
+        time_spent = float(request.POST.get('time_spent', 0))
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Noto\'g\'ri vaqt formati!'}, status=400)
 
     prompt = get_object_or_404(Prompt, pk=prompt_id, game=game)
-    competition = None
 
+    # === ANTI-CHEAT: Server-side himoya ===
+    # 1. Minimal vaqt tekshirish — 3 sekunddan kam bo'lishi mumkin emas
+    MIN_TIME_SECONDS = 3
+    if time_spent < MIN_TIME_SECONDS:
+        return JsonResponse({'error': 'Vaqt juda qisqa! Cheat aniqlandi.'}, status=403)
+
+    # 2. Maksimal WPM cheklash — odam 250+ WPM yoza olmaydi
+    MAX_REALISTIC_WPM = 250
+    typed_words = typed_text.split()
+    minutes = time_spent / 60 if time_spent > 0 else 0.01
+    preliminary_wpm = len(typed_words) / minutes if minutes > 0 else 0
+    if preliminary_wpm > MAX_REALISTIC_WPM:
+        return JsonResponse({'error': 'Natija haqiqiy emas! WPM juda yuqori.'}, status=403)
+
+    # 3. typed_text bo'sh yoki juda qisqa bo'lmasligi kerak
+    if len(typed_text.strip()) < 2:
+        return JsonResponse({'error': 'Matn kiritilmagan!'}, status=400)
+
+    # 4. Sahifa ochilgan vaqtini session orqali tekshirish
+    session_key = f'game_start_{slug}_{prompt_id}'
+    game_start = request.session.get(session_key)
+    if game_start:
+        from datetime import datetime
+        try:
+            start_time = datetime.fromisoformat(game_start)
+            actual_elapsed = (timezone.now() - start_time).total_seconds()
+            # Agar yuborilgan vaqt serverda hisoblangan vaqtdan 2x ko'p bo'lsa — cheat
+            if time_spent > actual_elapsed * 2:
+                return JsonResponse({'error': 'Vaqt noto\'g\'ri!'}, status=403)
+            # Agar haqiqiy o'tgan vaqt 2 sekunddan kam bo'lsa
+            if actual_elapsed < 2:
+                return JsonResponse({'error': 'Juda tez! Cheat aniqlandi.'}, status=403)
+        except (ValueError, TypeError):
+            pass
+        # Session ni tozalash — qayta yuborishni oldini olish
+        del request.session[session_key]
+        request.session.modified = True
+
+    # 5. Qisqa vaqt ichida ko'p urinishlarni bloklash (rate limiting)
+    recent_attempts = GameAttempt.objects.filter(
+        user=request.user,
+        game=game,
+        created_at__gte=timezone.now() - timedelta(seconds=30)
+    ).count()
+    if recent_attempts >= 3:
+        return JsonResponse({'error': '30 soniyada 3 dan ko\'p urinish! Biroz kuting.'}, status=429)
+
+    competition = None
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
             return JsonResponse({'error': "Siz bu musobaqada ishtirok eta olmaysiz!"}, status=403)
 
     original_words = prompt.text.split()
-    typed_words = typed_text.split()
 
     correct = 0
     total = len(original_words)
@@ -113,8 +162,10 @@ def game_submit(request, slug):
             correct += 1
 
     accuracy = (correct / total * 100) if total > 0 else 0
-    minutes = time_spent / 60 if time_spent > 0 else 0.01
     wpm = len(typed_words) / minutes if minutes > 0 else 0
+
+    # 6. WPM ni maksimal chegarada saqlash
+    wpm = min(wpm, MAX_REALISTIC_WPM)
     score = round(wpm * (accuracy / 100), 2)
 
     attempt = GameAttempt.objects.create(
