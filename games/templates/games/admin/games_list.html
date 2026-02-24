@@ -1,0 +1,255 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}O'yinlar boshqaruvi | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-header {
+    animation: fadeInDown 0.5s ease-out;
+}
+
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.admin-card .table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.3s;
+}
+
+.btn-add:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+.action-btn {
+    border-radius: 10px;
+    padding: 0.35rem 0.65rem;
+    transition: all 0.25s;
+}
+
+.action-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Mobile cards */
+.mobile-game-cards { display: none; }
+
+.game-card-m {
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+[data-bs-theme="dark"] .game-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+
+.game-card-m:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.game-card-m .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.game-card-m .card-title {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.game-card-m .card-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    font-size: 0.82rem;
+}
+
+.game-card-m .card-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .desktop-table { display: none; }
+    .mobile-game-cards { display: block; }
+    .admin-header h2 { font-size: 1.2rem; }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0"><i class="bi bi-controller text-primary"></i> O'yinlar boshqaruvi</h2>
+        <a href="{% url 'games:admin_game_add' %}" class="btn btn-add">
+            <i class="bi bi-plus-lg"></i> Yangi o'yin
+        </a>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nomi</th>
+                            <th>Slug</th>
+                            <th>Turi</th>
+                            <th>Topshiriqlar</th>
+                            <th>Natijalar</th>
+                            <th>Holat</th>
+                            <th>Sana</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for game in games %}
+                        <tr>
+                            <td><strong>{{ game.title }}</strong></td>
+                            <td><code style="font-size: 0.82rem;">{{ game.slug }}</code></td>
+                            <td><span class="badge bg-info" style="border-radius: 8px;">{{ game.get_game_type_display }}</span></td>
+                            <td>
+                                <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
+                                    <i class="bi bi-card-text"></i> {{ game.prompts.count }}
+                                </a>
+                            </td>
+                            <td>{{ game.attempts.count }}</td>
+                            <td>
+                                {% if game.is_active %}
+                                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
+                                {% else %}
+                                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ game.created_at|date:"d.m.Y" }}</td>
+                            <td>
+                                <a href="{% url 'games:admin_game_edit' game.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'games:admin_game_delete' game.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <i class="bi bi-controller" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">O'yinlar mavjud emas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-game-cards">
+        {% for game in games %}
+        <div class="game-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            <div class="card-top">
+                <span class="card-title">{{ game.title }}</span>
+                {% if game.is_active %}
+                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
+                {% else %}
+                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
+                {% endif %}
+            </div>
+            <div class="card-meta text-muted">
+                <span><i class="bi bi-tag"></i> {{ game.get_game_type_display }}</span>
+                <span><i class="bi bi-card-text"></i> {{ game.prompts.count }} topshiriq</span>
+                <span><i class="bi bi-bar-chart"></i> {{ game.attempts.count }} natija</span>
+                <span><i class="bi bi-calendar"></i> {{ game.created_at|date:"d.m.Y" }}</span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
+                    <i class="bi bi-card-text"></i>
+                </a>
+                <a href="{% url 'games:admin_game_edit' game.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'games:admin_game_delete' game.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-controller" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">O'yinlar mavjud emas</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,504 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Natijalarim | O'yinlar{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --g-card: #ffffff;
+    --g-border: rgba(0, 0, 0, 0.06);
+    --g-text: #1e293b;
+    --g-text-muted: #64748b;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --g-radius: 22px;
+    --g-primary: #6366f1;
+    --g-primary-light: rgba(99, 102, 241, 0.08);
+}
+
+[data-bs-theme="dark"] {
+    --g-card: #1e1e2e;
+    --g-border: rgba(255, 255, 255, 0.07);
+    --g-text: #f1f5f9;
+    --g-text-muted: #94a3b8;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --g-primary-light: rgba(99, 102, 241, 0.15);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.results-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    border-radius: var(--g-radius);
+    padding: 2.5rem 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.results-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -15%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.results-hero h2 {
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.results-hero .back-link {
+    color: rgba(255,255,255,0.85);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.results-hero .back-link:hover {
+    color: white;
+    transform: translateX(-4px);
+}
+
+.filter-card {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: 16px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--g-shadow);
+    animation: fadeInUp 0.5s ease-out 0.1s both;
+    transition: all 0.3s;
+}
+
+.filter-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.filter-card .form-select,
+.filter-card .form-control {
+    border-radius: 12px;
+    border-color: var(--g-border);
+    transition: all 0.3s;
+}
+
+.filter-card .form-select:focus,
+.filter-card .form-control:focus {
+    border-color: var(--g-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.filter-card .btn-filter {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.filter-card .btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* ===== Results Cards (Mobile-first approach) ===== */
+.results-table-wrap {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: var(--g-radius);
+    box-shadow: var(--g-shadow);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.results-table {
+    width: 100%;
+    margin: 0;
+}
+
+.results-table th {
+    background: var(--g-primary-light);
+    padding: 0.85rem 1rem;
+    font-weight: 650;
+    font-size: 0.82rem;
+    color: var(--g-text-muted);
+    border-bottom: 1px solid var(--g-border);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+.results-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--g-border);
+    color: var(--g-text);
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+.results-table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+
+.results-table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.results-table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.results-table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.results-table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.results-table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.results-table tbody tr:hover {
+    background: var(--g-primary-light);
+    transform: scale(1.005);
+}
+
+.results-table tbody tr:last-child td { border-bottom: none; }
+
+.results-table .score-cell {
+    font-weight: 700;
+    color: var(--g-primary);
+}
+
+/* ===== Mobile Cards ===== */
+.mobile-results {
+    display: none;
+}
+
+.result-card-mobile {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--g-shadow);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.result-card-mobile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.result-card-mobile .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.result-card-mobile .game-name {
+    font-weight: 700;
+    color: var(--g-text);
+    font-size: 0.95rem;
+}
+
+.result-card-mobile .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+}
+
+.result-card-mobile .stat-item {
+    padding: 0.5rem;
+    background: var(--g-primary-light);
+    border-radius: 10px;
+}
+
+.result-card-mobile .stat-item .val {
+    font-weight: 700;
+    color: var(--g-text);
+    font-size: 0.95rem;
+}
+
+.result-card-mobile .stat-item .lbl {
+    font-size: 0.68rem;
+    color: var(--g-text-muted);
+    text-transform: uppercase;
+}
+
+.result-card-mobile .card-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--g-text-muted);
+}
+
+/* ===== Pagination ===== */
+.pagination .page-link {
+    border-radius: 10px;
+    margin: 0 3px;
+    border: 1px solid var(--g-border);
+    color: var(--g-text);
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.pagination .page-link:hover {
+    background: var(--g-primary);
+    color: white;
+    border-color: var(--g-primary);
+    transform: translateY(-2px);
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+}
+
+.empty-results {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-results i {
+    font-size: 3rem;
+    opacity: 0.4;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.btn-pdf-student {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.18);
+    backdrop-filter: blur(4px);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 0.5rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    transition: all 0.3s;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-pdf-student:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .results-hero {
+        padding: 1.8rem 1.2rem;
+        border-radius: 16px;
+    }
+    .results-hero h2 {
+        font-size: 1.3rem;
+    }
+    .results-table-wrap {
+        display: none;
+    }
+    .mobile-results {
+        display: block;
+    }
+    .filter-card {
+        padding: 1rem;
+    }
+    .btn-pdf-student {
+        font-size: 0.78rem;
+        padding: 0.4rem 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .results-hero {
+        padding: 1.3rem 1rem;
+    }
+    .results-hero h2 {
+        font-size: 1.15rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="results-hero">
+        <a href="{% url 'games:games_list' %}" class="back-link">
+            <i class="bi bi-arrow-left"></i> O'yinlar
+        </a>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h2 class="mb-0"><i class="bi bi-bar-chart-line"></i> Natijalarim</h2>
+            <a href="{% url 'games:my_results_pdf' %}?game={{ game_filter|default:'' }}&mode={{ mode_filter|default:'' }}" class="btn-pdf-student">
+                <i class="bi bi-file-earmark-pdf"></i> PDF yuklab olish
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4 col-6">
+                <label class="form-label fw-bold small">O'yin</label>
+                <select name="game" class="form-select form-select-sm">
+                    <option value="">Barchasi</option>
+                    {% for g in games %}
+                    <option value="{{ g.pk }}" {% if game_filter == g.pk|stringformat:"d" %}selected{% endif %}>{{ g.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-6">
+                <label class="form-label fw-bold small">Rejim</label>
+                <select name="mode" class="form-select form-select-sm">
+                    <option value="">Barchasi</option>
+                    <option value="practice" {% if mode_filter == 'practice' %}selected{% endif %}>Practice</option>
+                    <option value="competition" {% if mode_filter == 'competition' %}selected{% endif %}>Competition</option>
+                </select>
+            </div>
+            <div class="col-md-4 col-12">
+                <button type="submit" class="btn btn-sm btn-filter w-100">
+                    <i class="bi bi-filter"></i> Filtrlash
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="results-table-wrap">
+        <div class="table-responsive">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>O'yin</th>
+                        <th>Rejim</th>
+                        <th>WPM</th>
+                        <th>Aniqlik</th>
+                        <th>Ball</th>
+                        <th>Vaqt</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in attempts %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ attempt.game.title }}</strong></td>
+                        <td>
+                            {% if attempt.competition %}
+                            <span class="badge bg-warning text-dark" style="border-radius: 8px;">🏆 {{ attempt.competition.title }}</span>
+                            {% else %}
+                            <span class="badge bg-success" style="border-radius: 8px;">Practice</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ attempt.wpm }}</td>
+                        <td>{{ attempt.accuracy }}%</td>
+                        <td class="score-cell">{{ attempt.score }}</td>
+                        <td>{{ attempt.time_spent|floatformat:1 }}s</td>
+                        <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-results">
+                                <i class="bi bi-emoji-smile"></i>
+                                <p class="mt-2">Hali natijalar yo'q</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-results">
+        {% for attempt in attempts %}
+        <div class="result-card-mobile" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            <div class="card-header-row">
+                <span class="game-name">{{ attempt.game.title }}</span>
+                {% if attempt.competition %}
+                <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.72rem;">🏆 {{ attempt.competition.title }}</span>
+                {% else %}
+                <span class="badge bg-success" style="border-radius: 8px; font-size: 0.72rem;">Practice</span>
+                {% endif %}
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="val">{{ attempt.wpm }}</div>
+                    <div class="lbl">WPM</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val">{{ attempt.accuracy }}%</div>
+                    <div class="lbl">Aniqlik</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" style="color: var(--g-primary);">{{ attempt.score }}</div>
+                    <div class="lbl">Ball</div>
+                </div>
+            </div>
+            <div class="card-footer-row">
+                <span><i class="bi bi-clock"></i> {{ attempt.time_spent|floatformat:1 }}s</span>
+                <span>{{ attempt.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-results">
+            <i class="bi bi-emoji-smile"></i>
+            <p class="text-muted mt-2">Hali natijalar yo'q</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if attempts.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if attempts.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ attempts.previous_page_number }}&game={{ game_filter|default:'' }}&mode={{ mode_filter|default:'' }}">&laquo;</a>
+            </li>
+            {% endif %}
+            {% for num in attempts.paginator.page_range %}
+            <li class="page-item {% if attempts.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&game={{ game_filter|default:'' }}&mode={{ mode_filter|default:'' }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if attempts.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ attempts.next_page_number }}&game={{ game_filter|default:'' }}&mode={{ mode_filter|default:'' }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

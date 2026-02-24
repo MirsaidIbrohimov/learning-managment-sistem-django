@@ -27,7 +27,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 SECRET_KEY = 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'blog',
     'ai_yordamchi',
     'coin',
+    'games',
 ]
 
 
@@ -135,6 +136,11 @@ JAZZMIN_SETTINGS = {
 
         "accounts.Certificate": "fas fa-certificate",
         "accounts.CoinTransaction": "fas fa-coins",
+
+        "games.Game": "fas fa-gamepad",
+        "games.Prompt": "fas fa-keyboard",
+        "games.Competition": "fas fa-trophy",
+        "games.GameAttempt": "fas fa-chart-bar",
     },
 
     "default_icon_parents": "fas fa-layer-group",

@@ -12,6 +12,7 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('', include('coin.urls')),
     path('blog/', include('blog.urls')),
+    path('games/', include('games.urls')),
 ]
 
 # Media files handling

@@ -1,0 +1,340 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}O'yinlar | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --g-card: #ffffff;
+    --g-card-hover: #f8fafc;
+    --g-border: rgba(0, 0, 0, 0.06);
+    --g-text: #1e293b;
+    --g-text-muted: #64748b;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --g-shadow-hover: 0 16px 48px rgba(99, 102, 241, 0.18);
+    --g-radius: 22px;
+    --g-primary: #6366f1;
+    --g-primary-light: rgba(99, 102, 241, 0.08);
+}
+
+[data-bs-theme="dark"] {
+    --g-card: #1e1e2e;
+    --g-card-hover: #282840;
+    --g-border: rgba(255, 255, 255, 0.07);
+    --g-text: #f1f5f9;
+    --g-text-muted: #94a3b8;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --g-shadow-hover: 0 16px 48px rgba(99, 102, 241, 0.25);
+    --g-primary-light: rgba(99, 102, 241, 0.15);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.3); }
+    50% { box-shadow: 0 0 20px 6px rgba(99, 102, 241, 0.15); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* ===== Hero ===== */
+.games-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 70%, #c084fc 100%);
+    border-radius: var(--g-radius);
+    padding: 3rem 2rem;
+    color: white;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInDown 0.7s ease-out;
+}
+
+.games-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+    animation: floatIcon 6s ease-in-out infinite;
+}
+
+.games-hero h1 {
+    font-weight: 800;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.games-hero p {
+    opacity: 0.92;
+    font-size: 1.08rem;
+    position: relative;
+    z-index: 1;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.games-hero .hero-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.75rem;
+    animation: floatIcon 3s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+}
+
+/* ===== Game Cards ===== */
+.game-card-wrapper {
+    animation: fadeInUp 0.6s ease-out both;
+}
+
+.game-card {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: var(--g-radius);
+    box-shadow: var(--g-shadow);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+}
+
+.game-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: var(--g-shadow-hover);
+    border-color: rgba(99, 102, 241, 0.2);
+}
+
+.game-card:hover::before {
+    transform: scaleX(1);
+}
+
+.game-card .game-icon {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+    font-size: 2.2rem;
+    color: white;
+    transition: all 0.4s ease;
+    animation: pulseGlow 3s infinite;
+}
+
+.game-card:hover .game-icon {
+    transform: scale(1.12) rotate(5deg);
+    animation: none;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+}
+
+.game-card h3 {
+    font-weight: 700;
+    color: var(--g-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+    transition: color 0.3s;
+}
+
+.game-card:hover h3 {
+    color: var(--g-primary);
+}
+
+.game-card p {
+    color: var(--g-text-muted);
+    font-size: 0.92rem;
+    margin-bottom: 1.3rem;
+    line-height: 1.5;
+}
+
+.game-card .badge-type {
+    display: inline-block;
+    padding: 0.3rem 0.85rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--g-primary-light);
+    color: var(--g-primary);
+    margin-bottom: 1rem;
+}
+
+.btn-play {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    padding: 0.65rem 2rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-play::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+}
+
+.btn-play:hover {
+    transform: translateY(-3px) scale(1.05);
+    color: white;
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-play:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-play:active {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* ===== Empty State ===== */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--g-text-muted);
+    animation: fadeInUp 0.7s ease-out;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.4;
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+.empty-state h5 {
+    font-weight: 700;
+    color: var(--g-text);
+    margin-bottom: 0.5rem;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .games-hero {
+        padding: 2rem 1.2rem;
+        border-radius: 16px;
+        margin-bottom: 1.5rem;
+    }
+    .games-hero h1 {
+        font-size: 1.5rem;
+    }
+    .games-hero p {
+        font-size: 0.92rem;
+    }
+    .games-hero .hero-icon {
+        font-size: 2.2rem;
+    }
+    .game-card {
+        padding: 1.5rem 1.2rem;
+        border-radius: 16px;
+    }
+    .game-card .game-icon {
+        width: 65px;
+        height: 65px;
+        font-size: 1.7rem;
+    }
+    .game-card h3 {
+        font-size: 1.05rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .games-hero {
+        padding: 1.5rem 1rem;
+    }
+    .games-hero h1 {
+        font-size: 1.3rem;
+    }
+    .btn-play {
+        padding: 0.55rem 1.5rem;
+        font-size: 0.88rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="games-hero">
+        <i class="bi bi-controller hero-icon"></i>
+        <h1>O'yinlar</h1>
+        <p>Bilimlaringizni qiziqarli o'yinlar orqali sinab ko'ring!</p>
+    </div>
+
+    {% if games %}
+    <div class="row g-4">
+        {% for game in games %}
+        <div class="col-12 col-sm-6 col-lg-4 game-card-wrapper" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <div class="game-card">
+                <div class="game-icon">
+                    <i class="bi {{ game.icon }}"></i>
+                </div>
+                <h3>{{ game.title }}</h3>
+                <span class="badge-type">{{ game.get_game_type_display }}</span>
+                <p>{{ game.description|truncatewords:20 }}</p>
+                <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-play">
+                    <i class="bi bi-play-fill"></i> O'ynash
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-controller d-block"></i>
+        <h5>Hozircha o'yinlar mavjud emas</h5>
+        <p>Tez orada yangi o'yinlar qo'shiladi!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,281 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Musobaqalar | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.admin-card .table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.3s;
+}
+
+.btn-add:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+.action-btn {
+    border-radius: 10px;
+    padding: 0.35rem 0.65rem;
+    transition: all 0.25s;
+}
+
+.action-btn:hover { transform: scale(1.1); }
+
+/* Mobile cards */
+.mobile-comp-cards { display: none; }
+
+.comp-card-m {
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+[data-bs-theme="dark"] .comp-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+
+.comp-card-m:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.comp-card-m .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.comp-card-m .card-title-m {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.comp-card-m .card-meta {
+    font-size: 0.82rem;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 0.75rem;
+}
+
+.comp-card-m .card-meta div {
+    margin-bottom: 0.2rem;
+}
+
+.comp-card-m .card-footer-m {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comp-card-m .card-badges {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 992px) {
+    .desktop-table { display: none; }
+    .mobile-comp-cards { display: block; }
+}
+
+@media (max-width: 768px) {
+    .admin-header h2 { font-size: 1.2rem; }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0"><i class="bi bi-trophy text-warning"></i> Musobaqalar</h2>
+        <a href="{% url 'games:admin_competition_add' %}" class="btn btn-add">
+            <i class="bi bi-plus-lg"></i> Yangi musobaqa
+        </a>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>O'yin</th>
+                            <th>Nomi</th>
+                            <th>Boshlanish</th>
+                            <th>Tugash</th>
+                            <th>Holat</th>
+                            <th>Urinishlar</th>
+                            <th>Qayta urinish</th>
+                            <th>Faol</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comp in competitions %}
+                        <tr>
+                            <td>{{ comp.game.title }}</td>
+                            <td><strong>{{ comp.title }}</strong></td>
+                            <td>{{ comp.start_time|date:"d.m.Y H:i" }}</td>
+                            <td>{{ comp.end_time|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if comp.status == 'upcoming' %}
+                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">Boshlanmagan</span>
+                                {% elif comp.status == 'active' %}
+                                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
+                                {% else %}
+                                <span class="badge bg-secondary" style="border-radius: 8px;">Tugagan</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ comp.max_attempts }}</td>
+                            <td>
+                                {% if comp.allow_retry %}
+                                <span class="badge bg-info" style="border-radius: 8px;">Ha</span>
+                                {% else %}
+                                <span class="badge bg-secondary" style="border-radius: 8px;">Yo'q</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if comp.is_active %}
+                                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
+                                {% else %}
+                                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'games:admin_competition_edit' comp.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'games:admin_competition_delete' comp.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-4 text-muted">
+                                <i class="bi bi-trophy" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">Musobaqalar mavjud emas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-comp-cards">
+        {% for comp in competitions %}
+        <div class="comp-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            <div class="card-top">
+                <span class="card-title-m">{{ comp.title }}</span>
+                {% if comp.status == 'upcoming' %}
+                <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.72rem;">Boshlanmagan</span>
+                {% elif comp.status == 'active' %}
+                <span class="badge bg-success" style="border-radius: 8px; font-size: 0.72rem;">Faol</span>
+                {% else %}
+                <span class="badge bg-secondary" style="border-radius: 8px; font-size: 0.72rem;">Tugagan</span>
+                {% endif %}
+            </div>
+            <div class="card-meta">
+                <div><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
+                <div><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}</div>
+                <div><i class="bi bi-arrow-repeat"></i> {{ comp.max_attempts }} urinish {% if comp.allow_retry %} · Qayta urinish: Ha{% endif %}</div>
+            </div>
+            <div class="card-footer-m">
+                <div class="card-badges">
+                    {% if comp.is_active %}
+                    <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Faol</span>
+                    {% else %}
+                    <span class="badge bg-secondary" style="border-radius: 8px; font-size: 0.7rem;">Nofaol</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'games:admin_competition_edit' comp.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'games:admin_competition_delete' comp.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-trophy" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">Musobaqalar mavjud emas</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

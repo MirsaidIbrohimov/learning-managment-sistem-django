@@ -1,0 +1,257 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Topshiriqlar - {{ game.title }} | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+
+.admin-card .table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.btn-add {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.3s;
+}
+
+.btn-add:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
+
+.btn-back {
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-back:hover { transform: translateX(-3px); }
+
+.action-btn {
+    border-radius: 10px;
+    padding: 0.35rem 0.65rem;
+    transition: all 0.25s;
+}
+
+.action-btn:hover { transform: scale(1.1); }
+
+/* Mobile cards */
+.mobile-prompt-cards { display: none; }
+
+.prompt-card-m {
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+[data-bs-theme="dark"] .prompt-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+
+.prompt-card-m:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.prompt-card-m .text-preview {
+    font-size: 0.9rem;
+    color: var(--text-color, #1e293b);
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+}
+
+.prompt-card-m .card-footer-m {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .desktop-table { display: none; }
+    .mobile-prompt-cards { display: block; }
+    .admin-header h2 { font-size: 1.2rem; }
+    .admin-header { flex-direction: column; gap: 0.75rem; align-items: flex-start !important; }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="bi bi-card-text text-primary"></i> Topshiriqlar</h2>
+            <p class="text-muted mb-0 small">{{ game.title }}</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'games:admin_games' %}" class="btn btn-outline-secondary btn-back">
+                <i class="bi bi-arrow-left"></i> O'yinlar
+            </a>
+            <a href="{% url 'games:admin_prompt_add' game.pk %}" class="btn btn-add">
+                <i class="bi bi-plus-lg"></i> Yangi topshiriq
+            </a>
+        </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Tartib</th>
+                            <th>Matn</th>
+                            <th>Qiyinlik</th>
+                            <th>Holat</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prompt in prompts %}
+                        <tr>
+                            <td>{{ prompt.order }}</td>
+                            <td>{{ prompt.text|truncatewords:15 }}</td>
+                            <td>
+                                {% if prompt.difficulty == 'easy' %}
+                                <span class="badge bg-success" style="border-radius: 8px;">Oson</span>
+                                {% elif prompt.difficulty == 'medium' %}
+                                <span class="badge bg-warning text-dark" style="border-radius: 8px;">O'rta</span>
+                                {% else %}
+                                <span class="badge bg-danger" style="border-radius: 8px;">Qiyin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if prompt.is_active %}
+                                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
+                                {% else %}
+                                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'games:admin_prompt_edit' prompt.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'games:admin_prompt_delete' prompt.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-card-text" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">Topshiriqlar mavjud emas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-prompt-cards">
+        {% for prompt in prompts %}
+        <div class="prompt-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="text-muted small">#{{ prompt.order }}</span>
+                <div class="d-flex gap-1">
+                    {% if prompt.difficulty == 'easy' %}
+                    <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Oson</span>
+                    {% elif prompt.difficulty == 'medium' %}
+                    <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.7rem;">O'rta</span>
+                    {% else %}
+                    <span class="badge bg-danger" style="border-radius: 8px; font-size: 0.7rem;">Qiyin</span>
+                    {% endif %}
+                    {% if prompt.is_active %}
+                    <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Faol</span>
+                    {% else %}
+                    <span class="badge bg-secondary" style="border-radius: 8px; font-size: 0.7rem;">Nofaol</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="text-preview">{{ prompt.text|truncatewords:20 }}</div>
+            <div class="card-footer-m">
+                <span></span>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'games:admin_prompt_edit' prompt.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'games:admin_prompt_delete' prompt.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-card-text" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">Topshiriqlar mavjud emas</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

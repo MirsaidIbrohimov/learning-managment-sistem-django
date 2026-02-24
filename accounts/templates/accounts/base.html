@@ -498,6 +498,7 @@
                                     {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>{% endif %}
                                 </a>
                             </li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i>O'yinlar</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i>Vazifalarim</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i>Qurilmalar</a></li>
@@ -709,6 +710,10 @@
                         {% endif %}
                     </div>
                     <span>Xabarlar</span>
+                </a>
+                <a href="{% url 'games:games_list' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-controller"></i></div>
+                    <span>O'yinlar</span>
                 </a>
                 <a href="{% url 'my_homework_list' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-journal-check"></i></div>

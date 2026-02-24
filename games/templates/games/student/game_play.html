@@ -1,0 +1,709 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}{{ game.title }} - O'ynash | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --g-card: #ffffff;
+    --g-border: rgba(0, 0, 0, 0.06);
+    --g-text: #1e293b;
+    --g-text-muted: #64748b;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --g-radius: 22px;
+    --g-primary: #6366f1;
+    --g-success: #22c55e;
+    --g-danger: #ef4444;
+}
+
+[data-bs-theme="dark"] {
+    --g-card: #1e1e2e;
+    --g-border: rgba(255, 255, 255, 0.07);
+    --g-text: #f1f5f9;
+    --g-text-muted: #94a3b8;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes correctFlash {
+    0% { background: rgba(34, 197, 94, 0.3); transform: scale(1.15); }
+    100% { background: transparent; transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+
+@keyframes resultIn {
+    from { opacity: 0; transform: scale(0.7) translateY(40px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes timerPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes focusPulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.2); }
+}
+
+@keyframes slideInWarning {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes countUp {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.play-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.play-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #a855f7 100%);
+    border-radius: var(--g-radius);
+    padding: 1.5rem 2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInDown 0.5s ease-out;
+}
+
+.play-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.play-header h3 {
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.play-stats {
+    display: flex;
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.play-stat {
+    text-align: center;
+}
+
+.play-stat .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.play-stat .label {
+    font-size: 0.72rem;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.prompt-card {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: var(--g-radius);
+    box-shadow: var(--g-shadow);
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.6s ease-out 0.15s both;
+    transition: all 0.3s;
+}
+
+.prompt-words {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 1.25rem;
+    line-height: 2;
+    margin-bottom: 1.5rem;
+    min-height: 80px;
+}
+
+.prompt-word {
+    padding: 3px 7px;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    color: var(--g-text-muted);
+}
+
+.prompt-word.current {
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--g-primary);
+    font-weight: 600;
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.prompt-word.correct {
+    color: var(--g-success);
+    animation: correctFlash 0.4s ease;
+}
+
+.prompt-word.wrong {
+    color: var(--g-danger);
+    text-decoration: underline wavy;
+    animation: shake 0.5s ease;
+}
+
+.prompt-word.completed {
+    color: var(--g-text);
+    opacity: 0.4;
+}
+
+.typing-area {
+    width: 100%;
+    min-height: 60px;
+    border: 2px solid var(--g-border);
+    border-radius: 16px;
+    padding: 1rem 1.2rem;
+    font-size: 1.1rem;
+    background: var(--g-card);
+    color: var(--g-text);
+    resize: none;
+    outline: none;
+    transition: all 0.35s ease;
+}
+
+.typing-area:focus {
+    border-color: var(--g-primary);
+    animation: focusPulse 2s infinite;
+}
+
+.progress-bar-container {
+    height: 8px;
+    background: var(--g-border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #22c55e);
+    border-radius: 6px;
+    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 0%;
+    position: relative;
+}
+
+.progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 100%;
+    background: rgba(255,255,255,0.4);
+    border-radius: 6px;
+    filter: blur(4px);
+}
+
+.result-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.result-overlay.show { display: flex; }
+
+.result-card {
+    background: var(--g-card);
+    border-radius: var(--g-radius);
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 440px;
+    width: 90%;
+    animation: resultIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 1px solid var(--g-border);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.result-emoji {
+    font-size: 3.5rem;
+    animation: countUp 0.5s ease-out 0.2s both;
+}
+
+.result-score {
+    font-size: 3.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: countUp 0.5s ease-out 0.3s both;
+}
+
+.result-detail {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+
+.result-detail .item {
+    text-align: center;
+    animation: countUp 0.4s ease-out both;
+}
+
+.result-detail .item:nth-child(1) { animation-delay: 0.4s; }
+.result-detail .item:nth-child(2) { animation-delay: 0.5s; }
+.result-detail .item:nth-child(3) { animation-delay: 0.6s; }
+
+.result-detail .item .val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--g-text);
+}
+
+.result-detail .item .lbl {
+    font-size: 0.78rem;
+    color: var(--g-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tab-warning {
+    display: none;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    z-index: 10000;
+    font-weight: 600;
+    animation: slideInWarning 0.4s ease-out;
+    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
+}
+
+.tab-warning.show { display: block; }
+
+.timer-pulse {
+    animation: timerPulse 1s infinite;
+}
+
+.btn-finish {
+    border-radius: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-finish:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .play-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.2rem 1rem;
+        border-radius: 16px;
+    }
+    .play-stats {
+        gap: 1rem;
+    }
+    .play-stat .value {
+        font-size: 1.2rem;
+    }
+    .prompt-card {
+        padding: 1.3rem;
+        border-radius: 16px;
+    }
+    .prompt-words {
+        font-size: 1.05rem;
+        gap: 6px;
+    }
+    .typing-area {
+        font-size: 1rem;
+    }
+    .result-card {
+        padding: 1.8rem 1.2rem;
+    }
+    .result-score {
+        font-size: 2.5rem;
+    }
+    .result-detail {
+        gap: 1.2rem;
+    }
+    .result-detail .item .val {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .play-header h3 {
+        font-size: 1rem;
+    }
+    .play-stat .value {
+        font-size: 1rem;
+    }
+    .prompt-words {
+        font-size: 0.95rem;
+        line-height: 1.8;
+    }
+    .result-detail {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="play-container">
+        <!-- Tab Warning -->
+        <div class="tab-warning" id="tabWarning">
+            ⚠️ Ogohlantirish! Tab almashish aniqlandi (<span id="tabCount">0</span>/3)
+        </div>
+
+        <!-- Header -->
+        <div class="play-header">
+            <div>
+                <h3><i class="bi {{ game.icon }}"></i> {{ game.title }}</h3>
+                {% if competition %}
+                <small><i class="bi bi-trophy"></i> {{ competition.title }}</small>
+                {% else %}
+                <small><i class="bi bi-joystick"></i> Practice Mode</small>
+                {% endif %}
+            </div>
+            <div class="play-stats">
+                <div class="play-stat">
+                    <div class="value timer-pulse" id="timer">0:00</div>
+                    <div class="label">Vaqt</div>
+                </div>
+                <div class="play-stat">
+                    <div class="value" id="wpmDisplay">0</div>
+                    <div class="label">WPM</div>
+                </div>
+                <div class="play-stat">
+                    <div class="value" id="accuracyDisplay">100%</div>
+                    <div class="label">Aniqlik</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-bar-container">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+
+        <!-- Prompt -->
+        <div class="prompt-card">
+            <div class="prompt-words" id="promptWords"></div>
+            <textarea class="typing-area" id="typingArea" placeholder="Bu yerga yozing..." autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Orqaga
+            </a>
+            <button class="btn btn-danger" id="finishBtn" style="display:none;">
+                <i class="bi bi-check-circle"></i> Tugatish
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Result Overlay -->
+<div class="result-overlay" id="resultOverlay">
+    <div class="result-card">
+        <div class="mb-3">
+            <i class="bi bi-trophy" style="font-size: 3rem; color: #f59e0b;"></i>
+        </div>
+        <h3 class="fw-bold mb-1">Natija</h3>
+        <div class="result-score" id="resultScore">0</div>
+        <div class="text-muted mb-2">ball</div>
+        <div class="result-detail">
+            <div class="item">
+                <div class="val" id="resultWpm">0</div>
+                <div class="lbl">WPM</div>
+            </div>
+            <div class="item">
+                <div class="val" id="resultAccuracy">0%</div>
+                <div class="lbl">Aniqlik</div>
+            </div>
+            <div class="item">
+                <div class="val" id="resultTime">0s</div>
+                <div class="lbl">Vaqt</div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 justify-content-center mt-3">
+            <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> O'yin sahifasi
+            </a>
+            {% if not competition %}
+            <a href="{% url 'games:game_play' game.slug %}" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat"></i> Qayta o'ynash
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form id="submitForm" method="post" action="{% url 'games:game_submit' game.slug %}" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="prompt_id" value="{{ prompt.pk }}">
+    <input type="hidden" name="competition_id" value="{{ competition.pk|default:'' }}">
+    <input type="hidden" name="typed_text" id="hiddenTypedText">
+    <input type="hidden" name="time_spent" id="hiddenTimeSpent">
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const promptText = "{{ prompt.text|escapejs }}";
+    const isCompetition = {{ competition|yesno:"true,false" }};
+    const words = promptText.split(/\s+/);
+    const promptWordsEl = document.getElementById('promptWords');
+    const typingArea = document.getElementById('typingArea');
+    const timerEl = document.getElementById('timer');
+    const wpmEl = document.getElementById('wpmDisplay');
+    const accEl = document.getElementById('accuracyDisplay');
+    const progressBar = document.getElementById('progressBar');
+    const finishBtn = document.getElementById('finishBtn');
+
+    let currentIndex = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+    let startTime = null;
+    let timerInterval = null;
+    let tabSwitchCount = 0;
+    let finished = false;
+
+    // Render words
+    words.forEach((w, i) => {
+        const span = document.createElement('span');
+        span.className = 'prompt-word' + (i === 0 ? ' current' : '');
+        span.textContent = w;
+        span.id = 'word-' + i;
+        promptWordsEl.appendChild(span);
+    });
+
+    // Disable paste/copy/right-click
+    typingArea.addEventListener('paste', e => e.preventDefault());
+    typingArea.addEventListener('copy', e => e.preventDefault());
+    typingArea.addEventListener('cut', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => {
+        if (e.target === typingArea) e.preventDefault();
+    });
+
+    // Timer
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const min = Math.floor(elapsed / 60);
+            const sec = elapsed % 60;
+            timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+        }, 1000);
+    }
+
+    function getElapsedSeconds() {
+        return startTime ? (Date.now() - startTime) / 1000 : 0;
+    }
+
+    // Input handler
+    typingArea.addEventListener('input', function() {
+        if (finished) return;
+        if (!startTime) {
+            startTimer();
+            finishBtn.style.display = 'inline-block';
+        }
+
+        const inputWords = this.value.trim().split(/\s+/);
+        const lastChar = this.value.slice(-1);
+
+        // Check if space pressed (word completed)
+        if (lastChar === ' ' && inputWords.length > 0) {
+            const typedWord = inputWords[inputWords.length - 1];
+            checkWord(typedWord);
+        }
+    });
+
+    typingArea.addEventListener('keydown', function(e) {
+        if (finished) {
+            e.preventDefault();
+            return;
+        }
+        if (e.key === ' ' && this.value.trim() === '') {
+            e.preventDefault();
+        }
+    });
+
+    function checkWord(typedWord) {
+        if (currentIndex >= words.length || finished) return;
+
+        const wordEl = document.getElementById('word-' + currentIndex);
+        const originalWord = words[currentIndex];
+
+        if (typedWord === originalWord) {
+            wordEl.className = 'prompt-word correct';
+            correctCount++;
+        } else {
+            wordEl.className = 'prompt-word wrong';
+            wrongCount++;
+        }
+
+        currentIndex++;
+
+        // Update progress
+        const progress = (currentIndex / words.length) * 100;
+        progressBar.style.width = progress + '%';
+
+        // Update stats
+        updateStats();
+
+        // Mark next word
+        if (currentIndex < words.length) {
+            document.getElementById('word-' + currentIndex).className = 'prompt-word current';
+        }
+
+        // Check completion
+        if (currentIndex >= words.length) {
+            finishGame();
+        }
+
+        // Clear input for next word
+        typingArea.value = '';
+    }
+
+    function updateStats() {
+        const elapsed = getElapsedSeconds();
+        const totalTyped = correctCount + wrongCount;
+        const minutes = elapsed / 60 || 0.01;
+        const wpm = Math.round(totalTyped / minutes);
+        const accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
+
+        wpmEl.textContent = wpm;
+        accEl.textContent = accuracy + '%';
+    }
+
+    function finishGame() {
+        if (finished) return;
+        finished = true;
+        clearInterval(timerInterval);
+        typingArea.disabled = true;
+
+        const elapsed = getElapsedSeconds();
+        const totalTyped = correctCount + wrongCount;
+        const minutes = elapsed / 60 || 0.01;
+        const wpm = Math.round(totalTyped / minutes);
+        const accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
+        const score = Math.round(wpm * (accuracy / 100) * 100) / 100;
+
+        // Submit via AJAX
+        const form = document.getElementById('submitForm');
+        document.getElementById('hiddenTypedText').value = getAllTypedText();
+        document.getElementById('hiddenTimeSpent').value = elapsed.toFixed(2);
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('resultScore').textContent = data.score;
+            document.getElementById('resultWpm').textContent = data.wpm;
+            document.getElementById('resultAccuracy').textContent = data.accuracy + '%';
+            document.getElementById('resultTime').textContent = Math.round(data.time_spent) + 's';
+            document.getElementById('resultOverlay').classList.add('show');
+        })
+        .catch(() => {
+            document.getElementById('resultScore').textContent = score;
+            document.getElementById('resultWpm').textContent = wpm;
+            document.getElementById('resultAccuracy').textContent = accuracy + '%';
+            document.getElementById('resultTime').textContent = Math.round(elapsed) + 's';
+            document.getElementById('resultOverlay').classList.add('show');
+        });
+    }
+
+    function getAllTypedText() {
+        // Reconstruct what the user typed
+        const result = [];
+        for (let i = 0; i < currentIndex; i++) {
+            const el = document.getElementById('word-' + i);
+            if (el.classList.contains('correct')) {
+                result.push(words[i]);
+            } else {
+                result.push('[wrong]');
+            }
+        }
+        return result.join(' ');
+    }
+
+    // Finish button
+    finishBtn.addEventListener('click', finishGame);
+
+    // Tab switch detection (competition only)
+    if (isCompetition) {
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && startTime && !finished) {
+                tabSwitchCount++;
+                document.getElementById('tabCount').textContent = tabSwitchCount;
+                const warning = document.getElementById('tabWarning');
+                warning.classList.add('show');
+                setTimeout(() => warning.classList.remove('show'), 3000);
+
+                if (tabSwitchCount >= 3) {
+                    finishGame();
+                }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}
