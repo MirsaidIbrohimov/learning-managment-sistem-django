@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.http import JsonResponse, HttpResponse
 from django.utils import timezone
 from django.conf import settings
-from django.db.models import Avg, Max, Count, Q
+from django.db.models import Avg, Max, Count, Q, Subquery, OuterRef
 from django.core.paginator import Paginator
 from django.views.decorators.http import require_POST
 
@@ -46,7 +46,13 @@ def game_detail(request, slug):
         best_practice = WordGameAttempt.objects.filter(
             user=request.user, game=game, competition__isnull=True
         ).order_by('-total_score').first()
-        all_attempts = WordGameAttempt.objects.filter(game=game).select_related('user', 'word_round').order_by('-created_at')[:20]
+        latest_word_ids = WordGameAttempt.objects.filter(
+            game=game, user=OuterRef('user')
+        ).order_by('-created_at').values('pk')[:1]
+        all_attempts = WordGameAttempt.objects.filter(
+            game=game,
+            pk__in=Subquery(latest_word_ids)
+        ).select_related('user', 'word_round').order_by('-created_at')[:20]
 
         return render(request, 'games/student/word_game_detail.html', {
             'game': game,
@@ -62,7 +68,13 @@ def game_detail(request, slug):
         user=request.user, game=game, competition__isnull=True
     ).order_by('-score').first()
 
-    all_attempts = GameAttempt.objects.filter(game=game).select_related('user').order_by('-created_at')[:20]
+    latest_typing_ids = GameAttempt.objects.filter(
+        game=game, user=OuterRef('user')
+    ).order_by('-created_at').values('pk')[:1]
+    all_attempts = GameAttempt.objects.filter(
+        game=game,
+        pk__in=Subquery(latest_typing_ids)
+    ).select_related('user').order_by('-created_at')[:20]
 
     return render(request, 'games/student/game_detail.html', {
         'game': game,
