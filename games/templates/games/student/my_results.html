@@ -399,8 +399,8 @@
                         <th>#</th>
                         <th>O'yin</th>
                         <th>Rejim</th>
-                        <th>WPM</th>
-                        <th>Aniqlik</th>
+                        <th>Natija</th>
+                        <th>Batafsil</th>
                         <th>Ball</th>
                         <th>Vaqt</th>
                         <th>Sana</th>
@@ -418,9 +418,15 @@
                             <span class="badge bg-success" style="border-radius: 8px;">Practice</span>
                             {% endif %}
                         </td>
-                        <td>{{ attempt.wpm }}</td>
+                        {% if attempt.result_type == 'word_builder' %}
+                        <td>{{ attempt.found_count }} so'z</td>
+                        <td>—</td>
+                        <td class="score-cell">{{ attempt.total_score }}</td>
+                        {% else %}
+                        <td>{{ attempt.wpm }} WPM</td>
                         <td>{{ attempt.accuracy }}%</td>
                         <td class="score-cell">{{ attempt.score }}</td>
+                        {% endif %}
                         <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                         <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
                     </tr>

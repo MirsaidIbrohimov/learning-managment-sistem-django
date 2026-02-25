@@ -650,22 +650,31 @@ def _build_results_pdf(attempts, title):
     elements.append(Paragraph(title, title_style))
     elements.append(Spacer(1, 6*mm))
 
-    data = [['№', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
+    data = [['№', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM/So\'zlar', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
     for i, a in enumerate(attempts, 1):
         mode = a.competition.title if a.competition else 'Practice'
+        rtype = getattr(a, 'result_type', 'typing')
+        if rtype == 'word_builder':
+            col_wpm = f"{a.found_count} so'z"
+            col_acc = '—'
+            col_score = str(a.total_score)
+        else:
+            col_wpm = str(a.wpm)
+            col_acc = f'{a.accuracy}%'
+            col_score = str(a.score)
         data.append([
             str(i),
             a.user.full_name,
             a.game.title,
             mode,
-            str(a.wpm),
-            f'{a.accuracy}%',
-            str(a.score),
+            col_wpm,
+            col_acc,
+            col_score,
             f'{a.time_spent:.1f}s',
             a.created_at.strftime('%d.%m.%Y %H:%M'),
         ])
 
-    col_widths = [25, 120, 100, 90, 50, 55, 50, 50, 100]
+    col_widths = [25, 120, 100, 90, 60, 55, 50, 50, 100]
     table = Table(data, colWidths=col_widths)
     table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6366f1')),
@@ -693,20 +702,34 @@ def admin_results_pdf(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    attempts = GameAttempt.objects.all().select_related('user', 'game', 'competition')
-
     game_filter = request.GET.get('game')
     competition_filter = request.GET.get('competition')
     user_filter = request.GET.get('user')
 
-    if game_filter:
-        attempts = attempts.filter(game_id=game_filter)
-    if competition_filter:
-        attempts = attempts.filter(competition_id=competition_filter)
-    if user_filter:
-        attempts = attempts.filter(user_id=user_filter)
+    typing_qs = GameAttempt.objects.all().select_related('user', 'game', 'competition')
+    word_qs = WordGameAttempt.objects.all().select_related('user', 'game', 'competition', 'word_round')
 
-    return _build_results_pdf(attempts[:500], "O'yin natijalari")
+    if game_filter:
+        typing_qs = typing_qs.filter(game_id=game_filter)
+        word_qs = word_qs.filter(game_id=game_filter)
+    if competition_filter:
+        typing_qs = typing_qs.filter(competition_id=competition_filter)
+        word_qs = word_qs.filter(competition_id=competition_filter)
+    if user_filter:
+        typing_qs = typing_qs.filter(user_id=user_filter)
+        word_qs = word_qs.filter(user_id=user_filter)
+
+    all_results = []
+    for a in typing_qs:
+        a.result_type = 'typing'
+        all_results.append(a)
+    for a in word_qs:
+        a.result_type = 'word_builder'
+        all_results.append(a)
+
+    all_results.sort(key=lambda x: x.created_at, reverse=True)
+
+    return _build_results_pdf(all_results[:500], "O'yin natijalari")
 
 
 @login_required
