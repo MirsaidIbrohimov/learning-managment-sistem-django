@@ -199,6 +199,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'accounts.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -307,3 +308,37 @@ LOGIN_REDIRECT_URL = 'home'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ============ XAVFSIZLIK SOZLAMALARI ============
+
+# XSS himoya
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Clickjacking himoya
+X_FRAME_OPTIONS = 'DENY'
+
+# CSRF sozlamalari
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
+CSRF_USE_SESSIONS = True
+
+# Session xavfsizligi
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# Content Security Policy (CSP) - inline scriptlarni bloklash
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net")
+CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_CONNECT_SRC = ("'self'",)
+
+# O'yin xavfsizligi
+GAME_HMAC_SECRET = SECRET_KEY[:16]
+GAME_MAX_WPM = 180
+GAME_MIN_SECONDS_PER_WORD = 0.15
+GAME_MIN_SECONDS = 3
+GAME_MAX_SCORE_MULTIPLIER = 2.0

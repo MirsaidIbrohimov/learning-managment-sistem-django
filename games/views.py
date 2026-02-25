@@ -83,9 +83,15 @@ def game_play(request, slug, competition_id=None):
 
     session_key = f'game_session_{game.slug}'
     game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
+    
+    # HMAC kalitini yaratish (har bir sessiya uchun unikal)
+    hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
+    
     request.session[session_key] = {
         'token': game_token,
+        'hmac_key': hmac_key,
         'prompt_id': prompt.pk,
+        'prompt_word_count': len(prompt.text.split()),
         'competition_id': competition.pk if competition else None,
         'started_at': time.time(),
         'used': False,
@@ -97,6 +103,7 @@ def game_play(request, slug, competition_id=None):
         'competition': competition,
         'config': json.dumps(config),
         'game_token': game_token,
+        'hmac_key': hmac_key,
     })
 
 
@@ -134,9 +141,30 @@ def game_submit(request, slug):
     if str(session_comp_id or '') != str(competition_id or ''):
         return JsonResponse({'error': "Musobaqa mos kelmadi."}, status=403)
 
+    # HMAC imzoni tekshirish (JavaScript manipulyatsiyadan himoya)
+    client_signature = request.POST.get('signature', '')
+    hmac_key = game_session.get('hmac_key', '')
+    expected_sig = hmac.new(
+        hmac_key.encode(),
+        f'{prompt_id}:{game_token}:{len(typed_text)}'.encode(),
+        hashlib.sha256
+    ).hexdigest()[:16]
+    
+    if not hmac.compare_digest(client_signature, expected_sig):
+        return JsonResponse({'error': "Xavfsizlik tekshiruvi muvaffaqiyatsiz."}, status=403)
+
+    # Keystroke sonini tekshirish
+    keystroke_count = int(request.POST.get('keystroke_count', 0))
+    if keystroke_count < len(typed_text) * 0.5:
+        return JsonResponse({'error': "Noto'g'ri kiritish usuli aniqlandi."}, status=403)
+
     server_started_at = game_session.get('started_at', 0)
     server_elapsed = time.time() - server_started_at
     time_spent = max(server_elapsed, MIN_GAME_SECONDS)
+
+    # Juda tez yuborilgan bo'lsa (2 soniyadan kam)
+    if server_elapsed < 2:
+        return JsonResponse({'error': "Juda tez yuborildi. Qaytadan urinib ko'ring."}, status=403)
 
     game_session['used'] = True
     request.session[session_key] = game_session
@@ -152,6 +180,11 @@ def game_submit(request, slug):
 
     original_words = prompt.text.split()
     typed_words = typed_text.split()
+    
+    # So'z soni tekshiruvi - prompt so'z sonidan 2x ko'p bo'lmasligi kerak
+    session_word_count = game_session.get('prompt_word_count', len(original_words))
+    if len(typed_words) > session_word_count * 2:
+        return JsonResponse({'error': "Noto'g'ri matn yuborildi."}, status=403)
 
     correct = 0
     total = len(original_words)
@@ -172,6 +205,11 @@ def game_submit(request, slug):
         wpm = MAX_HUMAN_WPM
 
     score = round(wpm * (accuracy / 100), 2)
+    
+    # Maksimal ball chegarasi
+    max_possible = MAX_HUMAN_WPM * 1.0
+    if score > max_possible:
+        score = max_possible
 
     attempt = GameAttempt.objects.create(
         user=request.user,
