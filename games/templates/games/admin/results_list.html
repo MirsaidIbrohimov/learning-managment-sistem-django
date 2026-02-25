@@ -277,8 +277,9 @@
                             <th>#</th>
                             <th>Foydalanuvchi</th>
                             <th>O'yin</th>
+                            <th>Turi</th>
                             <th>Rejim</th>
-                            <th>WPM</th>
+                            <th>WPM / So'zlar</th>
                             <th>Aniqlik</th>
                             <th>Ball</th>
                             <th>Vaqt</th>
@@ -292,21 +293,40 @@
                             <td><strong>{{ attempt.user.full_name }}</strong></td>
                             <td>{{ attempt.game.title }}</td>
                             <td>
+                                {% if attempt.result_type == 'word_builder' %}
+                                <span class="badge bg-info" style="border-radius: 8px;">So'z yig'ish</span>
+                                {% else %}
+                                <span class="badge bg-primary" style="border-radius: 8px;">Typing</span>
+                                {% endif %}
+                            </td>
+                            <td>
                                 {% if attempt.competition %}
                                 <span class="badge bg-warning text-dark" style="border-radius: 8px;">{{ attempt.competition.title }}</span>
                                 {% else %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Practice</span>
                                 {% endif %}
                             </td>
-                            <td>{{ attempt.wpm }}</td>
-                            <td>{{ attempt.accuracy }}%</td>
+                            <td>
+                                {% if attempt.result_type == 'word_builder' %}
+                                {{ attempt.found_count }} so'z
+                                {% else %}
+                                {{ attempt.wpm }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if attempt.result_type == 'word_builder' %}
+                                —
+                                {% else %}
+                                {{ attempt.accuracy }}%
+                                {% endif %}
+                            </td>
                             <td class="score-cell">{{ attempt.score }}</td>
                             <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                             <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">
+                            <td colspan="10" class="text-center py-4 text-muted">
                                 <i class="bi bi-bar-chart" style="font-size: 2rem; opacity: 0.4;"></i>
                                 <p class="mt-2 mb-0">Natijalar mavjud emas</p>
                             </td>
@@ -330,15 +350,32 @@
                 <span class="badge bg-success" style="border-radius: 8px; font-size: 0.72rem;">Practice</span>
                 {% endif %}
             </div>
-            <div class="small text-muted mb-1"><i class="bi bi-controller"></i> {{ attempt.game.title }}</div>
+            <div class="small text-muted mb-1">
+                <i class="bi bi-controller"></i> {{ attempt.game.title }}
+                {% if attempt.result_type == 'word_builder' %}
+                <span class="badge bg-info" style="border-radius: 6px; font-size: 0.65rem;">So'z yig'ish</span>
+                {% else %}
+                <span class="badge bg-primary" style="border-radius: 6px; font-size: 0.65rem;">Typing</span>
+                {% endif %}
+            </div>
             <div class="stats-grid">
                 <div class="stat-item">
+                    {% if attempt.result_type == 'word_builder' %}
+                    <div class="val">{{ attempt.found_count }}</div>
+                    <div class="lbl">So'zlar</div>
+                    {% else %}
                     <div class="val">{{ attempt.wpm }}</div>
                     <div class="lbl">WPM</div>
+                    {% endif %}
                 </div>
                 <div class="stat-item">
+                    {% if attempt.result_type == 'word_builder' %}
+                    <div class="val">—</div>
+                    <div class="lbl">Aniqlik</div>
+                    {% else %}
                     <div class="val">{{ attempt.accuracy }}%</div>
                     <div class="lbl">Aniqlik</div>
+                    {% endif %}
                 </div>
                 <div class="stat-item">
                     <div class="val" style="color: #6366f1;">{{ attempt.score }}</div>

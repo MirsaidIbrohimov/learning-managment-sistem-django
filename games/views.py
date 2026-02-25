@@ -273,19 +273,33 @@ def game_submit(request, slug):
 
 @login_required
 def my_results(request):
-    attempts = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
-
     game_filter = request.GET.get('game')
     mode_filter = request.GET.get('mode')
 
-    if game_filter:
-        attempts = attempts.filter(game_id=game_filter)
-    if mode_filter == 'practice':
-        attempts = attempts.filter(competition__isnull=True)
-    elif mode_filter == 'competition':
-        attempts = attempts.filter(competition__isnull=False)
+    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
+    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'word_round')
 
-    paginator = Paginator(attempts, 20)
+    if game_filter:
+        typing_qs = typing_qs.filter(game_id=game_filter)
+        word_qs = word_qs.filter(game_id=game_filter)
+    if mode_filter == 'practice':
+        typing_qs = typing_qs.filter(competition__isnull=True)
+        word_qs = word_qs.filter(competition__isnull=True)
+    elif mode_filter == 'competition':
+        typing_qs = typing_qs.filter(competition__isnull=False)
+        word_qs = word_qs.filter(competition__isnull=False)
+
+    all_results = []
+    for a in typing_qs:
+        a.result_type = 'typing'
+        all_results.append(a)
+    for a in word_qs:
+        a.result_type = 'word_builder'
+        all_results.append(a)
+
+    all_results.sort(key=lambda x: x.created_at, reverse=True)
+
+    paginator = Paginator(all_results, 20)
     page = request.GET.get('page')
     attempts_page = paginator.get_page(page)
 
@@ -571,20 +585,37 @@ def admin_results(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    attempts = GameAttempt.objects.all().select_related('user', 'game', 'competition')
-
     game_filter = request.GET.get('game')
     competition_filter = request.GET.get('competition')
     user_filter = request.GET.get('user')
 
-    if game_filter:
-        attempts = attempts.filter(game_id=game_filter)
-    if competition_filter:
-        attempts = attempts.filter(competition_id=competition_filter)
-    if user_filter:
-        attempts = attempts.filter(user_id=user_filter)
+    typing_qs = GameAttempt.objects.all().select_related('user', 'game', 'competition')
+    word_qs = WordGameAttempt.objects.all().select_related('user', 'game', 'word_round', 'competition')
 
-    paginator = Paginator(attempts, 30)
+    if game_filter:
+        typing_qs = typing_qs.filter(game_id=game_filter)
+        word_qs = word_qs.filter(game_id=game_filter)
+    if competition_filter:
+        typing_qs = typing_qs.filter(competition_id=competition_filter)
+        word_qs = word_qs.filter(competition_id=competition_filter)
+    if user_filter:
+        typing_qs = typing_qs.filter(user_id=user_filter)
+        word_qs = word_qs.filter(user_id=user_filter)
+
+    combined = []
+    for a in typing_qs:
+        a.result_type = 'typing'
+        combined.append(a)
+    for a in word_qs:
+        a.result_type = 'word_builder'
+        a.score = a.total_score
+        a.wpm = None
+        a.accuracy = None
+        combined.append(a)
+
+    combined.sort(key=lambda x: x.created_at, reverse=True)
+
+    paginator = Paginator(combined, 30)
     page = request.GET.get('page')
     attempts_page = paginator.get_page(page)
 
@@ -680,19 +711,33 @@ def admin_results_pdf(request):
 
 @login_required
 def my_results_pdf(request):
-    attempts = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
-
     game_filter = request.GET.get('game')
     mode_filter = request.GET.get('mode')
 
-    if game_filter:
-        attempts = attempts.filter(game_id=game_filter)
-    if mode_filter == 'practice':
-        attempts = attempts.filter(competition__isnull=True)
-    elif mode_filter == 'competition':
-        attempts = attempts.filter(competition__isnull=False)
+    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
+    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'word_round')
 
-    return _build_results_pdf(attempts[:500], f"Natijalarim - {request.user.full_name}")
+    if game_filter:
+        typing_qs = typing_qs.filter(game_id=game_filter)
+        word_qs = word_qs.filter(game_id=game_filter)
+    if mode_filter == 'practice':
+        typing_qs = typing_qs.filter(competition__isnull=True)
+        word_qs = word_qs.filter(competition__isnull=True)
+    elif mode_filter == 'competition':
+        typing_qs = typing_qs.filter(competition__isnull=False)
+        word_qs = word_qs.filter(competition__isnull=False)
+
+    all_results = []
+    for a in typing_qs:
+        a.result_type = 'typing'
+        all_results.append(a)
+    for a in word_qs:
+        a.result_type = 'word_builder'
+        all_results.append(a)
+
+    all_results.sort(key=lambda x: x.created_at, reverse=True)
+
+    return _build_results_pdf(all_results[:500], f"Natijalarim - {request.user.full_name}")
 
 
 # ============== WORD BUILDER VIEWS ==============
