@@ -22,7 +22,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from .models import Game, Prompt, Competition, GameAttempt
+from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt
 from accounts.models import CustomUser
 
 
@@ -40,6 +40,22 @@ def game_detail(request, slug):
     competitions = game.competitions.filter(is_active=True).order_by('-start_time')
     for comp in competitions:
         comp.can_play = comp.can_user_play(request.user)
+
+    if game.game_type == 'word_builder':
+        user_attempts = WordGameAttempt.objects.filter(user=request.user, game=game).select_related('word_round').order_by('-created_at')[:10]
+        best_practice = WordGameAttempt.objects.filter(
+            user=request.user, game=game, competition__isnull=True
+        ).order_by('-total_score').first()
+        all_attempts = WordGameAttempt.objects.filter(game=game).select_related('user', 'word_round').order_by('-created_at')[:20]
+
+        return render(request, 'games/student/word_game_detail.html', {
+            'game': game,
+            'competitions': competitions,
+            'user_attempts': user_attempts,
+            'best_practice': best_practice,
+            'all_attempts': all_attempts,
+        })
+
     user_attempts = GameAttempt.objects.filter(user=request.user, game=game).order_by('-created_at')[:10]
 
     best_practice = GameAttempt.objects.filter(
@@ -60,6 +76,12 @@ def game_detail(request, slug):
 @login_required
 def game_play(request, slug, competition_id=None):
     game = get_object_or_404(Game, slug=slug, is_active=True)
+
+    if game.game_type == 'word_builder':
+        if competition_id:
+            return redirect('games:word_game_play_competition', slug=slug, competition_id=competition_id)
+        return redirect('games:word_game_play', slug=slug)
+
     competition = None
 
     if competition_id:
@@ -659,3 +681,575 @@ def my_results_pdf(request):
         attempts = attempts.filter(competition__isnull=False)
 
     return _build_results_pdf(attempts[:500], f"Natijalarim - {request.user.full_name}")
+
+
+# ============== WORD BUILDER VIEWS ==============
+
+@login_required
+def word_game_play(request, slug, competition_id=None):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+    competition = None
+
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        if not competition.can_user_play(request.user):
+            if competition.status == 'upcoming':
+                messages.info(request, "Musobaqa hali boshlanmagan!")
+            elif competition.status == 'ended':
+                messages.info(request, "Musobaqa tugagan!")
+            else:
+                messages.info(request, "Siz allaqachon ishtirok etgansiz!")
+            return redirect('games:game_detail', slug=slug)
+
+    rounds = list(game.word_rounds.filter(is_active=True))
+    if not rounds:
+        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+        return redirect('games:game_detail', slug=slug)
+
+    word_round = random.choice(rounds)
+
+    session_key = f'word_game_session_{game.slug}'
+    game_token = hashlib.sha256(
+        f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()
+    ).hexdigest()[:32]
+
+    request.session[session_key] = {
+        'token': game_token,
+        'round_id': word_round.pk,
+        'competition_id': competition.pk if competition else None,
+        'started_at': time.time(),
+        'found_words': [],
+        'used': False,
+    }
+
+    letters_list = list(word_round.letters.upper())
+    random.shuffle(letters_list)
+
+    return render(request, 'games/student/word_game_play.html', {
+        'game': game,
+        'word_round': word_round,
+        'competition': competition,
+        'letters_json': json.dumps(letters_list),
+        'game_token': game_token,
+        'time_limit': word_round.time_limit,
+        'total_words': word_round.word_count,
+    })
+
+
+@login_required
+@require_POST
+def word_game_check(request, slug):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+
+    session_key = f'word_game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
+
+    if game_session.get('used'):
+        return JsonResponse({'error': "Sessiya ishlatilgan."}, status=403)
+
+    game_token = request.POST.get('game_token', '')
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+
+    word = request.POST.get('word', '').strip().lower()
+    if not word or len(word) < 3:
+        return JsonResponse({'valid': False, 'message': "Kamida 3 harf kerak!"})
+
+    round_id = game_session.get('round_id')
+    word_round = get_object_or_404(WordRound, pk=round_id, game=game)
+
+    found_words = game_session.get('found_words', [])
+
+    if word in found_words:
+        return JsonResponse({'valid': False, 'message': "Bu so'z allaqachon topilgan!"})
+
+    valid_words = [w.lower() for w in (word_round.valid_words or [])]
+
+    if word in valid_words:
+        points = len(word) ** 2
+        found_words.append(word)
+        game_session['found_words'] = found_words
+        request.session[session_key] = game_session
+        request.session.modified = True
+
+        return JsonResponse({
+            'valid': True,
+            'word': word,
+            'points': points,
+            'total_found': len(found_words),
+            'total_score': sum(len(w) ** 2 for w in found_words),
+        })
+
+    return JsonResponse({'valid': False, 'message': "Bu so'z ro'yxatda yo'q!"})
+
+
+@login_required
+@require_POST
+def word_game_finish(request, slug):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+
+    session_key = f'word_game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
+
+    if game_session.get('used'):
+        return JsonResponse({'error': "Sessiya allaqachon ishlatilgan."}, status=403)
+
+    game_token = request.POST.get('game_token', '')
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+
+    game_session['used'] = True
+    request.session[session_key] = game_session
+    request.session.modified = True
+
+    round_id = game_session.get('round_id')
+    word_round = get_object_or_404(WordRound, pk=round_id, game=game)
+
+    found_words = game_session.get('found_words', [])
+    total_score = sum(len(w) ** 2 for w in found_words)
+    server_elapsed = time.time() - game_session.get('started_at', time.time())
+    time_spent = min(server_elapsed, word_round.time_limit + 5)
+
+    competition = None
+    competition_id = game_session.get('competition_id')
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        if not competition.can_user_play(request.user):
+            return JsonResponse({'error': "Musobaqada ishtirok eta olmaysiz!"}, status=403)
+
+    attempt = WordGameAttempt.objects.create(
+        user=request.user,
+        game=game,
+        word_round=word_round,
+        competition=competition,
+        found_words=found_words,
+        total_score=total_score,
+        time_spent=round(time_spent, 2),
+    )
+
+    return JsonResponse({
+        'success': True,
+        'total_score': attempt.total_score,
+        'found_count': attempt.found_count,
+        'total_words': word_round.word_count,
+        'time_spent': attempt.time_spent,
+        'found_words': found_words,
+        'attempt_id': attempt.id,
+    })
+
+
+@login_required
+def word_game_leaderboard(request, competition_id):
+    competition = get_object_or_404(Competition, pk=competition_id)
+    if competition.game.game_type != 'word_builder':
+        return redirect('games:competition_leaderboard', competition_id=competition_id)
+
+    all_attempts = WordGameAttempt.objects.filter(
+        competition=competition
+    ).select_related('user', 'word_round').order_by('-total_score', '-found_words', 'time_spent')
+
+    seen_users = set()
+    ranked = []
+    for attempt in all_attempts:
+        if attempt.user_id not in seen_users:
+            seen_users.add(attempt.user_id)
+            attempt.rank = len(ranked) + 1
+            ranked.append(attempt)
+
+    return render(request, 'games/student/word_game_leaderboard.html', {
+        'competition': competition,
+        'attempts': ranked,
+    })
+
+
+# ---- Admin: Word Rounds ----
+
+@login_required
+def admin_word_rounds(request, game_pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+    rounds = game.word_rounds.all()
+    return render(request, 'games/admin/word_rounds_list.html', {'game': game, 'rounds': rounds})
+
+
+@login_required
+def admin_word_round_add(request, game_pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+
+    if request.method == 'POST':
+        letters = request.POST.get('letters', '').upper().strip()
+        valid_words_str = request.POST.get('valid_words', '[]')
+        difficulty = request.POST.get('difficulty', 'medium')
+        time_limit = int(request.POST.get('time_limit', 60))
+        order = int(request.POST.get('order', 0))
+        is_active = 'is_active' in request.POST
+
+        try:
+            valid_words = json.loads(valid_words_str)
+            if isinstance(valid_words, str):
+                valid_words = [w.strip().lower() for w in valid_words.split(',') if w.strip()]
+        except json.JSONDecodeError:
+            valid_words = [w.strip().lower() for w in valid_words_str.split(',') if w.strip()]
+
+        if letters and valid_words:
+            WordRound.objects.create(
+                game=game, letters=letters, valid_words=valid_words,
+                difficulty=difficulty, time_limit=time_limit,
+                order=order, is_active=is_active,
+            )
+            messages.success(request, "Raund qo'shildi!")
+            return redirect('games:admin_word_rounds', game_pk=game.pk)
+        else:
+            messages.error(request, "Harflar va so'zlar kiritish shart!")
+
+    return render(request, 'games/admin/word_round_form.html', {
+        'game': game, 'title_page': "Raund qo'shish"
+    })
+
+
+@login_required
+def admin_word_round_edit(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    word_round = get_object_or_404(WordRound, pk=pk)
+
+    if request.method == 'POST':
+        word_round.letters = request.POST.get('letters', word_round.letters).upper().strip()
+        word_round.difficulty = request.POST.get('difficulty', 'medium')
+        word_round.time_limit = int(request.POST.get('time_limit', 60))
+        word_round.order = int(request.POST.get('order', 0))
+        word_round.is_active = 'is_active' in request.POST
+
+        valid_words_str = request.POST.get('valid_words', '[]')
+        try:
+            valid_words = json.loads(valid_words_str)
+            if isinstance(valid_words, str):
+                valid_words = [w.strip().lower() for w in valid_words.split(',') if w.strip()]
+        except json.JSONDecodeError:
+            valid_words = [w.strip().lower() for w in valid_words_str.split(',') if w.strip()]
+
+        word_round.valid_words = valid_words
+        word_round.save()
+        messages.success(request, "Raund yangilandi!")
+        return redirect('games:admin_word_rounds', game_pk=word_round.game.pk)
+
+    return render(request, 'games/admin/word_round_form.html', {
+        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlash"
+    })
+
+
+@login_required
+def admin_word_round_delete(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    word_round = get_object_or_404(WordRound, pk=pk)
+    game_pk = word_round.game.pk
+    if request.method == 'POST':
+        word_round.delete()
+        messages.success(request, "Raund o'chirildi!")
+        return redirect('games:admin_word_rounds', game_pk=game_pk)
+
+    return render(request, 'games/admin/word_round_delete.html', {'word_round': word_round})
+
+
+# ============== WORD BUILDER VIEWS ==============
+
+@login_required
+def word_game_play(request, slug, competition_id=None):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+    competition = None
+
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        if not competition.can_user_play(request.user):
+            if competition.status == 'upcoming':
+                messages.info(request, "Musobaqa hali boshlanmagan!")
+            elif competition.status == 'ended':
+                messages.info(request, "Musobaqa tugagan!")
+            else:
+                messages.info(request, "Siz allaqachon ishtirok etgansiz!")
+            return redirect('games:game_detail', slug=slug)
+
+    rounds = list(game.word_rounds.filter(is_active=True))
+    if not rounds:
+        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+        return redirect('games:game_detail', slug=slug)
+
+    word_round = random.choice(rounds)
+
+    session_key = f'word_game_session_{game.slug}'
+    game_token = hashlib.sha256(f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
+    hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
+
+    request.session[session_key] = {
+        'token': game_token,
+        'hmac_key': hmac_key,
+        'round_id': word_round.pk,
+        'competition_id': competition.pk if competition else None,
+        'started_at': time.time(),
+        'used': False,
+        'found_words': [],
+    }
+
+    letters = list(word_round.letters.upper())
+    random.shuffle(letters)
+
+    return render(request, 'games/student/word_game_play.html', {
+        'game': game,
+        'word_round': word_round,
+        'letters': json.dumps(letters),
+        'competition': competition,
+        'game_token': game_token,
+        'hmac_key': hmac_key,
+        'time_limit': word_round.time_limit,
+        'total_words': word_round.word_count,
+    })
+
+
+@login_required
+@require_POST
+def word_game_check(request, slug):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+
+    session_key = f'word_game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
+
+    if game_session.get('used'):
+        return JsonResponse({'error': "Sessiya tugagan."}, status=403)
+
+    word = request.POST.get('word', '').strip().upper()
+    game_token = request.POST.get('game_token', '')
+
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+
+    started_at = game_session.get('started_at', 0)
+    elapsed = time.time() - started_at
+
+    round_id = game_session.get('round_id')
+    word_round = get_object_or_404(WordRound, pk=round_id, game=game)
+
+    if elapsed > word_round.time_limit + 5:
+        return JsonResponse({'error': "Vaqt tugadi!", 'time_up': True}, status=400)
+
+    if not word or len(word) < 3:
+        return JsonResponse({'valid': False, 'message': "Kamida 3 harf bo'lishi kerak!"})
+
+    found_words = game_session.get('found_words', [])
+
+    if word in found_words:
+        return JsonResponse({'valid': False, 'message': "Bu so'z allaqachon topilgan!"})
+
+    valid_words = [w.upper() for w in (word_round.valid_words or [])]
+
+    if word in valid_words:
+        points = len(word) ** 2
+        found_words.append(word)
+        game_session['found_words'] = found_words
+        request.session[session_key] = game_session
+        request.session.modified = True
+
+        return JsonResponse({
+            'valid': True,
+            'word': word,
+            'points': points,
+            'found_count': len(found_words),
+            'total_score': sum(len(w) ** 2 for w in found_words),
+        })
+
+    return JsonResponse({'valid': False, 'message': "Bu so'z to'g'ri emas!"})
+
+
+@login_required
+@require_POST
+def word_game_submit(request, slug):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+
+    session_key = f'word_game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
+
+    if game_session.get('used'):
+        return JsonResponse({'error': "Bu sessiya allaqachon ishlatilgan."}, status=403)
+
+    game_token = request.POST.get('game_token', '')
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+
+    game_session['used'] = True
+    request.session[session_key] = game_session
+    request.session.modified = True
+
+    round_id = game_session.get('round_id')
+    word_round = get_object_or_404(WordRound, pk=round_id, game=game)
+
+    found_words = game_session.get('found_words', [])
+    total_score = sum(len(w) ** 2 for w in found_words)
+
+    started_at = game_session.get('started_at', 0)
+    time_spent = min(time.time() - started_at, word_round.time_limit + 5)
+
+    competition = None
+    competition_id = game_session.get('competition_id')
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+
+    attempt = WordGameAttempt.objects.create(
+        user=request.user,
+        game=game,
+        word_round=word_round,
+        competition=competition,
+        found_words=found_words,
+        total_score=total_score,
+        time_spent=round(time_spent, 2),
+    )
+
+    return JsonResponse({
+        'success': True,
+        'found_words': found_words,
+        'found_count': len(found_words),
+        'total_words': word_round.word_count,
+        'total_score': total_score,
+        'max_score': word_round.max_possible_score,
+        'time_spent': round(time_spent, 2),
+        'attempt_id': attempt.id,
+    })
+
+
+@login_required
+def word_game_leaderboard(request, competition_id):
+    competition = get_object_or_404(Competition, pk=competition_id)
+    if competition.game.game_type != 'word_builder':
+        return redirect('games:competition_leaderboard', competition_id=competition_id)
+
+    all_attempts = WordGameAttempt.objects.filter(competition=competition).select_related('user', 'word_round').order_by('-total_score', '-found_words', 'time_spent')
+
+    seen_users = set()
+    ranked = []
+    for attempt in all_attempts:
+        if attempt.user_id not in seen_users:
+            seen_users.add(attempt.user_id)
+            attempt.rank = len(ranked) + 1
+            ranked.append(attempt)
+
+    return render(request, 'games/student/word_game_leaderboard.html', {
+        'competition': competition,
+        'attempts': ranked,
+    })
+
+
+# ============== WORD BUILDER ADMIN VIEWS ==============
+
+@login_required
+def admin_word_rounds(request, game_pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+    rounds = game.word_rounds.all()
+    return render(request, 'games/admin/word_rounds_list.html', {'game': game, 'rounds': rounds})
+
+
+@login_required
+def admin_word_round_add(request, game_pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+
+    if request.method == 'POST':
+        letters = request.POST.get('letters', '').upper().strip()
+        valid_words_str = request.POST.get('valid_words', '[]')
+        difficulty = request.POST.get('difficulty', 'medium')
+        time_limit = int(request.POST.get('time_limit', 60))
+        order = int(request.POST.get('order', 0))
+        is_active = 'is_active' in request.POST
+
+        try:
+            valid_words = json.loads(valid_words_str)
+            if isinstance(valid_words, str):
+                valid_words = [w.strip().upper() for w in valid_words.split(',') if w.strip()]
+            elif isinstance(valid_words, list):
+                valid_words = [w.strip().upper() for w in valid_words if isinstance(w, str) and w.strip()]
+        except json.JSONDecodeError:
+            valid_words = [w.strip().upper() for w in valid_words_str.split(',') if w.strip()]
+
+        if letters and valid_words:
+            WordRound.objects.create(
+                game=game, letters=letters, valid_words=valid_words,
+                difficulty=difficulty, time_limit=time_limit,
+                order=order, is_active=is_active,
+            )
+            messages.success(request, "Raund qo'shildi!")
+            return redirect('games:admin_word_rounds', game_pk=game.pk)
+        else:
+            messages.error(request, "Harflar va so'zlar kiritish shart!")
+
+    return render(request, 'games/admin/word_round_form.html', {'game': game, 'title_page': "Raund qo'shish"})
+
+
+@login_required
+def admin_word_round_edit(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    word_round = get_object_or_404(WordRound, pk=pk)
+
+    if request.method == 'POST':
+        word_round.letters = request.POST.get('letters', word_round.letters).upper().strip()
+        word_round.difficulty = request.POST.get('difficulty', 'medium')
+        word_round.time_limit = int(request.POST.get('time_limit', 60))
+        word_round.order = int(request.POST.get('order', 0))
+        word_round.is_active = 'is_active' in request.POST
+
+        valid_words_str = request.POST.get('valid_words', '[]')
+        try:
+            valid_words = json.loads(valid_words_str)
+            if isinstance(valid_words, str):
+                valid_words = [w.strip().upper() for w in valid_words.split(',') if w.strip()]
+            elif isinstance(valid_words, list):
+                valid_words = [w.strip().upper() for w in valid_words if isinstance(w, str) and w.strip()]
+        except json.JSONDecodeError:
+            valid_words = [w.strip().upper() for w in valid_words_str.split(',') if w.strip()]
+
+        word_round.valid_words = valid_words
+        word_round.save()
+        messages.success(request, "Raund yangilandi!")
+        return redirect('games:admin_word_rounds', game_pk=word_round.game.pk)
+
+    return render(request, 'games/admin/word_round_form.html', {
+        'game': word_round.game, 'word_round': word_round, 'title_page': "Raundni tahrirlash"
+    })
+
+
+@login_required
+def admin_word_round_delete(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    word_round = get_object_or_404(WordRound, pk=pk)
+    game_pk = word_round.game.pk
+    if request.method == 'POST':
+        word_round.delete()
+        messages.success(request, "Raund o'chirildi!")
+        return redirect('games:admin_word_rounds', game_pk=game_pk)
+
+    return render(request, 'games/admin/word_round_delete.html', {'word_round': word_round})

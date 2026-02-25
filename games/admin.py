@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import Game, Prompt, Competition, GameAttempt
+from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt
 
 
 class PromptInline(admin.TabularInline):
     model = Prompt
     extra = 1
     fields = ['text', 'difficulty', 'order', 'is_active']
+
+
+class WordRoundInline(admin.TabularInline):
+    model = WordRound
+    extra = 1
+    fields = ['letters', 'valid_words', 'difficulty', 'time_limit', 'order', 'is_active']
 
 
 @admin.register(Game)
@@ -15,7 +21,7 @@ class GameAdmin(admin.ModelAdmin):
     search_fields = ['title', 'description']
     list_editable = ['is_active']
     prepopulated_fields = {'slug': ('title',)}
-    inlines = [PromptInline]
+    inlines = [PromptInline, WordRoundInline]
 
 
 @admin.register(Prompt)
@@ -44,3 +50,19 @@ class GameAttemptAdmin(admin.ModelAdmin):
     list_filter = ['game', 'competition', 'created_at']
     search_fields = ['user__username', 'user__first_name', 'user__last_name']
     readonly_fields = ['user', 'game', 'competition', 'prompt', 'typed_text', 'time_spent', 'wpm', 'accuracy', 'score', 'created_at']
+
+
+@admin.register(WordRound)
+class WordRoundAdmin(admin.ModelAdmin):
+    list_display = ['game', 'letters', 'difficulty', 'word_count', 'time_limit', 'order', 'is_active']
+    list_filter = ['game', 'difficulty', 'is_active']
+    search_fields = ['letters']
+    list_editable = ['is_active', 'order']
+
+
+@admin.register(WordGameAttempt)
+class WordGameAttemptAdmin(admin.ModelAdmin):
+    list_display = ['user', 'game', 'word_round', 'competition', 'found_count', 'total_score', 'time_spent', 'created_at']
+    list_filter = ['game', 'competition', 'created_at']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name']
+    readonly_fields = ['user', 'game', 'word_round', 'competition', 'found_words', 'total_score', 'time_spent', 'created_at']

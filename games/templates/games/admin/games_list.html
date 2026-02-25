@@ -178,11 +178,23 @@
                             <td><code style="font-size: 0.82rem;">{{ game.slug }}</code></td>
                             <td><span class="badge bg-info" style="border-radius: 8px;">{{ game.get_game_type_display }}</span></td>
                             <td>
+                                {% if game.game_type == 'word_builder' %}
+                                <a href="{% url 'games:admin_word_rounds' game.pk %}" class="btn btn-sm btn-outline-info action-btn">
+                                    <i class="bi bi-puzzle"></i> {{ game.word_rounds.count }}
+                                </a>
+                                {% else %}
                                 <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
                                     <i class="bi bi-card-text"></i> {{ game.prompts.count }}
                                 </a>
+                                {% endif %}
                             </td>
-                            <td>{{ game.attempts.count }}</td>
+                            <td>
+                                {% if game.game_type == 'word_builder' %}
+                                {{ game.word_attempts.count }}
+                                {% else %}
+                                {{ game.attempts.count }}
+                                {% endif %}
+                            </td>
                             <td>
                                 {% if game.is_active %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
@@ -228,14 +240,25 @@
             </div>
             <div class="card-meta text-muted">
                 <span><i class="bi bi-tag"></i> {{ game.get_game_type_display }}</span>
+                {% if game.game_type == 'word_builder' %}
+                <span><i class="bi bi-puzzle"></i> {{ game.word_rounds.count }} raund</span>
+                <span><i class="bi bi-bar-chart"></i> {{ game.word_attempts.count }} natija</span>
+                {% else %}
                 <span><i class="bi bi-card-text"></i> {{ game.prompts.count }} topshiriq</span>
                 <span><i class="bi bi-bar-chart"></i> {{ game.attempts.count }} natija</span>
+                {% endif %}
                 <span><i class="bi bi-calendar"></i> {{ game.created_at|date:"d.m.Y" }}</span>
             </div>
             <div class="card-actions">
+                {% if game.game_type == 'word_builder' %}
+                <a href="{% url 'games:admin_word_rounds' game.pk %}" class="btn btn-sm btn-outline-info action-btn">
+                    <i class="bi bi-puzzle"></i>
+                </a>
+                {% else %}
                 <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
                     <i class="bi bi-card-text"></i>
                 </a>
+                {% endif %}
                 <a href="{% url 'games:admin_game_edit' game.pk %}" class="btn btn-sm btn-outline-warning action-btn">
                     <i class="bi bi-pencil"></i>
                 </a>

@@ -7,6 +7,7 @@ class Game(models.Model):
     GAME_TYPE_CHOICES = (
         ('typing', 'Typing Challenge'),
         ('quiz', 'Quiz'),
+        ('word_builder', 'Word Builder'),
     )
 
     title = models.CharField(max_length=200, verbose_name="O'yin nomi")
@@ -130,3 +131,62 @@ class GameAttempt(models.Model):
     def __str__(self):
         mode = "Competition" if self.competition else "Practice"
         return f"{self.user} - {self.game.title} ({mode}) - {self.score} ball"
+
+
+class WordRound(models.Model):
+    DIFFICULTY_CHOICES = (
+        ('easy', 'Oson'),
+        ('medium', "O'rta"),
+        ('hard', 'Qiyin'),
+    )
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='word_rounds', verbose_name="O'yin")
+    letters = models.CharField(max_length=20, verbose_name="Harflar (masalan: REACT)")
+    valid_words = models.JSONField(default=list, verbose_name="To'g'ri so'zlar ro'yxati (JSON)")
+    difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium', verbose_name="Qiyinlik")
+    time_limit = models.PositiveIntegerField(default=60, verbose_name="Vaqt chegarasi (soniya)")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Word Builder raund"
+        verbose_name_plural = "Word Builder raundlar"
+
+    def __str__(self):
+        return f"{self.game.title} - {self.letters} ({self.get_difficulty_display()})"
+
+    @property
+    def word_count(self):
+        return len(self.valid_words) if self.valid_words else 0
+
+    @property
+    def max_possible_score(self):
+        if not self.valid_words:
+            return 0
+        return sum(len(w) ** 2 for w in self.valid_words)
+
+
+class WordGameAttempt(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='word_game_attempts', verbose_name="Foydalanuvchi")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='word_attempts', verbose_name="O'yin")
+    word_round = models.ForeignKey(WordRound, on_delete=models.CASCADE, related_name='attempts', verbose_name="Raund")
+    competition = models.ForeignKey(Competition, on_delete=models.SET_NULL, null=True, blank=True, related_name='word_attempts', verbose_name="Musobaqa")
+    found_words = models.JSONField(default=list, verbose_name="Topilgan so'zlar")
+    total_score = models.FloatField(default=0, verbose_name="Umumiy ball")
+    time_spent = models.FloatField(default=0, verbose_name="Sarflangan vaqt (soniya)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Word Builder natijasi"
+        verbose_name_plural = "Word Builder natijalari"
+
+    def __str__(self):
+        mode = "Competition" if self.competition else "Practice"
+        return f"{self.user} - {self.game.title} ({mode}) - {self.total_score} ball"
+
+    @property
+    def found_count(self):
+        return len(self.found_words) if self.found_words else 0

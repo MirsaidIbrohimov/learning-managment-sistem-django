@@ -14,6 +14,13 @@ urlpatterns = [
     path('<slug:slug>/play/<int:competition_id>/', views.game_play, name='game_play_competition'),
     path('<slug:slug>/submit/', views.game_submit, name='game_submit'),
 
+    # Word Builder: Student
+    path('<slug:slug>/word-play/', views.word_game_play, name='word_game_play'),
+    path('<slug:slug>/word-play/<int:competition_id>/', views.word_game_play, name='word_game_play_competition'),
+    path('<slug:slug>/word-check/', views.word_game_check, name='word_game_check'),
+    path('<slug:slug>/word-submit/', views.word_game_submit, name='word_game_submit'),
+    path('word-leaderboard/<int:competition_id>/', views.word_game_leaderboard, name='word_game_leaderboard'),
+
     # Admin: O'yinlar boshqaruvi
     path('dashboard/games/', views.admin_games, name='admin_games'),
     path('dashboard/games/add/', views.admin_game_add, name='admin_game_add'),
@@ -25,6 +32,12 @@ urlpatterns = [
     path('dashboard/games/<int:game_pk>/prompts/add/', views.admin_prompt_add, name='admin_prompt_add'),
     path('dashboard/prompts/<int:pk>/edit/', views.admin_prompt_edit, name='admin_prompt_edit'),
     path('dashboard/prompts/<int:pk>/delete/', views.admin_prompt_delete, name='admin_prompt_delete'),
+
+    # Admin: Word Builder raundlar
+    path('dashboard/games/<int:game_pk>/word-rounds/', views.admin_word_rounds, name='admin_word_rounds'),
+    path('dashboard/games/<int:game_pk>/word-rounds/add/', views.admin_word_round_add, name='admin_word_round_add'),
+    path('dashboard/word-rounds/<int:pk>/edit/', views.admin_word_round_edit, name='admin_word_round_edit'),
+    path('dashboard/word-rounds/<int:pk>/delete/', views.admin_word_round_delete, name='admin_word_round_delete'),
 
     # Admin: Musobaqalar
     path('dashboard/competitions/', views.admin_competitions, name='admin_competitions'),

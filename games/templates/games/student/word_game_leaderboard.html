@@ -1,0 +1,380 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Leaderboard - {{ competition.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --g-card: #ffffff;
+    --g-border: rgba(0, 0, 0, 0.06);
+    --g-text: #1e293b;
+    --g-text-muted: #64748b;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    --g-radius: 22px;
+    --g-primary: #6366f1;
+}
+
+[data-bs-theme="dark"] {
+    --g-card: #1e1e2e;
+    --g-border: rgba(255, 255, 255, 0.07);
+    --g-text: #f1f5f9;
+    --g-text-muted: #94a3b8;
+    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-25px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes trophyBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1) rotate(5deg); }
+}
+
+@keyframes goldShine {
+    0% { text-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+    50% { text-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+    100% { text-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+}
+
+@keyframes crownFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(3deg); }
+}
+
+.lb-hero {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%);
+    border-radius: var(--g-radius);
+    padding: 2.5rem 2rem;
+    color: white;
+    margin-bottom: 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInDown 0.6s ease-out;
+}
+
+.lb-hero::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.lb-hero .trophy-icon {
+    font-size: 3.5rem;
+    display: block;
+    animation: trophyBounce 2s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+}
+
+.lb-hero h2 {
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+.lb-hero p {
+    opacity: 0.9;
+    position: relative;
+    z-index: 1;
+}
+
+.lb-hero .coin-badges {
+    margin-top: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.lb-hero .coin-badges .badge {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    margin: 0 3px;
+    transition: all 0.3s;
+}
+
+.lb-hero .coin-badges .badge:hover {
+    transform: scale(1.08);
+}
+
+.lb-card {
+    background: var(--g-card);
+    border: 1px solid var(--g-border);
+    border-radius: var(--g-radius);
+    box-shadow: var(--g-shadow);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.lb-row {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--g-border);
+    transition: all 0.35s ease;
+    animation: slideInRow 0.5s ease-out both;
+}
+
+.lb-row:nth-child(1) { animation-delay: 0.1s; }
+.lb-row:nth-child(2) { animation-delay: 0.15s; }
+.lb-row:nth-child(3) { animation-delay: 0.2s; }
+.lb-row:nth-child(4) { animation-delay: 0.25s; }
+.lb-row:nth-child(5) { animation-delay: 0.3s; }
+.lb-row:nth-child(6) { animation-delay: 0.35s; }
+.lb-row:nth-child(7) { animation-delay: 0.4s; }
+.lb-row:nth-child(8) { animation-delay: 0.45s; }
+.lb-row:nth-child(9) { animation-delay: 0.5s; }
+.lb-row:nth-child(10) { animation-delay: 0.55s; }
+
+.lb-row:last-child { border-bottom: none; }
+
+.lb-row:hover {
+    background: rgba(99, 102, 241, 0.04);
+    transform: translateX(6px);
+}
+
+.lb-row.current-user {
+    background: rgba(99, 102, 241, 0.08);
+    border-left: 4px solid #6366f1;
+}
+
+.lb-row.current-user:hover {
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.lb-row.top-1 {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), transparent);
+}
+
+.lb-row.top-2 {
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.08), transparent);
+}
+
+.lb-row.top-3 {
+    background: linear-gradient(90deg, rgba(205, 124, 47, 0.08), transparent);
+}
+
+.lb-rank {
+    width: 50px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 1.3rem;
+    color: var(--g-text-muted);
+    flex-shrink: 0;
+}
+
+.lb-rank.gold {
+    color: #f59e0b;
+    animation: goldShine 2s infinite;
+}
+
+.lb-rank.silver { color: #94a3b8; }
+.lb-rank.bronze { color: #cd7c2f; }
+
+.lb-rank .rank-emoji {
+    font-size: 1.5rem;
+    display: inline-block;
+}
+
+.lb-rank .rank-emoji.first {
+    animation: crownFloat 2.5s ease-in-out infinite;
+}
+
+.lb-user {
+    flex: 1;
+    margin-left: 1rem;
+    min-width: 0;
+}
+
+.lb-user .name {
+    font-weight: 650;
+    color: var(--g-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lb-user .meta {
+    font-size: 0.78rem;
+    color: var(--g-text-muted);
+}
+
+.lb-stats {
+    display: flex;
+    gap: 1.5rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.lb-stats .st {
+    min-width: 55px;
+}
+
+.lb-stats .st .val {
+    font-weight: 700;
+    color: var(--g-text);
+    font-size: 0.95rem;
+}
+
+.lb-stats .st .lbl {
+    font-size: 0.68rem;
+    color: var(--g-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.lb-empty {
+    text-align: center;
+    padding: 3rem;
+}
+
+.lb-empty i {
+    font-size: 3rem;
+    opacity: 0.4;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.btn-back {
+    border-radius: 14px;
+    font-weight: 600;
+    padding: 0.55rem 1.5rem;
+    transition: all 0.3s;
+}
+
+.btn-back:hover {
+    transform: translateX(-4px);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .lb-hero {
+        padding: 1.8rem 1.2rem;
+        border-radius: 16px;
+    }
+    .lb-hero h2 {
+        font-size: 1.3rem;
+    }
+    .lb-hero .trophy-icon {
+        font-size: 2.5rem;
+    }
+    .lb-row {
+        padding: 0.9rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .lb-stats {
+        width: 100%;
+        justify-content: space-around;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--g-border);
+        gap: 0.5rem;
+    }
+    .lb-rank {
+        width: 40px;
+        font-size: 1.1rem;
+    }
+    .lb-card {
+        border-radius: 16px;
+    }
+}
+
+@media (max-width: 576px) {
+    .lb-hero {
+        padding: 1.3rem 1rem;
+    }
+    .lb-hero h2 {
+        font-size: 1.15rem;
+    }
+    .lb-user .name {
+        font-size: 0.9rem;
+    }
+    .lb-stats .st .val {
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 800px;">
+    <div class="lb-hero">
+        <i class="bi bi-trophy trophy-icon"></i>
+        <h2 class="mt-2">{{ competition.title }}</h2>
+        <p class="mb-0">{{ competition.game.title }} · {{ competition.start_time|date:"d.m.Y" }}</p>
+        {% if competition.coin_1st %}
+        <div class="coin-badges">
+            <span class="badge bg-dark">🥇 {{ competition.coin_1st }} coin</span>
+            {% if competition.coin_2nd %}<span class="badge bg-dark">🥈 {{ competition.coin_2nd }} coin</span>{% endif %}
+            {% if competition.coin_3rd %}<span class="badge bg-dark">🥉 {{ competition.coin_3rd }} coin</span>{% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="lb-card">
+        {% for attempt in attempts %}
+        <div class="lb-row {% if attempt.user == request.user %}current-user{% endif %} {% if attempt.rank == 1 %}top-1{% elif attempt.rank == 2 %}top-2{% elif attempt.rank == 3 %}top-3{% endif %}">
+            <div class="lb-rank {% if attempt.rank == 1 %}gold{% elif attempt.rank == 2 %}silver{% elif attempt.rank == 3 %}bronze{% endif %}">
+                {% if attempt.rank == 1 %}<span class="rank-emoji first">🥇</span>{% elif attempt.rank == 2 %}<span class="rank-emoji">🥈</span>{% elif attempt.rank == 3 %}<span class="rank-emoji">🥉</span>{% else %}{{ attempt.rank }}{% endif %}
+            </div>
+            <div class="lb-user">
+                <div class="name">
+                    {{ attempt.user.full_name }}
+                    {% if attempt.rank == 1 and competition.coin_1st %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">+{{ competition.coin_1st }} <i class="bi bi-coin"></i></span>
+                    {% elif attempt.rank == 2 and competition.coin_2nd %}
+                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_2nd }} <i class="bi bi-coin"></i></span>
+                    {% elif attempt.rank == 3 and competition.coin_3rd %}
+                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_3rd }} <i class="bi bi-coin"></i></span>
+                    {% endif %}
+                </div>
+                <div class="meta">@{{ attempt.user.username }}</div>
+            </div>
+            <div class="lb-stats">
+                <div class="st">
+                    <div class="val">{{ attempt.total_score }}</div>
+                    <div class="lbl">Ball</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.found_count }}</div>
+                    <div class="lbl">So'zlar</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.time_spent }}s</div>
+                    <div class="lbl">Vaqt</div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="lb-empty">
+            <i class="bi bi-emoji-smile"></i>
+            <p class="text-muted mt-2 mb-0">Hali natijalar yo'q</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-3">
+        <a href="{% url 'games:game_detail' competition.game.slug %}" class="btn btn-outline-primary btn-back">
+            <i class="bi bi-arrow-left"></i> O'yin sahifasiga
+        </a>
+    </div>
+</div>
+{% endblock %}

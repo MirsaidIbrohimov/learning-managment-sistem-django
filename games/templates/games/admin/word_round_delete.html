@@ -1,0 +1,78 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Raundni o'chirish | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+.delete-card {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: 480px;
+    margin: 2rem auto;
+    animation: fadeInScale 0.5s ease-out;
+}
+
+[data-bs-theme="dark"] .delete-card {
+    background: #1e1e2e;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.delete-icon {
+    font-size: 3.5rem;
+    color: #ef4444;
+    animation: shake 0.6s ease-out;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.5rem;
+    transition: all 0.3s;
+}
+
+.btn-delete:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-cancel {
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover { transform: translateY(-2px); }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="card delete-card">
+        <div class="card-body text-center py-5 px-4">
+            <i class="bi bi-exclamation-triangle delete-icon"></i>
+            <h4 class="fw-bold mt-3">Rostdan ham '{{ word_round.letters }}' raundini o'chirmoqchimisiz?</h4>
+            <p class="text-muted mb-4">Bu amalni ortga qaytarib bo'lmaydi.</p>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-delete me-2">
+                    <i class="bi bi-trash"></i> O'chirish
+                </button>
+                <a href="{% url 'games:admin_word_rounds' word_round.game.pk %}" class="btn btn-secondary btn-cancel">Bekor qilish</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
