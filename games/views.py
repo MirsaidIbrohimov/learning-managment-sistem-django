@@ -652,19 +652,27 @@ def _build_results_pdf(attempts, title):
 
     data = [['№', 'Foydalanuvchi', "O'yin", 'Rejim', 'WPM/So\'zlar', 'Aniqlik', 'Ball', 'Vaqt', 'Sana']]
     for i, a in enumerate(attempts, 1):
-        mode = a.competition.title if a.competition else 'Practice'
+        try:
+            mode = a.competition.title if a.competition else 'Practice'
+        except Exception:
+            mode = 'Practice'
         rtype = getattr(a, 'result_type', 'typing')
         if rtype == 'word_builder':
-            col_wpm = f"{a.found_count} so'z"
+            found = getattr(a, 'found_count', 0) or 0
+            col_wpm = f"{found} so'z"
             col_acc = '—'
-            col_score = str(a.total_score)
+            col_score = str(getattr(a, 'total_score', 0))
         else:
-            col_wpm = str(a.wpm)
-            col_acc = f'{a.accuracy}%'
-            col_score = str(a.score)
+            col_wpm = str(getattr(a, 'wpm', 0))
+            col_acc = f'{getattr(a, "accuracy", 0)}%'
+            col_score = str(getattr(a, 'score', 0))
+        try:
+            user_name = a.user.full_name
+        except Exception:
+            user_name = str(a.user)
         data.append([
             str(i),
-            a.user.full_name,
+            user_name,
             a.game.title,
             mode,
             col_wpm,
@@ -737,8 +745,8 @@ def my_results_pdf(request):
     game_filter = request.GET.get('game')
     mode_filter = request.GET.get('mode')
 
-    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
-    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'word_round')
+    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('user', 'game', 'competition', 'prompt')
+    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('user', 'game', 'competition', 'word_round')
 
     if game_filter:
         typing_qs = typing_qs.filter(game_id=game_filter)
