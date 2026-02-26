@@ -501,6 +501,50 @@
 
 {% block extra_js %}
 <script>
+// ===== ANTI-CHEAT: Pre-init prototype freeze =====
+(function(){
+    try {
+        var _taProto = HTMLTextAreaElement.prototype;
+        var _taValDesc = Object.getOwnPropertyDescriptor(_taProto, 'value');
+        var _iiProto = HTMLInputElement.prototype;
+        var _iiValDesc = Object.getOwnPropertyDescriptor(_iiProto, 'value');
+        // Saqlash - keyinroq ichkarida ishlatamiz
+        window._$d = {tv: _taValDesc, iv: _iiValDesc};
+        // Prototype ni muzlatish
+        Object.freeze(_taProto);
+        Object.freeze(_iiProto);
+    } catch(e) {}
+
+    // Native fetch/XMLHttpRequest ni himoyalash
+    try {
+        var _origFetch = window.fetch;
+        Object.defineProperty(window, 'fetch', {
+            value: _origFetch,
+            writable: false,
+            configurable: false
+        });
+    } catch(e) {}
+
+    // Function constructor orqali kod bajarishni bloklash
+    try {
+        var _origFC = Function.prototype.constructor;
+        Function.prototype.constructor = function() {
+            if (arguments.length > 0 && /typingArea|correctCount|keystroke|cheated|finished|submitForm|hiddenTyped/i.test(Array.from(arguments).join(' '))) {
+                throw new Error('Blocked');
+            }
+            return _origFC.apply(this, arguments);
+        };
+    } catch(e) {}
+
+    // Automation tool aniqlash
+    if (navigator.webdriver || window.__selenium_unwrapped || window.__webdriver_evaluate
+        || window._phantom || window.callPhantom || window._selenium
+        || document.__webdriver_script_fn || window.domAutomation) {
+        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Avtomatlashtirish vositasi aniqlandi. O\'yin bloklandi.</div>';
+    }
+})();
+</script>
+<script>
 (function() {
     'use strict';
 
@@ -546,11 +590,16 @@
     let _untrustedInputs = 0;
     const _keyTimings = [];
 
+    // ===== ANTI-CHEAT: Server-side integrity hash =====
+    // Har bir so'z uchun hash yig'amiz - serverdagi matn bilan solishtirish uchun
+    const _wordHashes = [];
+
     // ===== ANTI-CHEAT: Console overwrite himoyasi =====
     (function() {
         const _noop = function() { return undefined; };
         const _props = ['correctCount','wrongCount','currentIndex','finished','cheated',
-                        'keystrokeCount','_trustedKeys','typedWordsList','startTime','words'];
+                        'keystrokeCount','_trustedKeys','typedWordsList','startTime','words',
+                        '_untrustedInputs','_keyTimings','_wordHashes','_expectedValue'];
         _props.forEach(function(p) {
             try { Object.defineProperty(window, p, {get: _noop, set: _noop, configurable: false}); } catch(e) {}
         });
@@ -560,6 +609,7 @@
     function _onCheatDetected(reason) {
         if (cheated) return;
         cheated = true;
+        keystrokeCount = 0;
         const warning = document.getElementById('tabWarning');
         document.getElementById('tabCount').textContent = '⚠️';
         warning.innerHTML = '🚫 Noqonuniy harakat aniqlandi! O\'yin to\'xtatildi.';
@@ -571,22 +621,57 @@
 
     // ===== ANTI-CHEAT: Textarea value monitoring =====
     let _expectedValue = '';
-    const _origValueDesc = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value');
+    // Saqlangan native descriptor ishlatamiz
+    const _origValueDesc = window._$d && window._$d.tv;
+    const _origInputDesc = window._$d && window._$d.iv;
+
+    // _$d ni tozalash - boshqa skriptlar foydalana olmasligi uchun
+    try { delete window._$d; } catch(e) {
+        try { Object.defineProperty(window, '_$d', {value: undefined, writable: false, configurable: false}); } catch(e2) {}
+    }
+
     if (_origValueDesc) {
         Object.defineProperty(typingArea, 'value', {
             get: function() { return _origValueDesc.get.call(this); },
             set: function(v) {
-                const stack = new Error().stack || '';
-                // Agar biz o'zimiz o'rnatmagan bo'lsak
-                if (v !== '' && v !== _expectedValue && !stack.includes('checkWord') && !stack.includes('finishGame')) {
-                    _untrustedInputs++;
+                // Stack trace tekshiruvi - faqat bizning koddan kelgan o'zgarishlarni qabul qilish
+                var stack = '';
+                try { stack = new Error().stack || ''; } catch(e) {}
+                var fromOurCode = (v === '' || v === _expectedValue ||
+                    stack.indexOf('checkWord') > -1 || stack.indexOf('finishGame') > -1 ||
+                    stack.indexOf('_onCheatDetected') > -1);
+                if (!fromOurCode && startTime && !finished) {
+                    _untrustedInputs += 3;
                     if (_untrustedInputs > 2) {
                         _onCheatDetected('value_inject');
                     }
                 }
                 _origValueDesc.set.call(this, v);
             },
-            configurable: true
+            configurable: false // Qayta o'zgartirib bo'lmaydi
+        });
+    }
+
+    // ===== ANTI-CHEAT: Hidden input himoyasi =====
+    if (_origInputDesc) {
+        ['hiddenTypedText','hiddenKeystrokeCount','hiddenSignature'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                var _allowed = false;
+                Object.defineProperty(el, 'value', {
+                    get: function() { return _origInputDesc.get.call(this); },
+                    set: function(v) {
+                        var stack = '';
+                        try { stack = new Error().stack || ''; } catch(e) {}
+                        if (stack.indexOf('finishGame') > -1 || !startTime) {
+                            _origInputDesc.set.call(this, v);
+                        } else {
+                            _onCheatDetected('form_inject');
+                        }
+                    },
+                    configurable: false
+                });
+            }
         });
     }
 
@@ -594,7 +679,6 @@
     typingArea.addEventListener('keydown', function(e) {
         if (finished) { e.preventDefault(); return; }
 
-        // Faqat haqiqiy (trusted) eventlarni hisoblash
         if (!e.isTrusted) {
             _untrustedInputs++;
             if (_untrustedInputs > 3) {
@@ -613,19 +697,23 @@
         _trustedKeys++;
         _keyTimings.push(Date.now());
 
-        // Oxirgi 20 ta tugma bosish vaqtini tekshirish (bot aniqlagich)
-        if (_keyTimings.length >= 20) {
-            const recent = _keyTimings.slice(-20);
-            const intervals = [];
-            for (let i = 1; i < recent.length; i++) {
+        // Oxirgi 15 ta tugma bosish vaqtini tekshirish (bot aniqlagich)
+        if (_keyTimings.length >= 15) {
+            var recent = _keyTimings.slice(-15);
+            var intervals = [];
+            for (var i = 1; i < recent.length; i++) {
                 intervals.push(recent[i] - recent[i-1]);
             }
-            // Standart og'ish juda past bo'lsa = bot
-            const avg = intervals.reduce((a,b) => a+b, 0) / intervals.length;
-            const variance = intervals.reduce((a,b) => a + Math.pow(b - avg, 2), 0) / intervals.length;
-            const stddev = Math.sqrt(variance);
+            var avg = intervals.reduce(function(a,b){return a+b;}, 0) / intervals.length;
+            var variance = intervals.reduce(function(a,b){return a + Math.pow(b - avg, 2);}, 0) / intervals.length;
+            var stddev = Math.sqrt(variance);
+            // Robot: stddev < 5 va avg < 80ms (juda tez va bir xil tezlikda)
             if (stddev < 5 && avg < 80) {
                 _onCheatDetected('bot_typing');
+            }
+            // Juda tez yozish: o'rtacha 30ms dan kam = insoniy emas
+            if (avg < 30 && recent.length >= 15) {
+                _onCheatDetected('superhuman_speed');
             }
         }
     });
@@ -634,16 +722,26 @@
     typingArea.addEventListener('input', function(e) {
         if (finished) return;
 
-        // Synthetic (consoldan) input eventni bloklash
         if (!e.isTrusted) {
             _untrustedInputs++;
             if (_untrustedInputs > 2) {
                 _onCheatDetected('fake_input');
             }
-            // Consoldan kiritilgan matnni tozalash
-            this.value = '';
+            if (_origValueDesc) { _origValueDesc.set.call(this, ''); }
+            else { this.value = ''; }
             _expectedValue = '';
             return;
+        }
+
+        // Birdan ko'p belgi kiritilganini tekshirish (paste emulation)
+        var currentVal = _origValueDesc ? _origValueDesc.get.call(this) : this.value;
+        var diff = currentVal.length - (_expectedValue || '').length;
+        if (diff > 3 && _expectedValue !== '') {
+            // Birdan 3+ belgi qo'shildi - shubhali
+            _untrustedInputs++;
+            if (_untrustedInputs > 2) {
+                _onCheatDetected('bulk_insert');
+            }
         }
 
         if (!startTime) {
@@ -651,13 +749,13 @@
             finishBtn.style.display = 'inline-block';
         }
 
-        _expectedValue = this.value;
+        _expectedValue = currentVal;
 
-        const inputWords = this.value.trim().split(/\s+/);
-        const lastChar = this.value.slice(-1);
+        var inputWords = currentVal.trim().split(/\s+/);
+        var lastChar = currentVal.slice(-1);
 
         if (lastChar === ' ' && inputWords.length > 0) {
-            const typedWord = inputWords[inputWords.length - 1];
+            var typedWord = inputWords[inputWords.length - 1];
             checkWord(typedWord);
         }
     });
@@ -676,7 +774,7 @@
 
     // Render words
     words.forEach(function(w, i) {
-        const span = document.createElement('span');
+        var span = document.createElement('span');
         span.className = 'prompt-word' + (i === 0 ? ' current' : '');
         span.textContent = w;
         span.id = 'word-' + i;
@@ -687,9 +785,9 @@
     function startTimer() {
         startTime = Date.now();
         timerInterval = setInterval(function() {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const min = Math.floor(elapsed / 60);
-            const sec = elapsed % 60;
+            var elapsed = Math.floor((Date.now() - startTime) / 1000);
+            var min = Math.floor(elapsed / 60);
+            var sec = elapsed % 60;
             timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
         }, 1000);
     }
@@ -710,8 +808,16 @@
             }
         }
 
-        const wordEl = document.getElementById('word-' + currentIndex);
-        const originalWord = words[currentIndex];
+        // Vaqt tekshiruvi: har bir so'z uchun kamida 200ms ketishi kerak
+        var elapsed = getElapsedSeconds();
+        var wordsPerSecond = (currentIndex + 1) / (elapsed || 0.1);
+        if (wordsPerSecond > 8 && currentIndex > 3) {
+            _onCheatDetected('speed_hack');
+            return;
+        }
+
+        var wordEl = document.getElementById('word-' + currentIndex);
+        var originalWord = words[currentIndex];
         typedWordsList.push(typedWord);
 
         if (typedWord === originalWord) {
@@ -735,15 +841,16 @@
         }
 
         _expectedValue = '';
-        typingArea.value = '';
+        if (_origValueDesc) { _origValueDesc.set.call(typingArea, ''); }
+        else { typingArea.value = ''; }
     }
 
     function updateStats() {
-        const elapsed = getElapsedSeconds();
-        const totalTyped = correctCount + wrongCount;
-        const minutes = elapsed / 60 || 0.01;
-        const wpm = Math.round(totalTyped / minutes);
-        const accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
+        var elapsed = getElapsedSeconds();
+        var totalTyped = correctCount + wrongCount;
+        var minutes = elapsed / 60 || 0.01;
+        var wpm = Math.round(totalTyped / minutes);
+        var accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
         wpmEl.textContent = wpm;
         accEl.textContent = accuracy + '%';
     }
@@ -754,27 +861,37 @@
         clearInterval(timerInterval);
         typingArea.disabled = true;
 
-        const elapsed = getElapsedSeconds();
-        const totalTyped = correctCount + wrongCount;
-        const minutes = elapsed / 60 || 0.01;
-        const wpm = Math.round(totalTyped / minutes);
-        const accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
-        const score = Math.round(wpm * (accuracy / 100) * 100) / 100;
+        var elapsed = getElapsedSeconds();
+        var totalTyped = correctCount + wrongCount;
+        var minutes = elapsed / 60 || 0.01;
+        var wpm = Math.round(totalTyped / minutes);
+        var accuracy = totalTyped > 0 ? Math.round((correctCount / totalTyped) * 100) : 100;
+        var score = Math.round(wpm * (accuracy / 100) * 100) / 100;
 
-        const form = document.getElementById('submitForm');
-        const typedText = typedWordsList.join(' ');
-        document.getElementById('hiddenTypedText').value = typedText;
-        document.getElementById('hiddenKeystrokeCount').value = cheated ? 0 : keystrokeCount;
+        var form = document.getElementById('submitForm');
+        var typedText = typedWordsList.join(' ');
+
+        // Native setter orqali hidden inputlarni to'ldirish
+        var setInput = function(id, val) {
+            var el = document.getElementById(id);
+            if (el && _origInputDesc) {
+                _origInputDesc.set.call(el, val);
+            } else if (el) {
+                el.setAttribute('value', val);
+            }
+        };
+        setInput('hiddenTypedText', typedText);
+        setInput('hiddenKeystrokeCount', cheated ? '0' : String(keystrokeCount));
 
         try {
-            const sigData = _pid + ':' + _gt + ':' + typedText.length;
-            const signature = await hmacSHA256(_hk, sigData);
-            document.getElementById('hiddenSignature').value = signature;
+            var sigData = _pid + ':' + _gt + ':' + typedText.length;
+            var signature = await hmacSHA256(_hk, sigData);
+            setInput('hiddenSignature', signature);
         } catch(e) {
-            document.getElementById('hiddenSignature').value = '';
+            setInput('hiddenSignature', '');
         }
 
-        const formData = new FormData(form);
+        var formData = new FormData(form);
 
         fetch(form.action, {
             method: 'POST',
@@ -828,8 +945,22 @@
         if (form) {
             var tokenInput = form.querySelector('[name="game_token"]');
             var promptInput = form.querySelector('[name="prompt_id"]');
-            if (tokenInput && tokenInput.value !== _gt) tokenInput.value = _gt;
-            if (promptInput && promptInput.value !== _pid) promptInput.value = _pid;
+            if (tokenInput) {
+                var tVal = _origInputDesc ? _origInputDesc.get.call(tokenInput) : tokenInput.getAttribute('value');
+                if (tVal !== _gt) {
+                    if (_origInputDesc) _origInputDesc.set.call(tokenInput, _gt);
+                    else tokenInput.setAttribute('value', _gt);
+                    _onCheatDetected('form_tamper');
+                }
+            }
+            if (promptInput) {
+                var pVal = _origInputDesc ? _origInputDesc.get.call(promptInput) : promptInput.getAttribute('value');
+                if (pVal !== _pid) {
+                    if (_origInputDesc) _origInputDesc.set.call(promptInput, _pid);
+                    else promptInput.setAttribute('value', _pid);
+                    _onCheatDetected('form_tamper');
+                }
+            }
         }
     });
     var submitForm = document.getElementById('submitForm');
@@ -839,14 +970,23 @@
 
     // ===== ANTI-CHEAT: DevTools aniqlash =====
     var _dtOpen = false;
-    setInterval(function() {
+    (function _dtCheck() {
         var w = window.outerWidth - window.innerWidth > 160;
         var h = window.outerHeight - window.innerHeight > 160;
         if ((w || h) && !_dtOpen) {
             _dtOpen = true;
             _onCheatDetected('devtools');
         }
-    }, 1500);
+        // Debugger trap - DevTools ochiq bo'lsa sekinlashtiradi
+        var t1 = performance.now();
+        (function(){}).constructor('debugger')();
+        var t2 = performance.now();
+        if (t2 - t1 > 100 && !_dtOpen) {
+            _dtOpen = true;
+            _onCheatDetected('debugger_detected');
+        }
+        if (!finished) setTimeout(_dtCheck, 2000);
+    })();
 
     // ===== ANTI-CHEAT: Console API himoyasi =====
     (function() {
@@ -889,6 +1029,49 @@
         }
     });
     taObserver.observe(typingArea, {attributes: true, attributeFilter: ['value','disabled','readonly']});
+
+    // ===== ANTI-CHEAT: Yangi script injection aniqlash =====
+    var bodyObserver = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+            m.addedNodes.forEach(function(node) {
+                if (node.tagName === 'SCRIPT' && startTime && !finished) {
+                    _onCheatDetected('script_inject');
+                    node.remove();
+                }
+            });
+        });
+    });
+    bodyObserver.observe(document.body || document.documentElement, {childList: true, subtree: true});
+
+    // ===== ANTI-CHEAT: setInterval/setTimeout himoyasi =====
+    (function() {
+        var _origSetInterval = window.setInterval;
+        var _origSetTimeout = window.setTimeout;
+        try {
+            Object.defineProperty(window, 'setInterval', {
+                value: function(fn) {
+                    if (typeof fn === 'string' && startTime && !finished) {
+                        _onCheatDetected('string_eval');
+                        return 0;
+                    }
+                    return _origSetInterval.apply(this, arguments);
+                },
+                writable: false,
+                configurable: false
+            });
+            Object.defineProperty(window, 'setTimeout', {
+                value: function(fn) {
+                    if (typeof fn === 'string' && startTime && !finished) {
+                        _onCheatDetected('string_eval');
+                        return 0;
+                    }
+                    return _origSetTimeout.apply(this, arguments);
+                },
+                writable: false,
+                configurable: false
+            });
+        } catch(e) {}
+    })();
 
 })();
 </script>
