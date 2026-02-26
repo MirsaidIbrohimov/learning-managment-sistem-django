@@ -320,7 +320,7 @@
                                 {{ attempt.accuracy }}%
                                 {% endif %}
                             </td>
-                            <td class="score-cell">{{ attempt.score }}</td>
+                            <td class="score-cell">{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score }}{% else %}{{ attempt.score }}{% endif %}</td>
                             <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                             <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
                         </tr>
@@ -378,7 +378,7 @@
                     {% endif %}
                 </div>
                 <div class="stat-item">
-                    <div class="val" style="color: #6366f1;">{{ attempt.score }}</div>
+                    <div class="val" style="color: #6366f1;">{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score }}{% else %}{{ attempt.score }}{% endif %}</div>
                     <div class="lbl">Ball</div>
                 </div>
             </div>

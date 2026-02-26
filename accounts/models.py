@@ -562,6 +562,7 @@ class Test(models.Model):
     allow_retry = models.BooleanField(default=False, verbose_name="Qayta ishlashga ruxsat")
     shuffle_questions = models.BooleanField(default=False, verbose_name="Savollar tartibini aralashtirish")
     shuffle_answers = models.BooleanField(default=False, verbose_name="Javoblar tartibini aralashtirish")
+    question_count = models.PositiveIntegerField(default=0, verbose_name="Olinadigan savollar soni", help_text="0 = barcha savollar olinadi")
     
     def __str__(self):
         return self.lesson.title

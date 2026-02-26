@@ -651,17 +651,25 @@ def start_test(request, pk):
     
     questions = list(test.questions.all().prefetch_related('answers'))
     
+    import random
+    
     if test.shuffle_questions:
-        import random
         random.shuffle(questions)
     
+    # Savollar sonini cheklash (question_count > 0 bo'lsa)
+    if test.question_count and test.question_count > 0 and len(questions) > test.question_count:
+        if not test.shuffle_questions:
+            random.shuffle(questions)
+        questions = questions[:test.question_count]
+    
     if test.shuffle_answers:
-        import random
         for q in questions:
             answers_list = list(q.answers.all())
             random.shuffle(answers_list)
             q._prefetched_objects_cache['answers'] = answers_list
     
+    # Tanlangan savol ID larini sessiyada saqlash
+    request.session[f'test_{test.pk}_questions'] = [q.pk for q in questions]
     request.session[f'test_{test.pk}_start'] = timezone.now().isoformat()
     request.session.pop(f'test_{test.pk}_submit_token', None)
     
@@ -693,7 +701,13 @@ def submit_test(request, pk):
         from datetime import datetime
         started_at = datetime.fromisoformat(start_time)
     
-    questions = test.questions.all()
+    # Sessiyadan tanlangan savollarni olish
+    shown_question_ids = request.session.get(f'test_{test.pk}_questions')
+    if shown_question_ids:
+        questions = test.questions.filter(pk__in=shown_question_ids)
+    else:
+        questions = test.questions.all()
+    
     correct = 0
     total = questions.count()
     
@@ -2071,6 +2085,7 @@ def add_lesson(request, pk):
                     allow_retry=form.cleaned_data.get('allow_retry', False),
                     shuffle_questions=form.cleaned_data.get('shuffle_questions', False),
                     shuffle_answers=form.cleaned_data.get('shuffle_answers', False),
+                    question_count=form.cleaned_data.get('question_count') or 0,
                 )
                 # Xabar yuborish
                 send_course_notification(

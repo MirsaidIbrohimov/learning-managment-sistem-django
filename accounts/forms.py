@@ -355,6 +355,12 @@ class TestForm(forms.Form):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label="Javoblar tartibini aralashtirish"
     )
+    question_count = forms.IntegerField(
+        initial=0,
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = barchasi', 'min': '0'}),
+        label="Olinadigan savollar soni"
+    )
 
 
 class TestQuestionForm(forms.ModelForm):
