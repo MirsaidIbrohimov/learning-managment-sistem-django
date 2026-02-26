@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Test savollari - {{ test.lesson.title }}{% endblock %}
 
@@ -358,6 +359,27 @@
 }
 .tq-answer.correct .tq-answer-text { font-weight: 600; color: var(--tq-success); }
 
+/* Explanation */
+.tq-explanation {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 12px;
+    background: rgba(255,159,10,0.08);
+    border: 1px solid rgba(255,159,10,0.15);
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--tq-text);
+    line-height: 1.5;
+}
+.tq-explanation i {
+    color: #ff9f0a;
+    font-size: 1rem;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
 /* Empty state */
 .tq-empty {
     background: var(--tq-card);
@@ -421,9 +443,14 @@
                 </h2>
                 <div class="tq-subtitle">{{ test.lesson.profession.name }} • Test savollari</div>
             </div>
-            <a href="{% url 'add_test_question' test.pk %}" class="tq-add-btn">
-                <i class="bi bi-plus-lg"></i> Savol qo'shish
-            </a>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <a href="{% url 'import_test_questions' test.pk %}" class="tq-add-btn" style="background: linear-gradient(135deg, #34c759, #30d158); box-shadow: 0 4px 14px rgba(52,199,89,0.3);">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Excel import
+                </a>
+                <a href="{% url 'add_test_question' test.pk %}" class="tq-add-btn">
+                    <i class="bi bi-plus-lg"></i> Savol qo'shish
+                </a>
+            </div>
         </div>
 
         <div class="tq-stats">
@@ -505,7 +532,7 @@
             <div class="tq-q-top">
                 <div class="tq-q-number">{{ forloop.counter }}</div>
                 <div class="tq-q-content">
-                    <div class="tq-q-text">{{ question.question_text }}</div>
+                    <div class="tq-q-text">{{ question.question_text|render_code }}</div>
                     {% if question.question_image %}
                     <img src="{{ question.question_image.url }}" class="tq-q-image" alt="Savol rasmi">
                     {% endif %}
@@ -527,9 +554,15 @@
                         <i class="bi bi-circle"></i>
                         {% endif %}
                     </div>
-                    <div class="tq-answer-text">{{ answer.answer_text }}</div>
+                    <div class="tq-answer-text">{{ answer.answer_text|render_code }}</div>
                 </div>
                 {% endfor %}
+                {% if question.explanation %}
+                <div class="tq-explanation">
+                    <i class="bi bi-lightbulb-fill"></i>
+                    <span>{{ question.explanation|render_code }}</span>
+                </div>
+                {% endif %}
             </div>
         </div>
         {% endfor %}

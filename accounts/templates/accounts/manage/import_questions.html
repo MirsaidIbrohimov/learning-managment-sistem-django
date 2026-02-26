@@ -1,0 +1,644 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Excel dan import - {{ test.lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --imp-bg: #f2f2f7;
+    --imp-card: rgba(255,255,255,0.85);
+    --imp-border: rgba(0,0,0,0.06);
+    --imp-text: #1d1d1f;
+    --imp-secondary: #86868b;
+    --imp-accent: #007aff;
+    --imp-accent-light: rgba(0,122,255,0.08);
+    --imp-success: #34c759;
+    --imp-success-light: rgba(52,199,89,0.1);
+    --imp-danger: #ff3b30;
+    --imp-danger-light: rgba(255,59,48,0.08);
+    --imp-warning: #ff9f0a;
+    --imp-warning-light: rgba(255,159,10,0.1);
+    --imp-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --imp-bg: #000000;
+    --imp-card: rgba(28,28,30,0.85);
+    --imp-border: rgba(255,255,255,0.08);
+    --imp-text: #f5f5f7;
+    --imp-secondary: #98989d;
+    --imp-accent-light: rgba(0,122,255,0.18);
+    --imp-success-light: rgba(52,199,89,0.18);
+    --imp-danger-light: rgba(255,59,48,0.15);
+    --imp-warning-light: rgba(255,159,10,0.18);
+    --imp-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.imp-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
+
+.imp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 14px;
+    background: var(--imp-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border);
+    color: var(--imp-accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    margin-bottom: 1.5rem;
+}
+.imp-back:hover { transform: translateX(-4px); color: var(--imp-accent); box-shadow: var(--imp-shadow); }
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.imp-header {
+    background: var(--imp-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border);
+    border-radius: 22px;
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--imp-shadow);
+    animation: fadeInDown 0.5s ease;
+}
+.imp-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--imp-text);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+}
+.imp-header h2 i { color: var(--imp-accent); }
+.imp-header .imp-subtitle {
+    font-size: 0.85rem;
+    color: var(--imp-secondary);
+}
+
+/* Upload card */
+.imp-upload-card {
+    background: var(--imp-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border);
+    border-radius: 22px;
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--imp-shadow);
+    animation: fadeInUp 0.5s ease 0.1s backwards;
+}
+
+.imp-dropzone {
+    border: 2.5px dashed var(--imp-border);
+    border-radius: 18px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+.imp-dropzone:hover,
+.imp-dropzone.dragover {
+    border-color: var(--imp-accent);
+    background: var(--imp-accent-light);
+}
+.imp-dropzone-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: var(--imp-accent-light);
+    color: var(--imp-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s;
+}
+.imp-dropzone:hover .imp-dropzone-icon { transform: scale(1.1); }
+.imp-dropzone h4 {
+    color: var(--imp-text);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.imp-dropzone p {
+    color: var(--imp-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+.imp-dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.imp-file-info {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--imp-success-light);
+    border: 1px solid rgba(52,199,89,0.3);
+    border-radius: 14px;
+    margin-top: 1rem;
+}
+.imp-file-info.show { display: flex; }
+.imp-file-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--imp-success);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.imp-file-name {
+    flex: 1;
+    font-weight: 600;
+    color: var(--imp-text);
+    font-size: 0.9rem;
+}
+.imp-file-size {
+    font-size: 0.78rem;
+    color: var(--imp-secondary);
+}
+.imp-file-remove {
+    background: none;
+    border: none;
+    color: var(--imp-danger);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.imp-file-remove:hover { background: var(--imp-danger-light); }
+
+.imp-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: var(--imp-accent);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 14px rgba(0,122,255,0.3);
+    margin-top: 1.25rem;
+    width: 100%;
+    justify-content: center;
+}
+.imp-submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,122,255,0.4); }
+.imp-submit-btn:active { transform: scale(0.97); }
+.imp-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Errors */
+.imp-errors {
+    background: var(--imp-danger-light);
+    border: 1px solid rgba(255,59,48,0.2);
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.5s ease;
+}
+.imp-errors-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: var(--imp-danger);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+.imp-error-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--imp-text);
+}
+[data-bs-theme="dark"] .imp-error-item {
+    background: rgba(0,0,0,0.3);
+}
+.imp-error-item i {
+    color: var(--imp-danger);
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+/* Format guide */
+.imp-guide {
+    background: var(--imp-card);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border);
+    border-radius: 22px;
+    padding: 1.75rem;
+    box-shadow: var(--imp-shadow);
+    animation: fadeInUp 0.5s ease 0.2s backwards;
+}
+.imp-guide-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--imp-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.imp-table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--imp-border);
+    margin-bottom: 1rem;
+}
+.imp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.imp-table th {
+    background: var(--imp-accent-light);
+    color: var(--imp-accent);
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.imp-table td {
+    padding: 0.65rem 1rem;
+    border-top: 1px solid var(--imp-border);
+    color: var(--imp-text);
+}
+.imp-table tr:hover td {
+    background: rgba(0,0,0,0.02);
+}
+[data-bs-theme="dark"] .imp-table tr:hover td {
+    background: rgba(255,255,255,0.03);
+}
+.imp-table code {
+    background: var(--imp-warning-light);
+    color: var(--imp-warning);
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.imp-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--imp-warning-light);
+    border-radius: 14px;
+    border: 1px solid rgba(255,159,10,0.2);
+}
+.imp-note-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--imp-warning);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.imp-note-text {
+    font-size: 0.85rem;
+    color: var(--imp-text);
+    line-height: 1.5;
+}
+.imp-note-text strong { font-weight: 700; }
+
+/* Loading */
+.imp-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: var(--imp-accent);
+    font-weight: 600;
+}
+.imp-loading.show { display: flex; }
+.imp-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--imp-border);
+    border-top-color: var(--imp-accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+    .imp-header h2 { font-size: 1.25rem; }
+    .imp-dropzone { padding: 1.5rem 1rem; }
+    .imp-dropzone-icon { width: 56px; height: 56px; font-size: 1.5rem; }
+    .imp-guide { padding: 1.25rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="imp-page">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius: 14px;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'manage_test_questions' test.pk %}" class="imp-back">
+        <i class="bi bi-arrow-left"></i> Savollarga qaytish
+    </a>
+
+    <!-- Header -->
+    <div class="imp-header">
+        <h2><i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import</h2>
+        <div class="imp-subtitle">{{ test.lesson.title }} • {{ test.lesson.profession.name }}</div>
+    </div>
+
+    <!-- Errors -->
+    {% if errors %}
+    <div class="imp-errors">
+        <div class="imp-errors-title">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ errors|length }} ta xatolik topildi — hech narsa bazaga yozilmadi
+        </div>
+        {% for error in errors %}
+        <div class="imp-error-item">
+            <i class="bi bi-x-circle-fill"></i>
+            {{ error }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upload Form -->
+    <form method="POST" enctype="multipart/form-data" id="importForm">
+        {% csrf_token %}
+        <div class="imp-upload-card">
+            <div class="imp-dropzone" id="dropzone">
+                <div class="imp-dropzone-icon">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <h4>Excel faylni tanlang yoki shu yerga tashlang</h4>
+                <p>Faqat .xlsx format qabul qilinadi</p>
+                <input type="file" name="excel_file" id="fileInput" accept=".xlsx">
+            </div>
+
+            <div class="imp-file-info" id="fileInfo">
+                <div class="imp-file-icon"><i class="bi bi-file-earmark-excel"></i></div>
+                <div>
+                    <div class="imp-file-name" id="fileName"></div>
+                    <div class="imp-file-size" id="fileSize"></div>
+                </div>
+                <button type="button" class="imp-file-remove" id="fileRemove" title="O'chirish">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="imp-loading" id="loadingIndicator">
+                <div class="imp-spinner"></div>
+                Import qilinmoqda...
+            </div>
+
+            <button type="submit" class="imp-submit-btn" id="submitBtn" disabled>
+                <i class="bi bi-upload"></i> Import qilish
+            </button>
+        </div>
+    </form>
+
+    <!-- Format Guide -->
+    <div class="imp-guide">
+        <div class="imp-guide-title">
+            <i class="bi bi-info-circle-fill"></i> Excel fayl formati
+        </div>
+
+        <div class="imp-table-wrap">
+            <table class="imp-table">
+                <thead>
+                    <tr>
+                        <th>Savol</th>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>C</th>
+                        <th>To'g'ri javob</th>
+                        <th>Izoh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Python da list yaratish usuli?</td>
+                        <td>list()</td>
+                        <td>array()</td>
+                        <td>new List()</td>
+                        <td><code>A</code></td>
+                        <td>list() funksiyasi yoki [] bilan list yaratiladi</td>
+                    </tr>
+                    <tr>
+                        <td>while sikli qachon to'xtaydi?</td>
+                        <td>Shart False bo'lganda</td>
+                        <td>Shart True bo'lganda</td>
+                        <td>Har doim ishlaydi</td>
+                        <td><code>A</code></td>
+                        <td>while sikli shart False bo'lganda to'xtaydi</td>
+                    </tr>
+                    <tr>
+                        <td>`print(5 % 2)` nima chiqaradi?</td>
+                        <td>2</td>
+                        <td>1</td>
+                        <td>2.5</td>
+                        <td><code>B</code></td>
+                        <td>% operatori qoldiqni hisoblaydi: 5÷2=2 qoldiq 1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="imp-note">
+            <div class="imp-note-icon"><i class="bi bi-lightbulb"></i></div>
+            <div class="imp-note-text">
+                <strong>Muhim:</strong> Birinchi qator ustun nomlari bo'lishi kerak.
+                Ustun nomlari: <code>Savol</code>, <code>A</code>, <code>B</code>, <code>C</code>, <code>To'g'ri javob</code>, <code>Izoh</code> (ixtiyoriy).
+                To'g'ri javob ustunida faqat <code>A</code>, <code>B</code> yoki <code>C</code> bo'lishi kerak.
+                Agar bitta qatorda xato bo'lsa, hech qanday savol bazaga yozilmaydi.
+                <br><br>
+                <strong>Izoh:</strong> Talaba test yechib bo'lgandan keyin natija sahifasida har bir savolning izohini ko'radi. Izoh 1-2 gap bilan tushuntirish bo'lishi kerak.
+                <br><br>
+                <strong>Kod yozish:</strong> Savolda kod bo'lsa <code>`kod`</code> yoki <code>```kod bloki```</code> bilan yozing — talabaga avtomatik kod ko'rinishida chiqadi.
+            </div>
+        </div>
+    </div>
+
+    <!-- ChatGPT Prompt -->
+    <div class="imp-guide" style="margin-top: 1.25rem;">
+        <div class="imp-guide-title">
+            <i class="bi bi-robot"></i> ChatGPT orqali test yaratish
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--imp-text); line-height: 1.6; margin-bottom: 1rem;">
+            Quyidagi promptni ChatGPT ga yuboring va natijani <strong>.xlsx</strong> fayl sifatida yuklab oling:
+        </p>
+
+        <div class="imp-prompt-box" style="position: relative;">
+            <pre id="promptText" style="background: var(--imp-bg); border: 1px solid var(--imp-border); border-radius: 14px; padding: 1.25rem; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: var(--imp-text); font-family: 'SF Mono', 'Fira Code', monospace; margin: 0; max-height: 300px; overflow-y: auto;">Mavzu: [Python while sikli]
+Daraja: [oson/o'rtacha/qiyin]
+Savollar soni: [5/10/20]
+Format: 1 qator = 1 savol (Excel importga mos)
+
+Har bir savol uchun quyidagi ustunlarda chiqar:
+Savol | A | B | C | To'g'ri javob (A/B/C) | Izoh
+
+Talablar:
+- Savollar real amaliy bo'lsin (kodli bo'lishi ham mumkin)
+- Javoblar bir-biriga yaqin, chalg'ituvchi bo'lsin
+- To'g'ri javob faqat A/B/C bilan belgilansin
+- Izoh 1-2 gap bilan tushuntirsin
+- Matnlar o'zbek tilida bo'lsin
+
+Testni shu shaklda Excel (.xlsx) formatda yuklab olishga tayyor qilib ber.</pre>
+            <button type="button" id="copyPromptBtn" style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--imp-accent); color: #fff; border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 0.35rem;">
+                <i class="bi bi-clipboard"></i> Nusxalash
+            </button>
+        </div>
+
+        <div class="imp-note" style="margin-top: 1rem;">
+            <div class="imp-note-icon" style="background: var(--imp-accent);"><i class="bi bi-info-lg"></i></div>
+            <div class="imp-note-text">
+                <strong>Qanday ishlatiladi:</strong><br>
+                1. Yuqoridagi promptni nusxalang va <strong>[...]</strong> ichidagi qismlarni o'zgartiring<br>
+                2. ChatGPT ga yuboring<br>
+                3. ChatGPT bergan Excel (.xlsx) faylni yuklab oling<br>
+                4. Shu sahifaga yuklang — tayyor!
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const dropzone = document.getElementById('dropzone');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const fileRemove = document.getElementById('fileRemove');
+const submitBtn = document.getElementById('submitBtn');
+const importForm = document.getElementById('importForm');
+const loadingIndicator = document.getElementById('loadingIndicator');
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function showFile(file) {
+    if (!file) return;
+    if (!file.name.endsWith('.xlsx')) {
+        alert("Faqat .xlsx formatdagi fayllar qabul qilinadi!");
+        fileInput.value = '';
+        return;
+    }
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    fileInfo.classList.add('show');
+    submitBtn.disabled = false;
+}
+
+function clearFile() {
+    fileInput.value = '';
+    fileInfo.classList.remove('show');
+    submitBtn.disabled = true;
+}
+
+fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) showFile(this.files[0]);
+    else clearFile();
+});
+
+fileRemove.addEventListener('click', clearFile);
+
+dropzone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+});
+dropzone.addEventListener('dragleave', function() {
+    this.classList.remove('dragover');
+});
+dropzone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        showFile(e.dataTransfer.files[0]);
+    }
+});
+
+importForm.addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="imp-spinner" style="width:18px;height:18px;border-width:2px;"></div> Import qilinmoqda...';
+    loadingIndicator.classList.add('show');
+});
+
+// Copy prompt
+const copyBtn = document.getElementById('copyPromptBtn');
+if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+        const text = document.getElementById('promptText').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi!';
+            copyBtn.style.background = '#34c759';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
+                copyBtn.style.background = '';
+            }, 2000);
+        });
+    });
+}
+</script>
+{% endblock %}

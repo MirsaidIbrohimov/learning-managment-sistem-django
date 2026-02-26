@@ -38,6 +38,7 @@ urlpatterns = [
     path('test/<int:pk>/questions/', views.manage_test_questions, name='manage_test_questions'),
     path('test/<int:pk>/questions/add/', views.add_test_question, name='add_test_question'),
     path('question/<int:pk>/delete/', views.delete_test_question, name='delete_test_question'),
+    path('test/<int:pk>/import/', views.import_test_questions, name='import_test_questions'),
     
     # Profile
     path('profile/', views.profile_view, name='profile'),

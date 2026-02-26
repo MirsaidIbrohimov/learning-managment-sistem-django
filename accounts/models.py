@@ -571,6 +571,7 @@ class TestQuestion(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
     question_text = models.TextField(verbose_name="Savol matni")
     question_image = models.ImageField(upload_to='test_questions/', blank=True, null=True, verbose_name="Savol rasmi")
+    explanation = models.TextField(blank=True, null=True, verbose_name="Izoh (tushuntirish)")
     order = models.IntegerField(default=0)
     
     class Meta:

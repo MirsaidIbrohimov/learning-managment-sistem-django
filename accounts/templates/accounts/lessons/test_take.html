@@ -995,7 +995,7 @@
             <div class="question-card" id="q-{{ forloop.counter }}" data-qid="{{ question.pk }}">
                 <div class="question-top">
                     <div class="q-number">{{ forloop.counter }}</div>
-                    <div class="q-text">{{ question.question_text }}</div>
+                    <div class="q-text">{{ question.question_text|render_code }}</div>
                 </div>
                 
                 {% if question.question_image %}
@@ -1010,7 +1010,7 @@
                         <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}" onchange="updateProgress()">
                         <div class="option-check"><i class="bi bi-check2"></i></div>
                         <div class="option-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% elif forloop.counter == 5 %}E{% else %}{{ forloop.counter }}{% endif %}</div>
-                        <div class="option-text">{{ answer.answer_text }}</div>
+                        <div class="option-text">{{ answer.answer_text|render_code }}</div>
                     </label>
                     {% endfor %}
                 </div>

@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Test natijasi - LMS{% endblock %}
 
@@ -445,6 +446,30 @@
 .detail-value.correct-ans {
     color: var(--r-success);
     font-weight: 600;
+}
+
+.explanation-row {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.15);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.explanation-row .detail-label {
+    font-weight: 600;
+    color: var(--r-warning);
+    min-width: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.explanation-text {
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--r-text);
+    font-weight: 400 !important;
 }
 
 /* ==================== ACTION BUTTONS ==================== */
@@ -1145,7 +1170,7 @@ function showCelebrationModal() {
                         <div class="answer-item {% if ua.is_correct %}correct{% else %}wrong{% endif %}">
                             <div class="answer-top">
                                 <div class="answer-num">{{ forloop.counter }}</div>
-                                <div class="answer-question">{{ ua.question.question_text }}</div>
+                                <div class="answer-question">{{ ua.question.question_text|render_code }}</div>
                                 <div class="answer-badge">
                                     {% if ua.is_correct %}
                                         <i class="bi bi-check-lg"></i>
@@ -1179,6 +1204,12 @@ function showCelebrationModal() {
                                             {% if ans.is_correct %}{{ ans.answer_text }}{% endif %}
                                         {% endfor %}
                                     </span>
+                                </div>
+                                {% endif %}
+                                {% if ua.question.explanation %}
+                                <div class="detail-row explanation-row">
+                                    <span class="detail-label"><i class="bi bi-lightbulb" style="color:var(--r-warning);"></i> Izoh:</span>
+                                    <span class="detail-value explanation-text">{{ ua.question.explanation|render_code }}</span>
                                 </div>
                                 {% endif %}
                             </div>

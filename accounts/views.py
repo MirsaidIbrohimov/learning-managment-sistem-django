@@ -2269,6 +2269,151 @@ def delete_test_question(request, pk):
     return redirect('manage_test_questions', pk=test_pk)
 
 
+@login_required
+def import_test_questions(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+
+    test = get_object_or_404(Test, pk=pk)
+    errors = []
+    success_count = 0
+
+    if request.method == 'POST':
+        file = request.FILES.get('excel_file')
+
+        if not file:
+            errors.append("Fayl tanlanmadi.")
+        elif not file.name.endswith('.xlsx'):
+            errors.append("Faqat .xlsx formatdagi fayllar qabul qilinadi.")
+        else:
+            try:
+                import openpyxl
+            except ImportError:
+                errors.append("openpyxl kutubxonasi o'rnatilmagan. pip install openpyxl")
+
+            if not errors:
+                try:
+                    wb = openpyxl.load_workbook(file, read_only=True)
+                    ws = wb.active
+
+                    headers = [str(cell.value or '').strip().lower() for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+
+                    required_cols = {
+                        'savol': None,
+                        'a': None,
+                        'b': None,
+                        'c': None,
+                        "to'g'ri javob": None,
+                    }
+                    explanation_col = None
+
+                    for i, h in enumerate(headers):
+                        if h in ('savol', 'question_text', 'question', 'savol matni'):
+                            required_cols['savol'] = i
+                        elif h in ('a', 'option_a', 'variant_a', 'javob_a', '1-javob'):
+                            required_cols['a'] = i
+                        elif h in ('b', 'option_b', 'variant_b', 'javob_b', '2-javob'):
+                            required_cols['b'] = i
+                        elif h in ('c', 'option_c', 'variant_c', 'javob_c', '3-javob'):
+                            required_cols['c'] = i
+                        elif h in ("to'g'ri javob", 'correct_option', 'correct', 'javob', "to'g'ri"):
+                            required_cols["to'g'ri javob"] = i
+                        elif h in ('izoh', 'explanation', 'tushuntirish'):
+                            explanation_col = i
+
+                    missing = [k for k, v in required_cols.items() if v is None]
+                    if missing:
+                        errors.append(f"Excel faylda quyidagi ustunlar topilmadi: {', '.join(missing)}")
+                        errors.append(f"Topilgan ustunlar: {', '.join(headers)}")
+
+                    if not errors:
+                        questions_data = []
+
+                        for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                            row = list(row)
+                            max_col = max(v for v in required_cols.values() if v is not None)
+                            if explanation_col is not None:
+                                max_col = max(max_col, explanation_col)
+                            if len(row) <= max_col:
+                                row.extend([None] * (max_col - len(row) + 1))
+
+                            q_text = str(row[required_cols['savol']] or '').strip()
+                            opt_a = str(row[required_cols['a']] or '').strip()
+                            opt_b = str(row[required_cols['b']] or '').strip()
+                            opt_c = str(row[required_cols['c']] or '').strip()
+                            correct = str(row[required_cols["to'g'ri javob"]] or '').strip().upper()
+
+                            explanation = ''
+                            if explanation_col is not None:
+                                explanation = str(row[explanation_col] or '').strip()
+
+                            if not q_text and not opt_a and not opt_b and not opt_c and not correct:
+                                continue
+
+                            row_errors = []
+
+                            if not q_text:
+                                row_errors.append("savol bo'sh")
+                            if not opt_a:
+                                row_errors.append("A varianti bo'sh")
+                            if not opt_b:
+                                row_errors.append("B varianti bo'sh")
+                            if not opt_c:
+                                row_errors.append("C varianti bo'sh")
+                            if correct not in ('A', 'B', 'C'):
+                                row_errors.append(f"to'g'ri javob '{correct}' noto'g'ri (faqat A/B/C)")
+
+                            if row_errors:
+                                errors.append(f"Qator {row_num}: {', '.join(row_errors)}")
+                            else:
+                                questions_data.append({
+                                    'question_text': q_text,
+                                    'option_a': opt_a,
+                                    'option_b': opt_b,
+                                    'option_c': opt_c,
+                                    'correct': correct,
+                                    'explanation': explanation,
+                                })
+
+                        if not questions_data and not errors:
+                            errors.append("Excelda hech qanday savol topilmadi.")
+
+                        if not errors:
+                            with transaction.atomic():
+                                existing_count = test.questions.count()
+                                for i, qd in enumerate(questions_data):
+                                    question = TestQuestion.objects.create(
+                                        test=test,
+                                        question_text=qd['question_text'],
+                                        explanation=qd.get('explanation', ''),
+                                        order=existing_count + i + 1,
+                                    )
+                                    options = [
+                                        ('A', qd['option_a']),
+                                        ('B', qd['option_b']),
+                                        ('C', qd['option_c']),
+                                    ]
+                                    for letter, text in options:
+                                        TestAnswer.objects.create(
+                                            question=question,
+                                            answer_text=text,
+                                            is_correct=(letter == qd['correct']),
+                                        )
+                                success_count = len(questions_data)
+                            messages.success(request, f"{success_count} ta savol muvaffaqiyatli import qilindi!")
+                            return redirect('manage_test_questions', pk=test.pk)
+
+                    wb.close()
+                except Exception as e:
+                    errors.append(f"Faylni o'qishda xatolik: {str(e)}")
+
+    return render(request, 'accounts/manage/import_questions.html', {
+        'test': test,
+        'errors': errors,
+        'success_count': success_count,
+    })
+
+
 # Homework submissions for teachers
 @login_required
 def homework_submissions(request):
