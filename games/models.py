@@ -98,7 +98,9 @@ class Competition(models.Model):
         return 'Tugagan'
 
     def user_attempts_count(self, user):
-        return self.attempts.filter(user=user).count()
+        typing_count = self.attempts.filter(user=user).count()
+        word_count = self.word_attempts.filter(user=user).count()
+        return typing_count + word_count
 
     def can_user_play(self, user):
         if self.status != 'active':
