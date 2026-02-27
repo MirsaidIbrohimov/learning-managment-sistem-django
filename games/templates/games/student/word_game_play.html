@@ -1090,7 +1090,12 @@
             body: formData,
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
-        .then(function(r) { return r.json(); })
+        .then(function(r) {
+            if (!r.ok && r.status >= 500) {
+                throw new Error('Server xatosi: ' + r.status);
+            }
+            return r.json();
+        })
         .then(function(data) {
             checking = false;
 
@@ -1100,6 +1105,9 @@
                 } else {
                     showMessage(data.error, 'error');
                 }
+                selectedIndices = [];
+                updateWordDisplay();
+                renderLetters();
                 return;
             }
 
@@ -1121,30 +1129,37 @@
                 addFoundWord(data.word, data.points);
 
                 showMessage(data.word + ' ✓  +' + data.points + ' ball', 'success');
-            } else {
-                // Invalid
+            } else if (data.not_in_system) {
+                // So'z tizimda yo'q - taklif qilish
                 wordDisplay.classList.add('wrong-flash');
                 setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
 
-                if (data.not_in_system) {
-                    if (data.already_suggested) {
-                        showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
-                    } else {
-                        showSuggestModal(submittedWord);
-                    }
+                if (data.already_suggested) {
+                    showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
                 } else {
-                    showMessage(data.message, 'error');
+                    showSuggestModal(submittedWord);
                 }
+            } else {
+                // Boshqa xatolik
+                wordDisplay.classList.add('wrong-flash');
+                setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
+                showMessage(data.message || "Bu so'z noto'g'ri!", 'error');
             }
 
             selectedIndices = [];
             updateWordDisplay();
             renderLetters();
         })
-        .catch(function() {
+        .catch(function(err) {
             checking = false;
-            showMessage("Xatolik yuz berdi!", 'error');
-            checkBtn.disabled = selectedIndices.length < 3;
+            console.error('Word check error:', err);
+            // Server xatosi bo'lsa ham taklif modalni ko'rsat
+            wordDisplay.classList.add('wrong-flash');
+            setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
+            showSuggestModal(submittedWord);
+            selectedIndices = [];
+            updateWordDisplay();
+            renderLetters();
         });
     }
 

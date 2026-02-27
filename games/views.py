@@ -882,9 +882,12 @@ def word_game_check(request, slug):
         })
 
     # So'z bazada yo'q - taklif qilish imkoniyatini berish
-    already_suggested = WordSuggestion.objects.filter(
-        user=request.user, word_round=word_round, word=word.upper()
-    ).exists()
+    try:
+        already_suggested = WordSuggestion.objects.filter(
+            user=request.user, word_round=word_round, word=word.upper()
+        ).exists()
+    except Exception:
+        already_suggested = False
 
     return JsonResponse({
         'valid': False,
