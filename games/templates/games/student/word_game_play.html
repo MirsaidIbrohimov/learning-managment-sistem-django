@@ -1115,7 +1115,7 @@
 
                 foundWords.push(data.word);
                 totalScore = data.total_score;
-                updateStats(data.found_count);
+                updateStats(data.total_found);
                 addFoundWord(data.word, data.points);
 
                 showMessage(data.word + ' ✓  +' + data.points + ' ball', 'success');
@@ -1371,7 +1371,7 @@
             if (data.success) {
                 showMessage(data.message || "So'z taklif qilindi! ✅", 'success');
             } else {
-                showMessage(data.message || "Xatolik yuz berdi!", 'error');
+                showMessage(data.error || data.message || "Xatolik yuz berdi!", 'error');
             }
         })
         .catch(function() {

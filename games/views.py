@@ -827,7 +827,7 @@ def word_game_play(request, slug, competition_id=None):
         'game': game,
         'word_round': word_round,
         'competition': competition,
-        'letters_json': json.dumps(letters_list),
+        'letters': json.dumps(letters_list),
         'game_token': game_token,
         'time_limit': word_round.time_limit,
         'total_words': word_round.word_count,
