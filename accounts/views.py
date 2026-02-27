@@ -236,7 +236,41 @@ def professions_view(request):
         enrolled_ids = list(request.user.enrollments.values_list('profession_id', flat=True))
         # Sort: enrolled courses first, then the rest
         professions = sorted(professions, key=lambda p: (p.pk not in enrolled_ids, p.pk))
-    return render(request, 'accounts/professions.html', {'professions': professions, 'enrolled_ids': enrolled_ids})
+
+        # Har bir kurs uchun progress hisoblash
+        if enrolled_ids:
+            for p in professions:
+                if p.pk not in enrolled_ids:
+                    p.progress = None
+                    continue
+
+                total_videos = VideoLesson.objects.filter(lesson__profession_id=p.pk).count()
+                total_tests = Test.objects.filter(lesson__profession_id=p.pk).count()
+                total_homeworks = Homework.objects.filter(lesson__profession_id=p.pk).count()
+                total_items = total_videos + total_tests + total_homeworks
+
+                if total_items == 0:
+                    p.progress = 0
+                    continue
+
+                watched = VideoProgress.objects.filter(
+                    user=request.user, video__lesson__profession_id=p.pk, watched=True
+                ).count()
+                passed_tests = TestResult.objects.filter(
+                    student=request.user, test__lesson__profession_id=p.pk, passed=True
+                ).values('test__lesson_id').distinct().count()
+                done_hw = HomeworkSubmission.objects.filter(
+                    student=request.user, homework__lesson__profession_id=p.pk,
+                    status__in=['accepted', 'graded']
+                ).values('homework__lesson_id').distinct().count()
+
+                completed = watched + passed_tests + done_hw
+                p.progress = min(round((completed / total_items) * 100), 100)
+
+    return render(request, 'accounts/professions.html', {
+        'professions': professions,
+        'enrolled_ids': enrolled_ids,
+    })
 
 
 @login_required
