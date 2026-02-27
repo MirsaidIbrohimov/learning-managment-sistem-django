@@ -764,9 +764,7 @@
     ['paste','copy','cut','drop'].forEach(function(evt) {
         typingArea.addEventListener(evt, function(e) { e.preventDefault(); });
     });
-    document.addEventListener('contextmenu', function(e) {
-        if (e.target === typingArea || e.target.closest('.prompt-card')) e.preventDefault();
-    });
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
     // ===== ANTI-CHEAT: Matnni tanlash bloklash =====
     promptWordsEl.style.userSelect = 'none';
@@ -936,7 +934,7 @@
     document.addEventListener('keydown', function(e) {
         if (e.key === 'F12') { e.preventDefault(); return; }
         if (e.ctrlKey && e.shiftKey && /^[ijcIJC]$/.test(e.key)) { e.preventDefault(); return; }
-        if (e.ctrlKey && /^[uU]$/.test(e.key)) { e.preventDefault(); return; }
+        if (e.ctrlKey && /^[uUsSpP]$/.test(e.key)) { e.preventDefault(); return; }
     });
 
     // ===== ANTI-CHEAT: Form manipulation himoyasi =====
@@ -1070,6 +1068,115 @@
                 writable: false,
                 configurable: false
             });
+        } catch(e) {}
+    })();
+
+    // ===== ANTI-CHEAT: iframe ichida ochilishni bloklash =====
+    if (window.self !== window.top) {
+        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">\u26d4 Iframe aniqlandi. O\'yin bloklandi.</div>';
+    }
+
+    // ===== ANTI-CHEAT: window.open bloklash =====
+    (function() {
+        try {
+            Object.defineProperty(window, 'open', {
+                value: function() { _onCheatDetected('window_open'); return null; },
+                writable: false,
+                configurable: false
+            });
+        } catch(e) {}
+    })();
+
+    // ===== ANTI-CHEAT: alert/confirm/prompt bloklash =====
+    (function() {
+        ['alert', 'confirm', 'prompt'].forEach(function(fn) {
+            try {
+                Object.defineProperty(window, fn, {
+                    value: function() { return undefined; },
+                    writable: false,
+                    configurable: false
+                });
+            } catch(e) {}
+        });
+    })();
+
+    // ===== ANTI-CHEAT: Butun sahifada matn tanlashni bloklash =====
+    document.addEventListener('selectstart', function(e) {
+        if (startTime && !finished && e.target !== typingArea) {
+            e.preventDefault();
+        }
+    });
+
+    // ===== ANTI-CHEAT: Butun sahifada drag/drop bloklash =====
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+    document.addEventListener('drop', function(e) { e.preventDefault(); });
+
+    // ===== ANTI-CHEAT: Focus yo'qolishi monitoring =====
+    var _focusLostCount = 0;
+    window.addEventListener('blur', function() {
+        if (startTime && !finished) {
+            _focusLostCount++;
+            if (_focusLostCount > 10) {
+                _onCheatDetected('focus_abuse');
+            }
+        }
+    });
+
+    // ===== ANTI-CHEAT: Sichqoncha harakati monitoring (bot aniqlash) =====
+    var _mouseMovements = 0;
+    document.addEventListener('mousemove', function() { _mouseMovements++; });
+
+    // ===== ANTI-CHEAT: Bookmarklet/address bar script himoyasi =====
+    (function() {
+        var _origLocation = Object.getOwnPropertyDescriptor(window, 'location');
+        try {
+            var _origHash = window.location.hash;
+            Object.defineProperty(window, 'location', {
+                get: function() { return _origLocation.get.call(this); },
+                set: function(v) {
+                    if (typeof v === 'string' && v.indexOf('javascript:') === 0) {
+                        _onCheatDetected('bookmarklet');
+                        return;
+                    }
+                    _origLocation.set.call(this, v);
+                },
+                configurable: false
+            });
+        } catch(e) {}
+    })();
+
+    // ===== ANTI-CHEAT: Clipboard API himoyasi =====
+    (function() {
+        try {
+            if (navigator.clipboard) {
+                var _origRead = navigator.clipboard.readText;
+                Object.defineProperty(navigator.clipboard, 'readText', {
+                    value: function() {
+                        if (startTime && !finished) { _onCheatDetected('clipboard_read'); }
+                        return Promise.reject('Blocked');
+                    },
+                    writable: false,
+                    configurable: false
+                });
+            }
+        } catch(e) {}
+    })();
+
+    // ===== ANTI-CHEAT: dispatchEvent himoyasi =====
+    (function() {
+        try {
+            var _origDispatch = HTMLTextAreaElement.prototype.dispatchEvent;
+            // typingArea uchun dispatchEvent ni kuzatish
+            typingArea.dispatchEvent = function(event) {
+                if (event && (event.type === 'input' || event.type === 'keydown' || event.type === 'keypress') && !event.isTrusted) {
+                    _untrustedInputs += 2;
+                    if (_untrustedInputs > 2) {
+                        _onCheatDetected('fake_dispatch');
+                    }
+                    return false;
+                }
+                return _origDispatch.call(this, event);
+            };
         } catch(e) {}
     })();
 

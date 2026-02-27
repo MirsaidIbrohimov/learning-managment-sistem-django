@@ -165,6 +165,12 @@ def game_submit(request, slug):
     if game_session.get('used'):
         return JsonResponse({'error': "Bu o'yin sessiyasi allaqachon ishlatilgan."}, status=403)
 
+    # 🔒 Rate limiting - kamida 5 soniya oralig'ida yuborish mumkin
+    rate_key = f'game_rate_{request.user.pk}'
+    last_submit_time = request.session.get(rate_key, 0)
+    if time.time() - last_submit_time < 5:
+        return JsonResponse({'error': "Juda tez urinish! Biroz kuting."}, status=429)
+
     if game_session.get('token') != game_token:
         return JsonResponse({'error': "Noto'g'ri sessiya tokeni."}, status=403)
 
@@ -256,6 +262,10 @@ def game_submit(request, slug):
         accuracy=round(accuracy, 2),
         score=score,
     )
+
+    # 🔒 Rate limit vaqtini saqlash
+    request.session[rate_key] = time.time()
+    request.session.modified = True
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({

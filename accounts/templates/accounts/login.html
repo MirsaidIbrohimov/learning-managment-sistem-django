@@ -121,6 +121,71 @@
         letter-spacing: 0.5px;
       }
 
+      /* ===== CAPTCHA ===== */
+      .captcha-box {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+        border: 1.5px solid rgba(99, 102, 241, 0.15);
+        border-radius: 16px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.2rem;
+      }
+      [data-bs-theme="dark"] .captcha-box {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        border-color: rgba(99, 102, 241, 0.25);
+      }
+      .captcha-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-secondary, #64748b);
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .captcha-question {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .captcha-math {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        font-size: 1.3rem;
+        font-weight: 800;
+        padding: 10px 20px;
+        border-radius: 12px;
+        letter-spacing: 2px;
+        white-space: nowrap;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+        user-select: none;
+        min-width: 120px;
+        text-align: center;
+      }
+      .captcha-input {
+        flex: 1;
+        border: 1.5px solid var(--border-color, #e2e8f0);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-align: center;
+        background: var(--bg-color, #f8fafc);
+        color: var(--text-color);
+        outline: none;
+        transition: all 0.3s;
+        letter-spacing: 2px;
+      }
+      .captcha-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      }
+      [data-bs-theme="dark"] .captcha-input {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
       /* ===== BOTTOM LINKS ===== */
       .auth-links {
         animation: textFadeUp 0.6s 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -181,6 +246,18 @@
         <label for="{{ form.password.id_for_label }}">Parol</label>
       </div>
 
+      <!-- 🔒 Matematik CAPTCHA -->
+      <div class="captcha-box">
+        <div class="captcha-label">
+          <i class="bi bi-shield-lock"></i> Xavfsizlik tekshiruvi
+        </div>
+        <div class="captcha-question">
+          <div class="captcha-math">{{ captcha_question }}</div>
+          <input type="number" name="captcha_answer" class="captcha-input"
+                 placeholder="= ?" required autocomplete="off">
+        </div>
+      </div>
+
       <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
         <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
       </button>
@@ -218,6 +295,18 @@
           <i id="eyeIcon2" class="bi bi-eye"></i>
         </button>
         <label for="phonePassword">Parol</label>
+      </div>
+
+      <!-- 🔒 Matematik CAPTCHA -->
+      <div class="captcha-box">
+        <div class="captcha-label">
+          <i class="bi bi-shield-lock"></i> Xavfsizlik tekshiruvi
+        </div>
+        <div class="captcha-question">
+          <div class="captcha-math">{{ captcha_question }}</div>
+          <input type="number" name="captcha_answer" class="captcha-input"
+                 placeholder="= ?" required autocomplete="off">
+        </div>
       </div>
 
       <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">

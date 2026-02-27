@@ -7,6 +7,7 @@ from django.db.models import Count, Q, Sum, Avg
 from django.db import models, transaction
 from django.utils import timezone
 from datetime import timedelta
+import random
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
     AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm,
@@ -62,6 +63,33 @@ def register_view(request):
 
 
 
+def generate_math_captcha():
+    """Matematik CAPTCHA yaratish (qo'shish, ko'paytirish)"""
+    op_type = random.choice(['add', 'add', 'add', 'multiply', 'multiply'])
+    if op_type == 'multiply':
+        a = random.randint(2, 9)
+        b = random.randint(2, 9)
+        question = f"{a} × {b}"
+        answer = a * b
+    else:
+        a = random.randint(10, 50)
+        b = random.randint(5, 30)
+        question = f"{a} + {b}"
+        answer = a + b
+    return question, answer
+
+
+def _login_render(request, form, login_mode):
+    """Login sahifasini har doim yangi CAPTCHA bilan render qilish"""
+    question, answer = generate_math_captcha()
+    request.session['captcha_answer'] = answer
+    return render(request, 'accounts/login.html', {
+        'form': form,
+        'login_mode': login_mode,
+        'captcha_question': question,
+    })
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -71,13 +99,29 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
+        # 🔒 Matematik CAPTCHA tekshiruvi
+        captcha_input = request.POST.get('captcha_answer', '').strip()
+        correct_answer = request.session.get('captcha_answer')
+
+        if not captcha_input or correct_answer is None:
+            messages.error(request, "Iltimos, matematik masalani yeching! 🧮")
+            return _login_render(request, form, login_mode)
+
+        try:
+            if int(captcha_input) != int(correct_answer):
+                messages.error(request, "Matematik javob noto'g'ri! ❌")
+                return _login_render(request, form, login_mode)
+        except (ValueError, TypeError):
+            messages.error(request, "Matematik javob noto'g'ri! ❌")
+            return _login_render(request, form, login_mode)
+
         if login_mode == 'phone':
             phone = request.POST.get('phone', '').strip()
             password = request.POST.get('password', '').strip()
 
             if not phone or not password:
                 messages.error(request, "Iltimos, barcha maydonlarni to'ldiring ⚠️")
-                return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'phone'})
+                return _login_render(request, form, 'phone')
 
             try:
                 phone_user = CustomUser.objects.get(phone=phone)
@@ -87,7 +131,7 @@ def login_view(request):
 
             if user is None:
                 messages.error(request, "Telefon raqam yoki parol noto'g'ri ❌")
-                return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'phone'})
+                return _login_render(request, form, 'phone')
 
         elif form.is_valid():
             username = form.cleaned_data.get('username')
@@ -97,15 +141,15 @@ def login_view(request):
 
             if user is None:
                 messages.error(request, "Username yoki parol noto'g'ri ❌")
-                return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
+                return _login_render(request, form, login_mode)
         else:
             messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
-            return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
+            return _login_render(request, form, login_mode)
 
         # ⛔ Bloklangan user
         if hasattr(user, "is_blocked") and user.is_blocked:
             messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
-            return render(request, 'accounts/login.html', {'form': form, 'login_mode': login_mode})
+            return _login_render(request, form, login_mode)
 
         # ✅ Login successful
         login(request, user)
@@ -139,7 +183,7 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    return render(request, 'accounts/login.html', {'form': form, 'login_mode': 'username'})
+    return _login_render(request, form, 'username')
 
 
 def logout_view(request):
