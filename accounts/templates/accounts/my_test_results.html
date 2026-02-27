@@ -1,0 +1,584 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Test natijalarim{% endblock %}
+
+{% block content %}
+<style>
+/* ==================== O'ZGARUVCHILAR ==================== */
+:root {
+    --tr-kok: #3b82f6;
+    --tr-yashil: #10b981;
+    --tr-sariq: #f59e0b;
+    --tr-qirmizi: #ef4444;
+    --tr-binafsha: #6366f1;
+    --tr-pushti: #ec4899;
+}
+
+[data-bs-theme="light"] {
+    --tr-fon: #f8fafc;
+    --tr-karta: #ffffff;
+    --tr-matn: #1f2937;
+    --tr-ikkilamchi: #6b7280;
+    --tr-chegara: #e5e7eb;
+    --tr-yumshoq: #f1f5f9;
+}
+
+[data-bs-theme="dark"] {
+    --tr-fon: #0f172a;
+    --tr-karta: #1e293b;
+    --tr-matn: #f1f5f9;
+    --tr-ikkilamchi: #94a3b8;
+    --tr-chegara: #334155;
+    --tr-yumshoq: #1e293b;
+}
+
+/* ==================== ANIMATSIYALAR ==================== */
+@keyframes trSuzish {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== ASOSIY KONTEYNER ==================== */
+.tr-sahifa {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .tr-sahifa { padding: 1rem; }
+}
+
+/* ==================== SAHIFA SARLAVHASI ==================== */
+.tr-sahifa-bosh {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    animation: trSuzish 0.5s ease;
+}
+
+.tr-sahifa-sarlavha {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--tr-matn);
+}
+
+.tr-sarlavha-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--tr-binafsha), #818cf8);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.tr-qaytish-tugma {
+    padding: 0.625rem 1.25rem;
+    background: var(--tr-karta);
+    color: var(--tr-matn);
+    border: 2px solid var(--tr-chegara);
+    border-radius: 12px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.875rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tr-qaytish-tugma:hover {
+    background: var(--tr-binafsha);
+    color: white;
+    border-color: var(--tr-binafsha);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+@media (max-width: 768px) {
+    .tr-sahifa-sarlavha { font-size: 1.375rem; }
+    .tr-sarlavha-icon { width: 40px; height: 40px; font-size: 1.25rem; }
+    .tr-qaytish-tugma span { display: none; }
+}
+
+/* ==================== STATISTIKA PANELI ==================== */
+.tr-stat-qator {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+    animation: trSuzish 0.6s ease 0.1s backwards;
+}
+
+@media (max-width: 768px) {
+    .tr-stat-qator { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+}
+
+@media (max-width: 480px) {
+    .tr-stat-qator { grid-template-columns: repeat(2, 1fr); }
+}
+
+.tr-stat-quti {
+    background: var(--tr-karta);
+    border: 2px solid var(--tr-chegara);
+    border-radius: 16px;
+    padding: 1.25rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tr-stat-quti::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: 16px 16px 0 0;
+}
+
+.tr-stat-quti:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.tr-stat-quti.binafsha::before { background: linear-gradient(90deg, var(--tr-binafsha), #818cf8); }
+.tr-stat-quti.sariq::before { background: linear-gradient(90deg, var(--tr-sariq), #fbbf24); }
+.tr-stat-quti.yashil::before { background: linear-gradient(90deg, var(--tr-yashil), #34d399); }
+.tr-stat-quti.qirmizi::before { background: linear-gradient(90deg, var(--tr-qirmizi), #f87171); }
+.tr-stat-quti.kok::before { background: linear-gradient(90deg, var(--tr-kok), #60a5fa); }
+
+.tr-stat-raqam {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--tr-matn);
+    line-height: 1;
+    margin-bottom: 0.375rem;
+}
+
+.tr-stat-yorliq {
+    font-size: 0.8rem;
+    color: var(--tr-ikkilamchi);
+    font-weight: 600;
+}
+
+/* ==================== BUGUNGI TESTLAR ==================== */
+.tr-bugungi-bolim {
+    margin-bottom: 2rem;
+    animation: trSuzish 0.7s ease 0.2s backwards;
+}
+
+.tr-bolim-sarlavha {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--tr-matn);
+    margin-bottom: 1rem;
+}
+
+.tr-bolim-sarlavha i {
+    color: var(--tr-sariq);
+    font-size: 1.3rem;
+}
+
+.tr-bolim-son {
+    background: var(--tr-sariq);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 20px;
+    margin-left: 0.25rem;
+}
+
+/* ==================== NATIJA KARTALAR ==================== */
+.tr-natijalar-karta {
+    background: var(--tr-karta);
+    border: 2px solid var(--tr-chegara);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.tr-natija-element {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--tr-chegara);
+    transition: all 0.2s ease;
+    animation: trSuzish 0.5s ease backwards;
+}
+
+.tr-natija-element:last-child {
+    border-bottom: none;
+}
+
+.tr-natija-element:hover {
+    background: var(--tr-yumshoq);
+}
+
+.tr-natija-belgi {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.tr-natija-belgi.otdi {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--tr-yashil);
+}
+
+.tr-natija-belgi.yiqildi {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--tr-qirmizi);
+}
+
+.tr-natija-malumot {
+    flex: 1;
+    min-width: 0;
+}
+
+.tr-natija-sarlavha {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--tr-matn);
+    margin: 0 0 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tr-natija-tafsilot {
+    font-size: 0.8rem;
+    color: var(--tr-ikkilamchi);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+}
+
+.tr-nuqta-ajratuvchi {
+    color: var(--tr-chegara);
+}
+
+.tr-natija-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.tr-ball-nishon {
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.375rem 0.875rem;
+    border-radius: 20px;
+}
+
+.tr-ball-nishon.otdi {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--tr-yashil);
+}
+
+.tr-ball-nishon.yiqildi {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--tr-qirmizi);
+}
+
+.tr-batafsil-tugma {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    background: var(--tr-binafsha);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tr-batafsil-tugma:hover {
+    background: #4f46e5;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* ==================== BO'SH HOLAT ==================== */
+.tr-bosh-holat {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.tr-bosh-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--tr-yumshoq);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 2rem;
+    color: var(--tr-ikkilamchi);
+}
+
+.tr-bosh-matn {
+    font-size: 1.125rem;
+    color: var(--tr-ikkilamchi);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* ==================== PAGINATION ==================== */
+.tr-pagination {
+    margin-top: 1.5rem;
+    animation: trSuzish 0.8s ease 0.3s backwards;
+}
+
+.tr-pagination .pagination {
+    gap: 0.25rem;
+}
+
+.tr-pagination .page-link {
+    border-radius: 10px !important;
+    border: 2px solid var(--tr-chegara);
+    color: var(--tr-matn);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.875rem;
+    background: var(--tr-karta);
+    transition: all 0.2s ease;
+}
+
+.tr-pagination .page-link:hover {
+    background: var(--tr-binafsha);
+    border-color: var(--tr-binafsha);
+    color: white;
+}
+
+.tr-pagination .page-item.active .page-link {
+    background: var(--tr-binafsha);
+    border-color: var(--tr-binafsha);
+    color: white;
+}
+
+.tr-pagination .page-info {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--tr-ikkilamchi);
+    margin-top: 0.5rem;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 480px) {
+    .tr-sahifa { padding: 0.75rem; }
+    .tr-sahifa-bosh { flex-direction: column; gap: 1rem; align-items: flex-start; }
+    .tr-natija-element { flex-wrap: wrap; gap: 0.75rem; }
+    .tr-natija-meta { width: 100%; justify-content: space-between; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+</style>
+
+<div class="tr-sahifa">
+    <!-- Sahifa Sarlavhasi -->
+    <div class="tr-sahifa-bosh">
+        <h4 class="tr-sahifa-sarlavha">
+            <div class="tr-sarlavha-icon">
+                <i class="bi bi-clipboard-check"></i>
+            </div>
+            Test Natijalarim
+        </h4>
+        <a href="{% url 'profile' %}" class="tr-qaytish-tugma">
+            <i class="bi bi-arrow-left"></i>
+            <span>Profilga qaytish</span>
+        </a>
+    </div>
+
+    <!-- Statistika Paneli -->
+    <div class="tr-stat-qator">
+        <div class="tr-stat-quti binafsha">
+            <div class="tr-stat-raqam">{{ stats.total }}</div>
+            <div class="tr-stat-yorliq">Jami testlar</div>
+        </div>
+        <div class="tr-stat-quti sariq">
+            <div class="tr-stat-raqam">{{ stats.today }}</div>
+            <div class="tr-stat-yorliq">Bugun</div>
+        </div>
+        <div class="tr-stat-quti yashil">
+            <div class="tr-stat-raqam">{{ stats.passed }}</div>
+            <div class="tr-stat-yorliq">O'tganlar</div>
+        </div>
+        <div class="tr-stat-quti qirmizi">
+            <div class="tr-stat-raqam">{{ stats.failed }}</div>
+            <div class="tr-stat-yorliq">Yiqilganlar</div>
+        </div>
+        <div class="tr-stat-quti kok">
+            <div class="tr-stat-raqam">{{ stats.avg_score|floatformat:0 }}%</div>
+            <div class="tr-stat-yorliq">O'rtacha ball</div>
+        </div>
+    </div>
+
+    <!-- Bugungi Testlar -->
+    {% if today_results %}
+    <div class="tr-bugungi-bolim">
+        <h5 class="tr-bolim-sarlavha">
+            <i class="bi bi-calendar-check"></i>
+            Bugun ishlangan testlar
+            <span class="tr-bolim-son">{{ today_results.count }}</span>
+        </h5>
+        <div class="tr-natijalar-karta">
+            {% for r in today_results %}
+            <div class="tr-natija-element" style="animation-delay: {{ forloop.counter0 }}00ms">
+                <div class="tr-natija-belgi {% if r.passed %}otdi{% else %}yiqildi{% endif %}">
+                    {% if r.passed %}
+                        <i class="bi bi-trophy-fill"></i>
+                    {% else %}
+                        <i class="bi bi-x-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="tr-natija-malumot">
+                    <h6 class="tr-natija-sarlavha">{{ r.test.lesson.title }}</h6>
+                    <p class="tr-natija-tafsilot">
+                        <span>{{ r.test.lesson.profession.name }}</span>
+                        <span class="tr-nuqta-ajratuvchi">•</span>
+                        <span>{{ r.completed_at|date:"H:i" }}</span>
+                        <span class="tr-nuqta-ajratuvchi">•</span>
+                        <span>{{ r.correct_answers }}/{{ r.total_questions }} to'g'ri</span>
+                    </p>
+                </div>
+                <div class="tr-natija-meta">
+                    <span class="tr-ball-nishon {% if r.passed %}otdi{% else %}yiqildi{% endif %}">
+                        {{ r.score }}%
+                    </span>
+                    <a href="{% url 'test_result' r.pk %}" class="tr-batafsil-tugma">
+                        <i class="bi bi-eye"></i> Ko'rish
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Barcha Natijalar -->
+    <div class="tr-bugungi-bolim">
+        <h5 class="tr-bolim-sarlavha">
+            <i class="bi bi-list-check"></i>
+            Barcha test natijalari
+        </h5>
+        <div class="tr-natijalar-karta">
+            {% if results %}
+                {% for r in results %}
+                <div class="tr-natija-element" style="animation-delay: {{ forloop.counter0 }}00ms">
+                    <div class="tr-natija-belgi {% if r.passed %}otdi{% else %}yiqildi{% endif %}">
+                        {% if r.passed %}
+                            <i class="bi bi-check-circle-fill"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="tr-natija-malumot">
+                        <h6 class="tr-natija-sarlavha">{{ r.test.lesson.title }}</h6>
+                        <p class="tr-natija-tafsilot">
+                            <span>{{ r.test.lesson.profession.name }}</span>
+                            <span class="tr-nuqta-ajratuvchi">•</span>
+                            <span>{{ r.completed_at|date:"d.m.Y H:i" }}</span>
+                            <span class="tr-nuqta-ajratuvchi">•</span>
+                            <span>{{ r.correct_answers }}/{{ r.total_questions }} to'g'ri</span>
+                        </p>
+                    </div>
+                    <div class="tr-natija-meta">
+                        <span class="tr-ball-nishon {% if r.passed %}otdi{% else %}yiqildi{% endif %}">
+                            {{ r.score }}%
+                        </span>
+                        <a href="{% url 'test_result' r.pk %}" class="tr-batafsil-tugma">
+                            <i class="bi bi-eye"></i> Ko'rish
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="tr-bosh-holat">
+                    <div class="tr-bosh-icon">
+                        <i class="bi bi-clipboard-x"></i>
+                    </div>
+                    <p class="tr-bosh-matn">Siz hali test ishlamagansiz</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if results.has_other_pages %}
+        <div class="tr-pagination">
+            <nav>
+                <ul class="pagination justify-content-center flex-wrap mb-0">
+                    {% if results.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">&laquo;</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ results.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in results.paginator.page_range %}
+                        {% if results.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > results.number|add:'-3' and num < results.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if results.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ results.next_page_number }}">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ results.paginator.num_pages }}">&raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <p class="tr-pagination page-info text-center text-muted small mt-2 mb-0">
+                    Jami {{ results.paginator.count }} ta natijadan {{ results.start_index }}-{{ results.end_index }} ko'rsatilmoqda
+                </p>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -2827,6 +2827,38 @@ def homework_chat(request, pk):
 
 
 @login_required
+def my_test_results(request):
+    """O'quvchining barcha test natijalari (bugungi + barchasi, paginator bilan)"""
+    from django.core.paginator import Paginator
+    from datetime import date
+
+    today = date.today()
+    all_results = TestResult.objects.filter(
+        student=request.user
+    ).select_related('test__lesson__profession').order_by('-completed_at')
+
+    today_results = all_results.filter(completed_at__date=today)
+
+    stats = {
+        'total': all_results.count(),
+        'today': today_results.count(),
+        'passed': all_results.filter(passed=True).count(),
+        'failed': all_results.filter(passed=False).count(),
+        'avg_score': all_results.aggregate(avg=Avg('score'))['avg'] or 0,
+    }
+
+    paginator = Paginator(all_results, 15)
+    page = request.GET.get('page')
+    results_page = paginator.get_page(page)
+
+    return render(request, 'accounts/my_test_results.html', {
+        'today_results': today_results,
+        'results': results_page,
+        'stats': stats,
+    })
+
+
+@login_required
 def my_homework_list(request):
     """O'quvchining barcha vazifalari"""
     submissions = HomeworkSubmission.objects.filter(student=request.user).select_related(
@@ -2866,10 +2898,21 @@ def admin_test_analytics(request):
     avg_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
     pass_rate = round((total_passed / total_attempts * 100) if total_attempts > 0 else 0, 1)
     
-    # Oxirgi natijalar
-    recent_results = TestResult.objects.select_related(
+    # Bugun ishlangan testlar
+    from datetime import date
+    today = date.today()
+    today_results = TestResult.objects.filter(
+        completed_at__date=today
+    ).select_related('test__lesson__profession', 'student').order_by('-completed_at')
+    
+    # Oxirgi natijalar (paginator bilan)
+    from django.core.paginator import Paginator
+    all_recent = TestResult.objects.select_related(
         'test__lesson__profession', 'student'
-    ).order_by('-completed_at')[:15]
+    ).order_by('-completed_at')
+    paginator = Paginator(all_recent, 20)
+    page = request.GET.get('page')
+    recent_results = paginator.get_page(page)
     
     # Kurs tanlanganda
     selected_profession_id = request.GET.get('profession')
@@ -2932,6 +2975,7 @@ def admin_test_analytics(request):
         'total_passed': total_passed,
         'pass_rate': pass_rate,
         'avg_score': round(avg_score, 1),
+        'today_results': today_results,
         'recent_results': recent_results,
         'selected_profession': selected_profession,
         'profession_tests': profession_tests,
