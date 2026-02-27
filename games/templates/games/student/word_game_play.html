@@ -1014,6 +1014,7 @@
 
     // ===== Letter Click =====
     function onLetterClick(index) {
+        if (checking) return;
         var pos = selectedIndices.indexOf(index);
         if (pos !== -1) {
             selectedIndices.splice(pos, 1);
@@ -1075,6 +1076,7 @@
         if (gameEnded || checking || selectedIndices.length < 3) return;
 
         var word = selectedIndices.map(function(i) { return letters[i]; }).join('');
+        var submittedWord = word;
         checking = true;
         checkBtn.disabled = true;
 
@@ -1128,8 +1130,7 @@
                     if (data.already_suggested) {
                         showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
                     } else {
-                        var currentWord = selectedIndices.map(function(i) { return letters[i]; }).join('');
-                        showSuggestModal(currentWord);
+                        showSuggestModal(submittedWord);
                     }
                 } else {
                     showMessage(data.message, 'error');
@@ -1151,7 +1152,7 @@
 
     // ===== Keyboard =====
     document.addEventListener('keydown', function(e) {
-        if (gameEnded) return;
+        if (gameEnded || checking) return;
 
         if (e.key === 'Enter') {
             e.preventDefault();
