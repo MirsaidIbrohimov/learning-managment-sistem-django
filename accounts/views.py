@@ -719,6 +719,60 @@ def start_test(request, pk):
         messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
         return redirect('test_result', pk=existing_result.pk)
     
+    # Sessiya kalitlari
+    sq_key = f'test_{test.pk}_questions'
+    st_key = f'test_{test.pk}_start'
+    sa_key = f'test_{test.pk}_answer_order'
+    token_key = f'test_{test.pk}_submit_token'
+    
+    # Davom etayotgan test bormi? (sahifa yangilanganda qayta aralashtirmaslik)
+    active_question_ids = request.session.get(sq_key)
+    submit_token = request.session.get(token_key)
+    
+    if active_question_ids and not submit_token:
+        # Test hali davom etmoqda — mavjud savollarni qayta yuklash
+        questions_qs = TestQuestion.objects.filter(
+            pk__in=active_question_ids
+        ).prefetch_related('answers')
+        question_map = {q.pk: q for q in questions_qs}
+        questions = [question_map[qid] for qid in active_question_ids if qid in question_map]
+        
+        # Javoblar tartibini tiklash
+        answer_order = request.session.get(sa_key, {})
+        for q in questions:
+            ordered_ids = answer_order.get(str(q.pk))
+            if ordered_ids:
+                answer_map = {a.pk: a for a in q.answers.all()}
+                ordered_answers = [answer_map[aid] for aid in ordered_ids if aid in answer_map]
+                q._prefetched_objects_cache['answers'] = ordered_answers
+        
+        # Qolgan vaqtni hisoblash
+        start_time_str = request.session.get(st_key)
+        remaining = test.time_limit * 60
+        if start_time_str:
+            from datetime import datetime as dt
+            try:
+                started = dt.fromisoformat(start_time_str)
+                elapsed = (timezone.now() - started).total_seconds()
+                remaining = max(0, test.time_limit * 60 - int(elapsed))
+            except (ValueError, TypeError):
+                pass
+        
+        if remaining <= 0:
+            # Vaqt tugagan — avtomatik yuborish uchun formga yo'naltirish
+            request.session.pop(sq_key, None)
+            request.session.pop(st_key, None)
+            request.session.pop(sa_key, None)
+            return redirect('lesson_view', pk=test.lesson.pk)
+        
+        return render(request, 'accounts/lessons/test_take.html', {
+            'test': test,
+            'questions': questions,
+            'remaining_time': remaining,
+        })
+    
+    # ===== Yangi test boshlash =====
+    
     # Qayta topshirish uchun coin yechish
     if existing_result and test.allow_retry:
         retry_cost = 5 if request.user.is_premium else 10
@@ -746,14 +800,27 @@ def start_test(request, pk):
             random.shuffle(answers_list)
             q._prefetched_objects_cache['answers'] = answers_list
     
-    # Tanlangan savol ID larini sessiyada saqlash
-    request.session[f'test_{test.pk}_questions'] = [q.pk for q in questions]
-    request.session[f'test_{test.pk}_start'] = timezone.now().isoformat()
-    request.session.pop(f'test_{test.pk}_submit_token', None)
+    # Sessiyaga saqlash
+    request.session[sq_key] = [q.pk for q in questions]
+    request.session[st_key] = timezone.now().isoformat()
+    request.session.pop(token_key, None)
+    
+    # Javoblar tartibini saqlash
+    answer_order = {}
+    for q in questions:
+        cached = getattr(q, '_prefetched_objects_cache', {}).get('answers')
+        if cached is not None:
+            answer_order[str(q.pk)] = [a.pk for a in cached]
+        else:
+            answer_order[str(q.pk)] = [a.pk for a in q.answers.all()]
+    request.session[sa_key] = answer_order
+    
+    remaining = test.time_limit * 60
     
     return render(request, 'accounts/lessons/test_take.html', {
         'test': test,
         'questions': questions,
+        'remaining_time': remaining,
     })
 
 
@@ -772,6 +839,9 @@ def submit_test(request, pk):
         if last_result:
             return redirect('test_result', pk=last_result.pk)
     request.session[f'test_{test.pk}_submit_token'] = True
+    
+    # Sessiyani tozalash (qayta start_test ga kirganda yangi test boshlanishi uchun)
+    request.session.pop(f'test_{test.pk}_answer_order', None)
     
     start_time = request.session.get(f'test_{test.pk}_start')
     started_at = timezone.now()
