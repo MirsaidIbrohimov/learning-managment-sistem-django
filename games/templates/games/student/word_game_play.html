@@ -1129,21 +1129,20 @@
                 addFoundWord(data.word, data.points);
 
                 showMessage(data.word + ' ✓  +' + data.points + ' ball', 'success');
-            } else if (data.not_in_system) {
-                // So'z tizimda yo'q - taklif qilish
+            } else {
+                // So'z qabul qilinmadi
                 wordDisplay.classList.add('wrong-flash');
                 setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
 
                 if (data.already_suggested) {
                     showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
+                } else if (data.message && !data.not_in_system) {
+                    // Kamida 3 harf, allaqachon topilgan, va h.k.
+                    showMessage(data.message, 'error');
                 } else {
+                    // Bazada yo'q - taklif qilish modali
                     showSuggestModal(submittedWord);
                 }
-            } else {
-                // Boshqa xatolik
-                wordDisplay.classList.add('wrong-flash');
-                setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
-                showMessage(data.message || "Bu so'z noto'g'ri!", 'error');
             }
 
             selectedIndices = [];
