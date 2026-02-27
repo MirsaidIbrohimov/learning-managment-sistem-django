@@ -19,6 +19,7 @@ urlpatterns = [
     path('<slug:slug>/word-play/<int:competition_id>/', views.word_game_play, name='word_game_play_competition'),
     path('<slug:slug>/word-check/', views.word_game_check, name='word_game_check'),
     path('<slug:slug>/word-submit/', views.word_game_submit, name='word_game_submit'),
+    path('<slug:slug>/word-suggest/', views.word_game_suggest, name='word_game_suggest'),
     path('word-leaderboard/<int:competition_id>/', views.word_game_leaderboard, name='word_game_leaderboard'),
 
     # Admin: O'yinlar boshqaruvi
@@ -48,4 +49,9 @@ urlpatterns = [
     # Admin: Natijalar
     path('dashboard/results/', views.admin_results, name='admin_results'),
     path('dashboard/results/pdf/', views.admin_results_pdf, name='admin_results_pdf'),
+    path('dashboard/results/<int:pk>/<str:result_type>/delete/', views.admin_result_delete, name='admin_result_delete'),
+
+    # Admin: So'z takliflari
+    path('dashboard/word-suggestions/', views.admin_word_suggestions, name='admin_word_suggestions'),
+    path('dashboard/word-suggestions/<int:pk>/action/', views.admin_word_suggestion_action, name='admin_word_suggestion_action'),
 ]

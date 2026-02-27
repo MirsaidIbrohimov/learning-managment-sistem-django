@@ -192,3 +192,28 @@ class WordGameAttempt(models.Model):
     @property
     def found_count(self):
         return len(self.found_words) if self.found_words else 0
+
+
+class WordSuggestion(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Kutmoqda'),
+        ('accepted', 'Qabul qilindi'),
+        ('rejected', 'Rad etildi'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='word_suggestions', verbose_name="Foydalanuvchi")
+    word_round = models.ForeignKey(WordRound, on_delete=models.CASCADE, related_name='suggestions', verbose_name="Raund")
+    word = models.CharField(max_length=50, verbose_name="So'z")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_suggestions', verbose_name="Ko'rib chiquvchi")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "So'z taklifi"
+        verbose_name_plural = "So'z takliflari"
+        unique_together = ['user', 'word_round', 'word']
+
+    def __str__(self):
+        return f"{self.user} → {self.word} ({self.word_round.letters})"

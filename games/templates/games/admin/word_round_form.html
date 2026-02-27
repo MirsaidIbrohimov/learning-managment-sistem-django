@@ -88,8 +88,8 @@
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-bold">To'g'ri so'zlar *</label>
-                        <textarea name="valid_words" class="form-control" rows="4" required>{% if word_round.valid_words %}{{ word_round.valid_words|safe }}{% endif %}</textarea>
-                        <div class="form-text">Vergul bilan ajrating yoki JSON formatida kiriting: REACT, TRACE, TEAR yoki ["REACT", "TRACE"]</div>
+                        <textarea name="valid_words" class="form-control" rows="4" required>{% if word_round.valid_words %}{% for w in word_round.valid_words %}{{ w }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</textarea>
+                        <div class="form-text">So'zlarni vergul bilan ajrating: REACT, TRACE, TEAR, ACE</div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Qiyinlik</label>

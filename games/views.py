@@ -22,7 +22,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt
+from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
 from accounts.models import CustomUser
 
 
@@ -881,7 +881,17 @@ def word_game_check(request, slug):
             'total_score': sum(len(w) ** 2 for w in found_words),
         })
 
-    return JsonResponse({'valid': False, 'message': "Bu so'z ro'yxatda yo'q!"})
+    # So'z bazada yo'q - taklif qilish imkoniyatini berish
+    already_suggested = WordSuggestion.objects.filter(
+        user=request.user, word_round=word_round, word=word.upper()
+    ).exists()
+
+    return JsonResponse({
+        'valid': False,
+        'not_in_system': True,
+        'already_suggested': already_suggested,
+        'message': "Bu so'z tizimda yo'q!",
+    })
 
 
 @login_required
@@ -966,6 +976,118 @@ def word_game_leaderboard(request, competition_id):
     })
 
 
+# ---- So'z taklifi ----
+
+@login_required
+@require_POST
+def word_game_suggest(request, slug):
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
+
+    session_key = f'word_game_session_{game.slug}'
+    game_session = request.session.get(session_key)
+
+    if not game_session:
+        return JsonResponse({'error': "Sessiya topilmadi."}, status=403)
+
+    game_token = request.POST.get('game_token', '')
+    if game_session.get('token') != game_token:
+        return JsonResponse({'error': "Noto'g'ri token."}, status=403)
+
+    word = request.POST.get('word', '').strip().upper()
+    if not word or len(word) < 3:
+        return JsonResponse({'error': "So'z kamida 3 harfdan iborat bo'lishi kerak."}, status=400)
+
+    round_id = game_session.get('round_id')
+    word_round = get_object_or_404(WordRound, pk=round_id, game=game)
+
+    valid_words = [w.upper() for w in (word_round.valid_words or [])]
+    if word in valid_words:
+        return JsonResponse({'error': "Bu so'z allaqachon mavjud."}, status=400)
+
+    existing = WordSuggestion.objects.filter(
+        user=request.user, word_round=word_round, word=word
+    ).first()
+    if existing:
+        return JsonResponse({'error': "Bu so'z allaqachon taklif qilingan."}, status=400)
+
+    WordSuggestion.objects.create(
+        user=request.user,
+        word_round=word_round,
+        word=word,
+    )
+
+    return JsonResponse({'success': True, 'message': "Taklif yuborildi! Admin ko'rib chiqadi. ✅"})
+
+
+# ---- Admin: So'z takliflari ----
+
+@login_required
+def admin_word_suggestions(request):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    suggestions = WordSuggestion.objects.filter(
+        status='pending'
+    ).select_related('user', 'word_round', 'word_round__game').order_by('-created_at')
+
+    return render(request, 'games/admin/word_suggestions.html', {
+        'suggestions': suggestions,
+    })
+
+
+@login_required
+@require_POST
+def admin_word_suggestion_action(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    suggestion = get_object_or_404(WordSuggestion, pk=pk)
+    action = request.POST.get('action')
+
+    if action == 'accept':
+        word_round = suggestion.word_round
+        valid_words = word_round.valid_words or []
+        word_upper = suggestion.word.upper()
+        if word_upper not in [w.upper() for w in valid_words]:
+            valid_words.append(word_upper)
+            word_round.valid_words = valid_words
+            word_round.save()
+        suggestion.status = 'accepted'
+        suggestion.reviewed_at = timezone.now()
+        suggestion.reviewed_by = request.user
+        suggestion.save()
+        messages.success(request, f"'{suggestion.word}' so'zi qabul qilindi va raundga qo'shildi!")
+    elif action == 'reject':
+        suggestion.status = 'rejected'
+        suggestion.reviewed_at = timezone.now()
+        suggestion.reviewed_by = request.user
+        suggestion.save()
+        messages.info(request, f"'{suggestion.word}' so'zi rad etildi.")
+
+    return redirect('games:admin_word_suggestions')
+
+
+# ---- Admin: Natijalarni o'chirish ----
+
+@login_required
+@require_POST
+def admin_result_delete(request, pk, result_type):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    if result_type == 'typing':
+        attempt = get_object_or_404(GameAttempt, pk=pk)
+    elif result_type == 'word':
+        attempt = get_object_or_404(WordGameAttempt, pk=pk)
+    else:
+        messages.error(request, "Noto'g'ri tur!")
+        return redirect('games:admin_results')
+
+    attempt.delete()
+    messages.success(request, "Natija o'chirildi!")
+    return redirect('games:admin_results')
+
+
 # ---- Admin: Word Rounds ----
 
 @login_required
@@ -987,18 +1109,15 @@ def admin_word_round_add(request, game_pk):
 
     if request.method == 'POST':
         letters = request.POST.get('letters', '').upper().strip()
-        valid_words_str = request.POST.get('valid_words', '[]')
+        valid_words_str = request.POST.get('valid_words', '')
         difficulty = request.POST.get('difficulty', 'medium')
         time_limit = int(request.POST.get('time_limit', 60))
         order = int(request.POST.get('order', 0))
         is_active = 'is_active' in request.POST
 
-        try:
-            valid_words = json.loads(valid_words_str)
-            if isinstance(valid_words, str):
-                valid_words = [w.strip().lower() for w in valid_words.split(',') if w.strip()]
-        except json.JSONDecodeError:
-            valid_words = [w.strip().lower() for w in valid_words_str.split(',') if w.strip()]
+        # Vergul bilan ajratilgan formatni parse qilish
+        cleaned = valid_words_str.replace('[', '').replace(']', '').replace('"', '').replace("'", '')
+        valid_words = [w.strip().upper() for w in cleaned.split(',') if w.strip()]
 
         if letters and valid_words:
             WordRound.objects.create(
@@ -1030,13 +1149,10 @@ def admin_word_round_edit(request, pk):
         word_round.order = int(request.POST.get('order', 0))
         word_round.is_active = 'is_active' in request.POST
 
-        valid_words_str = request.POST.get('valid_words', '[]')
-        try:
-            valid_words = json.loads(valid_words_str)
-            if isinstance(valid_words, str):
-                valid_words = [w.strip().lower() for w in valid_words.split(',') if w.strip()]
-        except json.JSONDecodeError:
-            valid_words = [w.strip().lower() for w in valid_words_str.split(',') if w.strip()]
+        valid_words_str = request.POST.get('valid_words', '')
+        # Vergul bilan ajratilgan formatni parse qilish
+        cleaned = valid_words_str.replace('[', '').replace(']', '').replace('"', '').replace("'", '')
+        valid_words = [w.strip().upper() for w in cleaned.split(',') if w.strip()]
 
         word_round.valid_words = valid_words
         word_round.save()

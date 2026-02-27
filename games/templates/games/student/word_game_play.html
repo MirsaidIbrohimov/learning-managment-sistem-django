@@ -616,6 +616,101 @@
     animation: fadeInUp 0.6s ease-out 0.3s both;
 }
 
+/* ===== Suggest Overlay ===== */
+.suggest-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.suggest-overlay.show { display: flex; }
+
+.suggest-card {
+    background: var(--g-card);
+    border-radius: var(--g-radius);
+    padding: 2.5rem;
+    text-align: center;
+    max-width: 440px;
+    width: 90%;
+    animation: resultIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 2px solid rgba(245, 158, 11, 0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.suggest-card .suggest-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.suggest-card .suggest-word-display {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--g-warning);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 12px;
+    display: inline-block;
+}
+
+.suggest-card .suggest-message {
+    color: var(--g-text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.suggest-card .suggest-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-suggest-ok {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    border: none;
+    color: white;
+    padding: 0.65rem 1.8rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-suggest-ok:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.btn-suggest-cancel {
+    background: transparent;
+    border: 2px solid var(--g-border);
+    color: var(--g-text-muted);
+    padding: 0.65rem 1.8rem;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-suggest-cancel:hover {
+    border-color: var(--g-danger);
+    color: var(--g-danger);
+    transform: translateY(-2px);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     .play-header {
@@ -834,6 +929,20 @@
 
 <!-- CSRF Form -->
 <form id="csrfForm" style="display:none;">{% csrf_token %}</form>
+
+<!-- Suggest Overlay -->
+<div class="suggest-overlay" id="suggestOverlay">
+    <div class="suggest-card">
+        <div class="suggest-emoji">💡</div>
+        <h4 class="fw-bold mb-1">So'z topilmadi</h4>
+        <p class="suggest-message">Bu so'z tizimda yo'q. Tizimga qo'shishga taklif berasizmi?</p>
+        <div class="suggest-word-display" id="suggestWord"></div>
+        <div class="suggest-actions mt-3">
+            <button class="btn-suggest-ok" id="suggestOkBtn">Ha, taklif beraman ✅</button>
+            <button class="btn-suggest-cancel" id="suggestCancelBtn">Bekor qilish</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -849,6 +958,7 @@
     const isCompetition = {{ competition|yesno:"true,false" }};
     const checkUrl = '{% url "games:word_game_check" game.slug %}';
     const submitUrl = '{% url "games:word_game_submit" game.slug %}';
+    const suggestUrl = '{% url "games:word_game_suggest" game.slug %}';
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     // ===== State =====
@@ -1013,7 +1123,17 @@
                 // Invalid
                 wordDisplay.classList.add('wrong-flash');
                 setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
-                showMessage(data.message, 'error');
+
+                if (data.not_in_system) {
+                    if (data.already_suggested) {
+                        showMessage("Bu so'z allaqachon taklif qilingan!", 'warning');
+                    } else {
+                        var currentWord = selectedIndices.map(function(i) { return letters[i]; }).join('');
+                        showSuggestModal(currentWord);
+                    }
+                } else {
+                    showMessage(data.message, 'error');
+                }
             }
 
             selectedIndices = [];
@@ -1213,6 +1333,62 @@
             e.preventDefault(); return;
         }
         if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return; }
+    });
+
+    // ===== Word Suggestion =====
+    var _suggestWord = '';
+    var suggestOverlay = document.getElementById('suggestOverlay');
+    var suggestWordEl = document.getElementById('suggestWord');
+    var suggestOkBtn = document.getElementById('suggestOkBtn');
+    var suggestCancelBtn = document.getElementById('suggestCancelBtn');
+
+    function showSuggestModal(word) {
+        _suggestWord = word;
+        suggestWordEl.textContent = word;
+        suggestOverlay.classList.add('show');
+    }
+
+    function hideSuggestModal() {
+        suggestOverlay.classList.remove('show');
+        _suggestWord = '';
+    }
+
+    suggestOkBtn.addEventListener('click', function() {
+        if (!_suggestWord) return;
+
+        var formData = new FormData();
+        formData.append('word', _suggestWord);
+        formData.append('game_token', gameToken);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        fetch(suggestUrl, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                showMessage(data.message || "So'z taklif qilindi! ✅", 'success');
+            } else {
+                showMessage(data.message || "Xatolik yuz berdi!", 'error');
+            }
+        })
+        .catch(function() {
+            showMessage("Xatolik yuz berdi!", 'error');
+        });
+
+        hideSuggestModal();
+        selectedIndices = [];
+        updateWordDisplay();
+        renderLetters();
+    });
+
+    suggestCancelBtn.addEventListener('click', function() {
+        hideSuggestModal();
+        selectedIndices = [];
+        updateWordDisplay();
+        renderLetters();
     });
 
     // ===== Init =====

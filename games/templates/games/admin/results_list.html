@@ -284,6 +284,7 @@
                             <th>Ball</th>
                             <th>Vaqt</th>
                             <th>Sana</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -323,10 +324,18 @@
                             <td class="score-cell">{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score }}{% else %}{{ attempt.score }}{% endif %}</td>
                             <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                             <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 2px 8px;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" class="text-center py-4 text-muted">
+                            <td colspan="11" class="text-center py-4 text-muted">
                                 <i class="bi bi-bar-chart" style="font-size: 2rem; opacity: 0.4;"></i>
                                 <p class="mt-2 mb-0">Natijalar mavjud emas</p>
                             </td>
@@ -385,6 +394,12 @@
             <div class="card-footer-m">
                 <span><i class="bi bi-clock"></i> {{ attempt.time_spent|floatformat:1 }}s</span>
                 <span>{{ attempt.created_at|date:"d.m.Y H:i" }}</span>
+                <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" style="display:inline;" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 1px 6px; font-size: 0.75rem;">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
             </div>
         </div>
         {% empty %}

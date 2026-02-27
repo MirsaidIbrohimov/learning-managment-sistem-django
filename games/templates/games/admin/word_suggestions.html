@@ -1,0 +1,340 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}So'z takliflari | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.15s both;
+}
+
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.08s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.11s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.14s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.17s; }
+
+.admin-card .table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.badge-word {
+    background: linear-gradient(135deg, #8b5cf6, #a855f7);
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 0.4em 0.85em;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+}
+
+.badge-letters {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.35em 0.7em;
+    border-radius: 8px;
+    letter-spacing: 1px;
+}
+
+[data-bs-theme="dark"] .badge-letters {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+.btn-accept {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    color: #fff;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 0.4rem 0.9rem;
+    transition: all 0.3s;
+}
+
+.btn-accept:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+}
+
+.btn-reject {
+    border: 2px solid #ef4444;
+    color: #ef4444;
+    background: transparent;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 0.35rem 0.85rem;
+    transition: all 0.3s;
+}
+
+.btn-reject:hover {
+    background: #ef4444;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+}
+
+.count-badge {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 0.3em 0.75em;
+    border-radius: 10px;
+    margin-left: 0.5rem;
+}
+
+/* Mobile cards */
+.mobile-suggestion-cards { display: none; }
+
+.suggestion-card-m {
+    background: var(--card-bg, #fff);
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1.2rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+[data-bs-theme="dark"] .suggestion-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+
+.suggestion-card-m:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.suggestion-card-m .card-top-m {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.suggestion-card-m .user-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.suggestion-card-m .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+    margin: 0.75rem 0;
+}
+
+.suggestion-card-m .stat-item {
+    padding: 0.5rem;
+    background: rgba(99, 102, 241, 0.06);
+    border-radius: 10px;
+}
+
+[data-bs-theme="dark"] .suggestion-card-m .stat-item {
+    background: rgba(99, 102, 241, 0.12);
+}
+
+.suggestion-card-m .stat-item .val {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.suggestion-card-m .stat-item .lbl {
+    font-size: 0.68rem;
+    color: var(--text-muted, #64748b);
+    text-transform: uppercase;
+}
+
+.suggestion-card-m .card-footer-m {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 0.75rem;
+}
+
+.suggestion-card-m .card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.suggestion-card-m .card-actions form {
+    flex: 1;
+}
+
+.suggestion-card-m .card-actions .btn {
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    .desktop-table { display: none; }
+    .mobile-suggestion-cards { display: block; }
+}
+
+@media (max-width: 768px) {
+    .admin-header h2 { font-size: 1.2rem; }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-puzzle text-primary"></i> So'z takliflari
+            <span class="count-badge">{{ suggestions|length }}</span>
+        </h2>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>O'quvchi</th>
+                            <th>Taklif so'z</th>
+                            <th>Harflar</th>
+                            <th>O'yin</th>
+                            <th>Sana</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for suggestion in suggestions %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <strong>{{ suggestion.user.full_name }}</strong>
+                                <div class="text-muted small">@{{ suggestion.user.username }}</div>
+                            </td>
+                            <td><span class="badge-word">{{ suggestion.word }}</span></td>
+                            <td><span class="badge-letters">{{ suggestion.word_round.letters }}</span></td>
+                            <td>{{ suggestion.word_round.game.title }}</td>
+                            <td>{{ suggestion.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="accept">
+                                        <button type="submit" class="btn btn-accept">Qabul qilish ✅</button>
+                                    </form>
+                                    <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="btn btn-reject">Rad etish ❌</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <i class="bi bi-puzzle" style="font-size: 2rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">Hozircha takliflar mavjud emas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-suggestion-cards">
+        {% for suggestion in suggestions %}
+        <div class="suggestion-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
+            <div class="card-top-m">
+                <span class="user-name">{{ suggestion.user.full_name }}</span>
+                <span class="badge-word">{{ suggestion.word }}</span>
+            </div>
+            <div class="small text-muted mb-1">@{{ suggestion.user.username }}</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="val"><span class="badge-letters">{{ suggestion.word_round.letters }}</span></div>
+                    <div class="lbl">Harflar</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" style="font-size: 0.82rem;">{{ suggestion.word_round.game.title }}</div>
+                    <div class="lbl">O'yin</div>
+                </div>
+                <div class="stat-item">
+                    <div class="val" style="font-size: 0.82rem;">{{ suggestion.created_at|date:"d.m.Y" }}</div>
+                    <div class="lbl">Sana</div>
+                </div>
+            </div>
+            <div class="card-actions">
+                <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="accept">
+                    <button type="submit" class="btn btn-accept">Qabul qilish ✅</button>
+                </form>
+                <form method="post" action="{% url 'games:admin_word_suggestion_action' suggestion.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn btn-reject">Rad etish ❌</button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-puzzle" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">Hozircha takliflar mavjud emas</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
