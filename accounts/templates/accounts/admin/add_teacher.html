@@ -164,7 +164,7 @@
                 {% if professions %}
                 <div class="at-courses-grid">
                     {% for p in professions %}
-                    <label class="at-course-item" onclick="this.classList.toggle('selected')">
+                    <label class="at-course-item">
                         <input type="checkbox" name="professions" value="{{ p.pk }}">
                         <span class="at-course-check"><i class="bi bi-check2"></i></span>
                         <span class="at-course-name">{{ p.name }}</span>
@@ -190,10 +190,9 @@
 
 <script>
 document.querySelectorAll('.at-course-item').forEach(function(item) {
-    item.addEventListener('click', function(e) {
-        if (e.target.tagName === 'INPUT') return;
-        var cb = this.querySelector('input[type="checkbox"]');
-        cb.checked = !cb.checked;
+    var cb = item.querySelector('input[type="checkbox"]');
+    cb.addEventListener('change', function() {
+        item.classList.toggle('selected', cb.checked);
     });
 });
 </script>

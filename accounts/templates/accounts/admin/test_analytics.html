@@ -656,6 +656,66 @@
     </div>
 </div>
 
+<!-- Bugun ishlangan testlar -->
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-calendar-check-fill" style="color:#f59e0b;"></i> Bugun ishlangan testlar</h6>
+        <span class="ta-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">{{ today_results|length }}</span>
+    </div>
+    {% if today_results %}
+    <div class="table-responsive">
+        <table class="ta-table">
+            <thead>
+                <tr>
+                    <th>O'quvchi</th>
+                    <th>Test (Dars)</th>
+                    <th>Kurs</th>
+                    <th>Ball</th>
+                    <th class="text-center">Holat</th>
+                    <th>Vaqt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in today_results %}
+                <tr style="animation: slideIn 0.4s ease both; animation-delay: {{ forloop.counter0 }}40ms;">
+                    <td>
+                        <div class="ta-user">
+                            {% if r.student.photo %}
+                            <img src="{{ r.student.photo.url }}" class="ta-avatar">
+                            {% else %}
+                            <div class="ta-avatar-ph">{{ r.student.get_initials }}</div>
+                            {% endif %}
+                            <span class="ta-name">{{ r.student.full_name }}</span>
+                        </div>
+                    </td>
+                    <td><span class="fw-semibold">{{ r.test.lesson.title }}</span></td>
+                    <td><span class="ta-sub">{{ r.test.lesson.profession.name }}</span></td>
+                    <td>
+                        <span class="ta-score {% if r.score >= 70 %}high{% elif r.score >= 50 %}mid{% else %}low{% endif %}">
+                            {{ r.score }}%
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        {% if r.passed %}
+                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i></span>
+                        {% else %}
+                        <span class="ta-status failed"><i class="bi bi-x-circle-fill"></i></span>
+                        {% endif %}
+                    </td>
+                    <td><span class="ta-sub">{{ r.completed_at|date:"H:i" }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="ta-empty">
+        <div class="ta-empty-icon"><i class="bi bi-calendar-x"></i></div>
+        <p>Bugun hali test ishlanmagan</p>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Filter -->
 <div class="ta-filter">
     <form method="GET">
@@ -874,61 +934,6 @@
         <p>Natijalar yo'q</p>
     </div>
     {% endif %}
-</div>
-{% endif %}
-
-<!-- Bugun ishlangan testlar -->
-{% if today_results %}
-<div class="ta-card anim-f">
-    <div class="ta-card-head">
-        <h6><i class="bi bi-calendar-check-fill" style="color:#f59e0b;"></i> Bugun ishlangan testlar</h6>
-        <span class="ta-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">{{ today_results|length }}</span>
-    </div>
-    <div class="table-responsive">
-        <table class="ta-table">
-            <thead>
-                <tr>
-                    <th>O'quvchi</th>
-                    <th>Test (Dars)</th>
-                    <th>Kurs</th>
-                    <th>Ball</th>
-                    <th class="text-center">Holat</th>
-                    <th>Vaqt</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in today_results %}
-                <tr style="animation: slideIn 0.4s ease both; animation-delay: {{ forloop.counter0 }}40ms;">
-                    <td>
-                        <div class="ta-user">
-                            {% if r.student.photo %}
-                            <img src="{{ r.student.photo.url }}" class="ta-avatar">
-                            {% else %}
-                            <div class="ta-avatar-ph">{{ r.student.get_initials }}</div>
-                            {% endif %}
-                            <span class="ta-name">{{ r.student.full_name }}</span>
-                        </div>
-                    </td>
-                    <td><span class="fw-semibold">{{ r.test.lesson.title }}</span></td>
-                    <td><span class="ta-sub">{{ r.test.lesson.profession.name }}</span></td>
-                    <td>
-                        <span class="ta-score {% if r.score >= 70 %}high{% elif r.score >= 50 %}mid{% else %}low{% endif %}">
-                            {{ r.score }}%
-                        </span>
-                    </td>
-                    <td class="text-center">
-                        {% if r.passed %}
-                        <span class="ta-status passed"><i class="bi bi-check-circle-fill"></i></span>
-                        {% else %}
-                        <span class="ta-status failed"><i class="bi bi-x-circle-fill"></i></span>
-                        {% endif %}
-                    </td>
-                    <td><span class="ta-sub">{{ r.completed_at|date:"H:i" }}</span></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
 </div>
 {% endif %}
 
