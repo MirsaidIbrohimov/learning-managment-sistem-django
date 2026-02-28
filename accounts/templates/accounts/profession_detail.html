@@ -398,7 +398,7 @@
             {% endif %}
         {% endif %}
 
-        {% if user.is_admin or user.is_teacher %}
+        {% if user.is_admin or is_teaching %}
         <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-primary w-100 ios-btn">
             <i class="bi bi-gear me-2"></i>Boshqarish
         </a>
@@ -410,7 +410,7 @@
 <!-- RIGHT CARD -->
 <div class="col-lg-8">
 
-{% if is_enrolled or user.is_admin or user.is_teacher %}
+{% if is_enrolled or user.is_admin or is_teaching %}
 
 <div class="glass-card">
     <div class="p-4 border-bottom" style="border-color:var(--card-border)!important;">
@@ -418,7 +418,7 @@
             <h5 class="m-0 fw-bold">
                 <i class="bi bi-book me-2 text-primary"></i>Kurs dasturi
             </h5>
-            {% if user.is_admin or user.is_teacher %}
+            {% if user.is_admin or is_teaching %}
             <a href="{% url 'add_section' profession.pk %}" class="btn btn-sm btn-primary ios-btn">
                 <i class="bi bi-plus-lg me-1"></i>Bo'lim qo'shish
             </a>
@@ -543,7 +543,7 @@
                     </div>
                 {% endif %}
                 
-                {% if user.is_admin or user.is_teacher %}
+                {% if user.is_admin or is_teaching %}
                 <div class="p-3 border-top" style="border-color: var(--card-border) !important;">
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=video" class="btn btn-sm btn-outline-primary">
@@ -664,7 +664,7 @@
         <div class="text-center py-5">
             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
             <p class="text-muted mt-3">Hozircha darslar mavjud emas</p>
-            {% if user.is_admin or user.is_teacher %}
+            {% if user.is_admin or is_teaching %}
             <a href="{% url 'add_lesson' profession.pk %}" class="btn btn-primary ios-btn mt-2">
                 <i class="bi bi-plus-lg me-1"></i>Dars qo'shish
             </a>

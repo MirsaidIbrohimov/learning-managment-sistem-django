@@ -401,6 +401,7 @@ def profession_detail(request, pk):
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
+        'is_teaching': is_teaching,
         'enrollment_request': enrollment_request,
         'sections': sections,
         'lessons_without_section': lessons_without_section,
@@ -2616,6 +2617,11 @@ def homework_submissions(request):
         'homework__lesson__profession', 'student'
     ).prefetch_related('messages')
     
+    # O'qituvchi faqat o'z kurslaridagi vazifalarni ko'rsin
+    if request.user.is_teacher and not request.user.is_admin:
+        teaching_ids = request.user.teaching_professions.values_list('pk', flat=True)
+        submissions = submissions.filter(homework__lesson__profession_id__in=teaching_ids)
+    
     if search_query:
         from django.db.models import Q
         submissions = submissions.filter(
@@ -2646,15 +2652,26 @@ def homework_submissions(request):
     page = request.GET.get('page')
     submissions = paginator.get_page(page)
     
-    stats = {
-        'pending': HomeworkSubmission.objects.filter(status='pending').count(),
-        'reviewing': HomeworkSubmission.objects.filter(status='reviewing').count(),
-        'revision': HomeworkSubmission.objects.filter(status='revision').count(),
-        'accepted': HomeworkSubmission.objects.filter(status='accepted').count(),
-        'graded': HomeworkSubmission.objects.filter(status='graded').count(),
-    }
-    
-    professions = Profession.objects.all()
+    # O'qituvchi uchun faqat o'z kurslari bo'yicha statistika
+    if request.user.is_teacher and not request.user.is_admin:
+        hw_qs = HomeworkSubmission.objects.filter(homework__lesson__profession_id__in=teaching_ids)
+        stats = {
+            'pending': hw_qs.filter(status='pending').count(),
+            'reviewing': hw_qs.filter(status='reviewing').count(),
+            'revision': hw_qs.filter(status='revision').count(),
+            'accepted': hw_qs.filter(status='accepted').count(),
+            'graded': hw_qs.filter(status='graded').count(),
+        }
+        professions = Profession.objects.filter(pk__in=teaching_ids)
+    else:
+        stats = {
+            'pending': HomeworkSubmission.objects.filter(status='pending').count(),
+            'reviewing': HomeworkSubmission.objects.filter(status='reviewing').count(),
+            'revision': HomeworkSubmission.objects.filter(status='revision').count(),
+            'accepted': HomeworkSubmission.objects.filter(status='accepted').count(),
+            'graded': HomeworkSubmission.objects.filter(status='graded').count(),
+        }
+        professions = Profession.objects.all()
     
     return render(request, 'accounts/manage/homework_submissions.html', {
         'submissions': submissions,
@@ -2674,6 +2691,10 @@ def grade_homework(request, pk):
         return redirect('home')
     
     submission = get_object_or_404(HomeworkSubmission, pk=pk)
+    
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=submission.homework.lesson.profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
     was_graded = submission.grade is not None
     chat_messages = submission.messages.all().order_by('created_at')
     revisions = submission.revisions.all()
@@ -3790,6 +3811,10 @@ def add_section(request, pk):
     
     profession = get_object_or_404(Profession, pk=pk)
     
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
+    
     if request.method == 'POST':
         form = SectionForm(request.POST)
         if form.is_valid():
@@ -3814,6 +3839,10 @@ def edit_section(request, pk):
     
     section = get_object_or_404(Section, pk=pk)
     
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=section.profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
+    
     if request.method == 'POST':
         form = SectionForm(request.POST, instance=section)
         if form.is_valid():
@@ -3835,6 +3864,11 @@ def delete_section(request, pk):
         return redirect('home')
     
     section = get_object_or_404(Section, pk=pk)
+    
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=section.profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
+    
     profession_pk = section.profession.pk
     
     if request.method == 'POST':
