@@ -40,6 +40,332 @@
     50% { opacity: 1; }
 }
 
+/* ===== Maintenance Toggle Button ===== */
+.db-maint-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    border: 2px solid var(--border-color);
+    background: var(--card-bg);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+}
+.db-maint-trigger::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.db-maint-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+.db-maint-trigger.is-off {
+    border-color: rgba(16,185,129,0.4);
+}
+.db-maint-trigger.is-off:hover {
+    border-color: #10b981;
+}
+.db-maint-trigger.is-on {
+    border-color: rgba(239,68,68,0.5);
+    background: rgba(239,68,68,0.04);
+}
+.db-maint-trigger.is-on:hover {
+    border-color: #ef4444;
+    background: rgba(239,68,68,0.08);
+}
+[data-bs-theme="dark"] .db-maint-trigger.is-on {
+    background: rgba(239,68,68,0.1);
+}
+.db-maint-trigger-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+.db-maint-trigger.is-off .db-maint-trigger-icon {
+    background: rgba(16,185,129,0.12);
+    color: #10b981;
+}
+.db-maint-trigger.is-on .db-maint-trigger-icon {
+    background: rgba(239,68,68,0.12);
+    color: #ef4444;
+    animation: maintPulse 2s ease infinite;
+}
+@keyframes maintPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+.db-maint-trigger-text {
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.db-maint-trigger-label {
+    color: var(--text-color);
+    display: block;
+}
+.db-maint-trigger-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.1rem 0.4rem;
+    border-radius: 5px;
+    margin-top: 1px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+.db-maint-trigger.is-off .db-maint-trigger-badge {
+    background: rgba(16,185,129,0.12);
+    color: #10b981;
+}
+.db-maint-trigger.is-on .db-maint-trigger-badge {
+    background: rgba(239,68,68,0.12);
+    color: #ef4444;
+}
+
+/* ===== Maintenance Modal ===== */
+.mm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.mm-overlay.show {
+    display: flex;
+}
+.mm-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    animation: mmFadeIn 0.25s ease;
+}
+@keyframes mmFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes mmSlideUp {
+    from { opacity: 0; transform: translateY(40px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes mmIconBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+.mm-dialog {
+    position: relative;
+    z-index: 1;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 24px;
+    max-width: 460px;
+    width: 100%;
+    overflow: hidden;
+    animation: mmSlideUp 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 25px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05);
+}
+[data-bs-theme="dark"] .mm-dialog {
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+}
+
+/* Modal top strip */
+.mm-strip {
+    height: 5px;
+}
+.mm-strip.warn {
+    background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
+    background-size: 200% 100%;
+    animation: mmStripMove 2s linear infinite;
+}
+.mm-strip.safe {
+    background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+    background-size: 200% 100%;
+    animation: mmStripMove 2s linear infinite;
+}
+@keyframes mmStripMove {
+    0% { background-position: 0% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.mm-body {
+    padding: 2rem 2rem 1.75rem;
+    text-align: center;
+}
+
+.mm-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 2rem;
+    animation: mmIconBounce 0.5s ease 0.15s both;
+}
+.mm-icon.warn {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(249,115,22,0.1));
+    color: #ef4444;
+    box-shadow: 0 8px 24px rgba(239,68,68,0.15);
+}
+.mm-icon.safe {
+    background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(52,211,153,0.1));
+    color: #10b981;
+    box-shadow: 0 8px 24px rgba(16,185,129,0.15);
+}
+
+.mm-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-color, #1f2937);
+    margin-bottom: 0.5rem;
+}
+.mm-desc {
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Warning chips */
+.mm-warn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+.mm-warn-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0.875rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+.mm-warn-item.red {
+    background: rgba(239,68,68,0.08);
+    color: #dc2626;
+    border: 1px solid rgba(239,68,68,0.12);
+}
+.mm-warn-item.green {
+    background: rgba(16,185,129,0.08);
+    color: #059669;
+    border: 1px solid rgba(16,185,129,0.12);
+}
+[data-bs-theme="dark"] .mm-warn-item.red {
+    background: rgba(239,68,68,0.12);
+    color: #fca5a5;
+}
+[data-bs-theme="dark"] .mm-warn-item.green {
+    background: rgba(16,185,129,0.12);
+    color: #6ee7b7;
+}
+.mm-warn-item i {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Textarea */
+.mm-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+    border: 2px solid var(--border-color, #e5e7eb);
+    background: var(--bg-color, #f8fafc);
+    color: var(--text-color, #1f2937);
+    font-size: 0.88rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    margin-bottom: 1.25rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.mm-textarea:focus {
+    outline: none;
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+}
+
+/* Footer */
+.mm-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0 2rem 2rem;
+}
+.mm-btn {
+    flex: 1;
+    padding: 0.75rem 1.25rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+}
+.mm-btn:hover {
+    transform: translateY(-2px);
+}
+.mm-btn-cancel {
+    background: var(--bg-color, #f1f5f9);
+    color: var(--text-color, #1f2937);
+    border: 2px solid var(--border-color, #e5e7eb);
+}
+.mm-btn-cancel:hover {
+    background: var(--border-color, #e5e7eb);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.mm-btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+}
+.mm-btn-danger:hover {
+    box-shadow: 0 8px 24px rgba(239,68,68,0.4);
+}
+.mm-btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+}
+.mm-btn-success:hover {
+    box-shadow: 0 8px 24px rgba(16,185,129,0.4);
+}
+
+@media (max-width: 480px) {
+    .mm-body { padding: 1.5rem 1.25rem 1.25rem; }
+    .mm-footer { padding: 0 1.25rem 1.5rem; flex-direction: column; }
+    .mm-icon { width: 64px; height: 64px; font-size: 1.5rem; }
+    .mm-title { font-size: 1.15rem; }
+    .db-maint-trigger-text { display: none; }
+}
+
 /* ===== Dashboard Layout ===== */
 .db-page {
     animation: fadeInUp 0.4s ease both;
@@ -657,12 +983,105 @@
     <div class="db-topbar">
         <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
         <div class="db-topbar-actions">
+            <!-- Maintenance Toggle -->
+            <div class="db-maint-trigger {% if maintenance.is_active %}is-on{% else %}is-off{% endif %}" onclick="showMaintModal()">
+                <div class="db-maint-trigger-icon">
+                    <i class="bi bi-{% if maintenance.is_active %}tools{% else %}power{% endif %}"></i>
+                </div>
+                <div class="db-maint-trigger-text">
+                    <span class="db-maint-trigger-label">Texnik xizmat</span>
+                    <span class="db-maint-trigger-badge">
+                        {% if maintenance.is_active %}O'chirilgan{% else %}Yoniq{% endif %}
+                    </span>
+                </div>
+            </div>
             <a href="{% url 'export_system_pdf' %}" class="btn btn-primary">
                 <i class="bi bi-file-pdf me-1"></i>PDF
             </a>
             <a href="/admin/" class="btn btn-outline-primary" target="_blank">
                 <i class="bi bi-gear me-1"></i>Django Admin
             </a>
+        </div>
+    </div>
+
+    <!-- Maintenance Confirm Modal -->
+    <div class="mm-overlay" id="maintOverlay">
+        <div class="mm-backdrop" onclick="closeMaintModal()"></div>
+        <div class="mm-dialog">
+            {% if maintenance.is_active %}
+            <!-- TIZIMNI YOQISH -->
+            <div class="mm-strip safe"></div>
+            <div class="mm-body">
+                <div class="mm-icon safe">
+                    <i class="bi bi-power"></i>
+                </div>
+                <h3 class="mm-title">Tizimni qayta yoqish</h3>
+                <p class="mm-desc">Texnik xizmat rejimini o'chirib, tizimni barcha foydalanuvchilar uchun ochmoqchimisiz?</p>
+                <div class="mm-warn-list">
+                    <div class="mm-warn-item green">
+                        <i class="bi bi-check-circle-fill"></i>
+                        O'quvchilar tizimga kirishga ruxsat oladi
+                    </div>
+                    <div class="mm-warn-item green">
+                        <i class="bi bi-check-circle-fill"></i>
+                        O'qituvchilar tizimga kirishga ruxsat oladi
+                    </div>
+                    <div class="mm-warn-item green">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Barcha funksiyalar ishga tushadi
+                    </div>
+                </div>
+            </div>
+            <form method="POST" action="{% url 'toggle_maintenance' %}">
+                {% csrf_token %}
+                <div class="mm-footer">
+                    <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </button>
+                    <button type="submit" class="mm-btn mm-btn-success">
+                        <i class="bi bi-power"></i> Tizimni yoqish
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <!-- TIZIMNI O'CHIRISH -->
+            <div class="mm-strip warn"></div>
+            <div class="mm-body">
+                <div class="mm-icon warn">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <h3 class="mm-title">Tizimni o'chirish</h3>
+                <p class="mm-desc">Texnik xizmat rejimini yoqmoqchimisiz? Faqat adminlar tizimga kirishga ruxsat oladi.</p>
+                <div class="mm-warn-list">
+                    <div class="mm-warn-item red">
+                        <i class="bi bi-x-circle-fill"></i>
+                        O'quvchilar tizimga kira olmaydi
+                    </div>
+                    <div class="mm-warn-item red">
+                        <i class="bi bi-x-circle-fill"></i>
+                        O'qituvchilar tizimga kira olmaydi
+                    </div>
+                    <div class="mm-warn-item green">
+                        <i class="bi bi-shield-check"></i>
+                        Faqat adminlar ishlashda davom etadi
+                    </div>
+                </div>
+            </div>
+            <form method="POST" action="{% url 'toggle_maintenance' %}">
+                {% csrf_token %}
+                <div style="padding: 0 2rem;">
+                    <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvchilarga ko'rsatiladigan xabar...">{{ maintenance.message }}</textarea>
+                </div>
+                <div class="mm-footer">
+                    <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </button>
+                    <button type="submit" class="mm-btn mm-btn-danger">
+                        <i class="bi bi-tools"></i> O'chirish
+                    </button>
+                </div>
+            </form>
+            {% endif %}
         </div>
     </div>
 
@@ -1040,4 +1459,20 @@
     </div>
 
 </div>
+
+<script>
+function showMaintModal() {
+    var overlay = document.getElementById('maintOverlay');
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+function closeMaintModal() {
+    var overlay = document.getElementById('maintOverlay');
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMaintModal();
+});
+</script>
 {% endblock %}
