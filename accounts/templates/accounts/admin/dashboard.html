@@ -1004,87 +1004,6 @@
         </div>
     </div>
 
-    <!-- Maintenance Confirm Modal -->
-    <div class="mm-overlay" id="maintOverlay">
-        <div class="mm-backdrop" onclick="closeMaintModal()"></div>
-        <div class="mm-dialog">
-            {% if maintenance.is_active %}
-            <!-- TIZIMNI YOQISH -->
-            <div class="mm-strip safe"></div>
-            <div class="mm-body">
-                <div class="mm-icon safe">
-                    <i class="bi bi-power"></i>
-                </div>
-                <h3 class="mm-title">Tizimni qayta yoqish</h3>
-                <p class="mm-desc">Texnik xizmat rejimini o'chirib, tizimni barcha foydalanuvchilar uchun ochmoqchimisiz?</p>
-                <div class="mm-warn-list">
-                    <div class="mm-warn-item green">
-                        <i class="bi bi-check-circle-fill"></i>
-                        O'quvchilar tizimga kirishga ruxsat oladi
-                    </div>
-                    <div class="mm-warn-item green">
-                        <i class="bi bi-check-circle-fill"></i>
-                        O'qituvchilar tizimga kirishga ruxsat oladi
-                    </div>
-                    <div class="mm-warn-item green">
-                        <i class="bi bi-check-circle-fill"></i>
-                        Barcha funksiyalar ishga tushadi
-                    </div>
-                </div>
-            </div>
-            <form method="POST" action="{% url 'toggle_maintenance' %}">
-                {% csrf_token %}
-                <div class="mm-footer">
-                    <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
-                    </button>
-                    <button type="submit" class="mm-btn mm-btn-success">
-                        <i class="bi bi-power"></i> Tizimni yoqish
-                    </button>
-                </div>
-            </form>
-            {% else %}
-            <!-- TIZIMNI O'CHIRISH -->
-            <div class="mm-strip warn"></div>
-            <div class="mm-body">
-                <div class="mm-icon warn">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-                <h3 class="mm-title">Tizimni o'chirish</h3>
-                <p class="mm-desc">Texnik xizmat rejimini yoqmoqchimisiz? Faqat adminlar tizimga kirishga ruxsat oladi.</p>
-                <div class="mm-warn-list">
-                    <div class="mm-warn-item red">
-                        <i class="bi bi-x-circle-fill"></i>
-                        O'quvchilar tizimga kira olmaydi
-                    </div>
-                    <div class="mm-warn-item red">
-                        <i class="bi bi-x-circle-fill"></i>
-                        O'qituvchilar tizimga kira olmaydi
-                    </div>
-                    <div class="mm-warn-item green">
-                        <i class="bi bi-shield-check"></i>
-                        Faqat adminlar ishlashda davom etadi
-                    </div>
-                </div>
-            </div>
-            <form method="POST" action="{% url 'toggle_maintenance' %}">
-                {% csrf_token %}
-                <div style="padding: 0 2rem;">
-                    <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvchilarga ko'rsatiladigan xabar...">{{ maintenance.message }}</textarea>
-                </div>
-                <div class="mm-footer">
-                    <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
-                    </button>
-                    <button type="submit" class="mm-btn mm-btn-danger">
-                        <i class="bi bi-tools"></i> O'chirish
-                    </button>
-                </div>
-            </form>
-            {% endif %}
-        </div>
-    </div>
-
     <!-- Asosiy Statistika -->
     <div class="db-section-header">
         <i class="bi bi-grid-3x3-gap-fill"></i>
@@ -1458,6 +1377,85 @@
         </div>
     </div>
 
+</div>
+
+<!-- Maintenance Modal — body darajasida, db-page dan tashqarida -->
+<div class="mm-overlay" id="maintOverlay">
+    <div class="mm-backdrop" onclick="closeMaintModal()"></div>
+    <div class="mm-dialog">
+        {% if maintenance.is_active %}
+        <div class="mm-strip safe"></div>
+        <div class="mm-body">
+            <div class="mm-icon safe">
+                <i class="bi bi-power"></i>
+            </div>
+            <h3 class="mm-title">Tizimni qayta yoqish</h3>
+            <p class="mm-desc">Texnik xizmat rejimini o'chirib, tizimni barcha foydalanuvchilar uchun ochmoqchimisiz?</p>
+            <div class="mm-warn-list">
+                <div class="mm-warn-item green">
+                    <i class="bi bi-check-circle-fill"></i>
+                    O'quvchilar tizimga kirishga ruxsat oladi
+                </div>
+                <div class="mm-warn-item green">
+                    <i class="bi bi-check-circle-fill"></i>
+                    O'qituvchilar tizimga kirishga ruxsat oladi
+                </div>
+                <div class="mm-warn-item green">
+                    <i class="bi bi-check-circle-fill"></i>
+                    Barcha funksiyalar ishga tushadi
+                </div>
+            </div>
+        </div>
+        <form method="POST" action="{% url 'toggle_maintenance' %}">
+            {% csrf_token %}
+            <div class="mm-footer">
+                <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
+                    <i class="bi bi-x-lg"></i> Bekor qilish
+                </button>
+                <button type="submit" class="mm-btn mm-btn-success">
+                    <i class="bi bi-power"></i> Tizimni yoqish
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div class="mm-strip warn"></div>
+        <div class="mm-body">
+            <div class="mm-icon warn">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h3 class="mm-title">Tizimni o'chirish</h3>
+            <p class="mm-desc">Texnik xizmat rejimini yoqmoqchimisiz? Faqat adminlar tizimga kirishga ruxsat oladi.</p>
+            <div class="mm-warn-list">
+                <div class="mm-warn-item red">
+                    <i class="bi bi-x-circle-fill"></i>
+                    O'quvchilar tizimga kira olmaydi
+                </div>
+                <div class="mm-warn-item red">
+                    <i class="bi bi-x-circle-fill"></i>
+                    O'qituvchilar tizimga kira olmaydi
+                </div>
+                <div class="mm-warn-item green">
+                    <i class="bi bi-shield-check"></i>
+                    Faqat adminlar ishlashda davom etadi
+                </div>
+            </div>
+        </div>
+        <form method="POST" action="{% url 'toggle_maintenance' %}">
+            {% csrf_token %}
+            <div style="padding: 0 2rem;">
+                <textarea class="mm-textarea" name="maintenance_message" placeholder="Foydalanuvchilarga ko'rsatiladigan xabar...">{{ maintenance.message }}</textarea>
+            </div>
+            <div class="mm-footer">
+                <button type="button" class="mm-btn mm-btn-cancel" onclick="closeMaintModal()">
+                    <i class="bi bi-x-lg"></i> Bekor qilish
+                </button>
+                <button type="submit" class="mm-btn mm-btn-danger">
+                    <i class="bi bi-tools"></i> O'chirish
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
 </div>
 
 <script>
