@@ -100,6 +100,14 @@ class CustomUser(AbstractUser):
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
     weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
 
+    # Teacher - managed courses
+    teaching_professions = models.ManyToManyField(
+        'Profession',
+        blank=True,
+        related_name='teachers',
+        verbose_name="Dars beradigan kurslar"
+    )
+
     # Documents
     address = models.CharField(max_length=300, blank=True, null=True, verbose_name="Yashash manzili")
     birth_date = models.DateField(null=True, blank=True, verbose_name="Tug'ilgan kuni")
@@ -1229,4 +1237,30 @@ class BlockedSection(models.Model):
     
     def __str__(self):
         return f"{self.get_section_display()} - {'Bloklangan' if self.is_blocked else 'Faol'}"
+
+
+class MaintenanceMode(models.Model):
+    """Tizimni texnik xizmat rejimiga o'tkazish"""
+    is_active = models.BooleanField(default=False, verbose_name="Texnik xizmat rejimi")
+    message = models.CharField(max_length=500, default="Tizimda texnik ishlar olib borilmoqda. Iltimos, keyinroq urinib ko'ring.", verbose_name="Xabar")
+    activated_at = models.DateTimeField(auto_now=True)
+    activated_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Kim tomonidan"
+    )
+
+    class Meta:
+        verbose_name = "Texnik xizmat rejimi"
+
+    def __str__(self):
+        status = "Yoqilgan" if self.is_active else "O'chirilgan"
+        return f"Texnik xizmat: {status}"
+
+    @staticmethod
+    def get_instance():
+        obj, created = MaintenanceMode.objects.get_or_create(pk=1)
+        return obj
 

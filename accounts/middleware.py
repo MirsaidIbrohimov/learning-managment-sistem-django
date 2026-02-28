@@ -4,7 +4,7 @@ from django.urls import resolve
 from django.http import HttpResponse
 from django.utils import timezone
 from datetime import timedelta
-from .models import CustomUser, PaymentStatus, BlockedSection
+from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode
 
 
 class BirthdayCheckMiddleware:
@@ -119,6 +119,47 @@ class SessionTimeoutMiddleware:
             request.session['_last_activity'] = now
         
         return self.get_response(request)
+
+
+class MaintenanceMiddleware:
+    """
+    Texnik xizmat rejimi yoqilganda faqat admin kirishi mumkin
+    """
+    
+    # Bu URL lar har doim ishlaydi (login/logout/admin panel)
+    EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance']
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        try:
+            maintenance = MaintenanceMode.get_instance()
+        except Exception:
+            return self.get_response(request)
+        
+        if not maintenance.is_active:
+            return self.get_response(request)
+        
+        # Admin har doim kirishga ruxsat
+        if request.user.is_authenticated and request.user.is_admin:
+            return self.get_response(request)
+        
+        # Login/logout sahifalariga ruxsat
+        try:
+            resolved = resolve(request.path)
+            if resolved.url_name in self.EXEMPT_URLS:
+                return self.get_response(request)
+        except Exception:
+            pass
+        
+        # Static/media fayllar
+        if request.path.startswith(('/static/', '/media/')):
+            return self.get_response(request)
+        
+        return render(request, 'accounts/maintenance.html', {
+            'message': maintenance.message,
+        }, status=503)
 
 
 class SectionBlockMiddleware:

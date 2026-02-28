@@ -3,176 +3,362 @@
 {% block title %}Foydalanuvchini tahrirlash - Admin Panel{% endblock %}
 
 {% block admin_content %}
-<a href="{% url 'admin_users' %}" class="back-link">
-    <i class="bi bi-arrow-left me-2"></i>Orqaga qaytish
-</a>
+<style>
+/* ===== User Edit Responsive ===== */
+.ue-page { max-width: 1000px; margin: 0 auto; }
 
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-pencil-square me-2"></i>Foydalanuvchini tahrirlash</h1>
-</div>
+.ue-back {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    color: var(--text-color); text-decoration: none; font-weight: 600;
+    font-size: 0.9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.ue-back:hover { color: #6366f1; }
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-person-gear me-2"></i>{{ user_obj.full_name }} ma'lumotlari
-            </div>
-            <div class="card-body p-4">
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
+.ue-header {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;
+}
+.ue-header-icon {
+    width: 50px; height: 50px; border-radius: 14px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.4rem;
+}
+.ue-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-color); margin: 0; }
+.ue-header-sub { font-size: 0.85rem; color: #6c757d; margin: 0; }
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Ism</label>
-                            {{ form.first_name }}
+.ue-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+
+.ue-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 18px; overflow: hidden; margin-bottom: 1.5rem;
+}
+.ue-card-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--border-color);
+    font-weight: 700; font-size: 0.95rem; color: var(--text-color);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.ue-card-body { padding: 24px; }
+
+.ue-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.ue-field-full { margin-bottom: 1rem; }
+.ue-label {
+    display: block; font-size: 0.78rem; font-weight: 700; color: #6c757d;
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
+}
+.ue-card .form-control, .ue-card .form-select {
+    border-radius: 12px; border: 2px solid var(--border-color);
+    background: var(--bg-color); color: var(--text-color);
+    padding: 0.65rem 1rem; font-size: 0.9rem; transition: all 0.2s;
+}
+.ue-card .form-control:focus, .ue-card .form-select:focus {
+    border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+/* Teacher courses */
+.ue-courses-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+.ue-course-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.65rem 0.875rem; border-radius: 12px;
+    border: 2px solid var(--border-color); background: var(--bg-color);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+}
+.ue-course-item:hover { border-color: #10b981; }
+.ue-course-item.selected { border-color: #10b981; background: rgba(16,185,129,0.08); }
+[data-bs-theme="dark"] .ue-course-item.selected { background: rgba(16,185,129,0.15); }
+.ue-course-item input[type="checkbox"] { display: none; }
+.ue-course-check {
+    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
+    border: 2px solid var(--border-color); display: flex;
+    align-items: center; justify-content: center; font-size: 0.7rem; color: transparent;
+    transition: all 0.2s;
+}
+.ue-course-item.selected .ue-course-check { background: #10b981; border-color: #10b981; color: #fff; }
+.ue-course-name { font-weight: 600; font-size: 0.85rem; color: var(--text-color); }
+
+/* Sidebar */
+.ue-sidebar-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 18px; padding: 2rem 1.5rem; text-align: center; margin-bottom: 1.5rem;
+}
+.ue-sidebar-avatar {
+    width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
+    margin: 0 auto 1rem; border: 3px solid var(--border-color);
+}
+.ue-sidebar-ph {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2rem; color: #fff; font-weight: 700;
+}
+.ue-sidebar-name { font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.25rem; }
+.ue-sidebar-uname { font-size: 0.85rem; color: #6c757d; margin-bottom: 0.75rem; }
+.ue-sidebar-role {
+    display: inline-flex; padding: 0.3rem 0.75rem; border-radius: 8px;
+    font-size: 0.78rem; font-weight: 700;
+}
+.ue-sidebar-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
+.ue-sidebar-role.r-teacher { background: rgba(16,185,129,0.1); color: #10b981; }
+.ue-sidebar-role.r-student { background: rgba(99,102,241,0.1); color: #6366f1; }
+
+.ue-info-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem;
+}
+.ue-info-card h6 {
+    font-size: 0.85rem; font-weight: 700; color: var(--text-color);
+    display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
+}
+.ue-info-list { list-style: none; padding: 0; margin: 0; }
+.ue-info-list li {
+    font-size: 0.82rem; color: #6c757d; padding: 0.4rem 0;
+    padding-left: 1.25rem; position: relative;
+}
+.ue-info-list li::before {
+    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--border-color);
+}
+
+/* Actions */
+.ue-actions { display: flex; gap: 0.75rem; }
+.ue-btn-save {
+    padding: 0.7rem 2rem; border-radius: 12px; font-weight: 700;
+    font-size: 0.9rem; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+}
+.ue-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.3); }
+.ue-btn-cancel {
+    padding: 0.7rem 1.5rem; border-radius: 12px; font-weight: 600;
+    font-size: 0.9rem; border: 2px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color);
+    text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+}
+.ue-btn-cancel:hover { background: var(--bg-color); color: var(--text-color); }
+
+@media (max-width: 900px) {
+    .ue-grid { grid-template-columns: 1fr; }
+    .ue-row { grid-template-columns: 1fr; }
+    .ue-actions { flex-direction: column; }
+    .ue-btn-save, .ue-btn-cancel { width: 100%; justify-content: center; }
+    .ue-courses-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="ue-page">
+    <a href="{% url 'admin_users' %}" class="ue-back">
+        <i class="bi bi-arrow-left"></i> Foydalanuvchilarga qaytish
+    </a>
+
+    <div class="ue-header">
+        <div class="ue-header-icon"><i class="bi bi-pencil-square"></i></div>
+        <div>
+            <h1>Foydalanuvchini tahrirlash</h1>
+            <p class="ue-header-sub">{{ user_obj.full_name }} ma'lumotlarini o'zgartirish</p>
+        </div>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="ue-grid">
+            <!-- Main Content -->
+            <div>
+                <!-- Personal info -->
+                <div class="ue-card">
+                    <div class="ue-card-head">
+                        <i class="bi bi-person-fill" style="color:#6366f1;"></i> Shaxsiy ma'lumotlar
+                    </div>
+                    <div class="ue-card-body">
+                        <div class="ue-row">
+                            <div>
+                                <label class="ue-label">Ism</label>
+                                {{ form.first_name }}
+                            </div>
+                            <div>
+                                <label class="ue-label">Familiya</label>
+                                {{ form.last_name }}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Familiya</label>
-                            {{ form.last_name }}
+                        <div class="ue-row">
+                            <div>
+                                <label class="ue-label">Username</label>
+                                {{ form.username }}
+                            </div>
+                            <div>
+                                <label class="ue-label">Telefon</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+                        <div class="ue-row">
+                            <div>
+                                <label class="ue-label">Rol</label>
+                                {{ form.role }}
+                            </div>
+                            <div>
+                                <label class="ue-label">Yo'nalish</label>
+                                {{ form.profession }}
+                            </div>
+                        </div>
+                        <div class="ue-row">
+                            <div>
+                                <label class="ue-label">Yashash manzili</label>
+                                {{ form.address }}
+                            </div>
+                            <div>
+                                <label class="ue-label">Tug'ilgan sana</label>
+                                {{ form.birth_date }}
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Username</label>
-                            {{ form.username }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Telefon</label>
-                            {{ form.phone }}
-                        </div>
+                <!-- Documents & Photo -->
+                <div class="ue-card">
+                    <div class="ue-card-head">
+                        <i class="bi bi-file-earmark-fill" style="color:#f59e0b;"></i> Hujjatlar va rasm
                     </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Rol</label>
-                            {{ form.role }}
+                    <div class="ue-card-body">
+                        <div class="ue-row">
+                            <div>
+                                <label class="ue-label">ID Karta/Pasport</label>
+                                {{ form.id_card }}
+                                {% if user_obj.id_card %}
+                                <small style="color:#6c757d; margin-top:0.25rem; display:block;">
+                                    Joriy: <a href="{{ user_obj.id_card.url }}" target="_blank">Ko'rish</a>
+                                </small>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <label class="ue-label">Tug'ilganlik guvohnomasi</label>
+                                {{ form.birth_certificate }}
+                                {% if user_obj.birth_certificate %}
+                                <small style="color:#6c757d; margin-top:0.25rem; display:block;">
+                                    Joriy: <a href="{{ user_obj.birth_certificate.url }}" target="_blank">Ko'rish</a>
+                                </small>
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Yo'nalish</label>
-                            {{ form.profession }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Yashash manzili</label>
-                            {{ form.address }}
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Tug'ilgan sana</label>
-                            {{ form.birth_date }}
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">ID Karta/Pasport</label>
-                            {{ form.id_card }}
-                            {% if user_obj.id_card %}
-                            <div class="mt-2">
-                                <small class="text-muted">Joriy: <a href="{{ user_obj.id_card.url }}"
-                                        target="_blank">Ko'rish</a></small>
+                        <div class="ue-field-full">
+                            <label class="ue-label">Profil rasmi</label>
+                            {{ form.photo }}
+                            {% if user_obj.photo %}
+                            <div style="margin-top:0.5rem;">
+                                <img src="{{ user_obj.photo.url }}" style="width:64px; height:64px; border-radius:10px; object-fit:cover;">
                             </div>
                             {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Tug'ilganlik guvohnomasi</label>
-                            {{ form.birth_certificate }}
-                            {% if user_obj.birth_certificate %}
-                            <div class="mt-2">
-                                <small class="text-muted">Joriy: <a href="{{ user_obj.birth_certificate.url }}"
-                                        target="_blank">Ko'rish</a></small>
-                            </div>
-                            {% endif %}
+                        <div class="ue-field-full">
+                            <label class="ue-label">O'zi haqida</label>
+                            {{ form.bio }}
                         </div>
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label" style="color: var(--text-color);">Profil rasmi</label>
-                        {{ form.photo }}
-                        {% if user_obj.photo %}
-                        <div class="mt-2">
-                            <small class="text-muted">Hozirgi rasm:</small>
-                            <br>
-                            <img src="{{ user_obj.photo.url }}"
-                                style="width: 80px; height: 80px; border-radius: 10px; object-fit: cover; margin-top: 5px;">
+                <!-- Teacher courses (only show when role is teacher) -->
+                <div class="ue-card" id="ueTeacherCourses" style="{% if user_obj.role != 'teacher' %}display:none;{% endif %}">
+                    <div class="ue-card-head">
+                        <i class="bi bi-mortarboard-fill" style="color:#10b981;"></i> Dars beradigan kurslar
+                    </div>
+                    <div class="ue-card-body">
+                        {% if professions %}
+                        <div class="ue-courses-grid">
+                            {% for p in professions %}
+                            <label class="ue-course-item {% if p in user_obj.teaching_professions.all %}selected{% endif %}"
+                                   onclick="this.classList.toggle('selected')">
+                                <input type="checkbox" name="teaching_professions" value="{{ p.pk }}"
+                                       {% if p in user_obj.teaching_professions.all %}checked{% endif %}>
+                                <span class="ue-course-check"><i class="bi bi-check2"></i></span>
+                                <span class="ue-course-name">{{ p.name }}</span>
+                            </label>
+                            {% endfor %}
                         </div>
+                        {% else %}
+                        <p style="color:#6c757d; text-align:center;">Hali kurslar mavjud emas</p>
                         {% endif %}
                     </div>
+                </div>
 
-                    <div class="mb-3">
-                        <label class="form-label" style="color: var(--text-color);">O'zi haqida</label>
-                        {{ form.bio }}
+                <!-- Security -->
+                <div class="ue-card">
+                    <div class="ue-card-head">
+                        <i class="bi bi-shield-lock-fill" style="color:#ef4444;"></i> Xavfsizlik
                     </div>
-
-                    <hr>
-
-                    <div class="mb-3">
-                        <label class="form-label" style="color: var(--text-color);">
-                            <i class="bi bi-key me-2"></i>Yangi parol
-                        </label>
-                        <input type="password" name="new_password" class="form-control"
-                            placeholder="Yangi parol (o'zgartirish uchun)">
-                        <small class="text-muted">Bo'sh qoldiring agar parolni o'zgartirmoqchi bo'lmasangiz</small>
-                    </div>
-
-                    <div class="mb-4">
-                        <div class="form-check">
-                            {{ form.is_blocked }}
-                            <label class="form-check-label" style="color: var(--text-color);">
-                                Foydalanuvchini bloklash
+                    <div class="ue-card-body">
+                        <div class="ue-field-full">
+                            <label class="ue-label">Yangi parol</label>
+                            <input type="password" name="new_password" class="form-control"
+                                   placeholder="Yangi parol (o'zgartirish uchun)">
+                            <small style="color:#6c757d;">Bo'sh qoldiring agar parolni o'zgartirmoqchi bo'lmasangiz</small>
+                        </div>
+                        <div style="margin-top:0.5rem;">
+                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                                {{ form.is_blocked }}
+                                <span style="font-size:0.9rem; font-weight:600; color:var(--text-color);">Foydalanuvchini bloklash</span>
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-2"></i>Saqlash
-                        </button>
-                        <a href="{% url 'admin_users' %}" class="btn btn-outline-secondary">
-                            Bekor qilish
-                        </a>
-                    </div>
-                </form>
+                <div class="ue-actions">
+                    <a href="{% url 'admin_users' %}" class="ue-btn-cancel">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="ue-btn-save">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div>
+                <div class="ue-sidebar-card">
+                    {% if user_obj.photo %}
+                    <img src="{{ user_obj.photo.url }}" class="ue-sidebar-avatar" alt="">
+                    {% else %}
+                    <div class="ue-sidebar-ph">{{ user_obj.get_initials }}</div>
+                    {% endif %}
+                    <div class="ue-sidebar-name">{{ user_obj.full_name }}</div>
+                    <div class="ue-sidebar-uname">@{{ user_obj.username }}</div>
+                    <span class="ue-sidebar-role {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                        {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                    </span>
+                </div>
+
+                <div class="ue-info-card">
+                    <h6><i class="bi bi-info-circle" style="color:#6366f1;"></i> Eslatmalar</h6>
+                    <ul class="ue-info-list">
+                        <li>Rolni o'zgartirish foydalanuvchi huquqlarini o'zgartiradi</li>
+                        <li>Parol maydonini bo'sh qoldiring agar o'zgartirmoqchi bo'lmasangiz</li>
+                        <li>Bloklangan foydalanuvchi tizimga kira olmaydi</li>
+                        <li>O'qituvchi rolida kurslarni tayinlash mumkin</li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card text-center p-4">
-            {% if user_obj.photo %}
-            <img src="{{ user_obj.photo.url }}" alt="{{ user_obj.full_name }}"
-                style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 15px; border: 3px solid var(--primary-blue);">
-            {% else %}
-            <div
-                style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue)); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2.5rem; color: white; font-weight: 700;">
-                {{ user_obj.get_initials }}
-            </div>
-            {% endif %}
-            <h5 style="color: var(--text-color);">{{ user_obj.full_name }}</h5>
-            <p class="text-muted">@{{ user_obj.username }}</p>
-            <span class="badge 
-                {% if user_obj.role == 'admin' %}bg-danger
-                {% elif user_obj.role == 'teacher' %}bg-success
-                {% else %}bg-primary{% endif %}">
-                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else
-                %}O'quvchi{% endif %}
-            </span>
-        </div>
-
-        <div class="card mt-3">
-            <div class="card-header">
-                <i class="bi bi-info-circle me-2"></i>Ma'lumot
-            </div>
-            <div class="card-body">
-                <ul style="color: #6c757d; padding-left: 20px; font-size: 0.9rem;">
-                    <li class="mb-2">Rolni o'zgartirish foydalanuvchi huquqlarini o'zgartiradi</li>
-                    <li class="mb-2">Parol maydonini bo'sh qoldiring agar o'zgartirmoqchi bo'lmasangiz</li>
-                    <li>Bloklangan foydalanuvchi tizimga kira olmaydi</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+    </form>
 </div>
+
+<script>
+// Show/hide teacher courses section based on role selection
+document.addEventListener('DOMContentLoaded', function() {
+    var roleSelect = document.querySelector('[name="role"]');
+    var teacherSection = document.getElementById('ueTeacherCourses');
+    if (roleSelect && teacherSection) {
+        roleSelect.addEventListener('change', function() {
+            teacherSection.style.display = this.value === 'teacher' ? '' : 'none';
+        });
+    }
+
+    document.querySelectorAll('.ue-course-item').forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            if (e.target.tagName === 'INPUT') return;
+            var cb = this.querySelector('input[type="checkbox"]');
+            cb.checked = !cb.checked;
+        });
+    });
+});
+</script>
 {% endblock %}

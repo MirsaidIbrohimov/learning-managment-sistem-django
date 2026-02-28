@@ -234,6 +234,18 @@
 .au-page .au-empty h5 { font-weight: 700; margin-bottom: 0.4rem; }
 .au-page .au-empty p { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0; }
 
+/* Add Teacher button */
+.au-page .au-add-teacher-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.25rem; border-radius: 12px; font-size: 0.88rem; font-weight: 700;
+    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+    text-decoration: none; transition: all 0.2s; white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+}
+.au-page .au-add-teacher-btn:hover {
+    transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.35); color: #fff;
+}
+
 /* ===== MOBILE ===== */
 @media (max-width: 768px) {
     .au-page { padding: 1rem 0.5rem; }
@@ -258,8 +270,16 @@
 <div class="au-page">
 
     <!-- Header -->
-    <h1 class="au-title"><i class="bi bi-people"></i> Foydalanuvchilar</h1>
-    <p class="au-sub">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.25rem;">
+        <div>
+            <h1 class="au-title"><i class="bi bi-people"></i> Foydalanuvchilar</h1>
+            <p class="au-sub" style="margin-bottom:0;">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+        </div>
+        <a href="{% url 'admin_add_teacher' %}" class="au-add-teacher-btn">
+            <i class="bi bi-person-plus-fill"></i>
+            <span>O'qituvchi qo'shish</span>
+        </a>
+    </div>
 
     <form method="GET" id="auForm">
 

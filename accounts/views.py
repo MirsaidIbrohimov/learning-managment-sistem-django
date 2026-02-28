@@ -19,7 +19,7 @@ from .models import (
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
-    Parent, ParentMessage, PremiumRequest, BlockedSection
+    Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -3168,7 +3168,11 @@ def admin_dashboard(request):
             'enrollments': CourseEnrollment.objects.filter(enrolled_at__date=day).count(),
         })
     
+    # Texnik xizmat rejimi
+    maintenance = MaintenanceMode.get_instance()
+    
     context = {
+        'maintenance': maintenance,
         'total_users': total_users,
         'total_teachers': total_teachers,
         'total_students': total_students,
@@ -3203,6 +3207,28 @@ def admin_dashboard(request):
         'active_parents': active_parents,
     }
     return render(request, 'accounts/admin/dashboard.html', context)
+
+
+@login_required
+def toggle_maintenance(request):
+    """Texnik xizmat rejimini yoqish/o'chirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    maintenance = MaintenanceMode.get_instance()
+    maintenance.is_active = not maintenance.is_active
+    maintenance.activated_by = request.user
+    
+    if request.method == 'POST':
+        custom_message = request.POST.get('maintenance_message', '').strip()
+        if custom_message:
+            maintenance.message = custom_message
+    
+    maintenance.save()
+    
+    status = "yoqildi" if maintenance.is_active else "o'chirildi"
+    messages.success(request, f"Texnik xizmat rejimi {status}!")
+    return redirect('admin_dashboard')
 
 
 @login_required
@@ -3516,11 +3542,72 @@ def admin_user_view(request, pk):
 
 
 @login_required
+def admin_add_teacher(request):
+    """O'qituvchi qo'shish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    professions = Profession.objects.all()
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '').strip()
+        selected_professions = request.POST.getlist('professions')
+        
+        # Validation
+        if not all([first_name, last_name, username, phone, password]):
+            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            return render(request, 'accounts/admin/add_teacher.html', {
+                'professions': professions,
+            })
+        
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, "Bu username allaqachon band!")
+            return render(request, 'accounts/admin/add_teacher.html', {
+                'professions': professions,
+            })
+        
+        if CustomUser.objects.filter(phone=phone).exists():
+            messages.error(request, "Bu telefon raqam allaqachon ro'yxatdan o'tgan!")
+            return render(request, 'accounts/admin/add_teacher.html', {
+                'professions': professions,
+            })
+        
+        teacher = CustomUser.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            role='teacher',
+        )
+        
+        # Assign teaching professions
+        if selected_professions:
+            teacher.teaching_professions.set(selected_professions)
+            # Set primary profession to first selected
+            teacher.profession = Profession.objects.filter(pk=selected_professions[0]).first()
+            teacher.save()
+        
+        messages.success(request, f"O'qituvchi {teacher.full_name} muvaffaqiyatli qo'shildi!")
+        return redirect('admin_users')
+    
+    return render(request, 'accounts/admin/add_teacher.html', {
+        'professions': professions,
+    })
+
+
+@login_required
 def admin_user_edit(request, pk):
     if not request.user.is_admin:
         return redirect('home')
     
     user = get_object_or_404(CustomUser, pk=pk)
+    
+    professions = Profession.objects.all()
     
     if request.method == 'POST':
         form = AdminUserEditForm(request.POST, request.FILES, instance=user)
@@ -3530,12 +3617,22 @@ def admin_user_edit(request, pk):
             if new_password:
                 user.set_password(new_password)
                 user.save()
+            
+            # O'qituvchi kurslarini yangilash
+            if user.role == 'teacher':
+                selected_professions = request.POST.getlist('teaching_professions')
+                user.teaching_professions.set(selected_professions)
+            
             messages.success(request, "Foydalanuvchi muvaffaqiyatli yangilandi!")
             return redirect('admin_users')
     else:
         form = AdminUserEditForm(instance=user)
     
-    return render(request, 'accounts/admin/user_edit.html', {'form': form, 'user_obj': user})
+    return render(request, 'accounts/admin/user_edit.html', {
+        'form': form,
+        'user_obj': user,
+        'professions': professions,
+    })
 
 
 @login_required

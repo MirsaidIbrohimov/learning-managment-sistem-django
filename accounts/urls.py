@@ -77,6 +77,7 @@ urlpatterns = [
     
     # Admin Panel
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/toggle-maintenance/', views.toggle_maintenance, name='toggle_maintenance'),
     path('dashboard/professions/', views.admin_professions, name='admin_professions'),
     path('dashboard/professions/add/', views.admin_profession_add, name='admin_profession_add'),
     path('dashboard/professions/<int:pk>/edit/', views.admin_profession_edit, name='admin_profession_edit'),
@@ -85,6 +86,7 @@ urlpatterns = [
     path('dashboard/professions/<int:profession_pk>/remove-student/<int:user_pk>/', views.admin_remove_student_from_course, name='admin_remove_student_from_course'),
     path('dashboard/professions/<int:profession_pk>/add-student/', views.admin_add_student_to_course, name='admin_add_student_to_course'),
     path('dashboard/users/', views.admin_users, name='admin_users'),
+    path('dashboard/users/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
     path('dashboard/users/<int:pk>/', views.admin_user_view, name='admin_user_view'),
     path('dashboard/users/<int:pk>/edit/', views.admin_user_edit, name='admin_user_edit'),
     path('dashboard/users/<int:pk>/block/', views.admin_user_block, name='admin_user_block'),

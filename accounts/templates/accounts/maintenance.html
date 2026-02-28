@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texnik xizmat - Tizim vaqtincha to'xtatilgan</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #f1f5f9;
+            padding: 1.5rem;
+        }
+
+        .mt-container {
+            text-align: center;
+            max-width: 500px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .mt-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 3rem;
+            box-shadow: 0 16px 48px rgba(245, 158, 11, 0.3);
+            animation: pulse 2s ease infinite;
+        }
+
+        .mt-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mt-message {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            line-height: 1.7;
+            margin-bottom: 2rem;
+        }
+
+        .mt-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #334155;
+            border-top: 3px solid #f59e0b;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            animation: spin 1s linear infinite;
+        }
+
+        .mt-hint {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .mt-login-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            color: #a5b4fc;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .mt-login-link:hover {
+            background: rgba(99, 102, 241, 0.25);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .mt-icon { width: 90px; height: 90px; font-size: 2.25rem; }
+            .mt-title { font-size: 1.5rem; }
+            .mt-message { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="mt-container">
+        <div class="mt-icon">
+            <i class="bi bi-tools"></i>
+        </div>
+        <h1 class="mt-title">Texnik xizmat</h1>
+        <p class="mt-message">{{ message }}</p>
+        <div class="mt-spinner"></div>
+        <p class="mt-hint">Tizim tez orada ishga tushadi. Sabringiz uchun rahmat!</p>
+        <a href="{% url 'login' %}" class="mt-login-link">
+            <i class="bi bi-box-arrow-in-right"></i> Admin kirish
+        </a>
+    </div>
+</body>
+</html>
