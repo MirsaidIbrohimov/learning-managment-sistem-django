@@ -284,16 +284,19 @@ def profession_detail(request, pk):
         messages.warning(request, f"'{profession.name}' kursi vaqtincha bloklangan. {profession.blocked_reason or ''}")
         return redirect('professions')
     
+    is_teaching = False
     if request.user.is_student:
         is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
         if not is_enrolled:
             enrollment_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
+    elif request.user.is_teacher:
+        is_teaching = request.user.teaching_professions.filter(pk=profession.pk).exists()
     
     sections = []
     lessons_without_section = []
     lesson_progress = {}
     
-    if is_enrolled or request.user.is_teacher or request.user.is_admin:
+    if is_enrolled or is_teaching or request.user.is_admin:
         sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
         lessons_without_section = profession.lessons.filter(section__isnull=True)
         
@@ -353,7 +356,7 @@ def profession_detail(request, pk):
         
         # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
         section_is_locked = {}
-        if request.user.is_student and not (request.user.is_teacher or request.user.is_admin):
+        if request.user.is_student and not request.user.is_admin:
             # Faqat haqiqatan completed=True bo'lgan darslarni hisoblash
             completed_lesson_ids = set(
                 lid for lid, prog in lesson_progress.items() if prog.get('completed')
@@ -389,7 +392,7 @@ def profession_detail(request, pk):
     
     # Kursdoshlar - shu kursga yozilgan o'quvchilar
     classmates = []
-    if is_enrolled or request.user.is_teacher or request.user.is_admin:
+    if is_enrolled or is_teaching or request.user.is_admin:
         classmates = CustomUser.objects.filter(
             enrollments__profession=profession,
             role='student'
@@ -402,7 +405,7 @@ def profession_detail(request, pk):
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
-        'section_is_locked': section_is_locked if (is_enrolled or request.user.is_teacher or request.user.is_admin) else {},
+        'section_is_locked': section_is_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
         'classmates': classmates,
     })
 
@@ -1045,6 +1048,11 @@ def save_weather_effect(request):
 def classmates_view(request, pk):
     """Kursdoshlar ro'yxati"""
     profession = get_object_or_404(Profession, pk=pk)
+    
+    # O'qituvchi faqat o'zi tayinlangan kurslarga kirishi mumkin
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
     
     # Faqat premium foydalanuvchilar, admin va o'qituvchilar kirishi mumkin
     if not request.user.is_admin and not request.user.is_teacher:
@@ -2135,6 +2143,10 @@ def manage_lessons(request, pk):
         return redirect('home')
     
     profession = get_object_or_404(Profession, pk=pk)
+    
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
     sections = profession.sections.all().prefetch_related('lessons')
     lessons_without_section = profession.lessons.filter(section__isnull=True)
     
@@ -2151,6 +2163,10 @@ def add_lesson(request, pk):
         return redirect('home')
     
     profession = get_object_or_404(Profession, pk=pk)
+    
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
     lesson_type = request.GET.get('type', 'video')
     section_id = request.GET.get('section')
     section = None
@@ -2270,6 +2286,10 @@ def edit_lesson(request, pk):
     
     lesson = get_object_or_404(Lesson, pk=pk)
     
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=lesson.profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
+    
     if request.method == 'POST':
         if lesson.lesson_type == 'video':
             form = VideoLessonForm(request.POST)
@@ -2336,6 +2356,10 @@ def delete_lesson(request, pk):
         return redirect('home')
     
     lesson = get_object_or_404(Lesson, pk=pk)
+    
+    if request.user.is_teacher and not request.user.teaching_professions.filter(pk=lesson.profession.pk).exists():
+        messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
+        return redirect('professions')
     profession = lesson.profession
     profession_pk = profession.pk
     lesson_title = lesson.title
