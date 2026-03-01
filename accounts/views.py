@@ -7086,31 +7086,50 @@ def admin_teacher_salary_add(request):
         return redirect('home')
     from teacher.models import TeacherSalary
     teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    now = timezone.now()
+
     if request.method == 'POST':
         teacher_id = request.POST.get('teacher')
-        salary_type = request.POST.get('salary_type', 'oylik')
-        amount = request.POST.get('amount', '0')
         month = request.POST.get('month')
         year = request.POST.get('year')
         description = request.POST.get('description', '')
         is_paid = request.POST.get('is_paid') == 'on'
         paid_date = request.POST.get('paid_date') or None
         receipt = request.FILES.get('receipt')
+
         try:
-            amount = int(amount); month = int(month); year = int(year)
+            month = int(month)
+            year = int(year)
         except (ValueError, TypeError):
-            messages.error(request, "Summa, oy va yilni to'g'ri kiriting.")
-            return render(request, 'accounts/admin/teacher_salary_form.html', {
-                'teachers': teachers, 'salary_types': TeacherSalary.SALARY_TYPES, 'month_choices': TeacherSalary.MONTH_CHOICES,
-            })
+            messages.error(request, "Oy va yilni to'g'ri kiriting.")
+            return redirect('admin_teacher_salary_add')
+
         teacher = get_object_or_404(CustomUser, pk=teacher_id, role='teacher')
-        TeacherSalary.objects.create(
-            teacher=teacher, salary_type=salary_type, amount=amount, month=month, year=year,
-            description=description, is_paid=is_paid, paid_date=paid_date, receipt=receipt, created_by=request.user,
-        )
-        messages.success(request, f"{teacher.full_name}ga {dict(TeacherSalary.SALARY_TYPES).get(salary_type, '')} qo'shildi!")
+        created_count = 0
+
+        for stype, slabel in TeacherSalary.SALARY_TYPES:
+            amount_str = request.POST.get(f'amount_{stype}', '').strip()
+            if amount_str:
+                try:
+                    amount = int(amount_str)
+                    if amount > 0:
+                        TeacherSalary.objects.create(
+                            teacher=teacher, salary_type=stype, amount=amount,
+                            month=month, year=year, description=description,
+                            is_paid=is_paid, paid_date=paid_date,
+                            receipt=receipt if stype == 'oylik' else None,
+                            created_by=request.user,
+                        )
+                        created_count += 1
+                except (ValueError, TypeError):
+                    pass
+
+        if created_count:
+            messages.success(request, f"{teacher.full_name}ga {created_count} ta oylik yozuvi qo'shildi!")
+        else:
+            messages.warning(request, "Hech qanday summa kiritilmadi.")
         return redirect('admin_teacher_salaries')
-    now = timezone.now()
+
     return render(request, 'accounts/admin/teacher_salary_form.html', {
         'teachers': teachers, 'salary_types': TeacherSalary.SALARY_TYPES,
         'month_choices': TeacherSalary.MONTH_CHOICES, 'current_month': now.month, 'current_year': now.year,

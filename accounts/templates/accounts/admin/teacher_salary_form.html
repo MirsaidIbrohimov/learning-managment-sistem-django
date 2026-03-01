@@ -4,103 +4,508 @@
 
 {% block admin_content %}
 <style>
-.tsf-page { max-width: 700px; margin: 0 auto; animation: tsf 0.5s ease; }
-@keyframes tsf { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
-.tsf-back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text-color); text-decoration: none; font-weight: 600; font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s; }
-.tsf-back:hover { color: #10b981; }
-.tsf-card { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6); border-radius: 18px; overflow: hidden; }
-.tsf-head { padding: 18px 24px; border-bottom: 1px solid var(--border-color, #dee2e6); font-weight: 700; display: flex; align-items: center; gap: .5rem; }
-.tsf-body { padding: 24px; }
-.tsf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-.tsf-field { margin-bottom: 1rem; }
-.tsf-label { display: block; font-size: .78rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .4rem; }
-.tsf-input { width: 100%; padding: .65rem 1rem; border-radius: 12px; border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f8f9fa); color: var(--text-color); font-size: .9rem; transition: all 0.2s; }
-[data-bs-theme="dark"] .tsf-input { background: rgba(255,255,255,.05); }
-.tsf-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
-.tsf-check { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--border-color, #dee2e6); cursor: pointer; transition: all 0.2s; user-select: none; }
-.tsf-check:hover { border-color: #10b981; }
-.tsf-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: #10b981; }
-.tsf-check span { font-weight: 600; font-size: .88rem; }
-.tsf-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
-.tsf-btn { padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem; display: inline-flex; align-items: center; gap: .5rem; transition: all 0.2s; border: none; cursor: pointer; }
-.tsf-btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
-.tsf-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.3); }
-.tsf-btn-cancel { background: transparent; border: 2px solid var(--border-color, #dee2e6); color: var(--text-color); text-decoration: none; }
-.tsf-btn-cancel:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
-@media (max-width: 768px) { .tsf-row { grid-template-columns: 1fr; } .tsf-actions { flex-direction: column; } .tsf-btn { width: 100%; justify-content: center; } }
+@keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+.sf-page { max-width: 820px; margin: 0 auto; animation: slideUp .5s ease; }
+
+.sf-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--text-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all .2s;
+}
+.sf-back:hover { color: #10b981; }
+
+.sf-card {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.sf-head {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    font-weight: 700;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: .95rem;
+}
+.sf-body { padding: 24px; }
+
+.sf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.sf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.sf-field { margin-bottom: 1rem; }
+.sf-label {
+    display: block; font-size: .75rem; font-weight: 700;
+    color: var(--bs-secondary-color); text-transform: uppercase;
+    letter-spacing: .5px; margin-bottom: .4rem;
+}
+.sf-input {
+    width: 100%; padding: .65rem 1rem; border-radius: 12px;
+    border: 2px solid var(--border-color, #dee2e6);
+    background: var(--bg-color, #f8f9fa); color: var(--text-color);
+    font-size: .9rem; transition: all .2s;
+}
+[data-bs-theme="dark"] .sf-input { background: rgba(255,255,255,.05); }
+.sf-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+
+/* ===== Salary Table ===== */
+.sf-table-wrap {
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 16px;
+    overflow: hidden;
+}
+.sf-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.sf-table th {
+    padding: 12px 16px;
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--bs-secondary-color);
+    background: var(--bg-color, #f8f9fa);
+    border-bottom: 2px solid var(--border-color, #dee2e6);
+    text-align: left;
+}
+[data-bs-theme="dark"] .sf-table th { background: rgba(255,255,255,.04); }
+.sf-table td {
+    padding: 0;
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    vertical-align: middle;
+}
+.sf-table tr:last-child td { border-bottom: none; }
+
+.sf-type-cell {
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.sf-type-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; flex-shrink: 0;
+}
+.sf-type-name { font-weight: 700; font-size: .88rem; color: var(--text-color); }
+.sf-type-desc { font-size: .72rem; color: var(--bs-secondary-color); }
+
+.sf-amount-cell { padding: 10px 16px; }
+.sf-amount-input {
+    width: 100%; padding: .6rem .85rem;
+    border-radius: 10px; border: 2px solid var(--border-color, #dee2e6);
+    background: var(--bg-color, #f8f9fa); color: var(--text-color);
+    font-size: .9rem; font-weight: 600;
+    transition: all .2s; text-align: right;
+}
+[data-bs-theme="dark"] .sf-amount-input { background: rgba(255,255,255,.05); }
+.sf-amount-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+.sf-amount-input::placeholder { font-weight: 400; opacity: .5; }
+.sf-amount-input.has-value { border-color: #10b981; background: rgba(16,185,129,.04); }
+
+/* Type-specific colors */
+.sf-type-oylik .sf-type-icon { background: rgba(59,130,246,.1); color: #3b82f6; }
+.sf-type-kpi .sf-type-icon { background: rgba(168,85,247,.1); color: #a855f7; }
+.sf-type-bayram .sf-type-icon { background: rgba(245,158,11,.1); color: #f59e0b; }
+.sf-type-bonus .sf-type-icon { background: rgba(16,185,129,.1); color: #10b981; }
+.sf-type-jarima .sf-type-icon { background: rgba(239,68,68,.1); color: #ef4444; }
+.sf-type-boshqa .sf-type-icon { background: rgba(107,114,128,.1); color: #6b7280; }
+
+/* Icons per type */
+.sf-icon-oylik::before { content: '\F58C'; }
+.sf-icon-kpi::before { content: '\F5E3'; }
+.sf-icon-bayram::before { content: '\F3A1'; }
+.sf-icon-bonus::before { content: '\F586'; }
+.sf-icon-jarima::before { content: '\F62B'; }
+.sf-icon-boshqa::before { content: '\F29B'; }
+
+/* ===== Total Row ===== */
+.sf-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(16,185,129,.08), rgba(59,130,246,.06));
+    border-radius: 14px;
+    margin-top: 1rem;
+}
+.sf-total-label {
+    font-weight: 700; font-size: .9rem; color: var(--text-color);
+    display: flex; align-items: center; gap: .5rem;
+}
+.sf-total-num {
+    font-size: 1.4rem; font-weight: 800; color: #10b981;
+    transition: all .3s;
+}
+
+/* ===== Check & Actions ===== */
+.sf-check {
+    display: flex; align-items: center; gap: .75rem;
+    padding: .75rem 1rem; border-radius: 12px;
+    border: 1px solid var(--border-color, #dee2e6);
+    cursor: pointer; transition: all .2s; user-select: none;
+}
+.sf-check:hover { border-color: #10b981; }
+.sf-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: #10b981; }
+.sf-check span { font-weight: 600; font-size: .88rem; }
+
+.sf-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+.sf-btn {
+    padding: .7rem 1.5rem; border-radius: 12px; font-weight: 700;
+    font-size: .88rem; display: inline-flex; align-items: center;
+    gap: .5rem; transition: all .2s; border: none; cursor: pointer;
+}
+.sf-btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.sf-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+.sf-btn-cancel {
+    background: transparent; border: 2px solid var(--border-color, #dee2e6);
+    color: var(--text-color); text-decoration: none;
+}
+.sf-btn-cancel:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
+
+@media (max-width: 768px) {
+    .sf-row, .sf-row-3 { grid-template-columns: 1fr; }
+    .sf-actions { flex-direction: column; }
+    .sf-btn { width: 100%; justify-content: center; }
+    .sf-table th:first-child, .sf-table td:first-child { min-width: 140px; }
+    .sf-total { flex-direction: column; gap: .5rem; text-align: center; }
+}
 </style>
 
-<div class="tsf-page">
-    <a href="{% url 'admin_teacher_salaries' %}" class="tsf-back"><i class="bi bi-arrow-left"></i> Oyliklarga qaytish</a>
-    <div class="tsf-card">
-        <div class="tsf-head"><i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle{% endif %}" style="color:#10b981;"></i> {% if is_edit %}Oylikni tahrirlash{% else %}Yangi oylik qo'shish{% endif %}</div>
-        <div class="tsf-body">
+<div class="sf-page">
+    <a href="{% url 'admin_teacher_salaries' %}" class="sf-back">
+        <i class="bi bi-arrow-left"></i> Oyliklarga qaytish
+    </a>
+
+    {% if is_edit %}
+    <!-- ===== EDIT MODE (single type) ===== -->
+    <div class="sf-card">
+        <div class="sf-head">
+            <i class="bi bi-pencil-square" style="color:#10b981;"></i> Oylikni tahrirlash
+        </div>
+        <div class="sf-body">
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="tsf-field">
-                    <label class="tsf-label">O'qituvchi *</label>
-                    <select name="teacher" class="tsf-input" required>
+                <div class="sf-field">
+                    <label class="sf-label">O'qituvchi *</label>
+                    <select name="teacher" class="sf-input" required>
                         <option value="">Tanlang...</option>
-                        {% for t in teachers %}<option value="{{ t.pk }}" {% if salary and salary.teacher_id == t.pk %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
+                        {% for t in teachers %}
+                        <option value="{{ t.pk }}" {% if salary and salary.teacher_id == t.pk %}selected{% endif %}>{{ t.full_name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-                <div class="tsf-row">
+                <div class="sf-row">
                     <div>
-                        <label class="tsf-label">Turi *</label>
-                        <select name="salary_type" class="tsf-input" required>
-                            {% for val, label in salary_types %}<option value="{{ val }}" {% if salary and salary.salary_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        <label class="sf-label">Turi *</label>
+                        <select name="salary_type" class="sf-input" required>
+                            {% for val, label in salary_types %}
+                            <option value="{{ val }}" {% if salary and salary.salary_type == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div>
-                        <label class="tsf-label">Summa (so'm) *</label>
-                        <input type="number" name="amount" class="tsf-input" value="{{ salary.amount|default:'' }}" required min="0">
+                        <label class="sf-label">Summa (so'm) *</label>
+                        <input type="number" name="amount" class="sf-input" value="{{ salary.amount|default:'' }}" required min="0">
                     </div>
                 </div>
-                <div class="tsf-row">
+                <div class="sf-row">
                     <div>
-                        <label class="tsf-label">Oy *</label>
-                        <select name="month" class="tsf-input" required>
-                            {% for val, label in month_choices %}<option value="{{ val }}" {% if salary and salary.month == val %}selected{% elif not salary and current_month == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        <label class="sf-label">Oy *</label>
+                        <select name="month" class="sf-input" required>
+                            {% for val, label in month_choices %}
+                            <option value="{{ val }}" {% if salary and salary.month == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div>
-                        <label class="tsf-label">Yil *</label>
-                        <input type="number" name="year" class="tsf-input" value="{% if salary %}{{ salary.year }}{% else %}{{ current_year }}{% endif %}" required min="2020" max="2030">
+                        <label class="sf-label">Yil *</label>
+                        <input type="number" name="year" class="sf-input" value="{{ salary.year }}" required min="2020" max="2030">
                     </div>
                 </div>
-                <div class="tsf-field">
-                    <label class="tsf-label">Izoh</label>
-                    <input type="text" name="description" class="tsf-input" value="{{ salary.description|default:'' }}" placeholder="Qo'shimcha izoh...">
+                <div class="sf-field">
+                    <label class="sf-label">Izoh</label>
+                    <input type="text" name="description" class="sf-input" value="{{ salary.description|default:'' }}" placeholder="Qo'shimcha izoh...">
                 </div>
-                <div class="tsf-row">
+                <div class="sf-row">
                     <div>
-                        <label class="tsf-label">To'langan sana</label>
-                        <input type="date" name="paid_date" class="tsf-input" value="{% if salary.paid_date %}{{ salary.paid_date|date:'Y-m-d' }}{% endif %}">
+                        <label class="sf-label">To'langan sana</label>
+                        <input type="date" name="paid_date" class="sf-input" value="{% if salary.paid_date %}{{ salary.paid_date|date:'Y-m-d' }}{% endif %}">
                     </div>
                     <div>
-                        <label class="tsf-label">Chek/Kvitansiya</label>
-                        <input type="file" name="receipt" class="tsf-input">
-                        {% if salary.receipt %}<small style="color:var(--bs-secondary-color);display:block;margin-top:.3rem;">Joriy: <a href="{{ salary.receipt.url }}" target="_blank">Ko'rish</a></small>{% endif %}
+                        <label class="sf-label">Chek/Kvitansiya</label>
+                        <input type="file" name="receipt" class="sf-input">
+                        {% if salary.receipt %}
+                        <small style="color:var(--bs-secondary-color);display:block;margin-top:.3rem;">
+                            Joriy: <a href="{{ salary.receipt.url }}" target="_blank">Ko'rish</a>
+                        </small>
+                        {% endif %}
                     </div>
                 </div>
-                <label class="tsf-check">
+                <label class="sf-check">
                     <input type="checkbox" name="is_paid" {% if salary.is_paid %}checked{% endif %}>
                     <span>To'langan</span>
                 </label>
-                <div class="tsf-actions">
-                    <a href="{% url 'admin_teacher_salaries' %}" class="tsf-btn tsf-btn-cancel"><i class="bi bi-x-lg"></i> Bekor qilish</a>
-                    <button type="submit" class="tsf-btn tsf-btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                <div class="sf-actions">
+                    <a href="{% url 'admin_teacher_salaries' %}" class="sf-btn sf-btn-cancel"><i class="bi bi-x-lg"></i> Bekor</a>
+                    <button type="submit" class="sf-btn sf-btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
                 </div>
             </form>
         </div>
     </div>
+
+    {% else %}
+    <!-- ===== ADD MODE (table with all types) ===== -->
+    <form method="POST" enctype="multipart/form-data" id="salaryForm">
+        {% csrf_token %}
+
+        <!-- Step 1: Teacher & Period -->
+        <div class="sf-card">
+            <div class="sf-head">
+                <i class="bi bi-person-check" style="color:#3b82f6;"></i> O'qituvchi va davr
+            </div>
+            <div class="sf-body">
+                <div class="sf-field">
+                    <label class="sf-label">O'qituvchi *</label>
+                    <select name="teacher" class="sf-input" required id="teacherSelect">
+                        <option value="">O'qituvchini tanlang...</option>
+                        {% for t in teachers %}
+                        <option value="{{ t.pk }}">{{ t.full_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sf-row-3">
+                    <div>
+                        <label class="sf-label">Oy *</label>
+                        <select name="month" class="sf-input" required>
+                            {% for val, label in month_choices %}
+                            <option value="{{ val }}" {% if current_month == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="sf-label">Yil *</label>
+                        <input type="number" name="year" class="sf-input" value="{{ current_year }}" required min="2020" max="2030">
+                    </div>
+                    <div>
+                        <label class="sf-label">To'langan sana</label>
+                        <input type="date" name="paid_date" class="sf-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Amounts Table -->
+        <div class="sf-card">
+            <div class="sf-head">
+                <i class="bi bi-table" style="color:#10b981;"></i> Oylik summalari
+                <span style="font-weight:400;font-size:.78rem;color:var(--bs-secondary-color);margin-left:auto;">
+                    Faqat kerakli turlarga summa kiriting
+                </span>
+            </div>
+            <div class="sf-body" style="padding:0;">
+                <div class="sf-table-wrap" style="border:none;border-radius:0;">
+                    <table class="sf-table">
+                        <thead>
+                            <tr>
+                                <th>Turi</th>
+                                <th style="width:220px;">Summa (so'm)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="sf-type-oylik">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-cash-stack"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">Oylik maosh</div>
+                                            <div class="sf-type-desc">Asosiy oylik to'lov</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_oylik" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="plus">
+                                </td>
+                            </tr>
+                            <tr class="sf-type-kpi">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">KPI bonus</div>
+                                            <div class="sf-type-desc">Samaradorlik bonusi</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_kpi" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="plus">
+                                </td>
+                            </tr>
+                            <tr class="sf-type-bayram">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-gift-fill"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">Bayram puli</div>
+                                            <div class="sf-type-desc">Bayram munosabati bilan</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_bayram" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="plus">
+                                </td>
+                            </tr>
+                            <tr class="sf-type-bonus">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-star-fill"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">Bonus</div>
+                                            <div class="sf-type-desc">Qo'shimcha mukofot</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_bonus" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="plus">
+                                </td>
+                            </tr>
+                            <tr class="sf-type-jarima">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">Jarima</div>
+                                            <div class="sf-type-desc">Ushlab qolinadi</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_jarima" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="minus"
+                                           style="color:#ef4444;">
+                                </td>
+                            </tr>
+                            <tr class="sf-type-boshqa">
+                                <td>
+                                    <div class="sf-type-cell">
+                                        <div class="sf-type-icon"><i class="bi bi-three-dots"></i></div>
+                                        <div>
+                                            <div class="sf-type-name">Boshqa</div>
+                                            <div class="sf-type-desc">Qo'shimcha to'lovlar</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="sf-amount-cell">
+                                    <input type="number" name="amount_boshqa" class="sf-amount-input salary-input"
+                                           placeholder="0" min="0" data-type="plus">
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="padding: 16px 20px;">
+                    <div class="sf-total">
+                        <div class="sf-total-label">
+                            <i class="bi bi-calculator" style="font-size:1.1rem;color:#10b981;"></i>
+                            Jami (sof):
+                        </div>
+                        <div class="sf-total-num" id="totalAmount">0 so'm</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Additional -->
+        <div class="sf-card">
+            <div class="sf-head">
+                <i class="bi bi-paperclip" style="color:#f59e0b;"></i> Qo'shimcha
+            </div>
+            <div class="sf-body">
+                <div class="sf-field">
+                    <label class="sf-label">Izoh</label>
+                    <input type="text" name="description" class="sf-input" placeholder="Qo'shimcha izoh yozing...">
+                </div>
+                <div class="sf-row">
+                    <div>
+                        <label class="sf-label">Chek / Kvitansiya</label>
+                        <input type="file" name="receipt" class="sf-input">
+                    </div>
+                    <div style="display:flex;align-items:flex-end;">
+                        <label class="sf-check" style="width:100%;">
+                            <input type="checkbox" name="is_paid">
+                            <span>To'langan deb belgilash</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sf-actions">
+            <a href="{% url 'admin_teacher_salaries' %}" class="sf-btn sf-btn-cancel">
+                <i class="bi bi-x-lg"></i> Bekor qilish
+            </a>
+            <button type="submit" class="sf-btn sf-btn-save" id="submitBtn">
+                <i class="bi bi-check-lg"></i> Saqlash
+            </button>
+        </div>
+    </form>
+    {% endif %}
 </div>
+
 <script>
-document.querySelectorAll('form').forEach(function(form) {
-    form.addEventListener('submit', function() {
-        var btn = form.querySelector('button[type="submit"]');
-        if (btn && !btn.disabled) { btn.disabled = true; var o = btn.innerHTML; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...'; setTimeout(function(){ btn.disabled=false; btn.innerHTML=o; }, 5000); }
+document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('.salary-input');
+    var totalEl = document.getElementById('totalAmount');
+
+    function formatNumber(n) {
+        return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+
+    function recalc() {
+        var total = 0;
+        inputs.forEach(function(inp) {
+            var val = parseInt(inp.value) || 0;
+            if (inp.dataset.type === 'minus') {
+                total -= val;
+            } else {
+                total += val;
+            }
+            if (val > 0) {
+                inp.classList.add('has-value');
+            } else {
+                inp.classList.remove('has-value');
+            }
+        });
+        if (totalEl) {
+            totalEl.textContent = formatNumber(total) + " so'm";
+            totalEl.style.color = total < 0 ? '#ef4444' : '#10b981';
+        }
+    }
+
+    inputs.forEach(function(inp) {
+        inp.addEventListener('input', recalc);
     });
+
+    // Submit protection
+    var form = document.getElementById('salaryForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            var btn = document.getElementById('submitBtn');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                var orig = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+                setTimeout(function() { btn.disabled = false; btn.innerHTML = orig; }, 5000);
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
