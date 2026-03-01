@@ -446,6 +446,15 @@
                 <button type="button" class="c-action" onclick="toggleStudents(this, {{ profession.pk }})" title="O'quvchilar">
                     <i class="bi bi-people"></i> O'quvchilar ({{ profession.student_count }})
                 </button>
+                {% for teacher in profession.teachers.all %}
+                <a href="{% url 'admin_teacher_profile' teacher.pk %}" class="c-action" title="{{ teacher.full_name }}">
+                    <i class="bi bi-person-video3"></i> {{ teacher.full_name }}
+                </a>
+                {% empty %}
+                <span class="c-action" style="opacity:0.5;cursor:default;">
+                    <i class="bi bi-person-video3"></i> O'qituvchi yo'q
+                </span>
+                {% endfor %}
                 <button type="button" class="c-action success"
                         data-bs-toggle="modal" data-bs-target="#addStudentModal{{ profession.pk }}">
                     <i class="bi bi-person-plus"></i> Qo'shish

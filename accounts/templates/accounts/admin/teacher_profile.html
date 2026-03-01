@@ -1,0 +1,695 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ teacher.full_name }} - O'qituvchi profili{% endblock %}
+{% block topbar_title %}O'qituvchi profili{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --tp-card-bg: rgba(255,255,255,0.85);
+    --tp-border: rgba(0,0,0,0.06);
+    --tp-text: #1d1d1f;
+    --tp-muted: #86868b;
+    --tp-accent: #007aff;
+    --tp-accent-light: rgba(0,122,255,0.08);
+    --tp-success: #34c759;
+    --tp-success-light: rgba(52,199,89,0.08);
+    --tp-warning: #ff9f0a;
+    --tp-warning-light: rgba(255,159,10,0.08);
+    --tp-purple: #af52de;
+    --tp-purple-light: rgba(175,82,222,0.08);
+}
+[data-bs-theme="dark"] {
+    --tp-card-bg: rgba(28,28,30,0.85);
+    --tp-border: rgba(255,255,255,0.08);
+    --tp-text: #f5f5f7;
+    --tp-muted: #98989d;
+    --tp-accent-light: rgba(0,122,255,0.15);
+    --tp-success-light: rgba(52,199,89,0.15);
+    --tp-warning-light: rgba(255,159,10,0.15);
+    --tp-purple-light: rgba(175,82,222,0.15);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInLeft {
+    from { opacity: 0; transform: translateX(-30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.anim-fade-up { animation: fadeInUp 0.6s ease forwards; opacity: 0; }
+.anim-fade-left { animation: fadeInLeft 0.6s ease forwards; opacity: 0; }
+.anim-fade-right { animation: fadeInRight 0.6s ease forwards; opacity: 0; }
+.anim-scale { animation: scaleIn 0.5s ease forwards; opacity: 0; }
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+.delay-6 { animation-delay: 0.6s; }
+.delay-7 { animation-delay: 0.7s; }
+
+/* ===== Back button ===== */
+.tp-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    background: var(--tp-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tp-border);
+    border-radius: 12px;
+    color: var(--tp-text);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+    transition: all 0.25s;
+}
+.tp-back:hover {
+    background: var(--tp-accent-light);
+    color: var(--tp-accent);
+    border-color: var(--tp-accent);
+    transform: translateX(-4px);
+}
+
+/* ===== Hero Section ===== */
+.tp-hero {
+    background: var(--tp-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tp-border);
+    border-radius: 24px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+.tp-hero-banner {
+    height: 160px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    position: relative;
+    overflow: hidden;
+}
+.tp-hero-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.tp-hero-banner::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.2));
+}
+
+.tp-hero-body {
+    padding: 0 2rem 2rem;
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    position: relative;
+}
+
+.tp-avatar-wrap {
+    margin-top: -60px;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+.tp-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 28px;
+    border: 4px solid var(--tp-card-bg);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s ease;
+}
+.tp-avatar:hover { transform: scale(1.05) rotate(2deg); }
+.tp-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.tp-avatar-initials {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.tp-online-dot {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 3px solid var(--tp-card-bg);
+    z-index: 3;
+}
+.tp-online-dot.online { background: var(--tp-success); animation: pulse 2s infinite; }
+.tp-online-dot.offline { background: var(--tp-muted); }
+
+.tp-info { padding-top: 0.75rem; flex: 1; min-width: 0; }
+.tp-name {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--tp-text);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.15rem;
+}
+.tp-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.8rem;
+    background: var(--tp-purple-light);
+    color: var(--tp-purple);
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.tp-bio {
+    color: var(--tp-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-top: 0.5rem;
+}
+
+/* ===== Stats Cards ===== */
+.tp-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.tp-stat {
+    background: var(--tp-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tp-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+.tp-stat:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+[data-bs-theme="dark"] .tp-stat:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+.tp-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 0.6rem;
+}
+.tp-stat-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--tp-text);
+    line-height: 1;
+}
+.tp-stat-label {
+    font-size: 0.78rem;
+    color: var(--tp-muted);
+    margin-top: 0.3rem;
+    font-weight: 500;
+}
+
+/* ===== Info Cards ===== */
+.tp-section {
+    background: var(--tp-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--tp-border);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.tp-section-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--tp-text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    letter-spacing: -0.01em;
+}
+.tp-section-title i {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+/* Detail rows */
+.tp-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--tp-border);
+    transition: all 0.2s;
+}
+.tp-detail-row:last-child { border-bottom: none; }
+.tp-detail-row:hover { padding-left: 6px; }
+.tp-detail-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+.tp-detail-label {
+    font-size: 0.78rem;
+    color: var(--tp-muted);
+    font-weight: 500;
+}
+.tp-detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--tp-text);
+}
+
+/* ===== Course Cards ===== */
+.tp-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1rem;
+}
+.tp-course-card {
+    background: var(--tp-card-bg);
+    border: 1px solid var(--tp-border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.tp-course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+    border-color: var(--tp-accent);
+}
+.tp-course-img {
+    height: 100px;
+    overflow: hidden;
+}
+.tp-course-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+}
+.tp-course-card:hover .tp-course-img img { transform: scale(1.08); }
+.tp-course-body {
+    padding: 1rem;
+}
+.tp-course-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--tp-text);
+    margin-bottom: 0.35rem;
+}
+.tp-course-students {
+    font-size: 0.8rem;
+    color: var(--tp-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* ===== Certificates ===== */
+.tp-certs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+.tp-cert-card {
+    background: var(--tp-card-bg);
+    border: 1px solid var(--tp-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+.tp-cert-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #ffd700, #ff8c00, #ffd700);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite linear;
+}
+.tp-cert-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(255,215,0,0.15);
+    border-color: #ffd700;
+}
+.tp-cert-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.15));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #ff8c00;
+    margin-bottom: 0.75rem;
+}
+.tp-cert-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--tp-text);
+    margin-bottom: 0.25rem;
+}
+.tp-cert-desc {
+    font-size: 0.82rem;
+    color: var(--tp-muted);
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+.tp-cert-date {
+    font-size: 0.75rem;
+    color: var(--tp-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.tp-cert-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.85rem;
+    background: var(--tp-accent-light);
+    color: var(--tp-accent);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 0.75rem;
+    transition: all 0.2s;
+}
+.tp-cert-link:hover {
+    background: var(--tp-accent);
+    color: #fff;
+    transform: scale(1.03);
+}
+
+/* ===== Empty State ===== */
+.tp-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--tp-muted);
+}
+.tp-empty i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.4;
+}
+
+/* ===== Grid layout ===== */
+.tp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .tp-hero-body { flex-direction: column; align-items: center; text-align: center; padding: 0 1.25rem 1.5rem; }
+    .tp-avatar-wrap { margin-top: -50px; }
+    .tp-avatar { width: 100px; height: 100px; border-radius: 24px; }
+    .tp-avatar-initials { font-size: 2rem; }
+    .tp-name { font-size: 1.3rem; }
+    .tp-grid { grid-template-columns: 1fr; }
+    .tp-stats { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+
+<a href="{% url 'admin_teachers' %}" class="tp-back anim-fade-left">
+    <i class="bi bi-arrow-left"></i> O'qituvchilarga qaytish
+</a>
+
+<!-- Hero Section -->
+<div class="tp-hero anim-fade-up delay-1">
+    <div class="tp-hero-banner"></div>
+    <div class="tp-hero-body">
+        <div class="tp-avatar-wrap">
+            <div class="tp-avatar">
+                {% if teacher.photo %}
+                <img src="{{ teacher.photo.url }}" alt="{{ teacher.full_name }}">
+                {% else %}
+                <span class="tp-avatar-initials">{{ teacher.get_initials }}</span>
+                {% endif %}
+            </div>
+            <div class="tp-online-dot {% if teacher.is_online %}online{% else %}offline{% endif %}"></div>
+        </div>
+        <div class="tp-info">
+            <h2 class="tp-name">{{ teacher.full_name }}</h2>
+            <div class="tp-role">
+                <i class="bi bi-mortarboard-fill"></i> O'qituvchi
+            </div>
+            {% if teacher.bio %}
+            <p class="tp-bio">{{ teacher.bio }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="tp-stats">
+    <div class="tp-stat anim-scale delay-2">
+        <div class="tp-stat-icon" style="background: var(--tp-accent-light); color: var(--tp-accent);">
+            <i class="bi bi-book-fill"></i>
+        </div>
+        <div class="tp-stat-num">{{ courses_count }}</div>
+        <div class="tp-stat-label">Kurslar</div>
+    </div>
+    <div class="tp-stat anim-scale delay-3">
+        <div class="tp-stat-icon" style="background: var(--tp-success-light); color: var(--tp-success);">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="tp-stat-num">{{ total_students }}</div>
+        <div class="tp-stat-label">O'quvchilar</div>
+    </div>
+    <div class="tp-stat anim-scale delay-4">
+        <div class="tp-stat-icon" style="background: var(--tp-warning-light); color: var(--tp-warning);">
+            <i class="bi bi-award-fill"></i>
+        </div>
+        <div class="tp-stat-num">{{ certificates_count }}</div>
+        <div class="tp-stat-label">Sertifikatlar</div>
+    </div>
+    <div class="tp-stat anim-scale delay-5">
+        <div class="tp-stat-icon" style="background: var(--tp-purple-light); color: var(--tp-purple);">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <div class="tp-stat-num">{{ current_salary|floatformat:0 }}</div>
+        <div class="tp-stat-label">Joriy oy maosh</div>
+    </div>
+</div>
+
+<!-- Two columns: Info + Courses -->
+<div class="tp-grid">
+    <!-- Left: Personal Info -->
+    <div class="tp-section anim-fade-left delay-3">
+        <div class="tp-section-title">
+            <i style="background: var(--tp-accent-light); color: var(--tp-accent);"><i class="bi bi-person-lines-fill"></i></i>
+            Shaxsiy ma'lumotlar
+        </div>
+
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-accent-light); color: var(--tp-accent);">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">To'liq ism</div>
+                <div class="tp-detail-value">{{ teacher.full_name }}</div>
+            </div>
+        </div>
+
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-success-light); color: var(--tp-success);">
+                <i class="bi bi-telephone-fill"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Telefon</div>
+                <div class="tp-detail-value">{{ teacher.phone }}</div>
+            </div>
+        </div>
+
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-purple-light); color: var(--tp-purple);">
+                <i class="bi bi-at"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Username</div>
+                <div class="tp-detail-value">{{ teacher.username }}</div>
+            </div>
+        </div>
+
+        {% if teacher.birth_date %}
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-warning-light); color: var(--tp-warning);">
+                <i class="bi bi-cake2-fill"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Tug'ilgan kun</div>
+                <div class="tp-detail-value">{{ teacher.birth_date|date:"d-M, Y" }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if teacher.address %}
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: rgba(255,59,48,0.08); color: #ff3b30;">
+                <i class="bi bi-geo-alt-fill"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Manzil</div>
+                <div class="tp-detail-value">{{ teacher.address }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-success-light); color: var(--tp-success);">
+                <i class="bi bi-calendar-check-fill"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Qo'shilgan sana</div>
+                <div class="tp-detail-value">{{ teacher.date_joined|date:"d-M, Y" }}</div>
+            </div>
+        </div>
+
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: var(--tp-warning-light); color: var(--tp-warning);">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div>
+                <div class="tp-detail-label">Yillik maosh ({{ now.year }})</div>
+                <div class="tp-detail-value">{{ total_salary|floatformat:0 }} so'm</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Courses -->
+    <div class="tp-section anim-fade-right delay-3">
+        <div class="tp-section-title">
+            <i style="background: var(--tp-warning-light); color: var(--tp-warning);"><i class="bi bi-journal-bookmark-fill"></i></i>
+            Dars beradigan kurslar
+        </div>
+
+        {% if courses_data %}
+        <div class="tp-courses-grid">
+            {% for item in courses_data %}
+            <div class="tp-course-card anim-fade-up delay-{{ forloop.counter }}">
+                <div class="tp-course-img">
+                    <img src="{{ item.profession.photo.url }}" alt="{{ item.profession.name }}">
+                </div>
+                <div class="tp-course-body">
+                    <div class="tp-course-name">{{ item.profession.name }}</div>
+                    <div class="tp-course-students">
+                        <i class="bi bi-people-fill"></i> {{ item.student_count }} o'quvchi
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tp-empty">
+            <i class="bi bi-journal-x d-block"></i>
+            <span>Hozircha kurs biriktirilmagan</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Certificates -->
+<div class="tp-section anim-fade-up delay-5">
+    <div class="tp-section-title">
+        <i style="background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,140,0,0.15)); color: #ff8c00;">
+            <i class="bi bi-award-fill"></i>
+        </i>
+        Sertifikatlar
+    </div>
+
+    {% if certificates %}
+    <div class="tp-certs-grid">
+        {% for cert in certificates %}
+        <div class="tp-cert-card anim-scale delay-{{ forloop.counter }}">
+            <div class="tp-cert-icon">
+                <i class="bi bi-patch-check-fill"></i>
+            </div>
+            <div class="tp-cert-title">{{ cert.title }}</div>
+            {% if cert.description %}
+            <div class="tp-cert-desc">{{ cert.description|truncatewords:20 }}</div>
+            {% endif %}
+            {% if cert.issued_date %}
+            <div class="tp-cert-date">
+                <i class="bi bi-calendar3"></i> {{ cert.issued_date|date:"d-M, Y" }}
+            </div>
+            {% endif %}
+            {% if cert.file %}
+            <a href="{{ cert.file.url }}" target="_blank" class="tp-cert-link">
+                <i class="bi bi-eye"></i> Ko'rish
+            </a>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="tp-empty">
+        <i class="bi bi-award d-block"></i>
+        <span>Hozircha sertifikatlar mavjud emas</span>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

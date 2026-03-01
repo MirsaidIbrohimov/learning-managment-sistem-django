@@ -90,6 +90,7 @@ urlpatterns = [
     
     # Admin: O'qituvchilar boshqaruvi
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),
+    path('dashboard/teachers/<int:pk>/profile/', views.admin_teacher_profile, name='admin_teacher_profile'),
     path('dashboard/teachers/salaries/', views.admin_teacher_salaries, name='admin_teacher_salaries'),
     path('dashboard/teachers/salaries/add/', views.admin_teacher_salary_add, name='admin_teacher_salary_add'),
     path('dashboard/teachers/salaries/<int:pk>/edit/', views.admin_teacher_salary_edit, name='admin_teacher_salary_edit'),

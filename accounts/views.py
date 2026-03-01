@@ -3281,7 +3281,7 @@ def admin_professions(request):
     if not request.user.is_admin:
         return redirect('home')
     
-    professions = Profession.objects.prefetch_related('enrollments__user').annotate(
+    professions = Profession.objects.prefetch_related('enrollments__user', 'teachers').annotate(
         student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
         teacher_count=Count('students', filter=Q(students__role='teacher'))
     )
@@ -6980,6 +6980,47 @@ def admin_teachers(request):
     return render(request, 'accounts/admin/teachers.html', {
         'teachers_data': teachers_data, 'search_query': search_query, 'total_count': len(teachers_data),
     })
+
+
+@login_required
+def admin_teacher_profile(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary, TeacherCertificate
+    from django.db.models import Sum, Avg
+
+    teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
+    courses = teacher.teaching_professions.all()
+    certificates = TeacherCertificate.objects.filter(teacher=teacher, is_visible=True)
+    now = timezone.now()
+
+    total_students = 0
+    courses_data = []
+    for p in courses:
+        sc = p.enrollments.filter(user__role='student').count()
+        total_students += sc
+        courses_data.append({'profession': p, 'student_count': sc})
+
+    current_salary = TeacherSalary.objects.filter(
+        teacher=teacher, month=now.month, year=now.year
+    ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
+
+    total_salary = TeacherSalary.objects.filter(
+        teacher=teacher, year=now.year
+    ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
+
+    context = {
+        'teacher': teacher,
+        'courses': courses,
+        'courses_data': courses_data,
+        'certificates': certificates,
+        'total_students': total_students,
+        'current_salary': current_salary,
+        'total_salary': total_salary,
+        'certificates_count': certificates.count(),
+        'courses_count': courses.count(),
+    }
+    return render(request, 'accounts/admin/teacher_profile.html', context)
 
 
 @login_required
