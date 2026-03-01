@@ -52,6 +52,7 @@ urlpatterns = [
     # Kursdoshlar va boshqa o'quvchilar profili
     path('professions/<int:pk>/classmates/', views.classmates_view, name='classmates'),
     path('students/<int:pk>/', views.student_public_profile, name='student_public_profile'),
+    path('teachers/<int:pk>/', views.teacher_public_profile, name='teacher_public_profile'),
     
     # Leaderboard
     path('leaderboard/', views.leaderboard, name='leaderboard'),

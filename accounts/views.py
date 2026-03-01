@@ -398,6 +398,8 @@ def profession_detail(request, pk):
             role='student'
         ).exclude(pk=request.user.pk).order_by('-last_activity', '-coins')[:20]
     
+    course_teachers = profession.teachers.all()
+
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
@@ -408,6 +410,7 @@ def profession_detail(request, pk):
         'lesson_progress': lesson_progress,
         'section_is_locked': section_is_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
         'classmates': classmates,
+        'course_teachers': course_teachers,
     })
 
 
@@ -1114,6 +1117,21 @@ def student_public_profile(request, pk):
         'completed_count': completed_count,
         'deploys': deploys,
         'all_enrollments': all_enrollments,
+    })
+
+
+@login_required
+def teacher_public_profile(request, pk):
+    """O'qituvchining umumiy profili (o'quvchilar uchun)"""
+    from teacher.models import TeacherCertificate
+    teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
+    courses = teacher.teaching_professions.all()
+    certificates = TeacherCertificate.objects.filter(teacher=teacher, is_visible=True)
+
+    return render(request, 'accounts/teacher_public_profile.html', {
+        'teacher': teacher,
+        'courses': courses,
+        'certificates': certificates,
     })
 
 

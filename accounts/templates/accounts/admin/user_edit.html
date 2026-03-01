@@ -266,13 +266,12 @@
                         {% if professions %}
                         <div class="ue-courses-grid">
                             {% for p in professions %}
-                            <label class="ue-course-item {% if p in user_obj.teaching_professions.all %}selected{% endif %}"
-                                   onclick="this.classList.toggle('selected')">
+                            <div class="ue-course-item {% if p in user_obj.teaching_professions.all %}selected{% endif %}">
                                 <input type="checkbox" name="teaching_professions" value="{{ p.pk }}"
                                        {% if p in user_obj.teaching_professions.all %}checked{% endif %}>
                                 <span class="ue-course-check"><i class="bi bi-check2"></i></span>
                                 <span class="ue-course-name">{{ p.name }}</span>
-                            </label>
+                            </div>
                             {% endfor %}
                         </div>
                         {% else %}
@@ -354,9 +353,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.ue-course-item').forEach(function(item) {
         item.addEventListener('click', function(e) {
-            if (e.target.tagName === 'INPUT') return;
             var cb = this.querySelector('input[type="checkbox"]');
-            cb.checked = !cb.checked;
+            if (e.target !== cb) {
+                cb.checked = !cb.checked;
+            }
+            this.classList.toggle('selected', cb.checked);
         });
     });
 });
