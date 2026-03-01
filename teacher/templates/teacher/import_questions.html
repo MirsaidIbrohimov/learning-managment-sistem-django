@@ -1,0 +1,611 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Excel dan import - {{ test.lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.t-import-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem 0 3rem;
+}
+
+.t-import-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.25rem;
+    border-radius: 14px;
+    background: var(--t-card-bg, rgba(255,255,255,0.85));
+    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    color: var(--t-primary, #6366f1);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.25s;
+    margin-bottom: 1.5rem;
+}
+.t-import-back:hover { transform: translateX(-4px); color: var(--t-primary, #6366f1); }
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.t-import-header {
+    background: var(--t-card-bg, rgba(255,255,255,0.85));
+    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    border-radius: 22px;
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    animation: fadeInDown 0.5s ease;
+}
+.t-import-header h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--bs-body-color);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+}
+.t-import-header h2 i { color: var(--t-primary, #6366f1); }
+.t-import-subtitle {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color);
+}
+
+/* Upload card */
+.t-import-upload {
+    background: var(--t-card-bg, rgba(255,255,255,0.85));
+    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    border-radius: 22px;
+    padding: 2rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    animation: fadeInUp 0.5s ease 0.1s backwards;
+}
+
+.t-import-dropzone {
+    border: 2.5px dashed var(--t-border, rgba(0,0,0,0.1));
+    border-radius: 18px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+.t-import-dropzone:hover,
+.t-import-dropzone.dragover {
+    border-color: var(--t-primary, #6366f1);
+    background: rgba(99,102,241,0.06);
+}
+.t-import-dropzone-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: rgba(99,102,241,0.1);
+    color: var(--t-primary, #6366f1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    transition: transform 0.3s;
+}
+.t-import-dropzone:hover .t-import-dropzone-icon { transform: scale(1.1); }
+.t-import-dropzone h4 {
+    color: var(--bs-body-color);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.t-import-dropzone p {
+    color: var(--bs-secondary-color);
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+.t-import-dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.t-import-file-info {
+    display: none;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 14px;
+    margin-top: 1rem;
+}
+.t-import-file-info.show { display: flex; }
+.t-import-file-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #10b981;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.t-import-file-name {
+    flex: 1;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    font-size: 0.9rem;
+}
+.t-import-file-size {
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color);
+}
+.t-import-file-remove {
+    background: none;
+    border: none;
+    color: #ef4444;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.t-import-file-remove:hover { background: rgba(239,68,68,0.1); }
+
+.t-import-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: var(--t-primary, #6366f1);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    margin-top: 1.25rem;
+    width: 100%;
+    justify-content: center;
+}
+.t-import-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+.t-import-submit:active { transform: scale(0.97); }
+.t-import-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Errors */
+.t-import-errors {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 18px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.5s ease;
+}
+.t-import-errors-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+}
+.t-import-error-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(255,255,255,0.5);
+    border-radius: 10px;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .t-import-error-item {
+    background: rgba(0,0,0,0.3);
+}
+.t-import-error-item i {
+    color: #ef4444;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+}
+
+/* Format guide */
+.t-import-guide {
+    background: var(--t-card-bg, rgba(255,255,255,0.85));
+    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    border-radius: 22px;
+    padding: 1.75rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    animation: fadeInUp 0.5s ease 0.2s backwards;
+}
+.t-import-guide-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--bs-secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.t-import-table-wrap {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    margin-bottom: 1rem;
+}
+.t-import-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.t-import-table th {
+    background: rgba(99,102,241,0.08);
+    color: var(--t-primary, #6366f1);
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.t-import-table td {
+    padding: 0.65rem 1rem;
+    border-top: 1px solid var(--t-border, rgba(0,0,0,0.06));
+    color: var(--bs-body-color);
+}
+.t-import-table tr:hover td {
+    background: rgba(0,0,0,0.02);
+}
+[data-bs-theme="dark"] .t-import-table tr:hover td {
+    background: rgba(255,255,255,0.03);
+}
+.t-import-table code {
+    background: rgba(245,158,11,0.12);
+    color: #f59e0b;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.t-import-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(245,158,11,0.1);
+    border-radius: 14px;
+    border: 1px solid rgba(245,158,11,0.2);
+}
+.t-import-note-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f59e0b;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.t-import-note-text {
+    font-size: 0.85rem;
+    color: var(--bs-body-color);
+    line-height: 1.5;
+}
+.t-import-note-text strong { font-weight: 700; }
+
+/* Loading */
+.t-import-loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    color: var(--t-primary, #6366f1);
+    font-weight: 600;
+}
+.t-import-loading.show { display: flex; }
+.t-import-spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid var(--t-border, rgba(0,0,0,0.06));
+    border-top-color: var(--t-primary, #6366f1);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 640px) {
+    .t-import-header h2 { font-size: 1.25rem; }
+    .t-import-dropzone { padding: 1.5rem 1rem; }
+    .t-import-dropzone-icon { width: 56px; height: 56px; font-size: 1.5rem; }
+    .t-import-guide { padding: 1.25rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="t-import-page">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius: 14px;">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <a href="{% url 'teacher:manage_questions' test.pk %}" class="t-import-back">
+        <i class="bi bi-arrow-left"></i> Savollarga qaytish
+    </a>
+
+    <!-- Header -->
+    <div class="t-import-header">
+        <h2><i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import</h2>
+        <div class="t-import-subtitle">{{ test.lesson.title }} • {{ test.lesson.profession.name }}</div>
+    </div>
+
+    <!-- Errors -->
+    {% if errors %}
+    <div class="t-import-errors">
+        <div class="t-import-errors-title">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ errors|length }} ta xatolik topildi — hech narsa bazaga yozilmadi
+        </div>
+        {% for error in errors %}
+        <div class="t-import-error-item">
+            <i class="bi bi-x-circle-fill"></i>
+            {{ error }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Upload Form -->
+    <form method="POST" enctype="multipart/form-data" id="importForm">
+        {% csrf_token %}
+        <div class="t-import-upload">
+            <div class="t-import-dropzone" id="dropzone">
+                <div class="t-import-dropzone-icon">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <h4>Excel faylni tanlang yoki shu yerga tashlang</h4>
+                <p>Faqat .xlsx format qabul qilinadi</p>
+                <input type="file" name="excel_file" id="fileInput" accept=".xlsx">
+            </div>
+
+            <div class="t-import-file-info" id="fileInfo">
+                <div class="t-import-file-icon"><i class="bi bi-file-earmark-excel"></i></div>
+                <div>
+                    <div class="t-import-file-name" id="fileName"></div>
+                    <div class="t-import-file-size" id="fileSize"></div>
+                </div>
+                <button type="button" class="t-import-file-remove" id="fileRemove" title="O'chirish">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="t-import-loading" id="loadingIndicator">
+                <div class="t-import-spinner"></div>
+                Import qilinmoqda...
+            </div>
+
+            <button type="submit" class="t-import-submit" id="submitBtn" disabled>
+                <i class="bi bi-upload"></i> Import qilish
+            </button>
+        </div>
+    </form>
+
+    <!-- Format Guide -->
+    <div class="t-import-guide">
+        <div class="t-import-guide-title">
+            <i class="bi bi-info-circle-fill"></i> Excel fayl formati
+        </div>
+
+        <div class="t-import-table-wrap">
+            <table class="t-import-table">
+                <thead>
+                    <tr>
+                        <th>Savol</th>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>C</th>
+                        <th>To'g'ri javob</th>
+                        <th>Izoh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Python da list yaratish usuli?</td>
+                        <td>list()</td>
+                        <td>array()</td>
+                        <td>new List()</td>
+                        <td><code>A</code></td>
+                        <td>list() funksiyasi yoki [] bilan list yaratiladi</td>
+                    </tr>
+                    <tr>
+                        <td>while sikli qachon to'xtaydi?</td>
+                        <td>Shart False bo'lganda</td>
+                        <td>Shart True bo'lganda</td>
+                        <td>Har doim ishlaydi</td>
+                        <td><code>A</code></td>
+                        <td>while sikli shart False bo'lganda to'xtaydi</td>
+                    </tr>
+                    <tr>
+                        <td>`print(5 % 2)` nima chiqaradi?</td>
+                        <td>2</td>
+                        <td>1</td>
+                        <td>2.5</td>
+                        <td><code>B</code></td>
+                        <td>% operatori qoldiqni hisoblaydi: 5÷2=2 qoldiq 1</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="t-import-note">
+            <div class="t-import-note-icon"><i class="bi bi-lightbulb"></i></div>
+            <div class="t-import-note-text">
+                <strong>Muhim:</strong> Birinchi qator ustun nomlari bo'lishi kerak.
+                Ustun nomlari: <code>Savol</code>, <code>A</code>, <code>B</code>, <code>C</code>, <code>To'g'ri javob</code>, <code>Izoh</code> (ixtiyoriy).
+                To'g'ri javob ustunida faqat <code>A</code>, <code>B</code> yoki <code>C</code> bo'lishi kerak.
+                Agar bitta qatorda xato bo'lsa, hech qanday savol bazaga yozilmaydi.
+                <br><br>
+                <strong>Izoh:</strong> Talaba test yechib bo'lgandan keyin natija sahifasida har bir savolning izohini ko'radi. Izoh 1-2 gap bilan tushuntirish bo'lishi kerak.
+                <br><br>
+                <strong>Kod yozish:</strong> Savolda kod bo'lsa <code>`kod`</code> yoki <code>```kod bloki```</code> bilan yozing — talabaga avtomatik kod ko'rinishida chiqadi.
+            </div>
+        </div>
+    </div>
+
+    <!-- ChatGPT Prompt -->
+    <div class="t-import-guide" style="margin-top: 1.25rem;">
+        <div class="t-import-guide-title">
+            <i class="bi bi-robot"></i> ChatGPT orqali test yaratish
+        </div>
+
+        <p style="font-size: 0.88rem; color: var(--bs-body-color); line-height: 1.6; margin-bottom: 1rem;">
+            Quyidagi promptni ChatGPT ga yuboring va natijani <strong>.xlsx</strong> fayl sifatida yuklab oling:
+        </p>
+
+        <div style="position: relative;">
+            <pre id="promptText" style="background: var(--bs-tertiary-bg); border: 1px solid var(--t-border, rgba(0,0,0,0.06)); border-radius: 14px; padding: 1.25rem; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: var(--bs-body-color); font-family: 'SF Mono', 'Fira Code', monospace; margin: 0; max-height: 300px; overflow-y: auto;">Mavzu: [Python while sikli]
+Daraja: [oson/o'rtacha/qiyin]
+Savollar soni: [5/10/20]
+Format: 1 qator = 1 savol (Excel importga mos)
+
+Har bir savol uchun quyidagi ustunlarda chiqar:
+Savol | A | B | C | To'g'ri javob (A/B/C) | Izoh
+
+Talablar:
+- Savollar real amaliy bo'lsin (kodli bo'lishi ham mumkin)
+- Javoblar bir-biriga yaqin, chalg'ituvchi bo'lsin
+- To'g'ri javob faqat A/B/C bilan belgilansin
+- Izoh 1-2 gap bilan tushuntirsin
+- Matnlar o'zbek tilida bo'lsin
+
+Testni shu shaklda Excel (.xlsx) formatda yuklab olishga tayyor qilib ber.</pre>
+            <button type="button" id="copyPromptBtn" style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--t-primary, #6366f1); color: #fff; border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 0.35rem;">
+                <i class="bi bi-clipboard"></i> Nusxalash
+            </button>
+        </div>
+
+        <div class="t-import-note" style="margin-top: 1rem;">
+            <div class="t-import-note-icon" style="background: var(--t-primary, #6366f1);"><i class="bi bi-info-lg"></i></div>
+            <div class="t-import-note-text">
+                <strong>Qanday ishlatiladi:</strong><br>
+                1. Yuqoridagi promptni nusxalang va <strong>[...]</strong> ichidagi qismlarni o'zgartiring<br>
+                2. ChatGPT ga yuboring<br>
+                3. ChatGPT bergan Excel (.xlsx) faylni yuklab oling<br>
+                4. Shu sahifaga yuklang — tayyor!
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const dropzone = document.getElementById('dropzone');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const fileRemove = document.getElementById('fileRemove');
+const submitBtn = document.getElementById('submitBtn');
+const importForm = document.getElementById('importForm');
+const loadingIndicator = document.getElementById('loadingIndicator');
+
+function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+function showFile(file) {
+    if (!file) return;
+    if (!file.name.endsWith('.xlsx')) {
+        alert("Faqat .xlsx formatdagi fayllar qabul qilinadi!");
+        fileInput.value = '';
+        return;
+    }
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    fileInfo.classList.add('show');
+    submitBtn.disabled = false;
+}
+
+function clearFile() {
+    fileInput.value = '';
+    fileInfo.classList.remove('show');
+    submitBtn.disabled = true;
+}
+
+fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) showFile(this.files[0]);
+    else clearFile();
+});
+
+fileRemove.addEventListener('click', clearFile);
+
+dropzone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('dragover');
+});
+dropzone.addEventListener('dragleave', function() {
+    this.classList.remove('dragover');
+});
+dropzone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('dragover');
+    if (e.dataTransfer.files.length > 0) {
+        fileInput.files = e.dataTransfer.files;
+        showFile(e.dataTransfer.files[0]);
+    }
+});
+
+importForm.addEventListener('submit', function() {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<div class="t-import-spinner" style="width:18px;height:18px;border-width:2px;"></div> Import qilinmoqda...';
+    loadingIndicator.classList.add('show');
+});
+
+// Copy prompt
+const copyBtn = document.getElementById('copyPromptBtn');
+if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+        const text = document.getElementById('promptText').textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi!';
+            copyBtn.style.background = '#10b981';
+            setTimeout(() => {
+                copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
+                copyBtn.style.background = '';
+            }, 2000);
+        });
+    });
+}
+</script>
+{% endblock %}
