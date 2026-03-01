@@ -4,111 +4,212 @@
 
 {% block extra_css %}
 <style>
-.t-import-page {
-    max-width: 800px;
+/* ===== Variables ===== */
+.imp {
+    --c-bg: rgba(255,255,255,0.92);
+    --c-border: rgba(0,0,0,0.07);
+    --c-text: #1a1a2e;
+    --c-muted: #6b7280;
+    --c-accent: #10b981;
+    --c-accent-light: rgba(16,185,129,0.08);
+    --c-accent-glow: rgba(16,185,129,0.25);
+    --c-danger: #ef4444;
+    --c-danger-light: rgba(239,68,68,0.06);
+    --c-purple: #8b5cf6;
+    --c-purple-light: rgba(139,92,246,0.08);
+    --c-blue: #3b82f6;
+    --c-blue-light: rgba(59,130,246,0.08);
+    --c-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    max-width: 840px;
     margin: 0 auto;
-    padding: 1.5rem 0 3rem;
+    padding: 0 0 3rem;
+}
+[data-bs-theme="dark"] .imp {
+    --c-bg: rgba(30,30,45,0.92);
+    --c-border: rgba(255,255,255,0.08);
+    --c-text: #f1f5f9;
+    --c-muted: #94a3b8;
+    --c-accent-light: rgba(16,185,129,0.12);
+    --c-accent-glow: rgba(16,185,129,0.3);
+    --c-danger-light: rgba(239,68,68,0.12);
+    --c-purple-light: rgba(139,92,246,0.12);
+    --c-blue-light: rgba(59,130,246,0.12);
+    --c-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-.t-import-back {
+/* ===== Animations ===== */
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 var(--c-accent-glow); }
+    50% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.a-up { animation: fadeUp .55s ease both; }
+.a-down { animation: fadeDown .5s ease both; }
+.a-scale { animation: scaleIn .5s ease both; }
+.a-left { animation: slideLeft .5s ease both; }
+.d1{animation-delay:.05s} .d2{animation-delay:.12s} .d3{animation-delay:.2s}
+.d4{animation-delay:.28s} .d5{animation-delay:.36s}
+
+/* ===== Back ===== */
+.imp-back {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.25rem;
-    border-radius: 14px;
-    background: var(--t-card-bg, rgba(255,255,255,0.85));
-    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
-    color: var(--t-primary, #6366f1);
+    gap: .45rem;
+    padding: .5rem 1.1rem;
+    border-radius: 12px;
+    background: var(--c-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--c-border);
+    color: var(--c-accent);
     text-decoration: none;
     font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.25s;
-    margin-bottom: 1.5rem;
-}
-.t-import-back:hover { transform: translateX(-4px); color: var(--t-primary, #6366f1); }
-
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-15px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.t-import-header {
-    background: var(--t-card-bg, rgba(255,255,255,0.85));
-    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
-    border-radius: 22px;
-    padding: 1.75rem;
+    font-size: .88rem;
+    transition: all .25s;
     margin-bottom: 1.25rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    animation: fadeInDown 0.5s ease;
 }
-.t-import-header h2 {
+.imp-back:hover { transform: translateX(-4px); box-shadow: var(--c-shadow); color: var(--c-accent); }
+
+/* ===== Card ===== */
+.imp-card {
+    background: var(--c-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--c-border);
+    border-radius: 22px;
+    box-shadow: var(--c-shadow);
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+}
+.imp-card-head {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--c-border);
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+}
+.imp-card-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+.imp-card-title {
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--c-text);
+    letter-spacing: -.01em;
+}
+.imp-card-sub {
+    font-size: .78rem;
+    color: var(--c-muted);
+    font-weight: 500;
+}
+.imp-card-body { padding: 1.5rem; }
+
+/* ===== Header Hero ===== */
+.imp-hero {
+    background: linear-gradient(135deg, #064e3b, #065f46 50%, #047857);
+    border-radius: 22px;
+    padding: 2rem 1.75rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    color: #fff;
+}
+.imp-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.05'%3E%3Cpath d='M20 18v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E");
+}
+.imp-hero-content { position: relative; z-index: 1; }
+.imp-hero h2 {
     font-size: 1.5rem;
     font-weight: 800;
-    color: var(--bs-body-color);
-    margin: 0 0 0.25rem;
-    letter-spacing: -0.02em;
+    margin: 0 0 .3rem;
+    letter-spacing: -.02em;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
 }
-.t-import-header h2 i { color: var(--t-primary, #6366f1); }
-.t-import-subtitle {
-    font-size: 0.85rem;
-    color: var(--bs-secondary-color);
+.imp-hero h2 i { animation: float 3s ease-in-out infinite; }
+.imp-hero-sub { font-size: .88rem; opacity: .8; }
+.imp-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .75rem;
+    padding: .3rem .8rem;
+    background: rgba(255,255,255,.15);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    font-size: .75rem;
+    font-weight: 600;
 }
 
-/* Upload card */
-.t-import-upload {
-    background: var(--t-card-bg, rgba(255,255,255,0.85));
-    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
-    border-radius: 22px;
-    padding: 2rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    animation: fadeInUp 0.5s ease 0.1s backwards;
-}
-
-.t-import-dropzone {
-    border: 2.5px dashed var(--t-border, rgba(0,0,0,0.1));
+/* ===== Dropzone ===== */
+.imp-dropzone {
+    border: 2.5px dashed var(--c-border);
     border-radius: 18px;
     padding: 2.5rem 1.5rem;
     text-align: center;
-    transition: all 0.3s;
+    transition: all .3s;
     cursor: pointer;
     position: relative;
 }
-.t-import-dropzone:hover,
-.t-import-dropzone.dragover {
-    border-color: var(--t-primary, #6366f1);
-    background: rgba(99,102,241,0.06);
+.imp-dropzone:hover,
+.imp-dropzone.dragover {
+    border-color: var(--c-accent);
+    background: var(--c-accent-light);
 }
-.t-import-dropzone-icon {
-    width: 72px;
-    height: 72px;
+.imp-dropzone.dragover { animation: pulseGlow 1.5s infinite; }
+.imp-dz-icon {
+    width: 72px; height: 72px;
     border-radius: 20px;
-    background: rgba(99,102,241,0.1);
-    color: var(--t-primary, #6366f1);
+    background: var(--c-accent-light);
+    color: var(--c-accent);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-size: 2rem;
     margin-bottom: 1rem;
-    transition: transform 0.3s;
+    transition: transform .3s;
 }
-.t-import-dropzone:hover .t-import-dropzone-icon { transform: scale(1.1); }
-.t-import-dropzone h4 {
-    color: var(--bs-body-color);
+.imp-dropzone:hover .imp-dz-icon { transform: scale(1.1) rotate(-3deg); }
+.imp-dz-title {
+    color: var(--c-text);
     font-weight: 700;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+    margin-bottom: .4rem;
 }
-.t-import-dropzone p {
-    color: var(--bs-secondary-color);
-    font-size: 0.85rem;
-    margin-bottom: 0;
+.imp-dz-sub {
+    color: var(--c-muted);
+    font-size: .82rem;
 }
-.t-import-dropzone input[type="file"] {
+.imp-dropzone input[type="file"] {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -117,383 +218,439 @@
     cursor: pointer;
 }
 
-.t-import-file-info {
+/* ===== File info ===== */
+.imp-file {
     display: none;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem 1.25rem;
-    background: rgba(16,185,129,0.1);
-    border: 1px solid rgba(16,185,129,0.3);
+    gap: .85rem;
+    padding: .85rem 1.1rem;
+    background: var(--c-accent-light);
+    border: 1px solid rgba(16,185,129,0.25);
     border-radius: 14px;
     margin-top: 1rem;
 }
-.t-import-file-info.show { display: flex; }
-.t-import-file-icon {
-    width: 44px;
-    height: 44px;
+.imp-file.show { display: flex; animation: scaleIn .3s ease; }
+.imp-file-ic {
+    width: 42px; height: 42px;
     border-radius: 12px;
-    background: #10b981;
+    background: var(--c-accent);
     color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.imp-file-name { flex: 1; font-weight: 600; color: var(--c-text); font-size: .88rem; }
+.imp-file-size { font-size: .75rem; color: var(--c-muted); }
+.imp-file-rm {
+    background: none; border: none;
+    color: var(--c-danger); font-size: 1.15rem;
+    cursor: pointer; padding: .25rem; border-radius: 8px;
+    transition: all .2s;
+}
+.imp-file-rm:hover { background: var(--c-danger-light); }
+
+/* ===== Submit ===== */
+.imp-submit {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-.t-import-file-name {
-    flex: 1;
-    font-weight: 600;
-    color: var(--bs-body-color);
-    font-size: 0.9rem;
-}
-.t-import-file-size {
-    font-size: 0.78rem;
-    color: var(--bs-secondary-color);
-}
-.t-import-file-remove {
-    background: none;
-    border: none;
-    color: #ef4444;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 8px;
-    transition: all 0.2s;
-}
-.t-import-file-remove:hover { background: rgba(239,68,68,0.1); }
-
-.t-import-submit {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
-    background: var(--t-primary, #6366f1);
+    gap: .5rem;
+    width: 100%;
+    padding: .8rem 2rem;
+    background: linear-gradient(135deg, #10b981, #059669);
     color: #fff;
     border: none;
     border-radius: 14px;
     font-weight: 700;
-    font-size: 0.95rem;
+    font-size: .95rem;
     cursor: pointer;
-    transition: all 0.25s;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.3);
+    transition: all .25s;
+    box-shadow: 0 4px 16px var(--c-accent-glow);
     margin-top: 1.25rem;
-    width: 100%;
-    justify-content: center;
 }
-.t-import-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
-.t-import-submit:active { transform: scale(0.97); }
-.t-import-submit:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none !important;
-}
+.imp-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--c-accent-glow); }
+.imp-submit:active { transform: scale(0.97); }
+.imp-submit:disabled { opacity: .5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-/* Errors */
-.t-import-errors {
-    background: rgba(239,68,68,0.08);
+/* ===== Errors ===== */
+.imp-errors {
+    background: var(--c-danger-light);
     border: 1px solid rgba(239,68,68,0.2);
     border-radius: 18px;
-    padding: 1.5rem;
+    padding: 1.25rem;
     margin-bottom: 1.25rem;
-    animation: fadeInUp 0.5s ease;
 }
-.t-import-errors-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    color: #ef4444;
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
+.imp-err-title {
+    display: flex; align-items: center; gap: .5rem;
+    font-weight: 700; color: var(--c-danger);
+    margin-bottom: .65rem; font-size: .92rem;
 }
-.t-import-error-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    padding: 0.5rem 0.75rem;
-    background: rgba(255,255,255,0.5);
+.imp-err-item {
+    display: flex; align-items: flex-start; gap: .4rem;
+    padding: .45rem .7rem;
+    background: var(--c-bg);
     border-radius: 10px;
-    margin-bottom: 0.4rem;
-    font-size: 0.85rem;
-    color: var(--bs-body-color);
+    margin-bottom: .35rem;
+    font-size: .82rem;
+    color: var(--c-text);
 }
-[data-bs-theme="dark"] .t-import-error-item {
-    background: rgba(0,0,0,0.3);
-}
-.t-import-error-item i {
-    color: #ef4444;
-    margin-top: 0.1rem;
-    flex-shrink: 0;
-}
+.imp-err-item i { color: var(--c-danger); margin-top: .15rem; flex-shrink: 0; }
 
-/* Format guide */
-.t-import-guide {
-    background: var(--t-card-bg, rgba(255,255,255,0.85));
-    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
-    border-radius: 22px;
-    padding: 1.75rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    animation: fadeInUp 0.5s ease 0.2s backwards;
-}
-.t-import-guide-title {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: var(--bs-secondary-color);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.t-import-table-wrap {
+/* ===== Guide table ===== */
+.imp-tbl-wrap {
     overflow-x: auto;
+    border: 1px solid var(--c-border);
     border-radius: 14px;
-    border: 1px solid var(--t-border, rgba(0,0,0,0.06));
     margin-bottom: 1rem;
 }
-.t-import-table {
+.imp-tbl {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: .82rem;
 }
-.t-import-table th {
-    background: rgba(99,102,241,0.08);
-    color: var(--t-primary, #6366f1);
+.imp-tbl th {
+    padding: 10px 14px;
     font-weight: 700;
-    padding: 0.75rem 1rem;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--c-muted);
+    background: var(--c-accent-light);
+    border-bottom: 1px solid var(--c-border);
     text-align: left;
     white-space: nowrap;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
 }
-.t-import-table td {
-    padding: 0.65rem 1rem;
-    border-top: 1px solid var(--t-border, rgba(0,0,0,0.06));
-    color: var(--bs-body-color);
+.imp-tbl td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--c-border);
+    color: var(--c-text);
 }
-.t-import-table tr:hover td {
-    background: rgba(0,0,0,0.02);
-}
-[data-bs-theme="dark"] .t-import-table tr:hover td {
-    background: rgba(255,255,255,0.03);
-}
-.t-import-table code {
-    background: rgba(245,158,11,0.12);
-    color: #f59e0b;
-    padding: 0.15rem 0.5rem;
+.imp-tbl tr:last-child td { border-bottom: none; }
+.imp-tbl code {
+    background: var(--c-accent-light);
+    color: var(--c-accent);
+    padding: 2px 8px;
     border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: .78rem;
 }
 
-.t-import-note {
+/* ===== Note ===== */
+.imp-note {
     display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
+    gap: .75rem;
     padding: 1rem;
-    background: rgba(245,158,11,0.1);
+    background: var(--c-blue-light);
     border-radius: 14px;
-    border: 1px solid rgba(245,158,11,0.2);
+    margin-top: 1rem;
 }
-.t-import-note-icon {
-    width: 36px;
-    height: 36px;
+.imp-note-ic {
+    width: 36px; height: 36px;
     border-radius: 10px;
-    background: #f59e0b;
+    background: var(--c-blue);
     color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .95rem; flex-shrink: 0;
+}
+.imp-note-text {
+    font-size: .82rem;
+    color: var(--c-text);
+    line-height: 1.6;
+}
+.imp-note-text code {
+    background: var(--c-accent-light);
+    color: var(--c-accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: .78rem;
+}
+
+/* ===== Prompt ===== */
+.imp-prompt {
+    position: relative;
+    margin-top: 1rem;
+}
+.imp-prompt pre {
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 14px;
+    padding: 1.15rem;
+    padding-right: 5rem;
+    font-size: .8rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--c-text);
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    margin: 0;
+    max-height: 280px;
+    overflow-y: auto;
+}
+.imp-copy {
+    position: absolute;
+    top: .65rem; right: .65rem;
+    background: var(--c-accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: .35rem .75rem;
+    font-size: .75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s;
+    display: flex; align-items: center; gap: .3rem;
+}
+.imp-copy:hover { transform: scale(1.05); box-shadow: 0 4px 12px var(--c-accent-glow); }
+
+/* ===== Steps indicator ===== */
+.imp-steps {
+    display: flex;
+    gap: .5rem;
+    margin-bottom: 1.25rem;
+}
+.imp-step {
+    flex: 1;
+    padding: .6rem .75rem;
+    background: var(--c-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 12px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    font-size: 1rem;
+    gap: .5rem;
+    transition: all .3s;
+}
+.imp-step-num {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--c-accent-light);
+    color: var(--c-accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    font-size: .78rem;
     flex-shrink: 0;
 }
-.t-import-note-text {
-    font-size: 0.85rem;
-    color: var(--bs-body-color);
-    line-height: 1.5;
+.imp-step-text {
+    font-weight: 600;
+    font-size: .78rem;
+    color: var(--c-text);
 }
-.t-import-note-text strong { font-weight: 700; }
 
-/* Loading */
-.t-import-loading {
+/* ===== Loading ===== */
+.imp-loading {
     display: none;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
+    gap: .6rem;
     padding: 1rem;
-    color: var(--t-primary, #6366f1);
+    margin-top: 1rem;
     font-weight: 600;
+    font-size: .88rem;
+    color: var(--c-accent);
 }
-.t-import-loading.show { display: flex; }
-.t-import-spinner {
-    width: 24px;
-    height: 24px;
-    border: 3px solid var(--t-border, rgba(0,0,0,0.06));
-    border-top-color: var(--t-primary, #6366f1);
+.imp-loading.show { display: flex; }
+.imp-spinner {
+    width: 22px; height: 22px;
+    border: 3px solid var(--c-accent-light);
+    border-top-color: var(--c-accent);
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: spin .7s linear infinite;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ===== Responsive ===== */
 @media (max-width: 640px) {
-    .t-import-header h2 { font-size: 1.25rem; }
-    .t-import-dropzone { padding: 1.5rem 1rem; }
-    .t-import-dropzone-icon { width: 56px; height: 56px; font-size: 1.5rem; }
-    .t-import-guide { padding: 1.25rem; }
+    .imp { padding: 0 0 2rem; }
+    .imp-hero { padding: 1.5rem 1.25rem; border-radius: 16px; }
+    .imp-hero h2 { font-size: 1.2rem; }
+    .imp-card { border-radius: 16px; }
+    .imp-card-body { padding: 1.15rem; }
+    .imp-dropzone { padding: 2rem 1rem; }
+    .imp-steps { flex-direction: column; }
+    .imp-tbl { font-size: .75rem; }
 }
 </style>
 {% endblock %}
 
 {% block teacher_content %}
-<div class="t-import-page">
+<div class="imp">
 
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius: 14px;">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-    {% endif %}
-
-    <a href="{% url 'teacher:manage_questions' test.pk %}" class="t-import-back">
+    <a href="{% url 'teacher:manage_questions' test.pk %}" class="imp-back a-left d1">
         <i class="bi bi-arrow-left"></i> Savollarga qaytish
     </a>
 
-    <!-- Header -->
-    <div class="t-import-header">
-        <h2><i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import</h2>
-        <div class="t-import-subtitle">{{ test.lesson.title }} • {{ test.lesson.profession.name }}</div>
+    <!-- Hero -->
+    <div class="imp-hero a-down d1">
+        <div class="imp-hero-content">
+            <h2><i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import</h2>
+            <div class="imp-hero-sub">{{ test.lesson.title }} • {{ test.lesson.profession.name }}</div>
+            <div class="imp-hero-badge">
+                <i class="bi bi-list-check"></i> Hozirda {{ test.questions.count }} ta savol mavjud
+            </div>
+        </div>
+    </div>
+
+    <!-- Steps -->
+    <div class="imp-steps a-up d2">
+        <div class="imp-step">
+            <div class="imp-step-num">1</div>
+            <div class="imp-step-text">Excel tayyorlang</div>
+        </div>
+        <div class="imp-step">
+            <div class="imp-step-num">2</div>
+            <div class="imp-step-text">Faylni yuklang</div>
+        </div>
+        <div class="imp-step">
+            <div class="imp-step-num">3</div>
+            <div class="imp-step-text">Tayyor!</div>
+        </div>
     </div>
 
     <!-- Errors -->
     {% if errors %}
-    <div class="t-import-errors">
-        <div class="t-import-errors-title">
+    <div class="imp-errors a-scale d2">
+        <div class="imp-err-title">
             <i class="bi bi-exclamation-triangle-fill"></i>
             {{ errors|length }} ta xatolik topildi — hech narsa bazaga yozilmadi
         </div>
         {% for error in errors %}
-        <div class="t-import-error-item">
+        <div class="imp-err-item">
             <i class="bi bi-x-circle-fill"></i>
-            {{ error }}
+            <span>{{ error }}</span>
         </div>
         {% endfor %}
     </div>
     {% endif %}
 
-    <!-- Upload Form -->
+    <!-- Upload -->
     <form method="POST" enctype="multipart/form-data" id="importForm">
         {% csrf_token %}
-        <div class="t-import-upload">
-            <div class="t-import-dropzone" id="dropzone">
-                <div class="t-import-dropzone-icon">
-                    <i class="bi bi-cloud-arrow-up"></i>
+        <div class="imp-card a-up d3">
+            <div class="imp-card-head">
+                <div class="imp-card-icon" style="background:var(--c-accent-light);color:var(--c-accent);">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
                 </div>
-                <h4>Excel faylni tanlang yoki shu yerga tashlang</h4>
-                <p>Faqat .xlsx format qabul qilinadi</p>
-                <input type="file" name="excel_file" id="fileInput" accept=".xlsx">
-            </div>
-
-            <div class="t-import-file-info" id="fileInfo">
-                <div class="t-import-file-icon"><i class="bi bi-file-earmark-excel"></i></div>
                 <div>
-                    <div class="t-import-file-name" id="fileName"></div>
-                    <div class="t-import-file-size" id="fileSize"></div>
+                    <div class="imp-card-title">Faylni yuklash</div>
+                    <div class="imp-card-sub">Faqat .xlsx format qabul qilinadi</div>
                 </div>
-                <button type="button" class="t-import-file-remove" id="fileRemove" title="O'chirish">
-                    <i class="bi bi-x-lg"></i>
+            </div>
+            <div class="imp-card-body">
+                <div class="imp-dropzone" id="dropzone">
+                    <div class="imp-dz-icon">
+                        <i class="bi bi-cloud-arrow-up"></i>
+                    </div>
+                    <div class="imp-dz-title">Excel faylni tanlang yoki shu yerga tashlang</div>
+                    <div class="imp-dz-sub">Maksimum 5 MB • .xlsx format</div>
+                    <input type="file" name="excel_file" id="fileInput" accept=".xlsx">
+                </div>
+
+                <div class="imp-file" id="fileInfo">
+                    <div class="imp-file-ic"><i class="bi bi-file-earmark-excel"></i></div>
+                    <div>
+                        <div class="imp-file-name" id="fileName"></div>
+                        <div class="imp-file-size" id="fileSize"></div>
+                    </div>
+                    <button type="button" class="imp-file-rm" id="fileRemove" title="O'chirish">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <div class="imp-loading" id="loadingIndicator">
+                    <div class="imp-spinner"></div>
+                    Import qilinmoqda...
+                </div>
+
+                <button type="submit" class="imp-submit" id="submitBtn" disabled>
+                    <i class="bi bi-upload"></i> Import qilish
                 </button>
             </div>
-
-            <div class="t-import-loading" id="loadingIndicator">
-                <div class="t-import-spinner"></div>
-                Import qilinmoqda...
-            </div>
-
-            <button type="submit" class="t-import-submit" id="submitBtn" disabled>
-                <i class="bi bi-upload"></i> Import qilish
-            </button>
         </div>
     </form>
 
     <!-- Format Guide -->
-    <div class="t-import-guide">
-        <div class="t-import-guide-title">
-            <i class="bi bi-info-circle-fill"></i> Excel fayl formati
+    <div class="imp-card a-up d4">
+        <div class="imp-card-head">
+            <div class="imp-card-icon" style="background:var(--c-purple-light);color:var(--c-purple);">
+                <i class="bi bi-table"></i>
+            </div>
+            <div>
+                <div class="imp-card-title">Excel fayl formati</div>
+                <div class="imp-card-sub">Quyidagi ustunlar bo'lishi kerak</div>
+            </div>
         </div>
+        <div class="imp-card-body" style="padding-top:.75rem;">
+            <div class="imp-tbl-wrap">
+                <table class="imp-tbl">
+                    <thead>
+                        <tr>
+                            <th>Savol</th>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>C</th>
+                            <th>To'g'ri javob</th>
+                            <th>Izoh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Python da list yaratish usuli?</td>
+                            <td>list()</td>
+                            <td>array()</td>
+                            <td>new List()</td>
+                            <td><code>A</code></td>
+                            <td>list() yoki [] bilan list yaratiladi</td>
+                        </tr>
+                        <tr>
+                            <td>while sikli qachon to'xtaydi?</td>
+                            <td>Shart False bo'lganda</td>
+                            <td>Shart True bo'lganda</td>
+                            <td>Har doim ishlaydi</td>
+                            <td><code>A</code></td>
+                            <td>Shart False bo'lganda to'xtaydi</td>
+                        </tr>
+                        <tr>
+                            <td>`print(5 % 2)` nima chiqaradi?</td>
+                            <td>2</td>
+                            <td>1</td>
+                            <td>2.5</td>
+                            <td><code>B</code></td>
+                            <td>% operatori qoldiqni hisoblaydi</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="t-import-table-wrap">
-            <table class="t-import-table">
-                <thead>
-                    <tr>
-                        <th>Savol</th>
-                        <th>A</th>
-                        <th>B</th>
-                        <th>C</th>
-                        <th>To'g'ri javob</th>
-                        <th>Izoh</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Python da list yaratish usuli?</td>
-                        <td>list()</td>
-                        <td>array()</td>
-                        <td>new List()</td>
-                        <td><code>A</code></td>
-                        <td>list() funksiyasi yoki [] bilan list yaratiladi</td>
-                    </tr>
-                    <tr>
-                        <td>while sikli qachon to'xtaydi?</td>
-                        <td>Shart False bo'lganda</td>
-                        <td>Shart True bo'lganda</td>
-                        <td>Har doim ishlaydi</td>
-                        <td><code>A</code></td>
-                        <td>while sikli shart False bo'lganda to'xtaydi</td>
-                    </tr>
-                    <tr>
-                        <td>`print(5 % 2)` nima chiqaradi?</td>
-                        <td>2</td>
-                        <td>1</td>
-                        <td>2.5</td>
-                        <td><code>B</code></td>
-                        <td>% operatori qoldiqni hisoblaydi: 5÷2=2 qoldiq 1</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="t-import-note">
-            <div class="t-import-note-icon"><i class="bi bi-lightbulb"></i></div>
-            <div class="t-import-note-text">
-                <strong>Muhim:</strong> Birinchi qator ustun nomlari bo'lishi kerak.
-                Ustun nomlari: <code>Savol</code>, <code>A</code>, <code>B</code>, <code>C</code>, <code>To'g'ri javob</code>, <code>Izoh</code> (ixtiyoriy).
-                To'g'ri javob ustunida faqat <code>A</code>, <code>B</code> yoki <code>C</code> bo'lishi kerak.
-                Agar bitta qatorda xato bo'lsa, hech qanday savol bazaga yozilmaydi.
-                <br><br>
-                <strong>Izoh:</strong> Talaba test yechib bo'lgandan keyin natija sahifasida har bir savolning izohini ko'radi. Izoh 1-2 gap bilan tushuntirish bo'lishi kerak.
-                <br><br>
-                <strong>Kod yozish:</strong> Savolda kod bo'lsa <code>`kod`</code> yoki <code>```kod bloki```</code> bilan yozing — talabaga avtomatik kod ko'rinishida chiqadi.
+            <div class="imp-note">
+                <div class="imp-note-ic"><i class="bi bi-lightbulb-fill"></i></div>
+                <div class="imp-note-text">
+                    <strong>Muhim:</strong> Birinchi qator ustun nomlari bo'lishi kerak:
+                    <code>Savol</code>, <code>A</code>, <code>B</code>, <code>C</code>, <code>To'g'ri javob</code>, <code>Izoh</code> (ixtiyoriy).
+                    To'g'ri javob ustunida faqat <code>A</code>, <code>B</code> yoki <code>C</code> yozing.
+                    Bitta qatorda xato bo'lsa — hech narsa saqlanmaydi.
+                    <br><br>
+                    <strong>Kod yozish:</strong> Savolda kod bo'lsa <code>`kod`</code> bilan yozing — talabaga kod ko'rinishida chiqadi.
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ChatGPT Prompt -->
-    <div class="t-import-guide" style="margin-top: 1.25rem;">
-        <div class="t-import-guide-title">
-            <i class="bi bi-robot"></i> ChatGPT orqali test yaratish
+    <div class="imp-card a-up d5">
+        <div class="imp-card-head">
+            <div class="imp-card-icon" style="background:var(--c-blue-light);color:var(--c-blue);">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div>
+                <div class="imp-card-title">ChatGPT orqali test yaratish</div>
+                <div class="imp-card-sub">Promptni nusxalab ChatGPTga yuboring</div>
+            </div>
         </div>
+        <div class="imp-card-body">
+            <p style="font-size:.85rem;color:var(--c-text);line-height:1.6;margin-bottom:.75rem;">
+                Quyidagi promptni nusxalab ChatGPT ga yuboring, natijani <strong>.xlsx</strong> fayl sifatida yuklab oling va shu sahifaga yuklang:
+            </p>
 
-        <p style="font-size: 0.88rem; color: var(--bs-body-color); line-height: 1.6; margin-bottom: 1rem;">
-            Quyidagi promptni ChatGPT ga yuboring va natijani <strong>.xlsx</strong> fayl sifatida yuklab oling:
-        </p>
-
-        <div style="position: relative;">
-            <pre id="promptText" style="background: var(--bs-tertiary-bg); border: 1px solid var(--t-border, rgba(0,0,0,0.06)); border-radius: 14px; padding: 1.25rem; font-size: 0.82rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; color: var(--bs-body-color); font-family: 'SF Mono', 'Fira Code', monospace; margin: 0; max-height: 300px; overflow-y: auto;">Mavzu: [Python while sikli]
+            <div class="imp-prompt">
+                <pre id="promptText">Mavzu: [Python while sikli]
 Daraja: [oson/o'rtacha/qiyin]
 Savollar soni: [5/10/20]
 Format: 1 qator = 1 savol (Excel importga mos)
@@ -509,103 +666,108 @@ Talablar:
 - Matnlar o'zbek tilida bo'lsin
 
 Testni shu shaklda Excel (.xlsx) formatda yuklab olishga tayyor qilib ber.</pre>
-            <button type="button" id="copyPromptBtn" style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--t-primary, #6366f1); color: #fff; border: none; border-radius: 10px; padding: 0.4rem 0.85rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; gap: 0.35rem;">
-                <i class="bi bi-clipboard"></i> Nusxalash
-            </button>
-        </div>
+                <button type="button" id="copyBtn" class="imp-copy">
+                    <i class="bi bi-clipboard"></i> Nusxalash
+                </button>
+            </div>
 
-        <div class="t-import-note" style="margin-top: 1rem;">
-            <div class="t-import-note-icon" style="background: var(--t-primary, #6366f1);"><i class="bi bi-info-lg"></i></div>
-            <div class="t-import-note-text">
-                <strong>Qanday ishlatiladi:</strong><br>
-                1. Yuqoridagi promptni nusxalang va <strong>[...]</strong> ichidagi qismlarni o'zgartiring<br>
-                2. ChatGPT ga yuboring<br>
-                3. ChatGPT bergan Excel (.xlsx) faylni yuklab oling<br>
-                4. Shu sahifaga yuklang — tayyor!
+            <div class="imp-note" style="margin-top:1rem;">
+                <div class="imp-note-ic" style="background:var(--c-accent);"><i class="bi bi-info-lg"></i></div>
+                <div class="imp-note-text">
+                    <strong>Qanday ishlatiladi:</strong><br>
+                    1. Yuqoridagi promptni nusxalang va <strong>[...]</strong> qismlarni o'zgartiring<br>
+                    2. ChatGPT ga yuboring<br>
+                    3. Excel (.xlsx) faylni yuklab oling<br>
+                    4. Shu sahifaga yuklang — tayyor!
+                </div>
             </div>
         </div>
     </div>
+
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-const fileInput = document.getElementById('fileInput');
-const dropzone = document.getElementById('dropzone');
-const fileInfo = document.getElementById('fileInfo');
-const fileName = document.getElementById('fileName');
-const fileSize = document.getElementById('fileSize');
-const fileRemove = document.getElementById('fileRemove');
-const submitBtn = document.getElementById('submitBtn');
-const importForm = document.getElementById('importForm');
-const loadingIndicator = document.getElementById('loadingIndicator');
+(function() {
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const fileRemove = document.getElementById('fileRemove');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('importForm');
+    const loading = document.getElementById('loadingIndicator');
 
-function formatSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / 1048576).toFixed(1) + ' MB';
-}
+    function fmtSize(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+        return (b / 1048576).toFixed(1) + ' MB';
+    }
 
-function showFile(file) {
-    if (!file) return;
-    if (!file.name.endsWith('.xlsx')) {
-        alert("Faqat .xlsx formatdagi fayllar qabul qilinadi!");
+    function showFile(f) {
+        if (!f) return;
+        if (!f.name.endsWith('.xlsx')) {
+            alert("Faqat .xlsx formatdagi fayllar qabul qilinadi!");
+            fileInput.value = '';
+            return;
+        }
+        fileName.textContent = f.name;
+        fileSize.textContent = fmtSize(f.size);
+        fileInfo.classList.add('show');
+        submitBtn.disabled = false;
+    }
+
+    function clearFile() {
         fileInput.value = '';
-        return;
+        fileInfo.classList.remove('show');
+        submitBtn.disabled = true;
     }
-    fileName.textContent = file.name;
-    fileSize.textContent = formatSize(file.size);
-    fileInfo.classList.add('show');
-    submitBtn.disabled = false;
-}
 
-function clearFile() {
-    fileInput.value = '';
-    fileInfo.classList.remove('show');
-    submitBtn.disabled = true;
-}
-
-fileInput.addEventListener('change', function() {
-    if (this.files.length > 0) showFile(this.files[0]);
-    else clearFile();
-});
-
-fileRemove.addEventListener('click', clearFile);
-
-dropzone.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    this.classList.add('dragover');
-});
-dropzone.addEventListener('dragleave', function() {
-    this.classList.remove('dragover');
-});
-dropzone.addEventListener('drop', function(e) {
-    e.preventDefault();
-    this.classList.remove('dragover');
-    if (e.dataTransfer.files.length > 0) {
-        fileInput.files = e.dataTransfer.files;
-        showFile(e.dataTransfer.files[0]);
-    }
-});
-
-importForm.addEventListener('submit', function() {
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<div class="t-import-spinner" style="width:18px;height:18px;border-width:2px;"></div> Import qilinmoqda...';
-    loadingIndicator.classList.add('show');
-});
-
-// Copy prompt
-const copyBtn = document.getElementById('copyPromptBtn');
-if (copyBtn) {
-    copyBtn.addEventListener('click', function() {
-        const text = document.getElementById('promptText').textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi!';
-            copyBtn.style.background = '#10b981';
-            setTimeout(() => {
-                copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
-                copyBtn.style.background = '';
-            }, 2000);
-        });
+    fileInput.addEventListener('change', function() {
+        this.files.length > 0 ? showFile(this.files[0]) : clearFile();
     });
-}
+
+    fileRemove.addEventListener('click', clearFile);
+
+    dropzone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+    dropzone.addEventListener('dragleave', function() {
+        this.classList.remove('dragover');
+    });
+    dropzone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            showFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    form.addEventListener('submit', function() {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<div class="imp-spinner" style="width:18px;height:18px;border-width:2px;"></div> Import qilinmoqda...';
+        loading.classList.add('show');
+    });
+
+    // Copy prompt
+    var copyBtn = document.getElementById('copyBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function() {
+            var text = document.getElementById('promptText').textContent;
+            navigator.clipboard.writeText(text).then(function() {
+                copyBtn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi!';
+                copyBtn.style.background = '#059669';
+                setTimeout(function() {
+                    copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
+                    copyBtn.style.background = '';
+                }, 2000);
+            });
+        });
+    }
+})();
 </script>
 {% endblock %}
