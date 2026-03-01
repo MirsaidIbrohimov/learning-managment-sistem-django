@@ -6948,3 +6948,211 @@ def clear_premium_ad(request):
     request.session.pop('show_premium_ad', None)
     return JsonResponse({'ok': True})
 
+
+# ============ ADMIN: O'QITUVCHILAR BOSHQARUVI ============
+
+@login_required
+def admin_teachers(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary, TeacherCertificate
+    from django.db.models import Sum
+    search_query = request.GET.get('q', '').strip()
+    teachers = CustomUser.objects.filter(role='teacher').order_by('-date_joined')
+    if search_query:
+        teachers = teachers.filter(
+            Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query) |
+            Q(username__icontains=search_query) | Q(phone__icontains=search_query)
+        )
+    teachers_data = []
+    now = timezone.now()
+    for t in teachers:
+        courses_count = t.teaching_professions.count()
+        students_count = sum(p.enrollments.filter(user__role='student').count() for p in t.teaching_professions.all())
+        certs_count = TeacherCertificate.objects.filter(teacher=t).count()
+        current_salary = TeacherSalary.objects.filter(
+            teacher=t, month=now.month, year=now.year
+        ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
+        teachers_data.append({
+            'user': t, 'courses_count': courses_count, 'students_count': students_count,
+            'certs_count': certs_count, 'current_salary': current_salary,
+        })
+    return render(request, 'accounts/admin/teachers.html', {
+        'teachers_data': teachers_data, 'search_query': search_query, 'total_count': len(teachers_data),
+    })
+
+
+@login_required
+def admin_teacher_salaries(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    from django.db.models import Sum
+    teacher_id = request.GET.get('teacher', '')
+    month_filter = request.GET.get('month', '')
+    year_filter = request.GET.get('year', '')
+    type_filter = request.GET.get('type', '')
+    salaries = TeacherSalary.objects.all().select_related('teacher', 'created_by')
+    if teacher_id:
+        try: salaries = salaries.filter(teacher_id=int(teacher_id))
+        except (ValueError, TypeError): pass
+    if month_filter:
+        try: salaries = salaries.filter(month=int(month_filter))
+        except (ValueError, TypeError): pass
+    if year_filter:
+        try: salaries = salaries.filter(year=int(year_filter))
+        except (ValueError, TypeError): pass
+    if type_filter:
+        salaries = salaries.filter(salary_type=type_filter)
+    total_amount = salaries.exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
+    total_jarima = salaries.filter(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    available_years = TeacherSalary.objects.values_list('year', flat=True).distinct().order_by('-year')
+    if not available_years:
+        available_years = [timezone.now().year]
+    paginator = Paginator(salaries, 30)
+    page = request.GET.get('page')
+    salaries = paginator.get_page(page)
+    return render(request, 'accounts/admin/teacher_salaries.html', {
+        'salaries': salaries, 'teachers': teachers, 'teacher_id': teacher_id,
+        'month_filter': month_filter, 'year_filter': year_filter, 'type_filter': type_filter,
+        'total_amount': total_amount - total_jarima, 'available_years': available_years,
+        'salary_types': TeacherSalary.SALARY_TYPES, 'month_choices': TeacherSalary.MONTH_CHOICES,
+    })
+
+
+@login_required
+def admin_teacher_salary_add(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    if request.method == 'POST':
+        teacher_id = request.POST.get('teacher')
+        salary_type = request.POST.get('salary_type', 'oylik')
+        amount = request.POST.get('amount', '0')
+        month = request.POST.get('month')
+        year = request.POST.get('year')
+        description = request.POST.get('description', '')
+        is_paid = request.POST.get('is_paid') == 'on'
+        paid_date = request.POST.get('paid_date') or None
+        receipt = request.FILES.get('receipt')
+        try:
+            amount = int(amount); month = int(month); year = int(year)
+        except (ValueError, TypeError):
+            messages.error(request, "Summa, oy va yilni to'g'ri kiriting.")
+            return render(request, 'accounts/admin/teacher_salary_form.html', {
+                'teachers': teachers, 'salary_types': TeacherSalary.SALARY_TYPES, 'month_choices': TeacherSalary.MONTH_CHOICES,
+            })
+        teacher = get_object_or_404(CustomUser, pk=teacher_id, role='teacher')
+        TeacherSalary.objects.create(
+            teacher=teacher, salary_type=salary_type, amount=amount, month=month, year=year,
+            description=description, is_paid=is_paid, paid_date=paid_date, receipt=receipt, created_by=request.user,
+        )
+        messages.success(request, f"{teacher.full_name}ga {dict(TeacherSalary.SALARY_TYPES).get(salary_type, '')} qo'shildi!")
+        return redirect('admin_teacher_salaries')
+    now = timezone.now()
+    return render(request, 'accounts/admin/teacher_salary_form.html', {
+        'teachers': teachers, 'salary_types': TeacherSalary.SALARY_TYPES,
+        'month_choices': TeacherSalary.MONTH_CHOICES, 'current_month': now.month, 'current_year': now.year,
+    })
+
+
+@login_required
+def admin_teacher_salary_edit(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    salary = get_object_or_404(TeacherSalary, pk=pk)
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    if request.method == 'POST':
+        salary.teacher_id = request.POST.get('teacher', salary.teacher_id)
+        salary.salary_type = request.POST.get('salary_type', salary.salary_type)
+        salary.description = request.POST.get('description', '')
+        salary.is_paid = request.POST.get('is_paid') == 'on'
+        salary.paid_date = request.POST.get('paid_date') or None
+        try:
+            salary.amount = int(request.POST.get('amount', salary.amount))
+            salary.month = int(request.POST.get('month', salary.month))
+            salary.year = int(request.POST.get('year', salary.year))
+        except (ValueError, TypeError):
+            messages.error(request, "Summa, oy va yilni to'g'ri kiriting.")
+            return render(request, 'accounts/admin/teacher_salary_form.html', {
+                'teachers': teachers, 'salary': salary, 'salary_types': TeacherSalary.SALARY_TYPES,
+                'month_choices': TeacherSalary.MONTH_CHOICES, 'is_edit': True,
+            })
+        receipt = request.FILES.get('receipt')
+        if receipt:
+            salary.receipt = receipt
+        salary.save()
+        messages.success(request, "Oylik yangilandi!")
+        return redirect('admin_teacher_salaries')
+    return render(request, 'accounts/admin/teacher_salary_form.html', {
+        'teachers': teachers, 'salary': salary, 'salary_types': TeacherSalary.SALARY_TYPES,
+        'month_choices': TeacherSalary.MONTH_CHOICES, 'is_edit': True,
+    })
+
+
+@login_required
+def admin_teacher_salary_delete(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    salary = get_object_or_404(TeacherSalary, pk=pk)
+    if request.method == 'POST':
+        salary.delete()
+        messages.success(request, "Oylik o'chirildi!")
+    return redirect('admin_teacher_salaries')
+
+
+@login_required
+def admin_teacher_certificates(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherCertificate
+    teacher_id = request.GET.get('teacher', '')
+    certs = TeacherCertificate.objects.all().select_related('teacher')
+    if teacher_id:
+        try: certs = certs.filter(teacher_id=int(teacher_id))
+        except (ValueError, TypeError): pass
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    return render(request, 'accounts/admin/teacher_certificates.html', {
+        'certificates': certs, 'teachers': teachers, 'teacher_id': teacher_id,
+    })
+
+
+@login_required
+def admin_teacher_certificate_add(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherCertificate
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    if request.method == 'POST':
+        teacher_id = request.POST.get('teacher')
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '')
+        issued_date = request.POST.get('issued_date') or None
+        file = request.FILES.get('file')
+        if not title or not file or not teacher_id:
+            messages.error(request, "O'qituvchi, nom va faylni kiriting.")
+            return render(request, 'accounts/admin/teacher_certificate_form.html', {'teachers': teachers})
+        teacher = get_object_or_404(CustomUser, pk=teacher_id, role='teacher')
+        TeacherCertificate.objects.create(
+            teacher=teacher, title=title, description=description, issued_date=issued_date, file=file,
+        )
+        messages.success(request, f"{teacher.full_name}ga sertifikat qo'shildi!")
+        return redirect('admin_teacher_certificates')
+    return render(request, 'accounts/admin/teacher_certificate_form.html', {'teachers': teachers})
+
+
+@login_required
+def admin_teacher_certificate_delete(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherCertificate
+    cert = get_object_or_404(TeacherCertificate, pk=pk)
+    if request.method == 'POST':
+        cert.delete()
+        messages.success(request, "Sertifikat o'chirildi!")
+    return redirect('admin_teacher_certificates')
+

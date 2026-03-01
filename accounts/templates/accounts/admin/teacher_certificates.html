@@ -1,0 +1,130 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% block title %}O'qituvchi sertifikatlari - Admin Panel{% endblock %}
+{% block topbar_title %}O'qituvchi sertifikatlari{% endblock %}
+
+{% block admin_content %}
+<style>
+.tc-page { max-width: 1200px; margin: 0 auto; }
+.tc-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; animation: tcFade 0.4s ease; }
+@keyframes tcFade { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+.tc-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.tc-header h1 i { color: #f59e0b; }
+.tc-add-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+    text-decoration: none; transition: all 0.2s;
+}
+.tc-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,.3); color: #fff; }
+.tc-filter { display: flex; gap: .75rem; margin-bottom: 1.5rem; animation: tcFade 0.45s ease; }
+.tc-filter-sel {
+    padding: .5rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color); cursor: pointer;
+}
+.tc-filter-sel:focus { outline: none; border-color: #f59e0b; }
+.tc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+.tc-card {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 18px; overflow: hidden; transition: all 0.3s;
+    animation: tcFade 0.5s ease forwards; opacity: 0;
+}
+.tc-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.08); transform: translateY(-3px); }
+[data-bs-theme="dark"] .tc-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.tc-preview {
+    height: 140px; background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+}
+.tc-preview i { font-size: 3rem; color: rgba(255,255,255,.3); }
+.tc-preview-link {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.4); opacity: 0; transition: opacity 0.3s;
+    color: #fff; font-weight: 700; text-decoration: none;
+}
+.tc-card:hover .tc-preview-link { opacity: 1; }
+.tc-hidden-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,.6); color: #fff; padding: 3px 8px;
+    border-radius: 6px; font-size: .68rem; font-weight: 700;
+}
+.tc-body { padding: 18px; }
+.tc-teacher-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.tc-teacher-av {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: .65rem;
+}
+.tc-teacher-name { font-weight: 600; font-size: .85rem; }
+.tc-title { font-weight: 700; font-size: .95rem; margin-bottom: .3rem; }
+.tc-desc { font-size: .8rem; color: var(--bs-secondary-color); margin-bottom: .3rem; }
+.tc-date { font-size: .75rem; color: var(--bs-secondary-color); }
+.tc-actions {
+    padding: 12px 18px; border-top: 1px solid var(--border-color, #dee2e6);
+    display: flex; gap: .5rem;
+}
+.tc-act-btn {
+    padding: 5px 10px; border-radius: 8px; font-size: .75rem; font-weight: 600;
+    border: 1px solid var(--border-color, #dee2e6); background: transparent;
+    color: var(--text-color); cursor: pointer; transition: all 0.2s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+}
+.tc-act-btn:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
+.tc-act-del { color: #ef4444; border-color: rgba(239,68,68,.3); }
+.tc-act-del:hover { background: rgba(239,68,68,.06); color: #ef4444; }
+.tc-empty { text-align: center; padding: 3rem; }
+.tc-empty-icon { width: 70px; height: 70px; border-radius: 18px; margin: 0 auto 1rem; background: rgba(245,158,11,.1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #f59e0b; }
+@media (max-width: 576px) { .tc-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="tc-page">
+    <div class="tc-header">
+        <h1><i class="bi bi-award-fill"></i> O'qituvchi sertifikatlari</h1>
+        <a href="{% url 'admin_teacher_certificate_add' %}" class="tc-add-btn"><i class="bi bi-plus-lg"></i> Sertifikat qo'shish</a>
+    </div>
+
+    <form method="GET" class="tc-filter">
+        <select name="teacher" class="tc-filter-sel" onchange="this.form.submit()">
+            <option value="">Barcha o'qituvchilar</option>
+            {% for t in teachers %}<option value="{{ t.pk }}" {% if teacher_id == t.pk|stringformat:"d" %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
+        </select>
+    </form>
+
+    {% if certificates %}
+    <div class="tc-grid">
+        {% for cert in certificates %}
+        <div class="tc-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <div class="tc-preview">
+                <i class="bi bi-award-fill"></i>
+                <a href="{{ cert.file.url }}" target="_blank" class="tc-preview-link"><i class="bi bi-eye me-2"></i> Ko'rish</a>
+                {% if not cert.is_visible %}<div class="tc-hidden-badge"><i class="bi bi-eye-slash"></i> Yashirin</div>{% endif %}
+            </div>
+            <div class="tc-body">
+                <div class="tc-teacher-row">
+                    <div class="tc-teacher-av">{{ cert.teacher.first_name.0 }}{{ cert.teacher.last_name.0 }}</div>
+                    <span class="tc-teacher-name">{{ cert.teacher.full_name }}</span>
+                </div>
+                <div class="tc-title">{{ cert.title }}</div>
+                {% if cert.description %}<div class="tc-desc">{{ cert.description }}</div>{% endif %}
+                {% if cert.issued_date %}<div class="tc-date"><i class="bi bi-calendar3 me-1"></i> {{ cert.issued_date|date:"d.m.Y" }}</div>{% endif %}
+            </div>
+            <div class="tc-actions">
+                <a href="{{ cert.file.url }}" target="_blank" class="tc-act-btn"><i class="bi bi-download"></i> Yuklab olish</a>
+                <form method="POST" action="{% url 'admin_teacher_certificate_delete' cert.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirmoqchimisiz?')">
+                    {% csrf_token %}
+                    <button type="submit" class="tc-act-btn tc-act-del"><i class="bi bi-trash3"></i> O'chirish</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="tc-empty">
+        <div class="tc-empty-icon"><i class="bi bi-award"></i></div>
+        <h5 style="font-weight:700;">Sertifikatlar topilmadi</h5>
+        <p style="color:var(--bs-secondary-color);">Hali sertifikat yuklanmagan.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

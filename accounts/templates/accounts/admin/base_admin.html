@@ -339,13 +339,18 @@
 
             <div class="sidebar-group-label">O'qituvchilar</div>
 
-            <a href="{% url 'admin:teacher_teachersalary_changelist' %}"
-                class="nav-link {% if 'teachersalary' in request.path %}active{% endif %}">
+            <a href="{% url 'admin_teachers' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}">
+                <i class="bi bi-person-workspace"></i>
+                <span>O'qituvchilar</span>
+            </a>
+            <a href="{% url 'admin_teacher_salaries' %}"
+                class="nav-link {% if 'salary' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-wallet2"></i>
                 <span>Oyliklar</span>
             </a>
-            <a href="{% url 'admin:teacher_teachercertificate_changelist' %}"
-                class="nav-link {% if 'teachercertificate' in request.path %}active{% endif %}">
+            <a href="{% url 'admin_teacher_certificates' %}"
+                class="nav-link {% if 'teacher_certificate' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="bi bi-award"></i>
                 <span>Sertifikatlar</span>
             </a>

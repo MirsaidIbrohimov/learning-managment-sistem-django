@@ -1,0 +1,106 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% block title %}{% if is_edit %}Oylikni tahrirlash{% else %}Oylik qo'shish{% endif %} - Admin Panel{% endblock %}
+{% block topbar_title %}{% if is_edit %}Oylikni tahrirlash{% else %}Oylik qo'shish{% endif %}{% endblock %}
+
+{% block admin_content %}
+<style>
+.tsf-page { max-width: 700px; margin: 0 auto; animation: tsf 0.5s ease; }
+@keyframes tsf { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+.tsf-back { display: inline-flex; align-items: center; gap: .5rem; color: var(--text-color); text-decoration: none; font-weight: 600; font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s; }
+.tsf-back:hover { color: #10b981; }
+.tsf-card { background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6); border-radius: 18px; overflow: hidden; }
+.tsf-head { padding: 18px 24px; border-bottom: 1px solid var(--border-color, #dee2e6); font-weight: 700; display: flex; align-items: center; gap: .5rem; }
+.tsf-body { padding: 24px; }
+.tsf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.tsf-field { margin-bottom: 1rem; }
+.tsf-label { display: block; font-size: .78rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .5px; margin-bottom: .4rem; }
+.tsf-input { width: 100%; padding: .65rem 1rem; border-radius: 12px; border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f8f9fa); color: var(--text-color); font-size: .9rem; transition: all 0.2s; }
+[data-bs-theme="dark"] .tsf-input { background: rgba(255,255,255,.05); }
+.tsf-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+.tsf-check { display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem; border-radius: 12px; border: 1px solid var(--border-color, #dee2e6); cursor: pointer; transition: all 0.2s; user-select: none; }
+.tsf-check:hover { border-color: #10b981; }
+.tsf-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: #10b981; }
+.tsf-check span { font-weight: 600; font-size: .88rem; }
+.tsf-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+.tsf-btn { padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem; display: inline-flex; align-items: center; gap: .5rem; transition: all 0.2s; border: none; cursor: pointer; }
+.tsf-btn-save { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.tsf-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.3); }
+.tsf-btn-cancel { background: transparent; border: 2px solid var(--border-color, #dee2e6); color: var(--text-color); text-decoration: none; }
+.tsf-btn-cancel:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
+@media (max-width: 768px) { .tsf-row { grid-template-columns: 1fr; } .tsf-actions { flex-direction: column; } .tsf-btn { width: 100%; justify-content: center; } }
+</style>
+
+<div class="tsf-page">
+    <a href="{% url 'admin_teacher_salaries' %}" class="tsf-back"><i class="bi bi-arrow-left"></i> Oyliklarga qaytish</a>
+    <div class="tsf-card">
+        <div class="tsf-head"><i class="bi bi-{% if is_edit %}pencil-square{% else %}plus-circle{% endif %}" style="color:#10b981;"></i> {% if is_edit %}Oylikni tahrirlash{% else %}Yangi oylik qo'shish{% endif %}</div>
+        <div class="tsf-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="tsf-field">
+                    <label class="tsf-label">O'qituvchi *</label>
+                    <select name="teacher" class="tsf-input" required>
+                        <option value="">Tanlang...</option>
+                        {% for t in teachers %}<option value="{{ t.pk }}" {% if salary and salary.teacher_id == t.pk %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
+                    </select>
+                </div>
+                <div class="tsf-row">
+                    <div>
+                        <label class="tsf-label">Turi *</label>
+                        <select name="salary_type" class="tsf-input" required>
+                            {% for val, label in salary_types %}<option value="{{ val }}" {% if salary and salary.salary_type == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="tsf-label">Summa (so'm) *</label>
+                        <input type="number" name="amount" class="tsf-input" value="{{ salary.amount|default:'' }}" required min="0">
+                    </div>
+                </div>
+                <div class="tsf-row">
+                    <div>
+                        <label class="tsf-label">Oy *</label>
+                        <select name="month" class="tsf-input" required>
+                            {% for val, label in month_choices %}<option value="{{ val }}" {% if salary and salary.month == val %}selected{% elif not salary and current_month == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="tsf-label">Yil *</label>
+                        <input type="number" name="year" class="tsf-input" value="{% if salary %}{{ salary.year }}{% else %}{{ current_year }}{% endif %}" required min="2020" max="2030">
+                    </div>
+                </div>
+                <div class="tsf-field">
+                    <label class="tsf-label">Izoh</label>
+                    <input type="text" name="description" class="tsf-input" value="{{ salary.description|default:'' }}" placeholder="Qo'shimcha izoh...">
+                </div>
+                <div class="tsf-row">
+                    <div>
+                        <label class="tsf-label">To'langan sana</label>
+                        <input type="date" name="paid_date" class="tsf-input" value="{% if salary.paid_date %}{{ salary.paid_date|date:'Y-m-d' }}{% endif %}">
+                    </div>
+                    <div>
+                        <label class="tsf-label">Chek/Kvitansiya</label>
+                        <input type="file" name="receipt" class="tsf-input">
+                        {% if salary.receipt %}<small style="color:var(--bs-secondary-color);display:block;margin-top:.3rem;">Joriy: <a href="{{ salary.receipt.url }}" target="_blank">Ko'rish</a></small>{% endif %}
+                    </div>
+                </div>
+                <label class="tsf-check">
+                    <input type="checkbox" name="is_paid" {% if salary.is_paid %}checked{% endif %}>
+                    <span>To'langan</span>
+                </label>
+                <div class="tsf-actions">
+                    <a href="{% url 'admin_teacher_salaries' %}" class="tsf-btn tsf-btn-cancel"><i class="bi bi-x-lg"></i> Bekor qilish</a>
+                    <button type="submit" class="tsf-btn tsf-btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('form').forEach(function(form) {
+    form.addEventListener('submit', function() {
+        var btn = form.querySelector('button[type="submit"]');
+        if (btn && !btn.disabled) { btn.disabled = true; var o = btn.innerHTML; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...'; setTimeout(function(){ btn.disabled=false; btn.innerHTML=o; }, 5000); }
+    });
+});
+</script>
+{% endblock %}

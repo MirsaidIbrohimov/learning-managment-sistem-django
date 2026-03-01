@@ -1,0 +1,140 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% block title %}O'qituvchilar - Admin Panel{% endblock %}
+{% block topbar_title %}O'qituvchilar{% endblock %}
+
+{% block admin_content %}
+<style>
+.tl-page { max-width: 1200px; margin: 0 auto; }
+.tl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; animation: tlFadeIn 0.4s ease; }
+@keyframes tlFadeIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+.tl-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.tl-header h1 i { color: #10b981; }
+.tl-add-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem;
+    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+    text-decoration: none; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16,185,129,.25);
+}
+.tl-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.35); color: #fff; }
+.tl-search { position: relative; margin-bottom: 1.5rem; max-width: 400px; animation: tlFadeIn 0.45s ease; }
+.tl-search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); pointer-events: none; }
+.tl-search-input {
+    width: 100%; padding: .7rem 1rem .7rem 2.75rem; border-radius: 14px;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color); font-size: .9rem; transition: all 0.2s;
+}
+.tl-search-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+.tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+.tl-card {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 18px; padding: 24px; transition: all 0.3s;
+    animation: tlFadeIn 0.5s ease forwards; opacity: 0;
+}
+.tl-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.08); transform: translateY(-3px); }
+[data-bs-theme="dark"] .tl-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+.tl-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.tl-avatar { width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; object-fit: cover; }
+.tl-avatar-ph {
+    width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; font-size: 1rem;
+}
+.tl-name { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
+.tl-online { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; }
+.tl-username { font-size: .8rem; color: var(--bs-secondary-color); }
+.tl-stats { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 18px; }
+.tl-stat {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 10px;
+    background: var(--bg-color, #f8f9fa); font-size: .82rem;
+}
+[data-bs-theme="dark"] .tl-stat { background: rgba(255,255,255,.05); }
+.tl-stat-icon {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0;
+}
+.tl-stat-val { font-weight: 700; }
+.tl-stat-lbl { font-size: .72rem; color: var(--bs-secondary-color); }
+.tl-actions { display: flex; gap: .5rem; }
+.tl-act {
+    flex: 1; padding: 8px; border-radius: 10px; text-align: center;
+    font-size: .78rem; font-weight: 600; text-decoration: none;
+    border: 1px solid var(--border-color, #dee2e6); color: var(--text-color);
+    background: transparent; transition: all 0.2s; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.tl-act:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
+.tl-act-view { color: #0ea5e9; border-color: rgba(14,165,233,.3); }
+.tl-act-view:hover { background: rgba(14,165,233,.06); color: #0ea5e9; }
+.tl-act-edit { color: #6366f1; border-color: rgba(99,102,241,.3); }
+.tl-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
+.tl-act-block { color: #f59e0b; border-color: rgba(245,158,11,.3); }
+.tl-act-block:hover { background: rgba(245,158,11,.06); color: #f59e0b; }
+.tl-empty { text-align: center; padding: 3rem; }
+.tl-empty-icon { width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 1rem; background: rgba(16,185,129,.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #10b981; }
+.tl-count { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: 1rem; animation: tlFadeIn 0.45s ease; }
+@media (max-width: 576px) { .tl-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="tl-page">
+    <div class="tl-header">
+        <h1><i class="bi bi-person-workspace"></i> O'qituvchilar</h1>
+        <a href="{% url 'admin_add_teacher' %}" class="tl-add-btn"><i class="bi bi-plus-lg"></i> O'qituvchi qo'shish</a>
+    </div>
+    <form method="GET" class="tl-search">
+        <i class="bi bi-search tl-search-icon"></i>
+        <input type="text" name="q" class="tl-search-input" placeholder="Ism, username yoki telefon..." value="{{ search_query }}">
+    </form>
+    <div class="tl-count"><i class="bi bi-people-fill me-1"></i> {{ total_count }} ta o'qituvchi</div>
+
+    {% if teachers_data %}
+    <div class="tl-grid">
+        {% for td in teachers_data %}
+        <div class="tl-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <div class="tl-card-top">
+                {% if td.user.photo %}<img src="{{ td.user.photo.url }}" class="tl-avatar" alt="">
+                {% else %}<div class="tl-avatar-ph">{{ td.user.get_initials }}</div>{% endif %}
+                <div style="min-width:0;">
+                    <div class="tl-name">{{ td.user.full_name }} {% if td.user.is_online %}<span class="tl-online"></span>{% endif %}</div>
+                    <div class="tl-username">@{{ td.user.username }} · {{ td.user.phone }}</div>
+                </div>
+            </div>
+            <div class="tl-stats">
+                <div class="tl-stat">
+                    <div class="tl-stat-icon" style="background:rgba(59,130,246,.1);color:#3b82f6;"><i class="bi bi-book-fill"></i></div>
+                    <div><div class="tl-stat-val">{{ td.courses_count }}</div><div class="tl-stat-lbl">Kurslar</div></div>
+                </div>
+                <div class="tl-stat">
+                    <div class="tl-stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
+                    <div><div class="tl-stat-val">{{ td.students_count }}</div><div class="tl-stat-lbl">O'quvchilar</div></div>
+                </div>
+                <div class="tl-stat">
+                    <div class="tl-stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="bi bi-award-fill"></i></div>
+                    <div><div class="tl-stat-val">{{ td.certs_count }}</div><div class="tl-stat-lbl">Sertifikatlar</div></div>
+                </div>
+                <div class="tl-stat">
+                    <div class="tl-stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="bi bi-wallet2"></i></div>
+                    <div><div class="tl-stat-val">{{ td.current_salary|floatformat:0 }}</div><div class="tl-stat-lbl">Joriy oy</div></div>
+                </div>
+            </div>
+            <div class="tl-actions">
+                <a href="{% url 'admin_user_view' td.user.pk %}" class="tl-act tl-act-view"><i class="bi bi-eye"></i> Ko'rish</a>
+                <a href="{% url 'admin_user_edit' td.user.pk %}" class="tl-act tl-act-edit"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'admin_user_block' td.user.pk %}" class="tl-act tl-act-block">
+                    <i class="bi bi-{% if td.user.is_blocked %}unlock{% else %}lock{% endif %}"></i>
+                    {% if td.user.is_blocked %}Ochish{% else %}Bloklash{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="tl-empty">
+        <div class="tl-empty-icon"><i class="bi bi-person-workspace"></i></div>
+        <h5 style="font-weight:700;">O'qituvchilar topilmadi</h5>
+        <p style="color:var(--bs-secondary-color);">{% if search_query %}"{{ search_query }}" bo'yicha natija yo'q{% else %}Hali o'qituvchi qo'shilmagan{% endif %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

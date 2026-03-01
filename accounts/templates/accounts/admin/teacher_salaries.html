@@ -1,0 +1,176 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% block title %}O'qituvchi oyliklari - Admin Panel{% endblock %}
+{% block topbar_title %}O'qituvchi oyliklari{% endblock %}
+
+{% block admin_content %}
+<style>
+.ts-page { max-width: 1200px; margin: 0 auto; }
+.ts-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; animation: tsFade 0.4s ease; }
+@keyframes tsFade { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+.ts-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.ts-header h1 i { color: #10b981; }
+.ts-add-btn {
+    display: inline-flex; align-items: center; gap: .5rem;
+    padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem;
+    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+    text-decoration: none; transition: all 0.2s;
+}
+.ts-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.3); color: #fff; }
+.ts-total {
+    background: linear-gradient(135deg, #064e3b, #047857); border-radius: 16px;
+    padding: 1.5rem 2rem; color: #fff; margin-bottom: 1.5rem;
+    animation: tsFade 0.45s ease; position: relative; overflow: hidden;
+}
+.ts-total::before { content:''; position:absolute; top:-60%; right:-15%; width:250px; height:250px; background:rgba(255,255,255,.06); border-radius:50%; }
+.ts-total-label { font-size: .85rem; opacity: .8; }
+.ts-total-val { font-size: 1.8rem; font-weight: 800; }
+.ts-filters {
+    display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; animation: tsFade 0.5s ease;
+}
+.ts-filter-sel {
+    padding: .5rem 1rem; border-radius: 10px; font-size: .85rem; font-weight: 600;
+    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    color: var(--text-color); cursor: pointer;
+}
+.ts-filter-sel:focus { outline: none; border-color: #10b981; }
+.ts-card {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 18px; overflow: hidden; animation: tsFade 0.55s ease;
+}
+.ts-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.ts-table thead th {
+    padding: 14px 16px; font-size: .72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--bs-secondary-color);
+    border-bottom: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f8f9fa);
+}
+[data-bs-theme="dark"] .ts-table thead th { background: rgba(255,255,255,.03); }
+.ts-table tbody td {
+    padding: 14px 16px; font-size: .85rem; border-bottom: 1px solid var(--border-color, #dee2e6); vertical-align: middle;
+}
+.ts-table tbody tr { transition: background 0.2s; }
+.ts-table tbody tr:hover { background: var(--bg-color, #f8f9fa); }
+[data-bs-theme="dark"] .ts-table tbody tr:hover { background: rgba(255,255,255,.03); }
+.ts-table tbody tr:last-child td { border-bottom: none; }
+.ts-teacher-info { display: flex; align-items: center; gap: 10px; }
+.ts-teacher-av {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: .75rem;
+}
+.ts-teacher-name { font-weight: 600; font-size: .88rem; }
+.ts-badge { display: inline-flex; padding: 3px 8px; border-radius: 6px; font-size: .72rem; font-weight: 700; }
+.ts-badge-oylik { background: rgba(59,130,246,.1); color: #3b82f6; }
+.ts-badge-kpi { background: rgba(139,92,246,.1); color: #8b5cf6; }
+.ts-badge-bayram { background: rgba(245,158,11,.1); color: #f59e0b; }
+.ts-badge-bonus { background: rgba(16,185,129,.1); color: #10b981; }
+.ts-badge-jarima { background: rgba(239,68,68,.1); color: #ef4444; }
+.ts-badge-boshqa { background: var(--bg-color, #f0f2f5); color: var(--bs-secondary-color); }
+[data-bs-theme="dark"] .ts-badge-oylik { background: rgba(59,130,246,.2); color: #93c5fd; }
+[data-bs-theme="dark"] .ts-badge-kpi { background: rgba(139,92,246,.2); color: #c4b5fd; }
+[data-bs-theme="dark"] .ts-badge-bayram { background: rgba(245,158,11,.2); color: #fcd34d; }
+[data-bs-theme="dark"] .ts-badge-bonus { background: rgba(16,185,129,.2); color: #6ee7b7; }
+[data-bs-theme="dark"] .ts-badge-jarima { background: rgba(239,68,68,.2); color: #fca5a5; }
+.ts-amount { font-weight: 700; }
+.ts-amount-plus { color: #10b981; }
+.ts-amount-minus { color: #ef4444; }
+.ts-paid { color: #10b981; font-weight: 600; font-size: .82rem; }
+.ts-unpaid { color: #ef4444; font-weight: 600; font-size: .82rem; }
+.ts-receipt-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 6px; font-size: .72rem; font-weight: 600;
+    background: rgba(59,130,246,.1); color: #3b82f6; text-decoration: none; transition: all 0.2s;
+}
+.ts-receipt-btn:hover { background: rgba(59,130,246,.2); color: #2563eb; }
+.ts-act { display: inline-flex; gap: .3rem; }
+.ts-act-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border-color, #dee2e6); background: transparent;
+    color: var(--text-color); cursor: pointer; font-size: .82rem; transition: all 0.2s; text-decoration: none;
+}
+.ts-act-btn:hover { transform: translateY(-1px); }
+.ts-act-edit { color: #6366f1; border-color: rgba(99,102,241,.3); }
+.ts-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
+.ts-act-del { color: #ef4444; border-color: rgba(239,68,68,.3); }
+.ts-act-del:hover { background: rgba(239,68,68,.06); color: #ef4444; }
+.ts-empty { text-align: center; padding: 3rem; }
+.ts-empty-icon { width: 70px; height: 70px; border-radius: 18px; margin: 0 auto 1rem; background: rgba(16,185,129,.1); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #10b981; }
+@media (max-width: 768px) { .ts-card { overflow-x: auto; } .ts-total-val { font-size: 1.4rem; } }
+</style>
+
+<div class="ts-page">
+    <div class="ts-header">
+        <h1><i class="bi bi-wallet2"></i> O'qituvchi oyliklari</h1>
+        <a href="{% url 'admin_teacher_salary_add' %}" class="ts-add-btn"><i class="bi bi-plus-lg"></i> Oylik qo'shish</a>
+    </div>
+
+    <div class="ts-total">
+        <div>
+            <div class="ts-total-label">Umumiy to'langan</div>
+            <div class="ts-total-val">{{ total_amount|floatformat:0 }} so'm</div>
+        </div>
+    </div>
+
+    <form method="GET" class="ts-filters">
+        <select name="teacher" class="ts-filter-sel" onchange="this.form.submit()">
+            <option value="">Barcha o'qituvchilar</option>
+            {% for t in teachers %}<option value="{{ t.pk }}" {% if teacher_id == t.pk|stringformat:"d" %}selected{% endif %}>{{ t.full_name }}</option>{% endfor %}
+        </select>
+        <select name="type" class="ts-filter-sel" onchange="this.form.submit()">
+            <option value="">Barcha turlar</option>
+            {% for val, label in salary_types %}<option value="{{ val }}" {% if type_filter == val %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="month" class="ts-filter-sel" onchange="this.form.submit()">
+            <option value="">Barcha oylar</option>
+            {% for val, label in month_choices %}<option value="{{ val }}" {% if month_filter == val|stringformat:"d" %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <select name="year" class="ts-filter-sel" onchange="this.form.submit()">
+            <option value="">Barcha yillar</option>
+            {% for y in available_years %}<option value="{{ y }}" {% if year_filter == y|stringformat:"d" %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+    </form>
+
+    <div class="ts-card">
+        {% if salaries %}
+        <div style="overflow-x: auto;">
+            <table class="ts-table">
+                <thead><tr><th>O'qituvchi</th><th>Turi</th><th>Summa</th><th>Oy/Yil</th><th>Holat</th><th>Chek</th><th>Izoh</th><th></th></tr></thead>
+                <tbody>
+                    {% for s in salaries %}
+                    <tr>
+                        <td><div class="ts-teacher-info"><div class="ts-teacher-av">{{ s.teacher.first_name.0 }}{{ s.teacher.last_name.0 }}</div><span class="ts-teacher-name">{{ s.teacher.full_name }}</span></div></td>
+                        <td><span class="ts-badge ts-badge-{{ s.salary_type }}">{{ s.get_salary_type_display }}</span></td>
+                        <td class="ts-amount {% if s.salary_type == 'jarima' %}ts-amount-minus{% else %}ts-amount-plus{% endif %}">{% if s.salary_type == 'jarima' %}-{% endif %}{{ s.amount|floatformat:0 }}</td>
+                        <td>{{ s.month_name }} {{ s.year }}</td>
+                        <td>{% if s.is_paid %}<span class="ts-paid"><i class="bi bi-check-circle-fill me-1"></i>To'langan</span>{% else %}<span class="ts-unpaid"><i class="bi bi-clock me-1"></i>Kutilmoqda</span>{% endif %}</td>
+                        <td>{% if s.receipt %}<a href="{{ s.receipt.url }}" target="_blank" class="ts-receipt-btn"><i class="bi bi-receipt"></i> Ko'rish</a>{% else %}<span style="color:var(--bs-secondary-color);font-size:.8rem;">—</span>{% endif %}</td>
+                        <td style="font-size:.8rem;color:var(--bs-secondary-color);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ s.description|default:"—" }}</td>
+                        <td>
+                            <div class="ts-act">
+                                <a href="{% url 'admin_teacher_salary_edit' s.pk %}" class="ts-act-btn ts-act-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                                <form method="POST" action="{% url 'admin_teacher_salary_delete' s.pk %}" style="display:inline;" onsubmit="return confirm('O\'chirmoqchimisiz?')">{% csrf_token %}<button type="submit" class="ts-act-btn ts-act-del" title="O'chirish"><i class="bi bi-trash3"></i></button></form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if salaries.has_other_pages %}
+        <div style="padding:16px 24px;border-top:1px solid var(--border-color,#dee2e6);display:flex;justify-content:center;gap:.5rem;">
+            {% if salaries.has_previous %}<a href="?page={{ salaries.previous_page_number }}&teacher={{ teacher_id }}&type={{ type_filter }}&month={{ month_filter }}&year={{ year_filter }}" class="ts-act-btn"><i class="bi bi-chevron-left"></i></a>{% endif %}
+            <span style="padding:6px 12px;font-size:.85rem;font-weight:600;">{{ salaries.number }} / {{ salaries.paginator.num_pages }}</span>
+            {% if salaries.has_next %}<a href="?page={{ salaries.next_page_number }}&teacher={{ teacher_id }}&type={{ type_filter }}&month={{ month_filter }}&year={{ year_filter }}" class="ts-act-btn"><i class="bi bi-chevron-right"></i></a>{% endif %}
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="ts-empty">
+            <div class="ts-empty-icon"><i class="bi bi-wallet2"></i></div>
+            <h5 style="font-weight:700;">Oyliklar topilmadi</h5>
+            <p style="color:var(--bs-secondary-color);">Hali oylik ma'lumotlari kiritilmagan.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
