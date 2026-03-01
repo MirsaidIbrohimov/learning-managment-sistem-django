@@ -1,0 +1,163 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Vazifani baholash - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Vazifani baholash{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-grade-page { max-width: 800px; margin: 0 auto; }
+.t-grade-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-grade-back:hover { color: var(--t-primary); }
+.t-grade-info {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; padding: 24px; margin-bottom: 1.5rem;
+    animation: fadeInUp 0.5s ease;
+}
+.t-grade-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.t-grade-info-item label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--bs-secondary-color); margin-bottom: .2rem; display: block; }
+.t-grade-info-item div { font-weight: 600; font-size: .95rem; }
+.t-grade-submission {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden;
+    animation: fadeInUp 0.55s ease;
+}
+.t-grade-submission-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color);
+    font-weight: 700; display: flex; align-items: center; gap: .5rem;
+}
+.t-grade-submission-body { padding: 24px; }
+.t-grade-text-content {
+    background: var(--bs-tertiary-bg); border-radius: 12px; padding: 16px;
+    font-size: .9rem; white-space: pre-wrap; word-wrap: break-word;
+    max-height: 300px; overflow-y: auto;
+}
+.t-grade-form {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; overflow: hidden; animation: fadeInUp 0.6s ease;
+}
+.t-grade-form-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color);
+    font-weight: 700; display: flex; align-items: center; gap: .5rem;
+}
+.t-grade-form-body { padding: 24px; }
+.t-grade-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.t-grade-field { margin-bottom: 1rem; }
+.t-grade-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+@media (max-width: 768px) {
+    .t-grade-info-grid { grid-template-columns: 1fr; }
+    .t-grade-row { grid-template-columns: 1fr; }
+    .t-grade-actions { flex-direction: column; }
+    .t-grade-actions .t-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="t-grade-page">
+    <a href="{% url 'teacher:homeworks' %}" class="t-grade-back">
+        <i class="bi bi-arrow-left"></i> Vazifalar ro'yxatiga qaytish
+    </a>
+
+    <!-- Student & Homework info -->
+    <div class="t-grade-info">
+        <div class="t-grade-info-grid">
+            <div class="t-grade-info-item">
+                <label>O'quvchi</label>
+                <div>{{ submission.student.full_name }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Vazifa</label>
+                <div>{{ submission.homework.lesson.title }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Kurs</label>
+                <div>{{ submission.homework.lesson.profession.name }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Topshirilgan sana</label>
+                <div>{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Joriy holat</label>
+                <div>
+                    <span class="t-badge {% if submission.status == 'pending' %}t-badge-warning{% elif submission.status == 'graded' %}t-badge-success{% else %}t-badge-info{% endif %}">
+                        {{ submission.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            {% if submission.grade %}
+            <div class="t-grade-info-item">
+                <label>Joriy baho</label>
+                <div>{{ submission.grade }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Submitted content -->
+    <div class="t-grade-submission">
+        <div class="t-grade-submission-head">
+            <i class="bi bi-file-earmark-text" style="color: #3b82f6;"></i> Topshirilgan ish
+        </div>
+        <div class="t-grade-submission-body">
+            {% if submission.file %}
+            <a href="{{ submission.file.url }}" target="_blank" class="t-btn t-btn-outline" style="margin-bottom: 1rem;">
+                <i class="bi bi-download"></i> Faylni yuklab olish
+            </a>
+            {% endif %}
+            {% if submission.text_content %}
+            <div class="t-grade-text-content">{{ submission.text_content }}</div>
+            {% endif %}
+            {% if not submission.file and not submission.text_content %}
+            <p style="color: var(--bs-secondary-color);">Topshiriq fayli yoki matni mavjud emas.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Grade form -->
+    <div class="t-grade-form">
+        <div class="t-grade-form-head">
+            <i class="bi bi-pencil-square" style="color: var(--t-primary);"></i> Baholash
+        </div>
+        <div class="t-grade-form-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="t-grade-row">
+                    <div class="t-grade-field">
+                        <label class="t-label">Baho (1-100) *</label>
+                        <input type="number" name="grade" class="t-input" min="1" max="100" value="{{ submission.grade|default:'' }}" required>
+                    </div>
+                    <div class="t-grade-field">
+                        <label class="t-label">Holat *</label>
+                        <select name="status" class="t-input">
+                            <option value="graded" {% if submission.status == 'graded' %}selected{% endif %}>Baholangan</option>
+                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta ishlash kerak</option>
+                            <option value="accepted" {% if submission.status == 'accepted' %}selected{% endif %}>Qabul qilindi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="t-grade-field">
+                    <label class="t-label">Izoh</label>
+                    <textarea name="feedback" class="t-input" rows="4" placeholder="O'quvchiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
+                </div>
+                <div class="t-grade-field">
+                    <label class="t-label">Izoh fayli (ixtiyoriy)</label>
+                    <input type="file" name="feedback_file" class="t-input">
+                </div>
+                <div class="t-grade-actions">
+                    <a href="{% url 'teacher:homeworks' %}" class="t-btn t-btn-outline">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="t-btn t-btn-primary">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

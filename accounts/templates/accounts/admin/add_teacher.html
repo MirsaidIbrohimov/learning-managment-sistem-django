@@ -116,7 +116,7 @@
         </div>
     </div>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <!-- Personal info -->
@@ -177,6 +177,31 @@
             </div>
         </div>
 
+        <!-- Certificates -->
+        <div class="at-card">
+            <div class="at-card-head">
+                <i class="bi bi-award-fill" style="color:#f59e0b;"></i> Sertifikatlar (ixtiyoriy)
+            </div>
+            <div class="at-card-body">
+                <div id="cert-container">
+                    <div class="cert-row" style="display:grid; grid-template-columns:1fr 1fr auto; gap:.75rem; margin-bottom:.75rem; align-items:end;">
+                        <div>
+                            <label class="at-label">Sertifikat nomi</label>
+                            <input type="text" name="cert_title" class="at-input" placeholder="Masalan: Python sertifikati">
+                        </div>
+                        <div>
+                            <label class="at-label">Sertifikat fayli</label>
+                            <input type="file" name="cert_file" class="at-input">
+                        </div>
+                        <div></div>
+                    </div>
+                </div>
+                <button type="button" onclick="addCertRow()" class="at-btn-cancel" style="padding:.5rem 1rem; font-size:.82rem;">
+                    <i class="bi bi-plus-lg"></i> Yana sertifikat qo'shish
+                </button>
+            </div>
+        </div>
+
         <div class="at-actions">
             <a href="{% url 'admin_users' %}" class="at-btn-cancel">
                 <i class="bi bi-x-lg"></i> Bekor qilish
@@ -195,5 +220,16 @@ document.querySelectorAll('.at-course-item').forEach(function(item) {
         item.classList.toggle('selected', cb.checked);
     });
 });
+
+function addCertRow() {
+    var container = document.getElementById('cert-container');
+    var row = document.createElement('div');
+    row.className = 'cert-row';
+    row.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:.75rem; margin-bottom:.75rem; align-items:end;';
+    row.innerHTML = '<div><label class="at-label">Sertifikat nomi</label><input type="text" name="cert_title" class="at-input" placeholder="Sertifikat nomi"></div>' +
+        '<div><label class="at-label">Sertifikat fayli</label><input type="file" name="cert_file" class="at-input"></div>' +
+        '<button type="button" onclick="this.parentElement.remove()" style="width:36px;height:36px;border-radius:10px;border:1px solid #dc3545;background:transparent;color:#dc3545;cursor:pointer;font-size:1rem;margin-bottom:2px;"><i class="bi bi-x-lg"></i></button>';
+    container.appendChild(row);
+}
 </script>
 {% endblock %}

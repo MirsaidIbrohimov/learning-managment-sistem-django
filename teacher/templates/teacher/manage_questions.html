@@ -1,0 +1,109 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Savollarni boshqarish - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Savollarni boshqarish{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-mq-page { max-width: 900px; margin: 0 auto; }
+.t-mq-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-mq-back:hover { color: var(--t-primary); }
+.t-mq-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    animation: fadeInUp 0.4s ease;
+}
+.t-mq-header h1 { font-size: 1.3rem; font-weight: 800; margin: 0; }
+.t-mq-info {
+    display: flex; gap: 1rem; flex-wrap: wrap; font-size: .85rem;
+    color: var(--bs-secondary-color); margin-bottom: 1.5rem;
+    animation: fadeInUp 0.45s ease;
+}
+.t-mq-info span { display: flex; align-items: center; gap: .3rem; }
+.t-question-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 16px; padding: 20px; margin-bottom: 1rem;
+    animation: fadeInUp 0.5s ease forwards; opacity: 0;
+    transition: all 0.3s ease;
+}
+.t-question-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.t-question-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px; border-radius: 8px; font-weight: 800; font-size: .85rem;
+    background: var(--t-primary-light); color: var(--t-primary); margin-right: .5rem;
+}
+.t-question-text { font-weight: 600; margin-bottom: .75rem; font-size: .95rem; }
+.t-answer-list { list-style: none; padding: 0; margin: 0 0 .75rem; }
+.t-answer-item {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .4rem .75rem; border-radius: 8px; margin-bottom: .25rem;
+    font-size: .85rem;
+}
+.t-answer-item.correct { background: rgba(16,185,129,0.08); color: #059669; font-weight: 600; }
+.t-answer-item i { font-size: .9rem; }
+.t-question-actions { display: flex; justify-content: flex-end; }
+</style>
+
+<div class="t-mq-page">
+    <a href="{% url 'teacher:courses' %}" class="t-mq-back">
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+    </a>
+
+    <div class="t-mq-header">
+        <h1>{{ test.lesson.title }} — Savollar</h1>
+        <a href="{% url 'teacher:add_question' test.pk %}" class="t-btn t-btn-primary">
+            <i class="bi bi-plus-lg"></i> Savol qo'shish
+        </a>
+    </div>
+
+    <div class="t-mq-info">
+        <span><i class="bi bi-clock"></i> {{ test.time_limit }} daqiqa</span>
+        <span><i class="bi bi-bar-chart"></i> O'tish bali: {{ test.passing_score }}%</span>
+        <span><i class="bi bi-list-check"></i> {{ questions|length }} ta savol</span>
+    </div>
+
+    {% if questions %}
+    {% for q in questions %}
+    <div class="t-question-card delay-{{ forloop.counter }}">
+        <div class="t-question-text">
+            <span class="t-question-num">{{ forloop.counter }}</span>
+            {{ q.question_text }}
+        </div>
+        {% if q.question_image %}
+        <img src="{{ q.question_image.url }}" style="max-width: 200px; border-radius: 8px; margin-bottom: .75rem;">
+        {% endif %}
+        <ul class="t-answer-list">
+            {% for a in q.answers.all %}
+            <li class="t-answer-item {% if a.is_correct %}correct{% endif %}">
+                <i class="bi bi-{% if a.is_correct %}check-circle-fill{% else %}circle{% endif %}"></i>
+                {{ a.answer_text }}
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="t-question-actions">
+            <form method="POST" action="{% url 'teacher:delete_question' q.pk %}" onsubmit="return confirm('Savolni o\'chirmoqchimisiz?')">
+                {% csrf_token %}
+                <button type="submit" class="t-cert-action-btn danger" style="padding:5px 12px;border-radius:8px;font-size:.78rem;font-weight:600;border:1px solid rgba(239,68,68,0.3);background:transparent;color:#ef4444;cursor:pointer;">
+                    <i class="bi bi-trash3"></i> O'chirish
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="t-card">
+        <div class="t-card-body">
+            <div class="t-empty">
+                <div class="t-empty-icon"><i class="bi bi-question-circle"></i></div>
+                <h3>Savollar yo'q</h3>
+                <p>Bu testda hali savollar mavjud emas. Yuqoridagi tugma orqali qo'shing.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

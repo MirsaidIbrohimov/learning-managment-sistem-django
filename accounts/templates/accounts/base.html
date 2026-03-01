@@ -503,6 +503,9 @@
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i>Qurilmalar</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i>Sozlamalar</a></li>
+                            {% if user.is_teacher %}
+                            <li><a class="dropdown-item rounded-3" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard me-2"></i>O'qituvchi paneli</a></li>
+                            {% endif %}
                             {% if user.is_admin %}
                             <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel</a></li>
                             {% endif %}
@@ -731,6 +734,12 @@
                     <div class="mob-menu-icon mob-icon-pink"><i class="bi bi-gear-fill"></i></div>
                     <span>Sozlamalar</span>
                 </a>
+                {% if user.is_teacher %}
+                <a href="{% url 'teacher:dashboard' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-green"><i class="bi bi-mortarboard-fill"></i></div>
+                    <span>O'qituvchi</span>
+                </a>
+                {% endif %}
                 {% if user.is_admin %}
                 <a href="{% url 'admin_dashboard' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-speedometer2"></i></div>

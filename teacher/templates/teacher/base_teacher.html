@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}O'qituvchi paneli - LMS{% endblock %}</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/teacher_panel.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="t-sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <div class="t-sidebar" id="teacherSidebar">
+        <button class="t-sidebar-close" id="sidebarClose"><i class="bi bi-x-lg"></i></button>
+        <div class="t-sidebar-brand">
+            <a href="{% url 'teacher:dashboard' %}">
+                <div class="t-brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+                <span>O'qituvchi paneli</span>
+            </a>
+        </div>
+
+        <nav class="t-sidebar-nav">
+            <div class="t-nav-group">Asosiy</div>
+            <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span>
+            </a>
+            <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}">
+                <i class="bi bi-book-fill"></i><span>Kurslarim</span>
+            </a>
+
+            <div class="t-nav-group">O'quv jarayoni</div>
+            <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-journal-check"></i><span>Uyga vazifalar</span>
+            </a>
+            <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-clipboard-data-fill"></i><span>Test natijalari</span>
+            </a>
+
+            <div class="t-nav-group">Boshqa</div>
+            <a href="{% url 'teacher:balance' %}" class="t-nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}">
+                <i class="bi bi-wallet2"></i><span>Balans</span>
+            </a>
+            <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-award-fill"></i><span>Sertifikatlarim</span>
+            </a>
+
+            <div class="t-nav-group"></div>
+            <a href="{% url 'home' %}" class="t-nav-link">
+                <i class="bi bi-house-fill"></i><span>Saytga qaytish</span>
+            </a>
+            <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger">
+                <i class="bi bi-box-arrow-right"></i><span>Chiqish</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Topbar -->
+    <div class="t-topbar">
+        <div class="t-topbar-left">
+            <button class="t-sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
+            <span class="t-topbar-title">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
+        </div>
+        <div class="t-topbar-right">
+            <button class="t-theme-btn" id="themeToggle" title="Tema o'zgartirish">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
+            <div class="dropdown">
+                <button class="t-profile-btn" data-bs-toggle="dropdown">
+                    <div class="t-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
+                    <span class="t-profile-name">{{ user.first_name }}</span>
+                    <i class="bi bi-chevron-down" style="font-size:.7rem;opacity:.5;"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;padding:8px;">
+                    <li class="px-3 py-2">
+                        <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
+                        <small class="text-muted">O'qituvchi</small>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item rounded-3" href="{% url 'home' %}"><i class="bi bi-house me-2"></i>Saytga o'tish</a></li>
+                    <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Chiqish</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="t-main-content">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+            <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}-fill me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% block teacher_content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // Theme
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-bs-theme', savedTheme);
+    updateIcon(savedTheme);
+    themeToggle.addEventListener('click', () => {
+        const cur = html.getAttribute('data-bs-theme');
+        const nw = cur === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-bs-theme', nw);
+        localStorage.setItem('theme', nw);
+        updateIcon(nw);
+    });
+    function updateIcon(t) {
+        themeIcon.classList.toggle('bi-moon-fill', t === 'light');
+        themeIcon.classList.toggle('bi-sun-fill', t === 'dark');
+    }
+
+    // Sidebar
+    const sidebar = document.getElementById('teacherSidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const closeBtn = document.getElementById('sidebarClose');
+    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow='hidden'; }
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow=''; }
+    toggleBtn.addEventListener('click', openSidebar);
+    closeBtn.addEventListener('click', closeSidebar);
+    overlay.addEventListener('click', closeSidebar);
+    sidebar.querySelectorAll('.t-nav-link').forEach(l => l.addEventListener('click', () => { if(window.innerWidth<=992) closeSidebar(); }));
+
+    // Prevent double submit
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.disabled = true;
+                const origText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+                setTimeout(() => { btn.disabled = false; btn.innerHTML = origText; }, 5000);
+            }
+        });
+    });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

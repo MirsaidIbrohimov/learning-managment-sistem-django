@@ -3637,6 +3637,19 @@ def admin_add_teacher(request):
             teacher.profession = Profession.objects.filter(pk=selected_professions[0]).first()
             teacher.save()
         
+        # Save certificates
+        cert_titles = request.POST.getlist('cert_title')
+        cert_files = request.FILES.getlist('cert_file')
+        if cert_titles and cert_files:
+            from teacher.models import TeacherCertificate
+            for title, file in zip(cert_titles, cert_files):
+                if title.strip() and file:
+                    TeacherCertificate.objects.create(
+                        teacher=teacher,
+                        title=title.strip(),
+                        file=file,
+                    )
+        
         messages.success(request, f"O'qituvchi {teacher.full_name} muvaffaqiyatli qo'shildi!")
         return redirect('admin_users')
     

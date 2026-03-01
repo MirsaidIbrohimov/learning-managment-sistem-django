@@ -1,0 +1,143 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Kurslarim - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Kurslarim{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-courses-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.4s ease;
+}
+.t-courses-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+.t-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+.t-course-card {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+.t-course-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+}
+.t-course-img {
+    height: 160px;
+    background: linear-gradient(135deg, #064e3b, #047857);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+.t-course-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.t-course-img .t-course-icon {
+    font-size: 3rem;
+    color: rgba(255,255,255,0.3);
+}
+.t-course-body { padding: 20px; }
+.t-course-name { font-size: 1.1rem; font-weight: 700; margin-bottom: .75rem; }
+.t-course-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+}
+.t-course-stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    color: var(--bs-secondary-color);
+}
+.t-course-stat i { font-size: 1rem; }
+.t-course-actions {
+    padding: 16px 20px;
+    border-top: 1px solid var(--bs-border-color);
+    display: flex;
+    gap: .5rem;
+}
+.t-course-actions .t-btn { font-size: .82rem; padding: .5rem 1rem; }
+@media (max-width: 576px) {
+    .t-courses-grid { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="t-courses-header">
+    <h1><i class="bi bi-book-fill" style="color: var(--t-primary);"></i> Kurslarim</h1>
+</div>
+
+{% if courses_data %}
+<div class="t-courses-grid">
+    {% for cd in courses_data %}
+    <div class="t-course-card delay-{{ forloop.counter }}">
+        <div class="t-course-img">
+            {% if cd.profession.photo %}
+            <img src="{{ cd.profession.photo.url }}" alt="{{ cd.profession.name }}">
+            {% else %}
+            <i class="bi bi-mortarboard-fill t-course-icon"></i>
+            {% endif %}
+        </div>
+        <div class="t-course-body">
+            <div class="t-course-name">{{ cd.profession.name }}</div>
+            <div class="t-course-stats">
+                <div class="t-course-stat">
+                    <i class="bi bi-people-fill" style="color:#8b5cf6;"></i>
+                    {{ cd.student_count }} o'quvchi
+                </div>
+                <div class="t-course-stat">
+                    <i class="bi bi-play-circle-fill" style="color:#3b82f6;"></i>
+                    {{ cd.lesson_count }} dars
+                </div>
+                <div class="t-course-stat">
+                    <i class="bi bi-brain" style="color:#f59e0b;"></i>
+                    {{ cd.test_count }} test
+                </div>
+                <div class="t-course-stat">
+                    <i class="bi bi-journal-check" style="color:#10b981;"></i>
+                    {{ cd.homework_count }} vazifa
+                </div>
+            </div>
+        </div>
+        <div class="t-course-actions">
+            <a href="{% url 'teacher:add_test' cd.profession.pk %}" class="t-btn t-btn-primary">
+                <i class="bi bi-plus-lg"></i> Test yuklash
+            </a>
+            <a href="{% url 'profession_detail' cd.profession.pk %}" class="t-btn t-btn-outline">
+                <i class="bi bi-eye"></i> Darslar
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="t-card">
+    <div class="t-card-body">
+        <div class="t-empty">
+            <div class="t-empty-icon"><i class="bi bi-book"></i></div>
+            <h3>Kurslar topilmadi</h3>
+            <p>Sizga hali kurs tayinlanmagan. Admin bilan bog'laning.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

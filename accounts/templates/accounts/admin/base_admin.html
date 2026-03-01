@@ -337,6 +337,19 @@
                 {% if admin_pending_passwords %}<span class="sidebar-badge">{{ admin_pending_passwords }}</span>{% endif %}
             </a>
 
+            <div class="sidebar-group-label">O'qituvchilar</div>
+
+            <a href="{% url 'admin:teacher_teachersalary_changelist' %}"
+                class="nav-link {% if 'teachersalary' in request.path %}active{% endif %}">
+                <i class="bi bi-wallet2"></i>
+                <span>Oyliklar</span>
+            </a>
+            <a href="{% url 'admin:teacher_teachercertificate_changelist' %}"
+                class="nav-link {% if 'teachercertificate' in request.path %}active{% endif %}">
+                <i class="bi bi-award"></i>
+                <span>Sertifikatlar</span>
+            </a>
+
             <div class="sidebar-group-label">Moliya & Market</div>
 
             <a href="{% url 'admin_payments' %}"

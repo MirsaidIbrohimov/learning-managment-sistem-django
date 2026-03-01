@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ai_yordamchi',
     'coin',
     'games',
+    'teacher',
 ]
 
 
@@ -141,6 +142,9 @@ JAZZMIN_SETTINGS = {
         "games.Prompt": "fas fa-keyboard",
         "games.Competition": "fas fa-trophy",
         "games.GameAttempt": "fas fa-chart-bar",
+
+        "teacher.TeacherCertificate": "fas fa-award",
+        "teacher.TeacherSalary": "fas fa-money-bill-wave",
     },
 
     "default_icon_parents": "fas fa-layer-group",

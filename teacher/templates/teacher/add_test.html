@@ -1,0 +1,99 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Test yaratish - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Test yaratish{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-addtest-page { max-width: 700px; margin: 0 auto; animation: fadeInUp 0.5s ease; }
+.t-addtest-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-addtest-back:hover { color: var(--t-primary); }
+.t-addtest-header { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.5rem; }
+.t-addtest-icon {
+    width: 50px; height: 50px; border-radius: 14px;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 1.4rem;
+}
+.t-addtest-header h1 { font-size: 1.3rem; font-weight: 800; margin: 0; }
+.t-addtest-header p { font-size: .85rem; color: var(--bs-secondary-color); margin: 0; }
+.t-addtest-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.t-addtest-field { margin-bottom: 1rem; }
+.t-addtest-check {
+    display: flex; align-items: center; gap: .75rem; padding: .75rem 1rem;
+    border-radius: 12px; border: 1px solid var(--bs-border-color);
+    cursor: pointer; transition: all 0.2s; user-select: none;
+    margin-bottom: .5rem;
+}
+.t-addtest-check:hover { border-color: var(--t-primary); }
+.t-addtest-check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--t-primary); }
+.t-addtest-check span { font-weight: 600; font-size: .88rem; }
+@media (max-width: 768px) { .t-addtest-row { grid-template-columns: 1fr; } }
+</style>
+
+<div class="t-addtest-page">
+    <a href="{% url 'teacher:courses' %}" class="t-addtest-back">
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+    </a>
+
+    <div class="t-addtest-header">
+        <div class="t-addtest-icon"><i class="bi bi-brain"></i></div>
+        <div>
+            <h1>Yangi test yaratish</h1>
+            <p>{{ profession.name }} kursi uchun</p>
+        </div>
+    </div>
+
+    <div class="t-card">
+        <div class="t-card-header">
+            <i class="bi bi-gear" style="color: #8b5cf6;"></i> Test sozlamalari
+        </div>
+        <div class="t-card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="t-addtest-field">
+                    <label class="t-label">Test nomi *</label>
+                    <input type="text" name="title" class="t-input" placeholder="Masalan: 1-dars yakuniy test" required>
+                </div>
+                <div class="t-addtest-row">
+                    <div>
+                        <label class="t-label">Vaqt chegarasi (daqiqa)</label>
+                        <input type="number" name="time_limit" class="t-input" value="30" min="1">
+                    </div>
+                    <div>
+                        <label class="t-label">O'tish bali (%)</label>
+                        <input type="number" name="passing_score" class="t-input" value="60" min="1" max="100">
+                    </div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="t-label" style="margin-bottom: .75rem;">Qo'shimcha sozlamalar</label>
+                    <label class="t-addtest-check">
+                        <input type="checkbox" name="allow_retry">
+                        <span>Qayta topshirishga ruxsat</span>
+                    </label>
+                    <label class="t-addtest-check">
+                        <input type="checkbox" name="shuffle_questions">
+                        <span>Savollar tartibini aralashtirish</span>
+                    </label>
+                    <label class="t-addtest-check">
+                        <input type="checkbox" name="shuffle_answers">
+                        <span>Javoblar tartibini aralashtirish</span>
+                    </label>
+                </div>
+                <div style="display: flex; gap: .75rem; justify-content: flex-end;">
+                    <a href="{% url 'teacher:courses' %}" class="t-btn t-btn-outline">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="t-btn t-btn-primary">
+                        <i class="bi bi-check-lg"></i> Yaratish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

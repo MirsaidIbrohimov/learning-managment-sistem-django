@@ -1,0 +1,161 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Bosh sahifa - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Bosh sahifa{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-welcome {
+    background: linear-gradient(135deg, #064e3b, #047857);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    color: #fff;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease;
+}
+.t-welcome::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 50%;
+}
+.t-welcome h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: .3rem; }
+.t-welcome p { opacity: .8; font-size: .95rem; margin: 0; }
+.t-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.t-recent-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 768px) { .t-recent-grid { grid-template-columns: 1fr; } }
+.t-activity-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+.t-activity-item:last-child { border-bottom: none; }
+.t-activity-avatar {
+    width: 40px; height: 40px; border-radius: 12px;
+    background: var(--t-primary-light);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--t-primary); font-weight: 700; font-size: .85rem; flex-shrink: 0;
+}
+.t-activity-info { flex: 1; min-width: 0; }
+.t-activity-name { font-weight: 600; font-size: .88rem; }
+.t-activity-desc { font-size: .8rem; color: var(--bs-secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-activity-time { font-size: .75rem; color: var(--bs-secondary-color); white-space: nowrap; }
+</style>
+
+<div class="t-welcome">
+    <h1>Xush kelibsiz, {{ user.first_name }}! 👋</h1>
+    <p>O'qituvchi paneliga xush kelibsiz. Bugungi holatni ko'ring.</p>
+</div>
+
+<div class="t-stats-grid">
+    <div class="t-stat-card animate-fadeInUp delay-1">
+        <div class="t-stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+            <i class="bi bi-book-fill"></i>
+        </div>
+        <div class="t-stat-value">{{ professions|length }}</div>
+        <div class="t-stat-label">Kurslarim</div>
+    </div>
+
+    <div class="t-stat-card animate-fadeInUp delay-2">
+        <div class="t-stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="t-stat-value">{{ total_students }}</div>
+        <div class="t-stat-label">O'quvchilar</div>
+    </div>
+
+    <div class="t-stat-card animate-fadeInUp delay-3">
+        <div class="t-stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+            <i class="bi bi-journal-check"></i>
+        </div>
+        <div class="t-stat-value">{{ pending_homeworks }}</div>
+        <div class="t-stat-label">Kutilayotgan vazifalar</div>
+    </div>
+
+    <div class="t-stat-card animate-fadeInUp delay-4">
+        <div class="t-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <i class="bi bi-clipboard-data-fill"></i>
+        </div>
+        <div class="t-stat-value">{{ total_test_results }}</div>
+        <div class="t-stat-label">Test natijalari</div>
+    </div>
+
+    <div class="t-stat-card animate-fadeInUp delay-5">
+        <div class="t-stat-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+            <i class="bi bi-award-fill"></i>
+        </div>
+        <div class="t-stat-value">{{ certificates_count }}</div>
+        <div class="t-stat-label">Sertifikatlarim</div>
+    </div>
+
+    <div class="t-stat-card animate-fadeInUp delay-6">
+        <div class="t-stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+            <i class="bi bi-wallet2"></i>
+        </div>
+        <div class="t-stat-value">{{ current_salary|floatformat:0 }}</div>
+        <div class="t-stat-label">Joriy oy (so'm)</div>
+    </div>
+</div>
+
+<div class="t-recent-grid">
+    <div class="t-card animate-fadeInUp delay-3">
+        <div class="t-card-header">
+            <i class="bi bi-journal-check" style="color: #f59e0b;"></i> So'nggi vazifa topshiriqlar
+        </div>
+        <div class="t-card-body">
+            {% if recent_submissions %}
+            {% for s in recent_submissions %}
+            <div class="t-activity-item">
+                <div class="t-activity-avatar">{{ s.student.first_name.0 }}{{ s.student.last_name.0 }}</div>
+                <div class="t-activity-info">
+                    <div class="t-activity-name">{{ s.student.full_name }}</div>
+                    <div class="t-activity-desc">{{ s.homework.lesson.title }}</div>
+                </div>
+                <span class="t-badge {% if s.status == 'pending' %}t-badge-warning{% elif s.status == 'graded' %}t-badge-success{% else %}t-badge-info{% endif %}">
+                    {{ s.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="t-empty" style="padding: 1.5rem;">
+                <p style="margin:0;">Hali vazifa topshiriqlar yo'q</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="t-card animate-fadeInUp delay-4">
+        <div class="t-card-header">
+            <i class="bi bi-clipboard-data-fill" style="color: #10b981;"></i> So'nggi test natijalari
+        </div>
+        <div class="t-card-body">
+            {% if recent_tests %}
+            {% for r in recent_tests %}
+            <div class="t-activity-item">
+                <div class="t-activity-avatar">{{ r.student.first_name.0 }}{{ r.student.last_name.0 }}</div>
+                <div class="t-activity-info">
+                    <div class="t-activity-name">{{ r.student.full_name }}</div>
+                    <div class="t-activity-desc">{{ r.test.lesson.title }}</div>
+                </div>
+                <span class="t-badge {% if r.passed %}t-badge-success{% else %}t-badge-danger{% endif %}">
+                    {{ r.score }}%
+                </span>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="t-empty" style="padding: 1.5rem;">
+                <p style="margin:0;">Hali test natijalari yo'q</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

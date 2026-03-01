@@ -1,0 +1,137 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Test natijalari - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Test natijalari{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-results-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    animation: fadeInUp 0.4s ease;
+}
+.t-results-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.t-filter-bar {
+    display: flex; align-items: center; gap: .75rem; flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.45s ease;
+}
+.t-filter-select {
+    padding: .5rem 1rem; border-radius: 10px; font-size: .85rem;
+    border: 2px solid var(--bs-border-color); background: var(--bs-body-bg);
+    color: var(--bs-body-color); font-weight: 600;
+}
+.t-filter-select:focus { border-color: var(--t-primary); outline: none; }
+.t-mini-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem; margin-bottom: 1.5rem;
+}
+.t-mini-stat {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 14px; padding: 16px; text-align: center;
+    animation: fadeInUp 0.5s ease forwards; opacity: 0;
+}
+.t-mini-stat-val { font-size: 1.4rem; font-weight: 800; }
+.t-mini-stat-lbl { font-size: .78rem; color: var(--bs-secondary-color); font-weight: 500; }
+.t-student-info { display: flex; align-items: center; gap: 10px; }
+.t-student-avatar {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(139,92,246,0.12); color: #8b5cf6;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .8rem; flex-shrink: 0;
+}
+.t-score-bar {
+    width: 60px; height: 8px; border-radius: 4px;
+    background: var(--bs-tertiary-bg); overflow: hidden;
+    display: inline-block; vertical-align: middle;
+}
+.t-score-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+</style>
+
+<div class="t-results-header">
+    <h1><i class="bi bi-clipboard-data-fill" style="color: var(--t-primary);"></i> Test natijalari</h1>
+</div>
+
+<div class="t-mini-stats">
+    <div class="t-mini-stat delay-1">
+        <div class="t-mini-stat-val" style="color: #3b82f6;">{{ stats.total|default:0 }}</div>
+        <div class="t-mini-stat-lbl">Jami natijalar</div>
+    </div>
+    <div class="t-mini-stat delay-2">
+        <div class="t-mini-stat-val" style="color: #10b981;">{{ stats.passed|default:0 }}</div>
+        <div class="t-mini-stat-lbl">O'tganlar</div>
+    </div>
+    <div class="t-mini-stat delay-3">
+        <div class="t-mini-stat-val" style="color: #f59e0b;">{{ stats.avg_score|floatformat:1|default:"0" }}%</div>
+        <div class="t-mini-stat-lbl">O'rtacha ball</div>
+    </div>
+</div>
+
+<form method="GET" class="t-filter-bar">
+    <select name="course" class="t-filter-select" onchange="this.form.submit()">
+        <option value="">Barcha kurslar</option>
+        {% for p in all_professions %}
+        <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="t-card animate-fadeInUp delay-2">
+    <div class="t-card-body" style="padding: 0;">
+        {% if results %}
+        <div style="overflow-x: auto;">
+            <table class="t-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>O'quvchi</th>
+                        <th>Test</th>
+                        <th>Kurs</th>
+                        <th>Ball</th>
+                        <th>Natija</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in results %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            <div class="t-student-info">
+                                <div class="t-student-avatar">{{ r.student.first_name.0 }}{{ r.student.last_name.0 }}</div>
+                                <div>
+                                    <div style="font-weight:600;">{{ r.student.full_name }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ r.test.lesson.title }}</td>
+                        <td><span class="t-badge t-badge-info">{{ r.test.lesson.profession.name }}</span></td>
+                        <td>
+                            <span style="font-weight:700;">{{ r.score }}%</span>
+                            <div class="t-score-bar ms-1">
+                                <div class="t-score-fill" style="width:{{ r.score }}%; background: {% if r.score >= 80 %}#10b981{% elif r.score >= 60 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if r.passed %}
+                            <span class="t-badge t-badge-success"><i class="bi bi-check-circle-fill"></i> O'tdi</span>
+                            {% else %}
+                            <span class="t-badge t-badge-danger"><i class="bi bi-x-circle-fill"></i> O'tmadi</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:.82rem; color: var(--bs-secondary-color);">{{ r.completed_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="t-empty">
+            <div class="t-empty-icon"><i class="bi bi-clipboard-data"></i></div>
+            <h3>Test natijalari yo'q</h3>
+            <p>Hali hech kim test topshirmagan.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

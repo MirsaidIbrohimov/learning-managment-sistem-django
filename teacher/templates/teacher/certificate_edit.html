@@ -1,0 +1,62 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Sertifikatni tahrirlash - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Sertifikatni tahrirlash{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-cedit-page { max-width: 700px; margin: 0 auto; animation: fadeInUp 0.5s ease; }
+.t-cedit-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-cedit-back:hover { color: var(--t-primary); }
+</style>
+
+<div class="t-cedit-page">
+    <a href="{% url 'teacher:certificates' %}" class="t-cedit-back">
+        <i class="bi bi-arrow-left"></i> Sertifikatlarga qaytish
+    </a>
+
+    <div class="t-card">
+        <div class="t-card-header">
+            <i class="bi bi-pencil-square" style="color: var(--t-primary);"></i> Sertifikatni tahrirlash
+        </div>
+        <div class="t-card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div style="margin-bottom: 1rem;">
+                    <label class="t-label">Sertifikat nomi *</label>
+                    <input type="text" name="title" class="t-input" value="{{ cert.title }}" required>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label class="t-label">Tavsif</label>
+                    <textarea name="description" class="t-input" rows="3">{{ cert.description|default:'' }}</textarea>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label class="t-label">Berilgan sana</label>
+                    <input type="date" name="issued_date" class="t-input" value="{{ cert.issued_date|date:'Y-m-d' }}">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label class="t-label">Yangi fayl (ixtiyoriy)</label>
+                    <input type="file" name="file" class="t-input">
+                    {% if cert.file %}
+                    <small style="color: var(--bs-secondary-color); display: block; margin-top: .3rem;">
+                        Joriy fayl: <a href="{{ cert.file.url }}" target="_blank">{{ cert.file.name }}</a>
+                    </small>
+                    {% endif %}
+                </div>
+                <div style="display: flex; gap: .75rem; justify-content: flex-end;">
+                    <a href="{% url 'teacher:certificates' %}" class="t-btn t-btn-outline">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="t-btn t-btn-primary">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
