@@ -303,6 +303,47 @@
     color: #6366f1;
 }
 
+/* TEACHER ROW */
+.prof-teacher-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.6rem 0;
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    border-top: 1px solid var(--bs-border-color);
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.prof-teacher-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid var(--bs-border-color);
+    flex-shrink: 0;
+}
+
+.prof-teacher-placeholder {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.prof-teacher-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
+}
+
 .prof-arrow {
     width: 36px;
     height: 36px;
@@ -456,6 +497,20 @@
                         <i class="bi bi-arrow-right"></i>
                     </div>
                 </div>
+
+                {% if profession.teachers.all %}
+                <div class="prof-teacher-row">
+                    <i class="bi bi-person-video3"></i>
+                    {% for t in profession.teachers.all %}
+                    {% if t.photo %}
+                    <img src="{{ t.photo.url }}" alt="{{ t.full_name }}" class="prof-teacher-avatar">
+                    {% else %}
+                    <span class="prof-teacher-placeholder">{{ t.first_name|first }}</span>
+                    {% endif %}
+                    <span class="prof-teacher-name">{{ t.full_name }}{% if not forloop.last %},{% endif %}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
         </a>
         {% endfor %}

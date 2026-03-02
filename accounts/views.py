@@ -230,7 +230,7 @@ def home_view(request):
 
 @login_required
 def professions_view(request):
-    professions = Profession.objects.all()
+    professions = Profession.objects.prefetch_related('teachers').all()
     enrolled_ids = []
     if request.user.is_authenticated and request.user.is_student:
         enrolled_ids = list(request.user.enrollments.values_list('profession_id', flat=True))
