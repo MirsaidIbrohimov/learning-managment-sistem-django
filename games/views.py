@@ -823,7 +823,7 @@ def word_game_play(request, slug, competition_id=None):
     letters_list = list(word_round.letters.upper())
     random.shuffle(letters_list)
 
-    return render(request, 'games/student/word_game_play.html', {
+    context = {
         'game': game,
         'word_round': word_round,
         'competition': competition,
@@ -831,7 +831,14 @@ def word_game_play(request, slug, competition_id=None):
         'game_token': game_token,
         'time_limit': word_round.time_limit,
         'total_words': word_round.word_count,
-    })
+    }
+
+    if competition:
+        used = competition.user_attempts_count(request.user)
+        context['max_attempts'] = competition.max_attempts
+        context['remaining_attempts'] = max(competition.max_attempts - used - 1, 0)
+
+    return render(request, 'games/student/word_game_play.html', context)
 
 
 @login_required

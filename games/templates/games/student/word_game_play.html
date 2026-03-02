@@ -708,7 +708,123 @@
 .btn-suggest-cancel:hover {
     border-color: var(--g-danger);
     color: var(--g-danger);
+}
+
+/* ===== Back Confirmation Modal ===== */
+.back-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+.back-overlay.show { display: flex; }
+
+.back-modal {
+    background: var(--g-card);
+    border-radius: var(--g-radius);
+    padding: 2rem 2rem 1.75rem;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    animation: resultIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border: 2px solid rgba(239, 68, 68, 0.25);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.3);
+}
+
+.back-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    color: var(--g-danger);
+}
+
+.back-modal h4 {
+    font-weight: 700;
+    color: var(--g-text);
+    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+}
+
+.back-modal-text {
+    color: var(--g-text-muted);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.back-modal-attempts {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 12px;
+    padding: 0.6rem 1.2rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.88rem;
+    color: var(--g-danger);
+    font-weight: 600;
+}
+
+.back-modal-attempts .att-num {
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+.back-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.back-btn-leave {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    color: #fff;
+    padding: 0.7rem 1.6rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.back-btn-leave:hover {
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(239,68,68,0.35);
+}
+
+.back-btn-stay {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: none;
+    color: #fff;
+    padding: 0.7rem 1.6rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.back-btn-stay:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(34,197,94,0.35);
 }
 
 /* ===== Responsive ===== */
@@ -883,9 +999,15 @@
 
         <!-- Footer -->
         <div class="footer-actions">
+            {% if competition %}
+            <button type="button" class="btn btn-outline-secondary" id="backBtn" style="border-radius: 14px; font-weight: 600;">
+                <i class="bi bi-arrow-left"></i> Orqaga
+            </button>
+            {% else %}
             <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-secondary" style="border-radius: 14px; font-weight: 600;">
                 <i class="bi bi-arrow-left"></i> Orqaga
             </a>
+            {% endif %}
             <button class="btn btn-danger" id="finishBtn" style="border-radius: 14px; font-weight: 600;">
                 <i class="bi bi-stop-circle"></i> Tugatish
             </button>
@@ -943,6 +1065,33 @@
         </div>
     </div>
 </div>
+
+{% if competition %}
+<!-- Back Confirmation Modal -->
+<div class="back-overlay" id="backOverlay">
+    <div class="back-modal">
+        <div class="back-modal-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <h4>Musobaqadan chiqasizmi?</h4>
+        <p class="back-modal-text">
+            Agar hozir chiqsangiz, bu urinish sarflanadi va natijangiz saqlanmaydi!
+        </p>
+        <div class="back-modal-attempts">
+            <i class="bi bi-heart-fill"></i>
+            Qolgan imkoniyat: <span class="att-num">{{ remaining_attempts }}</span> / {{ max_attempts }}
+        </div>
+        <div class="back-modal-actions">
+            <button class="back-btn-stay" id="backStayBtn">
+                <i class="bi bi-play-fill"></i> Yo'q, davom etaman
+            </button>
+            <button class="back-btn-leave" id="backLeaveBtn">
+                <i class="bi bi-box-arrow-left"></i> Ha, chiqaman
+            </button>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
@@ -1405,6 +1554,38 @@
         updateWordDisplay();
         renderLetters();
     });
+
+    // ===== Back Button Confirmation (competition only) =====
+    var backBtn = document.getElementById('backBtn');
+    var backOverlay = document.getElementById('backOverlay');
+    if (backBtn && backOverlay) {
+        var backStayBtn = document.getElementById('backStayBtn');
+        var backLeaveBtn = document.getElementById('backLeaveBtn');
+        var backUrl = '{% url "games:game_detail" game.slug %}';
+
+        backBtn.addEventListener('click', function() {
+            if (gameEnded) {
+                window.location.href = backUrl;
+                return;
+            }
+            backOverlay.classList.add('show');
+        });
+
+        backStayBtn.addEventListener('click', function() {
+            backOverlay.classList.remove('show');
+        });
+
+        backLeaveBtn.addEventListener('click', function() {
+            endGame();
+            window.location.href = backUrl;
+        });
+
+        backOverlay.addEventListener('click', function(e) {
+            if (e.target === backOverlay) {
+                backOverlay.classList.remove('show');
+            }
+        });
+    }
 
     // ===== Init =====
     renderLetters();
