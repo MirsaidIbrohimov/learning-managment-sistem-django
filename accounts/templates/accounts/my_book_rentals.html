@@ -5,7 +5,8 @@
 
 {% block content %}
 <style>
-  :root {
+  /* ===== Light mode (default) ===== */
+  :root, [data-theme="light"] {
     --ios-bg: #f2f2f7;
     --ios-card: #ffffff;
     --ios-blue: #007aff;
@@ -22,28 +23,124 @@
     --ios-label2: #3c3c43;
     --ios-label3: #48484a;
     --ios-separator: rgba(60,60,67,0.12);
-    --ios-radius: 14px;
-    --ios-radius-lg: 20px;
+    --ios-header-bg: rgba(255,255,255,0.72);
+    --ios-active-bg: rgba(0,0,0,0.04);
+    --ios-overdue-bg: rgba(255,59,48,0.04);
+    --ios-blue-subtle: rgba(0,122,255,0.12);
+    --ios-green-subtle: rgba(52,199,89,0.12);
+    --ios-red-subtle: rgba(255,59,48,0.14);
+    --ios-orange-subtle: rgba(255,149,0,0.14);
+    --ios-red-bg: rgba(255,59,48,0.08);
+    --ios-orange-bg: rgba(255,149,0,0.08);
+    --ios-green-bg: rgba(52,199,89,0.08);
+    --ios-cover-shadow: rgba(0,0,0,0.1);
+    --ios-cover-grad1: #e5e5ea;
+    --ios-cover-grad2: #f2f2f7;
+    --ios-toggle-bg: #e5e5ea;
+    --ios-toggle-icon: #8e8e93;
+    --ios-warning-text: #c27800;
   }
 
+  /* ===== Dark mode ===== */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ios-bg: #000000;
+      --ios-card: #1c1c1e;
+      --ios-blue: #0a84ff;
+      --ios-green: #30d158;
+      --ios-orange: #ff9f0a;
+      --ios-red: #ff453a;
+      --ios-gray: #98989d;
+      --ios-gray2: #636366;
+      --ios-gray3: #48484a;
+      --ios-gray4: #3a3a3c;
+      --ios-gray5: #2c2c2e;
+      --ios-gray6: #1c1c1e;
+      --ios-label: #ffffff;
+      --ios-label2: #ebebf5;
+      --ios-label3: #ebebf599;
+      --ios-separator: rgba(84,84,88,0.65);
+      --ios-header-bg: rgba(28,28,30,0.72);
+      --ios-active-bg: rgba(255,255,255,0.06);
+      --ios-overdue-bg: rgba(255,69,58,0.1);
+      --ios-blue-subtle: rgba(10,132,255,0.18);
+      --ios-green-subtle: rgba(48,209,88,0.18);
+      --ios-red-subtle: rgba(255,69,58,0.2);
+      --ios-orange-subtle: rgba(255,159,10,0.2);
+      --ios-red-bg: rgba(255,69,58,0.12);
+      --ios-orange-bg: rgba(255,159,10,0.12);
+      --ios-green-bg: rgba(48,209,88,0.12);
+      --ios-cover-shadow: rgba(0,0,0,0.3);
+      --ios-cover-grad1: #2c2c2e;
+      --ios-cover-grad2: #1c1c1e;
+      --ios-toggle-bg: #2c2c2e;
+      --ios-toggle-icon: #98989d;
+      --ios-warning-text: #ff9f0a;
+    }
+  }
+
+  [data-theme="dark"] {
+    --ios-bg: #000000;
+    --ios-card: #1c1c1e;
+    --ios-blue: #0a84ff;
+    --ios-green: #30d158;
+    --ios-orange: #ff9f0a;
+    --ios-red: #ff453a;
+    --ios-gray: #98989d;
+    --ios-gray2: #636366;
+    --ios-gray3: #48484a;
+    --ios-gray4: #3a3a3c;
+    --ios-gray5: #2c2c2e;
+    --ios-gray6: #1c1c1e;
+    --ios-label: #ffffff;
+    --ios-label2: #ebebf5;
+    --ios-label3: #ebebf599;
+    --ios-separator: rgba(84,84,88,0.65);
+    --ios-header-bg: rgba(28,28,30,0.72);
+    --ios-active-bg: rgba(255,255,255,0.06);
+    --ios-overdue-bg: rgba(255,69,58,0.1);
+    --ios-blue-subtle: rgba(10,132,255,0.18);
+    --ios-green-subtle: rgba(48,209,88,0.18);
+    --ios-red-subtle: rgba(255,69,58,0.2);
+    --ios-orange-subtle: rgba(255,159,10,0.2);
+    --ios-red-bg: rgba(255,69,58,0.12);
+    --ios-orange-bg: rgba(255,159,10,0.12);
+    --ios-green-bg: rgba(48,209,88,0.12);
+    --ios-cover-shadow: rgba(0,0,0,0.3);
+    --ios-cover-grad1: #2c2c2e;
+    --ios-cover-grad2: #1c1c1e;
+    --ios-toggle-bg: #2c2c2e;
+    --ios-toggle-icon: #98989d;
+    --ios-warning-text: #ff9f0a;
+  }
+
+  /* ===== Base ===== */
   .ios-page {
     background: var(--ios-bg);
     min-height: 100vh;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
   }
 
   /* ===== Header ===== */
   .ios-nav-header {
-    background: rgba(255,255,255,0.72);
+    background: var(--ios-header-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     border-bottom: 0.5px solid var(--ios-separator);
     position: sticky;
     top: 0;
     z-index: 100;
-    padding: 12px 20px;
+    padding: 16px 20px 14px;
+  }
+
+  .ios-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
   }
 
   .ios-large-title {
@@ -60,6 +157,47 @@
     color: var(--ios-gray);
     margin-top: 4px;
     line-height: 1.4;
+  }
+
+  /* ===== Theme toggle ===== */
+  .ios-theme-toggle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ios-toggle-bg);
+    color: var(--ios-toggle-icon);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 4px;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .ios-theme-toggle:hover {
+    transform: scale(1.08);
+  }
+
+  .ios-theme-toggle:active {
+    transform: scale(0.95);
+  }
+
+  .ios-theme-toggle .icon-sun,
+  .ios-theme-toggle .icon-moon { display: none; }
+
+  [data-theme="light"] .ios-theme-toggle .icon-moon { display: inline; }
+  [data-theme="light"] .ios-theme-toggle .icon-sun { display: none; }
+  [data-theme="dark"] .ios-theme-toggle .icon-sun { display: inline; }
+  [data-theme="dark"] .ios-theme-toggle .icon-moon { display: none; }
+
+  /* auto detect default */
+  .ios-theme-toggle .icon-moon { display: inline; }
+  @media (prefers-color-scheme: dark) {
+    .ios-theme-toggle .icon-moon { display: none; }
+    .ios-theme-toggle .icon-sun { display: inline; }
   }
 
   /* ===== Stats pills ===== */
@@ -84,12 +222,12 @@
   }
 
   .ios-stat-pill.blue {
-    background: rgba(0,122,255,0.12);
+    background: var(--ios-blue-subtle);
     color: var(--ios-blue);
   }
 
   .ios-stat-pill.green {
-    background: rgba(52,199,89,0.12);
+    background: var(--ios-green-subtle);
     color: var(--ios-green);
   }
 
@@ -114,12 +252,13 @@
     margin-bottom: 14px;
   }
 
-  /* ===== Card group (iOS grouped list) ===== */
+  /* ===== Card group ===== */
   .ios-card-group {
     background: var(--ios-card);
-    border-radius: var(--ios-radius);
+    border-radius: 14px;
     overflow: hidden;
     box-shadow: 0 0 0 0.5px var(--ios-separator);
+    transition: background 0.3s ease;
   }
 
   /* ===== Book item ===== */
@@ -133,7 +272,7 @@
   }
 
   .ios-book-item:active {
-    background: var(--ios-gray6);
+    background: var(--ios-active-bg);
   }
 
   .ios-book-item + .ios-book-item {
@@ -141,7 +280,7 @@
   }
 
   .ios-book-item.overdue {
-    background: rgba(255,59,48,0.04);
+    background: var(--ios-overdue-bg);
   }
 
   .ios-book-cover {
@@ -150,7 +289,7 @@
     border-radius: 10px;
     object-fit: cover;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px var(--ios-cover-shadow);
   }
 
   .ios-book-cover-placeholder {
@@ -158,7 +297,7 @@
     height: 78px;
     border-radius: 10px;
     flex-shrink: 0;
-    background: linear-gradient(135deg, var(--ios-gray5), var(--ios-gray6));
+    background: linear-gradient(135deg, var(--ios-cover-grad1), var(--ios-cover-grad2));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -188,7 +327,7 @@
     margin-top: 2px;
   }
 
-  /* ===== iOS Badge ===== */
+  /* ===== Badge ===== */
   .ios-badge {
     display: inline-flex;
     align-items: center;
@@ -201,22 +340,22 @@
   }
 
   .ios-badge.danger {
-    background: rgba(255,59,48,0.14);
+    background: var(--ios-red-subtle);
     color: var(--ios-red);
   }
 
   .ios-badge.warning {
-    background: rgba(255,149,0,0.14);
+    background: var(--ios-orange-subtle);
     color: var(--ios-orange);
   }
 
   .ios-badge.active {
-    background: rgba(0,122,255,0.12);
+    background: var(--ios-blue-subtle);
     color: var(--ios-blue);
   }
 
   .ios-badge.success {
-    background: rgba(52,199,89,0.14);
+    background: var(--ios-green-subtle);
     color: var(--ios-green);
   }
 
@@ -229,14 +368,15 @@
 
   .ios-date-chip {
     flex: 1;
-    background: var(--ios-gray6);
+    background: var(--ios-bg);
     border-radius: 10px;
     padding: 8px 12px;
     text-align: center;
+    transition: background 0.3s ease;
   }
 
   .ios-date-chip.danger-bg {
-    background: rgba(255,59,48,0.08);
+    background: var(--ios-red-bg);
   }
 
   .ios-date-label {
@@ -271,17 +411,17 @@
   }
 
   .ios-alert-inline.danger {
-    background: rgba(255,59,48,0.08);
+    background: var(--ios-red-bg);
     color: var(--ios-red);
   }
 
   .ios-alert-inline.warning {
-    background: rgba(255,149,0,0.08);
-    color: #c27800;
+    background: var(--ios-orange-bg);
+    color: var(--ios-warning-text);
   }
 
   .ios-alert-inline.ok {
-    background: rgba(52,199,89,0.08);
+    background: var(--ios-green-bg);
     color: var(--ios-green);
   }
 
@@ -289,7 +429,7 @@
     font-size: 16px;
   }
 
-  /* ===== Hint row ===== */
+  /* ===== Hint ===== */
   .ios-hint {
     font-size: 13px;
     color: var(--ios-gray);
@@ -317,12 +457,12 @@
   }
 
   .ios-empty-icon.blue {
-    background: rgba(0,122,255,0.12);
+    background: var(--ios-blue-subtle);
     color: var(--ios-blue);
   }
 
   .ios-empty-icon.green {
-    background: rgba(52,199,89,0.12);
+    background: var(--ios-green-subtle);
     color: var(--ios-green);
   }
 
@@ -366,7 +506,7 @@
     }
   }
 
-  /* ===== Smooth entrance ===== */
+  /* ===== Animation ===== */
   @keyframes iosFadeUp {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -385,15 +525,9 @@
   .ios-animate:nth-child(6) { animation-delay: 0.3s; }
 </style>
 
-<div class="ios-page">
+<div class="" id="iosPage">
 
-  <!-- Sticky header -->
-  <div class="ios-nav-header">
-    <div class="ios-page-inner">
-      <h1 class="ios-large-title">📚 Kitoblarim</h1>
-      <p class="ios-subtitle">Ijara holati, muddat va qaytarilgan kitoblar</p>
-    </div>
-  </div>
+
 
   <div class="ios-page-inner">
 
@@ -404,7 +538,7 @@
         Faol: {{ active_rentals|length }}
       </div>
       <div class="ios-stat-pill green">
-        <i class="bi bi-checkmark-circle"></i>
+        <i class="bi bi-check-circle"></i>
         Qaytarilgan: {{ returned_rentals|length }}
       </div>
     </div>
@@ -474,7 +608,7 @@
                 </div>
               {% else %}
                 <div class="ios-alert-inline ok">
-                  <i class="bi bi-checkmark-circle-fill"></i>
+                  <i class="bi bi-check-circle-fill"></i>
                   <span>Hamma narsa joyida</span>
                 </div>
               {% endif %}
@@ -492,7 +626,7 @@
       <div class="ios-card-group">
         <div class="ios-empty">
           <div class="ios-empty-icon blue">
-            <i class="bi bi-books"></i>
+            <i class="bi bi-book"></i>
           </div>
           <div class="ios-empty-title">Ijarada kitob yo'q</div>
           <div class="ios-empty-desc">Kitob olganingizdan so'ng bu yerda muddat va holat ko'rinadi.</div>
@@ -560,4 +694,36 @@
     <div style="height:40px;"></div>
   </div>
 </div>
+
+<script>
+(function() {
+  const page = document.getElementById('iosPage');
+  const btn = document.getElementById('themeToggle');
+  const STORAGE_KEY = 'ios-book-theme';
+
+  function applyTheme(theme) {
+    page.setAttribute('data-theme', theme);
+    localStorage.setItem(STORAGE_KEY, theme);
+  }
+
+  // Load saved preference or follow system
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    applyTheme(saved);
+  }
+
+  btn.addEventListener('click', function() {
+    const current = page.getAttribute('data-theme');
+    if (current === 'dark') {
+      applyTheme('light');
+    } else if (current === 'light') {
+      applyTheme('dark');
+    } else {
+      // No manual preference yet — detect current and flip
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(isDark ? 'light' : 'dark');
+    }
+  });
+})();
+</script>
 {% endblock %}
