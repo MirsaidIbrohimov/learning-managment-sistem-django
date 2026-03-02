@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'coin',
     'games',
     'teacher',
+    'telegram_bot',
 ]
 
 
@@ -347,3 +348,8 @@ GAME_MAX_WPM = 180
 GAME_MIN_SECONDS_PER_WORD = 0.15
 GAME_MIN_SECONDS = 3
 GAME_MAX_SCORE_MULTIPLIER = 2.0
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
+TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")

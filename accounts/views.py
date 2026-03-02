@@ -26,6 +26,7 @@ from coin.models import ActivityLog, CoinTransaction
 
 from django.core.management import call_command
 from django.core.cache import cache
+from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
 def send_course_notification(profession, title, content, sender=None):
@@ -50,6 +51,13 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            notify_admins(
+                f"👤 <b>Yangi foydalanuvchi ro'yxatdan o'tdi!</b>\n\n"
+                f"📛 {user.first_name} {user.last_name}\n"
+                f"🆔 @{user.username}\n"
+                f"📱 {user.phone}\n"
+                f"🎓 {user.get_role_display()}"
+            )
             messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz!")
             return redirect('home')
         else:
@@ -63,30 +71,11 @@ def register_view(request):
 
 
 
-def generate_math_captcha():
-    """Matematik CAPTCHA yaratish (qo'shish, ko'paytirish)"""
-    op_type = random.choice(['add', 'add', 'add', 'multiply', 'multiply'])
-    if op_type == 'multiply':
-        a = random.randint(2, 9)
-        b = random.randint(2, 9)
-        question = f"{a} × {b}"
-        answer = a * b
-    else:
-        a = random.randint(10, 50)
-        b = random.randint(5, 30)
-        question = f"{a} + {b}"
-        answer = a + b
-    return question, answer
-
-
 def _login_render(request, form, login_mode):
-    """Login sahifasini har doim yangi CAPTCHA bilan render qilish"""
-    question, answer = generate_math_captcha()
-    request.session['captcha_answer'] = answer
+    """Login sahifasini render qilish"""
     return render(request, 'accounts/login.html', {
         'form': form,
         'login_mode': login_mode,
-        'captcha_question': question,
     })
 
 
@@ -99,23 +88,34 @@ def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
 
-        # 🔒 Matematik CAPTCHA tekshiruvi
-        captcha_input = request.POST.get('captcha_answer', '').strip()
-        correct_answer = request.session.get('captcha_answer')
+        # Telegram kod orqali login
+        if login_mode == 'telegram':
+            telegram_code = request.POST.get('telegram_code', '').strip()
+            if not telegram_code:
+                messages.error(request, "Iltimos, kodni kiriting! ⚠️")
+                return _login_render(request, form, 'telegram')
 
-        if not captcha_input or correct_answer is None:
-            messages.error(request, "Iltimos, matematik masalani yeching! 🧮")
-            return _login_render(request, form, login_mode)
+            from telegram_bot.models import TelegramLoginCode
+            try:
+                login_code = TelegramLoginCode.objects.get(code=telegram_code, is_used=False)
+            except TelegramLoginCode.DoesNotExist:
+                messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                return _login_render(request, form, 'telegram')
 
-        try:
-            if int(captcha_input) != int(correct_answer):
-                messages.error(request, "Matematik javob noto'g'ri! ❌")
-                return _login_render(request, form, login_mode)
-        except (ValueError, TypeError):
-            messages.error(request, "Matematik javob noto'g'ri! ❌")
-            return _login_render(request, form, login_mode)
+            if login_code.is_expired:
+                messages.error(request, "Kod muddati tugagan! Botdan yangi kod oling. ⏰")
+                return _login_render(request, form, 'telegram')
 
-        if login_mode == 'phone':
+            try:
+                user = CustomUser.objects.get(telegram_id=login_code.telegram_id)
+            except CustomUser.DoesNotExist:
+                messages.error(request, "Foydalanuvchi topilmadi! ❌")
+                return _login_render(request, form, 'telegram')
+
+            login_code.is_used = True
+            login_code.save()
+
+        elif login_mode == 'phone':
             phone = request.POST.get('phone', '').strip()
             password = request.POST.get('password', '').strip()
 
@@ -438,6 +438,12 @@ def enroll_course(request, pk):
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
     if not profession.is_paid:
         CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
+        notify_admins(
+            f"📚 <b>Kursga yozildi!</b>\n\n"
+            f"👤 {request.user.first_name} {request.user.last_name}\n"
+            f"📖 {profession.name}\n"
+            f"💰 Bepul kurs"
+        )
         messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! O'qishni boshlashingiz mumkin.")
         return redirect('profession_detail', pk=pk)
     
@@ -458,6 +464,12 @@ def enroll_course(request, pk):
     if request.method == 'POST':
         messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
         CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
+        notify_admins(
+            f"📋 <b>Kursga yozilish so'rovi!</b>\n\n"
+            f"👤 {request.user.first_name} {request.user.last_name}\n"
+            f"📖 {profession.name}\n"
+            f"💰 Pullik kurs — tasdiq kutilmoqda"
+        )
         return redirect('profession_detail', pk=pk)
     
     return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
@@ -659,6 +671,13 @@ def submit_homework(request, pk):
                 submission.submission_type = 'file'
                 submission.save()
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+                notify_admins(
+                    f"📝 <b>Yangi vazifa yuborildi!</b>\n\n"
+                    f"👤 {request.user.first_name} {request.user.last_name}\n"
+                    f"📚 {homework.lesson.profession.name}\n"
+                    f"📖 {homework.lesson.title}\n"
+                    f"📋 {homework.title}"
+                )
         else:
             text_content = request.POST.get('text_content', '').strip()
             if text_content:
@@ -669,6 +688,13 @@ def submit_homework(request, pk):
                     text_content=text_content
                 )
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+                notify_admins(
+                    f"📝 <b>Yangi vazifa yuborildi!</b>\n\n"
+                    f"👤 {request.user.first_name} {request.user.last_name}\n"
+                    f"📚 {homework.lesson.profession.name}\n"
+                    f"📖 {homework.lesson.title}\n"
+                    f"📋 {homework.title}"
+                )
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
     
@@ -1587,6 +1613,12 @@ def admin_send_message(request):
                 message_type='personal',
                 recipient=recipient,
                 sender=request.user
+            )
+            notify_user(
+                recipient.telegram_id,
+                f"📩 <b>Yangi xabar!</b>\n\n"
+                f"📌 {title}\n"
+                f"💬 {content[:150]}"
             )
             messages.success(request, f"{recipient.full_name}ga xabar yuborildi!")
         else:
@@ -4099,6 +4131,14 @@ def admin_manage_coins(request):
                         )
                         count += 1
                     verb = "berildi" if action == 'add' else "ayirildi"
+                    emoji = "🎁" if action == 'add' else "📤"
+                    reason_text = f"\n📝 Sabab: {reason}" if reason else ""
+                    coin_msg = (
+                        f"{emoji} <b>Coin {verb}!</b>\n\n"
+                        f"👥 {count} ta o'quvchiga {amount} coin {verb}{reason_text}"
+                    )
+                    notify_admins(coin_msg)
+                    notify_group(coin_msg)
                     messages.success(request, f"{count} ta o'quvchiga {amount} coin {verb}!")
 
             elif user_id:
@@ -4114,6 +4154,15 @@ def admin_manage_coins(request):
                             sender=request.user, recipient=user,
                             title="Coin rag'batlantirish", content=text, message_type='system'
                         )
+                        coin_msg = (
+                            f"🎁 <b>Coin berildi!</b>\n\n"
+                            f"👤 {user.first_name} {user.last_name}\n"
+                            f"🪙 +{amount} coin (Jami: {user.coins})\n"
+                            f"📝 Sabab: {reason or 'belgilanmagan'}"
+                        )
+                        notify_admins(coin_msg)
+                        notify_group(coin_msg)
+                        notify_user(user.telegram_id, coin_msg)
                         messages.success(request, f"{user.full_name}ga {amount} coin berildi!")
                     elif action == 'remove':
                         user.coins -= amount
@@ -4125,6 +4174,15 @@ def admin_manage_coins(request):
                             sender=request.user, recipient=user,
                             title="Coin ayirildi", content=text, message_type='system'
                         )
+                        coin_msg = (
+                            f"📤 <b>Coin ayirildi!</b>\n\n"
+                            f"👤 {user.first_name} {user.last_name}\n"
+                            f"🪙 -{amount} coin (Qoldi: {user.coins})\n"
+                            f"📝 Sabab: {reason or 'ko`rsatilmagan'}"
+                        )
+                        notify_admins(coin_msg)
+                        notify_group(coin_msg)
+                        notify_user(user.telegram_id, coin_msg)
                         messages.success(request, f"{user.full_name}dan {amount} coin ayirildi! (Qoldi: {user.coins})")
 
         except (ValueError, CustomUser.DoesNotExist):
@@ -4220,6 +4278,12 @@ def submit_help_request(request):
             subject=subject,
             message=message,
             image=image
+        )
+        notify_admins(
+            f"🆘 <b>Yangi yordam so'rovi!</b>\n\n"
+            f"👤 {request.user.first_name} {request.user.last_name}\n"
+            f"📌 {subject}\n"
+            f"💬 {message[:100]}"
         )
         
         logger.info(f"Help Request Created - ID: {help_request.id}, Image Path: {help_request.image.name if help_request.image else 'None'}")
@@ -5873,6 +5937,11 @@ def password_reset_request_view(request):
             PasswordResetRequest.objects.create(
                 user=user,
                 new_password=hashed_password
+            )
+            notify_admins(
+                f"🔑 <b>Parol tiklash so'rovi!</b>\n\n"
+                f"👤 {user.first_name} {user.last_name}\n"
+                f"🆔 @{user.username}"
             )
             
             messages.success(request, "Parol tiklash so'rovi yuborildi! Admin tasdiqlashini kuting.")

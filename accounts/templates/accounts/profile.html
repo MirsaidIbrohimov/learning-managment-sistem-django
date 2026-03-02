@@ -4,6 +4,7 @@
 {% block title %}Profil | LMS - IT Creative{% endblock %}
 
 {% block extra_css %}
+<meta charset="utf-8">
 <style>
 
 /* ===== ANIMATIONS ===== */
@@ -395,6 +396,25 @@
         <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary rounded-pill">
             <i class="bi bi-laptop me-1"></i>Qurilmalar
         </a>
+
+        {% if user.telegram_id %}
+        <div class="d-flex align-items-center justify-content-between rounded-pill px-3 py-2 mt-1" style="background:rgba(0,136,204,0.1);border:1.5px solid rgba(0,136,204,0.3);">
+            <span class="small fw-semibold" style="color:#0088cc;">
+                <i class="bi bi-telegram me-1"></i>
+                {% if user.telegram_username %}@{{ user.telegram_username }}{% else %}Ulangan ✅{% endif %}
+            </span>
+            <form method="POST" action="{% url 'telegram_bot:unlink_telegram' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" style="font-size:0.7rem;" onclick="return confirm('Telegramni uzmoqchimisiz?')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <a href="{% url 'telegram_bot:link_telegram' %}" class="btn rounded-pill fw-semibold" style="background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;border:none;">
+            <i class="bi bi-telegram me-1"></i>Telegramni ulash
+        </a>
+        {% endif %}
     </div>
 
 </div>

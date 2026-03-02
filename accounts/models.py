@@ -100,6 +100,10 @@ class CustomUser(AbstractUser):
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
     weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
 
+    # Telegram
+    telegram_id = models.BigIntegerField(null=True, blank=True, unique=True, verbose_name="Telegram ID")
+    telegram_username = models.CharField(max_length=100, blank=True, null=True, verbose_name="Telegram username")
+
     # Teacher - managed courses
     teaching_professions = models.ManyToManyField(
         'Profession',

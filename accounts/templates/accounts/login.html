@@ -4,6 +4,10 @@
 
 {% block extra_css %}
     {% load static %}
+    <head>
+    <meta charset="utf-8">
+
+    </head>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
     <style>
       /* ===== LOGIN TABS ===== */
@@ -121,75 +125,74 @@
         letter-spacing: 0.5px;
       }
 
-      /* ===== CAPTCHA ===== */
-      .captcha-box {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
-        border: 1.5px solid rgba(99, 102, 241, 0.15);
+      /* ===== TELEGRAM BOX ===== */
+      .telegram-info-box {
+        background: linear-gradient(135deg, rgba(0, 136, 204, 0.08), rgba(0, 136, 204, 0.04));
+        border: 1.5px solid rgba(0, 136, 204, 0.2);
         border-radius: 16px;
-        padding: 1rem;
+        padding: 1.2rem;
         margin-bottom: 1.2rem;
-        overflow: hidden;
-        box-sizing: border-box;
       }
-      [data-bs-theme="dark"] .captcha-box {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
-        border-color: rgba(99, 102, 241, 0.25);
+      [data-bs-theme="dark"] .telegram-info-box {
+        background: linear-gradient(135deg, rgba(0, 136, 204, 0.15), rgba(0, 136, 204, 0.08));
+        border-color: rgba(0, 136, 204, 0.3);
       }
-      .captcha-label {
+      .telegram-steps {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .telegram-steps li {
         display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--text-secondary, #64748b);
-        margin-bottom: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-      .captcha-question {
-        display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 10px;
-        width: 100%;
-        box-sizing: border-box;
+        padding: 6px 0;
+        font-size: 0.85rem;
+        color: var(--text-color, #334155);
       }
-      .captcha-math {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      .telegram-steps li .step-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0088cc, #00aaff);
         color: #fff;
-        font-size: 1.15rem;
-        font-weight: 800;
-        padding: 10px 16px;
-        border-radius: 12px;
-        letter-spacing: 2px;
-        white-space: nowrap;
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-        user-select: none;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
         flex-shrink: 0;
       }
-      .captcha-input {
-        flex: 1;
-        min-width: 0;
-        border: 1.5px solid var(--border-color, #e2e8f0);
-        border-radius: 12px;
-        padding: 10px 12px;
-        font-size: 1.05rem;
-        font-weight: 600;
+      .telegram-code-input {
+        border: 2px solid rgba(0, 136, 204, 0.3);
+        border-radius: 14px;
+        padding: 14px;
+        font-size: 1.3rem;
+        font-weight: 700;
         text-align: center;
+        letter-spacing: 8px;
         background: var(--bg-color, #f8fafc);
         color: var(--text-color);
         outline: none;
         transition: all 0.3s;
-        letter-spacing: 2px;
-        box-sizing: border-box;
+        width: 100%;
       }
-      .captcha-input:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+      .telegram-code-input:focus {
+        border-color: #0088cc;
+        box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.15);
       }
-      [data-bs-theme="dark"] .captcha-input {
+      [data-bs-theme="dark"] .telegram-code-input {
         background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(0, 136, 204, 0.4);
+      }
+      .btn-telegram {
+        background: linear-gradient(135deg, #0088cc, #00aaff);
+        border: none;
+        color: #fff;
+      }
+      .btn-telegram:hover {
+        background: linear-gradient(135deg, #006699, #0088cc);
+        color: #fff;
       }
 
       /* ===== BOTTOM LINKS ===== */
@@ -223,16 +226,19 @@
 
   <!-- Login tabs -->
   <div class="login-tabs">
-    <button type="button" class="login-tab {% if login_mode != 'phone' %}active{% endif %}" data-target="usernamePanel">
+    <button type="button" class="login-tab {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}" data-target="usernamePanel">
       <i class="bi bi-person me-1"></i>Username
     </button>
     <button type="button" class="login-tab {% if login_mode == 'phone' %}active{% endif %}" data-target="phonePanel">
-      <i class="bi bi-phone me-1"></i>Mobil raqam
+      <i class="bi bi-phone me-1"></i>Mobil
+    </button>
+    <button type="button" class="login-tab {% if login_mode == 'telegram' %}active{% endif %}" data-target="telegramPanel">
+      <i class="bi bi-telegram me-1"></i>Telegram
     </button>
   </div>
 
   <!-- Username login form -->
-  <div id="usernamePanel" class="login-panel {% if login_mode != 'phone' %}active{% endif %}">
+  <div id="usernamePanel" class="login-panel {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}">
     <form method="POST" id="loginForm">
       {% csrf_token %}
       <input type="hidden" name="login_mode" value="username">
@@ -250,18 +256,6 @@
           <i id="eyeIcon1" class="bi bi-eye"></i>
         </button>
         <label for="{{ form.password.id_for_label }}">Parol</label>
-      </div>
-
-      <!-- 🔒 Matematik CAPTCHA -->
-      <div class="captcha-box">
-        <div class="captcha-label">
-          <i class="bi bi-shield-lock"></i> Xavfsizlik tekshiruvi
-        </div>
-        <div class="captcha-question">
-          <div class="captcha-math">{{ captcha_question }}</div>
-          <input type="number" name="captcha_answer" class="captcha-input"
-                 placeholder="= ?" required autocomplete="off">
-        </div>
       </div>
 
       <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
@@ -303,20 +297,44 @@
         <label for="phonePassword">Parol</label>
       </div>
 
-      <!-- 🔒 Matematik CAPTCHA -->
-      <div class="captcha-box">
-        <div class="captcha-label">
-          <i class="bi bi-shield-lock"></i> Xavfsizlik tekshiruvi
-        </div>
-        <div class="captcha-question">
-          <div class="captcha-math">{{ captcha_question }}</div>
-          <input type="number" name="captcha_answer" class="captcha-input"
-                 placeholder="= ?" required autocomplete="off">
-        </div>
-      </div>
-
       <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
         <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Telegram login form -->
+  <div id="telegramPanel" class="login-panel {% if login_mode == 'telegram' %}active{% endif %}">
+    <form method="POST" id="telegramLoginForm">
+      {% csrf_token %}
+      <input type="hidden" name="login_mode" value="telegram">
+
+      <div class="telegram-info-box">
+        <ul class="telegram-steps">
+          <li>
+            <span class="step-num">1</span>
+            <span>Telegram botni oching va <b>/start</b> bosing</span>
+          </li>
+          <li>
+            <span class="step-num">2</span>
+            <span>Bot sizga <b>6 xonali kod</b> yuboradi</span>
+          </li>
+          <li>
+            <span class="step-num">3</span>
+            <span>Kodni pastga kiriting va <b>Kirish</b> bosing</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="mb-4">
+        <input type="text" name="telegram_code" class="telegram-code-input"
+               placeholder="000000" maxlength="6"
+               autocomplete="off" inputmode="numeric"
+               pattern="[0-9]{6}">
+      </div>
+
+      <button type="submit" class="btn btn-telegram w-100 py-3 fw-semibold">
+        <i class="bi bi-telegram me-2"></i><span>Telegram orqali kirish</span>
       </button>
     </form>
   </div>
@@ -427,10 +445,18 @@ if (phoneForm) {
   });
 }
 
+/* ===== Telegram code input - faqat raqam ===== */
+const tgCodeInput = document.querySelector('.telegram-code-input');
+if (tgCodeInput) {
+  tgCodeInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '').slice(0, 6);
+  });
+}
+
 /* ===== Button Loading on Submit ===== */
 document.querySelectorAll('.auth-card form').forEach(form => {
   form.addEventListener('submit', function() {
-    const btn = this.querySelector('.btn-primary');
+    const btn = this.querySelector('.btn-primary, .btn-telegram');
     if (btn) {
       btn.classList.add('loading');
       const span = btn.querySelector('span');
