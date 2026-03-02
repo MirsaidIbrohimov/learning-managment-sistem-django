@@ -10,6 +10,7 @@
     padding: 2rem 1rem;
 }
 
+/* ===== HEADER ===== */
 .prof-header {
     display: flex;
     align-items: center;
@@ -27,17 +28,26 @@
     align-items: center;
     gap: 0.75rem;
 }
-
 .prof-title i { color: #6366f1; }
 
-/* FILTER TABS */
+/* ===== TOOLBAR: filters + view switcher ===== */
+.prof-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+}
+
 .prof-filters {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 2rem;
     overflow-x: auto;
     padding-bottom: 0.25rem;
     scrollbar-width: none;
+    flex: 1;
+    min-width: 0;
 }
 .prof-filters::-webkit-scrollbar { display: none; }
 
@@ -68,14 +78,48 @@
 }
 .prof-tab.active .cnt { background: rgba(255,255,255,0.25); }
 
-/* GRID */
+/* ===== VIEW SWITCHER ===== */
+.view-switcher {
+    display: flex;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.view-btn {
+    width: 40px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    position: relative;
+}
+.view-btn:hover { color: #6366f1; background: rgba(99,102,241,0.06); }
+.view-btn.active {
+    background: #6366f1;
+    color: #fff;
+}
+.view-btn + .view-btn { border-left: 1px solid var(--bs-border-color); }
+.view-btn.active + .view-btn,
+.view-btn + .view-btn.active { border-left-color: #6366f1; }
+
+/* ===== GRID CONTAINER (default 3-col) ===== */
 .prof-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
+    transition: all 0.3s ease;
 }
 
-/* CARD */
+/* ===== CARD ===== */
 .prof-card {
     background: var(--bs-body-bg);
     border: 1px solid var(--bs-border-color);
@@ -89,12 +133,11 @@
     position: relative;
 }
 .prof-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
     border-color: #6366f1;
     color: inherit;
 }
-
 [data-bs-theme="dark"] .prof-card:hover {
     box-shadow: 0 12px 30px rgba(0,0,0,0.4);
 }
@@ -114,6 +157,7 @@
     position: relative;
     height: 180px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 .prof-img img {
     width: 100%;
@@ -121,9 +165,9 @@
     object-fit: cover;
     transition: transform 0.5s;
 }
-.prof-card:hover .prof-img img { transform: scale(1.08); }
+.prof-card:hover .prof-img img { transform: scale(1.06); }
 
-/* BADGES ON IMAGE */
+/* BADGES */
 .prof-badges-top {
     position: absolute;
     top: 0.75rem;
@@ -145,32 +189,19 @@
     gap: 0.35rem;
     backdrop-filter: blur(8px);
 }
-
-.prof-badge.free {
-    background: rgba(16,185,129,0.9);
-    color: #fff;
-}
-.prof-badge.paid {
-    background: rgba(245,158,11,0.9);
-    color: #fff;
-}
+.prof-badge.free { background: rgba(16,185,129,0.9); color: #fff; }
+.prof-badge.paid { background: rgba(245,158,11,0.9); color: #fff; }
 .prof-badge.active-badge {
     background: rgba(16,185,129,0.95);
     color: #fff;
     animation: activePulse 2s ease-in-out infinite;
 }
-
 @keyframes activePulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
     50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
 }
+.prof-badge.blocked-badge { background: rgba(239,68,68,0.9); color: #fff; }
 
-.prof-badge.blocked-badge {
-    background: rgba(239,68,68,0.9);
-    color: #fff;
-}
-
-/* STUDENT COUNT ON IMAGE */
 .prof-students {
     position: absolute;
     bottom: 0.75rem;
@@ -188,7 +219,6 @@
     z-index: 2;
 }
 
-/* BLOCKED OVERLAY */
 .prof-blocked-overlay {
     position: absolute;
     inset: 0;
@@ -212,15 +242,15 @@
 }
 
 .prof-name {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--bs-body-color);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     line-height: 1.3;
 }
 
 .prof-desc {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--bs-secondary-color);
     line-height: 1.6;
     flex: 1;
@@ -228,10 +258,10 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
 }
 
-/* PROGRESS BAR */
+/* PROGRESS */
 .prof-progress {
     padding: 0 1.25rem 0.25rem;
 }
@@ -249,8 +279,8 @@
     letter-spacing: 0.03em;
 }
 .prof-progress-pct {
-    font-size: 0.8rem;
-    font-weight: 800;
+    font-size: 0.78rem;
+    font-weight: 700;
     color: #10b981;
 }
 .prof-progress-pct.mid { color: #f59e0b; }
@@ -268,19 +298,15 @@
     background: linear-gradient(90deg, #6366f1, #10b981);
     transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.prof-progress-bar.mid {
-    background: linear-gradient(90deg, #f59e0b, #10b981);
-}
-.prof-progress-bar.complete {
-    background: linear-gradient(90deg, #10b981, #059669);
-}
+.prof-progress-bar.mid { background: linear-gradient(90deg, #f59e0b, #10b981); }
+.prof-progress-bar.complete { background: linear-gradient(90deg, #10b981, #059669); }
 
 /* FOOTER */
 .prof-footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding-top: 0.875rem;
+    padding-top: 0.75rem;
     border-top: 1px solid var(--bs-border-color);
 }
 
@@ -293,60 +319,12 @@
     padding: 0.35rem 0.75rem;
     border-radius: 8px;
 }
-
-.prof-status.enrolled-status {
-    background: rgba(16,185,129,0.1);
-    color: #10b981;
-}
-.prof-status.not-enrolled {
-    background: rgba(99,102,241,0.1);
-    color: #6366f1;
-}
-
-/* TEACHER ROW */
-.prof-teacher-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.6rem 0;
-    font-size: 0.8rem;
-    color: var(--bs-secondary-color);
-    border-top: 1px solid var(--bs-border-color);
-    margin-top: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.prof-teacher-avatar {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1.5px solid var(--bs-border-color);
-    flex-shrink: 0;
-}
-
-.prof-teacher-placeholder {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    font-size: 0.6rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.prof-teacher-name {
-    font-weight: 600;
-    color: var(--bs-body-color);
-}
+.prof-status.enrolled-status { background: rgba(16,185,129,0.1); color: #10b981; }
+.prof-status.not-enrolled { background: rgba(99,102,241,0.1); color: #6366f1; }
 
 .prof-arrow {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: rgba(99,102,241,0.1);
     color: #6366f1;
@@ -355,9 +333,44 @@
     justify-content: center;
     transition: all 0.2s;
 }
-.prof-card:hover .prof-arrow {
-    background: #6366f1;
+.prof-card:hover .prof-arrow { background: #6366f1; color: #fff; }
+
+/* TEACHER ROW */
+.prof-teacher-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.5rem 0 0;
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color);
+    border-top: 1px solid var(--bs-border-color);
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+.prof-teacher-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1.5px solid var(--bs-border-color);
+    flex-shrink: 0;
+}
+.prof-teacher-placeholder {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: #fff;
+    font-size: 0.55rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.prof-teacher-name {
+    font-weight: 600;
+    color: var(--bs-body-color);
 }
 
 /* EMPTY */
@@ -367,24 +380,149 @@
     border: 2px dashed var(--bs-border-color);
     border-radius: 20px;
 }
-.prof-empty i {
-    font-size: 4rem;
-    color: var(--bs-secondary-color);
-    opacity: 0.3;
+.prof-empty i { font-size: 4rem; color: var(--bs-secondary-color); opacity: 0.3; }
+
+/* ============================
+   VIEW: LIST (horizontal)
+   ============================ */
+.prof-grid.view-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+.prof-grid.view-list .prof-card {
+    flex-direction: row;
+    border-radius: 14px;
+}
+.prof-grid.view-list .prof-img {
+    width: 200px;
+    height: auto;
+    min-height: 160px;
+}
+.prof-grid.view-list .prof-body {
+    padding: 1rem 1.25rem;
+}
+.prof-grid.view-list .prof-name {
+    font-size: 1.1rem;
+}
+.prof-grid.view-list .prof-desc {
+    -webkit-line-clamp: 2;
+    margin-bottom: 0.5rem;
+}
+.prof-grid.view-list .prof-progress {
+    padding: 0 1.25rem 0.5rem;
+}
+.prof-grid.view-list .prof-badges-top {
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+}
+.prof-grid.view-list .prof-students {
+    bottom: 0.5rem;
+    right: 0.5rem;
 }
 
-/* RESPONSIVE */
+/* ============================
+   VIEW: COMPACT (small cards)
+   ============================ */
+.prof-grid.view-compact {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+.prof-grid.view-compact .prof-card {
+    border-radius: 12px;
+}
+.prof-grid.view-compact .prof-img {
+    height: 120px;
+}
+.prof-grid.view-compact .prof-body {
+    padding: 0.875rem;
+}
+.prof-grid.view-compact .prof-name {
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+.prof-grid.view-compact .prof-desc {
+    font-size: 0.78rem;
+    -webkit-line-clamp: 1;
+    margin-bottom: 0.5rem;
+}
+.prof-grid.view-compact .prof-footer {
+    padding-top: 0.5rem;
+}
+.prof-grid.view-compact .prof-status {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
+}
+.prof-grid.view-compact .prof-arrow {
+    width: 28px;
+    height: 28px;
+    font-size: 0.8rem;
+}
+.prof-grid.view-compact .prof-badge {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+}
+.prof-grid.view-compact .prof-students {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+}
+.prof-grid.view-compact .prof-teacher-row {
+    font-size: 0.7rem;
+    gap: 4px;
+}
+.prof-grid.view-compact .prof-teacher-avatar,
+.prof-grid.view-compact .prof-teacher-placeholder {
+    width: 16px;
+    height: 16px;
+    font-size: 0.45rem;
+}
+.prof-grid.view-compact .prof-progress {
+    padding: 0 0.875rem 0.2rem;
+}
+.prof-grid.view-compact .prof-progress-track { height: 4px; }
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 991px) {
     .prof-grid { grid-template-columns: repeat(2, 1fr); }
+    .prof-grid.view-compact { grid-template-columns: repeat(3, 1fr); }
+    .prof-grid.view-list .prof-img { width: 170px; }
+}
+
+@media (max-width: 767px) {
+    .prof-grid.view-compact { grid-template-columns: repeat(2, 1fr); }
+    .prof-grid.view-list .prof-card { flex-direction: column; }
+    .prof-grid.view-list .prof-img { width: 100%; height: 160px; }
+    .prof-toolbar { gap: 0.75rem; }
 }
 
 @media (max-width: 575px) {
     .prof-page { padding: 1.25rem 0.75rem; }
     .prof-grid { grid-template-columns: 1fr; }
+    .prof-grid.view-compact { grid-template-columns: repeat(2, 1fr); }
+    .prof-grid.view-compact .prof-img { height: 100px; }
     .prof-title { font-size: 1.4rem; }
     .prof-img { height: 160px; }
+    .view-switcher { display: flex; }
 }
 
+/* ===== ANIMATION ===== */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.prof-card {
+    animation: cardFadeIn 0.35s ease forwards;
+}
+.prof-card:nth-child(1)  { animation-delay: 0.03s; }
+.prof-card:nth-child(2)  { animation-delay: 0.06s; }
+.prof-card:nth-child(3)  { animation-delay: 0.09s; }
+.prof-card:nth-child(4)  { animation-delay: 0.12s; }
+.prof-card:nth-child(5)  { animation-delay: 0.15s; }
+.prof-card:nth-child(6)  { animation-delay: 0.18s; }
+.prof-card:nth-child(7)  { animation-delay: 0.21s; }
+.prof-card:nth-child(8)  { animation-delay: 0.24s; }
+.prof-card:nth-child(9)  { animation-delay: 0.27s; }
+.prof-card:nth-child(10) { animation-delay: 0.30s; }
 </style>
 
 <div class="prof-page">
@@ -401,28 +539,42 @@
     </div>
 
     {% if professions %}
-    <!-- FILTER TABS -->
-    <div class="prof-filters">
-        <button class="prof-tab active" data-filter="all">
-            <i class="bi bi-grid-3x3-gap"></i> Barchasi
-            <span class="cnt">{{ professions|length }}</span>
-        </button>
-        {% if user.is_authenticated and user.is_student %}
-        <button class="prof-tab" data-filter="my_courses">
-            <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
-            {% if enrolled_ids %}<span class="cnt">{{ enrolled_ids|length }}</span>{% endif %}
-        </button>
-        {% endif %}
-        <button class="prof-tab" data-filter="free">
-            <i class="bi bi-gift-fill"></i> Bepul
-        </button>
-        <button class="prof-tab" data-filter="paid">
-            <i class="bi bi-currency-dollar"></i> Pullik
-        </button>
+    <!-- TOOLBAR: filters + view switcher -->
+    <div class="prof-toolbar">
+        <div class="prof-filters">
+            <button class="prof-tab active" data-filter="all">
+                <i class="bi bi-grid-3x3-gap"></i> Barchasi
+                <span class="cnt">{{ professions|length }}</span>
+            </button>
+            {% if user.is_authenticated and user.is_student %}
+            <button class="prof-tab" data-filter="my_courses">
+                <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
+                {% if enrolled_ids %}<span class="cnt">{{ enrolled_ids|length }}</span>{% endif %}
+            </button>
+            {% endif %}
+            <button class="prof-tab" data-filter="free">
+                <i class="bi bi-gift-fill"></i> Bepul
+            </button>
+            <button class="prof-tab" data-filter="paid">
+                <i class="bi bi-currency-dollar"></i> Pullik
+            </button>
+        </div>
+
+        <div class="view-switcher" id="viewSwitcher">
+            <button class="view-btn active" data-view="grid" title="Katta kartalar">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </button>
+            <button class="view-btn" data-view="list" title="Ro'yxat ko'rinishi">
+                <i class="bi bi-list-ul"></i>
+            </button>
+            <button class="view-btn" data-view="compact" title="Ixcham kartalar">
+                <i class="bi bi-grid-fill"></i>
+            </button>
+        </div>
     </div>
 
     <!-- GRID -->
-    <div class="prof-grid">
+    <div class="prof-grid" id="profGrid">
         {% for profession in professions %}
         <a href="{% url 'profession_detail' profession.pk %}"
            class="prof-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
@@ -430,9 +582,8 @@
            data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}">
 
             <div class="prof-img">
-                <img src="{{ profession.photo.url }}" alt="{{ profession.name }}">
+                <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" loading="lazy">
 
-                <!-- TOP BADGES -->
                 <div class="prof-badges-top">
                     <div>
                         {% if not profession.is_paid %}
@@ -451,7 +602,6 @@
                     </div>
                 </div>
 
-                <!-- STUDENT COUNT -->
                 <div class="prof-students">
                     <i class="bi bi-people-fill"></i> {{ profession.student_count }}
                 </div>
@@ -526,23 +676,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Progress bar animatsiya
+    // Progress bar animation
     document.querySelectorAll('.prof-progress-bar[data-progress]').forEach(function(bar) {
-        setTimeout(function() {
-            bar.style.width = bar.dataset.progress + '%';
-        }, 300);
+        setTimeout(function() { bar.style.width = bar.dataset.progress + '%'; }, 300);
     });
 
-    const tabs = document.querySelectorAll('.prof-tab');
-    const cards = document.querySelectorAll('.prof-card');
+    // Filter tabs
+    var tabs = document.querySelectorAll('.prof-tab');
+    var cards = document.querySelectorAll('.prof-card');
 
-    tabs.forEach(tab => {
+    tabs.forEach(function(tab) {
         tab.addEventListener('click', function() {
-            tabs.forEach(t => t.classList.remove('active'));
+            tabs.forEach(function(t) { t.classList.remove('active'); });
             this.classList.add('active');
-            const filter = this.dataset.filter;
+            var filter = this.dataset.filter;
 
-            cards.forEach(card => {
+            cards.forEach(function(card) {
                 if (filter === 'all') {
                     card.style.display = '';
                 } else if (filter === 'my_courses') {
@@ -553,6 +702,35 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // View switcher
+    var grid = document.getElementById('profGrid');
+    var viewBtns = document.querySelectorAll('.view-btn');
+    var STORAGE_KEY = 'prof-view-mode';
+
+    function setView(mode) {
+        grid.classList.remove('view-list', 'view-compact');
+        if (mode === 'list') grid.classList.add('view-list');
+        if (mode === 'compact') grid.classList.add('view-compact');
+
+        viewBtns.forEach(function(b) {
+            b.classList.toggle('active', b.dataset.view === mode);
+        });
+
+        localStorage.setItem(STORAGE_KEY, mode);
+    }
+
+    viewBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            setView(this.dataset.view);
+        });
+    });
+
+    // Restore saved view
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved && ['grid', 'list', 'compact'].indexOf(saved) !== -1) {
+        setView(saved);
+    }
 });
 </script>
 {% endblock %}
