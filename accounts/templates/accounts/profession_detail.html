@@ -313,6 +313,133 @@
     background: linear-gradient(90deg, #10b981, #059669);
     border-radius: 3px;
 }
+
+/* Rich text content styling */
+.rich-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--text-main);
+    word-break: break-word;
+}
+.rich-content p { margin-bottom: 0.6em; }
+.rich-content p:last-child { margin-bottom: 0; }
+.rich-content a {
+    color: #0d6efd;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.rich-content a:hover { color: #0a58ca; }
+.rich-content strong, .rich-content b { font-weight: 700; }
+.rich-content em, .rich-content i:not([class]) { font-style: italic; }
+.rich-content h1, .rich-content h2, .rich-content h3 {
+    font-weight: 700;
+    margin-top: 0.8em;
+    margin-bottom: 0.4em;
+    color: var(--text-main);
+}
+.rich-content h1 { font-size: 1.4rem; }
+.rich-content h2 { font-size: 1.2rem; }
+.rich-content h3 { font-size: 1.05rem; }
+.rich-content ul, .rich-content ol {
+    padding-left: 1.5em;
+    margin-bottom: 0.6em;
+}
+.rich-content li { margin-bottom: 0.25em; }
+.rich-content blockquote {
+    border-left: 4px solid #0d6efd;
+    padding: 0.5em 1em;
+    margin: 0.6em 0;
+    background: var(--soft-bg);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+}
+.rich-content pre {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    padding: 1em;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 0.85rem;
+}
+.rich-content code {
+    background: var(--soft-bg);
+    padding: 0.15em 0.4em;
+    border-radius: 4px;
+    font-size: 0.88em;
+}
+.rich-content pre code {
+    background: none;
+    padding: 0;
+}
+
+/* Image lightbox */
+.prof-img-clickable {
+    cursor: zoom-in;
+    position: relative;
+}
+.prof-img-clickable::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    transition: background 0.2s;
+    border-radius: 20px 20px 0 0;
+}
+.prof-img-clickable:hover::after {
+    background: rgba(0,0,0,0.1);
+}
+
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    cursor: zoom-out;
+}
+.lightbox-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.lightbox-overlay img {
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+.lightbox-overlay.active img {
+    transform: scale(1);
+}
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    backdrop-filter: blur(8px);
+}
+.lightbox-close:hover {
+    background: rgba(255,255,255,0.25);
+}
 </style>
 {% endblock %}
 
@@ -328,10 +455,12 @@
 <!-- LEFT CARD -->
 <div class="col-lg-4">
 <div class="glass-card h-100">
-    <img src="{{ profession.photo.url }}" class="w-100 prof-img" alt="{{ profession.name }}">
+    <div class="prof-img-clickable" onclick="openLightbox('{{ profession.photo.url }}')">
+        <img src="{{ profession.photo.url }}" class="w-100 prof-img" alt="{{ profession.name }}">
+    </div>
     <div class="p-4 text-center">
         <h4 class="fw-bold mb-2">{{ profession.name }}</h4>
-        <p class="text-muted small mb-3">{{ profession.description|truncatechars:150 }}</p>
+        <div class="rich-content small mb-3" style="text-align:left;">{{ profession.description|safe }}</div>
         
         <div class="d-flex justify-content-center gap-3 mb-3 flex-wrap">
             {% if profession.is_paid %}
@@ -696,6 +825,12 @@
 </div>
 </div>
 
+<!-- Image Lightbox -->
+<div class="lightbox-overlay" id="imgLightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event)"><i class="bi bi-x-lg"></i></button>
+    <img src="" alt="Kurs rasmi" id="lightboxImg">
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -729,5 +864,23 @@ function confirmUnenrollDetail(btn) {
         }, 3000);
     }
 }
+
+function openLightbox(src) {
+    var lb = document.getElementById('imgLightbox');
+    document.getElementById('lightboxImg').src = src;
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e) {
+    if (e.target === document.getElementById('lightboxImg')) return;
+    var lb = document.getElementById('imgLightbox');
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox(e);
+});
 </script>
 {% endblock %}
