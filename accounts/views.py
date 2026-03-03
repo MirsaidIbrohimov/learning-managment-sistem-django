@@ -676,7 +676,7 @@ def submit_homework(request, pk):
                     f"👤 {request.user.first_name} {request.user.last_name}\n"
                     f"📚 {homework.lesson.profession.name}\n"
                     f"📖 {homework.lesson.title}\n"
-                    f"📋 {homework.title}"
+                    f"📋 {homework.description[:50]}"
                 )
         else:
             text_content = request.POST.get('text_content', '').strip()
@@ -693,7 +693,7 @@ def submit_homework(request, pk):
                     f"👤 {request.user.first_name} {request.user.last_name}\n"
                     f"📚 {homework.lesson.profession.name}\n"
                     f"📖 {homework.lesson.title}\n"
-                    f"📋 {homework.title}"
+                    f"📋 {homework.description[:50]}"
                 )
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")

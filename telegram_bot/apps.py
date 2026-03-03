@@ -15,14 +15,15 @@ class TelegramBotConfig(AppConfig):
         if _bot_started:
             return
         
-        # Faqat local runserver da bot polling threadini ishga tushirish
-        # Production (passenger/gunicorn/wsgi) da bot alohida ishga tushiriladi:
-        #   python manage.py run_telegram_bot
+        # runserver da reloader ikki marta chaqiradi — faqat RUN_MAIN processda ishga tushirish
+        # Production (passenger/gunicorn/wsgi) da RUN_MAIN mavjud emas — shuning uchun ham ishga tushirish
         is_runserver = 'runserver' in sys.argv
-        if not is_runserver:
+        if is_runserver and os.environ.get('RUN_MAIN') != 'true':
             return
         
-        if os.environ.get('RUN_MAIN') != 'true':
+        # migrate, collectstatic kabi buyruqlarda botni ishga tushirmaslik
+        skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser', 'shell', 'dbshell', 'check'}
+        if skip_commands.intersection(sys.argv):
             return
         
         from django.conf import settings
