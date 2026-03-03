@@ -435,7 +435,7 @@ class Homework(models.Model):
     allowed_formats = models.TextField(blank=True, default='', verbose_name="Ruxsat etilgan formatlar", 
                                         help_text="Vergul bilan ajratilgan formatlar, masalan: .zip,.jpg,.png")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
-    max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
+    max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
     
@@ -486,7 +486,7 @@ class HomeworkSubmission(models.Model):
     text_content = models.TextField(null=True, blank=True, verbose_name="Matn javobi")
     submitted_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    grade = models.IntegerField(null=True, blank=True, verbose_name="Baho (1-100)")
+    grade = models.IntegerField(null=True, blank=True, verbose_name="Baho (1-10)")
     feedback = models.TextField(blank=True, null=True, verbose_name="Izoh")
     feedback_file = models.FileField(upload_to='homework_feedback/', null=True, blank=True, verbose_name="Izoh fayli")
     graded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='graded_homeworks')

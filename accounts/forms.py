@@ -305,8 +305,8 @@ class HomeworkSubmissionForm(forms.ModelForm):
 
 class HomeworkGradeForm(forms.Form):
     grade = forms.IntegerField(
-        min_value=1, max_value=100,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Baho (1-100)'})
+        min_value=1, max_value=10,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Baho (1-10)', 'min': '1', 'max': '10'})
     )
     feedback = forms.CharField(
         required=False,

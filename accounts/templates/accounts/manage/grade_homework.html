@@ -1248,7 +1248,7 @@
             {% elif submission.status == 'reviewing' %}<i class="bi bi-eye"></i> Ko'rilmoqda
             {% elif submission.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta ishlash
             {% elif submission.status == 'accepted' %}<i class="bi bi-check-lg"></i> Qabul qilindi
-            {% elif submission.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ submission.grade }}%
+            {% elif submission.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ submission.grade }}/10
             {% endif %}
         </span>
     </div>
@@ -1407,9 +1407,9 @@
                         <input type="hidden" name="action" value="grade">
 
                         <div style="margin-bottom:1rem;">
-                            <label class="gh-grade-label">Ball (0-100) <span style="color:#ef4444;">*</span></label>
-                            <input type="number" name="grade" class="gh-grade-input" min="0" max="100"
-                                value="{{ submission.grade|default:'' }}" required placeholder="Masalan: 85">
+                            <label class="gh-grade-label">Ball (1-10) <span style="color:#ef4444;">*</span></label>
+                            <input type="number" name="grade" class="gh-grade-input" min="1" max="10"
+                                value="{{ submission.grade|default:'' }}" required placeholder="Masalan: 8">
                         </div>
 
                         <div style="margin-bottom:1rem;">

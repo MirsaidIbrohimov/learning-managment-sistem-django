@@ -2931,11 +2931,24 @@ def grade_homework(request, pk):
             messages.success(request, "Vazifa qabul qilindi!")
             return redirect('grade_homework', pk=pk)
         
-        # Avtomatik baholash (qabul + 1 ball)
+        # Avtomatik baholash (qabul + 5 ball)
         elif action == 'auto_grade':
+            import random
+            auto_feedbacks = [
+                "Barakalla! Juda yaxshi ishlagan ekansiz! 👏",
+                "Juda ajoyib! Davom eting! 🌟",
+                "Zo'r natija! Sizdan mamnunmiz! 💪",
+                "Hammasi joyida! Yaxshi ish! ✨",
+                "A'lo darajada bajarilgan! Rahmat! 🎯",
+                "Ajoyib! Mehnatlaringiz uchun rahmat! 🏆",
+                "Juda chiroyli ishlangansiz! Davom eting! 🚀",
+                "Yaxshi qilgansiz! Buni ko'rib xursand bo'ldim! 😊",
+                "Super! Sizning sa'y-harakatlaringiz ko'rinib turibdi! 💫",
+                "Zo'r! Ishingiz hammaga o'rnak bo'ladi! 🎉",
+            ]
             submission.status = 'graded'
-            submission.grade = 1
-            submission.feedback = "Avtomatik baholandi"
+            submission.grade = 5
+            submission.feedback = random.choice(auto_feedbacks)
             submission.graded_by = request.user
             submission.graded_at = timezone.now()
             submission.save()
@@ -2953,14 +2966,14 @@ def grade_homework(request, pk):
                 ActivityLog.objects.create(
                     user=submission.student,
                     action_type='homework_graded',
-                    description=f"Vazifa avtomatik baholandi: {submission.homework.lesson.title} - Baho: 1, +{coin_amount} coin"
+                    description=f"Vazifa avtomatik baholandi: {submission.homework.lesson.title} - Baho: 5, +{coin_amount} coin"
                 )
             
             from .notifications import on_homework_graded
-            on_homework_graded(submission.student, submission, 1)
-            _notify_homework_graded(request.user, submission, 1)
+            on_homework_graded(submission.student, submission, 5)
+            _notify_homework_graded(request.user, submission, 5)
             
-            messages.success(request, "Vazifa avtomatik baholandi: 1 ball!")
+            messages.success(request, "Vazifa avtomatik baholandi: 5 ball!")
             return redirect('homework_submissions')
         
         # Baholash
@@ -2970,7 +2983,7 @@ def grade_homework(request, pk):
             feedback_file = request.FILES.get('feedback_file')
             
             if grade:
-                submission.grade = int(grade)
+                submission.grade = min(int(grade), 10)
                 submission.feedback = feedback
                 if feedback_file:
                     submission.feedback_file = feedback_file
@@ -2987,9 +3000,9 @@ def grade_homework(request, pk):
                         coin_amount = 10
                     
                     # Yaxshi baho uchun bonus
-                    if submission.grade >= 90:
+                    if submission.grade >= 9:
                         coin_amount += 5
-                    elif submission.grade >= 80:
+                    elif submission.grade >= 8:
                         coin_amount += 3
                     
                     # Premium 2x bonus
