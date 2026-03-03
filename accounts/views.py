@@ -655,6 +655,68 @@ def mark_video_watched(request, pk):
     return JsonResponse({'success': True, 'coins': request.user.coins})
 
 
+def _notify_homework_submitted(student, homework):
+    """Yangi vazifa yuborilganda admin, guruh va saytga xabar"""
+    hw_text = homework.description[:50] if homework.description else ""
+    profession = homework.lesson.profession.name
+    lesson = homework.lesson.title
+
+    notify_admins(
+        f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
+        f"👤 {student.first_name} {student.last_name}\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n"
+        f"📋 {hw_text}\n\n"
+        f"👨‍🏫 O'qituvchilar, tekshirishni unutmang!"
+    )
+    notify_group(
+        f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
+        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n\n"
+        f"👨‍🏫 O'qituvchilar, tekshirishni kutmoqda!"
+    )
+    Message.objects.create(
+        recipient=None,
+        title=f"📝 Yangi uy vazifasi: {lesson}",
+        content=f"{student.first_name} {student.last_name} '{profession}' kursining '{lesson}' darsiga uy vazifasini yubordi. Tekshirishni kutmoqda.",
+        message_type='all'
+    )
+
+
+def _notify_homework_graded(grader, submission, grade):
+    """Vazifa baholanganda o'quvchi, guruh va adminlarga xabar"""
+    student = submission.student
+    profession = submission.homework.lesson.profession.name
+    lesson = submission.homework.lesson.title
+    feedback = submission.feedback or ""
+
+    notify_user(
+        student.telegram_id,
+        f"✅ <b>Uy vazifangiz baholandi!</b>\n\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n"
+        f"📊 Baho: <b>{grade}</b> ball\n"
+        f"👨‍🏫 Baholadi: {grader.first_name} {grader.last_name}\n"
+        f"{'💬 Izoh: ' + feedback[:100] if feedback else ''}"
+    )
+    notify_group(
+        f"✅ <b>Uy vazifasi baholandi!</b>\n\n"
+        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n"
+        f"📊 Baho: <b>{grade}</b> ball\n"
+        f"👨‍🏫 Baholadi: {grader.first_name} {grader.last_name}"
+    )
+    notify_admins(
+        f"✅ <b>Uy vazifasi baholandi!</b>\n\n"
+        f"👤 {student.first_name} {student.last_name}\n"
+        f"📚 {profession} → {lesson}\n"
+        f"📊 Baho: {grade} ball\n"
+        f"👨‍🏫 {grader.first_name} {grader.last_name}"
+    )
+
+
 @login_required
 def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
@@ -677,13 +739,7 @@ def submit_homework(request, pk):
                 submission.submission_type = 'file'
                 submission.save()
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
-                notify_admins(
-                    f"📝 <b>Yangi vazifa yuborildi!</b>\n\n"
-                    f"👤 {request.user.first_name} {request.user.last_name}\n"
-                    f"📚 {homework.lesson.profession.name}\n"
-                    f"📖 {homework.lesson.title}\n"
-                    f"📋 {homework.description[:50]}"
-                )
+                _notify_homework_submitted(request.user, homework)
         else:
             text_content = request.POST.get('text_content', '').strip()
             if text_content:
@@ -694,13 +750,7 @@ def submit_homework(request, pk):
                     text_content=text_content
                 )
                 messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
-                notify_admins(
-                    f"📝 <b>Yangi vazifa yuborildi!</b>\n\n"
-                    f"👤 {request.user.first_name} {request.user.last_name}\n"
-                    f"📚 {homework.lesson.profession.name}\n"
-                    f"📖 {homework.lesson.title}\n"
-                    f"📋 {homework.description[:50]}"
-                )
+                _notify_homework_submitted(request.user, homework)
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
     
@@ -2806,6 +2856,14 @@ def grade_homework(request, pk):
                 recipient=submission.student
             )
             
+            notify_user(
+                submission.student.telegram_id,
+                f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+                f"📚 {submission.homework.lesson.profession.name}\n"
+                f"📖 {submission.homework.lesson.title}\n"
+                f"💬 Izoh: {revision_note}\n\n"
+                f"📝 Iltimos, tuzatib qayta yuboring!"
+            )
             messages.warning(request, "O'quvchiga qayta ishlash so'rovi yuborildi!")
             return redirect('grade_homework', pk=pk)
         
@@ -2843,6 +2901,7 @@ def grade_homework(request, pk):
             
             from .notifications import on_homework_graded
             on_homework_graded(submission.student, submission, 1)
+            _notify_homework_graded(request.user, submission, 1)
             
             messages.success(request, "Vazifa avtomatik baholandi: 1 ball!")
             return redirect('homework_submissions')
@@ -2893,6 +2952,7 @@ def grade_homework(request, pk):
                 # Notification
                 from .notifications import on_homework_graded
                 on_homework_graded(submission.student, submission, submission.grade)
+                _notify_homework_graded(request.user, submission, submission.grade)
                 
                 messages.success(request, f"Vazifa baholandi: {submission.grade} ball!")
                 return redirect('homework_submissions')
