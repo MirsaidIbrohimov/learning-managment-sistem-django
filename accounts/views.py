@@ -2864,6 +2864,21 @@ def grade_homework(request, pk):
                 f"💬 Izoh: {revision_note}\n\n"
                 f"📝 Iltimos, tuzatib qayta yuboring!"
             )
+            notify_group(
+                f"🔄 <b>Uy vazifasi qaytarildi!</b>\n\n"
+                f"👤 O'quvchi: {submission.student.first_name} {submission.student.last_name}\n"
+                f"📚 Kurs: {submission.homework.lesson.profession.name}\n"
+                f"📖 Dars: {submission.homework.lesson.title}\n"
+                f"💬 Sabab: {revision_note}\n\n"
+                f"👨‍🏫 Qaytardi: {request.user.first_name} {request.user.last_name}"
+            )
+            notify_admins(
+                f"🔄 <b>Uy vazifasi qaytarildi!</b>\n\n"
+                f"👤 {submission.student.first_name} {submission.student.last_name}\n"
+                f"📚 {submission.homework.lesson.profession.name} → {submission.homework.lesson.title}\n"
+                f"💬 {revision_note}\n"
+                f"👨‍🏫 {request.user.first_name} {request.user.last_name}"
+            )
             messages.warning(request, "O'quvchiga qayta ishlash so'rovi yuborildi!")
             return redirect('grade_homework', pk=pk)
         
