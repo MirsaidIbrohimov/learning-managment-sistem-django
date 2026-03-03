@@ -1921,6 +1921,18 @@ def send_payment_reminder(request, pk):
         content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
         message_type='payment'
     )
+    notify_user(
+        student.telegram_id,
+        f"💳 <b>To'lov eslatmasi</b>\n\n"
+        f"Hurmatli {student.full_name},\n\n"
+        f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
+        f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+        f"🏫 IT Creative jamoasi"
+    )
+    notify_group(
+        f"💳 <b>To'lov eslatmasi yuborildi</b>\n\n"
+        f"👤 {student.full_name}ga to'lov eslatmasi yuborildi."
+    )
     messages.success(request, f"{student.full_name}ga eslatma yuborildi!")
     month = request.GET.get('month', '')
     year = request.GET.get('year', '')
@@ -1950,8 +1962,20 @@ def send_bulk_payment_reminders(request):
                 content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                 message_type='payment'
             )
+            notify_user(
+                student.telegram_id,
+                f"💳 <b>To'lov eslatmasi</b>\n\n"
+                f"Hurmatli {student.full_name},\n\n"
+                f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
+                f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+                f"🏫 IT Creative jamoasi"
+            )
             count += 1
 
+        notify_group(
+            f"💳 <b>Ommaviy to'lov eslatmasi</b>\n\n"
+            f"📊 {count} ta o'quvchiga to'lov eslatmasi yuborildi."
+        )
         messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
 
     return redirect(f'/dashboard/payments/?month={m}&year={y}')
@@ -4435,6 +4459,18 @@ def send_payment_reminder(request, pk):
         content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
         message_type='payment'
     )
+    notify_user(
+        student.telegram_id,
+        f"💳 <b>To'lov eslatmasi</b>\n\n"
+        f"Hurmatli {student.full_name},\n\n"
+        f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
+        f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+        f"🏫 IT Creative jamoasi"
+    )
+    notify_group(
+        f"💳 <b>To'lov eslatmasi yuborildi</b>\n\n"
+        f"👤 {student.full_name}ga to'lov eslatmasi yuborildi."
+    )
     
     messages.success(request, f"{student.full_name}ga to'lov eslatmasi yuborildi!")
     return redirect('admin_payments')
@@ -4460,8 +4496,20 @@ def send_bulk_payment_reminders(request):
                 content=f"Hurmatli {student.full_name},\n\nSizning oylik to'lovingiz muddati yaqinlashmoqda. Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\nHurmat bilan,\nIT Creative jamoasi",
                 message_type='payment'
             )
+            notify_user(
+                student.telegram_id,
+                f"💳 <b>To'lov eslatmasi</b>\n\n"
+                f"Hurmatli {student.full_name},\n\n"
+                f"Sizning oylik to'lovingiz muddati yaqinlashmoqda.\n"
+                f"Iltimos, o'z vaqtida to'lov qilishni unutmang.\n\n"
+                f"🏫 IT Creative jamoasi"
+            )
             count += 1
         
+        notify_group(
+            f"💳 <b>Ommaviy to'lov eslatmasi</b>\n\n"
+            f"📊 {count} ta o'quvchiga to'lov eslatmasi yuborildi."
+        )
         messages.success(request, f"{count} ta o'quvchiga to'lov eslatmasi yuborildi!")
     
     return redirect('admin_payments')
