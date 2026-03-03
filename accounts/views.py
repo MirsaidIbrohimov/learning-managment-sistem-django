@@ -4178,7 +4178,7 @@ def admin_manage_coins(request):
                             f"📤 <b>Coin ayirildi!</b>\n\n"
                             f"👤 {user.first_name} {user.last_name}\n"
                             f"🪙 -{amount} coin (Qoldi: {user.coins})\n"
-                            f"📝 Sabab: {reason or 'ko`rsatilmagan'}"
+                            f"📝 Sabab: {reason or 'belgilanmagan'}"
                         )
                         notify_admins(coin_msg)
                         notify_group(coin_msg)

@@ -1,6 +1,9 @@
 import os
+import sys
 import threading
 from django.apps import AppConfig
+
+_bot_started = False
 
 
 class TelegramBotConfig(AppConfig):
@@ -8,13 +11,21 @@ class TelegramBotConfig(AppConfig):
     name = 'telegram_bot'
 
     def ready(self):
-        # runserver reloader bilan faqat RUN_MAIN=true processda ishga tushirish
-        if os.environ.get('RUN_MAIN') != 'true':
+        global _bot_started
+        if _bot_started:
             return
+        
+        # runserver da reloader ikki marta chaqiradi — faqat RUN_MAIN processda ishga tushirish
+        # Production (passenger/gunicorn/wsgi) da RUN_MAIN mavjud emas — shuning uchun ham ishga tushirish
+        is_runserver = 'runserver' in sys.argv
+        if is_runserver and os.environ.get('RUN_MAIN') != 'true':
+            return
+        
         from django.conf import settings
         if not settings.TELEGRAM_BOT_TOKEN:
             return
-        # Background threadda botni ishga tushirish
+        
+        _bot_started = True
         t = threading.Thread(target=self._run_bot, daemon=True)
         t.start()
 
