@@ -1041,6 +1041,24 @@ def submit_test(request, pk):
     from .notifications import on_test_completed
     on_test_completed(request.user, result)
     
+    # Telegram xabarlar
+    passed_text = "✅ Muvaffaqiyatli" if result.passed else "❌ Muvaffaqiyatsiz"
+    notify_user(
+        request.user.telegram_id,
+        f"📊 <b>Test natijasi!</b>\n\n"
+        f"📚 Kurs: {test.lesson.profession.name}\n"
+        f"📖 Dars: {test.lesson.title}\n"
+        f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
+        f"{passed_text}"
+    )
+    notify_group(
+        f"📊 <b>Test natijasi!</b>\n\n"
+        f"👤 {request.user.first_name} {request.user.last_name}\n"
+        f"📚 {test.lesson.profession.name}\n"
+        f"📖 {test.lesson.title}\n"
+        f"✏️ {correct}/{total} ({score}%) — {passed_text}"
+    )
+    
     return redirect('test_result', pk=result.pk)
 
 
