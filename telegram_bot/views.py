@@ -6,8 +6,12 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
+from django.shortcuts import render
+from django.core.paginator import Paginator
+from django.db.models import Q
+
 from accounts.models import CustomUser
-from .models import TelegramLoginCode, TelegramLinkToken
+from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog
 
 
 @login_required
@@ -167,3 +171,56 @@ def _send_message(bot_token, chat_id, text):
         'text': text,
         'parse_mode': 'HTML'
     })
+
+
+@login_required
+def admin_telegram_users(request):
+    """Admin: Telegram ulangan foydalanuvchilar va xabarlar logi"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    tab = request.GET.get('tab', 'users')
+    search = request.GET.get('q', '').strip()
+
+    # Ulangan foydalanuvchilar
+    linked_users = CustomUser.objects.filter(
+        telegram_id__isnull=False
+    ).order_by('-last_activity')
+
+    if search:
+        linked_users = linked_users.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(username__icontains=search) |
+            Q(telegram_username__icontains=search)
+        )
+
+    # Xabarlar logi
+    msg_logs = TelegramMessageLog.objects.select_related('user').all()
+    if search and tab == 'messages':
+        msg_logs = msg_logs.filter(
+            Q(text__icontains=search) |
+            Q(telegram_name__icontains=search) |
+            Q(telegram_username__icontains=search) |
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search)
+        )
+
+    # Pagination
+    if tab == 'messages':
+        paginator = Paginator(msg_logs, 30)
+    else:
+        paginator = Paginator(linked_users, 30)
+
+    page = request.GET.get('page')
+    items = paginator.get_page(page)
+
+    context = {
+        'tab': tab,
+        'search': search,
+        'items': items,
+        'linked_count': CustomUser.objects.filter(telegram_id__isnull=False).count(),
+        'total_messages': TelegramMessageLog.objects.count(),
+    }
+    return render(request, 'telegram_bot/admin_telegram.html', context)

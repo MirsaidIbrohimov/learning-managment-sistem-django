@@ -1,0 +1,270 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Telegram boshqaruvi - Admin{% endblock %}
+{% block topbar_title %}Telegram boshqaruvi{% endblock %}
+
+{% block admin_content %}
+<style>
+.tg-page { max-width: 1100px; margin: 0 auto; }
+.tg-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.tg-header h4 { font-weight: 800; margin: 0; }
+.tg-header i { color: #0088cc; font-size: 1.5rem; }
+.tg-sub { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.tg-stats { display: flex; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tg-stat {
+    padding: 14px 20px; border-radius: 14px; flex: 1; min-width: 140px;
+    background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color);
+}
+.tg-stat-num { font-size: 1.5rem; font-weight: 800; }
+.tg-stat-label { font-size: 0.8rem; color: var(--bs-secondary-color); }
+
+.tg-tabs { display: flex; gap: 4px; margin-bottom: 1rem; background: var(--bs-tertiary-bg); border-radius: 12px; padding: 4px; }
+.tg-tab {
+    flex: 1; text-align: center; padding: 10px; border-radius: 10px; font-weight: 600;
+    font-size: 0.85rem; text-decoration: none; color: var(--bs-secondary-color);
+    transition: all 0.2s;
+}
+.tg-tab.active { background: #0088cc; color: #fff; }
+.tg-tab:hover:not(.active) { color: #0088cc; }
+
+.tg-search { position: relative; margin-bottom: 1.2rem; }
+.tg-search input {
+    width: 100%; padding: 10px 14px 10px 40px; border-radius: 12px;
+    border: 1.5px solid var(--bs-border-color); background: var(--bs-body-bg);
+    color: var(--bs-body-color); font-size: 0.9rem;
+}
+.tg-search input:focus { outline: none; border-color: #0088cc; box-shadow: 0 0 0 3px rgba(0,136,204,0.12); }
+.tg-search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); }
+
+.tg-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 14px; overflow: hidden;
+}
+.tg-table { width: 100%; border-collapse: collapse; }
+.tg-table th {
+    padding: 12px 16px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--bs-secondary-color); border-bottom: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+}
+.tg-table td { padding: 12px 16px; border-bottom: 1px solid var(--bs-border-color); font-size: 0.9rem; vertical-align: middle; }
+.tg-table tr:last-child td { border-bottom: none; }
+.tg-table tr:hover { background: rgba(0,136,204,0.03); }
+
+.tg-avatar {
+    width: 36px; height: 36px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(0,136,204,0.3);
+}
+.tg-avatar-fallback {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: linear-gradient(135deg, #0088cc, #00aaff);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem;
+}
+.tg-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.tg-badge-admin { background: #dc2626; color: #fff; }
+.tg-badge-teacher { background: #2563eb; color: #fff; }
+.tg-badge-student { background: #16a34a; color: #fff; }
+.tg-link { color: #0088cc; text-decoration: none; font-weight: 600; }
+.tg-link:hover { text-decoration: underline; }
+.tg-msg-text { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg-time { font-size: 0.8rem; color: var(--bs-secondary-color); }
+.tg-empty { text-align: center; padding: 3rem; color: var(--bs-secondary-color); }
+.tg-empty i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+
+.tg-pagination { display: flex; justify-content: center; gap: 4px; margin-top: 1rem; }
+.tg-pagination a, .tg-pagination span {
+    padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
+    text-decoration: none; color: var(--bs-body-color); border: 1px solid var(--bs-border-color);
+}
+.tg-pagination .active { background: #0088cc; color: #fff; border-color: #0088cc; }
+
+@media (max-width: 768px) {
+    .tg-table-wrap { overflow-x: auto; }
+    .tg-stats { flex-direction: column; }
+}
+</style>
+
+<div class="tg-page">
+
+<div class="tg-header">
+    <i class="bi bi-telegram"></i>
+    <h4>Telegram boshqaruvi</h4>
+</div>
+<p class="tg-sub">Ulangan telegramlar va bot xabarlari</p>
+
+<!-- Stats -->
+<div class="tg-stats">
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#0088cc;">{{ linked_count }}</div>
+        <div class="tg-stat-label">Ulangan foydalanuvchilar</div>
+    </div>
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#16a34a;">{{ total_messages }}</div>
+        <div class="tg-stat-label">Jami xabarlar</div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tg-tabs">
+    <a href="?tab=users{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'users' %}active{% endif %}">
+        <i class="bi bi-people me-1"></i>Ulangan telegramlar
+    </a>
+    <a href="?tab=messages{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'messages' %}active{% endif %}">
+        <i class="bi bi-chat-dots me-1"></i>Xabarlar
+    </a>
+</div>
+
+<!-- Search -->
+<div class="tg-search">
+    <i class="bi bi-search"></i>
+    <form method="GET">
+        <input type="hidden" name="tab" value="{{ tab }}">
+        <input type="text" name="q" value="{{ search }}" placeholder="Qidirish...">
+    </form>
+</div>
+
+<div class="tg-card">
+<div class="tg-table-wrap">
+
+{% if tab == 'users' %}
+<!-- Users table -->
+<table class="tg-table">
+<thead>
+    <tr>
+        <th>Foydalanuvchi</th>
+        <th>Telegram</th>
+        <th>Rol</th>
+        <th>Telegram ID</th>
+        <th>Oxirgi faollik</th>
+    </tr>
+</thead>
+<tbody>
+{% for u in items %}
+<tr>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            {% if u.photo %}
+                <img src="{{ u.photo.url }}" class="tg-avatar">
+            {% else %}
+                <div class="tg-avatar-fallback">{{ u.get_initials }}</div>
+            {% endif %}
+            <div>
+                <div class="fw-semibold">{{ u.first_name }} {{ u.last_name }}</div>
+                <small class="text-muted">@{{ u.username }}</small>
+            </div>
+        </div>
+    </td>
+    <td>
+        {% if u.telegram_username %}
+            <a href="https://t.me/{{ u.telegram_username }}" target="_blank" class="tg-link">
+                @{{ u.telegram_username }}
+            </a>
+        {% else %}
+            <span class="text-muted">-</span>
+        {% endif %}
+    </td>
+    <td>
+        <span class="tg-badge {% if u.role == 'admin' %}tg-badge-admin{% elif u.role == 'teacher' %}tg-badge-teacher{% else %}tg-badge-student{% endif %}">
+            {{ u.get_role_display }}
+        </span>
+    </td>
+    <td><code>{{ u.telegram_id }}</code></td>
+    <td class="tg-time">
+        {% if u.last_activity %}{{ u.last_activity|timesince }} oldin{% else %}-{% endif %}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="5">
+    <div class="tg-empty">
+        <i class="bi bi-telegram"></i>
+        Hech kim Telegram ulamagan
+    </div>
+</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% else %}
+<!-- Messages table -->
+<table class="tg-table">
+<thead>
+    <tr>
+        <th>Foydalanuvchi</th>
+        <th>Xabar</th>
+        <th>Vaqt</th>
+    </tr>
+</thead>
+<tbody>
+{% for msg in items %}
+<tr>
+    <td>
+        <div class="d-flex align-items-center gap-2">
+            {% if msg.user and msg.user.photo %}
+                <img src="{{ msg.user.photo.url }}" class="tg-avatar">
+            {% else %}
+                <div class="tg-avatar-fallback">
+                    {% if msg.user %}{{ msg.user.get_initials }}{% else %}?{% endif %}
+                </div>
+            {% endif %}
+            <div>
+                {% if msg.user %}
+                    <div class="fw-semibold">{{ msg.user.first_name }} {{ msg.user.last_name }}</div>
+                {% else %}
+                    <div class="fw-semibold">{{ msg.telegram_name }}</div>
+                {% endif %}
+                {% if msg.telegram_username %}
+                    <small class="text-muted">@{{ msg.telegram_username }}</small>
+                {% else %}
+                    <small class="text-muted">ID: {{ msg.telegram_id }}</small>
+                {% endif %}
+            </div>
+        </div>
+    </td>
+    <td>
+        <div class="tg-msg-text">{{ msg.text }}</div>
+    </td>
+    <td class="tg-time" style="white-space:nowrap;">
+        {{ msg.created_at|date:"d.m.Y H:i" }}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="3">
+    <div class="tg-empty">
+        <i class="bi bi-chat-dots"></i>
+        Xabarlar yo'q
+    </div>
+</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+
+</div>
+</div>
+
+<!-- Pagination -->
+{% if items.has_other_pages %}
+<div class="tg-pagination">
+    {% if items.has_previous %}
+        <a href="?tab={{ tab }}&page={{ items.previous_page_number }}{% if search %}&q={{ search }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+    {% endif %}
+    {% for num in items.paginator.page_range %}
+        {% if items.number == num %}
+            <span class="active">{{ num }}</span>
+        {% elif num > items.number|add:'-3' and num < items.number|add:'3' %}
+            <a href="?tab={{ tab }}&page={{ num }}{% if search %}&q={{ search }}{% endif %}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if items.has_next %}
+        <a href="?tab={{ tab }}&page={{ items.next_page_number }}{% if search %}&q={{ search }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+</div>
+{% endblock %}

@@ -69,7 +69,7 @@ class TelegramBotConfig(AppConfig):
 
     def _process_update(self, bot_token, update):
         from accounts.models import CustomUser
-        from telegram_bot.models import TelegramLoginCode, TelegramLinkToken
+        from telegram_bot.models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog
 
         message = update.get('message', {})
         text = message.get('text', '')
@@ -79,6 +79,7 @@ class TelegramBotConfig(AppConfig):
         tg_username = user_data.get('username', '')
         chat_id = chat.get('id')
         first_name = user_data.get('first_name', '')
+        last_name = user_data.get('last_name', '')
 
         if not telegram_id or not chat_id:
             return
@@ -87,6 +88,18 @@ class TelegramBotConfig(AppConfig):
         chat_type = chat.get('type', 'private')
         if chat_type != 'private':
             return
+
+        # Xabarni logga yozish
+        if text:
+            tg_full = f"{first_name} {last_name}".strip()
+            linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+            TelegramMessageLog.objects.create(
+                telegram_id=telegram_id,
+                user=linked_user,
+                telegram_username=tg_username,
+                telegram_name=tg_full,
+                text=text,
+            )
 
         # Callback query (tugma bosilganda)
         callback = update.get('callback_query')

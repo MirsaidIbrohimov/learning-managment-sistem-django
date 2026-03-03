@@ -50,3 +50,26 @@ class TelegramLinkToken(models.Model):
     @staticmethod
     def generate_token():
         return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+
+
+class TelegramMessageLog(models.Model):
+    """Botga kelgan xabarlar logi"""
+    telegram_id = models.BigIntegerField(verbose_name="Telegram ID")
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='telegram_messages',
+        verbose_name="Foydalanuvchi"
+    )
+    telegram_username = models.CharField(max_length=100, blank=True, verbose_name="TG username")
+    telegram_name = models.CharField(max_length=200, blank=True, verbose_name="TG ism")
+    text = models.TextField(verbose_name="Xabar matni")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Telegram xabar"
+        verbose_name_plural = "Telegram xabarlar"
+
+    def __str__(self):
+        name = self.telegram_name or str(self.telegram_id)
+        return f"{name}: {self.text[:50]}"
