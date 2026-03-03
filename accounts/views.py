@@ -58,6 +58,12 @@ def register_view(request):
                 f"📱 {user.phone}\n"
                 f"🎓 {user.get_role_display()}"
             )
+            notify_group(
+                f"🎉 <b>Safimizga yangi foydalanuvchi qo'shildi!</b>\n\n"
+                f"👤 {user.first_name} {user.last_name}\n"
+                f"🎓 {user.get_role_display()}\n\n"
+                f"🚀 Xush kelibsiz!"
+            )
             messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz!")
             return redirect('home')
         else:
@@ -6510,6 +6516,25 @@ def admin_give_book(request):
                 message=f"Farzandingiz {student.full_name} '{book.title}' ({book.author}) kitobini ijaraga oldi.\n\nQaytarish sanasi: {return_date_str}\n\nIltimos, farzandingizga kitobni o'z vaqtida qaytarishni eslatib qo'ying!"
             )
         
+        notify_admins(
+            f"📚 <b>Kitob ijaraga berildi!</b>\n\n"
+            f"📖 {book.title} ({book.author})\n"
+            f"👤 {student.full_name}\n"
+            f"📅 Qaytarish: {return_date_str}\n"
+            f"👨‍💼 Berdi: {request.user.full_name}"
+        )
+        notify_group(
+            f"📚 <b>Kutubxona yangiligi</b>\n\n"
+            f"📖 «{book.title}» kitobi {student.full_name}ga ijaraga berildi.\n"
+            f"📅 Qaytarish sanasi: {return_date_str}"
+        )
+        notify_user(
+            student.telegram_id,
+            f"📚 Sizga kitob ijaraga berildi!\n\n"
+            f"📖 <b>{book.title}</b> ({book.author})\n"
+            f"📅 Qaytarish sanasi: {return_date_str}\n\n"
+            f"⏰ Iltimos, kitobni o'z vaqtida qaytaring!"
+        )
         messages.success(request, f"'{book.title}' kitobi {student.full_name}ga berildi!")
         return redirect('admin_book_rentals')
     
@@ -6545,6 +6570,16 @@ def admin_return_book(request, pk):
             message_type='system'
         )
         
+        notify_admins(
+            f"✅ <b>Kitob qaytarildi!</b>\n\n"
+            f"📖 {rental.book.title} ({rental.book.author})\n"
+            f"👤 {rental.student.full_name}\n"
+            f"👨‍💼 Qabul qildi: {request.user.full_name}"
+        )
+        notify_group(
+            f"✅ <b>Kutubxona yangiligi</b>\n\n"
+            f"📖 «{rental.book.title}» kitobi {rental.student.full_name} tomonidan qaytarildi."
+        )
         messages.success(request, f"'{rental.book.title}' qaytarildi!")
     
     return redirect('admin_book_rentals')

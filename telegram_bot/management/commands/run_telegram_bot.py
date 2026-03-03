@@ -115,6 +115,25 @@ class Command(BaseCommand):
             self._handle_messages(bot_token, chat_id, telegram_id)
             return
 
+        if text == '📚 Kitoblarim':
+            self._handle_books(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '🔓 Uzish':
+            self._handle_unlink(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '✅ Ha, uzilsin':
+            self._do_unlink(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '❌ Bekor qilish':
+            self._send_message_with_keyboard(
+                bot_token, chat_id,
+                "👌 Bekor qilindi. Telegram ulangan holda qoldi."
+            )
+            return
+
         self._send_message(
             bot_token, chat_id,
             "ℹ️ Login kod olish uchun /start bosing."
@@ -303,6 +322,81 @@ class Command(BaseCommand):
 
         self._send_message(bot_token, chat_id, "\n".join(lines))
 
+    def _handle_books(self, bot_token, chat_id, telegram_id):
+        from accounts.models import BookRental
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return
+
+        active_rentals = BookRental.objects.filter(
+            student=user, status__in=['active', 'overdue']
+        ).select_related('book')
+
+        if not active_rentals:
+            self._send_message(bot_token, chat_id, "📚 Sizda hozirda ijaradagi kitob yo'q.")
+            return
+
+        lines = [f"📚 <b>Ijaradagi kitoblarim</b> ({active_rentals.count()} ta)\n"]
+        for rental in active_rentals:
+            status_icon = "🔴 Muddati o'tgan!" if rental.is_overdue else f"⏳ {rental.days_until_return} kun qoldi"
+            lines.append(f"📖 <b>{rental.book.title}</b>")
+            lines.append(f"   ✍️ {rental.book.author}")
+            lines.append(f"   📅 Qaytarish: {rental.return_date.strftime('%d.%m.%Y')}")
+            lines.append(f"   {status_icon}\n")
+
+        self._send_message(bot_token, chat_id, "\n".join(lines))
+
+    def _handle_unlink(self, bot_token, chat_id, telegram_id):
+        if not CustomUser.objects.filter(telegram_id=telegram_id).exists():
+            self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return
+
+        user = CustomUser.objects.get(telegram_id=telegram_id)
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        keyboard = {
+            'keyboard': [
+                [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qilish'}],
+            ],
+            'resize_keyboard': True,
+            'one_time_keyboard': True,
+        }
+        requests.post(url, json={
+            'chat_id': chat_id,
+            'text': f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
+                    f"👤 {user.first_name} {user.last_name}\n\n"
+                    f"Uzilgandan so'ng bot orqali login qila olmaysiz.\n"
+                    f"Qayta ulash uchun saytdan \"Telegramni ulash\" tugmasini bosishingiz kerak.",
+            'parse_mode': 'HTML',
+            'reply_markup': keyboard,
+        })
+
+    def _do_unlink(self, bot_token, chat_id, telegram_id):
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return
+
+        user.telegram_id = None
+        user.telegram_username = None
+        user.save(update_fields=['telegram_id', 'telegram_username'])
+
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        keyboard = {'remove_keyboard': True}
+        requests.post(url, json={
+            'chat_id': chat_id,
+            'text': f"✅ Telegram muvaffaqiyatli uzildi!\n\n"
+                    f"👤 {user.first_name} {user.last_name}\n\n"
+                    f"📱 Qayta ulash uchun saytda profilingizga kirib\n"
+                    f"\"Telegramni ulash\" tugmasini bosing.",
+            'parse_mode': 'HTML',
+            'reply_markup': keyboard,
+        })
+        self.stdout.write(f"  🔓 Uzildi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
+
     def _answer_callback(self, bot_token, callback_query_id):
         url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
         requests.post(url, json={'callback_query_id': callback_query_id})
@@ -312,7 +406,8 @@ class Command(BaseCommand):
         keyboard = {
             'keyboard': [
                 [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
-                [{'text': '📬 Xabarlarim'}],
+                [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
+                [{'text': '🔓 Uzish'}],
             ],
             'resize_keyboard': True,
         }
