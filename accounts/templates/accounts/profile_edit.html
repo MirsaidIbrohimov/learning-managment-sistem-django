@@ -4,174 +4,639 @@
 
 {% block extra_css %}
 <style>
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+@keyframes goldGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,.15), 0 0 60px rgba(245,158,11,.05); }
+    50% { box-shadow: 0 0 30px rgba(245,158,11,.25), 0 0 80px rgba(245,158,11,.1); }
+}
+@keyframes borderRotate {
+    0% { --angle: 0deg; }
+    100% { --angle: 360deg; }
+}
+@keyframes particleFloat {
+    0% { transform: translateY(0) translateX(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+}
 
-/* ===== THEME ===== */
-.edit-wrap{--border:rgba(0,0,0,.08);--shadow:0 15px 40px rgba(0,0,0,.12)}
-[data-bs-theme="dark"] .edit-wrap{--border:rgba(255,255,255,.12);--shadow:0 30px 70px rgba(0,0,0,.7)}
+/* ===== THEME VARIABLES ===== */
+:root {
+    --pe-gradient: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    --pe-card-bg: rgba(255,255,255,.85);
+    --pe-border: rgba(0,0,0,.06);
+    --pe-shadow: 0 20px 60px rgba(0,0,0,.1);
+    --pe-section-bg: rgba(0,0,0,.02);
+    --pe-label: #475569;
+    --pe-divider: rgba(0,0,0,.06);
+}
+[data-bs-theme="dark"] {
+    --pe-card-bg: rgba(30,30,45,.75);
+    --pe-border: rgba(255,255,255,.08);
+    --pe-shadow: 0 30px 80px rgba(0,0,0,.6);
+    --pe-section-bg: rgba(255,255,255,.03);
+    --pe-label: #94a3b8;
+    --pe-divider: rgba(255,255,255,.06);
+}
 
-/* ===== CARD ===== */
-.edit-card{
-    background:var(--bs-body-bg);
-    border:1px solid var(--border);
-    border-radius:1.5rem;
-    box-shadow:var(--shadow);
+/* ===== HERO BANNER ===== */
+.pe-hero {
+    background: var(--pe-gradient);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
+    margin-bottom: -3rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp .6s ease both;
+}
+.pe-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.pe-hero h2 {
+    color: #fff;
+    font-weight: 800;
+    font-size: 1.6rem;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+.pe-hero p {
+    color: rgba(255,255,255,.7);
+    margin: .3rem 0 0;
+    font-size: .9rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* Premium hero */
+.pe-hero.premium {
+    background: linear-gradient(135deg, #f59e0b, #d97706, #b45309, #d97706);
+    background-size: 300% 300%;
+    animation: fadeInUp .6s ease both, shimmer 4s linear infinite;
+}
+
+/* ===== BACK BUTTON ===== */
+.pe-back {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .6rem 1.4rem;
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: .9rem;
+    text-decoration: none;
+    background: var(--pe-card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--pe-border);
+    color: var(--bs-body-color);
+    transition: all .3s;
+    animation: fadeInUp .5s ease both;
+}
+.pe-back:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.1);
+    color: var(--bs-body-color);
+}
+.pe-back.premium {
+    border-color: rgba(245,158,11,.3);
+    color: #d97706;
+}
+.pe-back.premium:hover {
+    background: rgba(245,158,11,.08);
+    color: #b45309;
+}
+
+/* ===== MAIN CARD ===== */
+.pe-card {
+    background: var(--pe-card-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--pe-border);
+    border-radius: 1.8rem;
+    box-shadow: var(--pe-shadow);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp .7s ease .1s both;
+}
+
+/* Premium card */
+.pe-card.premium {
+    border-color: rgba(245,158,11,.3);
+    animation: fadeInUp .7s ease .1s both, goldGlow 3s ease-in-out infinite;
+}
+.pe-card.premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b, #d97706, #f59e0b);
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+/* Gold particles for premium */
+.pe-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.pe-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    background: #fbbf24;
+    border-radius: 50%;
+    opacity: 0;
+}
+.pe-particle:nth-child(1) { left: 10%; bottom: 0; animation: particleFloat 6s linear infinite 0s; }
+.pe-particle:nth-child(2) { left: 25%; bottom: 0; animation: particleFloat 8s linear infinite 1s; }
+.pe-particle:nth-child(3) { left: 45%; bottom: 0; animation: particleFloat 7s linear infinite 2s; }
+.pe-particle:nth-child(4) { left: 65%; bottom: 0; animation: particleFloat 9s linear infinite .5s; }
+.pe-particle:nth-child(5) { left: 80%; bottom: 0; animation: particleFloat 6s linear infinite 3s; }
+.pe-particle:nth-child(6) { left: 90%; bottom: 0; animation: particleFloat 8s linear infinite 1.5s; }
+.pe-particle:nth-child(7) { left: 35%; bottom: 0; animation: particleFloat 7s linear infinite 4s; }
+.pe-particle:nth-child(8) { left: 55%; bottom: 0; animation: particleFloat 9s linear infinite 2.5s; }
+
+/* ===== SECTIONS ===== */
+.pe-section {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--pe-divider);
+    opacity: 0;
+    animation: fadeInUp .5s ease both;
+}
+.pe-section:last-child { border-bottom: none; }
+.pe-section:nth-child(1) { animation-delay: .2s; }
+.pe-section:nth-child(2) { animation-delay: .3s; }
+.pe-section:nth-child(3) { animation-delay: .4s; }
+.pe-section:nth-child(4) { animation-delay: .5s; }
+.pe-section:nth-child(5) { animation-delay: .6s; }
+.pe-section:nth-child(6) { animation-delay: .7s; }
+.pe-section:nth-child(7) { animation-delay: .8s; }
+
+.pe-section-header {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    margin-bottom: 1.2rem;
+}
+.pe-section-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, rgba(99,102,241,.1), rgba(139,92,246,.1));
+    color: #6366f1;
+}
+.premium .pe-section-icon {
+    background: linear-gradient(135deg, rgba(245,158,11,.1), rgba(217,119,6,.1));
+    color: #d97706;
+}
+.pe-section-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--bs-body-color);
 }
 
 /* ===== AVATAR ===== */
-.edit-avatar{
-    width:120px;height:120px;border-radius:50%;
-    object-fit:cover;border:4px solid rgba(99,102,241,.4)
+.pe-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
 }
-.edit-avatar-fallback{
-    width:120px;height:120px;border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:2.5rem;font-weight:700
+.pe-avatar-preview {
+    position: relative;
+    width: 130px;
+    height: 130px;
+}
+.pe-avatar-img {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(99,102,241,.3);
+    transition: transform .3s;
+}
+.pe-avatar-img:hover { transform: scale(1.05); }
+
+.pe-avatar-fallback {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 2.8rem;
+    font-weight: 700;
 }
 
-/* ===== INPUT ===== */
-.form-control, .form-select{
-    border-radius:1rem
+/* Premium avatar */
+.premium .pe-avatar-preview { animation: float 3s ease-in-out infinite; }
+.premium .pe-avatar-img { border-color: rgba(245,158,11,.5); }
+.premium .pe-avatar-fallback { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* Sparkles around avatar */
+.pe-sparkles {
+    position: absolute;
+    inset: -15px;
+    pointer-events: none;
 }
-.form-control:focus, .form-select:focus{
-    box-shadow:0 0 0 .15rem rgba(99,102,241,.25)
+.pe-sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fbbf24;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #fbbf24;
+}
+.pe-sparkle:nth-child(1) { top: 5%; left: 10%; animation: sparkle 2s ease infinite 0s; }
+.pe-sparkle:nth-child(2) { top: 15%; right: 5%; animation: sparkle 2s ease infinite .5s; }
+.pe-sparkle:nth-child(3) { bottom: 15%; left: 0%; animation: sparkle 2s ease infinite 1s; }
+.pe-sparkle:nth-child(4) { bottom: 5%; right: 10%; animation: sparkle 2s ease infinite 1.5s; }
+.pe-sparkle:nth-child(5) { top: 50%; left: -5%; animation: sparkle 2.5s ease infinite .3s; }
+.pe-sparkle:nth-child(6) { top: 50%; right: -5%; animation: sparkle 2.5s ease infinite .8s; }
+
+/* Premium badge */
+.pe-premium-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .35rem .9rem;
+    border-radius: 2rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(245,158,11,.3);
 }
 
-/* ===== FILE ===== */
-input[type=file]{border-radius:1rem}
+/* ===== FORM INPUTS ===== */
+.pe-label {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-weight: 600;
+    font-size: .85rem;
+    color: var(--pe-label);
+    margin-bottom: .45rem;
+}
+.pe-label i { font-size: .9rem; opacity: .7; }
+.premium .pe-label { color: #b45309; }
+[data-bs-theme="dark"] .premium .pe-label { color: #fbbf24; }
 
-/* ===== BUTTON ===== */
-.action-btn{border-radius:2rem;font-weight:600;padding:.5rem 1.6rem}
+.pe-card .form-control,
+.pe-card .form-select {
+    border-radius: 1rem;
+    padding: .7rem 1rem;
+    border: 1.5px solid var(--pe-border);
+    background: var(--bs-body-bg);
+    transition: all .3s;
+    font-size: .93rem;
+}
+.pe-card .form-control:focus,
+.pe-card .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+}
+.premium .pe-card .form-control:focus,
+.premium .pe-card .form-select:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245,158,11,.12);
+}
 
+.pe-card input[type="file"] {
+    border-radius: 1rem;
+    padding: .6rem .8rem;
+}
+
+/* File link */
+.pe-file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    margin-top: .4rem;
+    font-size: .82rem;
+    color: #6366f1;
+    text-decoration: none;
+    transition: color .2s;
+}
+.pe-file-link:hover { color: #4f46e5; text-decoration: underline; }
+.premium .pe-file-link { color: #d97706; }
+.premium .pe-file-link:hover { color: #b45309; }
+
+/* ===== BUTTONS ===== */
+.pe-actions {
+    padding-top: 1.5rem;
+    animation: fadeInUp .5s ease .9s both;
+    opacity: 0;
+}
+.pe-btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .8rem 2.2rem;
+    border: none;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 8px 25px rgba(99,102,241,.3);
+    transition: all .3s;
+    cursor: pointer;
+}
+.pe-btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 35px rgba(99,102,241,.4);
+}
+.pe-btn-save:active { transform: translateY(0); }
+
+/* Premium save button */
+.premium .pe-btn-save {
+    background: linear-gradient(135deg, #f59e0b, #d97706, #f59e0b);
+    background-size: 200% 100%;
+    box-shadow: 0 8px 25px rgba(245,158,11,.3);
+    animation: shimmer 3s linear infinite;
+}
+.premium .pe-btn-save:hover {
+    box-shadow: 0 12px 35px rgba(245,158,11,.4);
+}
+
+.pe-btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .8rem 1.8rem;
+    border: 1.5px solid var(--pe-border);
+    border-radius: 2rem;
+    font-weight: 600;
+    font-size: .95rem;
+    color: var(--bs-body-color);
+    background: transparent;
+    text-decoration: none;
+    transition: all .3s;
+}
+.pe-btn-cancel:hover {
+    background: var(--pe-section-bg);
+    transform: translateY(-2px);
+    color: var(--bs-body-color);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .pe-card { padding: 1.5rem; border-radius: 1.3rem; }
+    .pe-hero { padding: 2rem 1.5rem; border-radius: 1.3rem; }
+    .pe-hero h2 { font-size: 1.3rem; }
+    .pe-section { padding: 1.2rem 0; }
+    .pe-avatar-img, .pe-avatar-fallback, .pe-avatar-preview {
+        width: 110px; height: 110px;
+    }
+    .pe-avatar-fallback { font-size: 2.2rem; }
+    .pe-actions { flex-direction: column; }
+    .pe-btn-save, .pe-btn-cancel { width: 100%; justify-content: center; }
+}
+@media (max-width: 480px) {
+    .pe-card { padding: 1.2rem; }
+    .pe-hero { padding: 1.5rem 1.2rem; margin-bottom: -2rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5 edit-wrap">
-
+<div class="container py-4 {% if user.is_premium %}premium{% endif %}">
 <div class="row justify-content-center">
 <div class="col-lg-9 col-md-10">
 
-<a href="{% url 'profile' %}" class="btn btn-outline-secondary rounded-pill mb-4">
-    <i class="bi bi-arrow-left me-1"></i>Orqaga
+<!-- Back Button -->
+<a href="{% url 'profile' %}" class="pe-back {% if user.is_premium %}premium{% endif %} mb-4">
+    <i class="bi bi-arrow-left"></i> Orqaga
 </a>
 
-<div class="edit-card p-4 p-lg-5">
-
-<h4 class="fw-bold mb-4 text-primary">
-    <i class="bi bi-pencil-square me-2"></i>Profilni tahrirlash
-</h4>
-
-<form method="POST" enctype="multipart/form-data">
-{% csrf_token %}
-
-<!-- AVATAR -->
-<div class="text-center mb-4">
-
-{% if user.photo %}
-    <img src="{{ user.photo.url }}" class="edit-avatar mb-2">
-{% else %}
-    <div class="edit-avatar-fallback mb-2">{{ user.get_initials }}</div>
-{% endif %}
-
-<div class="mt-2">
-    {{ form.photo }}
+<!-- Hero Banner -->
+<div class="pe-hero {% if user.is_premium %}premium{% endif %}">
+    <h2><i class="bi bi-pencil-square me-2"></i>Profilni tahrirlash</h2>
+    <p>Shaxsiy ma'lumotlaringizni yangilang</p>
+    <br>
 </div>
 
-</div>
+<!-- Main Card -->
+<div class="pe-card {% if user.is_premium %}premium{% endif %}">
 
-<!-- NAME -->
-<div class="row g-3">
-
-<div class="col-md-6">
-    <label class="form-label">Ism</label>
-    {{ form.first_name }}
-</div>
-
-<div class="col-md-6">
-    <label class="form-label">Familiya</label>
-    {{ form.last_name }}
-</div>
-
-<div class="col-md-6">
-    <label class="form-label">Telefon</label>
-    {{ form.phone }}
-</div>
-
-<div class="col-md-6">
-    <label class="form-label">Email</label>
-    {{ form.email }}
-</div>
-
-<div class="col-md-6">
-    <label class="form-label">Yashash manzili</label>
-    {{ form.address }}
-</div>
-
-<div class="col-md-6">
-    <label class="form-label">Tug'ilgan sana</label>
-    {{ form.birth_date }}
-</div>
-
-</div>
-
-<!-- FILES -->
-<div class="row g-3 mt-2">
-
-<div class="col-md-6">
-    <label class="form-label">ID karta / Pasport</label>
-    {{ form.id_card }}
-    {% if user.id_card %}
-        <small class="text-muted d-block mt-1">
-            Joriy fayl: <a href="{{ user.id_card.url }}" target="_blank">Ko'rish</a>
-        </small>
+    {% if user.is_premium %}
+    <div class="pe-particles">
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+        <div class="pe-particle"></div>
+    </div>
     {% endif %}
-</div>
 
-<div class="col-md-6">
-    <label class="form-label">Tug'ilganlik guvohnomasi</label>
-    {{ form.birth_certificate }}
-    {% if user.birth_certificate %}
-        <small class="text-muted d-block mt-1">
-            Joriy fayl: <a href="{{ user.birth_certificate.url }}" target="_blank">Ko'rish</a>
-        </small>
+    <form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- Section 1: Profil rasmi -->
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-camera-fill"></i></div>
+            <span class="pe-section-title">Profil rasmi</span>
+            {% if user.is_premium %}
+                <span class="pe-premium-badge"><i class="bi bi-gem"></i> Premium</span>
+            {% endif %}
+        </div>
+        <div class="pe-avatar-wrap">
+            <div class="pe-avatar-preview">
+                {% if user.photo %}
+                    <img src="{{ user.photo.url }}" class="pe-avatar-img" id="avatarPreview">
+                {% else %}
+                    <div class="pe-avatar-fallback" id="avatarFallback">{{ user.get_initials }}</div>
+                {% endif %}
+                {% if user.is_premium %}
+                <div class="pe-sparkles">
+                    <div class="pe-sparkle"></div>
+                    <div class="pe-sparkle"></div>
+                    <div class="pe-sparkle"></div>
+                    <div class="pe-sparkle"></div>
+                    <div class="pe-sparkle"></div>
+                    <div class="pe-sparkle"></div>
+                </div>
+                {% endif %}
+            </div>
+            <div>
+                {{ form.photo }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: Shaxsiy ma'lumotlar -->
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-person-fill"></i></div>
+            <span class="pe-section-title">Shaxsiy ma'lumotlar</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-person"></i> Ism</label>
+                {{ form.first_name }}
+            </div>
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-person"></i> Familiya</label>
+                {{ form.last_name }}
+            </div>
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-telephone"></i> Telefon</label>
+                {{ form.phone }}
+            </div>
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-envelope"></i> Email</label>
+                {{ form.email }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: Qo'shimcha -->
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-geo-alt-fill"></i></div>
+            <span class="pe-section-title">Qo'shimcha</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-house"></i> Yashash manzili</label>
+                {{ form.address }}
+            </div>
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-calendar-event"></i> Tug'ilgan sana</label>
+                {{ form.birth_date }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: Hujjatlar -->
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+            <span class="pe-section-title">Hujjatlar</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-credit-card-2-front"></i> ID karta / Pasport</label>
+                {{ form.id_card }}
+                {% if user.id_card %}
+                    <a href="{{ user.id_card.url }}" target="_blank" class="pe-file-link">
+                        <i class="bi bi-eye"></i> Joriy faylni ko'rish
+                    </a>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="pe-label"><i class="bi bi-file-medical"></i> Tug'ilganlik guvohnomasi</label>
+                {{ form.birth_certificate }}
+                {% if user.birth_certificate %}
+                    <a href="{{ user.birth_certificate.url }}" target="_blank" class="pe-file-link">
+                        <i class="bi bi-eye"></i> Joriy faylni ko'rish
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: Bio -->
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-chat-quote-fill"></i></div>
+            <span class="pe-section-title">Bio</span>
+        </div>
+        <label class="pe-label"><i class="bi bi-pencil"></i> O'zingiz haqida</label>
+        {{ form.bio }}
+    </div>
+
+    <!-- Section 6: Obektivka (teacher only) -->
+    {% if user.role == 'teacher' %}
+    <div class="pe-section">
+        <div class="pe-section-header">
+            <div class="pe-section-icon"><i class="bi bi-clipboard-data-fill"></i></div>
+            <span class="pe-section-title">Obektivka</span>
+        </div>
+        <label class="pe-label"><i class="bi bi-file-earmark-text"></i> Obektivka</label>
+        {{ form.obektivka }}
+    </div>
     {% endif %}
-</div>
 
-</div>
+    <!-- Actions -->
+    <div class="pe-actions d-flex gap-3 flex-wrap">
+        <button type="submit" class="pe-btn-save">
+            <i class="bi bi-check-lg"></i> Saqlash
+        </button>
+        <a href="{% url 'profile' %}" class="pe-btn-cancel">
+            Bekor qilish
+        </a>
+    </div>
 
-<!-- BIO -->
-<div class="mt-3">
-    <label class="form-label">O'zingiz haqida</label>
-    {{ form.bio }}
-</div>
-
-<!-- OBEKTIVKA -->
-{% if user.role == 'teacher' %}
-<div class="mt-3">
-    <label class="form-label"><i class="bi bi-file-earmark-text me-1"></i>Obektivka</label>
-    {{ form.obektivka }}
-</div>
-{% endif %}
-
-<!-- ACTIONS -->
-<div class="d-flex gap-3 mt-4">
-
-<button type="submit" class="btn btn-primary action-btn">
-    <i class="bi bi-check-lg me-1"></i>Saqlash
-</button>
-
-<a href="{% url 'profile' %}" class="btn btn-outline-secondary action-btn">
-    Bekor qilish
-</a>
-
-</div>
-
-</form>
-
+    </form>
 </div>
 
 </div>
 </div>
 </div>
+
+<script>
+// Avatar preview on file select
+document.addEventListener('DOMContentLoaded', function() {
+    var photoInput = document.querySelector('input[type="file"][name="photo"]');
+    if (!photoInput) return;
+    photoInput.addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var existing = document.getElementById('avatarPreview');
+            var fallback = document.getElementById('avatarFallback');
+            if (existing) {
+                existing.src = ev.target.result;
+            } else if (fallback) {
+                var img = document.createElement('img');
+                img.src = ev.target.result;
+                img.className = 'pe-avatar-img';
+                img.id = 'avatarPreview';
+                fallback.replaceWith(img);
+            }
+        };
+        reader.readAsDataURL(file);
+    });
+});
+</script>
 {% endblock %}

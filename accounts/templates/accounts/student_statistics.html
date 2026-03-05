@@ -391,6 +391,82 @@
 [data-bs-theme="dark"] .ss-stat:hover { box-shadow:0 12px 36px rgba(0,0,0,.35); }
 [data-bs-theme="dark"] .ss-table-card { box-shadow:0 8px 32px rgba(0,0,0,.25); }
 [data-bs-theme="dark"] .ss-hw-card { box-shadow:0 4px 16px rgba(0,0,0,.25); }
+
+/* ==================== PREMIUM STATS ==================== */
+@keyframes pm-gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes pm-shine{0%{left:-100%}100%{left:200%}}
+@keyframes pm-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes pm-sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
+
+.ss-header.premium-header {
+    background:linear-gradient(135deg,#f59e0b 0%,#d97706 30%,#b45309 60%,#f59e0b 100%);
+    background-size:200% auto;
+    animation:pm-gradient 4s linear infinite;
+    border:2px solid rgba(255,215,0,.3);
+    box-shadow:0 8px 32px rgba(245,158,11,.25);
+}
+.ss-header.premium-header::before {
+    background:rgba(255,215,0,.1);
+}
+
+.ss-stat.premium-stat {
+    border:1px solid rgba(245,158,11,.2);
+    position:relative;overflow:hidden;
+}
+.ss-stat.premium-stat::after {
+    content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(245,158,11,.06),transparent);
+    animation:pm-shine 4s ease-in-out infinite;pointer-events:none;
+}
+.ss-stat.premium-stat:hover {
+    border-color:rgba(245,158,11,.4);
+    box-shadow:0 12px 36px rgba(245,158,11,.15);
+}
+
+.ss-filter.premium-filter {
+    border:1px solid rgba(245,158,11,.2);
+}
+.ss-filter.premium-filter .ss-filter-btn.active {
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+    box-shadow:0 4px 14px rgba(245,158,11,.35);
+}
+.ss-filter.premium-filter .ss-filter-btn:hover:not(.active) {
+    color:#f59e0b;background:rgba(245,158,11,.06);
+}
+
+.ss-table-card.premium-table {
+    border:1px solid rgba(245,158,11,.15);
+    position:relative;overflow:hidden;
+}
+.ss-table-card.premium-table::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b);
+    background-size:200% 100%;animation:pm-gradient 3s linear infinite;
+    z-index:1;
+}
+
+.ss-hw-card.premium-hw {
+    border:1px solid rgba(245,158,11,.2);
+}
+.ss-hw-card.premium-hw:hover {
+    border-color:rgba(245,158,11,.4);
+    box-shadow:0 10px 32px rgba(245,158,11,.15);
+}
+
+.premium-avatar-badge {
+    position:relative;
+}
+.premium-avatar-badge::after {
+    content:'👑';position:absolute;top:-8px;right:-8px;font-size:.9rem;
+    animation:pm-float 2s ease-in-out infinite;
+}
+
+.ss-premium-sparkle {
+    position:absolute;color:rgba(255,215,0,.6);font-size:.6rem;pointer-events:none;z-index:3;
+}
+.ss-premium-sparkle:nth-child(1){top:15%;right:10%;animation:pm-sparkle 2s ease-in-out infinite}
+.ss-premium-sparkle:nth-child(2){top:50%;right:5%;animation:pm-sparkle 2s ease-in-out .5s infinite}
+.ss-premium-sparkle:nth-child(3){bottom:15%;right:15%;animation:pm-sparkle 2s ease-in-out 1s infinite}
 </style>
 {% endblock %}
 
@@ -399,11 +475,16 @@
 <div class="container">
 
 <!-- ================= HEADER ================= -->
-<div class="ss-header ss-a1">
+<div class="ss-header ss-a1 {% if student.is_premium %}premium-header{% endif %}">
     <div class="ss-header-content">
+        {% if student.is_premium %}
+        <span class="ss-premium-sparkle">✦</span>
+        <span class="ss-premium-sparkle">✦</span>
+        <span class="ss-premium-sparkle">✦</span>
+        {% endif %}
         <div class="ss-header-top">
             <div class="ss-header-info">
-                <div class="ss-header-avatar">
+                <div class="ss-header-avatar {% if student.is_premium %}premium-avatar-badge{% endif %}">
                     {% if student.photo and student.photo.url %}
                     <img src="{{ student.photo.url }}" alt="{{ student.full_name }}">
                     {% else %}
@@ -411,23 +492,29 @@
                     {% endif %}
                 </div>
                 <div>
-                    <h1>{{ student.full_name }}</h1>
+                    <h1>{% if student.is_premium %}⭐ {% endif %}{{ student.full_name }}</h1>
                     <div class="ss-header-sub">
                         <i class="bi bi-graph-up me-1"></i>
                         {% if period == 'week' %}Haftalik{% elif period == 'month' %}Oylik{% else %}Umumiy{% endif %} statistika
                     </div>
                 </div>
             </div>
-            <a href="{% if request.user == student %}{% url 'my_statistics_pdf' %}{% else %}{% url 'user_statistics_pdf' student.pk %}{% endif %}"
-               class="ss-pdf-btn">
-                <i class="bi bi-file-earmark-pdf"></i> PDF yuklab olish
-            </a>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{% if request.user == student %}{% url 'profile' %}{% else %}{% url 'student_public_profile' student.pk %}{% endif %}"
+                   class="ss-pdf-btn" style="background:rgba(255,255,255,.12);">
+                    <i class="bi bi-person-circle"></i> Profilni ko'rish
+                </a>
+                <a href="{% if request.user == student %}{% url 'my_statistics_pdf' %}{% else %}{% url 'user_statistics_pdf' student.pk %}{% endif %}"
+                   class="ss-pdf-btn">
+                    <i class="bi bi-file-earmark-pdf"></i> PDF yuklab olish
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- ================= PERIOD FILTER ================= -->
-<div class="ss-filter ss-a2">
+<div class="ss-filter ss-a2 {% if student.is_premium %}premium-filter{% endif %}">
     <a href="?period=week"
        class="ss-filter-btn {% if period == 'week' %}active{% endif %}">
         <i class="bi bi-calendar-week me-1"></i>Haftalik
@@ -444,7 +531,7 @@
 
 <!-- ================= STAT CARDS ================= -->
 <div class="ss-stats">
-    <div class="ss-stat coin ss-a2">
+    <div class="ss-stat coin ss-a2 {% if student.is_premium %}premium-stat{% endif %}">
         <div class="ss-stat-top">
             <div class="ss-stat-icon"><i class="bi bi-coin"></i></div>
             <span class="ss-stat-trend neutral"><i class="bi bi-wallet2"></i> balans</span>
@@ -454,7 +541,7 @@
         <div class="ss-stat-glow"></div>
     </div>
 
-    <div class="ss-stat video ss-a3">
+    <div class="ss-stat video ss-a3 {% if student.is_premium %}premium-stat{% endif %}">
         <div class="ss-stat-top">
             <div class="ss-stat-icon"><i class="bi bi-play-circle-fill"></i></div>
             <span class="ss-stat-trend up"><i class="bi bi-eye-fill"></i> ko'rilgan</span>
@@ -464,7 +551,7 @@
         <div class="ss-stat-glow"></div>
     </div>
 
-    <div class="ss-stat test ss-a4">
+    <div class="ss-stat test ss-a4 {% if student.is_premium %}premium-stat{% endif %}">
         <div class="ss-stat-top">
             <div class="ss-stat-icon"><i class="bi bi-check2-square"></i></div>
             <span class="ss-stat-trend up"><i class="bi bi-journal-check"></i> topshirilgan</span>
@@ -474,7 +561,7 @@
         <div class="ss-stat-glow"></div>
     </div>
 
-    <div class="ss-stat score ss-a5">
+    <div class="ss-stat score ss-a5 {% if student.is_premium %}premium-stat{% endif %}">
         <div class="ss-stat-top">
             <div class="ss-stat-icon"><i class="bi bi-speedometer2"></i></div>
             <span class="ss-stat-trend {% if avg_score >= 60 %}up{% else %}neutral{% endif %}">
@@ -489,7 +576,7 @@
 </div>
 
 <!-- ================= HOMEWORK STAT ================= -->
-<div class="ss-hw-card ss-a5">
+<div class="ss-hw-card ss-a5 {% if student.is_premium %}premium-hw{% endif %}">
     <div class="ss-hw-icon"><i class="bi bi-file-earmark-check-fill"></i></div>
     <div class="ss-hw-info">
         <div class="ss-hw-num">{{ homework_count }}</div>
@@ -503,7 +590,7 @@
 </div>
 
 <!-- ================= TEST RESULTS TABLE ================= -->
-<div class="ss-table-card mt-4 ss-a5" style="animation-delay:.4s">
+<div class="ss-table-card mt-4 ss-a5 {% if student.is_premium %}premium-table{% endif %}" style="animation-delay:.4s">
     <div class="ss-table-header">
         <div class="ss-table-title">
             <div class="ss-table-icon"><i class="bi bi-list-check"></i></div>
