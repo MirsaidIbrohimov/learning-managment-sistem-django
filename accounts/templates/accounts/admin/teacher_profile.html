@@ -468,6 +468,40 @@
     .tp-grid { grid-template-columns: 1fr; }
     .tp-stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ===== Photo Lightbox ===== */
+.photo-lightbox {
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(0,0,0,.85);
+    backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: all .3s ease;
+    cursor: zoom-out;
+}
+.photo-lightbox.active { opacity: 1; visibility: visible; }
+.photo-lightbox-img {
+    max-width: 90vw; max-height: 85vh;
+    border-radius: 20px; object-fit: contain;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    transform: scale(.85); transition: transform .35s cubic-bezier(.4,0,.2,1);
+}
+.photo-lightbox.active .photo-lightbox-img { transform: scale(1); }
+.photo-lightbox-close {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,255,255,.12); border: none;
+    color: #fff; font-size: 1.3rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s; backdrop-filter: blur(8px);
+}
+.photo-lightbox-close:hover { background: rgba(255,255,255,.25); transform: scale(1.1); }
+.photo-lightbox-name {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.1); backdrop-filter: blur(12px);
+    padding: .6rem 1.5rem; border-radius: 2rem;
+    color: #fff; font-weight: 700; font-size: .95rem;
+    display: flex; align-items: center; gap: .5rem; white-space: nowrap;
+}
 </style>
 {% endblock %}
 
@@ -482,7 +516,7 @@
     <div class="tp-hero-banner"></div>
     <div class="tp-hero-body">
         <div class="tp-avatar-wrap">
-            <div class="tp-avatar">
+            <div class="tp-avatar" {% if teacher.photo %}style="cursor:pointer" onclick="openPhotoLightbox('{{ teacher.photo.url }}')"{% endif %}>
                 {% if teacher.photo %}
                 <img src="{{ teacher.photo.url }}" alt="{{ teacher.full_name }}">
                 {% else %}
@@ -617,6 +651,18 @@
                 <div class="tp-detail-value">{{ total_salary|floatformat:0 }} so'm</div>
             </div>
         </div>
+
+        {% if teacher.obektivka %}
+        <div class="tp-detail-row">
+            <div class="tp-detail-icon" style="background: rgba(99,102,241,0.08); color: #6366f1;">
+                <i class="bi bi-file-earmark-text-fill"></i>
+            </div>
+            <div style="flex:1;">
+                <div class="tp-detail-label">Obektivka</div>
+                <div class="tp-detail-value" style="white-space:pre-line;line-height:1.6;">{{ teacher.obektivka }}</div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Right: Courses -->
@@ -691,5 +737,44 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Photo Lightbox -->
+{% if teacher.photo %}
+<div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox(event)">
+    <button class="photo-lightbox-close" onclick="closePhotoLightbox(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img src="{{ teacher.photo.url }}" class="photo-lightbox-img" id="lightboxImg" alt="{{ teacher.full_name }}">
+    <div class="photo-lightbox-name">
+        <i class="bi bi-person-circle"></i>
+        {{ teacher.full_name }}
+    </div>
+</div>
+
+<script>
+function openPhotoLightbox(url) {
+    var lb = document.getElementById('photoLightbox');
+    if (!lb) return;
+    document.getElementById('lightboxImg').src = url;
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closePhotoLightbox(e) {
+    if (e.target.closest('.photo-lightbox-img')) return;
+    var lb = document.getElementById('photoLightbox');
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var lb = document.getElementById('photoLightbox');
+        if (lb && lb.classList.contains('active')) {
+            lb.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});
+</script>
+{% endif %}
 
 {% endblock %}

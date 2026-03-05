@@ -179,6 +179,38 @@
     box-shadow:0 0 0 3px rgba(245,158,11,.3),0 0 10px rgba(245,158,11,.4);
     background:linear-gradient(135deg,#f59e0b,#22c55e);
 }
+
+/* ===== Photo Lightbox ===== */
+.avatar-xl[style*="cursor"]:hover{transform:scale(1.05);transition:transform .3s}
+.photo-lightbox{
+    position:fixed;inset:0;z-index:99999;
+    background:rgba(0,0,0,.85);backdrop-filter:blur(12px);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;visibility:hidden;transition:all .3s ease;cursor:zoom-out;
+}
+.photo-lightbox.active{opacity:1;visibility:visible}
+.photo-lightbox-img{
+    max-width:90vw;max-height:85vh;border-radius:20px;object-fit:contain;
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+    transform:scale(.85);transition:transform .35s cubic-bezier(.4,0,.2,1);
+}
+.photo-lightbox.active .photo-lightbox-img{transform:scale(1)}
+.photo-lightbox-close{
+    position:absolute;top:1.5rem;right:1.5rem;
+    width:44px;height:44px;border-radius:50%;
+    background:rgba(255,255,255,.12);border:none;
+    color:#fff;font-size:1.3rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .2s;backdrop-filter:blur(8px);
+}
+.photo-lightbox-close:hover{background:rgba(255,255,255,.25);transform:scale(1.1)}
+.photo-lightbox-name{
+    position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
+    background:rgba(255,255,255,.1);backdrop-filter:blur(12px);
+    padding:.6rem 1.5rem;border-radius:2rem;
+    color:#fff;font-weight:700;font-size:.95rem;
+    display:flex;align-items:center;gap:.5rem;white-space:nowrap;
+}
 </style>
 {% endblock %}
 
@@ -207,14 +239,14 @@
         <span class="premium-sparkle">✦</span>
         <span class="premium-sparkle">✦</span>
         {% if student.photo %}
-            <img src="{{ student.photo.url }}" class="avatar-xl">
+            <img src="{{ student.photo.url }}" class="avatar-xl" style="cursor:pointer" onclick="openPhotoLightbox('{{ student.photo.url }}')">
         {% else %}
             <div class="avatar-fallback-xl mx-auto">{{ student.get_initials }}</div>
         {% endif %}
     </div>
     {% else %}
     {% if student.photo %}
-        <img src="{{ student.photo.url }}" class="avatar-xl mb-3">
+        <img src="{{ student.photo.url }}" class="avatar-xl mb-3" style="cursor:pointer" onclick="openPhotoLightbox('{{ student.photo.url }}')">
     {% else %}
         <div class="avatar-fallback-xl mb-3 mx-auto">{{ student.get_initials }}</div>
     {% endif %}
@@ -431,4 +463,42 @@
 </div>
 </div>
 </div>
+<!-- Photo Lightbox -->
+{% if student.photo %}
+<div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox(event)">
+    <button class="photo-lightbox-close" onclick="closePhotoLightbox(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img src="{{ student.photo.url }}" class="photo-lightbox-img" id="lightboxImg" alt="{{ student.full_name }}">
+    <div class="photo-lightbox-name">
+        <i class="bi bi-person-circle"></i>
+        {{ student.full_name }}
+    </div>
+</div>
+
+<script>
+function openPhotoLightbox(url) {
+    var lb = document.getElementById('photoLightbox');
+    if (!lb) return;
+    document.getElementById('lightboxImg').src = url;
+    lb.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closePhotoLightbox(e) {
+    if (e.target.closest('.photo-lightbox-img')) return;
+    var lb = document.getElementById('photoLightbox');
+    lb.classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var lb = document.getElementById('photoLightbox');
+        if (lb && lb.classList.contains('active')) {
+            lb.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

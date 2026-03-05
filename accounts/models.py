@@ -90,6 +90,7 @@ class CustomUser(AbstractUser):
     last_activity = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi faollik")
 
     bio = models.TextField(blank=True, null=True, verbose_name="O'zi haqida")
+    obektivka = models.TextField(blank=True, null=True, verbose_name="Obektivka")
 
     # Gamification
     coins = models.IntegerField(default=0, verbose_name="Coinlar")

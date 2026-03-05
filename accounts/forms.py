@@ -141,6 +141,10 @@ class UserProfileForm(forms.ModelForm):
         required=False,
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'O\'zingiz haqida...'})
     )
+    obektivka = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Obektivka...'})
+    )
 
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Yashash manzilingiz'}))
     birth_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
@@ -149,7 +153,7 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'birth_date', 'id_card', 'birth_certificate', 'photo', 'bio']
+        fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'birth_date', 'id_card', 'birth_certificate', 'photo', 'bio', 'obektivka']
 
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
