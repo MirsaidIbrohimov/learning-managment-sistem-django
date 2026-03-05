@@ -3905,6 +3905,21 @@ def admin_user_block(request, pk):
     user.is_blocked = not user.is_blocked
     user.save()
     
+    if user.is_blocked:
+        notify_group(
+            f"🚫 <b>Foydalanuvchi bloklandi!</b>\n\n"
+            f"👤 {user.full_name}\n"
+            f"📋 Role: {user.get_role_display()}\n"
+            f"🔒 Admin <b>{request.user.full_name}</b> tomonidan bloklandi."
+        )
+    else:
+        notify_group(
+            f"✅ <b>Foydalanuvchi blokdan chiqarildi!</b>\n\n"
+            f"👤 {user.full_name}\n"
+            f"📋 Role: {user.get_role_display()}\n"
+            f"🔓 Admin <b>{request.user.full_name}</b> tomonidan blokdan chiqarildi."
+        )
+    
     messages.success(request, f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!")
     return redirect('admin_users')
 
