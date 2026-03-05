@@ -1051,13 +1051,25 @@ def submit_test(request, pk):
         f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
         f"{passed_text}"
     )
-    notify_group(
-        f"📊 <b>Test natijasi!</b>\n\n"
-        f"👤 {request.user.first_name} {request.user.last_name}\n"
-        f"📚 {test.lesson.profession.name}\n"
-        f"📖 {test.lesson.title}\n"
-        f"✏️ {correct}/{total} ({score}%) — {passed_text}"
-    )
+    if result.passed:
+        notify_group(
+            f"🎉 <b>Barakalla!</b>\n\n"
+            f"👤 <b>{request.user.first_name} {request.user.last_name}</b> testdan muvaffaqiyatli o'tdi!\n"
+            f"📚 Kurs: {test.lesson.profession.name}\n"
+            f"📖 Test: {test.lesson.title}\n"
+            f"✅ Natija: {correct}/{total} to'g'ri ({score}%)\n\n"
+            f"🏆 Tabriklaymiz!"
+        )
+    else:
+        notify_group(
+            f"📊 <b>Test natijasi</b>\n\n"
+            f"Hurmatli <b>{request.user.first_name} {request.user.last_name}</b>, "
+            f"siz testdan o'ta olmadingiz.\n"
+            f"📚 Kurs: {test.lesson.profession.name}\n"
+            f"📖 Test: {test.lesson.title}\n"
+            f"❌ Natija: {correct}/{total} to'g'ri ({score}%)\n\n"
+            f"🔄 Ammo sizda qayta topshirish imkoni bor. Omad!"
+        )
     
     return redirect('test_result', pk=result.pk)
 
