@@ -73,3 +73,35 @@ class TelegramMessageLog(models.Model):
     def __str__(self):
         name = self.telegram_name or str(self.telegram_id)
         return f"{name}: {self.text[:50]}"
+
+
+class ContactMessage(models.Model):
+    """Saytdan yuborilgan xabarlar (login talab qilinmaydi)"""
+    STATUS_CHOICES = [
+        ('new', 'Yangi'),
+        ('read', "O'qildi"),
+        ('replied', 'Javob berildi'),
+    ]
+
+    name = models.CharField(max_length=200, verbose_name="Ism")
+    phone = models.CharField(max_length=30, blank=True, verbose_name="Telefon raqam")
+    email = models.EmailField(blank=True, verbose_name="Email")
+    subject = models.CharField(max_length=300, verbose_name="Mavzu")
+    message = models.TextField(verbose_name="Xabar matni")
+    image = models.ImageField(upload_to='contact_messages/', blank=True, null=True, verbose_name="Rasm")
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='contact_messages',
+        verbose_name="Foydalanuvchi"
+    )
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='new', verbose_name="Holat")
+    admin_reply = models.TextField(blank=True, verbose_name="Admin javobi")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Aloqa xabari"
+        verbose_name_plural = "Aloqa xabarlari"
+
+    def __str__(self):
+        return f"{self.name}: {self.subject[:50]}"

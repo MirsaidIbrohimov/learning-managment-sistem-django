@@ -72,6 +72,18 @@
 .tg-empty { text-align: center; padding: 3rem; color: var(--bs-secondary-color); }
 .tg-empty i { font-size: 2.5rem; display: block; margin-bottom: 10px; }
 
+.tg-badge-status { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+.tg-badge-new { background: #dbeafe; color: #2563eb; }
+.tg-badge-read { background: #fef3c7; color: #d97706; }
+.tg-badge-replied { background: #dcfce7; color: #16a34a; }
+[data-bs-theme="dark"] .tg-badge-new { background: rgba(37,99,235,0.15); }
+[data-bs-theme="dark"] .tg-badge-read { background: rgba(217,119,6,0.15); }
+[data-bs-theme="dark"] .tg-badge-replied { background: rgba(22,163,106,0.15); }
+.tg-tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: #ef4444; color: #fff; font-size: 0.7rem; font-weight: 800; margin-left: 4px; }
+.tg-contact-subject { font-weight: 600; display: block; margin-bottom: 2px; }
+.tg-contact-msg { font-size: 0.82rem; color: var(--bs-secondary-color); max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--bs-border-color); }
+
 .tg-pagination { display: flex; justify-content: center; gap: 4px; margin-top: 1rem; }
 .tg-pagination a, .tg-pagination span {
     padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
@@ -103,6 +115,10 @@
         <div class="tg-stat-num" style="color:#16a34a;">{{ total_messages }}</div>
         <div class="tg-stat-label">Jami xabarlar</div>
     </div>
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#8b5cf6;">{{ contact_count }}</div>
+        <div class="tg-stat-label">Aloqa xabarlari</div>
+    </div>
 </div>
 
 <!-- Tabs -->
@@ -112,6 +128,10 @@
     </a>
     <a href="?tab=messages{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'messages' %}active{% endif %}">
         <i class="bi bi-chat-dots me-1"></i>Xabarlar
+    </a>
+    <a href="?tab=contact{% if search %}&q={{ search }}{% endif %}" class="tg-tab {% if tab == 'contact' %}active{% endif %}">
+        <i class="bi bi-envelope-paper me-1"></i>Aloqa
+        {% if new_contact_count %}<span class="tg-tab-badge">{{ new_contact_count }}</span>{% endif %}
     </a>
 </div>
 
@@ -127,7 +147,57 @@
 <div class="tg-card">
 <div class="tg-table-wrap">
 
-{% if tab == 'users' %}
+{% if tab == 'contact' %}
+<!-- Contact messages table -->
+<table class="tg-table">
+<thead>
+    <tr>
+        <th>Yuboruvchi</th>
+        <th>Xabar</th>
+        <th>Holat</th>
+        <th>Rasm</th>
+        <th>Vaqt</th>
+    </tr>
+</thead>
+<tbody>
+{% for cm in items %}
+<tr style="cursor:pointer;" onclick="window.location='{% url 'telegram_bot:admin_contact_detail' cm.pk %}'">
+    <td>
+        <div class="fw-semibold">{{ cm.name }}</div>
+        {% if cm.phone %}<small class="text-muted">{{ cm.phone }}</small>{% endif %}
+    </td>
+    <td>
+        <span class="tg-contact-subject">{{ cm.subject }}</span>
+        <span class="tg-contact-msg">{{ cm.message|truncatechars:60 }}</span>
+    </td>
+    <td>
+        <span class="tg-badge-status tg-badge-{{ cm.status }}">
+            {% if cm.status == 'new' %}Yangi{% elif cm.status == 'read' %}O'qildi{% else %}Javob berildi{% endif %}
+        </span>
+    </td>
+    <td>
+        {% if cm.image %}
+            <img src="{{ cm.image.url }}" class="tg-thumb" alt="rasm">
+        {% else %}
+            <span class="text-muted">-</span>
+        {% endif %}
+    </td>
+    <td class="tg-time" style="white-space:nowrap;">
+        {{ cm.created_at|date:"d.m.Y H:i" }}
+    </td>
+</tr>
+{% empty %}
+<tr><td colspan="5">
+    <div class="tg-empty">
+        <i class="bi bi-envelope-paper"></i>
+        Aloqa xabarlari yo'q
+    </div>
+</td></tr>
+{% endfor %}
+</tbody>
+</table>
+
+{% elif tab == 'users' %}
 <!-- Users table -->
 <table class="tg-table">
 <thead>

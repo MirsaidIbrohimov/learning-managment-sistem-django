@@ -1,0 +1,165 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Xabar #{{ msg.pk }} - Admin{% endblock %}
+{% block topbar_title %}Xabar tafsiloti{% endblock %}
+
+{% block admin_content %}
+<style>
+.cd-page { max-width: 700px; margin: 0 auto; }
+
+.cd-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px;
+    background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color);
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600; font-size: 0.85rem;
+    margin-bottom: 1.25rem; transition: all 0.2s;
+}
+.cd-back:hover { border-color: #0088cc; color: #0088cc; }
+
+.cd-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; overflow: hidden; margin-bottom: 1.25rem;
+}
+
+.cd-header {
+    padding: 1.25rem 1.5rem;
+    background: var(--bs-tertiary-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+}
+
+.cd-header h5 { margin: 0; font-weight: 700; font-size: 1.1rem; }
+
+.cd-status {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+}
+.cd-status-new { background: #dbeafe; color: #2563eb; }
+.cd-status-read { background: #fef3c7; color: #d97706; }
+.cd-status-replied { background: #dcfce7; color: #16a34a; }
+[data-bs-theme="dark"] .cd-status-new { background: rgba(37,99,235,0.15); }
+[data-bs-theme="dark"] .cd-status-read { background: rgba(217,119,6,0.15); }
+[data-bs-theme="dark"] .cd-status-replied { background: rgba(22,163,106,0.15); }
+
+.cd-body { padding: 1.5rem; }
+
+.cd-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+.cd-info-item label { font-size: 0.75rem; font-weight: 600; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; display: block; }
+.cd-info-item span { font-size: 0.95rem; font-weight: 500; }
+
+.cd-message {
+    padding: 1rem 1.25rem; border-radius: 12px;
+    background: var(--bs-tertiary-bg); border-left: 4px solid #0088cc;
+    font-size: 0.95rem; line-height: 1.7; white-space: pre-wrap;
+    margin-bottom: 1rem;
+}
+
+.cd-image img {
+    max-width: 100%; max-height: 400px; border-radius: 12px;
+    border: 1px solid var(--bs-border-color); margin-bottom: 1rem;
+}
+
+.cd-reply-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; padding: 1.5rem;
+}
+
+.cd-reply-card h6 { font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+.cd-reply-textarea {
+    width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--bs-border-color);
+    border-radius: 12px; background: var(--bs-body-bg); color: var(--bs-body-color);
+    font-size: 0.92rem; min-height: 100px; resize: vertical; margin-bottom: 1rem;
+}
+.cd-reply-textarea:focus { outline: none; border-color: #0088cc; box-shadow: 0 0 0 3px rgba(0,136,204,0.12); }
+
+.cd-reply-btn {
+    padding: 10px 24px; border-radius: 10px; border: none;
+    background: #0088cc; color: #fff; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.2s;
+}
+.cd-reply-btn:hover { background: #006da3; }
+
+.cd-existing-reply {
+    padding: 1rem 1.25rem; border-radius: 12px;
+    background: rgba(22,163,106,0.06); border: 1px solid rgba(22,163,106,0.15);
+    margin-bottom: 1rem;
+}
+.cd-existing-reply h6 { color: #16a34a; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+.cd-existing-reply p { margin: 0; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap; }
+
+.cd-time { font-size: 0.82rem; color: var(--bs-secondary-color); margin-top: 1rem; display: flex; align-items: center; gap: 0.4rem; }
+
+@media (max-width: 576px) {
+    .cd-info { grid-template-columns: 1fr; }
+    .cd-body { padding: 1rem; }
+    .cd-header { padding: 1rem; }
+    .cd-reply-card { padding: 1rem; }
+}
+</style>
+
+<div class="cd-page">
+    <a href="{% url 'telegram_bot:admin_telegram' %}?tab=contact" class="cd-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
+    </a>
+
+    <div class="cd-card">
+        <div class="cd-header">
+            <h5><i class="bi bi-envelope-open me-2" style="color:#0088cc;"></i>{{ msg.subject }}</h5>
+            <span class="cd-status cd-status-{{ msg.status }}">
+                {% if msg.status == 'new' %}🔵 Yangi{% elif msg.status == 'read' %}🟡 O'qildi{% else %}🟢 Javob berildi{% endif %}
+            </span>
+        </div>
+        <div class="cd-body">
+            <div class="cd-info">
+                <div class="cd-info-item">
+                    <label><i class="bi bi-person me-1"></i>Ism</label>
+                    <span>{{ msg.name }}</span>
+                </div>
+                <div class="cd-info-item">
+                    <label><i class="bi bi-telephone me-1"></i>Telefon</label>
+                    <span>{{ msg.phone|default:"-" }}</span>
+                </div>
+                <div class="cd-info-item">
+                    <label><i class="bi bi-envelope me-1"></i>Email</label>
+                    <span>{{ msg.email|default:"-" }}</span>
+                </div>
+                <div class="cd-info-item">
+                    <label><i class="bi bi-link-45deg me-1"></i>Tizim foydalanuvchisi</label>
+                    <span>{% if msg.user %}{{ msg.user.full_name }} (@{{ msg.user.username }}){% else %}-{% endif %}</span>
+                </div>
+            </div>
+
+            <div class="cd-message">{{ msg.message }}</div>
+
+            {% if msg.image %}
+            <div class="cd-image">
+                <img src="{{ msg.image.url }}" alt="Biriktrilgan rasm">
+            </div>
+            {% endif %}
+
+            {% if msg.admin_reply %}
+            <div class="cd-existing-reply">
+                <h6><i class="bi bi-reply-fill me-1"></i>Admin javobi:</h6>
+                <p>{{ msg.admin_reply }}</p>
+            </div>
+            {% endif %}
+
+            <div class="cd-time">
+                <i class="bi bi-clock"></i>
+                {{ msg.created_at|date:"d.m.Y H:i" }} ({{ msg.created_at|timesince }} oldin)
+            </div>
+        </div>
+    </div>
+
+    <div class="cd-reply-card">
+        <h6><i class="bi bi-reply"></i> Javob yozish</h6>
+        <form method="POST">
+            {% csrf_token %}
+            <textarea name="reply" class="cd-reply-textarea" placeholder="Javob yozing...">{{ msg.admin_reply }}</textarea>
+            <button type="submit" class="cd-reply-btn">
+                <i class="bi bi-send me-1"></i> Saqlash
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

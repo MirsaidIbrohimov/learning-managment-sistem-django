@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from accounts.models import CustomUser
-from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog
+from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage
 
 
 @login_required
@@ -207,14 +207,29 @@ def admin_telegram_users(request):
             Q(user__last_name__icontains=search)
         )
 
+    # Aloqa xabarlari
+    contact_msgs = ContactMessage.objects.all()
+    if search and tab == 'contact':
+        contact_msgs = contact_msgs.filter(
+            Q(name__icontains=search) |
+            Q(subject__icontains=search) |
+            Q(message__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(email__icontains=search)
+        )
+
     # Pagination
     if tab == 'messages':
         paginator = Paginator(msg_logs, 30)
+    elif tab == 'contact':
+        paginator = Paginator(contact_msgs, 30)
     else:
         paginator = Paginator(linked_users, 30)
 
     page = request.GET.get('page')
     items = paginator.get_page(page)
+
+    new_contact_count = ContactMessage.objects.filter(status='new').count()
 
     context = {
         'tab': tab,
@@ -222,5 +237,120 @@ def admin_telegram_users(request):
         'items': items,
         'linked_count': CustomUser.objects.filter(telegram_id__isnull=False).count(),
         'total_messages': TelegramMessageLog.objects.count(),
+        'contact_count': ContactMessage.objects.count(),
+        'new_contact_count': new_contact_count,
     }
     return render(request, 'telegram_bot/admin_telegram.html', context)
+
+
+@login_required
+def admin_contact_detail(request, pk):
+    """Admin: Aloqa xabarini ko'rish va javob berish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    msg = ContactMessage.objects.get(pk=pk)
+
+    if msg.status == 'new':
+        msg.status = 'read'
+        msg.save(update_fields=['status'])
+
+    if request.method == 'POST':
+        reply = request.POST.get('reply', '').strip()
+        new_status = request.POST.get('status', msg.status)
+        if reply:
+            msg.admin_reply = reply
+            msg.status = 'replied'
+        else:
+            msg.status = new_status
+        msg.save(update_fields=['admin_reply', 'status'])
+        messages.success(request, "Xabar yangilandi!")
+        return redirect('telegram_bot:admin_contact_detail', pk=pk)
+
+    return render(request, 'telegram_bot/contact_detail.html', {'msg': msg})
+
+
+def send_contact_message(request):
+    """Xabar yuborish - hamma uchun ochiq (login talab qilinmaydi)"""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip()
+        subject = request.POST.get('subject', '').strip()
+        message_text = request.POST.get('message', '').strip()
+        image = request.FILES.get('image')
+
+        if not name or not subject or not message_text:
+            messages.error(request, "Ism, mavzu va xabar to'ldirilishi shart!")
+            return redirect('telegram_bot:send_contact')
+
+        msg = ContactMessage.objects.create(
+            name=name,
+            phone=phone,
+            email=email,
+            subject=subject,
+            message=message_text,
+            image=image,
+            user=request.user if request.user.is_authenticated else None,
+        )
+
+        # Admin Telegramiga yuborish
+        _notify_admin_contact(msg)
+
+        messages.success(request, "Xabaringiz muvaffaqiyatli yuborildi! ✅")
+        return redirect('telegram_bot:send_contact')
+
+    return render(request, 'telegram_bot/send_contact.html')
+
+
+def _notify_admin_contact(msg):
+    """Yangi aloqa xabari haqida adminlarga Telegram orqali xabar yuborish"""
+    import threading
+    import requests
+    from django.conf import settings
+
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        return
+
+    text = (
+        f"📩 <b>Yangi xabar!</b>\n\n"
+        f"👤 <b>Ism:</b> {msg.name}\n"
+    )
+    if msg.phone:
+        text += f"📞 <b>Telefon:</b> {msg.phone}\n"
+    if msg.email:
+        text += f"📧 <b>Email:</b> {msg.email}\n"
+    text += (
+        f"📌 <b>Mavzu:</b> {msg.subject}\n\n"
+        f"💬 <b>Xabar:</b>\n{msg.message[:500]}"
+    )
+    if msg.user:
+        text += f"\n\n🔗 Tizim foydalanuvchisi: {msg.user.full_name} (@{msg.user.username})"
+
+    def _send():
+        admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
+        for admin in admins:
+            try:
+                if msg.image:
+                    url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+                    site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz')
+                    photo_url = f"{site_url}{msg.image.url}"
+                    requests.post(url, json={
+                        'chat_id': admin.telegram_id,
+                        'photo': photo_url,
+                        'caption': text[:1024],
+                        'parse_mode': 'HTML',
+                    }, timeout=10)
+                else:
+                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    requests.post(url, json={
+                        'chat_id': admin.telegram_id,
+                        'text': text,
+                        'parse_mode': 'HTML',
+                    }, timeout=10)
+            except Exception:
+                pass
+
+    threading.Thread(target=_send, daemon=True).start()

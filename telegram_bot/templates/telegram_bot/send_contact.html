@@ -1,0 +1,381 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Xabar yuborish - IT Creative{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --ct-primary: #6366f1;
+    --ct-primary-dark: #4f46e5;
+    --ct-success: #22c55e;
+    --ct-danger: #ef4444;
+    --ct-warning: #f59e0b;
+    --ct-bg: var(--bs-body-bg);
+    --ct-card: var(--bs-body-bg);
+    --ct-border: var(--bs-border-color);
+    --ct-text: var(--bs-body-color);
+    --ct-muted: var(--bs-secondary-color);
+    --ct-soft: rgba(99, 102, 241, 0.06);
+    --ct-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+[data-bs-theme="dark"] {
+    --ct-soft: rgba(99, 102, 241, 0.1);
+    --ct-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+
+.ct-page {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+.ct-hero {
+    text-align: center;
+    padding: 2.5rem 2rem;
+    border-radius: 24px;
+    background: linear-gradient(160deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.12) 50%, rgba(0,136,204,0.06) 100%);
+    border: 1px solid rgba(99,102,241,0.12);
+    margin-bottom: 2rem;
+}
+[data-bs-theme="dark"] .ct-hero {
+    background: linear-gradient(160deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.16) 50%, rgba(0,136,204,0.08) 100%);
+}
+
+.ct-hero-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--ct-primary) 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 2.25rem;
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+}
+
+.ct-hero h1 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--ct-text);
+    margin-bottom: 0.5rem;
+}
+
+.ct-hero p {
+    color: var(--ct-muted);
+    font-size: 1rem;
+    max-width: 420px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.ct-card {
+    background: var(--ct-card);
+    border: 1px solid var(--ct-border);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--ct-shadow);
+}
+
+.ct-field {
+    margin-bottom: 1.25rem;
+}
+
+.ct-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--ct-text);
+    margin-bottom: 0.5rem;
+}
+
+.ct-label .required {
+    color: var(--ct-danger);
+    font-size: 0.75rem;
+}
+
+.ct-input, .ct-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--ct-border);
+    border-radius: 12px;
+    background: var(--ct-bg);
+    color: var(--ct-text);
+    font-size: 0.95rem;
+    transition: all 0.25s ease;
+}
+
+.ct-input:focus, .ct-textarea:focus {
+    outline: none;
+    border-color: var(--ct-primary);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+
+.ct-textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.ct-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.ct-file-zone {
+    border: 2px dashed var(--ct-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.ct-file-zone:hover, .ct-file-zone.dragover {
+    border-color: var(--ct-primary);
+    background: var(--ct-soft);
+}
+
+.ct-file-zone input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.ct-file-icon {
+    font-size: 2rem;
+    color: var(--ct-muted);
+    margin-bottom: 0.5rem;
+}
+
+.ct-file-text {
+    font-size: 0.85rem;
+    color: var(--ct-muted);
+    line-height: 1.5;
+}
+
+.ct-file-text strong {
+    color: var(--ct-primary);
+}
+
+.ct-preview {
+    display: none;
+    margin-top: 0.75rem;
+    position: relative;
+}
+
+.ct-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 10px;
+    border: 1px solid var(--ct-border);
+}
+
+.ct-preview-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--ct-danger);
+    color: #fff;
+    border: none;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ct-submit {
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--ct-primary) 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.ct-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+}
+
+.ct-alert {
+    padding: 0.875rem 1rem;
+    border-radius: 12px;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.ct-alert-success {
+    background: rgba(34,197,94,0.1);
+    color: var(--ct-success);
+    border: 1px solid rgba(34,197,94,0.2);
+}
+
+.ct-alert-error {
+    background: rgba(239,68,68,0.1);
+    color: var(--ct-danger);
+    border: 1px solid rgba(239,68,68,0.2);
+}
+
+@media (max-width: 576px) {
+    .ct-page { padding: 1rem 0.75rem 3rem; }
+    .ct-hero { padding: 2rem 1.25rem; border-radius: 18px; }
+    .ct-hero h1 { font-size: 1.4rem; }
+    .ct-hero p { font-size: 0.9rem; }
+    .ct-hero-icon { width: 64px; height: 64px; font-size: 1.75rem; border-radius: 18px; }
+    .ct-card { padding: 1.25rem; border-radius: 16px; }
+    .ct-row { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="ct-page">
+    <div class="ct-hero">
+        <div class="ct-hero-icon">
+            <i class="bi bi-envelope-paper-fill"></i>
+        </div>
+        <h1>Xabar yuborish</h1>
+        <p>Savolingiz, taklifingiz yoki muammoingiz bormi? Bizga yozing — tez javob qaytaramiz!</p>
+    </div>
+
+    {% for msg in messages %}
+    <div class="ct-alert {% if msg.tags == 'success' %}ct-alert-success{% else %}ct-alert-error{% endif %}">
+        <i class="bi {% if msg.tags == 'success' %}bi-check-circle-fill{% else %}bi-exclamation-circle-fill{% endif %}"></i>
+        {{ msg }}
+    </div>
+    {% endfor %}
+
+    <div class="ct-card">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="ct-field">
+                <label class="ct-label">
+                    <i class="bi bi-person"></i> Ismingiz <span class="required">*</span>
+                </label>
+                <input type="text" name="name" class="ct-input" placeholder="Ismingizni kiriting"
+                       value="{% if user.is_authenticated %}{{ user.full_name }}{% endif %}" required>
+            </div>
+
+            <div class="ct-row">
+                <div class="ct-field">
+                    <label class="ct-label">
+                        <i class="bi bi-telephone"></i> Telefon
+                    </label>
+                    <input type="tel" name="phone" class="ct-input" placeholder="+998 90 123 45 67">
+                </div>
+                <div class="ct-field">
+                    <label class="ct-label">
+                        <i class="bi bi-envelope"></i> Email
+                    </label>
+                    <input type="email" name="email" class="ct-input" placeholder="email@example.com"
+                           value="{% if user.is_authenticated %}{{ user.email }}{% endif %}">
+                </div>
+            </div>
+
+            <div class="ct-field">
+                <label class="ct-label">
+                    <i class="bi bi-tag"></i> Mavzu <span class="required">*</span>
+                </label>
+                <input type="text" name="subject" class="ct-input" placeholder="Xabar mavzusi" required>
+            </div>
+
+            <div class="ct-field">
+                <label class="ct-label">
+                    <i class="bi bi-chat-text"></i> Xabar <span class="required">*</span>
+                </label>
+                <textarea name="message" class="ct-textarea" placeholder="Xabaringizni yozing..." required></textarea>
+            </div>
+
+            <div class="ct-field">
+                <label class="ct-label">
+                    <i class="bi bi-image"></i> Rasm biriktirish
+                </label>
+                <div class="ct-file-zone" id="fileZone">
+                    <input type="file" name="image" accept="image/*" id="imageInput">
+                    <div id="filePlaceholder">
+                        <div class="ct-file-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                        <div class="ct-file-text">
+                            <strong>Tanlash</strong> yoki bu yerga tashlang<br>
+                            <small>PNG, JPG, WEBP (max 5MB)</small>
+                        </div>
+                    </div>
+                    <div class="ct-preview" id="imagePreview">
+                        <img id="previewImg" src="" alt="Preview">
+                        <button type="button" class="ct-preview-remove" id="removeImage">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="ct-submit">
+                <i class="bi bi-send-fill"></i>
+                Yuborish
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+const imageInput = document.getElementById('imageInput');
+const preview = document.getElementById('imagePreview');
+const previewImg = document.getElementById('previewImg');
+const placeholder = document.getElementById('filePlaceholder');
+const removeBtn = document.getElementById('removeImage');
+const fileZone = document.getElementById('fileZone');
+
+imageInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+        };
+        reader.readAsDataURL(this.files[0]);
+    }
+});
+
+removeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    imageInput.value = '';
+    preview.style.display = 'none';
+    placeholder.style.display = 'block';
+});
+
+fileZone.addEventListener('dragover', e => { e.preventDefault(); fileZone.classList.add('dragover'); });
+fileZone.addEventListener('dragleave', () => fileZone.classList.remove('dragover'));
+fileZone.addEventListener('drop', e => {
+    e.preventDefault();
+    fileZone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+        imageInput.files = e.dataTransfer.files;
+        imageInput.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+{% endblock %}
