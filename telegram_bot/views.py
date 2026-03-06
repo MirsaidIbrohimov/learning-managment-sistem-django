@@ -81,6 +81,60 @@ def bot_webhook(request):
             # Oddiy /start — login kodi yaratish
             return _handle_start(chat['id'], telegram_id, tg_username, bot_token)
 
+    if text == '✉️ Xabar yozish':
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "✍️ Xabaringizni yozing:",
+            keyboard,
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '🔙 Orqaga':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+            _send_message_with_reply_markup(
+                bot_token, chat['id'],
+                f"👋 Asosiy menyu, {user.first_name}!",
+                _linked_keyboard(),
+            )
+        except CustomUser.DoesNotExist:
+            _send_message_with_reply_markup(
+                bot_token, chat['id'],
+                "👋 Asosiy menyu",
+                _unlinked_keyboard(),
+            )
+        return JsonResponse({'ok': True})
+
+    # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
+    if text and not text.startswith('/'):
+        first_name = user_data.get('first_name', '')
+        last_name = user_data.get('last_name', '')
+        tg_full = f"{first_name} {last_name}".strip()
+        linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+
+        ContactMessage.objects.create(
+            name=tg_full or f"TG:{telegram_id}",
+            phone='',
+            email='',
+            subject='Telegram xabar',
+            message=text,
+            user=linked_user,
+        )
+
+        # Adminlarga xabar yuborish
+        _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text)
+
+        _send_message(
+            bot_token, chat['id'],
+            "✅ Xabaringiz adminga yuborildi! Tez orada javob olasiz."
+        )
+
     return JsonResponse({'ok': True})
 
 
@@ -92,10 +146,13 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
     try:
         user = CustomUser.objects.get(telegram_id=telegram_id)
     except CustomUser.DoesNotExist:
-        _send_message(
+        _send_message_with_reply_markup(
             bot_token, chat_id,
-            "❌ Sizning Telegram akkauntingiz tizimga ulanmagan!\n\n"
-            "📱 Avval saytda profilingizga kirib \"Telegramni ulash\" tugmasini bosing."
+            "👋 Xush kelibsiz!\n\n"
+            "📱 Sizning Telegram akkauntingiz tizimga ulanmagan.\n"
+            "Saytda profilingizga kirib \"Telegramni ulash\" tugmasini bosing.\n\n"
+            "✉️ Adminga xabar yozish uchun quyidagi tugmani bosing:",
+            _unlinked_keyboard(),
         )
         return JsonResponse({'ok': True})
 
@@ -106,13 +163,14 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
     code = TelegramLoginCode.generate_code()
     TelegramLoginCode.objects.create(telegram_id=telegram_id, code=code)
 
-    _send_message(
+    _send_message_with_reply_markup(
         bot_token, chat_id,
         f"🔐 Sizning login kodingiz:\n\n"
         f"<b>📌 {code}</b>\n\n"
         f"👤 Foydalanuvchi: {user.full_name}\n"
         f"⏱ Kod 5 daqiqa amal qiladi.\n\n"
-        f"💡 Bu kodni saytdagi login sahifasiga kiriting."
+        f"💡 Bu kodni saytdagi login sahifasiga kiriting.",
+        _linked_keyboard(),
     )
     return JsonResponse({'ok': True})
 
@@ -162,6 +220,26 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
     return JsonResponse({'ok': True})
 
 
+def _unlinked_keyboard():
+    return {
+        'keyboard': [
+            [{'text': '✉️ Xabar yozish'}],
+        ],
+        'resize_keyboard': True,
+    }
+
+
+def _linked_keyboard():
+    return {
+        'keyboard': [
+            [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
+            [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
+            [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
+        ],
+        'resize_keyboard': True,
+    }
+
+
 def _send_message(bot_token, chat_id, text):
     """Telegram API orqali xabar yuborish"""
     import requests
@@ -171,6 +249,47 @@ def _send_message(bot_token, chat_id, text):
         'text': text,
         'parse_mode': 'HTML'
     })
+
+
+def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
+    """Telegram API orqali keyboard bilan xabar yuborish"""
+    import requests
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    requests.post(url, json={
+        'chat_id': chat_id,
+        'text': text,
+        'parse_mode': 'HTML',
+        'reply_markup': reply_markup,
+    })
+
+
+def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text):
+    """Telegram xabari haqida adminlarga xabar yuborish"""
+    import threading
+    import requests
+
+    notify_text = (
+        f"📩 <b>Telegram xabar!</b>\n\n"
+        f"👤 <b>Ism:</b> {tg_full}\n"
+        f"📱 <b>Telegram:</b> @{tg_username}\n"
+        f"🆔 <b>ID:</b> {telegram_id}\n\n"
+        f"💬 <b>Xabar:</b>\n{text[:500]}"
+    )
+
+    def _send():
+        admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
+        for admin in admins:
+            try:
+                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                requests.post(url, json={
+                    'chat_id': admin.telegram_id,
+                    'text': notify_text,
+                    'parse_mode': 'HTML',
+                }, timeout=10)
+            except Exception:
+                pass
+
+    threading.Thread(target=_send, daemon=True).start()
 
 
 @login_required
@@ -239,6 +358,7 @@ def admin_telegram_users(request):
         'total_messages': TelegramMessageLog.objects.count(),
         'contact_count': ContactMessage.objects.count(),
         'new_contact_count': new_contact_count,
+        'telegram_contact_count': ContactMessage.objects.filter(subject='Telegram xabar').count(),
     }
     return render(request, 'telegram_bot/admin_telegram.html', context)
 

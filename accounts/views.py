@@ -2030,6 +2030,13 @@ def admin_toggle_block_payment(request, pk):
             content="Admin hisobingizni ochdi. O'qishingizni davom eting!",
             message_type='system', recipient=user, sender=request.user
         )
+        if user.telegram_id:
+            notify_user(
+                user.telegram_id,
+                f"✅ <b>Hisobingiz blokdan chiqarildi!</b>\n\n"
+                f"👤 {user.full_name}\n\n"
+                f"🎉 Hisobingiz ochildi. O'qishingizni davom eting!"
+            )
         messages.success(request, f"{user.full_name} blokdan ochildi!")
     else:
         user.is_blocked = True
@@ -2041,6 +2048,14 @@ def admin_toggle_block_payment(request, pk):
             content="To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.",
             message_type='payment', recipient=user, sender=request.user
         )
+        if user.telegram_id:
+            notify_user(
+                user.telegram_id,
+                f"🚫 <b>Hisobingiz bloklandi!</b>\n\n"
+                f"👤 {user.full_name}\n\n"
+                f"❌ To'lov qilinmaganligi sababli hisobingiz vaqtincha bloklandi.\n"
+                f"💳 To'lovni amalga oshiring yoki adminstratsiya bilan bog'laning."
+            )
         messages.warning(request, f"{user.full_name} bloklandi!")
 
     month = request.GET.get('month', '')
@@ -3913,6 +3928,15 @@ def admin_user_block(request, pk):
             f"📋 Role: {user.get_role_display()}\n"
             f"🔒 Admin <b>{request.user.full_name}</b> tomonidan bloklandi."
         )
+        if user.telegram_id:
+            notify_user(
+                user.telegram_id,
+                f"🚫 <b>Hisobingiz bloklandi!</b>\n\n"
+                f"👤 {user.full_name}\n"
+                f"📋 Rol: {user.get_role_display()}\n\n"
+                f"❌ Sizning hisobingiz admin tomonidan bloklandi.\n"
+                f"📞 Qo'shimcha ma'lumot uchun adminstratsiya bilan bog'laning."
+            )
     else:
         notify_group(
             f"✅ <b>Foydalanuvchi blokdan chiqarildi!</b>\n\n"
@@ -3920,6 +3944,13 @@ def admin_user_block(request, pk):
             f"📋 Role: {user.get_role_display()}\n"
             f"🔓 Admin <b>{request.user.full_name}</b> tomonidan blokdan chiqarildi."
         )
+        if user.telegram_id:
+            notify_user(
+                user.telegram_id,
+                f"✅ <b>Hisobingiz blokdan chiqarildi!</b>\n\n"
+                f"👤 {user.full_name}\n\n"
+                f"🎉 Hisobingiz ochildi. Endi tizimdan foydalanishingiz mumkin."
+            )
     
     messages.success(request, f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!")
     return redirect('admin_users')

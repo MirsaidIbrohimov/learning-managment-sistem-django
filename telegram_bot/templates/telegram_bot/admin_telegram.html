@@ -119,6 +119,10 @@
         <div class="tg-stat-num" style="color:#8b5cf6;">{{ contact_count }}</div>
         <div class="tg-stat-label">Aloqa xabarlari</div>
     </div>
+    <div class="tg-stat">
+        <div class="tg-stat-num" style="color:#0088cc;">{{ telegram_contact_count|default:"0" }}</div>
+        <div class="tg-stat-label">Telegram xabarlari</div>
+    </div>
 </div>
 
 <!-- Tabs -->
@@ -163,7 +167,14 @@
 {% for cm in items %}
 <tr style="cursor:pointer;" onclick="window.location='{% url 'telegram_bot:admin_contact_detail' cm.pk %}'">
     <td>
-        <div class="fw-semibold">{{ cm.name }}</div>
+        <div class="fw-semibold">
+            {{ cm.name }}
+            {% if cm.subject == "Telegram xabar" %}
+                <span class="badge" style="background:#0088cc;color:#fff;font-size:0.65rem;padding:2px 6px;border-radius:6px;margin-left:4px;">
+                    <i class="bi bi-telegram"></i> TG
+                </span>
+            {% endif %}
+        </div>
         {% if cm.phone %}<small class="text-muted">{{ cm.phone }}</small>{% endif %}
     </td>
     <td>

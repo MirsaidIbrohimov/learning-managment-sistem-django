@@ -5,7 +5,7 @@ from django.conf import settings
 from django.db.models import Q
 
 from accounts.models import CustomUser
-from telegram_bot.models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog
+from telegram_bot.models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage
 
 
 class Command(BaseCommand):
@@ -134,19 +134,63 @@ class Command(BaseCommand):
             )
             return
 
-        self._send_message(
-            bot_token, chat_id,
-            "ℹ️ Login kod olish uchun /start bosing."
-        )
+        if text == '✉️ Xabar yozish':
+            keyboard = {
+                'keyboard': [
+                    [{'text': '🔙 Orqaga'}],
+                ],
+                'resize_keyboard': True,
+            }
+            self._send_message_with_reply_markup(bot_token, chat_id, "✍️ Xabaringizni yozing:", keyboard)
+            return
+
+        if text == '🔙 Orqaga':
+            linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+            if linked_user:
+                self._send_message_with_keyboard(
+                    bot_token, chat_id,
+                    f"👋 Asosiy menyu, {linked_user.first_name}!"
+                )
+            else:
+                self._send_message_with_reply_markup(
+                    bot_token, chat_id,
+                    "👋 Asosiy menyu",
+                    self._unlinked_keyboard(),
+                )
+            return
+
+        # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
+        if text and not text.startswith('/'):
+            tg_full = f"{first_name} {last_name}".strip()
+            linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+
+            ContactMessage.objects.create(
+                name=tg_full or f"TG:{telegram_id}",
+                phone='',
+                email='',
+                subject='Telegram xabar',
+                message=text,
+                user=linked_user,
+            )
+
+            self._notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text)
+
+            self._send_message(
+                bot_token, chat_id,
+                "✅ Xabaringiz adminga yuborildi! Tez orada javob olasiz."
+            )
 
     def _handle_start(self, bot_token, chat_id, telegram_id, tg_username):
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
-            self._send_message(
+            self._send_message_with_reply_markup(
                 bot_token, chat_id,
-                "❌ Sizning Telegram akkauntingiz tizimga ulanmagan!\n\n"
-                "📱 Avval saytda profilingizga kirib \"Telegramni ulash\" tugmasini bosing."
+                "👋 Xush kelibsiz!\n\n"
+                "📱 Sizning Telegram akkauntingiz tizimga ulanmagan.\n"
+                "Saytda profilingizga kirib \"Telegramni ulash\" tugmasini bosing.\n\n"
+                "✉️ Adminga xabar yozish uchun quyidagi tugmani bosing:",
+                self._unlinked_keyboard(),
             )
             return
 
@@ -401,13 +445,21 @@ class Command(BaseCommand):
         url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
         requests.post(url, json={'callback_query_id': callback_query_id})
 
+    def _unlinked_keyboard(self):
+        return {
+            'keyboard': [
+                [{'text': '✉️ Xabar yozish'}],
+            ],
+            'resize_keyboard': True,
+        }
+
     def _send_message_with_keyboard(self, bot_token, chat_id, text):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {
             'keyboard': [
                 [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
-                [{'text': '🔓 Uzish'}],
+                [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
             ],
             'resize_keyboard': True,
         }
@@ -418,6 +470,15 @@ class Command(BaseCommand):
             'reply_markup': keyboard,
         })
 
+    def _send_message_with_reply_markup(self, bot_token, chat_id, text, reply_markup):
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        requests.post(url, json={
+            'chat_id': chat_id,
+            'text': text,
+            'parse_mode': 'HTML',
+            'reply_markup': reply_markup,
+        })
+
     def _send_message(self, bot_token, chat_id, text):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         requests.post(url, json={
@@ -425,3 +486,29 @@ class Command(BaseCommand):
             'text': text,
             'parse_mode': 'HTML'
         })
+
+    def _notify_admin_telegram_message(self, bot_token, tg_full, tg_username, telegram_id, text):
+        import threading
+
+        notify_text = (
+            f"📩 <b>Telegram xabar!</b>\n\n"
+            f"👤 <b>Ism:</b> {tg_full}\n"
+            f"📱 <b>Telegram:</b> @{tg_username}\n"
+            f"🆔 <b>ID:</b> {telegram_id}\n\n"
+            f"💬 <b>Xabar:</b>\n{text[:500]}"
+        )
+
+        def _send():
+            admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
+            for admin in admins:
+                try:
+                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                    requests.post(url, json={
+                        'chat_id': admin.telegram_id,
+                        'text': notify_text,
+                        'parse_mode': 'HTML',
+                    }, timeout=10)
+                except Exception:
+                    pass
+
+        threading.Thread(target=_send, daemon=True).start()
