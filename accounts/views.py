@@ -7547,12 +7547,6 @@ def ariza_view(request):
                 f"📚 Kurs: {course_interest or 'Belgilanmagan'}\n\n"
                 f"📞 Tez orada bog'laning!"
             )
-            notify_group(
-                f"📋 <b>Yangi ariza!</b>\n\n"
-                f"👤 {first_name} {last_name}\n"
-                f"📚 {course_interest or 'Belgilanmagan'}\n\n"
-                f"🎉 Safimizga yangi talabgor qo'shilmoqda!"
-            )
             success = True
     
     return render(request, 'accounts/ariza.html', {
