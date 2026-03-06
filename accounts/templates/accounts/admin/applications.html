@@ -3,7 +3,7 @@
 {% block title %}Arizalar | Admin{% endblock %}
 {% block topbar_title %}Arizalar{% endblock %}
 
-{% block admin_css %}
+{% block extra_css %}
 <style>
     /* ===== Stats Cards ===== */
     .app-stats {
@@ -241,6 +241,44 @@
     [data-bs-theme="dark"] .app-status-badge.rejected {
         background: rgba(239, 68, 68, 0.18);
         color: #f87171;
+    }
+
+    /* ===== Override base_admin.css global styles ===== */
+    .app-table.table th {
+        padding: 14px 16px;
+        font-size: 0.78rem;
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-table.table td {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+        border: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-action-form .form-select,
+    .app-action-form .form-control {
+        padding: 5px 10px;
+        border-width: 1px;
+        font-size: 0.82rem;
+    }
+
+    .app-search-card .form-control {
+        padding: 10px 15px;
+        border-width: 1.5px;
+    }
+
+    .app-search-card .btn-primary {
+        padding: 10px 20px;
+        transform: none;
+        box-shadow: none;
+    }
+
+    .app-search-card .btn-primary:hover {
+        transform: none;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     }
 
     /* ===== Action Form ===== */
