@@ -238,4 +238,9 @@ urlpatterns = [
 
     # Premium reklama flagini tozalash
     path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
+
+    # Ariza
+    path('ariza/', views.ariza_view, name='ariza'),
+    path('dashboard/applications/', views.admin_applications, name='admin_applications'),
+    path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
 ]

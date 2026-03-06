@@ -1269,3 +1269,29 @@ class MaintenanceMode(models.Model):
         obj, created = MaintenanceMode.objects.get_or_create(pk=1)
         return obj
 
+
+class CourseApplication(models.Model):
+    """Kursga yozilish arizasi"""
+    STATUS_CHOICES = (
+        ('new', 'Yangi'),
+        ('contacted', 'Bog\'lanildi'),
+        ('enrolled', 'Yozildi'),
+        ('rejected', 'Rad etildi'),
+    )
+    
+    first_name = models.CharField(max_length=100, verbose_name="Ism")
+    last_name = models.CharField(max_length=100, verbose_name="Familiya")
+    phone = models.CharField(max_length=20, verbose_name="Telefon raqam")
+    course_interest = models.CharField(max_length=200, blank=True, verbose_name="Qiziqtirgan kurs")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Holat")
+    admin_note = models.TextField(blank=True, null=True, verbose_name="Admin izohi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Ariza"
+        verbose_name_plural = "Arizalar"
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - {self.phone}"
+

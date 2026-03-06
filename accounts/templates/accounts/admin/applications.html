@@ -1,0 +1,633 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Arizalar | Admin{% endblock %}
+{% block topbar_title %}Arizalar{% endblock %}
+
+{% block admin_css %}
+<style>
+    /* ===== Stats Cards ===== */
+    .app-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .app-stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        transition: all 0.3s ease;
+    }
+
+    .app-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    .app-stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .app-stat-icon.total {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #fff;
+    }
+
+    .app-stat-icon.new {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #fff;
+    }
+
+    .app-stat-number {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-color);
+        line-height: 1;
+    }
+
+    .app-stat-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 2px;
+    }
+
+    /* ===== Filter Tabs ===== */
+    .app-filters {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+
+    .app-filters::-webkit-scrollbar {
+        display: none;
+    }
+
+    .app-filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 14px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid var(--border-color);
+        color: #6c757d;
+        background: var(--card-bg);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+
+    .app-filter:hover {
+        border-color: #6366f1;
+        color: #6366f1;
+        transform: translateY(-2px);
+    }
+
+    .app-filter.active {
+        background: #6366f1;
+        color: #fff;
+        border-color: #6366f1;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .app-filter.active-blue {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .app-filter.active-orange {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #fff;
+    }
+
+    .app-filter.active-green {
+        background: #10b981;
+        border-color: #10b981;
+        color: #fff;
+    }
+
+    .app-filter.active-red {
+        background: #ef4444;
+        border-color: #ef4444;
+        color: #fff;
+    }
+
+    /* ===== Search Bar ===== */
+    .app-search-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 20px;
+    }
+
+    .app-search-card .input-group {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .app-search-card .form-control {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+    }
+
+    .app-search-card .btn {
+        border-radius: 0 10px 10px 0;
+    }
+
+    /* ===== Table ===== */
+    .app-table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .app-table {
+        margin-bottom: 0;
+    }
+
+    .app-table thead th {
+        background: var(--bg-color);
+        font-weight: 700;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    .app-table tbody td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        font-size: 0.9rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-table tbody tr:hover {
+        background: var(--bg-color);
+    }
+
+    .app-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* ===== Status Badge ===== */
+    .app-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.78rem;
+    }
+
+    .app-status-badge.new {
+        background: rgba(59, 130, 246, 0.12);
+        color: #2563eb;
+    }
+
+    .app-status-badge.contacted {
+        background: rgba(245, 158, 11, 0.12);
+        color: #d97706;
+    }
+
+    .app-status-badge.enrolled {
+        background: rgba(16, 185, 129, 0.12);
+        color: #059669;
+    }
+
+    .app-status-badge.rejected {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    [data-bs-theme="dark"] .app-status-badge.new {
+        background: rgba(59, 130, 246, 0.18);
+        color: #60a5fa;
+    }
+
+    [data-bs-theme="dark"] .app-status-badge.contacted {
+        background: rgba(245, 158, 11, 0.18);
+        color: #fbbf24;
+    }
+
+    [data-bs-theme="dark"] .app-status-badge.enrolled {
+        background: rgba(16, 185, 129, 0.18);
+        color: #34d399;
+    }
+
+    [data-bs-theme="dark"] .app-status-badge.rejected {
+        background: rgba(239, 68, 68, 0.18);
+        color: #f87171;
+    }
+
+    /* ===== Action Form ===== */
+    .app-action-form select {
+        font-size: 0.82rem;
+        border-radius: 8px;
+        padding: 5px 10px;
+        min-width: 130px;
+        margin-bottom: 6px;
+    }
+
+    .app-action-form textarea {
+        font-size: 0.82rem;
+        border-radius: 8px;
+        resize: vertical;
+        min-height: 50px;
+        margin-bottom: 6px;
+    }
+
+    .app-action-form .btn-save {
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 5px 14px;
+        border-radius: 8px;
+        background: #6366f1;
+        color: #fff;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .app-action-form .btn-save:hover {
+        background: #4f46e5;
+    }
+
+    /* ===== Empty State ===== */
+    .app-empty {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .app-empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: var(--bg-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 16px;
+    }
+
+    .app-empty h4 {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: 6px;
+    }
+
+    .app-empty p {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    /* ===== Mobile Cards ===== */
+    .app-mobile-cards {
+        display: none;
+    }
+
+    .app-mobile-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+
+    .app-mobile-card:hover {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+    }
+
+    .app-mobile-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .app-mobile-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--text-color);
+    }
+
+    .app-mobile-details {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 12px;
+    }
+
+    .app-mobile-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .app-mobile-detail-label {
+        font-size: 0.7rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+    }
+
+    .app-mobile-detail-value {
+        font-size: 0.85rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
+    .app-mobile-actions {
+        margin-top: 10px;
+    }
+
+    .app-mobile-actions .app-action-form {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .app-mobile-actions .app-action-form select {
+        width: 100%;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) {
+        .app-stats {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .app-stat-card {
+            padding: 14px 16px;
+        }
+
+        .app-stat-icon {
+            width: 42px;
+            height: 42px;
+            font-size: 1.1rem;
+        }
+
+        .app-stat-number {
+            font-size: 1.3rem;
+        }
+
+        .app-desktop-table {
+            display: none !important;
+        }
+
+        .app-mobile-cards {
+            display: block;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 992px) {
+        .app-stats {
+            gap: 12px;
+        }
+
+        .app-stat-card {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Stats -->
+<div class="app-stats">
+    <div class="app-stat-card">
+        <div class="app-stat-icon total">
+            <i class="bi bi-file-earmark-text"></i>
+        </div>
+        <div>
+            <div class="app-stat-number">{{ total_all|default:"0" }}</div>
+            <div class="app-stat-label">Jami arizalar</div>
+        </div>
+    </div>
+    <div class="app-stat-card">
+        <div class="app-stat-icon new">
+            <i class="bi bi-bell"></i>
+        </div>
+        <div>
+            <div class="app-stat-number">{{ total_new|default:"0" }}</div>
+            <div class="app-stat-label">Yangi arizalar</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="app-filters">
+    <a href="?{% if search %}q={{ search }}{% endif %}" class="app-filter {% if not status_filter %}active{% endif %}">
+        <i class="bi bi-layers"></i> Hammasi
+    </a>
+    <a href="?status=new{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'new' %}active-blue{% endif %}">
+        <i class="bi bi-star"></i> Yangi
+    </a>
+    <a href="?status=contacted{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'contacted' %}active-orange{% endif %}">
+        <i class="bi bi-telephone"></i> Bog'lanildi
+    </a>
+    <a href="?status=enrolled{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'enrolled' %}active-green{% endif %}">
+        <i class="bi bi-check-circle"></i> Yozildi
+    </a>
+    <a href="?status=rejected{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'rejected' %}active-red{% endif %}">
+        <i class="bi bi-x-circle"></i> Rad etildi
+    </a>
+</div>
+
+<!-- Search -->
+<div class="app-search-card">
+    <form method="GET">
+        {% if status_filter %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" placeholder="Ism, familiya, telefon bo'yicha qidirish..." value="{{ search|default:'' }}">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-search me-1"></i>Qidirish
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Desktop Table -->
+<div class="app-table-card app-desktop-table">
+    <div class="table-responsive">
+        <table class="table table-hover app-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Ism Familiya</th>
+                    <th>Telefon</th>
+                    <th>Kurs</th>
+                    <th>Holat</th>
+                    <th>Sana</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>
+                        <span class="fw-semibold">{{ app.first_name }} {{ app.last_name }}</span>
+                    </td>
+                    <td>{{ app.phone }}</td>
+                    <td>
+                        <span class="badge bg-light text-dark" style="font-size: 0.8rem; font-weight: 600; border-radius: 8px; padding: 5px 10px;">
+                            {{ app.course_interest }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="app-status-badge {{ app.status }}">
+                            {% if app.status == 'new' %}
+                            <i class="bi bi-star-fill"></i>
+                            {% elif app.status == 'contacted' %}
+                            <i class="bi bi-telephone-fill"></i>
+                            {% elif app.status == 'enrolled' %}
+                            <i class="bi bi-check-circle-fill"></i>
+                            {% elif app.status == 'rejected' %}
+                            <i class="bi bi-x-circle-fill"></i>
+                            {% endif %}
+                            {{ app.get_status_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-nowrap">{{ app.created_at|date:"d.m.Y" }}</span>
+                        <br>
+                        <small class="text-muted">{{ app.created_at|date:"H:i" }}</small>
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'admin_application_status' app.pk %}" class="app-action-form">
+                            {% csrf_token %}
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="new" {% if app.status == 'new' %}selected{% endif %}>Yangi</option>
+                                <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                                <option value="enrolled" {% if app.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
+                                <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
+                            </select>
+                            <textarea name="admin_note" class="form-control form-control-sm" rows="2" placeholder="Izoh...">{{ app.admin_note|default:'' }}</textarea>
+                            <button type="submit" class="btn-save">
+                                <i class="bi bi-check2 me-1"></i>Saqlash
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7">
+                        <div class="app-empty">
+                            <div class="app-empty-icon">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <h4>Arizalar yo'q</h4>
+                            <p>Hozircha kurs arizalari mavjud emas</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% with page_obj=applications %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+</div>
+
+<!-- Mobile Cards -->
+<div class="app-mobile-cards">
+    {% for app in applications %}
+    <div class="app-mobile-card">
+        <div class="app-mobile-header">
+            <div class="app-mobile-name">{{ app.first_name }} {{ app.last_name }}</div>
+            <span class="app-status-badge {{ app.status }}">
+                {% if app.status == 'new' %}
+                <i class="bi bi-star-fill"></i> Yangi
+                {% elif app.status == 'contacted' %}
+                <i class="bi bi-telephone-fill"></i> Bog'lanildi
+                {% elif app.status == 'enrolled' %}
+                <i class="bi bi-check-circle-fill"></i> Yozildi
+                {% elif app.status == 'rejected' %}
+                <i class="bi bi-x-circle-fill"></i> Rad etildi
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="app-mobile-details">
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Telefon</span>
+                <span class="app-mobile-detail-value">{{ app.phone }}</span>
+            </div>
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Kurs</span>
+                <span class="app-mobile-detail-value">{{ app.course_interest }}</span>
+            </div>
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Sana</span>
+                <span class="app-mobile-detail-value">{{ app.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% if app.admin_note %}
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Izoh</span>
+                <span class="app-mobile-detail-value">{{ app.admin_note }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="app-mobile-actions">
+            <form method="POST" action="{% url 'admin_application_status' app.pk %}" class="app-action-form">
+                {% csrf_token %}
+                <select name="status" class="form-select form-select-sm">
+                    <option value="new" {% if app.status == 'new' %}selected{% endif %}>Yangi</option>
+                    <option value="contacted" {% if app.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                    <option value="enrolled" {% if app.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
+                    <option value="rejected" {% if app.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
+                </select>
+                <textarea name="admin_note" class="form-control form-control-sm" rows="2" placeholder="Izoh...">{{ app.admin_note|default:'' }}</textarea>
+                <button type="submit" class="btn-save w-100">
+                    <i class="bi bi-check2 me-1"></i>Saqlash
+                </button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="app-empty">
+        <div class="app-empty-icon">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h4>Arizalar yo'q</h4>
+        <p>Hozircha kurs arizalari mavjud emas</p>
+    </div>
+    {% endfor %}
+
+    {% with page_obj=applications %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+</div>
+{% endblock %}

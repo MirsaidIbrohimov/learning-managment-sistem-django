@@ -19,7 +19,8 @@ from .models import (
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
-    Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode
+    Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
+    CourseApplication
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -7518,4 +7519,101 @@ def admin_teacher_certificate_delete(request, pk):
         cert.delete()
         messages.success(request, "Sertifikat o'chirildi!")
     return redirect('admin_teacher_certificates')
+
+
+def ariza_view(request):
+    """Kursga yozilish arizasi — ochiq sahifa"""
+    professions = Profession.objects.filter(is_blocked=False)
+    success = False
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        course_interest = request.POST.get('course_interest', '').strip()
+        
+        if first_name and last_name and phone:
+            application = CourseApplication.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                course_interest=course_interest
+            )
+            
+            notify_admins(
+                f"📋 <b>Yangi ariza keldi!</b>\n\n"
+                f"👤 {first_name} {last_name}\n"
+                f"📱 {phone}\n"
+                f"📚 Kurs: {course_interest or 'Belgilanmagan'}\n\n"
+                f"📞 Tez orada bog'laning!"
+            )
+            notify_group(
+                f"📋 <b>Yangi ariza!</b>\n\n"
+                f"👤 {first_name} {last_name}\n"
+                f"📚 {course_interest or 'Belgilanmagan'}\n\n"
+                f"🎉 Safimizga yangi talabgor qo'shilmoqda!"
+            )
+            success = True
+    
+    return render(request, 'accounts/ariza.html', {
+        'professions': professions,
+        'success': success,
+    })
+
+
+@login_required
+def admin_applications(request):
+    """Admin: Arizalar ro'yxati"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    applications = CourseApplication.objects.all()
+    
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        applications = applications.filter(status=status_filter)
+    
+    q = request.GET.get('q', '').strip()
+    if q:
+        from django.db.models import Q
+        applications = applications.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(course_interest__icontains=q)
+        )
+    
+    from django.core.paginator import Paginator
+    paginator = Paginator(applications, 20)
+    page = request.GET.get('page')
+    applications = paginator.get_page(page)
+    
+    context = {
+        'applications': applications,
+        'status_filter': status_filter,
+        'search': q,
+        'total_new': CourseApplication.objects.filter(status='new').count(),
+        'total_all': CourseApplication.objects.count(),
+    }
+    return render(request, 'accounts/admin/applications.html', context)
+
+
+@login_required
+def admin_application_status(request, pk):
+    """Admin: Ariza statusini o'zgartirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    application = get_object_or_404(CourseApplication, pk=pk)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        note = request.POST.get('admin_note', '')
+        if new_status in dict(CourseApplication.STATUS_CHOICES):
+            application.status = new_status
+            application.admin_note = note
+            application.save()
+            messages.success(request, "Ariza holati yangilandi!")
+    
+    return redirect('admin_applications')
 
