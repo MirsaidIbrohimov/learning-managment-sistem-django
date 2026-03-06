@@ -378,14 +378,22 @@ def admin_contact_detail(request, pk):
 
     if request.method == 'POST':
         reply = request.POST.get('reply', '').strip()
-        new_status = request.POST.get('status', msg.status)
         if reply:
             msg.admin_reply = reply
             msg.status = 'replied'
+            msg.save(update_fields=['admin_reply', 'status'])
+
+            # Telegram orqali foydalanuvchiga javob yuborish
+            telegram_sent = False
+            if msg.user and msg.user.telegram_id:
+                telegram_sent = _send_contact_reply_telegram(msg, reply)
+
+            if telegram_sent:
+                messages.success(request, "Javob Telegram orqali yuborildi! ✅")
+            else:
+                messages.success(request, "Javob saqlandi! (Foydalanuvchining Telegrami ulanmagan)")
         else:
-            msg.status = new_status
-        msg.save(update_fields=['admin_reply', 'status'])
-        messages.success(request, "Xabar yangilandi!")
+            messages.error(request, "Javob matnini kiriting!")
         return redirect('telegram_bot:admin_contact_detail', pk=pk)
 
     return render(request, 'telegram_bot/contact_detail.html', {'msg': msg})
