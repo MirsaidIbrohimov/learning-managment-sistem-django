@@ -5,6 +5,7 @@ from django.db.models import Q
 from .models import Post, PostComment, PostLike, CommentLike
 from .forms import PostForm, CommentForm
 from coin.models import ActivityLog
+from telegram_bot.utils import notify_group, notify_user
 
 @login_required
 def post_list(request):
@@ -97,6 +98,27 @@ def post_create(request):
             post = form.save(commit=False)
             post.author = request.user
             post.save()
+
+            type_name = dict(Post.POST_TYPES).get(post.post_type, post.post_type)
+            notify_group(
+                f"📰 <b>Yangi post!</b>\n\n"
+                f"📌 <b>{post.title}</b>\n"
+                f"📂 Turi: {type_name}\n"
+                f"✍️ Muallif: {post.author.full_name}\n\n"
+                f"📖 {post.content[:200]}{'...' if len(post.content) > 200 else ''}"
+            )
+
+            from accounts.models import CustomUser
+            for u in CustomUser.objects.filter(telegram_id__isnull=False).exclude(pk=request.user.pk):
+                notify_user(
+                    u.telegram_id,
+                    f"📰 <b>Yangi post chiqdi!</b>\n\n"
+                    f"📌 <b>{post.title}</b>\n"
+                    f"📂 {type_name}\n"
+                    f"✍️ {post.author.full_name}\n\n"
+                    f"🔗 Saytda to'liq o'qing!"
+                )
+
             messages.success(request, "Post muvaffaqiyatli yaratildi!")
             return redirect('blog:post_list')
     else:

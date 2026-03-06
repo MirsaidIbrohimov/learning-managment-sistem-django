@@ -9,6 +9,7 @@ from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
     CoinTransaction, ActivityLog
 )
+from telegram_bot.utils import notify_group, notify_user
 
 PREMIUM_DISCOUNT = 0.05  # 5% chegirma
 
@@ -331,13 +332,31 @@ def admin_product_add(request):
         image = request.FILES.get('image')
         
         if name and description and coin_price and image:
-            Product.objects.create(
+            product = Product.objects.create(
                 name=name,
                 description=description,
                 coin_price=int(coin_price),
                 stock=int(stock),
                 image=image
             )
+
+            notify_group(
+                f"🛍 <b>Yangi mahsulot!</b>\n\n"
+                f"📦 <b>{product.name}</b>\n"
+                f"🪙 Narxi: <b>{product.coin_price}</b> coin\n"
+                f"📊 Omborda: {product.stock} ta\n\n"
+                f"📝 {product.description[:200]}{'...' if len(product.description) > 200 else ''}"
+            )
+
+            for u in CustomUser.objects.filter(telegram_id__isnull=False):
+                notify_user(
+                    u.telegram_id,
+                    f"🛍 <b>Yangi mahsulot qo'shildi!</b>\n\n"
+                    f"📦 <b>{product.name}</b>\n"
+                    f"🪙 Narxi: <b>{product.coin_price}</b> coin\n\n"
+                    f"🛒 Xarid qilish uchun saytga kiring!"
+                )
+
             messages.success(request, "Mahsulot qo'shildi!")
             return redirect('coin:admin_products')
         else:

@@ -316,34 +316,41 @@ class TelegramBotConfig(AppConfig):
             self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
             return
 
-        # Top 10 reyting
         all_students = list(
             CustomUser.objects.filter(role='student')
             .order_by('-coins')
             .values_list('pk', 'first_name', 'last_name', 'coins')
         )
 
-        top_10 = all_students[:10]
-
-        # Foydalanuvchining o'rni
         user_rank = None
         for i, (pk, fn, ln, coins) in enumerate(all_students):
             if pk == user.pk:
                 user_rank = i + 1
                 break
 
-        medals = ['🥇', '🥈', '🥉']
-        lines = ["📊 <b>Top 10 reyting</b>\n"]
-        for i, (pk, fn, ln, coins) in enumerate(top_10):
-            medal = medals[i] if i < 3 else f"{i+1}."
-            marker = " ⬅️" if pk == user.pk else ""
-            lines.append(f"{medal} {fn} {ln} — <b>{coins}</b> coin{marker}")
+        if user.is_premium:
+            top_10 = all_students[:10]
+            medals = ['🥇', '🥈', '🥉']
+            lines = ["📊 <b>Top 10 reyting</b> 💎\n"]
+            for i, (pk, fn, ln, coins) in enumerate(top_10):
+                medal = medals[i] if i < 3 else f"{i+1}."
+                marker = " ⬅️" if pk == user.pk else ""
+                lines.append(f"{medal} {fn} {ln} — <b>{coins}</b> coin{marker}")
 
-        lines.append(f"\n{'─' * 24}")
-        if user_rank:
-            lines.append(f"📍 Siz <b>{user_rank}</b>-o'rindasiz ({user.coins} coin)")
+            lines.append(f"\n{'─' * 24}")
+            if user_rank:
+                lines.append(f"📍 Siz <b>{user_rank}</b>-o'rindasiz ({user.coins} coin)")
+            else:
+                lines.append(f"📍 Siz reytingda yo'qsiz")
         else:
-            lines.append(f"📍 Siz reytingda yo'qsiz")
+            lines = ["📊 <b>Sizning o'rningiz</b>\n"]
+            if user_rank:
+                lines.append(f"📍 Siz <b>{user_rank}</b>-o'rindasiz")
+                lines.append(f"🪙 Coinlar: <b>{user.coins}</b>")
+                lines.append(f"👥 Jami o'quvchilar: {len(all_students)}")
+            else:
+                lines.append(f"📍 Siz reytingda yo'qsiz")
+            lines.append(f"\n💎 To'liq reytingni ko'rish uchun <b>Premium</b> talab qilinadi.")
 
         self._send_message(bot_token, chat_id, "\n".join(lines))
 
