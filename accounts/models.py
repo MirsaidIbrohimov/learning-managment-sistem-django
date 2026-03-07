@@ -247,6 +247,7 @@ class CourseEnrollmentRequest(models.Model):
     
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrollment_requests')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='enrollment_requests')
+    reason = models.TextField(blank=True, verbose_name="Sabab/Izoh")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     admin_message = models.TextField(blank=True, null=True, verbose_name="Admin xabari")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -259,6 +260,32 @@ class CourseEnrollmentRequest(models.Model):
         verbose_name = "Kursga yozilish so'rovi"
         verbose_name_plural = "Kursga yozilish so'rovlari"
     
+    def __str__(self):
+        return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
+
+
+class CourseUnenrollRequest(models.Model):
+    """Kursdan chiqish so'rovi - admin tasdiqlashi kerak"""
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlandi'),
+        ('rejected', 'Rad etildi'),
+    )
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='unenroll_requests')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='unenroll_requests')
+    reason = models.TextField(verbose_name="Chiqish sababi")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    admin_message = models.TextField(blank=True, verbose_name="Admin javobi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_unenroll_requests')
+
+    class Meta:
+        unique_together = ['user', 'profession']
+        ordering = ['-created_at']
+        verbose_name = "Kursdan chiqish so'rovi"
+        verbose_name_plural = "Kursdan chiqish so'rovlari"
+
     def __str__(self):
         return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
 

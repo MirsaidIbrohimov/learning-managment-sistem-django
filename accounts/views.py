@@ -15,7 +15,7 @@ from .forms import (
     SectionForm, PasswordResetRequestForm
 )
 from .models import (
-    Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, Lesson, VideoLesson, VideoProgress,
+    Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
@@ -172,12 +172,52 @@ def login_view(request):
             user.add_coins(5, "Premium kunlik bonus")
             messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
 
+        ip_address = request.META.get('REMOTE_ADDR', '')
         ActivityLog.objects.create(
             user=user,
             action_type='login',
             description="Tizimga kirdi",
-            ip_address=request.META.get('REMOTE_ADDR')
+            ip_address=ip_address
         )
+
+        if user.telegram_id:
+            ua = request.META.get('HTTP_USER_AGENT', '')
+            if 'iPhone' in ua or 'iPad' in ua:
+                device = '📱 iPhone/iPad'
+            elif 'Android' in ua:
+                device = '📱 Android'
+            elif 'Windows' in ua:
+                device = '💻 Windows'
+            elif 'Macintosh' in ua or 'Mac OS' in ua:
+                device = '💻 MacOS'
+            elif 'Linux' in ua:
+                device = '💻 Linux'
+            else:
+                device = '🌐 Noma\'lum qurilma'
+
+            if 'Chrome' in ua and 'Edg' not in ua:
+                browser = 'Chrome'
+            elif 'Firefox' in ua:
+                browser = 'Firefox'
+            elif 'Safari' in ua and 'Chrome' not in ua:
+                browser = 'Safari'
+            elif 'Edg' in ua:
+                browser = 'Edge'
+            elif 'Opera' in ua or 'OPR' in ua:
+                browser = 'Opera'
+            else:
+                browser = ''
+
+            notify_user(
+                user.telegram_id,
+                f"🔐 <b>Hisobingizga kirildi!</b>\n\n"
+                f"👤 {user.full_name}\n"
+                f"🖥 Qurilma: {device}\n"
+                f"{'🌍 Brauzer: ' + browser + chr(10) if browser else ''}"
+                f"🌐 IP: {ip_address}\n"
+                f"🕐 {timezone.now().strftime('%d.%m.%Y %H:%M')}\n\n"
+                f"⚠️ Agar bu siz bo'lmasangiz, darhol parolingizni o'zgartiring!"
+            )
 
         messages.success(request, "Tizimga muvaffaqiyatli kirdingiz! 🎉")
 
@@ -285,6 +325,7 @@ def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     is_enrolled = False
     enrollment_request = None
+    unenroll_request = None
     
     # Bloklangan kursga kirish cheklovi (faqat o'quvchilar uchun)
     if profession.is_blocked and request.user.is_student:
@@ -294,7 +335,9 @@ def profession_detail(request, pk):
     is_teaching = False
     if request.user.is_student:
         is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
-        if not is_enrolled:
+        if is_enrolled:
+            unenroll_request = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
+        else:
             enrollment_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
     elif request.user.is_teacher:
         is_teaching = request.user.teaching_professions.filter(pk=profession.pk).exists()
@@ -412,6 +455,7 @@ def profession_detail(request, pk):
         'is_enrolled': is_enrolled,
         'is_teaching': is_teaching,
         'enrollment_request': enrollment_request,
+        'unenroll_request': unenroll_request,
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
@@ -469,8 +513,12 @@ def enroll_course(request, pk):
             existing_request.delete()
     
     if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if not reason:
+            messages.error(request, "Iltimos, kursga yozilish sababini yozing!")
+            return render(request, 'accounts/enroll_confirm.html', {'profession': profession})
         messages.success(request, f"'{profession.name}' kursiga yozilish so'rovi yuborildi! Admin tasdiqlashini kuting.")
-        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession)
+        CourseEnrollmentRequest.objects.create(user=request.user, profession=profession, reason=reason)
         notify_admins(
             f"📋 <b>Kursga yozilish so'rovi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
@@ -495,16 +543,36 @@ def unenroll_course(request, pk):
         messages.warning(request, "Siz bu kursga yozilmagansiz!")
         return redirect('professions')
     
-    if request.method == 'POST':
-        enrollment.delete()
-        # Also remove user's profession field if it matches
-        if request.user.profession == profession:
-            request.user.profession = None
-            request.user.save(update_fields=['profession'])
-        messages.success(request, f"'{profession.name}' kursidan muvaffaqiyatli chiqdingiz!")
-        return redirect('professions')
+    # Allaqachon kutilayotgan so'rov bormi?
+    existing = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
+    if existing:
+        messages.info(request, "Sizning kursdan chiqish so'rovingiz allaqachon yuborilgan. Admin tasdiqlashini kuting.")
+        return redirect('profession_detail', pk=pk)
     
-    return redirect('professions')
+    if request.method == 'POST':
+        reason = request.POST.get('reason', '').strip()
+        if not reason:
+            messages.error(request, "Iltimos, kursdan chiqish sababini yozing!")
+            return redirect('profession_detail', pk=pk)
+        
+        # Eski rad etilgan so'rovni o'chirish
+        CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='rejected').delete()
+        
+        CourseUnenrollRequest.objects.create(
+            user=request.user,
+            profession=profession,
+            reason=reason,
+        )
+        notify_admins(
+            f"🚪 <b>Kursdan chiqish so'rovi!</b>\n\n"
+            f"👤 {request.user.first_name} {request.user.last_name}\n"
+            f"📖 {profession.name}\n"
+            f"📝 Sabab: {reason[:200]}"
+        )
+        messages.success(request, f"Kursdan chiqish so'rovi yuborildi. Admin ko'rib chiqishini kuting.")
+        return redirect('profession_detail', pk=pk)
+    
+    return redirect('profession_detail', pk=pk)
 
 
 # Lesson views
@@ -6110,6 +6178,14 @@ def approve_enrollment_request(request, pk):
             sender=request.user
         )
         
+        if enrollment_request.user.telegram_id:
+            notify_user(
+                enrollment_request.user.telegram_id,
+                f"✅ <b>Kursga qabul qilindingiz!</b>\n\n"
+                f"📖 <b>{enrollment_request.profession.name}</b>\n\n"
+                f"🎉 So'rovingiz tasdiqlandi. Endi o'qishni boshlashingiz mumkin!"
+            )
+        
         messages.success(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} kursiga qabul qilindi!")
     
     return redirect('admin_enrollment_requests')
@@ -6141,9 +6217,120 @@ def reject_enrollment_request(request, pk):
             sender=request.user
         )
         
+        if enrollment_request.user.telegram_id:
+            notify_user(
+                enrollment_request.user.telegram_id,
+                f"❌ <b>Kursga yozilish rad etildi</b>\n\n"
+                f"📖 <b>{enrollment_request.profession.name}</b>\n\n"
+                f"📝 Sabab: {admin_message[:300]}"
+            )
+        
         messages.warning(request, f"{enrollment_request.user.full_name} - {enrollment_request.profession.name} so'rovi rad etildi!")
     
     return redirect('admin_enrollment_requests')
+
+
+@login_required
+def admin_unenroll_requests(request):
+    """Admin: Kursdan chiqish so'rovlari"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    status_filter = request.GET.get('status', 'pending')
+    requests_qs = CourseUnenrollRequest.objects.select_related('user', 'profession')
+
+    if status_filter:
+        requests_qs = requests_qs.filter(status=status_filter)
+
+    pending_count = CourseUnenrollRequest.objects.filter(status='pending').count()
+    approved_count = CourseUnenrollRequest.objects.filter(status='approved').count()
+    rejected_count = CourseUnenrollRequest.objects.filter(status='rejected').count()
+
+    context = {
+        'unenroll_requests': requests_qs,
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+    }
+    return render(request, 'accounts/admin/unenroll_requests.html', context)
+
+
+@login_required
+def approve_unenroll_request(request, pk):
+    """Admin: Kursdan chiqish so'rovini tasdiqlash"""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    unenroll_req = get_object_or_404(CourseUnenrollRequest, pk=pk)
+
+    if request.method == 'POST':
+        unenroll_req.status = 'approved'
+        unenroll_req.reviewed_by = request.user
+        unenroll_req.save()
+
+        # Kursdan chiqarish
+        CourseEnrollment.objects.filter(user=unenroll_req.user, profession=unenroll_req.profession).delete()
+        if unenroll_req.user.profession == unenroll_req.profession:
+            unenroll_req.user.profession = None
+            unenroll_req.user.save(update_fields=['profession'])
+
+        Message.objects.create(
+            title="Kursdan chiqish tasdiqlandi",
+            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz tasdiqlandi.",
+            message_type='personal',
+            recipient=unenroll_req.user,
+            sender=request.user
+        )
+
+        if unenroll_req.user.telegram_id:
+            notify_user(
+                unenroll_req.user.telegram_id,
+                f"✅ <b>Kursdan chiqish tasdiqlandi</b>\n\n"
+                f"📖 <b>{unenroll_req.profession.name}</b>\n\n"
+                f"📋 So'rovingiz tasdiqlandi. Siz ushbu kursdan chiqarildingiz."
+            )
+
+        messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!")
+
+    return redirect('admin_unenroll_requests')
+
+
+@login_required
+def reject_unenroll_request(request, pk):
+    """Admin: Kursdan chiqish so'rovini rad etish"""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    unenroll_req = get_object_or_404(CourseUnenrollRequest, pk=pk)
+
+    if request.method == 'POST':
+        admin_message = request.POST.get('admin_message', "Kursdan chiqish rad etildi.")
+        unenroll_req.status = 'rejected'
+        unenroll_req.admin_message = admin_message
+        unenroll_req.reviewed_by = request.user
+        unenroll_req.save()
+
+        Message.objects.create(
+            title="Kursdan chiqish rad etildi",
+            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz rad etildi.\n\nSabab: {admin_message}",
+            message_type='personal',
+            recipient=unenroll_req.user,
+            sender=request.user
+        )
+
+        if unenroll_req.user.telegram_id:
+            notify_user(
+                unenroll_req.user.telegram_id,
+                f"❌ <b>Kursdan chiqish rad etildi</b>\n\n"
+                f"📖 <b>{unenroll_req.profession.name}</b>\n\n"
+                f"📝 Sabab: {admin_message[:300]}"
+            )
+
+        messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
+
+    return redirect('admin_unenroll_requests')
 
 
 def password_reset_request_view(request):
