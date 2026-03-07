@@ -482,3 +482,31 @@ def _notify_admin_contact(msg):
                 pass
 
     threading.Thread(target=_send, daemon=True).start()
+
+
+def _send_contact_reply_telegram(msg, reply_text):
+    """Foydalanuvchiga Telegram orqali javob yuborish"""
+    import requests
+    from django.conf import settings
+
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token or not msg.user or not msg.user.telegram_id:
+        return False
+
+    text = (
+        f"📬 <b>Sizning xabaringizga javob!</b>\n\n"
+        f"📌 <b>Mavzu:</b> {msg.subject}\n"
+        f"💬 <b>Sizning xabaringiz:</b>\n<i>{msg.message[:200]}</i>\n\n"
+        f"✅ <b>Admin javobi:</b>\n{reply_text}"
+    )
+
+    try:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        resp = requests.post(url, json={
+            'chat_id': msg.user.telegram_id,
+            'text': text,
+            'parse_mode': 'HTML',
+        }, timeout=10)
+        return resp.status_code == 200
+    except Exception:
+        return False

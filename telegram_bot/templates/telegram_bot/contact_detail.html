@@ -152,12 +152,23 @@
     </div>
 
     <div class="cd-reply-card">
-        <h6><i class="bi bi-reply"></i> Javob yozish</h6>
+        <h6><i class="bi bi-send"></i> Telegram orqali javob yuborish</h6>
+        {% if msg.user and msg.user.telegram_id %}
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;background:rgba(0,136,204,0.08);border:1px solid rgba(0,136,204,0.15);margin-bottom:1rem;font-size:0.82rem;">
+            <i class="bi bi-telegram" style="color:#0088cc;font-size:1.1rem;"></i>
+            <span>Javob <strong>{{ msg.user.full_name }}</strong> ning Telegramiga yuboriladi</span>
+        </div>
+        {% else %}
+        <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);margin-bottom:1rem;font-size:0.82rem;color:var(--bs-body-color);">
+            <i class="bi bi-exclamation-triangle" style="color:#f59e0b;font-size:1.1rem;"></i>
+            <span>Foydalanuvchining Telegrami ulanmagan — javob faqat saqlanadi</span>
+        </div>
+        {% endif %}
         <form method="POST">
             {% csrf_token %}
             <textarea name="reply" class="cd-reply-textarea" placeholder="Javob yozing...">{{ msg.admin_reply }}</textarea>
             <button type="submit" class="cd-reply-btn">
-                <i class="bi bi-send me-1"></i> Saqlash
+                <i class="bi bi-send-fill me-1"></i> Yuborish
             </button>
         </form>
     </div>
