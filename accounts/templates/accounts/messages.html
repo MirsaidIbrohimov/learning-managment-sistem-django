@@ -489,6 +489,12 @@
                 O'qilganlarni o'chirish ({{ read_count }})
             </button>
             {% endif %}
+            {% if total_count > 0 %}
+            <button type="button" class="btn-delete-read" style="background:rgba(239,68,68,0.12);color:#ef4444;" onclick="document.getElementById('deleteAllConfirm').classList.add('show')">
+                <i class="bi bi-trash3-fill"></i>
+                Barchasini o'chirish ({{ total_count }})
+            </button>
+            {% endif %}
         </div>
     </div>
 
@@ -509,6 +515,31 @@
                     {% csrf_token %}
                     <button type="submit" class="btn btn-danger px-4" style="border-radius:10px;">
                         <i class="bi bi-trash3 me-1"></i>O'chirish
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Delete All Confirmation -->
+    {% if total_count > 0 %}
+    <div class="delete-confirm-overlay" id="deleteAllConfirm">
+        <div class="delete-confirm-card">
+            <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.75rem;color:#ef4444;">
+                <i class="bi bi-trash3-fill"></i>
+            </div>
+            <h5 class="fw-bold mb-2">Barcha xabarlarni o'chirish</h5>
+            <p class="text-muted mb-3">{{ total_count }} ta xabar o'chiriladi. Bu amalni qaytarib bo'lmaydi!</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="button" class="btn btn-secondary px-4" style="border-radius:10px;" onclick="document.getElementById('deleteAllConfirm').classList.remove('show')">
+                    Bekor qilish
+                </button>
+                <form method="POST" action="{% url 'delete_read_messages' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="mode" value="all">
+                    <button type="submit" class="btn btn-danger px-4" style="border-radius:10px;">
+                        <i class="bi bi-trash3-fill me-1"></i>Barchasini o'chirish
                     </button>
                 </form>
             </div>

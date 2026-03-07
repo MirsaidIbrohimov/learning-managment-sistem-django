@@ -1623,11 +1623,13 @@ def messages_view(request):
     unread_count = all_messages.filter(is_read=False).count()
     
     read_count = personal_messages.filter(is_read=True).count()
+    total_count = all_messages.count()
     
     return render(request, 'accounts/messages.html', {
         'messages_list': all_messages,
         'unread_count': unread_count,
         'read_count': read_count,
+        'total_count': total_count,
     })
 
 
@@ -1675,8 +1677,23 @@ def mark_all_messages_read(request):
 @login_required
 def delete_read_messages(request):
     if request.method == 'POST':
-        deleted_count = Message.objects.filter(recipient=request.user, is_read=True).delete()[0]
-        messages.success(request, f"{deleted_count} ta o'qilgan xabar o'chirildi!")
+        mode = request.POST.get('mode', 'read')
+        if mode == 'all':
+            # Shaxsiy xabarlarni o'chirish
+            personal_deleted = Message.objects.filter(recipient=request.user).delete()[0]
+            # Umumiy xabarlarni ham o'chirish
+            if request.user.is_student:
+                general_q = Q(message_type__in=['all', 'students'], recipient__isnull=True)
+            elif request.user.is_teacher:
+                general_q = Q(message_type__in=['all', 'teachers'], recipient__isnull=True)
+            else:
+                general_q = Q(message_type='all', recipient__isnull=True)
+            general_deleted = Message.objects.filter(general_q).delete()[0]
+            total = personal_deleted + general_deleted
+            messages.success(request, f"{total} ta xabar o'chirildi!")
+        else:
+            deleted_count = Message.objects.filter(recipient=request.user, is_read=True).delete()[0]
+            messages.success(request, f"{deleted_count} ta o'qilgan xabar o'chirildi!")
     return redirect('messages')
 
 
