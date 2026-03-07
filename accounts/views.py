@@ -473,6 +473,12 @@ def enroll_course(request, pk):
     
     profession = get_object_or_404(Profession, pk=pk)
     
+    # Majburiy kurs — avtomatik yozilgan bo'lishi kerak
+    if profession.is_mandatory:
+        CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
+        messages.info(request, f"'{profession.name}' majburiy kurs — siz avtomatik yozilgansiz!")
+        return redirect('profession_detail', pk=pk)
+    
     # Allaqachon yozilganmi?
     if CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
@@ -542,6 +548,10 @@ def unenroll_course(request, pk):
     if not enrollment:
         messages.warning(request, "Siz bu kursga yozilmagansiz!")
         return redirect('professions')
+    
+    if profession.is_mandatory:
+        messages.error(request, f"'{profession.name}' majburiy kurs — undan chiqish mumkin emas!")
+        return redirect('profession_detail', pk=pk)
     
     # Allaqachon kutilayotgan so'rov bormi?
     existing = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
@@ -3588,6 +3598,29 @@ def admin_professions(request):
     return render(request, 'accounts/admin/professions.html', {'professions': professions, 'all_students': all_students})
 
 
+def _enroll_all_students_mandatory(profession):
+    """Majburiy kursga barcha o'quvchilarni avtomatik yozish"""
+    students = CustomUser.objects.filter(role='student')
+    created_count = 0
+    for student in students:
+        _, created = CourseEnrollment.objects.get_or_create(user=student, profession=profession)
+        if created:
+            created_count += 1
+            if student.telegram_id:
+                notify_user(
+                    student.telegram_id,
+                    f"📌 <b>Majburiy kurs tayinlandi!</b>\n\n"
+                    f"📖 <b>{profession.name}</b>\n\n"
+                    f"📚 Siz ushbu kursga avtomatik yozildingiz. O'qishni boshlang!"
+                )
+    if created_count:
+        notify_admins(
+            f"📌 <b>Majburiy kurs belgilandi!</b>\n\n"
+            f"📖 {profession.name}\n"
+            f"👥 {created_count} ta o'quvchi avtomatik yozildi"
+        )
+
+
 @login_required
 def admin_profession_add(request):
     if not request.user.is_admin:
@@ -3596,7 +3629,9 @@ def admin_profession_add(request):
     if request.method == 'POST':
         form = ProfessionForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
+            profession = form.save()
+            if profession.is_mandatory:
+                _enroll_all_students_mandatory(profession)
             messages.success(request, "Kasb muvaffaqiyatli qo'shildi!")
             return redirect('admin_professions')
     else:
@@ -3611,11 +3646,14 @@ def admin_profession_edit(request, pk):
         return redirect('home')
     
     profession = get_object_or_404(Profession, pk=pk)
+    was_mandatory = profession.is_mandatory
     
     if request.method == 'POST':
         form = ProfessionForm(request.POST, request.FILES, instance=profession)
         if form.is_valid():
-            form.save()
+            profession = form.save()
+            if profession.is_mandatory and not was_mandatory:
+                _enroll_all_students_mandatory(profession)
             messages.success(request, "Kasb muvaffaqiyatli tahrirlandi!")
             return redirect('admin_professions')
     else:

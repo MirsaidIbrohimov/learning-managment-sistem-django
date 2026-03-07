@@ -125,10 +125,16 @@ class ProfessionForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label="Pullik kurs (so'rov keladi)"
     )
+    is_mandatory = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Majburiy kurs (barcha o'quvchilar uchun)"
+    )
 
     class Meta:
         model = Profession
-        fields = ['name', 'photo', 'description', 'is_paid']
+        fields = ['name', 'photo', 'description', 'is_paid', 'is_mandatory']
 
 
 class UserProfileForm(forms.ModelForm):
