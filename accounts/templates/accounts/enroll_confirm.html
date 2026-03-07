@@ -1,43 +1,389 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Kursga yozilish - LMS{% endblock %}
+{% block title %}Kursga yozilish - {{ profession.name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card text-center p-4">
-                <div class="mb-4">
-                    <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" 
-                         style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-blue);">
+<style>
+:root {
+    --ec-primary: #6366f1;
+    --ec-primary-dark: #4f46e5;
+    --ec-success: #22c55e;
+    --ec-warning: #f59e0b;
+    --ec-text: var(--bs-body-color);
+    --ec-muted: var(--bs-secondary-color);
+    --ec-card: var(--bs-body-bg);
+    --ec-border: var(--bs-border-color);
+    --ec-soft: rgba(99,102,241,0.06);
+}
+[data-bs-theme="dark"] {
+    --ec-soft: rgba(99,102,241,0.12);
+}
+
+.ec-page {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+/* Hero animation */
+.ec-hero {
+    text-align: center;
+    margin-bottom: 2rem;
+    animation: ecFadeDown 0.6s ease;
+}
+
+@keyframes ecFadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.ec-avatar-wrap {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.25rem;
+}
+
+.ec-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid var(--ec-primary);
+    box-shadow: 0 8px 30px rgba(99,102,241,0.25);
+    animation: ecPulseRing 2s ease-in-out infinite;
+}
+
+@keyframes ecPulseRing {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.3); }
+    50% { box-shadow: 0 0 0 12px rgba(99,102,241,0); }
+}
+
+.ec-avatar-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--ec-primary), #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    border: 3px solid var(--ec-card);
+    animation: ecBounce 0.8s ease 0.4s both;
+}
+
+@keyframes ecBounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.ec-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--ec-text);
+    margin-bottom: 0.4rem;
+}
+
+.ec-desc {
+    color: var(--ec-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Card */
+.ec-card {
+    background: var(--ec-card);
+    border: 1px solid var(--ec-border);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    animation: ecSlideUp 0.5s ease 0.15s both;
+}
+
+@keyframes ecSlideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Info banner */
+.ec-info {
+    padding: 1rem 1.25rem;
+    background: var(--ec-soft);
+    border-bottom: 1px solid var(--ec-border);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: var(--ec-text);
+    line-height: 1.6;
+}
+
+.ec-info i {
+    color: var(--ec-primary);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.ec-warning {
+    background: rgba(245,158,11,0.08);
+}
+[data-bs-theme="dark"] .ec-warning {
+    background: rgba(245,158,11,0.12);
+}
+
+.ec-warning i {
+    color: var(--ec-warning);
+}
+
+/* Form */
+.ec-form {
+    padding: 1.5rem;
+}
+
+.ec-field {
+    margin-bottom: 1.25rem;
+}
+
+.ec-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ec-text);
+    margin-bottom: 0.5rem;
+}
+
+.ec-label .required {
+    color: #ef4444;
+    font-size: 0.75rem;
+}
+
+.ec-textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 2px solid var(--ec-border);
+    border-radius: 14px;
+    background: var(--ec-card);
+    color: var(--ec-text);
+    font-size: 0.95rem;
+    min-height: 120px;
+    resize: vertical;
+    transition: all 0.3s ease;
+    line-height: 1.6;
+}
+
+.ec-textarea:focus {
+    outline: none;
+    border-color: var(--ec-primary);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+
+.ec-textarea::placeholder {
+    color: var(--ec-muted);
+    opacity: 0.7;
+}
+
+.ec-char-count {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--ec-muted);
+    margin-top: 6px;
+    transition: color 0.2s;
+}
+
+.ec-char-count.warn { color: var(--ec-warning); }
+.ec-char-count.danger { color: #ef4444; }
+
+/* Buttons */
+.ec-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.ec-btn {
+    flex: 1;
+    padding: 0.875rem;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    border: none;
+}
+
+.ec-btn-primary {
+    background: linear-gradient(135deg, var(--ec-primary), #8b5cf6);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+}
+
+.ec-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+}
+
+.ec-btn-primary:active {
+    transform: translateY(0);
+}
+
+.ec-btn-secondary {
+    background: transparent;
+    color: var(--ec-muted);
+    border: 2px solid var(--ec-border);
+}
+
+.ec-btn-secondary:hover {
+    border-color: var(--ec-primary);
+    color: var(--ec-primary);
+}
+
+/* Alert messages */
+.ec-alert {
+    padding: 0.875rem 1rem;
+    border-radius: 14px;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    animation: ecFadeDown 0.4s ease;
+}
+
+.ec-alert-error {
+    background: rgba(239,68,68,0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.2);
+}
+
+.ec-alert-success {
+    background: rgba(34,197,94,0.1);
+    color: var(--ec-success);
+    border: 1px solid rgba(34,197,94,0.2);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .ec-page { padding: 1.25rem 0.75rem 3rem; }
+    .ec-title { font-size: 1.25rem; }
+    .ec-avatar-wrap { width: 100px; height: 100px; }
+    .ec-avatar { width: 100px; height: 100px; }
+    .ec-form { padding: 1.25rem; }
+    .ec-actions { flex-direction: column; }
+    .ec-info { font-size: 0.85rem; padding: 0.875rem 1rem; }
+}
+</style>
+
+<div class="ec-page">
+
+    <!-- Alert messages -->
+    {% for msg in messages %}
+    <div class="ec-alert {% if msg.tags == 'error' %}ec-alert-error{% else %}ec-alert-success{% endif %}">
+        <i class="bi {% if msg.tags == 'error' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %}"></i>
+        {{ msg }}
+    </div>
+    {% endfor %}
+
+    <!-- Hero -->
+    <div class="ec-hero">
+        <div class="ec-avatar-wrap">
+            {% if profession.photo %}
+                <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" class="ec-avatar">
+            {% else %}
+                <div class="ec-avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:2.5rem;color:#fff;font-weight:800;">
+                    {{ profession.name|first }}
                 </div>
-                
-                <h3 style="color: var(--primary-blue);">{{ profession.name }}</h3>
-                <p style="color: var(--text-color);" class="mb-4">{{ profession.description|truncatewords:30 }}</p>
-                
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Siz <strong>"{{ profession.name }}"</strong> kursiga yozilish uchun so'rov yubormoqchimisiz?
-                </div>
-                
-                <div class="alert alert-warning">
-                    <i class="bi bi-clock me-2"></i>
-                    <strong>Eslatma:</strong> So'rovingiz admin tomonidan ko'rib chiqiladi. Qabul qilingandan so'ng kursga kirish mumkin bo'ladi.
-                </div>
-                
-                <form method="POST">
-                    {% csrf_token %}
-                    <div class="d-flex justify-content-center gap-3">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-send me-2"></i>So'rov yuborish
-                        </button>
-                        <a href="{% url 'professions' %}" class="btn btn-outline-secondary btn-lg">
-                            <i class="bi bi-x-lg me-2"></i>Bekor qilish
-                        </a>
-                    </div>
-                </form>
+            {% endif %}
+            <div class="ec-avatar-badge">
+                <i class="bi bi-pencil-square"></i>
             </div>
         </div>
+        <h1 class="ec-title">{{ profession.name }}</h1>
+        <p class="ec-desc">{{ profession.description|truncatewords:25 }}</p>
+    </div>
+
+    <!-- Card -->
+    <div class="ec-card">
+        <div class="ec-info">
+            <i class="bi bi-info-circle-fill"></i>
+            <div>
+                <strong>"{{ profession.name }}"</strong> kursiga yozilish uchun so'rov yuborasiz.
+                Admin tasdiqlashidan keyin kursga kirish mumkin bo'ladi.
+            </div>
+        </div>
+
+        <div class="ec-info ec-warning">
+            <i class="bi bi-clock-fill"></i>
+            <div>So'rovingiz admin tomonidan ko'rib chiqiladi. Natija haqida Telegram orqali xabar olasiz.</div>
+        </div>
+
+        <form method="POST" class="ec-form">
+            {% csrf_token %}
+
+            <div class="ec-field">
+                <label class="ec-label">
+                    <i class="bi bi-chat-left-text"></i>
+                    Nima uchun bu kursga yozilmoqchisiz?
+                    <span class="required">*</span>
+                </label>
+                <textarea
+                    name="reason"
+                    class="ec-textarea"
+                    id="reasonInput"
+                    placeholder="Masalan: Men dasturlashni o'rganmoqchiman, kelajakda IT sohasida ishlashni rejalashtirmoqdaman..."
+                    required
+                    maxlength="500"
+                ></textarea>
+                <div class="ec-char-count" id="charCount">0 / 500</div>
+            </div>
+
+            <div class="ec-actions">
+                <button type="submit" class="ec-btn ec-btn-primary" id="submitBtn">
+                    <i class="bi bi-send-fill"></i>
+                    So'rov yuborish
+                </button>
+                <a href="{% url 'profession_detail' profession.pk %}" class="ec-btn ec-btn-secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Orqaga
+                </a>
+            </div>
+        </form>
     </div>
 </div>
+
+<script>
+const textarea = document.getElementById('reasonInput');
+const charCount = document.getElementById('charCount');
+const submitBtn = document.getElementById('submitBtn');
+
+textarea.addEventListener('input', function() {
+    const len = this.value.length;
+    charCount.textContent = len + ' / 500';
+    charCount.classList.remove('warn', 'danger');
+    if (len > 400) charCount.classList.add('danger');
+    else if (len > 300) charCount.classList.add('warn');
+});
+
+// Textarea auto-focus with slight delay for animation
+setTimeout(() => textarea.focus(), 700);
+
+// Submit animation
+document.querySelector('.ec-form').addEventListener('submit', function() {
+    submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
+    submitBtn.style.opacity = '0.7';
+    submitBtn.style.pointerEvents = 'none';
+});
+</script>
 {% endblock %}
