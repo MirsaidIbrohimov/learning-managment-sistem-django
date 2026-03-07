@@ -116,6 +116,30 @@ def game_play(request, slug, competition_id=None):
     config = game.config or {}
 
     session_key = f'game_session_{game.slug}'
+
+    # Agar avvalgi sessiya submit bo'lmagan bo'lsa — bo'sh natija sifatida saqlash
+    old_session = request.session.get(session_key)
+    if old_session and not old_session.get('used') and old_session.get('competition_id'):
+        old_prompt_id = old_session.get('prompt_id')
+        old_comp_id = old_session.get('competition_id')
+        old_started = old_session.get('started_at', 0)
+        try:
+            old_prompt = Prompt.objects.get(pk=old_prompt_id)
+            old_comp = Competition.objects.get(pk=old_comp_id)
+            GameAttempt.objects.create(
+                user=request.user,
+                game=game,
+                competition=old_comp,
+                prompt=old_prompt,
+                typed_text='',
+                time_spent=round(time.time() - old_started, 2),
+                wpm=0,
+                accuracy=0,
+                score=0,
+            )
+        except (Prompt.DoesNotExist, Competition.DoesNotExist):
+            pass
+
     game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
     
     # HMAC kalitini yaratish (har bir sessiya uchun unikal)
@@ -1215,6 +1239,29 @@ def word_game_play(request, slug, competition_id=None):
     word_round = random.choice(rounds)
 
     session_key = f'word_game_session_{game.slug}'
+
+    # Agar avvalgi sessiya submit bo'lmagan bo'lsa — bo'sh natija sifatida saqlash
+    old_session = request.session.get(session_key)
+    if old_session and not old_session.get('used') and old_session.get('competition_id'):
+        old_round_id = old_session.get('round_id')
+        old_comp_id = old_session.get('competition_id')
+        old_started = old_session.get('started_at', 0)
+        old_found = old_session.get('found_words', [])
+        try:
+            old_round = WordRound.objects.get(pk=old_round_id)
+            old_comp = Competition.objects.get(pk=old_comp_id)
+            WordGameAttempt.objects.create(
+                user=request.user,
+                game=game,
+                word_round=old_round,
+                competition=old_comp,
+                found_words=old_found,
+                total_score=sum(len(w) ** 2 for w in old_found),
+                time_spent=round(min(time.time() - old_started, old_round.time_limit + 5), 2),
+            )
+        except (WordRound.DoesNotExist, Competition.DoesNotExist):
+            pass
+
     game_token = hashlib.sha256(f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
     hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
 
