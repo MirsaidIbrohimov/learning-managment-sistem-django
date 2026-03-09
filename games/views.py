@@ -633,6 +633,27 @@ def admin_competition_delete(request, pk):
     return render(request, 'games/admin/competition_delete.html', {'competition': competition})
 
 
+@login_required
+@require_POST
+def admin_competition_end(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    competition = get_object_or_404(Competition, pk=pk)
+
+    if competition.status == 'ended':
+        messages.info(request, "Bu musobaqa allaqachon tugagan!")
+        return redirect('games:admin_competitions')
+
+    competition.end_time = timezone.now()
+    competition.save(update_fields=['end_time'])
+
+    competition.award_competition_coins()
+
+    messages.success(request, f'"{competition.title}" musobaqasi tugatildi va coinlar berildi!')
+    return redirect('games:admin_competitions')
+
+
 # ---- Results ----
 
 @login_required

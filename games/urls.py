@@ -45,6 +45,7 @@ urlpatterns = [
     path('dashboard/competitions/add/', views.admin_competition_add, name='admin_competition_add'),
     path('dashboard/competitions/<int:pk>/edit/', views.admin_competition_edit, name='admin_competition_edit'),
     path('dashboard/competitions/<int:pk>/delete/', views.admin_competition_delete, name='admin_competition_delete'),
+    path('dashboard/competitions/<int:pk>/end/', views.admin_competition_end, name='admin_competition_end'),
 
     # Admin: Natijalar
     path('dashboard/results/', views.admin_results, name='admin_results'),
