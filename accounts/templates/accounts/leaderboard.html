@@ -1735,6 +1735,20 @@
     .sparkle-particle:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 1.5s; }
     .sparkle-particle:nth-child(5) { top: 50%; left: 5%; animation-delay: 0.7s; }
 
+    /* ===== Score/Ball styling ===== */
+    .lb-coin .bi-mortarboard-fill {
+        color: #10b981;
+    }
+    [data-bs-theme="dark"] .lb-coin .bi-mortarboard-fill {
+        color: #34d399;
+    }
+    .coins-value .bi-mortarboard-fill {
+        color: #10b981;
+    }
+    .yr-coins .bi-mortarboard-fill {
+        color: #10b981;
+    }
+
     /* ===== Tab Switcher ===== */
     .lb-tabs {
         display: flex;
@@ -1822,12 +1836,12 @@
                 <i class="bi bi-chevron-left"></i>
             </button>
             <div class="lb-pills" id="pillsContainer">
-                <a href="{% url 'leaderboard' %}{% if search_query %}?q={{ search_query }}{% endif %}"
+                <a href="{% url 'leaderboard' %}?tab={{ tab|default:'coins' }}{% if search_query %}&q={{ search_query }}{% endif %}"
                     class="lb-pill {% if not selected_profession %}active{% endif %}">
                     Barchasi
                 </a>
                 {% for prof in professions %}
-                <a href="?profession={{ prof.id }}{% if search_query %}&q={{ search_query }}{% endif %}"
+                <a href="?tab={{ tab|default:'coins' }}&profession={{ prof.id }}{% if search_query %}&q={{ search_query }}{% endif %}"
                     class="lb-pill {% if selected_profession == prof.id|stringformat:'s' %}active{% endif %}">
                     {{ prof.name }}
                 </a>
@@ -1873,7 +1887,11 @@
             <div class="yr-name">{{ request.user.full_name }}</div>
         </div>
         <div class="yr-coins">
+            {% if tab == 'score' %}
+            <i class="bi bi-mortarboard-fill"></i> {{ user_score }} ball
+            {% else %}
             <i class="bi bi-coin"></i> {{ request.user.coins }}
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -1896,8 +1914,13 @@
             <div class="player-info">
                 <div class="player-name-top3">{{ student.first_name }}</div>
                 <div class="coins-value">
+                    {% if tab == 'score' %}
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>{{ student.score }} ball</span>
+                    {% else %}
                     <i class="bi bi-coin"></i>
                     <span class="coin-fmt" data-coins="{{ student.coins }}">{{ student.coins }}</span>
+                    {% endif %}
                 </div>
             </div>
         </a>
@@ -1915,8 +1938,13 @@
             <div class="player-info">
                 <div class="player-name-top3">{{ student.first_name }}</div>
                 <div class="coins-value">
+                    {% if tab == 'score' %}
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>{{ student.score }} ball</span>
+                    {% else %}
                     <i class="bi bi-coin"></i>
                     <span class="coin-fmt" data-coins="{{ student.coins }}">{{ student.coins }}</span>
+                    {% endif %}
                 </div>
             </div>
         </a>
@@ -1934,8 +1962,13 @@
             <div class="player-info">
                 <div class="player-name-top3">{{ student.first_name }}</div>
                 <div class="coins-value">
+                    {% if tab == 'score' %}
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>{{ student.score }} ball</span>
+                    {% else %}
                     <i class="bi bi-coin"></i>
                     <span class="coin-fmt" data-coins="{{ student.coins }}">{{ student.coins }}</span>
+                    {% endif %}
                 </div>
             </div>
         </a>
@@ -1949,7 +1982,7 @@
         <div class="lb-list-header">
             <div>#</div>
             <div>Foydalanuvchi</div>
-            <div>Coin</div>
+            <div>{% if tab == 'score' %}Ball{% else %}Coin{% endif %}</div>
             <div></div>
         </div>
 
@@ -1983,10 +2016,17 @@
             </div>
 
             <div>
+                {% if tab == 'score' %}
+                <span class="lb-coin {% if student.is_premium %}premium-coin-row{% endif %}">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>{{ student.score }} ball</span>
+                </span>
+                {% else %}
                 <span class="lb-coin coin-fmt {% if student.is_premium %}premium-coin-row{% endif %}" data-coins="{{ student.coins }}">
                     <i class="bi bi-coin"></i>
                     <span>{{ student.coins }}</span>
                 </span>
+                {% endif %}
             </div>
 
             <i class="bi bi-chevron-right lb-chevron"></i>
@@ -2011,10 +2051,17 @@
             </div>
 
             <div>
+                {% if tab == 'score' %}
+                <span class="lb-coin">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    <span>{{ student.score }} ball</span>
+                </span>
+                {% else %}
                 <span class="lb-coin coin-fmt" data-coins="{{ student.coins }}">
                     <i class="bi bi-coin"></i>
                     <span>{{ student.coins }}</span>
                 </span>
+                {% endif %}
             </div>
 
             <div class="lb-lock-icon"><i class="bi bi-lock-fill"></i></div>
