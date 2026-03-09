@@ -40,6 +40,8 @@ def game_detail(request, slug):
     competitions = game.competitions.filter(is_active=True).order_by('-start_time')
     for comp in competitions:
         comp.can_play = comp.can_user_play(request.user)
+        comp.used_attempts = comp.user_attempts_count(request.user)
+        comp.remaining_attempts = max(0, comp.max_attempts - comp.used_attempts)
 
     if game.game_type == 'word_builder':
         user_attempts = WordGameAttempt.objects.filter(user=request.user, game=game).select_related('word_round').order_by('-created_at')[:10]
@@ -96,28 +98,8 @@ def game_play(request, slug, competition_id=None):
 
     competition = None
 
-    if competition_id:
-        competition = get_object_or_404(Competition, pk=competition_id, game=game)
-        if not competition.can_user_play(request.user):
-            if competition.status == 'upcoming':
-                messages.info(request, "Musobaqa hali boshlanmagan!")
-            elif competition.status == 'ended':
-                messages.info(request, "Musobaqa tugagan!")
-            else:
-                messages.info(request, "Siz allaqachon ishtirok etgansiz!")
-            return redirect('games:game_detail', slug=slug)
-
-    prompts = list(game.active_prompts())
-    if not prompts:
-        messages.error(request, "Bu o'yin uchun topshiriqlar mavjud emas!")
-        return redirect('games:game_detail', slug=slug)
-
-    prompt = random.choice(prompts)
-    config = game.config or {}
-
+    # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
     session_key = f'game_session_{game.slug}'
-
-    # Agar avvalgi sessiya submit bo'lmagan bo'lsa — bo'sh natija sifatida saqlash
     old_session = request.session.get(session_key)
     if old_session and not old_session.get('used') and old_session.get('competition_id'):
         old_prompt_id = old_session.get('prompt_id')
@@ -139,6 +121,29 @@ def game_play(request, slug, competition_id=None):
             )
         except (Prompt.DoesNotExist, Competition.DoesNotExist):
             pass
+        old_session['used'] = True
+        request.session[session_key] = old_session
+        request.session.modified = True
+
+    # KEYIN: tekshirish
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        if not competition.can_user_play(request.user):
+            if competition.status == 'upcoming':
+                messages.info(request, "Musobaqa hali boshlanmagan!")
+            elif competition.status == 'ended':
+                messages.info(request, "Musobaqa tugagan!")
+            else:
+                messages.info(request, "Urinishlaringiz tugadi!")
+            return redirect('games:game_detail', slug=slug)
+
+    prompts = list(game.active_prompts())
+    if not prompts:
+        messages.error(request, "Bu o'yin uchun topshiriqlar mavjud emas!")
+        return redirect('games:game_detail', slug=slug)
+
+    prompt = random.choice(prompts)
+    config = game.config or {}
 
     game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
     
@@ -1220,27 +1225,8 @@ def word_game_play(request, slug, competition_id=None):
     game = get_object_or_404(Game, slug=slug, is_active=True, game_type='word_builder')
     competition = None
 
-    if competition_id:
-        competition = get_object_or_404(Competition, pk=competition_id, game=game)
-        if not competition.can_user_play(request.user):
-            if competition.status == 'upcoming':
-                messages.info(request, "Musobaqa hali boshlanmagan!")
-            elif competition.status == 'ended':
-                messages.info(request, "Musobaqa tugagan!")
-            else:
-                messages.info(request, "Siz allaqachon ishtirok etgansiz!")
-            return redirect('games:game_detail', slug=slug)
-
-    rounds = list(game.word_rounds.filter(is_active=True))
-    if not rounds:
-        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
-        return redirect('games:game_detail', slug=slug)
-
-    word_round = random.choice(rounds)
-
+    # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
     session_key = f'word_game_session_{game.slug}'
-
-    # Agar avvalgi sessiya submit bo'lmagan bo'lsa — bo'sh natija sifatida saqlash
     old_session = request.session.get(session_key)
     if old_session and not old_session.get('used') and old_session.get('competition_id'):
         old_round_id = old_session.get('round_id')
@@ -1261,6 +1247,29 @@ def word_game_play(request, slug, competition_id=None):
             )
         except (WordRound.DoesNotExist, Competition.DoesNotExist):
             pass
+        # Sessiyani tozalash
+        old_session['used'] = True
+        request.session[session_key] = old_session
+        request.session.modified = True
+
+    # KEYIN: tekshirish (urinish allaqachon saqlanganidan keyin)
+    if competition_id:
+        competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        if not competition.can_user_play(request.user):
+            if competition.status == 'upcoming':
+                messages.info(request, "Musobaqa hali boshlanmagan!")
+            elif competition.status == 'ended':
+                messages.info(request, "Musobaqa tugagan!")
+            else:
+                messages.info(request, "Urinishlaringiz tugadi!")
+            return redirect('games:game_detail', slug=slug)
+
+    rounds = list(game.word_rounds.filter(is_active=True))
+    if not rounds:
+        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+        return redirect('games:game_detail', slug=slug)
+
+    word_round = random.choice(rounds)
 
     game_token = hashlib.sha256(f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
     hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
