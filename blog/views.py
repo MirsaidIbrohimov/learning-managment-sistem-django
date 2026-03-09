@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
+from django.urls import reverse
 from .models import Post, PostComment, PostLike, CommentLike
 from .forms import PostForm, CommentForm
 from coin.models import ActivityLog
@@ -100,12 +101,15 @@ def post_create(request):
             post.save()
 
             type_name = dict(Post.POST_TYPES).get(post.post_type, post.post_type)
+            post_url = request.build_absolute_uri(reverse('blog:post_detail', args=[post.pk]))
+
             notify_group(
                 f"📰 <b>Yangi post!</b>\n\n"
                 f"📌 <b>{post.title}</b>\n"
                 f"📂 Turi: {type_name}\n"
                 f"✍️ Muallif: {post.author.full_name}\n\n"
-                f"📖 {post.content[:200]}{'...' if len(post.content) > 200 else ''}"
+                f"📖 {post.content[:200]}{'...' if len(post.content) > 200 else ''}\n\n"
+                f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
             )
 
             from accounts.models import CustomUser
@@ -116,7 +120,7 @@ def post_create(request):
                     f"📌 <b>{post.title}</b>\n"
                     f"📂 {type_name}\n"
                     f"✍️ {post.author.full_name}\n\n"
-                    f"🔗 Saytda to'liq o'qing!"
+                    f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
                 )
 
             messages.success(request, "Post muvaffaqiyatli yaratildi!")
