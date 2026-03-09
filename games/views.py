@@ -1319,8 +1319,17 @@ def word_game_check(request, slug):
     if game_session.get('token') != game_token:
         return JsonResponse({'error': "Noto'g'ri token."}, status=403)
 
+    # Anti-cheat: so'rovlar orasida minimum interval tekshiruvi
+    now = time.time()
+    last_check = game_session.get('last_check_time', 0)
+    if last_check and (now - last_check) < 0.5:
+        return JsonResponse({'valid': False, 'message': "Juda tez! Biroz kuting."})
+    game_session['last_check_time'] = now
+    request.session[session_key] = game_session
+    request.session.modified = True
+
     started_at = game_session.get('started_at', 0)
-    elapsed = time.time() - started_at
+    elapsed = now - started_at
 
     round_id = game_session.get('round_id')
     word_round = get_object_or_404(WordRound, pk=round_id, game=game)

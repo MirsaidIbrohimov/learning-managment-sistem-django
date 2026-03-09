@@ -1120,6 +1120,30 @@
     let tabSwitchCount = 0;
     let checking = false;
 
+    // ===== Anti-Cheat: Keystroke Validation =====
+    let lastKeyTime = 0;
+    let suspiciousCount = 0;
+    const MIN_KEY_INTERVAL = 25; // ms - minimum humanly possible interval
+    const MAX_SUSPICIOUS = 15; // max suspicious actions before penalty
+
+    function isHumanInput(e) {
+        if (!e.isTrusted) {
+            suspiciousCount += 3;
+            return false;
+        }
+        var now = Date.now();
+        var delta = now - lastKeyTime;
+        lastKeyTime = now;
+        if (delta > 0 && delta < MIN_KEY_INTERVAL) {
+            suspiciousCount++;
+            if (suspiciousCount >= MAX_SUSPICIOUS) {
+                showMessage("⚠️ Shubhali harakat aniqlandi!", 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
     // ===== DOM =====
     const lettersContainer = document.getElementById('lettersContainer');
     const wordDisplay = document.getElementById('wordDisplay');
@@ -1152,8 +1176,9 @@
                 el.classList.add('selected');
             }
 
-            el.addEventListener('click', function() {
+            el.addEventListener('click', function(ev) {
                 if (gameEnded) return;
+                if (!isHumanInput(ev)) return;
                 onLetterClick(i);
             });
 
@@ -1228,6 +1253,12 @@
         var submittedWord = word;
         checking = true;
         checkBtn.disabled = true;
+
+        if (suspiciousCount >= MAX_SUSPICIOUS) {
+            showMessage("⛔ Avto-yozish aniqlandi! O'yin to'xtatildi.", 'error');
+            endGame();
+            return;
+        }
 
         var formData = new FormData();
         formData.append('word', word);
@@ -1316,6 +1347,7 @@
     // ===== Keyboard =====
     document.addEventListener('keydown', function(e) {
         if (gameEnded || checking) return;
+        if (!isHumanInput(e)) { e.preventDefault(); return; }
 
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -1498,6 +1530,24 @@
         }
         if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return; }
     });
+
+    // ===== Anti-Cheat: Block programmatic dispatchEvent =====
+    (function() {
+        var origDispatch = EventTarget.prototype.dispatchEvent;
+        EventTarget.prototype.dispatchEvent = function(ev) {
+            if (ev instanceof KeyboardEvent || ev instanceof MouseEvent || ev instanceof PointerEvent) {
+                suspiciousCount += 5;
+                return false;
+            }
+            return origDispatch.call(this, ev);
+        };
+    })();
+
+    // ===== Anti-Cheat: Block hidden input / execCommand tricks =====
+    document.addEventListener('input', function(e) {
+        if (!e.isTrusted) { e.preventDefault(); e.stopImmediatePropagation(); }
+    }, true);
+    document.execCommand = function() { return false; };
 
     // ===== Word Suggestion =====
     var _suggestWord = '';
