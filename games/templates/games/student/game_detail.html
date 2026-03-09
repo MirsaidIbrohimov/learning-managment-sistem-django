@@ -425,16 +425,22 @@
         </a>
         <h1><i class="bi {{ game.icon }}"></i> {{ game.title }}</h1>
         <p>{{ game.description }}</p>
-        {% if best_practice %}
         <div class="mt-2">
+            <span class="stat-mini">
+                <i class="bi bi-arrow-repeat"></i> Urinishlar: {{ user_attempts_count }}
+            </span>
+            <span class="stat-mini">
+                <i class="bi bi-joystick"></i> Mashq: {{ practice_count }}
+            </span>
+            {% if best_practice %}
             <span class="stat-mini">
                 <i class="bi bi-trophy"></i> Eng yaxshi: {{ best_practice.score }} ball
             </span>
             <span class="stat-mini">
                 <i class="bi bi-speedometer2"></i> {{ best_practice.wpm }} WPM
             </span>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <div class="row g-4">

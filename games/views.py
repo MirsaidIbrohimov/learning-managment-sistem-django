@@ -69,6 +69,8 @@ def game_detail(request, slug):
         })
 
     user_attempts = GameAttempt.objects.filter(user=request.user, game=game).order_by('-created_at')[:10]
+    user_attempts_count = GameAttempt.objects.filter(user=request.user, game=game).count()
+    practice_count = GameAttempt.objects.filter(user=request.user, game=game, competition__isnull=True).count()
 
     best_practice = GameAttempt.objects.filter(
         user=request.user, game=game, competition__isnull=True
@@ -86,6 +88,8 @@ def game_detail(request, slug):
         'game': game,
         'competitions': competitions,
         'user_attempts': user_attempts,
+        'user_attempts_count': user_attempts_count,
+        'practice_count': practice_count,
         'best_practice': best_practice,
         'all_attempts': all_attempts,
     })
