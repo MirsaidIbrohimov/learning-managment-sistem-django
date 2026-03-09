@@ -501,39 +501,14 @@
 
 {% block extra_js %}
 <script>
-// ===== ANTI-CHEAT: Pre-init prototype freeze =====
+// ===== ANTI-CHEAT: Pre-init descriptor saqlash =====
 (function(){
     try {
         var _taProto = HTMLTextAreaElement.prototype;
         var _taValDesc = Object.getOwnPropertyDescriptor(_taProto, 'value');
         var _iiProto = HTMLInputElement.prototype;
         var _iiValDesc = Object.getOwnPropertyDescriptor(_iiProto, 'value');
-        // Saqlash - keyinroq ichkarida ishlatamiz
         window._$d = {tv: _taValDesc, iv: _iiValDesc};
-        // Prototype ni muzlatish
-        Object.freeze(_taProto);
-        Object.freeze(_iiProto);
-    } catch(e) {}
-
-    // Native fetch/XMLHttpRequest ni himoyalash
-    try {
-        var _origFetch = window.fetch;
-        Object.defineProperty(window, 'fetch', {
-            value: _origFetch,
-            writable: false,
-            configurable: false
-        });
-    } catch(e) {}
-
-    // Function constructor orqali kod bajarishni bloklash
-    try {
-        var _origFC = Function.prototype.constructor;
-        Function.prototype.constructor = function() {
-            if (arguments.length > 0 && /typingArea|correctCount|keystroke|cheated|finished|submitForm|hiddenTyped/i.test(Array.from(arguments).join(' '))) {
-                throw new Error('Blocked');
-            }
-            return _origFC.apply(this, arguments);
-        };
     } catch(e) {}
 
     // Automation tool aniqlash
@@ -595,15 +570,7 @@
     const _wordHashes = [];
 
     // ===== ANTI-CHEAT: Console overwrite himoyasi =====
-    (function() {
-        const _noop = function() { return undefined; };
-        const _props = ['correctCount','wrongCount','currentIndex','finished','cheated',
-                        'keystrokeCount','_trustedKeys','typedWordsList','startTime','words',
-                        '_untrustedInputs','_keyTimings','_wordHashes','_expectedValue'];
-        _props.forEach(function(p) {
-            try { Object.defineProperty(window, p, {get: _noop, set: _noop, configurable: false}); } catch(e) {}
-        });
-    })();
+    // O'zgaruvchilar let/const bilan e'lon qilingan, window orqali kirish mumkin emas
 
     // ===== ANTI-CHEAT: Cheat aniqlash =====
     function _onCheatDetected(reason) {
@@ -888,33 +855,8 @@
     });
 
     // ===== ANTI-CHEAT: Form manipulation himoyasi =====
-    var formObserver = new MutationObserver(function(mutations) {
-        var form = document.getElementById('submitForm');
-        if (form) {
-            var tokenInput = form.querySelector('[name="game_token"]');
-            var promptInput = form.querySelector('[name="prompt_id"]');
-            if (tokenInput) {
-                var tVal = _origInputDesc ? _origInputDesc.get.call(tokenInput) : tokenInput.getAttribute('value');
-                if (tVal !== _gt) {
-                    if (_origInputDesc) _origInputDesc.set.call(tokenInput, _gt);
-                    else tokenInput.setAttribute('value', _gt);
-                    _onCheatDetected('form_tamper');
-                }
-            }
-            if (promptInput) {
-                var pVal = _origInputDesc ? _origInputDesc.get.call(promptInput) : promptInput.getAttribute('value');
-                if (pVal !== _pid) {
-                    if (_origInputDesc) _origInputDesc.set.call(promptInput, _pid);
-                    else promptInput.setAttribute('value', _pid);
-                    _onCheatDetected('form_tamper');
-                }
-            }
-        }
-    });
-    var submitForm = document.getElementById('submitForm');
-    if (submitForm) {
-        formObserver.observe(submitForm, {attributes: true, childList: true, subtree: true});
-    }
+    // Form observer olib tashlandi - finishGame() hidden inputlarni yangilaganda
+    // form_tamper false positive hosil qilardi
 
     // ===== ANTI-CHEAT: DevTools aniqlash =====
     var _dtOpen = false;
@@ -933,19 +875,7 @@
     // false positive hosil qilar edi
 
     // ===== ANTI-CHEAT: eval/Function himoyasi =====
-    (function() {
-        var _origEval = window.eval;
-        try {
-            Object.defineProperty(window, 'eval', {
-                get: function() {
-                    if (startTime && !finished) { _onCheatDetected('eval'); }
-                    return _origEval;
-                },
-                set: function() {},
-                configurable: false
-            });
-        } catch(e) {}
-    })();
+    // eval intercept olib tashlandi - brauzer kengaytmalari false positive hosil qilardi
 
     // ===== ANTI-CHEAT: Textarea DOM o'zgarishini kuzatish =====
     var taObserver = new MutationObserver(function() {
@@ -970,34 +900,7 @@
     bodyObserver.observe(document.body || document.documentElement, {childList: true, subtree: true});
 
     // ===== ANTI-CHEAT: setInterval/setTimeout himoyasi =====
-    (function() {
-        var _origSetInterval = window.setInterval;
-        var _origSetTimeout = window.setTimeout;
-        try {
-            Object.defineProperty(window, 'setInterval', {
-                value: function(fn) {
-                    if (typeof fn === 'string' && startTime && !finished) {
-                        _onCheatDetected('string_eval');
-                        return 0;
-                    }
-                    return _origSetInterval.apply(this, arguments);
-                },
-                writable: false,
-                configurable: false
-            });
-            Object.defineProperty(window, 'setTimeout', {
-                value: function(fn) {
-                    if (typeof fn === 'string' && startTime && !finished) {
-                        _onCheatDetected('string_eval');
-                        return 0;
-                    }
-                    return _origSetTimeout.apply(this, arguments);
-                },
-                writable: false,
-                configurable: false
-            });
-        } catch(e) {}
-    })();
+    // Olib tashlandi - boshqa kutubxonalar bilan konflikt hosil qilardi
 
     // ===== ANTI-CHEAT: iframe ichida ochilishni bloklash =====
     if (window.self !== window.top) {
@@ -1005,15 +908,7 @@
     }
 
     // ===== ANTI-CHEAT: window.open bloklash =====
-    (function() {
-        try {
-            Object.defineProperty(window, 'open', {
-                value: function() { _onCheatDetected('window_open'); return null; },
-                writable: false,
-                configurable: false
-            });
-        } catch(e) {}
-    })();
+    // Olib tashlandi - brauzer kengaytmalari window.open ishlatishi mumkin
 
     // ===== ANTI-CHEAT: alert/confirm/prompt bloklash =====
     (function() {
@@ -1054,24 +949,8 @@
     var _mouseMovements = 0;
     document.addEventListener('mousemove', function() { _mouseMovements++; });
 
-    // ===== ANTI-CHEAT: Bookmarklet/address bar script himoyasi =====
-    (function() {
-        var _origLocation = Object.getOwnPropertyDescriptor(window, 'location');
-        try {
-            var _origHash = window.location.hash;
-            Object.defineProperty(window, 'location', {
-                get: function() { return _origLocation.get.call(this); },
-                set: function(v) {
-                    if (typeof v === 'string' && v.indexOf('javascript:') === 0) {
-                        _onCheatDetected('bookmarklet');
-                        return;
-                    }
-                    _origLocation.set.call(this, v);
-                },
-                configurable: false
-            });
-        } catch(e) {}
-    })();
+    // ===== ANTI-CHEAT: Bookmarklet himoyasi =====
+    // location override olib tashlandi - sahifa navigatsiyasini buzishi mumkin
 
     // ===== ANTI-CHEAT: Clipboard API himoyasi =====
     (function() {
