@@ -39,6 +39,9 @@ def game_detail(request, slug):
     game = get_object_or_404(Game, slug=slug, is_active=True)
     competitions = game.competitions.filter(is_active=True).order_by('-start_time')
     for comp in competitions:
+        # Musobaqa tugagan bo'lsa, coin berish
+        if comp.status == 'ended' and not comp.coins_awarded:
+            comp.award_competition_coins()
         comp.can_play = comp.can_user_play(request.user)
         comp.used_attempts = comp.user_attempts_count(request.user)
         comp.remaining_attempts = max(0, comp.max_attempts - comp.used_attempts)
@@ -363,6 +366,11 @@ def my_results(request):
 @login_required
 def competition_leaderboard(request, competition_id):
     competition = get_object_or_404(Competition, pk=competition_id)
+
+    # Musobaqa tugagan bo'lsa, coin berish
+    if competition.status == 'ended' and not competition.coins_awarded:
+        competition.award_competition_coins()
+
     all_attempts = GameAttempt.objects.filter(competition=competition).select_related('user').order_by('-score', '-accuracy', 'time_spent')
 
     seen_users = set()
@@ -1436,6 +1444,10 @@ def word_game_leaderboard(request, competition_id):
     competition = get_object_or_404(Competition, pk=competition_id)
     if competition.game.game_type != 'word_builder':
         return redirect('games:competition_leaderboard', competition_id=competition_id)
+
+    # Musobaqa tugagan bo'lsa, coin berish
+    if competition.status == 'ended' and not competition.coins_awarded:
+        competition.award_competition_coins()
 
     all_attempts = WordGameAttempt.objects.filter(competition=competition).select_related('user', 'word_round').order_by('-total_score', '-found_words', 'time_spent')
 

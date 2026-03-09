@@ -68,6 +68,7 @@ class Competition(models.Model):
     coin_1st = models.PositiveIntegerField(default=0, verbose_name="1-o'rin uchun coin")
     coin_2nd = models.PositiveIntegerField(default=0, verbose_name="2-o'rin uchun coin")
     coin_3rd = models.PositiveIntegerField(default=0, verbose_name="3-o'rin uchun coin")
+    coins_awarded = models.BooleanField(default=False, verbose_name="Coinlar berilgan")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -111,6 +112,89 @@ class Competition(models.Model):
         if count >= self.max_attempts and not self.allow_retry:
             return False
         return True
+
+    def award_competition_coins(self):
+        """Musobaqa tugagandan keyin g'oliblarga coin berish va xabar yuborish"""
+        if self.coins_awarded:
+            return
+        if self.status != 'ended':
+            return
+        if self.coin_1st == 0 and self.coin_2nd == 0 and self.coin_3rd == 0:
+            return
+
+        from accounts.models import Message
+        from telegram_bot.utils import notify_user, notify_group
+
+        # Reyting aniqlash
+        if self.game.game_type == 'word_builder':
+            all_attempts = WordGameAttempt.objects.filter(
+                competition=self
+            ).select_related('user').order_by('-total_score', 'time_spent')
+        else:
+            all_attempts = GameAttempt.objects.filter(
+                competition=self
+            ).select_related('user').order_by('-score', '-accuracy', 'time_spent')
+
+        seen_users = set()
+        ranked = []
+        for attempt in all_attempts:
+            if attempt.user_id not in seen_users:
+                seen_users.add(attempt.user_id)
+                ranked.append(attempt)
+
+        if not ranked:
+            self.coins_awarded = True
+            self.save(update_fields=['coins_awarded'])
+            return
+
+        coin_map = {0: self.coin_1st, 1: self.coin_2nd, 2: self.coin_3rd}
+        place_names = {0: "1-o'rin 🥇", 1: "2-o'rin 🥈", 2: "3-o'rin 🥉"}
+        winners_info = []
+
+        for i, attempt in enumerate(ranked[:3]):
+            coin_amount = coin_map.get(i, 0)
+            if coin_amount <= 0:
+                continue
+
+            user = attempt.user
+            place = place_names[i]
+
+            user.add_coins(coin_amount, f"Musobaqa g'olibi: {self.title} ({place})")
+
+            Message.objects.create(
+                title=f"🏆 Tabriklaymiz! {place}",
+                content=(
+                    f"Siz \"{self.title}\" musobaqasida {place} ni egallashga muvaffaq bo'ldingiz! "
+                    f"Sizga {coin_amount} coin mukofot berildi. Zo'r natija! 🎉"
+                ),
+                message_type='achievement',
+                recipient=user,
+            )
+
+            if user.telegram_id:
+                notify_user(
+                    user.telegram_id,
+                    f"🏆 <b>Tabriklaymiz!</b>\n\n"
+                    f"Siz <b>\"{self.title}\"</b> musobaqasida <b>{place}</b> ni egallashga muvaffaq bo'ldingiz!\n\n"
+                    f"🪙 Mukofot: <b>+{coin_amount} coin</b>\n\n"
+                    f"🎉 Zo'r natija! Davom eting!"
+                )
+
+            score_text = str(attempt.total_score) if self.game.game_type == 'word_builder' else str(attempt.score)
+            winners_info.append(f"{place} — <b>{user.full_name}</b> ({score_text} ball, +{coin_amount} coin)")
+
+        if winners_info:
+            group_text = (
+                f"🏆 <b>Musobaqa natijalari!</b>\n\n"
+                f"🎮 <b>{self.title}</b>\n"
+                f"📋 O'yin: {self.game.title}\n\n"
+                + "\n".join(winners_info) +
+                f"\n\n🎉 G'oliblarni tabriklaymiz!"
+            )
+            notify_group(group_text)
+
+        self.coins_awarded = True
+        self.save(update_fields=['coins_awarded'])
 
 
 class GameAttempt(models.Model):
