@@ -105,3 +105,35 @@ class ContactMessage(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.subject[:50]}"
+
+
+class TelegramBroadcastMessage(models.Model):
+    """Admin paneldan yuborilgan broadcast xabarlar"""
+    RECIPIENT_CHOICES = [
+        ('all', 'Barcha foydalanuvchilar'),
+        ('students', 'Faqat o\'quvchilar'),
+        ('teachers', 'Faqat o\'qituvchilar'),
+        ('group', 'Guruhga'),
+        ('individual', 'Tanlangan foydalanuvchilar'),
+    ]
+
+    sender = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.SET_NULL,
+        null=True, related_name='sent_broadcasts',
+        verbose_name="Yuboruvchi"
+    )
+    recipient_type = models.CharField(max_length=20, choices=RECIPIENT_CHOICES, verbose_name="Qabul qiluvchi turi")
+    text = models.TextField(verbose_name="Xabar matni")
+    image = models.ImageField(upload_to='telegram_broadcasts/', blank=True, null=True, verbose_name="Rasm")
+    recipients_count = models.IntegerField(default=0, verbose_name="Yuborilganlar soni")
+    success_count = models.IntegerField(default=0, verbose_name="Muvaffaqiyatli")
+    failed_count = models.IntegerField(default=0, verbose_name="Xatolik")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Yuborilgan xabar"
+        verbose_name_plural = "Yuborilgan xabarlar"
+
+    def __str__(self):
+        return f"{self.get_recipient_type_display()} - {self.text[:50]}"

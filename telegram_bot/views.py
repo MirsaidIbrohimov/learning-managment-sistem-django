@@ -11,7 +11,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 
 from accounts.models import CustomUser
-from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage
+from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage, TelegramBroadcastMessage
 
 
 @login_required
@@ -510,3 +510,117 @@ def _send_contact_reply_telegram(msg, reply_text):
         return resp.status_code == 200
     except Exception:
         return False
+
+
+@login_required
+def admin_send_broadcast(request):
+    """Admin: Telegram orqali foydalanuvchilarga/guruhga xabar yuborish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    if request.method == 'POST':
+        recipient_type = request.POST.get('recipient_type', 'all')
+        text = request.POST.get('text', '').strip()
+        image = request.FILES.get('image')
+        selected_users = request.POST.getlist('selected_users')
+
+        if not text and not image:
+            messages.error(request, "Xabar matni yoki rasm kiritilishi shart!")
+            return redirect('telegram_bot:admin_send_broadcast')
+
+        # Broadcast xabarni saqlash
+        broadcast = TelegramBroadcastMessage.objects.create(
+            sender=request.user,
+            recipient_type=recipient_type,
+            text=text,
+            image=image,
+        )
+
+        # Xabar yuborish
+        import threading
+
+        def _send_broadcast():
+            from django.conf import settings
+            import requests as http_requests
+
+            bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+            if not bot_token:
+                return
+
+            site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz')
+            success = 0
+            failed = 0
+            recipients = []
+
+            if recipient_type == 'group':
+                group_chat_id = getattr(settings, 'TELEGRAM_GROUP_CHAT_ID', '')
+                if group_chat_id:
+                    recipients = [{'chat_id': group_chat_id}]
+            elif recipient_type == 'individual':
+                users = CustomUser.objects.filter(
+                    pk__in=selected_users,
+                    telegram_id__isnull=False
+                )
+                recipients = [{'chat_id': u.telegram_id} for u in users]
+            else:
+                users = CustomUser.objects.filter(telegram_id__isnull=False)
+                if recipient_type == 'students':
+                    users = users.filter(role='student')
+                elif recipient_type == 'teachers':
+                    users = users.filter(role='teacher')
+                recipients = [{'chat_id': u.telegram_id} for u in users]
+
+            broadcast.recipients_count = len(recipients)
+            broadcast.save(update_fields=['recipients_count'])
+
+            for r in recipients:
+                try:
+                    if broadcast.image:
+                        photo_url = f"{site_url}{broadcast.image.url}"
+                        url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+                        payload = {
+                            'chat_id': r['chat_id'],
+                            'photo': photo_url,
+                            'parse_mode': 'HTML',
+                        }
+                        if text:
+                            payload['caption'] = text[:1024]
+                        resp = http_requests.post(url, json=payload, timeout=15)
+                    else:
+                        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                        payload = {
+                            'chat_id': r['chat_id'],
+                            'text': text,
+                            'parse_mode': 'HTML',
+                            'disable_web_page_preview': False,
+                        }
+                        resp = http_requests.post(url, json=payload, timeout=15)
+
+                    if resp.status_code == 200 and resp.json().get('ok'):
+                        success += 1
+                    else:
+                        failed += 1
+                except Exception:
+                    failed += 1
+
+            broadcast.success_count = success
+            broadcast.failed_count = failed
+            broadcast.save(update_fields=['success_count', 'failed_count'])
+
+        threading.Thread(target=_send_broadcast, daemon=True).start()
+        messages.success(request, f"Xabar yuborilmoqda... ✅")
+        return redirect('telegram_bot:admin_telegram')
+
+    # GET - forma ko'rsatish
+    linked_users = CustomUser.objects.filter(
+        telegram_id__isnull=False
+    ).order_by('first_name', 'last_name')
+
+    broadcast_history = TelegramBroadcastMessage.objects.all()[:20]
+
+    context = {
+        'linked_users': linked_users,
+        'broadcast_history': broadcast_history,
+    }
+    return render(request, 'telegram_bot/admin_send_broadcast.html', context)

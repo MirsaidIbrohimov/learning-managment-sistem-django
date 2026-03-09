@@ -1,0 +1,291 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Xabar yuborish - Telegram{% endblock %}
+{% block topbar_title %}Telegram xabar yuborish{% endblock %}
+
+{% block admin_content %}
+<style>
+.bc-page { max-width: 900px; margin: 0 auto; }
+.bc-header { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.bc-header h4 { font-weight: 800; margin: 0; }
+.bc-header i { color: #0088cc; font-size: 1.5rem; }
+.bc-sub { color: var(--bs-secondary-color); font-size: 0.9rem; margin-bottom: 1.5rem; }
+
+.bc-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 14px; padding: 24px; margin-bottom: 1.5rem;
+}
+.bc-card h5 { font-weight: 700; margin-bottom: 1.2rem; font-size: 1rem; }
+
+.bc-form-group { margin-bottom: 1.2rem; }
+.bc-form-group label {
+    display: block; font-weight: 600; font-size: 0.85rem;
+    margin-bottom: 6px; color: var(--bs-body-color);
+}
+.bc-form-group select,
+.bc-form-group textarea,
+.bc-form-group input[type="file"] {
+    width: 100%; padding: 10px 14px; border-radius: 12px;
+    border: 1.5px solid var(--bs-border-color); background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color); font-size: 0.9rem;
+}
+.bc-form-group select:focus,
+.bc-form-group textarea:focus {
+    outline: none; border-color: #0088cc; box-shadow: 0 0 0 3px rgba(0,136,204,0.12);
+}
+.bc-form-group textarea { min-height: 140px; resize: vertical; font-family: inherit; }
+.bc-form-group .bc-hint { font-size: 0.78rem; color: var(--bs-secondary-color); margin-top: 4px; }
+
+.bc-users-select {
+    max-height: 250px; overflow-y: auto; border: 1.5px solid var(--bs-border-color);
+    border-radius: 12px; padding: 8px; background: var(--bs-tertiary-bg);
+}
+.bc-user-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+    border-radius: 8px; cursor: pointer; transition: background 0.15s;
+}
+.bc-user-item:hover { background: rgba(0,136,204,0.06); }
+.bc-user-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0088cc; cursor: pointer; }
+.bc-user-item .bc-u-name { font-weight: 600; font-size: 0.88rem; }
+.bc-user-item .bc-u-info { font-size: 0.78rem; color: var(--bs-secondary-color); }
+.bc-user-avatar {
+    width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(0,136,204,0.3);
+}
+.bc-user-avatar-fallback {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg, #0088cc, #00aaff);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.7rem;
+}
+.bc-select-actions { display: flex; gap: 8px; margin-bottom: 8px; }
+.bc-select-actions button {
+    padding: 4px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+    border: 1px solid var(--bs-border-color); background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color); cursor: pointer;
+}
+.bc-select-actions button:hover { border-color: #0088cc; color: #0088cc; }
+
+.bc-search-users {
+    width: 100%; padding: 8px 12px; border-radius: 8px; margin-bottom: 8px;
+    border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
+    color: var(--bs-body-color); font-size: 0.85rem;
+}
+.bc-search-users:focus { outline: none; border-color: #0088cc; }
+
+.bc-preview {
+    border: 1.5px dashed var(--bs-border-color); border-radius: 12px;
+    padding: 16px; text-align: center; display: none;
+}
+.bc-preview img { max-width: 200px; max-height: 200px; border-radius: 10px; margin-top: 8px; }
+
+.bc-btn-send {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 12px 32px; border-radius: 12px; font-weight: 700;
+    font-size: 0.95rem; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #0088cc, #00aaff); color: #fff;
+    transition: all 0.2s;
+}
+.bc-btn-send:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,136,204,0.3); }
+.bc-btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; border-radius: 12px; font-weight: 600;
+    font-size: 0.88rem; border: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg); color: var(--bs-body-color);
+    text-decoration: none; transition: all 0.2s;
+}
+.bc-btn-back:hover { border-color: #0088cc; color: #0088cc; }
+
+.bc-history { margin-top: 2rem; }
+.bc-history h5 { font-weight: 700; margin-bottom: 1rem; }
+.bc-hist-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--bs-border-color);
+}
+.bc-hist-item:last-child { border-bottom: none; }
+.bc-hist-text { max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.88rem; }
+.bc-hist-meta { font-size: 0.78rem; color: var(--bs-secondary-color); text-align: right; }
+.bc-hist-badge { padding: 3px 8px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; }
+.bc-hist-badge-all { background: #dbeafe; color: #2563eb; }
+.bc-hist-badge-students { background: #dcfce7; color: #16a34a; }
+.bc-hist-badge-teachers { background: #fef3c7; color: #d97706; }
+.bc-hist-badge-group { background: #f3e8ff; color: #7c3aed; }
+.bc-hist-badge-individual { background: #fce7f3; color: #db2777; }
+[data-bs-theme="dark"] .bc-hist-badge-all { background: rgba(37,99,235,0.15); }
+[data-bs-theme="dark"] .bc-hist-badge-students { background: rgba(22,163,106,0.15); }
+[data-bs-theme="dark"] .bc-hist-badge-teachers { background: rgba(217,119,6,0.15); }
+[data-bs-theme="dark"] .bc-hist-badge-group { background: rgba(124,58,237,0.15); }
+[data-bs-theme="dark"] .bc-hist-badge-individual { background: rgba(219,39,119,0.15); }
+
+@media (max-width: 768px) {
+    .bc-hist-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .bc-hist-meta { text-align: left; }
+}
+</style>
+
+<div class="bc-page">
+
+<div class="bc-header">
+    <i class="bi bi-send-fill"></i>
+    <h4>Xabar yuborish</h4>
+</div>
+<p class="bc-sub">Telegram orqali foydalanuvchilarga yoki guruhga xabar yuboring</p>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="bc-card">
+        <h5><i class="bi bi-megaphone me-2"></i>Yangi xabar</h5>
+
+        <!-- Qabul qiluvchi turi -->
+        <div class="bc-form-group">
+            <label><i class="bi bi-people me-1"></i>Qabul qiluvchilar</label>
+            <select name="recipient_type" id="recipientType" onchange="toggleUserSelect()">
+                <option value="all">📢 Barcha ulangan foydalanuvchilar</option>
+                <option value="students">🎓 Faqat o'quvchilar</option>
+                <option value="teachers">👨‍🏫 Faqat o'qituvchilar</option>
+                <option value="group">👥 Guruhga yuborish</option>
+                <option value="individual">👤 Tanlangan foydalanuvchilar</option>
+            </select>
+        </div>
+
+        <!-- Individual user selection -->
+        <div class="bc-form-group" id="userSelectGroup" style="display:none;">
+            <label><i class="bi bi-person-check me-1"></i>Foydalanuvchilarni tanlang</label>
+            <input type="text" class="bc-search-users" id="userSearch" placeholder="🔍 Qidirish..." oninput="filterUsers()">
+            <div class="bc-select-actions">
+                <button type="button" onclick="selectAll()">✅ Hammasini belgilash</button>
+                <button type="button" onclick="deselectAll()">❌ Barchasini olib tashlash</button>
+            </div>
+            <div class="bc-users-select" id="usersList">
+                {% for u in linked_users %}
+                <label class="bc-user-item" data-name="{{ u.first_name }} {{ u.last_name }} {{ u.username }}">
+                    <input type="checkbox" name="selected_users" value="{{ u.pk }}">
+                    {% if u.photo %}
+                        <img src="{{ u.photo.url }}" class="bc-user-avatar">
+                    {% else %}
+                        <div class="bc-user-avatar-fallback">{{ u.get_initials }}</div>
+                    {% endif %}
+                    <div>
+                        <div class="bc-u-name">{{ u.first_name }} {{ u.last_name }}</div>
+                        <div class="bc-u-info">
+                            @{{ u.username }}
+                            {% if u.telegram_username %} · TG: @{{ u.telegram_username }}{% endif %}
+                            · {{ u.get_role_display }}
+                        </div>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Xabar matni -->
+        <div class="bc-form-group">
+            <label><i class="bi bi-chat-text me-1"></i>Xabar matni</label>
+            <textarea name="text" id="msgText" placeholder="Xabar matnini kiriting...&#10;&#10;HTML teglar: &lt;b&gt;qalin&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt;, &lt;a href='url'&gt;havola&lt;/a&gt;&#10;&#10;Havolani shunchaki yozsangiz ham ishlaydi: https://example.com"></textarea>
+            <div class="bc-hint">
+                💡 HTML formatlarni qo'llab-quvvatlaydi: <code>&lt;b&gt;qalin&lt;/b&gt;</code>,
+                <code>&lt;i&gt;kursiv&lt;/i&gt;</code>,
+                <code>&lt;a href="url"&gt;havola&lt;/a&gt;</code>,
+                <code>&lt;code&gt;kod&lt;/code&gt;</code>.
+                Oddiy havolalar ham avtomatik taniladi.
+            </div>
+        </div>
+
+        <!-- Rasm -->
+        <div class="bc-form-group">
+            <label><i class="bi bi-image me-1"></i>Rasm (ixtiyoriy)</label>
+            <input type="file" name="image" id="imageInput" accept="image/*" onchange="previewImage(this)">
+            <div class="bc-hint">📎 JPG, PNG, GIF formatdagi rasmlar. Rasm bilan birga matn ham yuboriladi.</div>
+        </div>
+
+        <!-- Image preview -->
+        <div class="bc-preview" id="imagePreview">
+            <div style="font-size:0.85rem; color:var(--bs-secondary-color);">📷 Rasm ko'rinishi:</div>
+            <img id="previewImg" src="" alt="preview">
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex gap-3 align-items-center flex-wrap">
+        <button type="submit" class="bc-btn-send">
+            <i class="bi bi-send-fill"></i>
+            Yuborish
+        </button>
+        <a href="{% url 'telegram_bot:admin_telegram' %}" class="bc-btn-back">
+            <i class="bi bi-arrow-left"></i>
+            Orqaga
+        </a>
+    </div>
+</form>
+
+<!-- Broadcast history -->
+{% if broadcast_history %}
+<div class="bc-history">
+    <div class="bc-card">
+        <h5><i class="bi bi-clock-history me-2"></i>Oxirgi yuborilgan xabarlar</h5>
+        {% for bm in broadcast_history %}
+        <div class="bc-hist-item">
+            <div>
+                <span class="bc-hist-badge bc-hist-badge-{{ bm.recipient_type }}">
+                    {{ bm.get_recipient_type_display }}
+                </span>
+                <span class="bc-hist-text ms-2">
+                    {% if bm.image %}📷 {% endif %}{{ bm.text|truncatechars:80 }}
+                </span>
+            </div>
+            <div class="bc-hist-meta">
+                <div>{{ bm.created_at|date:"d.m.Y H:i" }}</div>
+                <div>✅ {{ bm.success_count }} / ❌ {{ bm.failed_count }} / 📨 {{ bm.recipients_count }}</div>
+                {% if bm.sender %}
+                <div>👤 {{ bm.sender.first_name }}</div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+</div>
+
+<script>
+function toggleUserSelect() {
+    const type = document.getElementById('recipientType').value;
+    document.getElementById('userSelectGroup').style.display = type === 'individual' ? 'block' : 'none';
+}
+
+function filterUsers() {
+    const q = document.getElementById('userSearch').value.toLowerCase();
+    document.querySelectorAll('.bc-user-item').forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        item.style.display = name.includes(q) ? 'flex' : 'none';
+    });
+}
+
+function selectAll() {
+    document.querySelectorAll('#usersList input[type="checkbox"]').forEach(cb => {
+        if (cb.closest('.bc-user-item').style.display !== 'none') cb.checked = true;
+    });
+}
+
+function deselectAll() {
+    document.querySelectorAll('#usersList input[type="checkbox"]').forEach(cb => cb.checked = false);
+}
+
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const img = document.getElementById('previewImg');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            img.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}
