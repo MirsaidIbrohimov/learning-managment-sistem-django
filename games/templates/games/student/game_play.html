@@ -634,46 +634,14 @@
         Object.defineProperty(typingArea, 'value', {
             get: function() { return _origValueDesc.get.call(this); },
             set: function(v) {
-                // Stack trace tekshiruvi - faqat bizning koddan kelgan o'zgarishlarni qabul qilish
-                var stack = '';
-                try { stack = new Error().stack || ''; } catch(e) {}
-                var fromOurCode = (v === '' || v === _expectedValue ||
-                    stack.indexOf('checkWord') > -1 || stack.indexOf('finishGame') > -1 ||
-                    stack.indexOf('_onCheatDetected') > -1);
-                if (!fromOurCode && startTime && !finished) {
-                    _untrustedInputs += 3;
-                    if (_untrustedInputs > 2) {
-                        _onCheatDetected('value_inject');
-                    }
-                }
                 _origValueDesc.set.call(this, v);
             },
-            configurable: false // Qayta o'zgartirib bo'lmaydi
+            configurable: false
         });
     }
 
     // ===== ANTI-CHEAT: Hidden input himoyasi =====
-    if (_origInputDesc) {
-        ['hiddenTypedText','hiddenKeystrokeCount','hiddenSignature'].forEach(function(id) {
-            var el = document.getElementById(id);
-            if (el) {
-                var _allowed = false;
-                Object.defineProperty(el, 'value', {
-                    get: function() { return _origInputDesc.get.call(this); },
-                    set: function(v) {
-                        var stack = '';
-                        try { stack = new Error().stack || ''; } catch(e) {}
-                        if (stack.indexOf('finishGame') > -1 || !startTime) {
-                            _origInputDesc.set.call(this, v);
-                        } else {
-                            _onCheatDetected('form_inject');
-                        }
-                    },
-                    configurable: false
-                });
-            }
-        });
-    }
+    // Stack trace tekshiruv olib tashlandi - false positive keltirib chiqarardi
 
     // ===== ANTI-CHEAT: isTrusted keydown tracking =====
     typingArea.addEventListener('keydown', function(e) {
@@ -681,7 +649,7 @@
 
         if (!e.isTrusted) {
             _untrustedInputs++;
-            if (_untrustedInputs > 3) {
+            if (_untrustedInputs > 10) {
                 _onCheatDetected('fake_keydown');
             }
             e.preventDefault();
@@ -707,12 +675,12 @@
             var avg = intervals.reduce(function(a,b){return a+b;}, 0) / intervals.length;
             var variance = intervals.reduce(function(a,b){return a + Math.pow(b - avg, 2);}, 0) / intervals.length;
             var stddev = Math.sqrt(variance);
-            // Robot: stddev < 5 va avg < 80ms (juda tez va bir xil tezlikda)
-            if (stddev < 5 && avg < 80) {
+            // Robot: stddev < 3 va avg < 50ms (juda tez va bir xil tezlikda)
+            if (stddev < 3 && avg < 50) {
                 _onCheatDetected('bot_typing');
             }
-            // Juda tez yozish: o'rtacha 30ms dan kam = insoniy emas
-            if (avg < 30 && recent.length >= 15) {
+            // Juda tez yozish: o'rtacha 20ms dan kam = insoniy emas
+            if (avg < 20 && recent.length >= 15) {
                 _onCheatDetected('superhuman_speed');
             }
         }
@@ -724,7 +692,7 @@
 
         if (!e.isTrusted) {
             _untrustedInputs++;
-            if (_untrustedInputs > 2) {
+            if (_untrustedInputs > 10) {
                 _onCheatDetected('fake_input');
             }
             if (_origValueDesc) { _origValueDesc.set.call(this, ''); }
@@ -733,16 +701,7 @@
             return;
         }
 
-        // Birdan ko'p belgi kiritilganini tekshirish (paste emulation)
         var currentVal = _origValueDesc ? _origValueDesc.get.call(this) : this.value;
-        var diff = currentVal.length - (_expectedValue || '').length;
-        if (diff > 3 && _expectedValue !== '') {
-            // Birdan 3+ belgi qo'shildi - shubhali
-            _untrustedInputs++;
-            if (_untrustedInputs > 2) {
-                _onCheatDetected('bulk_insert');
-            }
-        }
 
         if (!startTime) {
             startTimer();
@@ -797,19 +756,10 @@
     function checkWord(typedWord) {
         if (currentIndex >= words.length || finished) return;
 
-        // Keystroke-to-word ratio tekshiruvi
-        if (_trustedKeys < (currentIndex + 1) * 2) {
-            _untrustedInputs++;
-            if (_untrustedInputs > 2) {
-                _onCheatDetected('low_keystrokes');
-                return;
-            }
-        }
-
         // Vaqt tekshiruvi: har bir so'z uchun kamida 200ms ketishi kerak
         var elapsed = getElapsedSeconds();
         var wordsPerSecond = (currentIndex + 1) / (elapsed || 0.1);
-        if (wordsPerSecond > 8 && currentIndex > 3) {
+        if (wordsPerSecond > 8 && currentIndex > 5) {
             _onCheatDetected('speed_hack');
             return;
         }
@@ -969,40 +919,18 @@
     // ===== ANTI-CHEAT: DevTools aniqlash =====
     var _dtOpen = false;
     (function _dtCheck() {
-        var w = window.outerWidth - window.innerWidth > 160;
-        var h = window.outerHeight - window.innerHeight > 160;
+        var w = window.outerWidth - window.innerWidth > 300;
+        var h = window.outerHeight - window.innerHeight > 300;
         if ((w || h) && !_dtOpen) {
             _dtOpen = true;
             _onCheatDetected('devtools');
-        }
-        // Debugger trap - DevTools ochiq bo'lsa sekinlashtiradi
-        var t1 = performance.now();
-        (function(){}).constructor('debugger')();
-        var t2 = performance.now();
-        if (t2 - t1 > 100 && !_dtOpen) {
-            _dtOpen = true;
-            _onCheatDetected('debugger_detected');
         }
         if (!finished) setTimeout(_dtCheck, 2000);
     })();
 
     // ===== ANTI-CHEAT: Console API himoyasi =====
-    (function() {
-        try {
-            var _c = window.console;
-            Object.defineProperty(window, 'console', {
-                get: function() {
-                    if (startTime && !finished) {
-                        _untrustedInputs += 5;
-                        _onCheatDetected('console');
-                    }
-                    return _c;
-                },
-                set: function() {},
-                configurable: false
-            });
-        } catch(e) {}
-    })();
+    // Console interceptni olib tashladik - brauzerning ichki console chaqiruvlari
+    // false positive hosil qilar edi
 
     // ===== ANTI-CHEAT: eval/Function himoyasi =====
     (function() {
@@ -1023,10 +951,10 @@
     var taObserver = new MutationObserver(function() {
         if (!finished) {
             _untrustedInputs++;
-            if (_untrustedInputs > 2) _onCheatDetected('dom_mutate');
+            if (_untrustedInputs > 15) _onCheatDetected('dom_mutate');
         }
     });
-    taObserver.observe(typingArea, {attributes: true, attributeFilter: ['value','disabled','readonly']});
+    taObserver.observe(typingArea, {attributes: true, attributeFilter: ['disabled','readonly']});
 
     // ===== ANTI-CHEAT: Yangi script injection aniqlash =====
     var bodyObserver = new MutationObserver(function(mutations) {
@@ -1170,7 +1098,7 @@
             typingArea.dispatchEvent = function(event) {
                 if (event && (event.type === 'input' || event.type === 'keydown' || event.type === 'keypress') && !event.isTrusted) {
                     _untrustedInputs += 2;
-                    if (_untrustedInputs > 2) {
+                    if (_untrustedInputs > 10) {
                         _onCheatDetected('fake_dispatch');
                     }
                     return false;
