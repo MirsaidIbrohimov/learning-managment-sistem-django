@@ -1629,42 +1629,125 @@ def export_system_pdf(request):
 
 @login_required
 def leaderboard(request):
-    students = CustomUser.objects.filter(role='student').order_by('-coins')
-    
-    # Yo'nalish bo'yicha filter (enrollments orqali)
+    tab = request.GET.get('tab', 'coins')
     profession_id = request.GET.get('profession')
+    search_query = request.GET.get('q', '').strip()
+
+    professions = Profession.objects.all()
+
+    if tab == 'score':
+        # Ball reytingi: har bir tugatilgan bo'lim = 1 ball
+        from accounts.models import Section, Lesson, VideoLesson, VideoProgress, HomeworkSubmission, TestResult
+        from django.db.models import Count, Subquery, OuterRef, IntegerField, Value
+        from django.db.models.functions import Coalesce
+
+        students_qs = CustomUser.objects.filter(role='student')
+        if profession_id:
+            students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct()
+        if search_query:
+            students_qs = students_qs.filter(
+                Q(first_name__icontains=search_query) |
+                Q(last_name__icontains=search_query) |
+                Q(username__icontains=search_query)
+            )
+
+        # Har bir student uchun tugatgan bo'limlar sonini hisoblash
+        scored_students = []
+        for student in students_qs:
+            completed_sections = 0
+
+            if profession_id:
+                sections = Section.objects.filter(profession_id=profession_id, is_active=True)
+            else:
+                enrolled_ids = student.enrollments.values_list('profession_id', flat=True)
+                sections = Section.objects.filter(profession_id__in=enrolled_ids, is_active=True)
+
+            for section in sections:
+                lessons = Lesson.objects.filter(section=section)
+                if not lessons.exists():
+                    continue
+
+                all_done = True
+                for lesson in lessons:
+                    if lesson.lesson_type == 'video':
+                        try:
+                            vl = lesson.video
+                            done = VideoProgress.objects.filter(user=student, video=vl, watched=True).exists()
+                        except VideoLesson.DoesNotExist:
+                            done = True
+                    elif lesson.lesson_type == 'homework':
+                        done = HomeworkSubmission.objects.filter(
+                            student=student, homework__lesson=lesson,
+                            status__in=['accepted', 'graded']
+                        ).exists()
+                    elif lesson.lesson_type == 'test':
+                        done = TestResult.objects.filter(
+                            student=student, test__lesson=lesson, passed=True
+                        ).exists()
+                    else:
+                        done = True
+
+                    if not done:
+                        all_done = False
+                        break
+
+                if all_done:
+                    completed_sections += 1
+
+            student.score = completed_sections
+            if completed_sections > 0 or not search_query:
+                scored_students.append(student)
+
+        scored_students.sort(key=lambda s: s.score, reverse=True)
+        students_list = scored_students[:100]
+
+        user_rank = None
+        user_score = 0
+        if request.user.role == 'student':
+            for i, s in enumerate(scored_students):
+                if s.pk == request.user.pk:
+                    user_rank = i + 1
+                    user_score = s.score
+                    break
+
+        return render(request, 'accounts/leaderboard.html', {
+            'students': students_list,
+            'professions': professions,
+            'selected_profession': profession_id,
+            'search_query': search_query,
+            'user_rank': user_rank,
+            'user_in_list': user_rank is not None,
+            'tab': tab,
+            'user_score': user_score,
+        })
+
+    # Coins tab (default)
+    students = CustomUser.objects.filter(role='student').order_by('-coins')
+
     if profession_id:
         students = students.filter(enrollments__profession_id=profession_id).distinct()
-    
-    # Qidiruv
-    search_query = request.GET.get('q', '').strip()
+
     if search_query:
         students = students.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
             Q(username__icontains=search_query)
         )
-    
-    # Barcha yo'nalishlar (filter uchun)
-    professions = Profession.objects.all()
-    
-    # Joriy foydalanuvchining o'rni (premium bo'lmasa kerak)
+
     user_rank = None
     user_in_list = False
     students_list = students[:100]
     if request.user.role == 'student':
-        # Umumiy reytingdagi o'rnini topish
         all_students_ids = list(students.values_list('pk', flat=True))
         if request.user.pk in all_students_ids:
             user_rank = all_students_ids.index(request.user.pk) + 1
             user_in_list = True
         else:
-            # Filtrlangan natijada yo'q, lekin umumiy reytingda bor
             all_ranked = CustomUser.objects.filter(role='student').order_by('-coins').values_list('pk', flat=True)
             all_ranked_list = list(all_ranked)
             if request.user.pk in all_ranked_list:
                 user_rank = all_ranked_list.index(request.user.pk) + 1
-    
+
     return render(request, 'accounts/leaderboard.html', {
         'students': students_list,
         'professions': professions,
@@ -1672,6 +1755,7 @@ def leaderboard(request):
         'search_query': search_query,
         'user_rank': user_rank,
         'user_in_list': user_in_list,
+        'tab': tab,
     })
 
 

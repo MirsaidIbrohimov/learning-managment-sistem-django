@@ -1734,6 +1734,57 @@
     .sparkle-particle:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 1s; }
     .sparkle-particle:nth-child(4) { bottom: 20%; right: 10%; animation-delay: 1.5s; }
     .sparkle-particle:nth-child(5) { top: 50%; left: 5%; animation-delay: 0.7s; }
+
+    /* ===== Tab Switcher ===== */
+    .lb-tabs {
+        display: flex;
+        gap: 6px;
+        background: var(--lb-card);
+        border-radius: 16px;
+        padding: 5px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--lb-shadow);
+        animation: fadeInUp 0.5s ease 0.15s both;
+    }
+    .lb-tab {
+        flex: 1;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--lb-text-secondary);
+        font-size: 0.92rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        position: relative;
+        overflow: hidden;
+    }
+    .lb-tab:hover {
+        color: var(--lb-text);
+        background: var(--lb-card-hover);
+    }
+    .lb-tab.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        transform: scale(1.02);
+    }
+    .lb-tab.active:hover {
+        color: white;
+    }
+    .lb-tab i {
+        font-size: 1.1rem;
+    }
+    @media (max-width: 400px) {
+        .lb-tab { font-size: 0.82rem; padding: 0.65rem 0.5rem; gap: 5px; }
+        .lb-tab i { font-size: 0.95rem; }
+    }
 </style>
 
 <div class="lb-container">
@@ -1747,8 +1798,18 @@
         </div>
     </div>
 
+    <div class="lb-tabs">
+        <a href="?tab=coins{% if selected_profession %}&profession={{ selected_profession }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="lb-tab {% if tab == 'coins' or not tab %}active{% endif %}">
+            <i class="bi bi-coin"></i> Coinlar
+        </a>
+        <a href="?tab=score{% if selected_profession %}&profession={{ selected_profession }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}" class="lb-tab {% if tab == 'score' %}active{% endif %}">
+            <i class="bi bi-mortarboard-fill"></i> Ballar
+        </a>
+    </div>
+
     <div class="lb-search-card">
         <form method="get" class="lb-search-box">
+            <input type="hidden" name="tab" value="{{ tab|default:'coins' }}">
             <input type="text" name="q" class="lb-search-input" placeholder="Qidirish..." value="{{ search_query }}">
             <i class="bi bi-search"></i>
             {% if selected_profession %}
