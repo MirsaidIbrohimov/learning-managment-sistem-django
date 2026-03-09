@@ -1373,12 +1373,13 @@
             return;
         }
 
-        // Type letter by keyboard
+        // Type letter by keyboard (A-Z va o', g' uchun apostrof)
         var key = e.key.toUpperCase();
-        if (key.length === 1 && key >= 'A' && key <= 'Z') {
+        var matchKey = (e.key === "'" || e.key === "\u2018" || e.key === "\u2019") ? "'" : key;
+        if (key.length === 1 && ((key >= 'A' && key <= 'Z') || e.key === "'" || e.key === "\u2018" || e.key === "\u2019" || e.key === "`")) {
             e.preventDefault();
             for (var i = 0; i < letters.length; i++) {
-                if (letters[i] === key && selectedIndices.indexOf(i) === -1) {
+                if (letters[i] === matchKey && selectedIndices.indexOf(i) === -1) {
                     selectedIndices.push(i);
                     updateWordDisplay();
                     renderLetters();

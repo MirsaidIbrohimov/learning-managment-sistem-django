@@ -45,6 +45,8 @@ def game_detail(request, slug):
 
     if game.game_type == 'word_builder':
         user_attempts = WordGameAttempt.objects.filter(user=request.user, game=game).select_related('word_round').order_by('-created_at')[:10]
+        user_attempts_count = WordGameAttempt.objects.filter(user=request.user, game=game).count()
+        practice_count = WordGameAttempt.objects.filter(user=request.user, game=game, competition__isnull=True).count()
         best_practice = WordGameAttempt.objects.filter(
             user=request.user, game=game, competition__isnull=True
         ).order_by('-total_score').first()
@@ -60,6 +62,8 @@ def game_detail(request, slug):
             'game': game,
             'competitions': competitions,
             'user_attempts': user_attempts,
+            'user_attempts_count': user_attempts_count,
+            'practice_count': practice_count,
             'best_practice': best_practice,
             'all_attempts': all_attempts,
         })

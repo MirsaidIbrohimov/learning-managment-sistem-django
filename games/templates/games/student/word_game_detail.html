@@ -425,16 +425,22 @@
         </a>
         <h1><i class="bi {{ game.icon }}"></i> {{ game.title }}</h1>
         <p>{{ game.description }}</p>
-        {% if best_practice %}
         <div class="mt-2">
+            <span class="stat-mini">
+                <i class="bi bi-arrow-repeat"></i> Urinishlar: {{ user_attempts_count }}
+            </span>
+            <span class="stat-mini">
+                <i class="bi bi-joystick"></i> Mashq: {{ practice_count }}
+            </span>
+            {% if best_practice %}
             <span class="stat-mini">
                 <i class="bi bi-trophy"></i> Eng yaxshi: {{ best_practice.total_score }} ball
             </span>
             <span class="stat-mini">
                 <i class="bi bi-check2-circle"></i> {{ best_practice.found_count }} so'z
             </span>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <div class="row g-4">
@@ -523,7 +529,10 @@
                     {% for attempt in user_attempts %}
                     <div class="attempt-row">
                         <div>
-                            <div class="attempt-score">{{ attempt.total_score }} ball</div>
+                            <div class="attempt-score">
+                                <span style="font-size:0.72rem; color:var(--g-text-muted); font-weight:600;">#{{ forloop.revcounter }}</span>
+                                {{ attempt.total_score }} ball
+                            </div>
                             <small class="text-muted">
                                 {{ attempt.found_count }} so'z · {{ attempt.time_spent }}s
                             </small>
