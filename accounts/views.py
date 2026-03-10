@@ -3664,6 +3664,36 @@ def toggle_maintenance(request):
     
     maintenance.save()
     
+    if maintenance.is_active:
+        notify_group(
+            f"🔧 <b>Texnik xizmat rejimi yoqildi!</b>\n\n"
+            f"⚠️ Sayt vaqtincha ishlamaydi.\n"
+            f"📝 {maintenance.message}\n\n"
+            f"👤 Admin: <b>{request.user.full_name}</b>"
+        )
+        for u in CustomUser.objects.filter(telegram_id__isnull=False, is_blocked=False):
+            notify_user(
+                u.telegram_id,
+                f"🔧 <b>Texnik xizmat rejimi yoqildi!</b>\n\n"
+                f"⚠️ Sayt vaqtincha ishlamaydi.\n"
+                f"📝 {maintenance.message}\n\n"
+                f"⏳ Iltimos, keyinroq urinib ko'ring."
+            )
+    else:
+        notify_group(
+            f"✅ <b>Sayt yana ishlayapti!</b>\n\n"
+            f"🎉 Texnik xizmat rejimi o'chirildi.\n"
+            f"🚀 Saytga kirishingiz mumkin!\n\n"
+            f"👤 Admin: <b>{request.user.full_name}</b>"
+        )
+        for u in CustomUser.objects.filter(telegram_id__isnull=False, is_blocked=False):
+            notify_user(
+                u.telegram_id,
+                f"✅ <b>Sayt yana ishlayapti!</b>\n\n"
+                f"🎉 Texnik ishlar tugadi.\n"
+                f"🚀 Saytga kirishingiz mumkin!"
+            )
+    
     status = "yoqildi" if maintenance.is_active else "o'chirildi"
     messages.success(request, f"Texnik xizmat rejimi {status}!")
     return redirect('admin_dashboard')
