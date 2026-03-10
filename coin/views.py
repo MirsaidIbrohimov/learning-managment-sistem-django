@@ -9,7 +9,7 @@ from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
     CoinTransaction, ActivityLog
 )
-from telegram_bot.utils import notify_group, notify_user
+from telegram_bot.utils import notify_group, notify_user, notify_admins
 
 PREMIUM_DISCOUNT = 0.05  # 5% chegirma
 
@@ -273,38 +273,150 @@ def market_purchase(request, pk):
         return redirect('coin:market_detail', pk=pk)
     
     if request.method == 'POST':
-        request.user.coins -= final_price
-        request.user.save()
-        
-        product.stock -= 1
-        product.save()
-        
-        ProductPurchase.objects.create(
-            product=product,
-            user=request.user,
-            coins_spent=final_price
-        )
-        
-        discount_label = " (Premium -5%)" if has_discount else ""
-        CoinTransaction.objects.create(
-            user=request.user,
-            amount=final_price,
-            action='remove',
-            reason=f"Mahsulot sotib olindi: {product.name}{discount_label}"
-        )
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='purchase_product',
-            description=f"Mahsulot sotib oldi: {product.name} ({final_price} coin{discount_label})"
-        )
+        with transaction.atomic():
+            request.user.coins -= final_price
+            request.user.save(update_fields=['coins'])
+            
+            product.stock -= 1
+            product.save()
+            
+            purchase = ProductPurchase.objects.create(
+                product=product,
+                user=request.user,
+                coins_spent=final_price
+            )
+            
+            discount_label = " (Premium -5%)" if has_discount else ""
+            CoinTransaction.objects.create(
+                user=request.user,
+                amount=final_price,
+                action='remove',
+                reason=f"Mahsulot sotib olindi: {product.name}{discount_label}"
+            )
+            ActivityLog.objects.create(
+                user=request.user,
+                action_type='purchase_product',
+                description=f"Mahsulot sotib oldi: {product.name} ({final_price} coin{discount_label})"
+            )
+            
+            # Adminlarga telegram xabar
+            notify_admins(
+                f"🛒 <b>Yangi buyurtma!</b>\n\n"
+                f"👤 <b>{request.user.full_name}</b> (@{request.user.username})\n"
+                f"📦 Mahsulot: <b>{product.name}</b>\n"
+                f"🪙 Narxi: <b>{final_price}</b> coin{discount_label}\n"
+                f"📊 Qolgan: {product.stock} ta\n\n"
+                f"📋 Buyurtma #{purchase.pk}"
+            )
+            
+            # Foydalanuvchiga telegram xabar
+            if request.user.telegram_id:
+                notify_user(
+                    request.user.telegram_id,
+                    f"✅ <b>Buyurtmangiz qabul qilindi!</b>\n\n"
+                    f"📦 <b>{product.name}</b>\n"
+                    f"🪙 Narxi: <b>{final_price}</b> coin\n\n"
+                    f"📋 Buyurtma #{purchase.pk}\n"
+                    f"⏳ Holat: Kutilmoqda\n\n"
+                    f"❌ Bekor qilish uchun saytga kiring."
+                )
+            
+            # Foydalanuvchiga xabar (Message)
+            Message.objects.create(
+                recipient=request.user,
+                title=f"✅ Buyurtma #{purchase.pk} qabul qilindi",
+                content=f"Siz '{product.name}' mahsulotini {final_price} coin ga sotib oldingiz. Buyurtmangiz kutilmoqda. Agar bekor qilmoqchi bo'lsangiz, 'Mening xaridlarim' bo'limiga o'ting.",
+                message_type='system'
+            )
         
         messages.success(request, f"'{product.name}' muvaffaqiyatli sotib olindi!")
-        return redirect('coin:market_list')
+        return redirect('coin:my_purchases')
     
     return render(request, 'coin/market/purchase_confirm.html', {
         'product': product,
         'final_price': final_price,
         'has_discount': has_discount,
+    })
+
+
+# ============== MY PURCHASES ==============
+
+@login_required
+def my_purchases(request):
+    purchases = ProductPurchase.objects.filter(user=request.user).select_related('product')
+    return render(request, 'coin/market/my_purchases.html', {
+        'purchases': purchases,
+    })
+
+
+@login_required
+def cancel_purchase(request, pk):
+    purchase = get_object_or_404(ProductPurchase, pk=pk, user=request.user)
+    
+    if not purchase.can_cancel:
+        messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi!")
+        return redirect('coin:my_purchases')
+    
+    if request.method == 'POST':
+        with transaction.atomic():
+            # Coinlarni qaytarish
+            purchase.user.coins += purchase.coins_spent
+            purchase.user.save(update_fields=['coins'])
+            
+            # Mahsulot stockni qaytarish
+            purchase.product.stock += 1
+            purchase.product.save()
+            
+            # Buyurtma holatini yangilash
+            purchase.status = 'cancelled'
+            purchase.cancelled_at = timezone.now()
+            purchase.save()
+            
+            CoinTransaction.objects.create(
+                user=purchase.user,
+                amount=purchase.coins_spent,
+                action='add',
+                reason=f"Buyurtma bekor qilindi: {purchase.product.name} (#{purchase.pk})"
+            )
+            
+            ActivityLog.objects.create(
+                user=purchase.user,
+                action_type='purchase_product',
+                description=f"Buyurtma bekor qildi: {purchase.product.name} (+{purchase.coins_spent} coin qaytarildi)"
+            )
+            
+            # Adminlarga telegram xabar
+            notify_admins(
+                f"❌ <b>Buyurtma bekor qilindi!</b>\n\n"
+                f"👤 <b>{purchase.user.full_name}</b> (@{purchase.user.username})\n"
+                f"📦 Mahsulot: <b>{purchase.product.name}</b>\n"
+                f"🪙 Qaytarildi: <b>{purchase.coins_spent}</b> coin\n\n"
+                f"📋 Buyurtma #{purchase.pk}"
+            )
+            
+            # Foydalanuvchiga telegram xabar
+            if purchase.user.telegram_id:
+                notify_user(
+                    purchase.user.telegram_id,
+                    f"❌ <b>Buyurtmangiz bekor qilindi</b>\n\n"
+                    f"📦 <b>{purchase.product.name}</b>\n"
+                    f"🪙 <b>{purchase.coins_spent}</b> coin balansingizga qaytarildi\n\n"
+                    f"📋 Buyurtma #{purchase.pk}"
+                )
+            
+            # Foydalanuvchiga xabar (Message)
+            Message.objects.create(
+                recipient=purchase.user,
+                title=f"❌ Buyurtma #{purchase.pk} bekor qilindi",
+                content=f"'{purchase.product.name}' mahsuloti uchun buyurtmangiz bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
+                message_type='system'
+            )
+        
+        messages.success(request, f"Buyurtma bekor qilindi. {purchase.coins_spent} coin qaytarildi!")
+        return redirect('coin:my_purchases')
+    
+    return render(request, 'coin/market/cancel_confirm.html', {
+        'purchase': purchase,
     })
 
 
@@ -420,8 +532,81 @@ def admin_mark_delivered(request, pk):
     
     purchase = get_object_or_404(ProductPurchase, pk=pk)
     purchase.is_delivered = True
+    purchase.status = 'delivered'
     purchase.save()
+    
+    # Foydalanuvchiga telegram xabar
+    if purchase.user.telegram_id:
+        notify_user(
+            purchase.user.telegram_id,
+            f"📦 <b>Buyurtmangiz yetkazildi!</b>\n\n"
+            f"📦 <b>{purchase.product.name}</b>\n"
+            f"📋 Buyurtma #{purchase.pk}\n\n"
+            f"✅ Mahsulotingiz tayyor! Olib ketishingiz mumkin."
+        )
+    
+    # Foydalanuvchiga xabar (Message)
+    Message.objects.create(
+        recipient=purchase.user,
+        title=f"📦 Buyurtma #{purchase.pk} yetkazildi",
+        content=f"'{purchase.product.name}' mahsuloti yetkazildi! Mahsulotingizni olib ketishingiz mumkin.",
+        message_type='system'
+    )
+    
     messages.success(request, "Yetkazildi deb belgilandi!")
+    return redirect('coin:admin_purchases')
+
+
+@login_required
+def admin_cancel_purchase(request, pk):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    purchase = get_object_or_404(ProductPurchase, pk=pk)
+    
+    if purchase.status != 'pending' or purchase.is_delivered:
+        messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi!")
+        return redirect('coin:admin_purchases')
+    
+    if request.method == 'POST':
+        with transaction.atomic():
+            purchase.user.coins += purchase.coins_spent
+            purchase.user.save(update_fields=['coins'])
+            
+            purchase.product.stock += 1
+            purchase.product.save()
+            
+            purchase.status = 'cancelled'
+            purchase.cancelled_at = timezone.now()
+            purchase.save()
+            
+            CoinTransaction.objects.create(
+                user=purchase.user,
+                amount=purchase.coins_spent,
+                action='add',
+                reason=f"Admin tomonidan buyurtma bekor qilindi: {purchase.product.name} (#{purchase.pk})"
+            )
+            
+            # Foydalanuvchiga telegram xabar
+            if purchase.user.telegram_id:
+                notify_user(
+                    purchase.user.telegram_id,
+                    f"❌ <b>Buyurtmangiz bekor qilindi</b>\n\n"
+                    f"📦 <b>{purchase.product.name}</b>\n"
+                    f"🪙 <b>{purchase.coins_spent}</b> coin balansingizga qaytarildi\n\n"
+                    f"📋 Buyurtma #{purchase.pk}"
+                )
+            
+            # Foydalanuvchiga xabar (Message)
+            Message.objects.create(
+                recipient=purchase.user,
+                title=f"❌ Buyurtma #{purchase.pk} bekor qilindi",
+                content=f"'{purchase.product.name}' mahsuloti uchun buyurtmangiz admin tomonidan bekor qilindi. {purchase.coins_spent} coin balansingizga qaytarildi.",
+                message_type='system'
+            )
+        
+        messages.success(request, f"Buyurtma bekor qilindi. {purchase.coins_spent} coin foydalanuvchiga qaytarildi!")
+    
     return redirect('coin:admin_purchases')
 
 

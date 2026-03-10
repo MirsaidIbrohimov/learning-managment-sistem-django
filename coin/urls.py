@@ -11,6 +11,8 @@ urlpatterns = [
     path('market/<int:pk>/', views.market_detail, name='market_detail'),
     path('market/<int:pk>/like/', views.market_like, name='market_like'),
     path('market/<int:pk>/purchase/', views.market_purchase, name='market_purchase'),
+    path('market/my-purchases/', views.my_purchases, name='my_purchases'),
+    path('market/purchase/<int:pk>/cancel/', views.cancel_purchase, name='cancel_purchase'),
     
     # Admin: Products
     path('dashboard/products/', views.admin_products, name='admin_products'),
@@ -19,6 +21,7 @@ urlpatterns = [
     path('dashboard/products/<int:pk>/delete/', views.admin_product_delete, name='admin_product_delete'),
     path('dashboard/purchases/', views.admin_purchases, name='admin_purchases'),
     path('dashboard/purchases/<int:pk>/delivered/', views.admin_mark_delivered, name='admin_mark_delivered'),
+    path('dashboard/purchases/<int:pk>/cancel/', views.admin_cancel_purchase, name='admin_cancel_purchase'),
     
     # Admin: Activities
     path('dashboard/activities/', views.admin_activities, name='admin_activities'),

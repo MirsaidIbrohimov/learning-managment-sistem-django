@@ -55,7 +55,11 @@
                                 </small>
                             </td>
                             <td class="align-middle">
-                                {% if purchase.is_delivered %}
+                                {% if purchase.status == 'cancelled' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Bekor qilingan
+                                </span>
+                                {% elif purchase.status == 'delivered' or purchase.is_delivered %}
                                 <span class="badge bg-success">
                                     <i class="bi bi-check-circle me-1"></i>Yetkazilgan
                                 </span>
@@ -66,7 +70,11 @@
                                 {% endif %}
                             </td>
                             <td class="align-middle text-end pe-4">
-                                {% if not purchase.is_delivered %}
+                                {% if purchase.status == 'cancelled' %}
+                                <span class="text-danger">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </span>
+                                {% elif not purchase.is_delivered and purchase.status != 'cancelled' %}
                                 <form method="post" action="{% url 'coin:admin_mark_delivered' purchase.pk %}" class="d-inline">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-sm btn-success">

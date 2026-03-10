@@ -75,11 +75,19 @@ class ProductComment(models.Model):
 # =========================
 
 class ProductPurchase(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('delivered', 'Yetkazilgan'),
+        ('cancelled', 'Bekor qilingan'),
+    )
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='purchases')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='purchases')
     coins_spent = models.PositiveIntegerField(verbose_name="Sarflangan coin")
     purchased_at = models.DateTimeField(auto_now_add=True)
     is_delivered = models.BooleanField(default=False, verbose_name="Yetkazildi")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    cancelled_at = models.DateTimeField(null=True, blank=True, verbose_name="Bekor qilingan vaqt")
 
     class Meta:
         ordering = ['-purchased_at']
@@ -88,6 +96,10 @@ class ProductPurchase(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.product}"
+
+    @property
+    def can_cancel(self):
+        return self.status == 'pending' and not self.is_delivered
 
 
 # =========================
