@@ -764,7 +764,7 @@
                         </button>
                     </form>
                     <button type="button" class="pur-btn pur-btn-cancel"
-                            onclick="showCancelModal('{{ purchase.pk }}', '{{ purchase.product.name|escapejs }}', '{{ purchase.user.full_name|escapejs }}', '{{ purchase.coins_spent }}', '{% url 'coin:admin_cancel_purchase' purchase.pk %}')">
+                            onclick="showCancelModal('{{ purchase.pk }}', '{{ purchase.product.name|escapejs }}', '{{ purchase.user.full_name|escapejs }}', '{{ purchase.coins_spent }}')">
                         <i class="bi bi-x-lg"></i> Bekor
                     </button>
                 {% endif %}
@@ -846,11 +846,11 @@ function filterPurchases(status, btn) {
     });
 }
 
-function showCancelModal(pk, product, user, coins, actionUrl) {
+function showCancelModal(pk, product, user, coins) {
     document.getElementById('modalProduct').textContent = product;
     document.getElementById('modalUser').textContent = user;
     document.getElementById('modalCoins').textContent = coins;
-    document.getElementById('cancelForm').action = actionUrl;
+    document.getElementById('cancelForm').action = '/dashboard/purchases/' + pk + '/cancel/';
     document.getElementById('cancelModal').classList.add('show');
 }
 
