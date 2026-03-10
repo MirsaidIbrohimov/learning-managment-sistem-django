@@ -311,6 +311,54 @@
     </div>
 </div>
 
+<!-- Coin & Ball statistika -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="pf-card p-3 a-up d3 {% if user.is_premium %}pm-right{% endif %}">
+            <div class="pf-sec-title mb-2">
+                <i class="bi bi-coin ib" style="background:var(--warn-bg);color:var(--warn);"></i>
+                Coin statistika
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-wallet2"></i></div>
+                <div><div class="pf-row-label">Joriy balans</div><div class="pf-row-val">{{ user.coins }} coin</div></div>
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-plus-circle-fill"></i></div>
+                <div><div class="pf-row-label">Jami yig'ilgan</div><div class="pf-row-val">{{ total_earned_coins }} coin</div></div>
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--red-bg);color:var(--red);"><i class="bi bi-dash-circle-fill"></i></div>
+                <div><div class="pf-row-label">Sarflangan</div><div class="pf-row-val">{{ total_spent_coins }} coin</div></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="pf-card p-3 a-up d4 {% if user.is_premium %}pm-right{% endif %}">
+            <div class="pf-sec-title mb-2">
+                <i class="bi bi-mortarboard-fill ib" style="background:var(--accent-bg);color:var(--accent);"></i>
+                Ball statistika
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--accent-bg);color:var(--accent);"><i class="bi bi-clipboard-check-fill"></i></div>
+                <div><div class="pf-row-label">Testlar topshirilgan</div><div class="pf-row-val">{{ total_tests_taken }}</div></div>
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-graph-up-arrow"></i></div>
+                <div><div class="pf-row-label">O'rtacha ball</div><div class="pf-row-val">{{ avg_test_score }}%</div></div>
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--purple-bg);color:var(--purple);"><i class="bi bi-file-check-fill"></i></div>
+                <div><div class="pf-row-label">Vazifalar topshirilgan</div><div class="pf-row-val">{{ total_homeworks_submitted }}</div></div>
+            </div>
+            <div class="pf-row">
+                <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-star-fill"></i></div>
+                <div><div class="pf-row-label">O'rtacha baho</div><div class="pf-row-val">{{ avg_homework_grade }}/10</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Ma'lumotlar -->
 <div class="pf-card pf-sec a-up d3 {% if user.is_premium %}pm-right{% endif %}">
     <div class="pf-sec-title">

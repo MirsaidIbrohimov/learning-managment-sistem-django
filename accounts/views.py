@@ -1203,12 +1203,32 @@ def profile_view(request):
     # Deploy qilgan loyihalar
     deploys = HTMLDeploy.objects.filter(user=request.user, is_active=True).order_by('-created_at')[:6]
     
+    # Coin statistika
+    from coin.models import CoinTransaction
+    total_earned_coins = CoinTransaction.objects.filter(user=request.user, action='add').aggregate(total=Sum('amount'))['total'] or 0
+    total_spent_coins = CoinTransaction.objects.filter(user=request.user, action__in=['remove', 'purchase']).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Ball statistika
+    test_results = TestResult.first_attempts().filter(student=request.user)
+    total_tests_taken = test_results.count()
+    avg_test_score = round(test_results.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+    
+    hw_submissions = HomeworkSubmission.objects.filter(student=request.user)
+    total_homeworks_submitted = hw_submissions.count()
+    avg_homework_grade = round(hw_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0, 1)
+    
     return render(request, 'accounts/profile.html', {
         'certificates': certificates,
         'enrollments': enrollments,
         'completed_courses': completed_courses,
         'active_courses': active_courses,
         'deploys': deploys,
+        'total_earned_coins': total_earned_coins,
+        'total_spent_coins': total_spent_coins,
+        'total_tests_taken': total_tests_taken,
+        'avg_test_score': avg_test_score,
+        'total_homeworks_submitted': total_homeworks_submitted,
+        'avg_homework_grade': avg_homework_grade,
     })
 
 

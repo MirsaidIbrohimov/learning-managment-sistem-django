@@ -111,6 +111,103 @@ def bot_webhook(request):
             )
         return JsonResponse({'ok': True})
 
+    # ===== COIN STATISTIKA =====
+    if text == '💰 Coin statistika':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        # Kurslar ro'yxatini ko'rsatish
+        from accounts.models import CourseEnrollment
+        enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
+        keyboard_buttons = [[{'text': '💰 Barcha coinlar'}]]
+        for e in enrollments:
+            keyboard_buttons.append([{'text': f'💰 {e.profession.name}'}])
+        keyboard_buttons.append([{'text': '🔙 Orqaga'}])
+
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "💰 <b>Coin statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            {'keyboard': keyboard_buttons, 'resize_keyboard': True},
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '💰 Barcha coinlar':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        _send_coin_stats(bot_token, chat['id'], user, profession=None)
+        return JsonResponse({'ok': True})
+
+    if text.startswith('💰 ') and text != '💰 Coin statistika' and text != '💰 Barcha coinlar':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        from accounts.models import Profession
+        profession_name = text[2:].strip()
+        profession = Profession.objects.filter(name=profession_name).first()
+        if profession:
+            _send_coin_stats(bot_token, chat['id'], user, profession=profession)
+        else:
+            _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
+        return JsonResponse({'ok': True})
+
+    # ===== BALL STATISTIKA =====
+    if text == '📊 Ball statistika':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        from accounts.models import CourseEnrollment
+        enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
+        keyboard_buttons = [[{'text': '📊 Barcha ballar'}]]
+        for e in enrollments:
+            keyboard_buttons.append([{'text': f'📊 {e.profession.name}'}])
+        keyboard_buttons.append([{'text': '🔙 Orqaga'}])
+
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "📊 <b>Ball statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            {'keyboard': keyboard_buttons, 'resize_keyboard': True},
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '📊 Barcha ballar':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        _send_ball_stats(bot_token, chat['id'], user, profession=None)
+        return JsonResponse({'ok': True})
+
+    if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barcha ballar':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+
+        from accounts.models import Profession
+        profession_name = text[2:].strip()
+        profession = Profession.objects.filter(name=profession_name).first()
+        if profession:
+            _send_ball_stats(bot_token, chat['id'], user, profession=profession)
+        else:
+            _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
+        return JsonResponse({'ok': True})
+
     # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
     if text and not text.startswith('/'):
         first_name = user_data.get('first_name', '')
@@ -232,7 +329,7 @@ def _unlinked_keyboard():
 def _linked_keyboard():
     return {
         'keyboard': [
-            [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
+            [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
             [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
             [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
         ],
@@ -261,6 +358,89 @@ def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
         'parse_mode': 'HTML',
         'reply_markup': reply_markup,
     })
+
+
+def _send_coin_stats(bot_token, chat_id, user, profession=None):
+    """Coin statistikasini yuborish"""
+    from django.db.models import Sum
+    from coin.models import CoinTransaction
+
+    qs = CoinTransaction.objects.filter(user=user)
+    title = "💰 <b>Coin statistika — Barcha</b>"
+
+    if profession:
+        qs = qs.filter(reason__icontains=profession.name)
+        title = f"💰 <b>Coin statistika — {profession.name}</b>"
+
+    earned = qs.filter(action='add').aggregate(t=Sum('amount'))['t'] or 0
+    spent = qs.filter(action__in=['remove', 'purchase']).aggregate(t=Sum('amount'))['t'] or 0
+
+    msg = (
+        f"{title}\n\n"
+        f"👤 {user.full_name}\n\n"
+        f"💳 Joriy balans: <b>{user.coins}</b> coin\n"
+        f"📈 Jami yig'ilgan: <b>{earned}</b> coin\n"
+        f"📉 Sarflangan: <b>{spent}</b> coin\n"
+    )
+
+    # Oxirgi 5 ta tranzaksiya
+    recent = qs.order_by('-created_at')[:5]
+    if recent.exists():
+        msg += "\n📋 <b>Oxirgi tranzaksiyalar:</b>\n"
+        for t in recent:
+            sign = '+' if t.action == 'add' else '-'
+            msg += f"  {sign}{t.amount} coin — {t.reason or t.get_action_display()}\n"
+
+    _send_message_with_reply_markup(bot_token, chat_id, msg, _linked_keyboard())
+
+
+def _send_ball_stats(bot_token, chat_id, user, profession=None):
+    """Ball statistikasini yuborish"""
+    from django.db.models import Avg, Count
+    from accounts.models import TestResult, HomeworkSubmission, Lesson
+
+    title = "📊 <b>Ball statistika — Barcha</b>"
+
+    test_qs = TestResult.first_attempts().filter(student=user)
+    hw_qs = HomeworkSubmission.objects.filter(student=user)
+
+    if profession:
+        title = f"📊 <b>Ball statistika — {profession.name}</b>"
+        lesson_ids = Lesson.objects.filter(profession=profession).values_list('id', flat=True)
+        test_qs = test_qs.filter(test__lesson_id__in=lesson_ids)
+        hw_qs = hw_qs.filter(homework__lesson_id__in=lesson_ids)
+
+    total_tests = test_qs.count()
+    avg_score = round(test_qs.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+    passed_tests = test_qs.filter(passed=True).count()
+
+    total_hw = hw_qs.count()
+    graded_hw = hw_qs.filter(grade__isnull=False)
+    avg_grade = round(graded_hw.aggregate(avg=Avg('grade'))['avg'] or 0, 1)
+    accepted_hw = hw_qs.filter(status__in=['accepted', 'graded']).count()
+
+    msg = (
+        f"{title}\n\n"
+        f"👤 {user.full_name}\n\n"
+        f"📝 <b>Testlar:</b>\n"
+        f"  📋 Topshirilgan: <b>{total_tests}</b>\n"
+        f"  ✅ O'tgan: <b>{passed_tests}</b>\n"
+        f"  📈 O'rtacha ball: <b>{avg_score}%</b>\n\n"
+        f"📄 <b>Vazifalar:</b>\n"
+        f"  📋 Topshirilgan: <b>{total_hw}</b>\n"
+        f"  ✅ Qabul qilingan: <b>{accepted_hw}</b>\n"
+        f"  ⭐ O'rtacha baho: <b>{avg_grade}/10</b>\n"
+    )
+
+    # Oxirgi 5 test natijasi
+    recent_tests = test_qs.select_related('test__lesson').order_by('-completed_at')[:5]
+    if recent_tests.exists():
+        msg += "\n📋 <b>Oxirgi test natijalari:</b>\n"
+        for r in recent_tests:
+            emoji = '✅' if r.passed else '❌'
+            msg += f"  {emoji} {r.test.lesson.title}: <b>{r.score}%</b>\n"
+
+    _send_message_with_reply_markup(bot_token, chat_id, msg, _linked_keyboard())
 
 
 def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text):
