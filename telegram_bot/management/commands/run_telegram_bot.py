@@ -91,7 +91,7 @@ class Command(BaseCommand):
             cb_data = callback.get('data', '')
             self._answer_callback(bot_token, callback['id'])
             if cb_data == 'my_coins':
-                self._handle_coins(bot_token, cb_chat_id, cb_telegram_id)
+                self._handle_coin_menu(bot_token, cb_chat_id, cb_telegram_id)
             return
 
         if text.startswith('/start'):
@@ -103,12 +103,28 @@ class Command(BaseCommand):
                 self._handle_start(bot_token, chat_id, telegram_id, tg_username)
             return
 
-        if text == '💰 Coinlarim':
-            self._handle_coins(bot_token, chat_id, telegram_id)
+        if text == '💰 Coin statistika':
+            self._handle_coin_menu(bot_token, chat_id, telegram_id)
             return
 
-        if text == '📊 Statistika':
-            self._handle_stats(bot_token, chat_id, telegram_id)
+        if text == '💰 Barcha coinlar':
+            self._handle_coin_stats(bot_token, chat_id, telegram_id, profession=None)
+            return
+
+        if text.startswith('💰 ') and text not in ('💰 Coin statistika', '💰 Barcha coinlar'):
+            self._handle_coin_stats_by_course(bot_token, chat_id, telegram_id, text[2:].strip())
+            return
+
+        if text == '📊 Ball statistika':
+            self._handle_ball_menu(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '📊 Barcha ballar':
+            self._handle_ball_stats(bot_token, chat_id, telegram_id, profession=None)
+            return
+
+        if text.startswith('📊 ') and text not in ('📊 Ball statistika', '📊 Barcha ballar'):
+            self._handle_ball_stats_by_course(bot_token, chat_id, telegram_id, text[2:].strip())
             return
 
         if text == '📬 Xabarlarim':
@@ -256,68 +272,148 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.SUCCESS(f"  🔗 Ulandi: {user.first_name} {user.last_name} ← TG:{telegram_id}"))
 
-    def _handle_coins(self, bot_token, chat_id, telegram_id):
+    def _handle_coin_menu(self, bot_token, chat_id, telegram_id):
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
             return
 
-        role_name = {'admin': 'Admin', 'teacher': "O'qituvchi", 'student': "O'quvchi"}.get(user.role, user.role)
+        from accounts.models import CourseEnrollment
+        enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
+        keyboard_buttons = [[{'text': '💰 Barcha coinlar'}]]
+        for e in enrollments:
+            keyboard_buttons.append([{'text': f'💰 {e.profession.name}'}])
+        keyboard_buttons.append([{'text': '🔙 Orqaga'}])
 
-        self._send_message(
+        self._send_message_with_reply_markup(
             bot_token, chat_id,
-            f"💰 <b>Coin ma'lumotlari</b>\n\n"
-            f"👤 {user.first_name} {user.last_name}\n"
-            f"🎓 {role_name}\n\n"
-            f"🪙 Coinlar: <b>{user.coins}</b>\n"
-            f"💎 Premium: {'✅ Ha' if user.is_premium else '❌ Yoq'}"
+            "💰 <b>Coin statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            {'keyboard': keyboard_buttons, 'resize_keyboard': True},
         )
 
-    def _handle_stats(self, bot_token, chat_id, telegram_id):
+    def _handle_coin_stats(self, bot_token, chat_id, telegram_id, profession=None):
+        from django.db.models import Sum
+        from coin.models import CoinTransaction
+
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
             return
 
-        all_students = list(
-            CustomUser.objects.filter(role='student')
-            .order_by('-coins')
-            .values_list('pk', 'first_name', 'last_name', 'coins')
+        qs = CoinTransaction.objects.filter(user=user)
+        title = "💰 <b>Coin statistika — Barcha</b>"
+
+        if profession:
+            qs = qs.filter(reason__icontains=profession.name)
+            title = f"💰 <b>Coin statistika — {profession.name}</b>"
+
+        earned = qs.filter(action='add').aggregate(t=Sum('amount'))['t'] or 0
+        spent = qs.filter(action__in=['remove', 'purchase']).aggregate(t=Sum('amount'))['t'] or 0
+
+        msg = (
+            f"{title}\n\n"
+            f"👤 {user.full_name}\n\n"
+            f"💳 Joriy balans: <b>{user.coins}</b> coin\n"
+            f"📈 Jami yig'ilgan: <b>{earned}</b> coin\n"
+            f"📉 Sarflangan: <b>{spent}</b> coin\n"
         )
 
-        user_rank = None
-        for i, (pk, fn, ln, coins) in enumerate(all_students):
-            if pk == user.pk:
-                user_rank = i + 1
-                break
+        recent = qs.order_by('-created_at')[:5]
+        if recent.exists():
+            msg += "\n📋 <b>Oxirgi tranzaksiyalar:</b>\n"
+            for t in recent:
+                sign = '+' if t.action == 'add' else '-'
+                msg += f"  {sign}{t.amount} coin — {t.reason or t.get_action_display()}\n"
 
-        if user.is_premium:
-            top_10 = all_students[:10]
-            medals = ['🥇', '🥈', '🥉']
-            lines = ["📊 <b>Top 10 reyting</b> 💎\n"]
-            for i, (pk, fn, ln, coins) in enumerate(top_10):
-                medal = medals[i] if i < 3 else f"{i+1}."
-                marker = " ⬅️" if pk == user.pk else ""
-                lines.append(f"{medal} {fn} {ln} — <b>{coins}</b> coin{marker}")
+        self._send_message_with_keyboard(bot_token, chat_id, msg)
 
-            lines.append(f"\n{'─' * 24}")
-            if user_rank:
-                lines.append(f"📍 Siz <b>{user_rank}</b>-o'rindasiz ({user.coins} coin)")
-            else:
-                lines.append(f"📍 Siz reytingda yo'qsiz")
+    def _handle_coin_stats_by_course(self, bot_token, chat_id, telegram_id, profession_name):
+        from accounts.models import Profession
+        profession = Profession.objects.filter(name=profession_name).first()
+        if profession:
+            self._handle_coin_stats(bot_token, chat_id, telegram_id, profession=profession)
         else:
-            lines = ["📊 <b>Sizning o'rningiz</b>\n"]
-            if user_rank:
-                lines.append(f"📍 Siz <b>{user_rank}</b>-o'rindasiz")
-                lines.append(f"🪙 Coinlar: <b>{user.coins}</b>")
-                lines.append(f"👥 Jami o'quvchilar: {len(all_students)}")
-            else:
-                lines.append(f"📍 Siz reytingda yo'qsiz")
-            lines.append(f"\n💎 To'liq reytingni ko'rish uchun <b>Premium</b> talab qilinadi.")
+            self._send_message(bot_token, chat_id, "❌ Kurs topilmadi!")
 
-        self._send_message(bot_token, chat_id, "\n".join(lines))
+    def _handle_ball_menu(self, bot_token, chat_id, telegram_id):
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return
+
+        from accounts.models import CourseEnrollment
+        enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
+        keyboard_buttons = [[{'text': '📊 Barcha ballar'}]]
+        for e in enrollments:
+            keyboard_buttons.append([{'text': f'📊 {e.profession.name}'}])
+        keyboard_buttons.append([{'text': '🔙 Orqaga'}])
+
+        self._send_message_with_reply_markup(
+            bot_token, chat_id,
+            "📊 <b>Ball statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
+            {'keyboard': keyboard_buttons, 'resize_keyboard': True},
+        )
+
+    def _handle_ball_stats(self, bot_token, chat_id, telegram_id, profession=None):
+        from django.db.models import Avg
+        from accounts.models import TestResult, HomeworkSubmission, Lesson
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return
+
+        title = "📊 <b>Ball statistika — Barcha</b>"
+        test_qs = TestResult.first_attempts().filter(student=user)
+        hw_qs = HomeworkSubmission.objects.filter(student=user)
+
+        if profession:
+            title = f"📊 <b>Ball statistika — {profession.name}</b>"
+            lesson_ids = Lesson.objects.filter(profession=profession).values_list('id', flat=True)
+            test_qs = test_qs.filter(test__lesson_id__in=lesson_ids)
+            hw_qs = hw_qs.filter(homework__lesson_id__in=lesson_ids)
+
+        total_tests = test_qs.count()
+        avg_score = round(test_qs.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+        passed_tests = test_qs.filter(passed=True).count()
+
+        total_hw = hw_qs.count()
+        avg_grade = round(hw_qs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0, 1)
+        accepted_hw = hw_qs.filter(status__in=['accepted', 'graded']).count()
+
+        msg = (
+            f"{title}\n\n"
+            f"👤 {user.full_name}\n\n"
+            f"📝 <b>Testlar:</b>\n"
+            f"  📋 Topshirilgan: <b>{total_tests}</b>\n"
+            f"  ✅ O'tgan: <b>{passed_tests}</b>\n"
+            f"  📈 O'rtacha ball: <b>{avg_score}%</b>\n\n"
+            f"📄 <b>Vazifalar:</b>\n"
+            f"  📋 Topshirilgan: <b>{total_hw}</b>\n"
+            f"  ✅ Qabul qilingan: <b>{accepted_hw}</b>\n"
+            f"  ⭐ O'rtacha baho: <b>{avg_grade}/10</b>\n"
+        )
+
+        recent_tests = test_qs.select_related('test__lesson').order_by('-completed_at')[:5]
+        if recent_tests.exists():
+            msg += "\n📋 <b>Oxirgi test natijalari:</b>\n"
+            for r in recent_tests:
+                emoji = '✅' if r.passed else '❌'
+                msg += f"  {emoji} {r.test.lesson.title}: <b>{r.score}%</b>\n"
+
+        self._send_message_with_keyboard(bot_token, chat_id, msg)
+
+    def _handle_ball_stats_by_course(self, bot_token, chat_id, telegram_id, profession_name):
+        from accounts.models import Profession
+        profession = Profession.objects.filter(name=profession_name).first()
+        if profession:
+            self._handle_ball_stats(bot_token, chat_id, telegram_id, profession=profession)
+        else:
+            self._send_message(bot_token, chat_id, "❌ Kurs topilmadi!")
 
     def _handle_messages(self, bot_token, chat_id, telegram_id):
         from accounts.models import Message
@@ -466,7 +562,7 @@ class Command(BaseCommand):
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {
             'keyboard': [
-                [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
+                [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
                 [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
             ],

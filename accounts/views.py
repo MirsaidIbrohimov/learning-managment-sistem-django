@@ -1321,6 +1321,19 @@ def student_public_profile(request, pk):
     # Barcha kurslar (yozilgan)
     all_enrollments = student_enrollments
     
+    # Coin statistika
+    total_earned_coins = CoinTransaction.objects.filter(user=student, action='add').aggregate(total=Sum('amount'))['total'] or 0
+    total_spent_coins = CoinTransaction.objects.filter(user=student, action__in=['remove', 'purchase']).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Ball statistika
+    test_results_qs = TestResult.first_attempts().filter(student=student)
+    total_tests_taken = test_results_qs.count()
+    avg_test_score = round(test_results_qs.aggregate(avg=Avg('score'))['avg'] or 0, 1)
+    
+    hw_submissions = HomeworkSubmission.objects.filter(student=student)
+    total_homeworks_submitted = hw_submissions.count()
+    avg_homework_grade = round(hw_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0, 1)
+    
     return render(request, 'accounts/student_public_profile.html', {
         'student': student,
         'common_courses': common_courses,
@@ -1328,6 +1341,12 @@ def student_public_profile(request, pk):
         'completed_count': completed_count,
         'deploys': deploys,
         'all_enrollments': all_enrollments,
+        'total_earned_coins': total_earned_coins,
+        'total_spent_coins': total_spent_coins,
+        'total_tests_taken': total_tests_taken,
+        'avg_test_score': avg_test_score,
+        'total_homeworks_submitted': total_homeworks_submitted,
+        'avg_homework_grade': avg_homework_grade,
     })
 
 
