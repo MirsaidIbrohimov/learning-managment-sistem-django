@@ -486,9 +486,14 @@
                                         {% if user.email %}<small class="text-muted">{{ user.email }}</small>{% endif %}
                                     </div>
                                 </div>
-                                <span class="role-badge role-{{ user.role }}">
-                                    {% if user.role == 'admin' %}Admin{% elif user.role == 'teacher' %}Ustoz{% else %}O'quvchi{% endif %}
-                                </span>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="role-badge role-{{ user.role }}">
+                                        {% if user.role == 'admin' %}Admin{% elif user.role == 'teacher' %}Ustoz{% else %}O'quvchi{% endif %}
+                                    </span>
+                                    <span class="badge d-inline-flex align-items-center gap-1" style="background:linear-gradient(135deg,#facc15,#f59e0b);color:#111;font-weight:700;font-size:.75rem;padding:4px 10px;border-radius:50px;">
+                                        <i class="bi bi-coin"></i> {{ user.coins|default:0 }} coin
+                                    </span>
+                                </div>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
@@ -693,9 +698,14 @@
                 <div style="min-width:0;">
                     <div class="fw-bold" style="font-size:1.05rem;" id="mobileProfileLabel">{{ user.get_full_name|default:user.username }}</div>
                     {% if user.email %}<div class="text-muted" style="font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;">{{ user.email }}</div>{% endif %}
-                    <span class="role-badge role-{{ user.role }} mt-1 d-inline-block" style="font-size:.7rem;">
-                        {% if user.role == 'admin' %}👑 Admin{% elif user.role == 'teacher' %}📚 Ustoz{% else %}🎓 O'quvchi{% endif %}
-                    </span>
+                    <div class="d-flex align-items-center gap-2 mt-1">
+                        <span class="role-badge role-{{ user.role }} d-inline-block" style="font-size:.7rem;">
+                            {% if user.role == 'admin' %}👑 Admin{% elif user.role == 'teacher' %}📚 Ustoz{% else %}🎓 O'quvchi{% endif %}
+                        </span>
+                        <span class="d-inline-flex align-items-center gap-1" style="background:linear-gradient(135deg,#facc15,#f59e0b);color:#111;font-weight:700;font-size:.7rem;padding:3px 8px;border-radius:50px;">
+                            <i class="bi bi-coin"></i> {{ user.coins|default:0 }}
+                        </span>
+                    </div>
                 </div>
             </div>
 
