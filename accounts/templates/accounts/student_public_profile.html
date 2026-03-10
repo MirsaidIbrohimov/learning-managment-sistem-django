@@ -2,538 +2,769 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block title %}{{ student.full_name }} | IT Creative{% endblock %}
+{% block title %}{{ student.full_name }} | O'quvchi Profili{% endblock %}
 
 {% block extra_css %}
 <style>
-.profile-wrap{--border:rgba(0,0,0,.08);--shadow:0 15px 40px rgba(0,0,0,.12)}
-[data-bs-theme="dark"] .profile-wrap{--border:rgba(255,255,255,.12);--shadow:0 30px 70px rgba(0,0,0,.7)}
-
-.p-card{
-    background:var(--bs-body-bg);
-    border:1px solid var(--border);
-    border-radius:1.5rem;
-    box-shadow:var(--shadow);
+/* ================= VARIABLES & BASE ================= */
+:root {
+    --vp-bg-light: #f8fafc;
+    --vp-bg-dark: #0f172a;
+    --vp-card-light: #ffffff;
+    --vp-card-dark: rgba(30, 41, 59, 0.7);
+    --vp-border-light: rgba(0,0,0,0.06);
+    --vp-border-dark: rgba(255,255,255,0.08);
+    --vp-text-main-light: #1e293b;
+    --vp-text-main-dark: #f8fafc;
+    --vp-text-sub-light: #64748b;
+    --vp-text-sub-dark: #94a3b8;
+    --vp-primary: #6366f1;
+    --vp-accent: #0ea5e9;
+    --vp-shadow-light: 0 20px 40px rgba(0,0,0,0.05);
+    --vp-shadow-dark: 0 20px 40px rgba(0,0,0,0.3);
 }
 
-.avatar-xl{
-    width:140px;height:140px;border-radius:50%;object-fit:cover;
-    border:5px solid rgba(99,102,241,.4)
-}
-.avatar-fallback-xl{
-    width:140px;height:140px;border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
-    display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:3rem;font-weight:700
+.prof-container {
+    padding: 3rem 0;
+    overflow: hidden;
 }
 
-.coin-box{
-    background:linear-gradient(135deg,#facc15,#f59e0b);
-    border-radius:1rem;padding:.6rem 1.2rem;font-weight:700;color:#111
+/* Theme Adaptive Styling */
+.vp-card {
+    background: var(--vp-card-light);
+    border: 1px solid var(--vp-border-light);
+    box-shadow: var(--vp-shadow-light);
+    border-radius: 24px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    backdrop-filter: blur(12px);
+    opacity: 0;
+    transform: translateY(30px);
+}
+[data-bs-theme="dark"] .vp-card {
+    background: var(--vp-card-dark);
+    border: 1px solid var(--vp-border-dark);
+    box-shadow: var(--vp-shadow-dark);
 }
 
-.mini-item{
-    background:var(--bs-tertiary-bg);
-    border-radius:1rem;padding:.8rem;transition:.2s
-}
-.mini-item:hover{transform:translateY(-4px)}
-
-.stat-box {
-    background: var(--bs-tertiary-bg);
-    border-radius: 16px;
-    padding: 16px;
-    text-align: center;
-}
-.stat-number {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--bs-body-color);
-}
-.stat-label {
-    font-size: 0.85rem;
-    color: var(--bs-secondary-color);
+.vp-card.anim-loaded {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.online-indicator {
-    width: 16px;
-    height: 16px;
+.vp-card:hover {
+    box-shadow: 0 30px 60px rgba(99,102,241,0.15);
+    transform: translateY(-5px);
+}
+[data-bs-theme="dark"] .vp-card:hover {
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+
+/* ================= TYPOGRAPHY & HEADERS ================= */
+.vp-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.vp-title i {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99,102,241,0.1);
+    color: var(--vp-primary);
+    border-radius: 10px;
+    font-size: 1.1rem;
+}
+
+/* ================= AVATAR & STATUS ================= */
+.vp-avatar-wrap {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+}
+.vp-avatar {
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
+    object-fit: cover;
+    border: 4px solid var(--vp-card-light);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    transition: transform 0.4s ease;
+    cursor: pointer;
 }
-.online-indicator.online { background: #22c55e; }
-.online-indicator.offline { background: #9ca3af; }
-
-/* ===== PREMIUM PROFILE ===== */
-@keyframes pm-glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,.2),0 0 60px rgba(245,158,11,.05)}50%{box-shadow:0 0 35px rgba(245,158,11,.4),0 0 80px rgba(245,158,11,.1)}}
-@keyframes pm-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes pm-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes pm-sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
-@keyframes pm-shine{0%{left:-100%}100%{left:200%}}
-@keyframes pm-gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-@keyframes pm-pulse-ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.3);opacity:0}}
-@keyframes pm-badge-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.1)}}
-
-.p-card.premium-card{
-    border:2px solid rgba(245,158,11,.3);
-    position:relative;overflow:hidden;
-    animation:pm-glow 3s ease-in-out infinite;
+[data-bs-theme="dark"] .vp-avatar {
+    border-color: #1e293b;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
-.p-card.premium-card::before{
-    content:'';position:absolute;top:0;left:0;right:0;height:4px;
-    background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b,#d97706);
-    background-size:200% 100%;animation:pm-gradient 3s linear infinite;
+.vp-avatar:hover {
+    transform: scale(1.05);
 }
-.p-card.premium-card::after{
-    content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
-    background:linear-gradient(90deg,transparent,rgba(245,158,11,.06),transparent);
-    animation:pm-shine 4s ease-in-out infinite;pointer-events:none;
+.vp-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--vp-primary), var(--vp-accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3.5rem;
+    font-weight: 800;
+    box-shadow: 0 10px 25px rgba(99,102,241,0.3);
 }
 
-.premium-avatar-wrap{
-    position:relative;display:inline-block;
-    animation:pm-float 4s ease-in-out infinite;
+.vp-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
 }
-.premium-avatar-wrap .avatar-xl,
-.premium-avatar-wrap .avatar-fallback-xl{
-    border:4px solid transparent;
-    background-clip:padding-box;
-    box-shadow:0 0 0 4px rgba(245,158,11,.5),0 8px 25px rgba(245,158,11,.3);
+.vp-status-online {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+    border: 1px solid rgba(34, 197, 94, 0.2);
 }
-.premium-avatar-ring{
-    position:absolute;inset:-8px;border-radius:50%;
-    border:2px dashed rgba(245,158,11,.4);
-    animation:pm-rotate 12s linear infinite;pointer-events:none;
+.vp-status-offline {
+    background: rgba(148, 163, 184, 0.1);
+    color: #64748b;
+    border: 1px solid rgba(148, 163, 184, 0.2);
 }
-.premium-avatar-ring-2{
-    position:absolute;inset:-14px;border-radius:50%;
-    border:1px dotted rgba(245,158,11,.2);
-    animation:pm-rotate 20s linear infinite reverse;pointer-events:none;
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
 }
-
-.premium-sparkle{
-    position:absolute;color:#f59e0b;font-size:.8rem;pointer-events:none;
+.vp-status-online .status-dot {
+    animation: statusPulse 2s infinite;
 }
-.premium-sparkle:nth-child(1){top:-5px;right:10px;animation:pm-sparkle 2s ease-in-out infinite}
-.premium-sparkle:nth-child(2){bottom:5px;left:5px;animation:pm-sparkle 2s ease-in-out 0.5s infinite}
-.premium-sparkle:nth-child(3){top:20px;left:-5px;animation:pm-sparkle 2s ease-in-out 1s infinite}
-.premium-sparkle:nth-child(4){bottom:20px;right:0;animation:pm-sparkle 2s ease-in-out 1.5s infinite}
-
-.premium-badge{
-    display:inline-flex;align-items:center;gap:.4rem;
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-    color:#fff;font-weight:700;font-size:.8rem;
-    padding:.4rem 1rem;border-radius:2rem;
-    box-shadow:0 4px 15px rgba(245,158,11,.4);
-    animation:pm-badge-bounce 3s ease-in-out infinite;
-    position:relative;overflow:hidden;
-}
-.premium-badge::after{
-    content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
-    animation:pm-shine 2.5s ease-in-out infinite;
+@keyframes statusPulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
 }
 
-.premium-name{
-    background:linear-gradient(135deg,#f59e0b,#d97706,#f59e0b);
-    background-size:200% auto;
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-    background-clip:text;
-    animation:pm-gradient 3s linear infinite;
-    font-weight:800;
+/* ================= PREMIUM EFFECTS ================= */
+.vp-premium-card {
+    position: relative;
+    border: 2px solid rgba(245, 158, 11, 0.3) !important;
+    animation: premiumGlow 3s infinite alternate;
+}
+@keyframes premiumGlow {
+    from { box-shadow: 0 10px 30px rgba(245, 158, 11, 0.1); }
+    to { box-shadow: 0 15px 40px rgba(245, 158, 11, 0.25); }
+}
+.vp-premium-card::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, #f59e0b, #facc15, #f59e0b);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.vp-premium-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    animation: floatBadge 3s infinite ease-in-out;
+}
+@keyframes floatBadge {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+.vp-premium-avatar-ring {
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px dashed rgba(245, 158, 11, 0.5);
+    animation: spinRing 15s linear infinite;
+}
+.vp-premium-avatar-ring-2 {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 1px dotted rgba(245, 158, 11, 0.3);
+    animation: spinRing 25s linear infinite reverse;
+}
+@keyframes spinRing {
+    to { transform: rotate(360deg); }
+}
+.vp-premium-name {
+    background: linear-gradient(135deg, #facc15, #f59e0b, #d97706);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
 }
 
-.coin-box.premium-coin{
-    background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);
-    background-size:200% auto;animation:pm-gradient 4s ease infinite;
-    box-shadow:0 4px 20px rgba(245,158,11,.4);
-    position:relative;overflow:hidden;color:#fff;
+/* ================= STATS BOXES ================= */
+.vp-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
 }
-.coin-box.premium-coin::after{
-    content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
-    animation:pm-shine 3s ease-in-out infinite;
+.vp-stat-box {
+    background: rgba(99,102,241,0.04);
+    border: 1px solid rgba(99,102,241,0.1);
+    border-radius: 16px;
+    padding: 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+[data-bs-theme="dark"] .vp-stat-box {
+    background: rgba(0,0,0,0.2);
+}
+.vp-stat-box:hover {
+    transform: translateY(-3px);
+    background: rgba(99,102,241,0.08);
+    border-color: rgba(99,102,241,0.2);
+}
+.vp-stat-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--vp-text-main-light);
+    margin-bottom: 0.2rem;
+    line-height: 1;
+}
+[data-bs-theme="dark"] .vp-stat-num { color: var(--vp-text-main-dark); }
+.vp-stat-label {
+    font-size: 0.8rem;
+    color: var(--vp-text-sub-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+[data-bs-theme="dark"] .vp-stat-label { color: var(--vp-text-sub-dark); }
+
+/* Colors for specific stats */
+.st-coin .vp-stat-num { color: #f59e0b; }
+.st-green .vp-stat-num { color: #22c55e; }
+.st-purple .vp-stat-num { color: #8b5cf6; }
+.st-red .vp-stat-num { color: #ef4444; }
+
+/* ================= INFO LIST ================= */
+.vp-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.vp-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 16px;
+    transition: background 0.3s;
+}
+[data-bs-theme="dark"] .vp-info-item {
+    background: rgba(255,255,255,0.02);
+}
+.vp-info-item:hover {
+    background: rgba(99,102,241,0.05);
+}
+.vp-info-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: var(--vp-primary);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+[data-bs-theme="dark"] .vp-info-icon {
+    background: #1e293b;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.vp-info-content h6 {
+    font-size: 0.8rem;
+    color: var(--vp-text-sub-light);
+    margin: 0 0 0.2rem 0;
+    font-weight: 600;
+}
+[data-bs-theme="dark"] .vp-info-content h6 { color: var(--vp-text-sub-dark); }
+.vp-info-content p {
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0;
+    color: var(--vp-text-main-light);
+}
+[data-bs-theme="dark"] .vp-info-content p { color: var(--vp-text-main-dark); }
+
+/* ================= MINI ITEMS (Courses, Certs, Deploys) ================= */
+.vp-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+.vp-mini-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.02);
+    border-radius: 16px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+[data-bs-theme="dark"] .vp-mini-item {
+    background: rgba(255,255,255,0.02);
+}
+.vp-mini-item:hover {
+    transform: translateY(-4px);
+    background: rgba(99,102,241,0.05);
+    border-color: rgba(99,102,241,0.2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+.vp-mini-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    object-fit: cover;
+}
+.vp-mini-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--vp-primary), var(--vp-accent));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.vp-cert-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.vp-code-icon { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+.vp-mini-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: var(--vp-text-main-light);
+    line-height: 1.3;
+}
+[data-bs-theme="dark"] .vp-mini-info h4 { color: var(--vp-text-main-dark); }
+.vp-mini-info p {
+    font-size: 0.8rem;
+    color: var(--vp-text-sub-light);
+    margin: 0;
+}
+[data-bs-theme="dark"] .vp-mini-info p { color: var(--vp-text-sub-dark); }
+
+/* ================= LIGHTBOX ================= */
+.photo-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+    cursor: zoom-out;
+}
+.photo-lightbox.active {
+    opacity: 1;
+    visibility: visible;
+}
+.photo-lightbox-img {
+    max-width: 90vw;
+    max-height: 85vh;
+    border-radius: 24px;
+    object-fit: contain;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    transform: scale(0.8);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.photo-lightbox.active .photo-lightbox-img {
+    transform: scale(1);
+}
+.photo-lightbox-close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+.photo-lightbox-close:hover {
+    background: rgba(255,255,255,0.2);
+    transform: rotate(90deg);
+}
+.photo-lightbox-name {
+    position: absolute;
+    bottom: 3rem;
+    padding: 0.8rem 2rem;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 50px;
+    color: white;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
 }
 
-.pm-pulse-ring{
-    position:absolute;inset:-6px;border-radius:50%;
-    border:2px solid rgba(245,158,11,.4);
-    animation:pm-pulse-ring 2s ease-out infinite;pointer-events:none;
+/* ================= BIO BOX ================= */
+.vp-bio-box {
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--vp-border-light);
+}
+[data-bs-theme="dark"] .vp-bio-box {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--vp-border-dark);
+}
+.vp-bio-text { color: var(--vp-text-main-light); }
+[data-bs-theme="dark"] .vp-bio-text { color: var(--vp-text-main-dark); }
+
+/* ================= BACK BUTTON ================= */
+.vp-btn-back {
+    background: var(--vp-card-light);
+    color: var(--vp-text-main-light);
+    border: 1px solid var(--vp-border-light);
+    transition: all 0.3s ease;
+}
+[data-bs-theme="dark"] .vp-btn-back {
+    background: var(--vp-card-dark);
+    color: var(--vp-text-main-dark);
+    border: 1px solid var(--vp-border-dark);
+}
+.vp-btn-back:hover {
+    background: rgba(99,102,241,0.08);
+    color: var(--vp-primary);
+    border-color: rgba(99,102,241,0.2);
+    transform: translateY(-2px);
 }
 
-.premium-particles{
-    position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:1.5rem;
-}
-.premium-particles span{
-    position:absolute;width:4px;height:4px;border-radius:50%;
-    background:rgba(245,158,11,.3);
-}
-.premium-particles span:nth-child(1){top:15%;left:10%;animation:pm-float 3s ease-in-out infinite}
-.premium-particles span:nth-child(2){top:60%;right:15%;animation:pm-float 4s ease-in-out 0.5s infinite}
-.premium-particles span:nth-child(3){bottom:20%;left:30%;animation:pm-float 3.5s ease-in-out 1s infinite}
-.premium-particles span:nth-child(4){top:30%;right:25%;animation:pm-float 4.5s ease-in-out 1.5s infinite}
-.premium-particles span:nth-child(5){bottom:40%;left:60%;animation:pm-float 3s ease-in-out 0.8s infinite}
-.premium-particles span:nth-child(6){top:70%;left:80%;animation:pm-float 5s ease-in-out 0.3s infinite}
-
-.premium-online .online-indicator.online{
-    box-shadow:0 0 0 3px rgba(245,158,11,.3),0 0 10px rgba(245,158,11,.4);
-    background:linear-gradient(135deg,#f59e0b,#22c55e);
-}
-
-/* ===== Photo Lightbox ===== */
-.avatar-xl[style*="cursor"]:hover{transform:scale(1.05);transition:transform .3s}
-.photo-lightbox{
-    position:fixed;inset:0;z-index:99999;
-    background:rgba(0,0,0,.85);backdrop-filter:blur(12px);
-    display:flex;align-items:center;justify-content:center;
-    opacity:0;visibility:hidden;transition:all .3s ease;cursor:zoom-out;
-}
-.photo-lightbox.active{opacity:1;visibility:visible}
-.photo-lightbox-img{
-    max-width:90vw;max-height:85vh;border-radius:20px;object-fit:contain;
-    box-shadow:0 20px 60px rgba(0,0,0,.5);
-    transform:scale(.85);transition:transform .35s cubic-bezier(.4,0,.2,1);
-}
-.photo-lightbox.active .photo-lightbox-img{transform:scale(1)}
-.photo-lightbox-close{
-    position:absolute;top:1.5rem;right:1.5rem;
-    width:44px;height:44px;border-radius:50%;
-    background:rgba(255,255,255,.12);border:none;
-    color:#fff;font-size:1.3rem;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
-    transition:all .2s;backdrop-filter:blur(8px);
-}
-.photo-lightbox-close:hover{background:rgba(255,255,255,.25);transform:scale(1.1)}
-.photo-lightbox-name{
-    position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);
-    background:rgba(255,255,255,.1);backdrop-filter:blur(12px);
-    padding:.6rem 1.5rem;border-radius:2rem;
-    color:#fff;font-weight:700;font-size:.95rem;
-    display:flex;align-items:center;gap:.5rem;white-space:nowrap;
+@media (max-width: 768px) {
+    .vp-stat-grid { grid-template-columns: 1fr 1fr; }
+    .vp-mini-grid { grid-template-columns: 1fr; }
+    .vp-avatar-wrap { width: 120px; height: 120px; }
+    .vp-card { padding: 1.5rem !important; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-5 profile-wrap">
-
-<div class="row g-4">
-
-<!-- LEFT PROFILE CARD -->
-<div class="col-lg-4">
-<div class="p-card p-4 text-center {% if student.is_premium %}premium-card{% endif %}">
-
-    {% if student.is_premium %}
-    <div class="premium-particles">
-        <span></span><span></span><span></span><span></span><span></span><span></span>
-    </div>
-    {% endif %}
-
-    {% if student.is_premium %}
-    <div class="premium-avatar-wrap mb-3">
-        <div class="premium-avatar-ring"></div>
-        <div class="premium-avatar-ring-2"></div>
-        <div class="pm-pulse-ring"></div>
-        <span class="premium-sparkle">✦</span>
-        <span class="premium-sparkle">✦</span>
-        <span class="premium-sparkle">✦</span>
-        <span class="premium-sparkle">✦</span>
-        {% if student.photo %}
-            <img src="{{ student.photo.url }}" class="avatar-xl" style="cursor:pointer" onclick="openPhotoLightbox('{{ student.photo.url }}')">
-        {% else %}
-            <div class="avatar-fallback-xl mx-auto">{{ student.get_initials }}</div>
-        {% endif %}
-    </div>
-    {% else %}
-    {% if student.photo %}
-        <img src="{{ student.photo.url }}" class="avatar-xl mb-3" style="cursor:pointer" onclick="openPhotoLightbox('{{ student.photo.url }}')">
-    {% else %}
-        <div class="avatar-fallback-xl mb-3 mx-auto">{{ student.get_initials }}</div>
-    {% endif %}
-    {% endif %}
-
-    <h4 class="fw-bold mb-1 {% if student.is_premium %}premium-name{% endif %}">{{ student|premium_name }}</h4>
-    {% if student.is_premium %}
-    <div class="premium-badge mb-2">
-        <i class="bi bi-patch-check-fill"></i> Premium
-    </div>
-    {% endif %}
-    <p class="text-muted mb-2">@{{ student.username }}</p>
-    
-    <div class="mb-3 {% if student.is_premium %}premium-online{% endif %}">
-        <span class="online-indicator {% if student.is_online %}online{% else %}offline{% endif %}"></span>
-        <span>{% if student.is_online %}Online{% else %}Offline{% endif %}</span>
+<div class="container prof-container">
+    <!-- Back Button -->
+    <div class="mb-4">
+        <button onclick="history.back()" class="btn vp-btn-back rounded-pill px-4 shadow-sm">
+            <i class="bi bi-arrow-left me-2"></i> Ortga qaytish
+        </button>
     </div>
 
-    {% if student.is_premium %}
-    <span class="badge rounded-pill px-3 py-2 mb-3" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">✅ Premium O'quvchi</span>
-    {% else %}
-    <span class="badge rounded-pill bg-primary px-3 py-2 mb-3">O'quvchi</span>
-    {% endif %}
+    <div class="row g-4">
+        <!-- ================= LEFT COLUMN (Profile Avatar & Main Status) ================= -->
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <!-- Avatar Card -->
+            <div class="vp-card p-4 text-center {% if student.is_premium %}vp-premium-card{% endif %}" style="animation-delay: 0.1s;">
+                <div class="vp-avatar-wrap">
+                    {% if student.is_premium %}
+                        <div class="vp-premium-avatar-ring"></div>
+                        <div class="vp-premium-avatar-ring-2"></div>
+                    {% endif %}
+                    
+                    {% if student.photo %}
+                        <img src="{{ student.photo.url }}" class="vp-avatar" onclick="openPhotoLightbox('{{ student.photo.url }}')" alt="{{ student.full_name }}">
+                    {% else %}
+                        <div class="vp-avatar-fallback">{{ student.get_initials }}</div>
+                    {% endif %}
+                </div>
 
-    <div class="coin-box mb-3 {% if student.is_premium %}premium-coin{% endif %}">
-        <i class="bi bi-coin me-1"></i>{{ student.coins }} coin
-    </div>
+                <h3 class="fw-bold mb-1 {% if student.is_premium %}vp-premium-name{% endif %}">{{ student|premium_name }}</h3>
+                <p class="text-muted mb-3" style="font-size:0.95rem;">@{{ student.username }}</p>
 
-    <!-- Stats -->
-    <div class="row g-2 mt-3">
-        <div class="col-6">
-            <div class="stat-box">
-                <div class="stat-number">{{ student.enrollments.count }}</div>
-                <div class="stat-label">Kurs</div>
-            </div>
-        </div>
-        <div class="col-6">
-            <div class="stat-box">
-                <div class="stat-number">{{ completed_count }}</div>
-                <div class="stat-label">Tugallangan</div>
-            </div>
-        </div>
-    </div>
+                {% if student.is_premium %}
+                    <div class="vp-premium-badge mb-3">
+                        <i class="bi bi-patch-check-fill"></i> Premium O'quvchi
+                    </div><br>
+                {% else %}
+                    <div class="badge bg-primary rounded-pill px-3 py-2 mb-3">
+                        O'quvchi
+                    </div><br>
+                {% endif %}
 
-</div>
-</div>
+                <div class="vp-status-badge {% if student.is_online %}vp-status-online{% else %}vp-status-offline{% endif %}">
+                    <span class="status-dot"></span>
+                    {% if student.is_online %}Hozir Tarmoqda{% else %}Tarmoqda emas{% endif %}
+                </div>
 
-<!-- Coin & Ball statistika -->
-<div class="p-card p-4 mt-4">
-    <h5 class="fw-bold mb-3"><i class="bi bi-coin me-2 text-warning"></i>Coin statistika</h5>
-    <div class="row g-2">
-        <div class="col-4">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#f59e0b;">{{ student.coins }}</div>
-                <div class="stat-label">Balans</div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#22c55e;">{{ total_earned_coins }}</div>
-                <div class="stat-label">Yig'ilgan</div>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#ef4444;">{{ total_spent_coins }}</div>
-                <div class="stat-label">Sarflangan</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="p-card p-4 mt-4">
-    <h5 class="fw-bold mb-3"><i class="bi bi-mortarboard-fill me-2 text-primary"></i>Ball statistika</h5>
-    <div class="row g-2">
-        <div class="col-6 col-md-3">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#6366f1;">{{ total_tests_taken }}</div>
-                <div class="stat-label">Testlar</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#22c55e;">{{ avg_test_score }}%</div>
-                <div class="stat-label">O'rtacha ball</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#8b5cf6;">{{ total_homeworks_submitted }}</div>
-                <div class="stat-label">Vazifalar</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-box">
-                <div class="stat-number" style="color:#f59e0b;">{{ avg_homework_grade }}/10</div>
-                <div class="stat-label">O'rtacha baho</div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- RIGHT INFO -->
-<div class="col-lg-8 d-flex flex-column gap-4">
-
-<!-- PERSONAL INFO -->
-<div class="p-card p-4">
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-person-lines-fill me-2"></i>Shaxsiy ma'lumotlar
-    </h5>
-    
-    <div class="row g-3">
-        <div class="col-md-6">
-            <small class="text-muted">Telefon raqami</small>
-            <div><i class="bi bi-telephone me-2"></i>{{ student.phone }}</div>
-        </div>
-        
-        <div class="col-md-6">
-            <small class="text-muted">Email</small>
-            <div><i class="bi bi-envelope me-2"></i>{% if student.email %}{{ student.email }}{% else %}-{% endif %}</div>
-        </div>
-        
-        <div class="col-md-6">
-            <small class="text-muted">Tug'ilgan sana</small>
-            <div><i class="bi bi-calendar-event me-2"></i>{% if student.birth_date %}{{ student.birth_date|date:"d.m.Y" }}{% else %}-{% endif %}</div>
-        </div>
-        
-        <div class="col-md-6">
-            <small class="text-muted">Ro'yxatdan o'tgan</small>
-            <div><i class="bi bi-calendar-check me-2"></i>{{ student.date_joined|date:"d.m.Y" }}</div>
-        </div>
-        
-        <div class="col-md-6">
-            <small class="text-muted">Manzil</small>
-            <div><i class="bi bi-geo-alt me-2"></i>{% if student.address %}{{ student.address }}{% else %}-{% endif %}</div>
-        </div>
-        
-        <div class="col-md-6">
-            <small class="text-muted">Jami online vaqt</small>
-            <div><i class="bi bi-clock me-2"></i>{{ student.total_online_time }} daqiqa</div>
-        </div>
-        
-        {% if student.bio %}
-        <div class="col-12">
-            <small class="text-muted">O'zi haqida</small>
-            <p class="mb-0 mt-1">{{ student.bio }}</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- ENROLLED COURSES -->
-{% if all_enrollments %}
-<div class="p-card p-4">
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-book me-2"></i>O'qiyotgan kurslari
-        <span class="badge bg-primary ms-2">{{ all_enrollments|length }}</span>
-    </h5>
-    
-    <div class="row g-3">
-        {% for enrollment in all_enrollments %}
-        <div class="col-md-6">
-            <a href="{% url 'profession_detail' enrollment.profession.pk %}" class="text-decoration-none text-body">
-                <div class="mini-item d-flex align-items-center gap-3">
-                    <img src="{{ enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">
-                    <div>
-                        <b>{{ enrollment.profession.name }}</b><br>
-                        <small class="text-muted">{{ enrollment.enrolled_at|date:"d.m.Y" }} dan beri</small>
+                <!-- Main Simple Stats -->
+                <div class="vp-stat-grid mt-3">
+                    <div class="vp-stat-box">
+                        <div class="vp-stat-num">{{ student.enrollments.count }}</div>
+                        <div class="vp-stat-label">Kurslar</div>
+                    </div>
+                    <div class="vp-stat-box">
+                        <div class="vp-stat-num">{{ completed_count }}</div>
+                        <div class="vp-stat-label">Tugallangan</div>
                     </div>
                 </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
+            </div>
 
-<!-- COMMON COURSES -->
-{% if common_courses %}
-<div class="p-card p-4">
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-book me-2"></i>Umumiy kurslarimiz
-        <span class="badge bg-primary ms-2">{{ common_courses|length }}</span>
-    </h5>
-    
-    <div class="row g-3">
-        {% for profession in common_courses %}
-        <div class="col-md-6">
-            <a href="{% url 'profession_detail' profession.pk %}" class="text-decoration-none text-body">
-                <div class="mini-item d-flex align-items-center gap-3">
-                    <img src="{{ profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">
-                    <div>
-                        <b>{{ profession.name }}</b>
+            <!-- Coin Statistics -->
+            <div class="vp-card p-4" style="animation-delay: 0.2s;">
+                <h4 class="vp-title"><i class="bi bi-coin" style="color:#f59e0b; background:rgba(245,158,11,0.1)"></i> Coin Statistika</h4>
+                <div class="vp-stat-grid mt-3">
+                    <div class="vp-stat-box st-coin" style="grid-column: span 2;">
+                        <div class="vp-stat-num">{{ student.coins }}</div>
+                        <div class="vp-stat-label">Joriy Balans</div>
+                    </div>
+                    <div class="vp-stat-box st-green">
+                        <div class="vp-stat-num">{{ total_earned_coins }}</div>
+                        <div class="vp-stat-label">Yig'ilgan</div>
+                    </div>
+                    <div class="vp-stat-box st-red">
+                        <div class="vp-stat-num">{{ total_spent_coins }}</div>
+                        <div class="vp-stat-label">Sarflangan</div>
                     </div>
                 </div>
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
+            </div>
 
-<!-- CERTIFICATES -->
-{% if certificates %}
-<div class="p-card p-4">
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-award me-2"></i>Sertifikatlari
-        <span class="badge bg-success ms-2">{{ certificates|length }}</span>
-    </h5>
-    
-    <div class="row g-3">
-        {% for cert in certificates %}
-        <div class="col-md-6">
-            <div class="mini-item">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="bg-success text-white rounded-3 p-2">
-                        <i class="bi bi-award fs-5"></i>
+            <!-- Score/Task Statistics -->
+            <div class="vp-card p-4" style="animation-delay: 0.3s;">
+                <h4 class="vp-title"><i class="bi bi-award-fill" style="color:#8b5cf6; background:rgba(139,92,246,0.1)"></i> Reyting & Ballar</h4>
+                <div class="vp-stat-grid mt-3">
+                    <div class="vp-stat-box st-purple">
+                        <div class="vp-stat-num">{{ total_tests_taken }}</div>
+                        <div class="vp-stat-label">Testlar</div>
                     </div>
-                    <div>
-                        <b>{{ cert.profession.name }}</b><br>
-                        <small class="text-muted">{{ cert.issued_at|date:"d.m.Y" }}</small>
+                    <div class="vp-stat-box st-green">
+                        <div class="vp-stat-num">{{ avg_test_score }}%</div>
+                        <div class="vp-stat-label">O'rt. Natija</div>
+                    </div>
+                    <div class="vp-stat-box">
+                        <div class="vp-stat-num">{{ total_homeworks_submitted }}</div>
+                        <div class="vp-stat-label">Vazifalar</div>
+                    </div>
+                    <div class="vp-stat-box st-coin">
+                        <div class="vp-stat-num">{{ avg_homework_grade }}</div>
+                        <div class="vp-stat-label">Baho (/10)</div>
                     </div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
 
-<!-- DEPLOYED PAGES -->
-{% if deploys %}
-<div class="p-card p-4">
-    <h5 class="fw-bold mb-3">
-        <i class="bi bi-code-slash me-2"></i>Deploy qilgan sahifalari
-        <span class="badge bg-primary ms-2">{{ deploys|length }}</span>
-    </h5>
-    
-    <div class="row g-3">
-        {% for deploy in deploys %}
-        <div class="col-md-6">
-            <div class="mini-item">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <div class="bg-primary text-white rounded-3 p-2">
-                        <i class="bi bi-file-code fs-5"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <b>{{ deploy.title }}</b><br>
-                        <small class="text-muted">{{ deploy.views_count }} ko'rish</small>
+        <!-- ================= RIGHT COLUMN (Info & Activities) ================= -->
+        <div class="col-lg-8 d-flex flex-column gap-4">
+            
+            <!-- Personal Information -->
+            <div class="vp-card p-4" style="animation-delay: 0.4s;">
+                <h4 class="vp-title"><i class="bi bi-person-vcard"></i> Shaxsiy Ma'lumotlar</h4>
+                
+                <div class="vp-info-list mt-3">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="vp-info-item">
+                                <div class="vp-info-icon"><i class="bi bi-telephone-fill"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Telefon Raqam</h6>
+                                    <p>{{ student.phone }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="vp-info-item">
+                                <div class="vp-info-icon"><i class="bi bi-envelope-fill"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Elektron Pochta</h6>
+                                    <p>{% if student.email %}{{ student.email }}{% else %}Kiritilmagan{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="vp-info-item">
+                                <div class="vp-info-icon"><i class="bi bi-calendar-heart-fill"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Tug'ilgan Sana</h6>
+                                    <p>{% if student.birth_date %}{{ student.birth_date|date:"d M, Y" }}{% else %}Kiritilmagan{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="vp-info-item">
+                                <div class="vp-info-icon"><i class="bi bi-door-open-fill"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Safimizga qo'shilgan vaqt</h6>
+                                    <p>{{ student.date_joined|date:"d M, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="vp-info-item">
+                                <div class="vp-info-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Manzil</h6>
+                                    <p>{% if student.address %}{{ student.address }}{% else %}Kiritilmagan{% endif %}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="vp-info-item" style="background: rgba(14,165,233,0.05); border: 1px dashed rgba(14,165,233,0.3);">
+                                <div class="vp-info-icon" style="color:var(--vp-accent)"><i class="bi bi-clock-history"></i></div>
+                                <div class="vp-info-content">
+                                    <h6>Platformada o'tkazgan jami vaqti</h6>
+                                    <p class="fw-bold" style="color:var(--vp-accent)">{{ student.total_online_time }} daqiqa</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if student.bio %}
+                        <div class="col-md-12 mt-2">
+                            <div class="p-3 vp-bio-box rounded-4">
+                                <h6 class="text-muted fw-bold mb-2" style="font-size:0.85rem;"><i class="bi bi-quote me-1"></i>O'zi haqida:</h6>
+                                <p class="mb-0 vp-bio-text">{{ student.bio }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill w-100">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>Ko'rish
-                </a>
             </div>
+
+            <!-- Enrolled Courses -->
+            {% if all_enrollments %}
+            <div class="vp-card p-4" style="animation-delay: 0.5s;">
+                <h4 class="vp-title">
+                    <i class="bi bi-journal-check" style="color:#22c55e; background:rgba(34,197,94,0.1)"></i> 
+                    O'qiyotgan Kurslari
+                    <span class="badge bg-success ms-auto rounded-pill">{{ all_enrollments|length }} ta</span>
+                </h4>
+                <div class="vp-mini-grid mt-3">
+                    {% for enrollment in all_enrollments %}
+                    <a href="{% url 'profession_detail' enrollment.profession.pk %}" class="vp-mini-item">
+                        <img src="{{ enrollment.profession.photo.url }}" class="vp-mini-img" alt="{{ enrollment.profession.name }}">
+                        <div class="vp-mini-info">
+                            <h4>{{ enrollment.profession.name }}</h4>
+                            <p><i class="bi bi-calendar-check me-1"></i> {{ enrollment.enrolled_at|date:"d M, Y" }} dan</p>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Common Courses -->
+            {% if common_courses %}
+            <div class="vp-card p-4" style="animation-delay: 0.6s;">
+                <h4 class="vp-title">
+                    <i class="bi bi-collection-play"></i>
+                    Umumiy Kurslar
+                </h4>
+                <div class="vp-mini-grid mt-3">
+                    {% for profession in common_courses %}
+                    <a href="{% url 'profession_detail' profession.pk %}" class="vp-mini-item">
+                        <img src="{{ profession.photo.url }}" class="vp-mini-img" alt="{{ profession.name }}">
+                        <div class="vp-mini-info">
+                            <h4>{{ profession.name }}</h4>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Certificates -->
+            {% if certificates %}
+            <div class="vp-card p-4" style="animation-delay: 0.7s;">
+                <h4 class="vp-title">
+                    <i class="bi bi-patch-check-fill" style="color:#10b981; background:rgba(16,185,129,0.1)"></i>
+                    Sertifikatlar
+                    <span class="badge bg-warning text-dark ms-auto rounded-pill">{{ certificates|length }} ta</span>
+                </h4>
+                <div class="vp-mini-grid mt-3">
+                    {% for cert in certificates %}
+                    <div class="vp-mini-item">
+                        <div class="vp-mini-icon vp-cert-icon"><i class="bi bi-award"></i></div>
+                        <div class="vp-mini-info">
+                            <h4>{{ cert.profession.name }}</h4>
+                            <p><i class="bi bi-calendar-event me-1"></i> {{ cert.issued_at|date:"d.m.Y" }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Deploys -->
+            {% if deploys %}
+            <div class="vp-card p-4" style="animation-delay: 0.8s;">
+                <h4 class="vp-title">
+                    <i class="bi bi-browser-edge" style="color:#8b5cf6; background:rgba(139,92,246,0.1)"></i>
+                    Deploy Qilgan Loyihalari
+                </h4>
+                <div class="vp-mini-grid mt-3">
+                    {% for deploy in deploys %}
+                    <div class="vp-mini-item flex-column align-items-stretch text-center p-3">
+                        <div class="d-flex align-items-center gap-3 mb-3 text-start">
+                            <div class="vp-mini-icon vp-code-icon"><i class="bi bi-file-code"></i></div>
+                            <div class="vp-mini-info flex-grow-1">
+                                <h4>{{ deploy.title }}</h4>
+                                <p><i class="bi bi-eye me-1"></i> {{ deploy.views_count }} marta ko'rilgan</p>
+                            </div>
+                        </div>
+                        <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-primary rounded-pill w-100 fw-bold" style="background:var(--vp-primary); border:none;">
+                            Loyihani ko'rish <i class="bi bi-box-arrow-up-right ms-2"></i>
+                        </a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
         </div>
-        {% endfor %}
     </div>
 </div>
-{% endif %}
 
-<!-- BACK BUTTON -->
-<div class="text-center">
-    <button onclick="history.back()" class="btn btn-outline-secondary rounded-pill px-4">
-        <i class="bi bi-arrow-left me-1"></i>Orqaga
-    </button>
-</div>
-
-</div>
-</div>
-</div>
 <!-- Photo Lightbox -->
 {% if student.photo %}
 <div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox(event)">
     <button class="photo-lightbox-close" onclick="closePhotoLightbox(event)">
         <i class="bi bi-x-lg"></i>
     </button>
-    <img src="{{ student.photo.url }}" class="photo-lightbox-img" id="lightboxImg" alt="{{ student.full_name }}">
+    <img src="" class="photo-lightbox-img" id="lightboxImg" alt="{{ student.full_name }}">
     <div class="photo-lightbox-name">
-        <i class="bi bi-person-circle"></i>
-        {{ student.full_name }}
+        <i class="bi bi-person-circle me-2"></i>{{ student.full_name }}
     </div>
 </div>
 
 <script>
 function openPhotoLightbox(url) {
-    var lb = document.getElementById('photoLightbox');
+    const lb = document.getElementById('photoLightbox');
     if (!lb) return;
     document.getElementById('lightboxImg').src = url;
     lb.classList.add('active');
@@ -541,13 +772,13 @@ function openPhotoLightbox(url) {
 }
 function closePhotoLightbox(e) {
     if (e.target.closest('.photo-lightbox-img')) return;
-    var lb = document.getElementById('photoLightbox');
+    const lb = document.getElementById('photoLightbox');
     lb.classList.remove('active');
     document.body.style.overflow = '';
 }
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        var lb = document.getElementById('photoLightbox');
+        const lb = document.getElementById('photoLightbox');
         if (lb && lb.classList.contains('active')) {
             lb.classList.remove('active');
             document.body.style.overflow = '';
@@ -556,4 +787,17 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 {% endif %}
+
+<!-- Entrance Animations Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll('.vp-card');
+    cards.forEach(card => {
+        setTimeout(() => {
+            card.classList.add('anim-loaded');
+        }, parseFloat(card.style.animationDelay) * 1000 || 100);
+    });
+});
+</script>
+
 {% endblock %}
