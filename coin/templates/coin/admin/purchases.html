@@ -1,104 +1,865 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Xaridlar ro'yxati - Admin{% endblock %}
+{% block title %}Buyurtmalar — Admin{% endblock %}
 
 {% block admin_content %}
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-bag-check me-2"></i>Sotib olingan mahsulotlar</h1>
-</div>
+<style>
+    /* ===== Purchases Page ===== */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-<div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Foydalanuvchi</th>
-                            <th>Mahsulot</th>
-                            <th>Sarflangan coin</th>
-                            <th>Sana</th>
-                            <th>Holat</th>
-                            <th class="text-end pe-4">Amal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for purchase in purchases %}
-                        <tr>
-                            <td class="ps-4 align-middle">
-                                <div class="d-flex align-items-center gap-2">
-                                    {% if purchase.user.photo %}
-                                    <img src="{{ purchase.user.photo.url }}" class="rounded-circle" width="35" height="35" style="object-fit: cover;">
-                                    {% else %}
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
-                                        <i class="bi bi-person-fill text-muted"></i>
-                                    </div>
-                                    {% endif %}
-                                    <span class="fw-bold">{{ purchase.user.full_name }}</span>
-                                </div>
-                            </td>
-                            <td class="align-middle">
-                                <div class="d-flex align-items-center gap-2">
-                                    {% if purchase.product.image %}
-                                    <img src="{{ purchase.product.image.url }}" class="rounded" width="40" height="40" style="object-fit: cover;">
-                                    {% endif %}
-                                    <span>{{ purchase.product.name }}</span>
-                                </div>
-                            </td>
-                            <td class="align-middle">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-coin me-1"></i>{{ purchase.coins_spent }}
-                                </span>
-                            </td>
-                            <td class="align-middle">
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar3 me-1"></i>{{ purchase.purchased_at|date:"d.m.Y, H:i" }}
-                                </small>
-                            </td>
-                            <td class="align-middle">
-                                {% if purchase.status == 'cancelled' %}
-                                <span class="badge bg-danger">
-                                    <i class="bi bi-x-circle me-1"></i>Bekor qilingan
-                                </span>
-                                {% elif purchase.status == 'delivered' or purchase.is_delivered %}
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i>Yetkazilgan
-                                </span>
-                                {% else %}
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-clock me-1"></i>Kutilmoqda
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td class="align-middle text-end pe-4">
-                                {% if purchase.status == 'cancelled' %}
-                                <span class="text-danger">
-                                    <i class="bi bi-x-circle-fill"></i>
-                                </span>
-                                {% elif not purchase.is_delivered and purchase.status != 'cancelled' %}
-                                <form method="post" action="{% url 'coin:admin_mark_delivered' purchase.pk %}" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="bi bi-check-lg me-1"></i>Yetkazildi
-                                    </button>
-                                </form>
-                                {% else %}
-                                <span class="text-success">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                </span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5">
-                                <i class="bi bi-bag text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-3 mb-0">Hozircha xaridlar yo'q</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateX(-12px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .pur-hero {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .pur-hero::before {
+        content: '';
+        position: absolute;
+        top: -60%;
+        right: -15%;
+        width: 280px;
+        height: 280px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    }
+
+    .pur-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .pur-hero h1 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .pur-hero p {
+        margin: 0.3rem 0 0;
+        opacity: 0.85;
+        font-size: 0.92rem;
+    }
+
+    .pur-stats {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .pur-stat {
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(10px);
+        padding: 0.6rem 1.1rem;
+        border-radius: 14px;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .pur-stat-val {
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    .pur-stat-label {
+        font-size: 0.68rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+
+    /* ===== Tabs ===== */
+    .pur-tabs {
+        display: flex;
+        gap: 6px;
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 5px;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border-color);
+        animation: fadeInUp 0.5s ease 0.1s both;
+    }
+
+    .pur-tab {
+        flex: 1;
+        padding: 0.65rem 0.75rem;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        opacity: 0.55;
+        font-size: 0.85rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+    .pur-tab:hover {
+        opacity: 0.8;
+        background: rgba(99, 102, 241, 0.06);
+    }
+
+    .pur-tab.active {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        opacity: 1;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+    }
+
+    .pur-tab .tab-count {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.1rem 0.45rem;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.2);
+    }
+
+    .pur-tab:not(.active) .tab-count {
+        background: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+    }
+
+    /* ===== Purchase Card ===== */
+    .pur-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        margin-bottom: 0.75rem;
+        transition: all 0.3s ease;
+        animation: slideIn 0.4s ease both;
+        overflow: hidden;
+    }
+
+    .pur-card:hover {
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+
+    [data-bs-theme="dark"] .pur-card:hover {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .pur-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.1rem 1.25rem;
+    }
+
+    /* Order ID */
+    .pur-id {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(99, 102, 241, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.82rem;
+        color: #6366f1;
+        flex-shrink: 0;
+    }
+
+    [data-bs-theme="dark"] .pur-id {
+        background: rgba(99, 102, 241, 0.15);
+        color: #a5b4fc;
+    }
+
+    /* Product image */
+    .pur-img {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid var(--border-color);
+    }
+
+    .pur-img-placeholder {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: #fff;
+        font-size: 1.3rem;
+        opacity: 0.7;
+    }
+
+    /* Info */
+    .pur-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .pur-product-name {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-color);
+        margin: 0 0 0.25rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .pur-user-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.82rem;
+        color: var(--text-color);
+        opacity: 0.7;
+    }
+
+    .pur-user-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .pur-user-avatar-placeholder {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 0.55rem;
+        font-weight: 700;
+    }
+
+    /* Meta section */
+    .pur-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+
+    .pur-coin {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.7rem;
+        border-radius: 10px;
+        background: rgba(245, 158, 11, 0.1);
+        color: #b45309;
+        font-weight: 700;
+        font-size: 0.82rem;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        white-space: nowrap;
+    }
+
+    [data-bs-theme="dark"] .pur-coin {
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .pur-date {
+        font-size: 0.78rem;
+        color: var(--text-color);
+        opacity: 0.5;
+        white-space: nowrap;
+    }
+
+    /* Status */
+    .pur-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .pur-status-pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    [data-bs-theme="dark"] .pur-status-pending {
+        color: #fbbf24;
+    }
+
+    .pur-status-delivered {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    [data-bs-theme="dark"] .pur-status-delivered {
+        color: #34d399;
+    }
+
+    .pur-status-cancelled {
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+
+    [data-bs-theme="dark"] .pur-status-cancelled {
+        color: #f87171;
+    }
+
+    /* Actions */
+    .pur-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-shrink: 0;
+        align-items: center;
+    }
+
+    .pur-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.78rem;
+        font-weight: 650;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s;
+        text-decoration: none;
+    }
+
+    .pur-btn:hover {
+        transform: translateY(-1px);
+    }
+
+    .pur-btn-deliver {
+        background: #10b981;
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+    }
+
+    .pur-btn-deliver:hover {
+        background: #059669;
+        box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    }
+
+    .pur-btn-cancel {
+        background: transparent;
+        color: #ef4444;
+        border: 1.5px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .pur-btn-cancel:hover {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .pur-done-icon {
+        color: #10b981;
+        font-size: 1.1rem;
+    }
+
+    .pur-cancelled-icon {
+        color: #ef4444;
+        font-size: 1.1rem;
+    }
+
+    /* Empty */
+    .pur-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        animation: fadeInUp 0.5s ease;
+    }
+
+    .pur-empty-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(99, 102, 241, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 2.2rem;
+        color: var(--text-color);
+        opacity: 0.4;
+    }
+
+    .pur-empty h4 {
+        font-weight: 700;
+        color: var(--text-color);
+        margin-bottom: 0.4rem;
+    }
+
+    .pur-empty p {
+        color: var(--text-color);
+        opacity: 0.5;
+    }
+
+    /* ===== Cancel Modal ===== */
+    .cancel-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(6px);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeInUp 0.3s ease;
+    }
+
+    .cancel-modal-overlay.show {
+        display: flex;
+    }
+
+    .cancel-modal {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        animation: fadeInUp 0.4s ease;
+    }
+
+    .cancel-modal-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: rgba(239, 68, 68, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.8rem;
+        color: #ef4444;
+    }
+
+    .cancel-modal h4 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: var(--text-color);
+    }
+
+    .cancel-modal p {
+        font-size: 0.9rem;
+        color: var(--text-color);
+        opacity: 0.65;
+        margin-bottom: 1.5rem;
+    }
+
+    .cancel-modal-info {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.12);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.85rem;
+        color: var(--text-color);
+        text-align: left;
+    }
+
+    .cancel-modal-info strong {
+        display: block;
+        margin-bottom: 0.15rem;
+    }
+
+    .cancel-modal-btns {
+        display: flex;
+        gap: 0.75rem;
+    }
+
+    .cancel-modal-btns .btn-back {
+        flex: 1;
+        padding: 0.65rem;
+        border-radius: 12px;
+        border: 1.5px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        font-weight: 650;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .cancel-modal-btns .btn-back:hover {
+        background: var(--border-color);
+    }
+
+    .cancel-modal-btns .btn-confirm-cancel {
+        flex: 1;
+        padding: 0.65rem;
+        border-radius: 12px;
+        border: none;
+        background: #ef4444;
+        color: #fff;
+        font-weight: 650;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .cancel-modal-btns .btn-confirm-cancel:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 900px) {
+        .pur-card-inner {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .pur-meta {
+            width: 100%;
+            justify-content: flex-start;
+        }
+
+        .pur-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .pur-hero {
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .pur-hero h1 {
+            font-size: 1.3rem;
+        }
+
+        .pur-hero-inner {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .pur-stats {
+            justify-content: center;
+        }
+
+        .pur-card-inner {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 1rem;
+        }
+
+        .pur-id {
+            width: 36px;
+            height: 36px;
+            font-size: 0.75rem;
+            border-radius: 10px;
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .pur-card {
+            position: relative;
+        }
+
+        .pur-img, .pur-img-placeholder {
+            width: 48px;
+            height: 48px;
+        }
+
+        .pur-info {
+            width: 100%;
+        }
+
+        .pur-product-name {
+            font-size: 0.9rem;
+            padding-right: 50px;
+        }
+
+        .pur-meta {
+            gap: 0.5rem;
+        }
+
+        .pur-actions {
+            padding-top: 0.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .pur-tab {
+            font-size: 0.75rem;
+            padding: 0.55rem 0.4rem;
+            gap: 4px;
+        }
+
+        .pur-tab i {
+            font-size: 0.85rem;
+        }
+
+        .pur-tab .tab-count {
+            font-size: 0.62rem;
+            padding: 0.05rem 0.35rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .pur-tab span.tab-text {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Hero -->
+<div class="pur-hero">
+    <div class="pur-hero-inner">
+        <div>
+            <h1><i class="bi bi-bag-check me-2"></i>Buyurtmalar</h1>
+            <p>Barcha xaridlarni boshqaring</p>
+        </div>
+        <div class="pur-stats">
+            <div class="pur-stat">
+                <div class="pur-stat-val" id="statTotal">{{ purchases.count }}</div>
+                <div class="pur-stat-label">Jami</div>
+            </div>
+            <div class="pur-stat">
+                <div class="pur-stat-val" id="statPending">0</div>
+                <div class="pur-stat-label">Kutilmoqda</div>
+            </div>
+            <div class="pur-stat">
+                <div class="pur-stat-val" id="statDelivered">0</div>
+                <div class="pur-stat-label">Yetkazilgan</div>
             </div>
         </div>
+    </div>
 </div>
+
+<!-- Tabs -->
+<div class="pur-tabs">
+    <button class="pur-tab active" onclick="filterPurchases('all', this)">
+        <i class="bi bi-grid-fill"></i>
+        <span class="tab-text">Barchasi</span>
+        <span class="tab-count" id="tabAll">{{ purchases.count }}</span>
+    </button>
+    <button class="pur-tab" onclick="filterPurchases('pending', this)">
+        <i class="bi bi-clock"></i>
+        <span class="tab-text">Kutilmoqda</span>
+        <span class="tab-count" id="tabPending">0</span>
+    </button>
+    <button class="pur-tab" onclick="filterPurchases('delivered', this)">
+        <i class="bi bi-check-circle"></i>
+        <span class="tab-text">Yetkazilgan</span>
+        <span class="tab-count" id="tabDelivered">0</span>
+    </button>
+    <button class="pur-tab" onclick="filterPurchases('cancelled', this)">
+        <i class="bi bi-x-circle"></i>
+        <span class="tab-text">Bekor</span>
+        <span class="tab-count" id="tabCancelled">0</span>
+    </button>
+</div>
+
+<!-- Purchases List -->
+<div id="purchasesList">
+    {% for purchase in purchases %}
+    <div class="pur-card"
+         data-status="{% if purchase.status == 'cancelled' %}cancelled{% elif purchase.status == 'delivered' or purchase.is_delivered %}delivered{% else %}pending{% endif %}"
+         style="animation-delay: {{ forloop.counter }}00ms">
+        <div class="pur-card-inner">
+            <!-- Order ID -->
+            <div class="pur-id">#{{ purchase.pk }}</div>
+
+            <!-- Product Image -->
+            {% if purchase.product.image %}
+            <img src="{{ purchase.product.image.url }}" alt="{{ purchase.product.name }}" class="pur-img">
+            {% else %}
+            <div class="pur-img-placeholder">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            {% endif %}
+
+            <!-- Info -->
+            <div class="pur-info">
+                <div class="pur-product-name">{{ purchase.product.name }}</div>
+                <div class="pur-user-row">
+                    {% if purchase.user.photo %}
+                    <img src="{{ purchase.user.photo.url }}" class="pur-user-avatar">
+                    {% else %}
+                    <div class="pur-user-avatar-placeholder">{{ purchase.user.get_initials }}</div>
+                    {% endif %}
+                    <span>{{ purchase.user.full_name }}</span>
+                </div>
+            </div>
+
+            <!-- Meta -->
+            <div class="pur-meta">
+                <span class="pur-coin">
+                    <i class="bi bi-coin"></i> {{ purchase.coins_spent }}
+                </span>
+                <span class="pur-date">
+                    <i class="bi bi-calendar3 me-1"></i>{{ purchase.purchased_at|date:"d.m.Y, H:i" }}
+                </span>
+                {% if purchase.status == 'cancelled' %}
+                <span class="pur-status pur-status-cancelled">
+                    <i class="bi bi-x-circle-fill"></i> Bekor qilingan
+                </span>
+                {% elif purchase.status == 'delivered' or purchase.is_delivered %}
+                <span class="pur-status pur-status-delivered">
+                    <i class="bi bi-check-circle-fill"></i> Yetkazilgan
+                </span>
+                {% else %}
+                <span class="pur-status pur-status-pending">
+                    <i class="bi bi-clock-fill"></i> Kutilmoqda
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="pur-actions">
+                {% if purchase.status == 'cancelled' %}
+                    <span class="pur-cancelled-icon" title="Bekor qilingan">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </span>
+                {% elif purchase.status == 'delivered' or purchase.is_delivered %}
+                    <span class="pur-done-icon" title="Yetkazilgan">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </span>
+                {% else %}
+                    <form method="post" action="{% url 'coin:admin_mark_delivered' purchase.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="pur-btn pur-btn-deliver">
+                            <i class="bi bi-check-lg"></i> Yetkazildi
+                        </button>
+                    </form>
+                    <button type="button" class="pur-btn pur-btn-cancel"
+                            onclick="showCancelModal('{{ purchase.pk }}', '{{ purchase.product.name|escapejs }}', '{{ purchase.user.full_name|escapejs }}', '{{ purchase.coins_spent }}', '{% url 'coin:admin_cancel_purchase' purchase.pk %}')">
+                        <i class="bi bi-x-lg"></i> Bekor
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="pur-card">
+        <div class="pur-empty">
+            <div class="pur-empty-icon">
+                <i class="bi bi-bag"></i>
+            </div>
+            <h4>Xaridlar yo'q</h4>
+            <p>Hozircha hech qanday buyurtma berilmagan</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="cancel-modal-overlay" id="cancelModal">
+    <div class="cancel-modal">
+        <div class="cancel-modal-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <h4>Buyurtmani bekor qilasizmi?</h4>
+        <p>Coinlar foydalanuvchiga qaytariladi va mahsulot omborga qaytadi</p>
+
+        <div class="cancel-modal-info">
+            <strong>📦 <span id="modalProduct"></span></strong>
+            <span>👤 <span id="modalUser"></span></span><br>
+            <span>🪙 <span id="modalCoins"></span> coin qaytariladi</span>
+        </div>
+
+        <div class="cancel-modal-btns">
+            <button class="btn-back" onclick="closeCancelModal()">
+                <i class="bi bi-arrow-left me-1"></i>Orqaga
+            </button>
+            <form id="cancelForm" method="post" style="flex:1;display:flex;">
+                {% csrf_token %}
+                <button type="submit" class="btn-confirm-cancel" style="width:100%;">
+                    <i class="bi bi-x-lg me-1"></i>Bekor qilish
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Count stats
+(function() {
+    var cards = document.querySelectorAll('.pur-card[data-status]');
+    var counts = { pending: 0, delivered: 0, cancelled: 0 };
+    cards.forEach(function(c) {
+        var s = c.dataset.status;
+        if (counts.hasOwnProperty(s)) counts[s]++;
+    });
+
+    var el = function(id) { return document.getElementById(id); };
+    if (el('statPending')) el('statPending').textContent = counts.pending;
+    if (el('statDelivered')) el('statDelivered').textContent = counts.delivered;
+    if (el('tabPending')) el('tabPending').textContent = counts.pending;
+    if (el('tabDelivered')) el('tabDelivered').textContent = counts.delivered;
+    if (el('tabCancelled')) el('tabCancelled').textContent = counts.cancelled;
+})();
+
+function filterPurchases(status, btn) {
+    document.querySelectorAll('.pur-tab').forEach(function(t) {
+        t.classList.remove('active');
+    });
+    btn.classList.add('active');
+
+    document.querySelectorAll('.pur-card[data-status]').forEach(function(card) {
+        if (status === 'all') {
+            card.style.display = 'block';
+        } else {
+            card.style.display = card.dataset.status === status ? 'block' : 'none';
+        }
+    });
+}
+
+function showCancelModal(pk, product, user, coins, actionUrl) {
+    document.getElementById('modalProduct').textContent = product;
+    document.getElementById('modalUser').textContent = user;
+    document.getElementById('modalCoins').textContent = coins;
+    document.getElementById('cancelForm').action = actionUrl;
+    document.getElementById('cancelModal').classList.add('show');
+}
+
+function closeCancelModal() {
+    document.getElementById('cancelModal').classList.remove('show');
+}
+
+document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCancelModal();
+});
+</script>
 {% endblock %}
