@@ -783,9 +783,9 @@
                                 <a href="{% url 'coin:buy_premium' %}">Premium olish →</a>
                             </div>
                             {% endif %}
-                            {% if request.user.coins < resubmit_cost %}
-                            <div class="hw-not-enough">
-                                <i class="bi bi-exclamation-triangle-fill"></i> Coinlaringiz yetarli emas! Avval coin yig'ing.
+                            {% if request.user.coins < 0 %}
+                            <div class="hw-not-enough" style="background:rgba(255,165,0,0.15);border-color:orange;color:orange;">
+                                <i class="bi bi-info-circle-fill"></i> Balans: {{ request.user.coins }} coin. Qayta topshirsangiz {{ resubmit_cost }} coin yechiladi.
                             </div>
                             {% endif %}
                         </div>
@@ -800,7 +800,7 @@
                         <textarea name="new_text_content" class="form-control mb-3" rows="4" placeholder="Yangi javobingizni yozing..." required>{{ submission.text_content|striptags }}</textarea>
                         {% endif %}
                         <textarea name="note" class="form-control mb-3" rows="2" placeholder="Tuzatish haqida qisqacha..."></textarea>
-                        <button type="submit" class="hw-revision-btn" id="resubmit-btn" {% if request.user.coins < resubmit_cost %}disabled style="opacity:0.5;cursor:not-allowed;"{% endif %}>
+                        <button type="submit" class="hw-revision-btn" id="resubmit-btn">
                             <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish (−{{ resubmit_cost }} <i class="bi bi-coin"></i>)
                         </button>
                     </form>

@@ -3316,10 +3316,6 @@ def homework_chat(request, pk):
             if has_new_content:
                 # Qayta topshirish uchun coin yechish
                 resubmit_cost = 3 if request.user.is_premium else 5
-                if request.user.coins < resubmit_cost:
-                    messages.error(request, f"Qayta topshirish uchun {resubmit_cost} coin kerak. Sizda {request.user.coins} coin bor.")
-                    return redirect('homework_chat', pk=pk)
-                
                 request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
                 
                 from .models import HomeworkRevision
