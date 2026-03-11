@@ -949,18 +949,18 @@ def start_test(request, pk):
             return redirect('lesson_view', pk=test.lesson.pk)
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
-    questions = list(test.questions.all().prefetch_related('answers'))
+    all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
     
     import random
     
+    # Savollar sonini cheklash (question_count > 0 bo'lsa)
+    if test.question_count and test.question_count > 0 and len(all_questions) > test.question_count:
+        questions = random.sample(all_questions, test.question_count)
+    else:
+        questions = all_questions[:]
+    
     if test.shuffle_questions:
         random.shuffle(questions)
-    
-    # Savollar sonini cheklash (question_count > 0 bo'lsa)
-    if test.question_count and test.question_count > 0 and len(questions) > test.question_count:
-        if not test.shuffle_questions:
-            random.shuffle(questions)
-        questions = questions[:test.question_count]
     
     if test.shuffle_answers:
         for q in questions:

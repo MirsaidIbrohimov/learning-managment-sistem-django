@@ -288,16 +288,188 @@
     transform: translateY(-2px);
 }
 .btn-unenroll-detail:active { transform: scale(0.97); }
-.btn-unenroll-detail.confirming {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    border-color: #d97706;
-    color: #fff;
-    animation: unenrollShake 0.5s ease;
+
+/* Unenroll Modal */
+.unenroll-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
-@keyframes unenrollShake {
+.unenroll-overlay.show {
+    display: flex;
+    animation: ueOverlayIn 0.3s ease;
+}
+@keyframes ueOverlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.unenroll-modal {
+    background: var(--bs-body-bg, #fff);
+    border: 1px solid rgba(128,128,128,0.15);
+    border-radius: 24px;
+    padding: 2rem 1.75rem;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+    animation: ueModalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+@keyframes ueModalIn {
+    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.unenroll-modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ef4444, #f97316, #ef4444);
+    background-size: 200% auto;
+    animation: ueShine 2s linear infinite;
+}
+@keyframes ueShine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+.ue-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.8rem;
+    color: #ef4444;
+    animation: ueIconPulse 2s ease-in-out infinite;
+}
+@keyframes ueIconPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239,68,68,0.3); }
+    50% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(239,68,68,0); }
+}
+.unenroll-modal h4 {
+    font-weight: 800;
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
+}
+.unenroll-modal .ue-subtitle {
+    font-size: 0.88rem;
+    opacity: 0.6;
+    margin-bottom: 1.25rem;
+}
+.ue-course-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(99,102,241,0.08);
+    color: #6366f1;
+    padding: 0.45rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-bottom: 1.25rem;
+    border: 1px solid rgba(99,102,241,0.15);
+}
+[data-bs-theme="dark"] .ue-course-badge {
+    background: rgba(99,102,241,0.15);
+    color: #a5b4fc;
+}
+.ue-textarea {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.85rem 1rem;
+    border: 2px solid rgba(128,128,128,0.15);
+    border-radius: 16px;
+    background: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    font-size: 0.92rem;
+    resize: vertical;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    margin-bottom: 0.4rem;
+}
+.ue-textarea::placeholder {
+    opacity: 0.45;
+}
+.ue-textarea:focus {
+    outline: none;
+    border-color: #ef4444;
+    box-shadow: 0 0 0 4px rgba(239,68,68,0.1);
+}
+.ue-char-count {
+    font-size: 0.72rem;
+    opacity: 0.4;
+    text-align: right;
+    margin-bottom: 1rem;
+}
+.ue-error {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(239,68,68,0.08);
+    color: #ef4444;
+    padding: 0.5rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    animation: ueShakeError 0.4s ease;
+}
+.ue-error.show { display: flex; }
+@keyframes ueShakeError {
     0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+.ue-btns {
+    display: flex;
+    gap: 0.75rem;
+}
+.ue-btn {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: none;
+}
+.ue-btn:hover { transform: translateY(-2px); }
+.ue-btn:active { transform: scale(0.97); }
+.ue-btn-back {
+    background: var(--bs-tertiary-bg, #f0f0f0);
+    color: var(--bs-body-color, #212529);
+}
+.ue-btn-back:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+.ue-btn-confirm {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(239,68,68,0.3);
+}
+.ue-btn-confirm:hover {
+    box-shadow: 0 8px 24px rgba(239,68,68,0.4);
+}
+.ue-btn-confirm:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+@media (max-width: 480px) {
+    .unenroll-modal { padding: 1.5rem 1.25rem; border-radius: 20px; }
+    .ue-icon { width: 60px; height: 60px; font-size: 1.5rem; }
+    .unenroll-modal h4 { font-size: 1.05rem; }
+    .ue-btns { flex-direction: column; gap: 0.5rem; }
 }
 
 .section-progress {
@@ -499,12 +671,9 @@
                     <i class="bi bi-person-video3 me-2"></i>Kurs o'qituvchisi: {{ t.full_name }}
                 </a>
                 {% endfor %}
-                <form method="POST" action="{% url 'unenroll_course' profession.pk %}" class="unenroll-form mb-3">
-                    {% csrf_token %}
-                    <button type="button" class="btn w-100 ios-btn btn-unenroll-detail" onclick="confirmUnenrollDetail(this)">
-                        <i class="bi bi-box-arrow-right me-2"></i>Kursdan chiqish
-                    </button>
-                </form>
+                <button type="button" class="btn w-100 ios-btn btn-unenroll-detail" onclick="openUnenrollModal()">
+                    <i class="bi bi-box-arrow-right me-2"></i>Kursdan chiqish
+                </button>
             {% elif enrollment_request %}
                 {% if enrollment_request.status == 'pending' %}
                     <div class="alert alert-warning py-2 mb-3">
@@ -850,21 +1019,6 @@ function toggleSection(header) {
     }
 }
 
-function confirmUnenrollDetail(btn) {
-    if (btn.classList.contains('confirming')) {
-        btn.closest('.unenroll-form').submit();
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Chiqilmoqda...';
-    } else {
-        btn.classList.add('confirming');
-        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Ishonchingiz komilmi? Yana bosing!';
-        setTimeout(() => {
-            btn.classList.remove('confirming');
-            btn.innerHTML = '<i class="bi bi-box-arrow-right me-2"></i>Kursdan chiqish';
-        }, 3000);
-    }
-}
-
 function openLightbox(src) {
     var lb = document.getElementById('imgLightbox');
     document.getElementById('lightboxImg').src = src;
@@ -880,7 +1034,105 @@ function closeLightbox(e) {
 }
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeLightbox(e);
+    if (e.key === 'Escape') {
+        closeLightbox(e);
+        closeUnenrollModal();
+    }
 });
+
+// ===== Unenroll Modal =====
+function openUnenrollModal() {
+    document.getElementById('unenrollOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+    var ta = document.getElementById('ueReason');
+    if (ta) ta.focus();
+}
+
+function closeUnenrollModal() {
+    var el = document.getElementById('unenrollOverlay');
+    if (el) {
+        el.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+function submitUnenroll() {
+    var ta = document.getElementById('ueReason');
+    var err = document.getElementById('ueError');
+    var reason = ta.value.trim();
+
+    if (reason.length < 5) {
+        err.classList.add('show');
+        ta.style.borderColor = '#ef4444';
+        ta.focus();
+        return;
+    }
+
+    err.classList.remove('show');
+    ta.style.borderColor = '';
+
+    var btn = document.getElementById('ueSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Yuborilmoqda...';
+
+    document.getElementById('ueForm').submit();
+}
+
+var ueTextarea = document.getElementById('ueReason');
+if (ueTextarea) {
+    ueTextarea.addEventListener('input', function() {
+        var count = this.value.length;
+        document.getElementById('ueCharCount').textContent = count + '/500';
+        document.getElementById('ueError').classList.remove('show');
+        this.style.borderColor = '';
+    });
+}
+
+var ueOverlay = document.getElementById('unenrollOverlay');
+if (ueOverlay) {
+    ueOverlay.addEventListener('click', function(e) {
+        if (e.target === this) closeUnenrollModal();
+    });
+}
 </script>
+
+<!-- Unenroll Modal -->
+{% if is_enrolled %}
+<div class="unenroll-overlay" id="unenrollOverlay">
+    <div class="unenroll-modal">
+        <div class="ue-icon">
+            <i class="bi bi-box-arrow-right"></i>
+        </div>
+
+        <h4>Kursdan chiqmoqchimisiz?</h4>
+        <p class="ue-subtitle">So'rovingiz adminga yuboriladi va ko'rib chiqiladi</p>
+
+        <div class="ue-course-badge">
+            <i class="bi bi-book"></i> {{ profession.name }}
+        </div>
+
+        <form method="POST" action="{% url 'unenroll_course' profession.pk %}" id="ueForm">
+            {% csrf_token %}
+            <textarea name="reason" id="ueReason" class="ue-textarea"
+                      placeholder="Kursdan chiqish sababini yozing..." maxlength="500"></textarea>
+            <div class="ue-char-count" id="ueCharCount">0/500</div>
+
+            <div class="ue-error" id="ueError">
+                <i class="bi bi-exclamation-circle-fill"></i>
+                Iltimos, kamida 5 ta belgi yozing
+            </div>
+
+            <div class="ue-btns">
+                <button type="button" class="ue-btn ue-btn-back" onclick="closeUnenrollModal()">
+                    <i class="bi bi-arrow-left me-1"></i>Orqaga
+                </button>
+                <button type="button" class="ue-btn ue-btn-confirm" id="ueSubmitBtn" onclick="submitUnenroll()">
+                    <i class="bi bi-send me-1"></i>So'rov yuborish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
