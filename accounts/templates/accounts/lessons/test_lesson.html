@@ -970,23 +970,13 @@
                     </div>
                 </div>
 
-                {% if request.user.is_premium and request.user.coins >= 5 or not request.user.is_premium and request.user.coins >= 10 %}
                 <a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">
                     <i class="bi bi-arrow-repeat"></i>
                     Qayta topshirish
                     <span class="retry-coin-badge">
-                        {% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i>
+                        {% if request.user.is_premium %}3{% else %}10{% endif %} <i class="bi bi-coin"></i>
                     </span>
                 </a>
-                {% else %}
-                <div class="start-btn retry-btn disabled-retry">
-                    <i class="bi bi-lock-fill"></i>
-                    Coin yetarli emas
-                    <span class="retry-coin-badge">
-                        {% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i> kerak
-                    </span>
-                </div>
-                {% endif %}
 
                 <!-- Narxlar taqqoslash -->
                 <div class="retry-pricing-compare">

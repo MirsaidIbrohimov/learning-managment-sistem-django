@@ -1447,19 +1447,11 @@ function showCelebrationModal() {
                     </a>
                     {% endif %}
                     {% if result.test.allow_retry and not result.passed %}
-                    {% if request.user.is_premium and request.user.coins >= 5 or not request.user.is_premium and request.user.coins >= 10 %}
                     <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
                         <i class="bi bi-arrow-repeat"></i>
                         Qayta ishlash
-                        <span class="retry-coin-tag">{% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
+                        <span class="retry-coin-tag">{% if request.user.is_premium %}3{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
                     </a>
-                    {% else %}
-                    <span class="action-btn retry" style="opacity:.5;pointer-events:none;">
-                        <i class="bi bi-lock-fill"></i>
-                        Coin yetarli emas
-                        <span class="retry-coin-tag">{% if request.user.is_premium %}5{% else %}10{% endif %} <i class="bi bi-coin"></i></span>
-                    </span>
-                    {% endif %}
                     {% endif %}
                 </div>
 
