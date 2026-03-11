@@ -306,6 +306,8 @@ class Lesson(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     
+    ai_article = models.TextField(null=True, blank=True, verbose_name="AI maqola")
+    
     class Meta:
         ordering = ['order', 'created_at']
         verbose_name = "Dars"

@@ -156,6 +156,118 @@
     color: white;
 }
 
+/* ── AI Article ─────────────────────────────────── */
+.ai-article-card {
+    background: var(--card-bg);
+    border: 1.5px solid rgba(99,102,241,.2);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all .3s ease;
+}
+.ai-article-card:hover {
+    border-color: rgba(99,102,241,.35);
+    box-shadow: 0 8px 30px rgba(99,102,241,.08);
+}
+.ai-article-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(99,102,241,.1);
+    background: linear-gradient(135deg, rgba(99,102,241,.04), rgba(139,92,246,.03));
+}
+.ai-article-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 4px 15px rgba(99,102,241,.3);
+}
+.ai-article-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+.ai-article-badge {
+    font-size: .75rem;
+    color: #8b5cf6;
+    font-weight: 600;
+}
+.ai-article-toggle {
+    margin-left: auto;
+    background: rgba(99,102,241,.1);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .2s;
+    color: #6366f1;
+    flex-shrink: 0;
+}
+.ai-article-toggle:hover {
+    background: rgba(99,102,241,.2);
+}
+.ai-article-card.collapsed .ai-article-body {
+    display: none;
+}
+.ai-article-card.collapsed .ai-article-toggle i {
+    transform: rotate(180deg);
+}
+.ai-article-body {
+    padding: 24px 28px 28px;
+    line-height: 1.85;
+    font-size: .95rem;
+}
+.ai-article-body h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 24px 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(99,102,241,.15);
+    color: #6366f1;
+}
+.ai-article-body h2:first-child { margin-top: 0; }
+.ai-article-body h3 {
+    font-size: 1.08rem;
+    font-weight: 700;
+    margin: 20px 0 8px;
+    color: #8b5cf6;
+}
+.ai-article-body p { margin: 0 0 12px; }
+.ai-article-body ul, .ai-article-body ol {
+    padding-left: 22px;
+    margin-bottom: 14px;
+}
+.ai-article-body li { margin-bottom: 6px; }
+.ai-article-body code {
+    background: rgba(99,102,241,.08);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: .88em;
+    color: #6366f1;
+}
+.ai-article-body pre {
+    background: rgba(0,0,0,.06);
+    padding: 16px;
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 12px 0;
+}
+[data-bs-theme="dark"] .ai-article-body pre {
+    background: rgba(255,255,255,.06);
+}
+.ai-article-body strong { color: inherit; font-weight: 700; }
+
 /* ── Next Action Bar ────────────────────────────── */
 @keyframes nextSlideUp {
     from { opacity: 0; transform: translateY(30px); }
@@ -461,6 +573,29 @@
         </div>
 
     </div>
+
+    <!-- ── AI Maqola ──────────────────────────────── -->
+    {% if lesson.ai_article %}
+    <div class="ai-article-card mt-4">
+        <div class="ai-article-header">
+            <div class="ai-article-icon">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div>
+                <h5 class="ai-article-title">{{ lesson.title }}</h5>
+                <span class="ai-article-badge">
+                    <i class="bi bi-stars me-1"></i>AI tomonidan tayyorlangan maqola
+                </span>
+            </div>
+            <button class="ai-article-toggle" onclick="this.closest('.ai-article-card').classList.toggle('collapsed')" title="Yig'ish/Ochish">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="ai-article-body">
+            {{ lesson.ai_article|safe }}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- ── Next Action Bar ──────────────────────── -->
     <div class="next-action-bar">

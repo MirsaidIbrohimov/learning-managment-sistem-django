@@ -30,6 +30,42 @@ from django.core.cache import cache
 from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
+def _generate_ai_article(lesson_title, profession_name):
+    """Video mavzusiga qarab AI maqola yaratish (background da ishlamaydi, sync)"""
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=60)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Sen tajribali IT o'qituvchisan. O'zbek tilida professional maqola yoz. "
+                        "HTML formatda yoz (h2, h3, p, ul, li, strong, em, code taglardan foydalan). "
+                        "Maqola 400-600 so'z bo'lsin. Mavzuni chuqur tushuntir, misollar keltir. "
+                        "Boshida qisqa kirish, keyin asosiy tushunchalar, oxirida xulosa bo'lsin. "
+                        "Faqat HTML content qaytar, <html>, <body>, <head> taglarini ISHLATMA."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"Kurs: {profession_name}\nMavzu: {lesson_title}\n\nShu mavzu bo'yicha o'quv maqolasi yoz."
+                }
+            ],
+            max_tokens=2000,
+            temperature=0.7,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"AI maqola xatolik: {e}")
+        return None
+
+
 def send_course_notification(profession, title, content, sender=None):
     """Kursga yozilgan barcha o'quvchilarga xabar yuborish"""
     enrollments = CourseEnrollment.objects.filter(profession=profession)
@@ -686,6 +722,12 @@ def lesson_view(request, pk):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
+        # AI maqola yaratish (birinchi marta)
+        if not lesson.ai_article:
+            ai_article = _generate_ai_article(lesson.title, profession.name)
+            if ai_article:
+                lesson.ai_article = ai_article
+                lesson.save(update_fields=['ai_article'])
         context['video'] = video
         context['progress'] = progress
         return render(request, 'accounts/lessons/video_lesson.html', context)
