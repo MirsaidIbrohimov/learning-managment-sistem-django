@@ -837,6 +837,89 @@ def _get_ai_homework_feedback(homework_description, student_answer):
         return None
 
 
+def _get_ai_grade(homework_description, student_answer):
+    """AI yordamida vazifani baholash: ball, status va izoh qaytaradi"""
+    import json
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=45)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz o'quv platformasining AI baholovchisisiz. O'quvchining uyga vazifasini tekshiring va baholang.\n\n"
+                        "Faqat JSON formatda javob bering, boshqa hech narsa yozmang:\n"
+                        '{"grade": <1-10 orasida son>, "status": "<graded yoki revision>", "feedback": "<o\'zbek tilida izoh>"}\n\n'
+                        "Qoidalar:\n"
+                        "- grade: 1 dan 10 gacha son. Vazifa sifatiga qarab adolatli baho qo'ying\n"
+                        "- status: agar javob juda yomon yoki noto'g'ri bo'lsa 'revision' (qayta ishlash kerak), aks holda 'graded'\n"
+                        "- feedback: O'zbek tilida 2-4 gapda izoh yozing. Nimasi yaxshi, nimasi yomon, qanday yaxshilash mumkinligini ayting\n"
+                        "- Agar javob bo'sh yoki umuman bog'liq bo'lmasa: grade=1, status=revision\n"
+                        "- Agar javob qisman to'g'ri bo'lsa: grade=4-6, status=graded\n"
+                        "- Agar javob yaxshi bo'lsa: grade=7-9, status=graded\n"
+                        "- Agar javob mukammal bo'lsa: grade=10, status=graded"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Vazifa tavsifi:\n{homework_description}\n\n"
+                        f"O'quvchining javobi:\n{student_answer}"
+                    )
+                }
+            ],
+            max_tokens=500,
+            temperature=0.2,
+        )
+        result_text = response.choices[0].message.content.strip()
+        # JSON ni parse qilish
+        if result_text.startswith('```'):
+            result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+        result = json.loads(result_text)
+        grade = max(1, min(10, int(result.get('grade', 5))))
+        status = result.get('status', 'graded')
+        if status not in ('graded', 'revision'):
+            status = 'graded'
+        feedback = result.get('feedback', '')
+        return {'grade': grade, 'status': status, 'feedback': feedback}
+    except Exception as e:
+        print(f"AI grade error: {e}")
+        return None
+
+
+def _read_submission_content(submission):
+    """Submission mazmunini o'qish (matn yoki fayl)"""
+    if submission.submission_type == 'text' and submission.text_content:
+        return submission.text_content
+    elif submission.submission_type == 'file' and submission.file:
+        import os
+        file_ext = os.path.splitext(submission.file.name)[1].lower()
+        CODE_EXTENSIONS = (
+            '.py', '.js', '.html', '.css', '.java', '.c', '.cpp',
+            '.json', '.xml', '.sql', '.txt', '.jsx', '.ts', '.tsx',
+            '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sh',
+            '.bat', '.ps1', '.yaml', '.yml', '.md', '.csv',
+        )
+        if file_ext == '.pdf':
+            return None
+        elif file_ext in CODE_EXTENSIONS:
+            try:
+                submission.file.seek(0)
+                content = submission.file.read().decode('utf-8', errors='replace')
+                if len(content) > 5000:
+                    content = content[:5000] + "\n... (qolgan qismi qisqartirildi)"
+                return content
+            except Exception:
+                return None
+    return None
+
+
 @login_required
 def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
@@ -3295,6 +3378,60 @@ def grade_homework(request, pk):
             
             messages.success(request, "Vazifa avtomatik baholandi: 5 ball!")
             return redirect('homework_submissions')
+        
+        # AI bilan baholash
+        elif action == 'ai_grade':
+            student_answer = _read_submission_content(submission)
+            if not student_answer:
+                messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
+                return redirect('grade_homework', pk=pk)
+            
+            ai_result = _get_ai_grade(submission.homework.description, student_answer)
+            if not ai_result:
+                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
+                return redirect('grade_homework', pk=pk)
+            
+            submission.grade = ai_result['grade']
+            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+            submission.status = ai_result['status']
+            submission.graded_by = request.user
+            submission.graded_at = timezone.now()
+            submission.save()
+            
+            if ai_result['status'] == 'graded' and not submission.coin_awarded:
+                coin_amount = 5
+                if not submission.is_late:
+                    coin_amount = 10
+                if submission.grade >= 9:
+                    coin_amount += 5
+                elif submission.grade >= 8:
+                    coin_amount += 3
+                if submission.student.is_premium:
+                    coin_amount *= 2
+                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+                submission.coin_awarded = True
+                submission.save()
+                ActivityLog.objects.create(
+                    user=submission.student,
+                    action_type='homework_graded',
+                    description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
+                )
+            
+            if ai_result['status'] == 'graded':
+                from .notifications import on_homework_graded
+                on_homework_graded(submission.student, submission, submission.grade)
+                _notify_homework_graded(request.user, submission, submission.grade)
+                messages.success(request, f"AI baholadi: {submission.grade} ball!")
+                return redirect('homework_submissions')
+            else:
+                Message.objects.create(
+                    title="Vazifani qayta ishlang",
+                    content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
+                    message_type='warning',
+                    recipient=submission.student
+                )
+                messages.warning(request, f"AI xulosasi: qayta ishlash kerak ({submission.grade} ball)")
+                return redirect('grade_homework', pk=pk)
         
         # Baholash
         elif action == 'grade':

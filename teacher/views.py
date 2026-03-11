@@ -240,6 +240,30 @@ def teacher_grade_homework(request, pk):
     )
     
     if request.method == 'POST':
+        action = request.POST.get('action', 'grade')
+        
+        if action == 'ai_grade':
+            from accounts.views import _read_submission_content, _get_ai_grade
+            student_answer = _read_submission_content(submission)
+            if not student_answer:
+                messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
+                return redirect('teacher:grade_homework', pk=pk)
+            
+            ai_result = _get_ai_grade(submission.homework.description, student_answer)
+            if not ai_result:
+                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
+                return redirect('teacher:grade_homework', pk=pk)
+            
+            submission.grade = ai_result['grade']
+            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+            submission.status = ai_result['status']
+            submission.graded_by = request.user
+            submission.graded_at = timezone.now()
+            submission.save()
+            
+            messages.success(request, f"AI baholadi: {submission.grade} ball ({submission.get_status_display()})")
+            return redirect('teacher:homeworks')
+        
         grade = request.POST.get('grade')
         feedback = request.POST.get('feedback', '')
         status = request.POST.get('status', 'graded')

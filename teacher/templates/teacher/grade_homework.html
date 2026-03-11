@@ -118,6 +118,25 @@
         </div>
     </div>
 
+    <!-- AI bilan baholash -->
+    <div style="background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden; animation: fadeInUp 0.58s ease;">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color); font-weight: 700; display: flex; align-items: center; gap: .5rem;">
+            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholash
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 1rem;">
+                AI o'quvchining javobini tekshirib, avtomatik baho (1-10), holat va izoh beradi.
+            </p>
+            <form method="POST" id="aiGradeForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="ai_grade">
+                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
+                    <i class="bi bi-robot"></i> 🤖 AI bilan baholash
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Grade form -->
     <div class="t-grade-form">
         <div class="t-grade-form-head">
