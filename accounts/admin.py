@@ -89,6 +89,18 @@ class VideoLessonAdmin(admin.ModelAdmin):
     list_display = ['lesson', 'duration', 'youtube_url']
     search_fields = ['lesson__title']
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        lesson = obj.lesson
+        if not lesson.ai_article:
+            import threading
+            def _gen():
+                from accounts.views import _generate_ai_article
+                article = _generate_ai_article(lesson.title, lesson.profession.name)
+                if article:
+                    Lesson.objects.filter(pk=lesson.pk).update(ai_article=article)
+            threading.Thread(target=_gen, daemon=True).start()
+
 
 @admin.register(Homework)
 class HomeworkAdmin(admin.ModelAdmin):
