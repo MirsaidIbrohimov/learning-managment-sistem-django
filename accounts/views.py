@@ -796,6 +796,64 @@ def _notify_homework_graded(grader, submission, grade):
     )
 
 
+def _check_ai_generated(homework_description, student_answer):
+    """Javob suniy intellekt yordamida yozilganligini tekshirish"""
+    import json
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz o'quv platformasining plagiat tekshiruvchisisiz. "
+                        "O'quvchining javobini tahlil qiling va bu javob suniy intellekt (ChatGPT, Copilot, Gemini va h.k.) "
+                        "tomonidan yozilgan yoki yo'qligini aniqlang.\n\n"
+                        "AI tomonidan yozilgan belgilar:\n"
+                        "- Juda mukammal va xatosiz kod/matn\n"
+                        "- Ortiqcha izohlar (comments) va tushuntirishlar\n"
+                        "- Standart AI uslubidagi javoblar\n"
+                        "- Haddan tashqari tartibli va professional struktura\n"
+                        "- O'quvchi darajasiga mos kelmaydigan murakkab yechimlar\n"
+                        "- Tipik AI shablonlari va so'z birikmalar\n\n"
+                        "Faqat JSON formatda javob bering:\n"
+                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
+                        "- is_ai: true agar 70% dan ortiq ishonch bilan AI yozgan deb hisoblasangiz\n"
+                        "- confidence: 0 dan 100 gacha foizda ishonch darajasi\n"
+                        "- reason: O'zbek tilida 1-2 gapda sabab"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Vazifa tavsifi:\n{homework_description}\n\n"
+                        f"O'quvchining javobi:\n{student_answer}"
+                    )
+                }
+            ],
+            max_tokens=300,
+            temperature=0.1,
+        )
+        result_text = response.choices[0].message.content.strip()
+        if result_text.startswith('```'):
+            result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+        result = json.loads(result_text)
+        return {
+            'is_ai': bool(result.get('is_ai', False)),
+            'confidence': min(100, max(0, int(result.get('confidence', 0)))),
+            'reason': result.get('reason', ''),
+        }
+    except Exception as e:
+        print(f"AI check error: {e}")
+        return None
+
+
 def _get_ai_homework_feedback(homework_description, student_answer):
     """Premium foydalanuvchilar uchun AI xulosasi olish"""
     from django.conf import settings
@@ -958,40 +1016,36 @@ def submit_homework(request, pk):
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
         
-        # Premium foydalanuvchi uchun AI xulosasi
-        if submission and request.user.is_premium:
-            student_answer = ''
-            is_pdf = False
-            if submission.submission_type == 'text' and submission.text_content:
-                student_answer = submission.text_content
+        # AI tekshiruvi (barcha o'quvchilar uchun)
+        if submission:
+            student_answer = _read_submission_content(submission)
+            
+            if student_answer:
+                # 1. Suniy intellekt bilan yozilganligini tekshirish
+                ai_check = _check_ai_generated(homework.description, student_answer)
+                if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
+                    submission.status = 'revision'
+                    submission.ai_feedback = (
+                        f"🚫 Suniy intellekt yordamida yozilgan deb topildi! "
+                        f"(ishonch: {ai_check['confidence']}%)\n\n"
+                        f"📋 Sabab: {ai_check['reason']}\n\n"
+                        f"⚠️ Iltimos, vazifani o'zingiz mustaqil bajaring va qayta yuboring."
+                    )
+                    submission.save(update_fields=['status', 'ai_feedback'])
+                    messages.warning(request, "⚠️ Vazifangiz suniy intellekt yordamida yozilgan deb topildi. Qayta ishlashga yuborildi!")
+                else:
+                    # 2. Premium foydalanuvchi uchun AI xulosasi
+                    if request.user.is_premium:
+                        ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
+                        if ai_feedback:
+                            submission.ai_feedback = ai_feedback
+                            submission.save(update_fields=['ai_feedback'])
             elif submission.submission_type == 'file' and submission.file:
                 import os
-                file_ext = os.path.splitext(submission.file.name)[1].lower()
-                CODE_EXTENSIONS = (
-                    '.py', '.js', '.html', '.css', '.java', '.c', '.cpp',
-                    '.json', '.xml', '.sql', '.txt', '.jsx', '.ts', '.tsx',
-                    '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sh',
-                    '.bat', '.ps1', '.yaml', '.yml', '.md', '.csv',
-                )
-                if file_ext == '.pdf':
-                    is_pdf = True
-                    submission.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
-                    submission.save(update_fields=['ai_feedback'])
-                elif file_ext in CODE_EXTENSIONS:
-                    try:
-                        submission.file.seek(0)
-                        file_content = submission.file.read().decode('utf-8', errors='replace')
-                        if len(file_content) > 5000:
-                            file_content = file_content[:5000] + "\n... (qolgan qismi qisqartirildi)"
-                        student_answer = file_content
-                    except Exception:
-                        student_answer = f"[Fayl yuklangan: {submission.file.name}]"
-            
-            if student_answer and not is_pdf:
-                ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
-                if ai_feedback:
-                    submission.ai_feedback = ai_feedback
-                    submission.save(update_fields=['ai_feedback'])
+                if os.path.splitext(submission.file.name)[1].lower() == '.pdf':
+                    if request.user.is_premium:
+                        submission.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+                        submission.save(update_fields=['ai_feedback'])
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 
