@@ -943,7 +943,7 @@ def start_test(request, pk):
     
     # Qayta topshirish uchun coin yechish
     if existing_result and test.allow_retry:
-        retry_cost = 5 if request.user.is_premium else 10
+        retry_cost = 3 if request.user.is_premium else 10
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
