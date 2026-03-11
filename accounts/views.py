@@ -944,9 +944,6 @@ def start_test(request, pk):
     # Qayta topshirish uchun coin yechish
     if existing_result and test.allow_retry:
         retry_cost = 5 if request.user.is_premium else 10
-        if request.user.coins < retry_cost:
-            messages.error(request, f"Qayta topshirish uchun {retry_cost} coin kerak. Sizda {request.user.coins} coin bor.")
-            return redirect('lesson_view', pk=test.lesson.pk)
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
