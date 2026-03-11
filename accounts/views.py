@@ -796,6 +796,47 @@ def _notify_homework_graded(grader, submission, grade):
     )
 
 
+def _get_ai_homework_feedback(homework_description, student_answer):
+    """Premium foydalanuvchilar uchun AI xulosasi olish"""
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz o'quv platformasining AI tekshiruvchisisiz. O'zbek tilida javob bering. "
+                        "O'quvchining uyga vazifasini tekshiring va qisqa xulosa bering:\n"
+                        "1. Javob to'g'ri yoki noto'g'ri ekanligini ayting\n"
+                        "2. Qisqa tushuntirish bering (3-5 gap)\n"
+                        "3. Agar xato bo'lsa, to'g'ri yo'nalishni ko'rsating\n"
+                        "4. Rag'batlantiruvchi ohangda yozing\n"
+                        "Javobni 150 so'zdan oshirmang."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Vazifa tavsifi:\n{homework_description}\n\n"
+                        f"O'quvchining javobi:\n{student_answer}"
+                    )
+                }
+            ],
+            max_tokens=500,
+            temperature=0.3,
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"AI homework feedback error: {e}")
+        return None
+
+
 @login_required
 def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
@@ -808,6 +849,7 @@ def submit_homework(request, pk):
             return redirect('lesson_view', pk=homework.lesson.pk)
         
         submission_type = request.POST.get('submission_type', 'file')
+        submission = None
         
         if submission_type == 'file':
             form = HomeworkSubmissionForm(request.POST, request.FILES)
@@ -822,7 +864,7 @@ def submit_homework(request, pk):
         else:
             text_content = request.POST.get('text_content', '').strip()
             if text_content:
-                HomeworkSubmission.objects.create(
+                submission = HomeworkSubmission.objects.create(
                     homework=homework,
                     student=request.user,
                     submission_type='text',
@@ -832,6 +874,20 @@ def submit_homework(request, pk):
                 _notify_homework_submitted(request.user, homework)
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
+        
+        # Premium foydalanuvchi uchun AI xulosasi
+        if submission and request.user.is_premium:
+            student_answer = ''
+            if submission.submission_type == 'text' and submission.text_content:
+                student_answer = submission.text_content
+            elif submission.submission_type == 'file' and submission.file:
+                student_answer = f"[Fayl yuklangan: {submission.file.name}]"
+            
+            if student_answer:
+                ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
+                if ai_feedback:
+                    submission.ai_feedback = ai_feedback
+                    submission.save(update_fields=['ai_feedback'])
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 

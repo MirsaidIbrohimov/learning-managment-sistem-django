@@ -932,6 +932,23 @@
                                 {% endif %}
                             </div>
 
+                            {% if submission.ai_feedback and request.user.is_premium %}
+                            <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border-radius: 16px; padding: 1.25rem; border: 1px solid rgba(139,92,246,0.2);">
+                                <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
+                                    <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-robot" style="color: #fff; font-size: 1.1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--bs-body-color);">🤖 AI Xulosasi</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Premium xususiyat</div>
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.9rem; line-height: 1.7; color: var(--bs-body-color);">
+                                    {{ submission.ai_feedback|linebreaksbr }}
+                                </div>
+                            </div>
+                            {% endif %}
+
                             {% if submission.submission_type == 'file' and submission.file %}
                                 <a href="{{ submission.file.url }}" class="view-submission-btn mt-3" target="_blank">
                                     <i class="bi bi-download"></i>

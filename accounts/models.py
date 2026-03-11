@@ -524,6 +524,7 @@ class HomeworkSubmission(models.Model):
     is_late = models.BooleanField(default=False, verbose_name="Kech topshirilgan")
     revision_count = models.IntegerField(default=0, verbose_name="Qayta topshirish soni")
     version = models.IntegerField(default=1, verbose_name="Versiya")
+    ai_feedback = models.TextField(null=True, blank=True, verbose_name="AI xulosasi")
     
     class Meta:
         ordering = ['-submitted_at']
