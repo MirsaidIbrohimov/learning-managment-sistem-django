@@ -1016,7 +1016,7 @@ def submit_homework(request, pk):
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
         
-        # AI tekshiruvi (barcha o'quvchilar uchun)
+        # AI avtomatik tekshiruv va baholash (barcha o'quvchilar uchun)
         if submission:
             student_answer = _read_submission_content(submission)
             
@@ -1034,8 +1034,42 @@ def submit_homework(request, pk):
                     submission.save(update_fields=['status', 'ai_feedback'])
                     messages.warning(request, "⚠️ Vazifangiz suniy intellekt yordamida yozilgan deb topildi. Qayta ishlashga yuborildi!")
                 else:
-                    # 2. Premium foydalanuvchi uchun AI xulosasi
-                    if request.user.is_premium:
+                    # 2. Avtomatik baholash
+                    ai_result = _get_ai_grade(homework.description, student_answer)
+                    if ai_result:
+                        submission.grade = ai_result['grade']
+                        submission.status = ai_result['status']
+                        submission.graded_at = timezone.now()
+                        feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                        submission.ai_feedback = feedback_text
+                        submission.feedback = feedback_text
+                        submission.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                        
+                        if ai_result['status'] == 'graded':
+                            messages.success(request, f"✅ AI baholadi: {ai_result['grade']}/10 ball!")
+                            # Coin berish
+                            if not submission.coin_awarded:
+                                coin_amount = 5
+                                if not submission.is_late:
+                                    coin_amount = 10
+                                if ai_result['grade'] >= 9:
+                                    coin_amount += 5
+                                elif ai_result['grade'] >= 8:
+                                    coin_amount += 3
+                                if submission.student.is_premium:
+                                    coin_amount *= 2
+                                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {homework.lesson.title}")
+                                submission.coin_awarded = True
+                                submission.save(update_fields=['coin_awarded'])
+                                ActivityLog.objects.create(
+                                    user=submission.student,
+                                    action_type='homework_graded',
+                                    description=f"Vazifa AI baholadi: {homework.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                                )
+                        else:
+                            messages.warning(request, f"⚠️ AI xulosasi: qayta ishlash kerak ({ai_result['grade']}/10 ball)")
+                    elif request.user.is_premium:
+                        # AI grade ishlamasa, kamida premium feedback berish
                         ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
                         if ai_feedback:
                             submission.ai_feedback = ai_feedback
@@ -1043,9 +1077,8 @@ def submit_homework(request, pk):
             elif submission.submission_type == 'file' and submission.file:
                 import os
                 if os.path.splitext(submission.file.name)[1].lower() == '.pdf':
-                    if request.user.is_premium:
-                        submission.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
-                        submission.save(update_fields=['ai_feedback'])
+                    submission.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+                    submission.save(update_fields=['ai_feedback'])
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 

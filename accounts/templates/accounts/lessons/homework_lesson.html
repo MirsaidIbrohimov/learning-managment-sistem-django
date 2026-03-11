@@ -933,7 +933,7 @@
                             </div>
 
                             {% if submission.ai_feedback %}
-                                {% if submission.status == 'revision' and '🚫' in submission.ai_feedback %}
+                                {% if '🚫' in submission.ai_feedback %}
                                 <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(220,53,69,0.08) 0%, rgba(255,107,107,0.08) 100%); border-radius: 16px; padding: 1.25rem; border: 1px solid rgba(220,53,69,0.25);">
                                     <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
                                         <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #dc3545, #ff6b6b); display: flex; align-items: center; justify-content: center;">
@@ -948,7 +948,7 @@
                                         {{ submission.ai_feedback|linebreaksbr }}
                                     </div>
                                 </div>
-                                {% elif request.user.is_premium %}
+                                {% else %}
                                 <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border-radius: 16px; padding: 1.25rem; border: 1px solid rgba(139,92,246,0.2);">
                                     <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
                                         <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); display: flex; align-items: center; justify-content: center;">
@@ -956,7 +956,7 @@
                                         </div>
                                         <div>
                                             <div style="font-weight: 700; font-size: 0.95rem; color: var(--bs-body-color);">🤖 AI Xulosasi</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Premium xususiyat</div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Avtomatik baholash</div>
                                         </div>
                                     </div>
                                     <div style="font-size: 0.9rem; line-height: 1.7; color: var(--bs-body-color);">
