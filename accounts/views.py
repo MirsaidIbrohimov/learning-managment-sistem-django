@@ -878,12 +878,33 @@ def submit_homework(request, pk):
         # Premium foydalanuvchi uchun AI xulosasi
         if submission and request.user.is_premium:
             student_answer = ''
+            is_pdf = False
             if submission.submission_type == 'text' and submission.text_content:
                 student_answer = submission.text_content
             elif submission.submission_type == 'file' and submission.file:
-                student_answer = f"[Fayl yuklangan: {submission.file.name}]"
+                import os
+                file_ext = os.path.splitext(submission.file.name)[1].lower()
+                CODE_EXTENSIONS = (
+                    '.py', '.js', '.html', '.css', '.java', '.c', '.cpp',
+                    '.json', '.xml', '.sql', '.txt', '.jsx', '.ts', '.tsx',
+                    '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sh',
+                    '.bat', '.ps1', '.yaml', '.yml', '.md', '.csv',
+                )
+                if file_ext == '.pdf':
+                    is_pdf = True
+                    submission.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+                    submission.save(update_fields=['ai_feedback'])
+                elif file_ext in CODE_EXTENSIONS:
+                    try:
+                        submission.file.seek(0)
+                        file_content = submission.file.read().decode('utf-8', errors='replace')
+                        if len(file_content) > 5000:
+                            file_content = file_content[:5000] + "\n... (qolgan qismi qisqartirildi)"
+                        student_answer = file_content
+                    except Exception:
+                        student_answer = f"[Fayl yuklangan: {submission.file.name}]"
             
-            if student_answer:
+            if student_answer and not is_pdf:
                 ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
                 if ai_feedback:
                     submission.ai_feedback = ai_feedback
