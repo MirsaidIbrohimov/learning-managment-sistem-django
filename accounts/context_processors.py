@@ -14,6 +14,12 @@ def unread_messages(request):
     if not user or not user.is_authenticated:
         return {"unread_messages_count": 0}
 
+    from django.core.cache import cache
+    cache_key = f'unread_msg_{user.id}'
+    count = cache.get(cache_key)
+    if count is not None:
+        return {"unread_messages_count": count}
+
     # Local import: circular import bo'lmasin
     from .models import Message
 
@@ -37,7 +43,9 @@ def unread_messages(request):
     # --- Yakuniy filter ---
     qs = base_qs.filter(personal_q | broadcast_q).distinct()
 
-    return {"unread_messages_count": qs.count()}
+    count = qs.count()
+    cache.set(cache_key, count, 30)
+    return {"unread_messages_count": count}
 
 
 def user_weather_effect(request):
@@ -52,6 +60,12 @@ def admin_badges(request):
     if not user or not user.is_authenticated or not getattr(user, "is_superuser", False):
         return {}
 
+    from django.core.cache import cache
+    cache_key = 'admin_badges_counts'
+    badges = cache.get(cache_key)
+    if badges is not None:
+        return badges
+
     from .models import (
         CourseEnrollmentRequest,
         HomeworkSubmission,
@@ -60,10 +74,12 @@ def admin_badges(request):
         PremiumRequest,
     )
 
-    return {
+    badges = {
         "admin_pending_enrollments": CourseEnrollmentRequest.objects.filter(status="pending").count(),
         "admin_pending_homeworks": HomeworkSubmission.objects.filter(status__in=["pending", "reviewing"]).count(),
         "admin_pending_help": HelpRequest.objects.filter(status="pending").count(),
         "admin_pending_passwords": PasswordResetRequest.objects.filter(status="pending").count(),
         "admin_pending_premium": PremiumRequest.objects.filter(status="pending").count(),
     }
+    cache.set(cache_key, badges, 30)
+    return badges

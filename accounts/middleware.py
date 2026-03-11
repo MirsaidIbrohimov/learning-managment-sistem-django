@@ -36,12 +36,14 @@ class UpdateLastActivityMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        response = self.get_response(request)
         if request.user.is_authenticated:
-            CustomUser.objects.filter(id=request.user.id).update(
-                last_activity=timezone.now()
-            )
-        
-        return self.get_response(request)
+            now = timezone.now()
+            last_saved = request.session.get('_last_activity_saved', 0)
+            if now.timestamp() - last_saved > 60:
+                CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
+                request.session['_last_activity_saved'] = now.timestamp()
+        return response
 
 
 class BlockedUserMiddleware:
@@ -81,16 +83,19 @@ class PaymentCheckMiddleware:
     def __call__(self, request):
         try:
             if request.user.is_authenticated and request.user.role == 'student':
-                pending_payments = PaymentStatus.objects.filter(
-                    user=request.user,
-                    is_paid=False,
-                    due_date__lt=timezone.now()
-                ).count()
+                cache_key = f'pending_pay_{request.user.id}'
+                pending_payments = cache.get(cache_key)
+                if pending_payments is None:
+                    pending_payments = PaymentStatus.objects.filter(
+                        user=request.user,
+                        is_paid=False,
+                        due_date__lt=timezone.now()
+                    ).count()
+                    cache.set(cache_key, pending_payments, 300)
                 
                 if pending_payments > 0:
                     request.pending_payments = pending_payments
         except Exception:
-            # PaymentStatus yoki model maydoni mavjud bo'lmasa, xatoni ignore qil
             pass
         
         return self.get_response(request)
@@ -202,16 +207,15 @@ class SectionBlockMiddleware:
         except:
             return self.get_response(request)
         
-        # Database dan bloklangan bo'limlarni o'qish
-        try:
-            blocked_db = BlockedSection.objects.filter(is_blocked=True).values_list('section', 'reason')
-            blocked_sections = {section: {'reason': reason} for section, reason in blocked_db}
-        except Exception:
-            blocked_sections = {}
-        
-        # Agar database malumoti yo'q bo'lsa, cache dan o'qi
-        if not blocked_sections:
-            blocked_sections = cache.get('blocked_sections', {})
+        # Cache dan bloklangan bo'limlarni o'qish (60 sekund)
+        blocked_sections = cache.get('blocked_sections_db')
+        if blocked_sections is None:
+            try:
+                blocked_db = BlockedSection.objects.filter(is_blocked=True).values_list('section', 'reason')
+                blocked_sections = {section: {'reason': reason} for section, reason in blocked_db}
+            except Exception:
+                blocked_sections = {}
+            cache.set('blocked_sections_db', blocked_sections, 60)
         
         if not blocked_sections:
             return self.get_response(request)

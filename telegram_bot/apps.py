@@ -42,9 +42,12 @@ class TelegramBotConfig(AppConfig):
         bot_token = settings.TELEGRAM_BOT_TOKEN
         print(f"\n🤖 Telegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
 
+        # Session yaratish — TCP connectionlarni qayta ishlatish
+        self._session = requests.Session()
+
         # Webhookni o'chirish
         try:
-            requests.get(f"https://api.telegram.org/bot{bot_token}/deleteWebhook", timeout=10)
+            self._session.get(f"https://api.telegram.org/bot{bot_token}/deleteWebhook", timeout=10)
         except Exception:
             pass
 
@@ -55,7 +58,7 @@ class TelegramBotConfig(AppConfig):
                 params = {'timeout': 30}
                 if offset:
                     params['offset'] = offset
-                resp = requests.get(url, params=params, timeout=35)
+                resp = self._session.get(url, params=params, timeout=35)
                 data = resp.json()
                 updates = data.get('result', [])
 
@@ -449,7 +452,6 @@ class TelegramBotConfig(AppConfig):
             return
 
         user = CustomUser.objects.get(telegram_id=telegram_id)
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {
             'keyboard': [
@@ -458,7 +460,7 @@ class TelegramBotConfig(AppConfig):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        requests.post(url, json={
+        self._session.post(url, json={
             'chat_id': chat_id,
             'text': f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
                     f"👤 {user.first_name} {user.last_name}\n\n"
@@ -481,10 +483,9 @@ class TelegramBotConfig(AppConfig):
         user.telegram_username = None
         user.save(update_fields=['telegram_id', 'telegram_username'])
 
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {'remove_keyboard': True}
-        requests.post(url, json={
+        self._session.post(url, json={
             'chat_id': chat_id,
             'text': f"✅ Telegram muvaffaqiyatli uzildi!\n\n"
                     f"👤 {user.first_name} {user.last_name}\n\n"
@@ -496,9 +497,8 @@ class TelegramBotConfig(AppConfig):
         print(f"  🔓 Uzildi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
 
     def _answer_callback(self, bot_token, callback_query_id):
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
-        requests.post(url, json={'callback_query_id': callback_query_id})
+        self._session.post(url, json={'callback_query_id': callback_query_id})
 
     def _unlinked_keyboard(self):
         return {
@@ -509,7 +509,6 @@ class TelegramBotConfig(AppConfig):
         }
 
     def _send_message_with_keyboard(self, bot_token, chat_id, text):
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {
             'keyboard': [
@@ -519,7 +518,7 @@ class TelegramBotConfig(AppConfig):
             ],
             'resize_keyboard': True,
         }
-        requests.post(url, json={
+        self._session.post(url, json={
             'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML',
@@ -527,9 +526,8 @@ class TelegramBotConfig(AppConfig):
         })
 
     def _send_message_with_reply_markup(self, bot_token, chat_id, text, reply_markup):
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        requests.post(url, json={
+        self._session.post(url, json={
             'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML',
@@ -537,9 +535,8 @@ class TelegramBotConfig(AppConfig):
         })
 
     def _send_message(self, bot_token, chat_id, text):
-        import requests
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        requests.post(url, json={
+        self._session.post(url, json={
             'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML'
@@ -547,7 +544,7 @@ class TelegramBotConfig(AppConfig):
 
     def _notify_admin_telegram_message(self, bot_token, tg_full, tg_username, telegram_id, text):
         import threading
-        import requests
+        import requests as req
         from accounts.models import CustomUser
 
         notify_text = (
@@ -563,7 +560,7 @@ class TelegramBotConfig(AppConfig):
             for admin in admins:
                 try:
                     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    requests.post(url, json={
+                    req.post(url, json={
                         'chat_id': admin.telegram_id,
                         'text': notify_text,
                         'parse_mode': 'HTML',
