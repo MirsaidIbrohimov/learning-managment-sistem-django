@@ -103,6 +103,12 @@ class Command(BaseCommand):
                 self._handle_start(bot_token, chat_id, telegram_id, tg_username)
             return
 
+        # Eski keyboard dan kelgan matnlar ham qo'llab-quvvatlanadi
+        if text == '💰 Coinlarim':
+            text = '💰 Coin statistika'
+        if text == '📊 Statistika':
+            text = '📊 Ball statistika'
+
         if text == '💰 Coin statistika':
             self._handle_coin_menu(bot_token, chat_id, telegram_id)
             return

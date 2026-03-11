@@ -112,6 +112,12 @@ def bot_webhook(request):
         return JsonResponse({'ok': True})
 
     # ===== COIN STATISTIKA =====
+    # Eski keyboard dan kelgan matnlar ham qo'llab-quvvatlanadi
+    if text == '💰 Coinlarim':
+        text = '💰 Coin statistika'
+    if text == '📊 Statistika':
+        text = '📊 Ball statistika'
+
     if text == '💰 Coin statistika':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
