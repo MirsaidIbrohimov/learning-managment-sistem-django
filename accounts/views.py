@@ -66,6 +66,25 @@ def _generate_ai_article(lesson_title, profession_name):
         return None
 
 
+@login_required
+def generate_ai_article_view(request, pk):
+    """AJAX: AI maqola yaratish yoki qayta yaratish"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+    
+    lesson = get_object_or_404(Lesson, pk=pk)
+    
+    if request.method == 'POST':
+        ai_article = _generate_ai_article(lesson.title, lesson.profession.name)
+        if ai_article:
+            lesson.ai_article = ai_article
+            lesson.save(update_fields=['ai_article'])
+            return JsonResponse({'success': True, 'article': ai_article})
+        return JsonResponse({'error': 'AI maqola yaratishda xatolik'}, status=500)
+    
+    return JsonResponse({'error': 'POST kerak'}, status=405)
+
+
 def send_course_notification(profession, title, content, sender=None):
     """Kursga yozilgan barcha o'quvchilarga xabar yuborish"""
     enrollments = CourseEnrollment.objects.filter(profession=profession)

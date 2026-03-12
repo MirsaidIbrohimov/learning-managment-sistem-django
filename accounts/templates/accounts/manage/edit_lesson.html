@@ -71,9 +71,14 @@
                         <div class="mb-3">
                             <label class="form-label" style="color: var(--text-color);">
                                 <i class="bi bi-robot text-primary me-1"></i>AI maqola
-                                {% if lesson.ai_article %}<span class="badge bg-success ms-1">Mavjud</span>{% endif %}
+                                {% if lesson.ai_article %}<span class="badge bg-success ms-1">Mavjud</span>{% else %}<span class="badge bg-warning ms-1">Mavjud emas</span>{% endif %}
                             </label>
-                            <textarea name="ai_article" class="form-control" rows="8" placeholder="AI maqola hali yaratilmagan...">{{ lesson.ai_article|default:'' }}</textarea>
+                            <button type="button" id="generateArticleBtn" onclick="generateAiArticle()" 
+                                    style="display: block; width: 100%; margin-bottom: 0.75rem; padding: 0.75rem; border-radius: 12px; border: 2px dashed rgba(139,92,246,0.3); background: linear-gradient(135deg, rgba(139,92,246,0.05), rgba(59,130,246,0.05)); color: #8b5cf6; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                <i class="bi bi-robot me-2"></i>
+                                {% if lesson.ai_article %}🔄 AI maqolani qayta yaratish{% else %}🤖 AI maqola yaratish{% endif %}
+                            </button>
+                            <textarea name="ai_article" id="aiArticleTextarea" class="form-control" rows="10" placeholder="AI maqola hali yaratilmagan..." style="font-family: monospace; font-size: 0.85rem;">{{ lesson.ai_article|default:'' }}</textarea>
                             <small class="text-muted d-block mt-1">Video tagida ko'rinadigan maqola. HTML formatda. O'zgartirishingiz mumkin.</small>
                         </div>
                         {% elif lesson.lesson_type == 'homework' %}
@@ -115,6 +120,62 @@
     });
 })();
 </script>
+
+{% if lesson.lesson_type == 'video' %}
+<script>
+function generateAiArticle() {
+    const btn = document.getElementById('generateArticleBtn');
+    const textarea = document.getElementById('aiArticleTextarea');
+    const originalText = btn.innerHTML;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>AI maqola yaratilmoqda...';
+    btn.style.opacity = '0.7';
+    
+    fetch('{% url "generate_ai_article" lesson.pk %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            textarea.value = data.article;
+            btn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Maqola yaratildi! Saqlash tugmasini bosing';
+            btn.style.background = 'linear-gradient(135deg, rgba(40,167,69,0.1), rgba(32,201,151,0.1))';
+            btn.style.color = '#28a745';
+            btn.style.borderColor = 'rgba(40,167,69,0.3)';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-robot me-2"></i>🔄 AI maqolani qayta yaratish';
+                btn.style.background = '';
+                btn.style.color = '#8b5cf6';
+                btn.style.borderColor = '';
+            }, 3000);
+        } else {
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Xatolik: ' + (data.error || 'Noma\'lum');
+            btn.style.color = '#dc3545';
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                btn.style.color = '#8b5cf6';
+            }, 3000);
+        }
+    })
+    .catch(err => {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i>Tarmoq xatoligi';
+        btn.style.color = '#dc3545';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+            btn.style.color = '#8b5cf6';
+        }, 3000);
+    });
+}
+</script>
+{% endif %}
 
 {% if lesson.lesson_type == 'homework' %}
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
