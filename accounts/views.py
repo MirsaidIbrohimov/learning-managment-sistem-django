@@ -776,6 +776,73 @@ def mark_video_watched(request, pk):
     return JsonResponse({'success': True, 'coins': request.user.coins})
 
 
+def _notify_ai_graded(submission, ai_result):
+    """AI baholaganda o'quvchi, guruh va adminlarga xabar"""
+    student = submission.student
+    profession = submission.homework.lesson.profession.name
+    lesson = submission.homework.lesson.title
+    grade = ai_result['grade']
+    feedback = ai_result['feedback']
+
+    notify_user(
+        student.telegram_id,
+        f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
+        f"📚 {profession}\n"
+        f"📖 {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n\n"
+        f"💬 <b>AI izohi:</b>\n{feedback}"
+    )
+    notify_group(
+        f"✅ <b>Uy vazifasi AI baholadi!</b>\n\n"
+        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n"
+        f"🤖 Baholadi: AI"
+    )
+    notify_admins(
+        f"✅ <b>Uy vazifasi AI baholadi!</b>\n\n"
+        f"👤 {student.first_name} {student.last_name}\n"
+        f"📚 {profession} / {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n"
+        f"💬 {feedback[:200]}"
+    )
+
+
+def _notify_ai_revision(submission, ai_result):
+    """AI qayta ishlashga yuborganda o'quvchi, guruh va adminlarga xabar"""
+    student = submission.student
+    profession = submission.homework.lesson.profession.name
+    lesson = submission.homework.lesson.title
+    grade = ai_result['grade']
+    feedback = ai_result['feedback']
+
+    notify_user(
+        student.telegram_id,
+        f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+        f"📚 {profession}\n"
+        f"📖 {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n\n"
+        f"💬 <b>Sabab:</b>\n{feedback}\n\n"
+        f"📝 Iltimos, tuzatib qayta yuboring!"
+    )
+    notify_group(
+        f"⚠️ <b>Uy vazifasi qaytarildi!</b>\n\n"
+        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+        f"📚 Kurs: {profession}\n"
+        f"📖 Dars: {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n"
+        f"🤖 AI sabab: {feedback[:150]}"
+    )
+    notify_admins(
+        f"⚠️ <b>Uy vazifasi AI qaytardi!</b>\n\n"
+        f"👤 {student.first_name} {student.last_name}\n"
+        f"📚 {profession} / {lesson}\n"
+        f"🏆 Baho: <b>{grade}/10</b>\n"
+        f"💬 {feedback[:200]}"
+    )
+
+
 def _notify_homework_submitted(student, homework):
     """Yangi vazifa yuborilganda admin, guruh va saytga xabar"""
     hw_text = homework.description[:50] if homework.description else ""
@@ -994,7 +1061,7 @@ def _get_ai_grade(homework_description, student_answer):
 
 
 def _read_submission_content(submission):
-    """Submission mazmunini o'qish (matn yoki fayl)"""
+    """Submission mazmunini o'qish (matn, fayl yoki rasm)"""
     if submission.submission_type == 'text' and submission.text_content:
         return submission.text_content
     elif submission.submission_type == 'file' and submission.file:
@@ -1006,8 +1073,11 @@ def _read_submission_content(submission):
             '.php', '.rb', '.go', '.rs', '.swift', '.kt', '.sh',
             '.bat', '.ps1', '.yaml', '.yml', '.md', '.csv',
         )
+        IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg', '.gif', '.webp')
         if file_ext == '.pdf':
             return None
+        elif file_ext in IMAGE_EXTENSIONS:
+            return _read_image_with_ai(submission.file)
         elif file_ext in CODE_EXTENSIONS:
             try:
                 submission.file.seek(0)
@@ -1018,6 +1088,41 @@ def _read_submission_content(submission):
             except Exception:
                 return None
     return None
+
+
+def _read_image_with_ai(file_field):
+    """Rasm faylni OpenAI Vision orqali o'qib matn sifatida qaytarish"""
+    import base64
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        file_field.seek(0)
+        image_data = base64.b64encode(file_field.read()).decode('utf-8')
+        import os
+        ext = os.path.splitext(file_field.name)[1].lower().strip('.')
+        if ext == 'jpg':
+            ext = 'jpeg'
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Bu rasmdagi barcha matn, kod yoki javoblarni aynan yoz. Faqat rasmdagi kontentni qaytar, boshqa hech narsa qo'shma."},
+                        {"type": "image_url", "image_url": {"url": f"data:image/{ext};base64,{image_data}"}}
+                    ]
+                }
+            ],
+            max_tokens=2000,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Image read error: {e}")
+        return None
 
 
 @login_required
@@ -1075,6 +1180,29 @@ def submit_homework(request, pk):
                     )
                     submission.save(update_fields=['status', 'ai_feedback'])
                     messages.warning(request, "⚠️ Vazifangiz suniy intellekt yordamida yozilgan deb topildi. Qayta ishlashga yuborildi!")
+                    notify_user(
+                        submission.student.telegram_id,
+                        f"🚫 <b>Vazifangiz AI yordamida yozilgan deb topildi!</b>\n\n"
+                        f"📚 {homework.lesson.profession.name}\n"
+                        f"📖 {homework.lesson.title}\n"
+                        f"📋 Sabab: {ai_check['reason']}\n"
+                        f"🔢 Ishonch: {ai_check['confidence']}%\n\n"
+                        f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
+                    )
+                    notify_group(
+                        f"🚫 <b>AI bilan yozilgan vazifa aniqlandi!</b>\n\n"
+                        f"👤 O'quvchi: {submission.student.first_name} {submission.student.last_name}\n"
+                        f"📚 Kurs: {homework.lesson.profession.name}\n"
+                        f"📖 Dars: {homework.lesson.title}\n"
+                        f"🔢 Ishonch: {ai_check['confidence']}%"
+                    )
+                    notify_admins(
+                        f"🚫 <b>AI bilan yozilgan vazifa!</b>\n\n"
+                        f"👤 {submission.student.first_name} {submission.student.last_name}\n"
+                        f"📚 {homework.lesson.profession.name} / {homework.lesson.title}\n"
+                        f"📋 {ai_check['reason']}\n"
+                        f"🔢 Ishonch: {ai_check['confidence']}%"
+                    )
                 else:
                     # 2. Avtomatik baholash
                     ai_result = _get_ai_grade(homework.description, student_answer)
@@ -1108,25 +1236,10 @@ def submit_homework(request, pk):
                                     action_type='homework_graded',
                                     description=f"Vazifa AI baholadi: {homework.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
                                 )
-                            notify_user(
-                                submission.student.telegram_id,
-                                f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
-                                f"📚 {homework.lesson.profession.name}\n"
-                                f"📖 {homework.lesson.title}\n"
-                                f"🏆 Baho: <b>{ai_result['grade']}/10</b>\n\n"
-                                f"💬 <b>AI izohi:</b>\n{ai_result['feedback']}"
-                            )
+                            _notify_ai_graded(submission, ai_result)
                         else:
                             messages.warning(request, f"⚠️ AI xulosasi: qayta ishlash kerak ({ai_result['grade']}/10 ball)")
-                            notify_user(
-                                submission.student.telegram_id,
-                                f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
-                                f"📚 {homework.lesson.profession.name}\n"
-                                f"📖 {homework.lesson.title}\n"
-                                f"🏆 Baho: <b>{ai_result['grade']}/10</b>\n\n"
-                                f"💬 <b>Sabab:</b>\n{ai_result['feedback']}\n\n"
-                                f"📝 Iltimos, tuzatib qayta yuboring!"
-                            )
+                            _notify_ai_revision(submission, ai_result)
                     elif request.user.is_premium:
                         # AI grade ishlamasa, kamida premium feedback berish
                         ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
@@ -3564,17 +3677,7 @@ def grade_homework(request, pk):
                 )
             
             if ai_result['status'] == 'graded':
-                from .notifications import on_homework_graded
-                on_homework_graded(submission.student, submission, submission.grade)
-                _notify_homework_graded(request.user, submission, submission.grade)
-                notify_user(
-                    submission.student.telegram_id,
-                    f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
-                    f"📚 {submission.homework.lesson.profession.name}\n"
-                    f"📖 {submission.homework.lesson.title}\n"
-                    f"🏆 Baho: <b>{submission.grade}/10</b>\n\n"
-                    f"💬 <b>AI izohi:</b>\n{ai_result['feedback']}"
-                )
+                _notify_ai_graded(submission, ai_result)
                 messages.success(request, f"AI baholadi: {submission.grade} ball!")
                 return redirect('homework_submissions')
             else:
@@ -3584,15 +3687,7 @@ def grade_homework(request, pk):
                     message_type='warning',
                     recipient=submission.student
                 )
-                notify_user(
-                    submission.student.telegram_id,
-                    f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
-                    f"📚 {submission.homework.lesson.profession.name}\n"
-                    f"📖 {submission.homework.lesson.title}\n"
-                    f"🏆 Baho: <b>{submission.grade}/10</b>\n\n"
-                    f"💬 <b>Sabab:</b>\n{ai_result['feedback']}\n\n"
-                    f"📝 Iltimos, tuzatib qayta yuboring!"
-                )
+                _notify_ai_revision(submission, ai_result)
                 messages.warning(request, f"AI xulosasi: qayta ishlash kerak ({submission.grade} ball)")
                 return redirect('grade_homework', pk=pk)
         
