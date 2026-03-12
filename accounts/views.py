@@ -941,19 +941,23 @@ def _check_ai_generated(homework_description, student_answer):
                     "role": "system",
                     "content": (
                         "Siz o'quv platformasining plagiat tekshiruvchisisiz. "
-                        "O'quvchining javobini tahlil qiling va bu javob suniy intellekt (ChatGPT, Copilot, Gemini va h.k.) "
-                        "tomonidan yozilgan yoki yo'qligini aniqlang.\n\n"
-                        "AI tomonidan yozilgan belgilar:\n"
-                        "- Juda mukammal va xatosiz kod/matn\n"
-                        "- Ortiqcha izohlar (comments) va tushuntirishlar\n"
-                        "- Standart AI uslubidagi javoblar\n"
-                        "- Haddan tashqari tartibli va professional struktura\n"
-                        "- O'quvchi darajasiga mos kelmaydigan murakkab yechimlar\n"
-                        "- Tipik AI shablonlari va so'z birikmalar\n\n"
+                        "O'quvchining javobini JUDA EHTIYOTKORLIK bilan tahlil qiling.\n\n"
+                        "⚠️ MUHIM QOIDALAR:\n"
+                        "- Oddiy kodlar (print, input, if/else, for loop, oddiy funksiyalar) AI EMAS — bular darslikdan o'rganiladi\n"
+                        "- Qisqa va sodda javoblar AI EMAS\n"
+                        "- Kichik xatolar, noto'g'ri indentatsiya, o'zbek tilidagi o'zgaruvchi nomlari — inson belgisi\n"
+                        "- Faqat darsda o'tilgan mavzuga oid oddiy kod yozilgan bo'lsa — bu AI EMAS\n"
+                        "- O'quvchilar bir-biridan ko'chirib yozishi mumkin, bu ham AI EMAS\n\n"
+                        "FAQAT quyidagi hollarda AI deb belgilang:\n"
+                        "- Javob juda uzun, mukammal va professional darajada yozilgan\n"
+                        "- Har bir qatorga batafsil ingliz tilida izohlar (comments) yozilgan\n"
+                        "- Tipik ChatGPT uslubi: 'Here is...', 'Let me explain...', 'This code demonstrates...' kabi iboralar\n"
+                        "- O'quvchi darajasiga mutlaqo mos kelmaydigan murakkab dizayn patternlar, dekoratorlar, metaklasslar ishlatilgan\n"
+                        "- Javob oxirida 'I hope this helps!' yoki shunga o'xshash AI iboralari bor\n\n"
                         "Faqat JSON formatda javob bering:\n"
                         '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
-                        "- is_ai: true agar 70% dan ortiq ishonch bilan AI yozgan deb hisoblasangiz\n"
-                        "- confidence: 0 dan 100 gacha foizda ishonch darajasi\n"
+                        "- is_ai: FAQAT 90% dan ortiq ishonchingiz bo'lsa true qiling. Shubhangiz bo'lsa false qiling!\n"
+                        "- confidence: aniq ishonch foizi. Oddiy kodlarga 30-50% bering, shubhali bo'lsa 60-80%, faqat aniq AI bo'lsa 90-100%\n"
                         "- reason: O'zbek tilida 1-2 gapda sabab"
                     )
                 },
@@ -1189,38 +1193,93 @@ def submit_homework(request, pk):
             if student_answer:
                 # 1. Suniy intellekt bilan yozilganligini tekshirish
                 ai_check = _check_ai_generated(homework.description, student_answer)
-                if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
+                if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 90:
                     submission.status = 'revision'
+                    
+                    # Coin jarima hisoblash: ishonch darajasiga qarab 10-50 coin
+                    confidence = ai_check['confidence']
+                    if confidence >= 98:
+                        penalty = 50
+                    elif confidence >= 95:
+                        penalty = 40
+                    elif confidence >= 93:
+                        penalty = 30
+                    elif confidence >= 91:
+                        penalty = 20
+                    else:
+                        penalty = 10
+                    
                     submission.ai_feedback = (
                         f"🚫 Suniy intellekt yordamida yozilgan deb topildi! "
-                        f"(ishonch: {ai_check['confidence']}%)\n\n"
+                        f"(ishonch: {confidence}%)\n\n"
                         f"📋 Sabab: {ai_check['reason']}\n\n"
+                        f"💰 Jarima: -{penalty} coin\n\n"
                         f"⚠️ Iltimos, vazifani o'zingiz mustaqil bajaring va qayta yuboring."
                     )
                     submission.save(update_fields=['status', 'ai_feedback'])
-                    messages.warning(request, "⚠️ Vazifangiz suniy intellekt yordamida yozilgan deb topildi. Qayta ishlashga yuborildi!")
+                    
+                    student = submission.student
+                    student.coins -= penalty
+                    student.save(update_fields=['coins'])
+                    CoinTransaction.objects.create(
+                        user=student,
+                        amount=penalty,
+                        action='remove',
+                        reason=f"AI plagiat jarimasi: {homework.lesson.title} (ishonch: {confidence}%)"
+                    )
+                    ActivityLog.objects.create(
+                        user=student,
+                        action_type='earn_coins',
+                        description=f"AI plagiat jarimasi: -{penalty} coin ({homework.lesson.title}, ishonch: {confidence}%)"
+                    )
+                    
+                    # Saytda xabar
+                    Message.objects.create(
+                        title="🚫 AI plagiat jarimasi",
+                        content=(
+                            f"Sizning '{homework.lesson.title}' vazifangiz suniy intellekt yordamida yozilgan deb topildi.\n\n"
+                            f"📋 Sabab: {ai_check['reason']}\n"
+                            f"🔢 Ishonch darajasi: {confidence}%\n"
+                            f"💰 Jarima: -{penalty} coin\n"
+                            f"💳 Joriy balansingiz: {student.coins} coin\n\n"
+                            f"⚠️ Iltimos, vazifalarni mustaqil bajaring!"
+                        ),
+                        message_type='warning',
+                        recipient=student
+                    )
+                    
+                    messages.warning(request, f"⚠️ Vazifangiz AI yordamida yozilgan deb topildi! Jarima: -{penalty} coin. Qayta ishlashga yuborildi!")
+                    
+                    # Telegram: o'quvchiga
                     notify_user(
-                        submission.student.telegram_id,
+                        student.telegram_id,
                         f"🚫 <b>Vazifangiz AI yordamida yozilgan deb topildi!</b>\n\n"
                         f"📚 {homework.lesson.profession.name}\n"
                         f"📖 {homework.lesson.title}\n"
                         f"📋 Sabab: {ai_check['reason']}\n"
-                        f"🔢 Ishonch: {ai_check['confidence']}%\n\n"
+                        f"🔢 Ishonch: {confidence}%\n"
+                        f"💰 Jarima: <b>-{penalty} coin</b>\n"
+                        f"💳 Balansingiz: {student.coins} coin\n\n"
                         f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
                     )
+                    # Telegram: guruh
                     notify_group(
-                        f"🚫 <b>AI bilan yozilgan vazifa aniqlandi!</b>\n\n"
-                        f"👤 O'quvchi: {submission.student.first_name} {submission.student.last_name}\n"
+                        f"🚫 <b>AI plagiat aniqlandi!</b>\n\n"
+                        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
                         f"📚 Kurs: {homework.lesson.profession.name}\n"
                         f"📖 Dars: {homework.lesson.title}\n"
-                        f"🔢 Ishonch: {ai_check['confidence']}%"
+                        f"🔢 Ishonch: {confidence}%\n"
+                        f"💰 Jarima: -{penalty} coin"
                     )
+                    # Telegram: adminlar
                     notify_admins(
-                        f"🚫 <b>AI bilan yozilgan vazifa!</b>\n\n"
-                        f"👤 {submission.student.first_name} {submission.student.last_name}\n"
+                        f"🚫 <b>AI plagiat jarimasi!</b>\n\n"
+                        f"👤 {student.first_name} {student.last_name}\n"
                         f"📚 {homework.lesson.profession.name} / {homework.lesson.title}\n"
                         f"📋 {ai_check['reason']}\n"
-                        f"🔢 Ishonch: {ai_check['confidence']}%"
+                        f"🔢 Ishonch: {confidence}%\n"
+                        f"💰 Jarima: -{penalty} coin\n"
+                        f"💳 Balans: {student.coins} coin"
                     )
                 else:
                     # 2. Avtomatik baholash
