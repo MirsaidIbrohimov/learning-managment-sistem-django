@@ -78,28 +78,49 @@ class CourseEnrollmentAdmin(admin.ModelAdmin):
 
 @admin.register(Lesson)
 class LessonAdmin(admin.ModelAdmin):
-    list_display = ['title', 'profession', 'lesson_type', 'created_by', 'created_at']
+    list_display = ['title', 'profession', 'lesson_type', 'has_article', 'created_by', 'created_at']
     list_filter = ['lesson_type', 'profession', 'created_at']
     search_fields = ['title', 'profession__name']
     autocomplete_fields = ['profession', 'created_by']
 
+    fieldsets = (
+        (None, {'fields': ('profession', 'section', 'title', 'lesson_type', 'order', 'created_by')}),
+        ('AI maqola', {
+            'classes': ('collapse',),
+            'fields': ('ai_article',),
+            'description': 'Video darslar uchun AI tomonidan yaratilgan maqola. O\'zgartirish mumkin.',
+        }),
+    )
+
+    def has_article(self, obj):
+        if obj.ai_article:
+            return format_html('<span style="color:#28a745;">✓</span>')
+        return format_html('<span style="color:#ccc;">—</span>')
+    has_article.short_description = 'Maqola'
+
 
 @admin.register(VideoLesson)
 class VideoLessonAdmin(admin.ModelAdmin):
-    list_display = ['lesson', 'duration', 'youtube_url']
+    list_display = ['lesson', 'duration', 'youtube_url', 'has_article']
     search_fields = ['lesson__title']
+
+    def has_article(self, obj):
+        if obj.lesson.ai_article:
+            return format_html('<span style="color:#28a745;">✓ Bor</span>')
+        return format_html('<span style="color:#dc3545;">✗ Yo\'q</span>')
+    has_article.short_description = 'AI maqola'
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         lesson = obj.lesson
         if not lesson.ai_article:
-            import threading
-            def _gen():
-                from accounts.views import _generate_ai_article
-                article = _generate_ai_article(lesson.title, lesson.profession.name)
-                if article:
-                    Lesson.objects.filter(pk=lesson.pk).update(ai_article=article)
-            threading.Thread(target=_gen, daemon=True).start()
+            from accounts.views import _generate_ai_article
+            from django.contrib import messages as admin_messages
+            article = _generate_ai_article(lesson.title, lesson.profession.name)
+            if article:
+                lesson.ai_article = article
+                lesson.save(update_fields=['ai_article'])
+                admin_messages.success(request, f"✅ AI maqola yaratildi: {lesson.title}")
 
 
 @admin.register(Homework)
