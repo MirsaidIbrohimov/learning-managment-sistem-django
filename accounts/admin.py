@@ -112,15 +112,6 @@ class VideoLessonAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        lesson = obj.lesson
-        if not lesson.ai_article:
-            from accounts.views import _generate_ai_article
-            from django.contrib import messages as admin_messages
-            article = _generate_ai_article(lesson.title, lesson.profession.name)
-            if article:
-                lesson.ai_article = article
-                lesson.save(update_fields=['ai_article'])
-                admin_messages.success(request, f"✅ AI maqola yaratildi: {lesson.title}")
 
 
 @admin.register(Homework)

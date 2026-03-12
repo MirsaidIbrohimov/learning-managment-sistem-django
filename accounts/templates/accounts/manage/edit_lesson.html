@@ -68,6 +68,14 @@
                             <label class="form-label" style="color: var(--text-color);">Davomiyligi (daqiqa)</label>
                             {{ form.duration }}
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label" style="color: var(--text-color);">
+                                <i class="bi bi-robot text-primary me-1"></i>AI maqola
+                                {% if lesson.ai_article %}<span class="badge bg-success ms-1">Mavjud</span>{% endif %}
+                            </label>
+                            <textarea name="ai_article" class="form-control" rows="8" placeholder="AI maqola hali yaratilmagan...">{{ lesson.ai_article|default:'' }}</textarea>
+                            <small class="text-muted d-block mt-1">Video tagida ko'rinadigan maqola. HTML formatda. O'zgartirishingiz mumkin.</small>
+                        </div>
                         {% elif lesson.lesson_type == 'homework' %}
                         <div class="mb-3">
                             <label class="form-label" style="color: var(--text-color);">Vazifa tavsifi</label>

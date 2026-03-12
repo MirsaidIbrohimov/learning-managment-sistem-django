@@ -3008,6 +3008,11 @@ def add_lesson(request, pk):
                     youtube_url=youtube_url or None,
                     duration=form.cleaned_data.get('duration') or 0
                 )
+                # AI maqola yaratish
+                ai_article = _generate_ai_article(lesson.title, profession.name)
+                if ai_article:
+                    lesson.ai_article = ai_article
+                    lesson.save(update_fields=['ai_article'])
                 # Xabar yuborish
                 send_course_notification(
                     profession=profession,
@@ -3106,7 +3111,8 @@ def edit_lesson(request, pk):
             form = VideoLessonForm(request.POST)
             if form.is_valid():
                 lesson.title = form.cleaned_data['title']
-                lesson.save()
+                lesson.ai_article = request.POST.get('ai_article', '').strip() or None
+                lesson.save(update_fields=['title', 'ai_article'])
                 lesson.video.video_url = form.cleaned_data.get('vimeo_url') or None
                 lesson.video.youtube_url = form.cleaned_data.get('youtube_url') or None
                 lesson.video.duration = form.cleaned_data.get('duration') or 0
