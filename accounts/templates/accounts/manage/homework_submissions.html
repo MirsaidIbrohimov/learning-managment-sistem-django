@@ -147,6 +147,10 @@
 [data-bs-theme="dark"] .hw-page .hw-tag.t-text { background: rgba(14,165,233,0.2); color: #7dd3fc; }
 [data-bs-theme="dark"] .hw-page .hw-tag.t-file { background: rgba(99,102,241,0.2); color: #a5b4fc; }
 [data-bs-theme="dark"] .hw-page .hw-tag.t-revision { background: rgba(245,158,11,0.2); color: #fcd34d; }
+.hw-page .hw-tag.t-ai { background: rgba(16,185,129,0.1); color: #10b981; }
+[data-bs-theme="dark"] .hw-page .hw-tag.t-ai { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+.hw-page .hw-card.hw-ai-graded { border-left: 3px solid #10b981; }
+.hw-page .hw-card.hw-ai-graded.hw-has-unread { border-left: 3px solid #10b981; }
 
 /* status */
 .hw-page .hw-status {
@@ -307,7 +311,7 @@
     {% if submissions %}
     <div class="hw-list">
         {% for sub in submissions %}
-        <div class="hw-card {% if sub.unread_messages_count > 0 %}hw-has-unread{% endif %}">
+        <div class="hw-card {% if sub.unread_messages_count > 0 %}hw-has-unread{% endif %} {% if sub.ai_feedback %}hw-ai-graded{% endif %}">
 
             <!-- DESKTOP -->
             <div class="hw-student hw-desk">
@@ -335,6 +339,9 @@
                     {% endif %}
                     {% if sub.revision_count > 0 %}
                     <span class="hw-tag t-revision"><i class="bi bi-arrow-repeat"></i> {{ sub.revision_count }}x</span>
+                    {% endif %}
+                    {% if sub.ai_feedback %}
+                    <span class="hw-tag t-ai"><i class="bi bi-robot"></i> AI</span>
                     {% endif %}
                 </div>
             </div>
@@ -392,6 +399,9 @@
                         {% endif %}
                         {% if sub.revision_count > 0 %}
                         <span class="hw-tag t-revision"><i class="bi bi-arrow-repeat"></i> {{ sub.revision_count }}x</span>
+                        {% endif %}
+                        {% if sub.ai_feedback %}
+                        <span class="hw-tag t-ai"><i class="bi bi-robot"></i> AI</span>
                         {% endif %}
                     </div>
                 </div>
