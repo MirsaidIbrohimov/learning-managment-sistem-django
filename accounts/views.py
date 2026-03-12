@@ -1108,8 +1108,25 @@ def submit_homework(request, pk):
                                     action_type='homework_graded',
                                     description=f"Vazifa AI baholadi: {homework.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
                                 )
+                            notify_user(
+                                submission.student.telegram_id,
+                                f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
+                                f"📚 {homework.lesson.profession.name}\n"
+                                f"📖 {homework.lesson.title}\n"
+                                f"🏆 Baho: <b>{ai_result['grade']}/10</b>\n\n"
+                                f"💬 <b>AI izohi:</b>\n{ai_result['feedback']}"
+                            )
                         else:
                             messages.warning(request, f"⚠️ AI xulosasi: qayta ishlash kerak ({ai_result['grade']}/10 ball)")
+                            notify_user(
+                                submission.student.telegram_id,
+                                f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+                                f"📚 {homework.lesson.profession.name}\n"
+                                f"📖 {homework.lesson.title}\n"
+                                f"🏆 Baho: <b>{ai_result['grade']}/10</b>\n\n"
+                                f"💬 <b>Sabab:</b>\n{ai_result['feedback']}\n\n"
+                                f"📝 Iltimos, tuzatib qayta yuboring!"
+                            )
                     elif request.user.is_premium:
                         # AI grade ishlamasa, kamida premium feedback berish
                         ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
@@ -3550,6 +3567,14 @@ def grade_homework(request, pk):
                 from .notifications import on_homework_graded
                 on_homework_graded(submission.student, submission, submission.grade)
                 _notify_homework_graded(request.user, submission, submission.grade)
+                notify_user(
+                    submission.student.telegram_id,
+                    f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
+                    f"📚 {submission.homework.lesson.profession.name}\n"
+                    f"📖 {submission.homework.lesson.title}\n"
+                    f"🏆 Baho: <b>{submission.grade}/10</b>\n\n"
+                    f"💬 <b>AI izohi:</b>\n{ai_result['feedback']}"
+                )
                 messages.success(request, f"AI baholadi: {submission.grade} ball!")
                 return redirect('homework_submissions')
             else:
@@ -3558,6 +3583,15 @@ def grade_homework(request, pk):
                     content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
                     message_type='warning',
                     recipient=submission.student
+                )
+                notify_user(
+                    submission.student.telegram_id,
+                    f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
+                    f"📚 {submission.homework.lesson.profession.name}\n"
+                    f"📖 {submission.homework.lesson.title}\n"
+                    f"🏆 Baho: <b>{submission.grade}/10</b>\n\n"
+                    f"💬 <b>Sabab:</b>\n{ai_result['feedback']}\n\n"
+                    f"📝 Iltimos, tuzatib qayta yuboring!"
                 )
                 messages.warning(request, f"AI xulosasi: qayta ishlash kerak ({submission.grade} ball)")
                 return redirect('grade_homework', pk=pk)
@@ -3609,6 +3643,15 @@ def grade_homework(request, pk):
                 from .notifications import on_homework_graded
                 on_homework_graded(submission.student, submission, submission.grade)
                 _notify_homework_graded(request.user, submission, submission.grade)
+                notify_user(
+                    submission.student.telegram_id,
+                    f"✅ <b>Vazifangiz baholandi!</b>\n\n"
+                    f"📚 {submission.homework.lesson.profession.name}\n"
+                    f"📖 {submission.homework.lesson.title}\n"
+                    f"🏆 Baho: <b>{submission.grade}/10</b>\n"
+                    f"👨‍🏫 Baholadi: {request.user.first_name} {request.user.last_name}\n\n"
+                    f"{'💬 <b>Izoh:</b>' + chr(10) + feedback if feedback else ''}"
+                )
                 
                 messages.success(request, f"Vazifa baholandi: {submission.grade} ball!")
                 return redirect('homework_submissions')
