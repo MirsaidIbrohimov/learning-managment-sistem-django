@@ -319,8 +319,11 @@ def home_view(request):
         my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
         for enrollment in my_enrollments:
             profession = enrollment.profession
-            total = Lesson.objects.filter(profession=profession).count()
-            if total == 0:
+            total_videos = VideoLesson.objects.filter(lesson__profession=profession).count()
+            total_tests = Test.objects.filter(lesson__profession=profession).count()
+            total_homeworks = Homework.objects.filter(lesson__profession=profession).count()
+            total_items = total_videos + total_tests + total_homeworks
+            if total_items == 0:
                 progress = 0
             else:
                 watched = VideoProgress.objects.filter(
@@ -328,13 +331,18 @@ def home_view(request):
                     video__lesson__profession=profession,
                     watched=True
                 ).count()
-                accepted = HomeworkSubmission.objects.filter(
+                passed_tests = TestResult.objects.filter(
+                    student=request.user,
+                    test__lesson__profession=profession,
+                    passed=True
+                ).values('test__lesson_id').distinct().count()
+                done_hw = HomeworkSubmission.objects.filter(
                     student=request.user,
                     homework__lesson__profession=profession,
                     status__in=['accepted', 'graded']
-                ).count()
-                completed = watched + accepted
-                progress = min(100, int((completed / total) * 100))
+                ).values('homework__lesson_id').distinct().count()
+                completed = watched + passed_tests + done_hw
+                progress = min(100, round((completed / total_items) * 100))
             dashboard_courses.append({
                 'name': profession.name,
                 'progress': progress,
