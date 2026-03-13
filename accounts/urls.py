@@ -188,6 +188,10 @@ urlpatterns = [
     path('dashboard/enrollment-requests/<int:pk>/approve/', views.approve_enrollment_request, name='approve_enrollment_request'),
     path('dashboard/enrollment-requests/<int:pk>/reject/', views.reject_enrollment_request, name='reject_enrollment_request'),
     
+    # Admin: Kursdan chiqish so'rovlari
+    path('dashboard/unenroll-requests/<int:pk>/approve/', views.approve_unenroll_request, name='approve_unenroll_request'),
+    path('dashboard/unenroll-requests/<int:pk>/reject/', views.reject_unenroll_request, name='reject_unenroll_request'),
+    
     # Parol tiklash
     path('password-reset-request/', views.password_reset_request_view, name='password_reset_request'),
     path('dashboard/password-reset-requests/', views.admin_password_reset_requests, name='admin_password_reset_requests'),

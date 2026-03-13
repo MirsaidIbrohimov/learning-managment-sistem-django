@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -6865,6 +6866,8 @@ def admin_enrollment_requests(request):
     profession_filter = request.GET.get('profession')
     search = request.GET.get('q')
     
+    tab = request.GET.get('tab', 'enroll')  # 'enroll' yoki 'unenroll'
+    
     requests_qs = CourseEnrollmentRequest.objects.select_related('user', 'profession')
     
     if status_filter:
@@ -6880,20 +6883,42 @@ def admin_enrollment_requests(request):
             Q(user__phone__icontains=search)
         )
     
+    # Kursdan chiqish so'rovlari
+    unenroll_qs = CourseUnenrollRequest.objects.select_related('user', 'profession')
+    if status_filter:
+        unenroll_qs = unenroll_qs.filter(status=status_filter)
+    if profession_filter:
+        unenroll_qs = unenroll_qs.filter(profession_id=profession_filter)
+    if search:
+        unenroll_qs = unenroll_qs.filter(
+            Q(user__first_name__icontains=search) |
+            Q(user__last_name__icontains=search) |
+            Q(user__phone__icontains=search)
+        )
+    
     professions = Profession.objects.all()
     pending_count = CourseEnrollmentRequest.objects.filter(status='pending').count()
     approved_count = CourseEnrollmentRequest.objects.filter(status='approved').count()
     rejected_count = CourseEnrollmentRequest.objects.filter(status='rejected').count()
     
+    unenroll_pending = CourseUnenrollRequest.objects.filter(status='pending').count()
+    unenroll_approved = CourseUnenrollRequest.objects.filter(status='approved').count()
+    unenroll_rejected = CourseUnenrollRequest.objects.filter(status='rejected').count()
+    
     context = {
         'enrollment_requests': requests_qs,
+        'unenroll_requests': unenroll_qs,
         'professions': professions,
         'status_filter': status_filter,
         'profession_filter': profession_filter,
         'search': search,
+        'tab': tab,
         'pending_count': pending_count,
         'approved_count': approved_count,
         'rejected_count': rejected_count,
+        'unenroll_pending': unenroll_pending,
+        'unenroll_approved': unenroll_approved,
+        'unenroll_rejected': unenroll_rejected,
     }
     return render(request, 'accounts/admin/enrollment_requests.html', context)
 
@@ -7043,7 +7068,7 @@ def approve_unenroll_request(request, pk):
 
         messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!")
 
-    return redirect('admin_unenroll_requests')
+    return redirect(f"{reverse('admin_enrollment_requests')}?tab=unenroll")
 
 
 @login_required
@@ -7079,7 +7104,7 @@ def reject_unenroll_request(request, pk):
 
         messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
 
-    return redirect('admin_unenroll_requests')
+    return redirect(f"{reverse('admin_enrollment_requests')}?tab=unenroll")
 
 
 def password_reset_request_view(request):

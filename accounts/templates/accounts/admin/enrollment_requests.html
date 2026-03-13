@@ -440,18 +440,79 @@
         background: rgba(13, 110, 253, 0.2);
         color: #60a5fa;
     }
+
+    /* ===== Tab Navigation ===== */
+    .enroll-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 20px;
+        background: var(--bg-color, #f0f2f5);
+        border-radius: 12px;
+        padding: 4px;
+    }
+    .enroll-tab {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.88rem;
+        color: #6c757d;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+    }
+    .enroll-tab:hover { color: var(--text-color); background: rgba(0,0,0,0.04); }
+    .enroll-tab.active { background: var(--card-bg, #fff); color: var(--text-color); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    [data-bs-theme="dark"] .enroll-tab.active { box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
+    .enroll-tab .tab-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 20px; height: 20px; border-radius: 10px; padding: 0 6px;
+        font-size: 0.7rem; font-weight: 700; color: #fff;
+    }
+    .enroll-tab .tab-badge.bg-warning { background: #f59e0b !important; }
+    .enroll-tab .tab-badge.bg-danger { background: #ef4444 !important; }
+
+    .reason-text {
+        font-size: 0.82rem;
+        color: #6c757d;
+        max-width: 200px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 {% endblock %}
 
 {% block admin_content %}
 <div class="top-bar">
     <h1 class="page-title">
-        <i class="bi bi-person-plus me-2"></i>Kursga yozilish so'rovlari
-        {% if pending_count > 0 %}
-        <span class="badge bg-danger ms-2">{{ pending_count }}</span>
+        <i class="bi bi-person-plus me-2"></i>So'rovlar
+        {% if pending_count > 0 or unenroll_pending > 0 %}
+        <span class="badge bg-danger ms-2">{{ pending_count|add:unenroll_pending }}</span>
         {% endif %}
     </h1>
 </div>
+
+<!-- Tabs -->
+<div class="enroll-tabs">
+    <a href="?tab=enroll{% if status_filter %}&status={{ status_filter }}{% endif %}" class="enroll-tab {% if tab == 'enroll' %}active{% endif %}">
+        <i class="bi bi-person-plus"></i> Yozilish so'rovlari
+        {% if pending_count > 0 %}<span class="tab-badge bg-warning">{{ pending_count }}</span>{% endif %}
+    </a>
+    <a href="?tab=unenroll{% if status_filter %}&status={{ status_filter }}{% endif %}" class="enroll-tab {% if tab == 'unenroll' %}active{% endif %}">
+        <i class="bi bi-box-arrow-right"></i> Chiqish so'rovlari
+        {% if unenroll_pending > 0 %}<span class="tab-badge bg-danger">{{ unenroll_pending }}</span>{% endif %}
+    </a>
+</div>
+
+{% if tab == 'enroll' %}
+<!-- ============ YOZILISH SO'ROVLARI ============ -->
 
 <!-- Stats Summary -->
 <div class="enroll-stats">
@@ -496,6 +557,7 @@
         <i class="bi bi-funnel"></i> Filtrlash
     </div>
     <form method="GET">
+        <input type="hidden" name="tab" value="{{ tab }}">
         <div class="row g-3">
             <div class="col-md-3 col-6">
                 <label class="form-label small fw-semibold">Holat</label>
@@ -750,17 +812,338 @@
 
     {% with page_obj=enrollment_requests %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
 </div>
+
+{% else %}
+<!-- ============ CHIQISH SO'ROVLARI ============ -->
+
+<!-- Stats Summary -->
+<div class="enroll-stats">
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon pending">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ unenroll_pending|default:"0" }}</div>
+            <div class="enroll-stat-label">Kutilmoqda</div>
+        </div>
+    </div>
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon approved">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ unenroll_approved|default:"0" }}</div>
+            <div class="enroll-stat-label">Tasdiqlangan</div>
+        </div>
+    </div>
+    <div class="enroll-stat-card">
+        <div class="enroll-stat-icon rejected">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div>
+            <div class="enroll-stat-number">{{ unenroll_rejected|default:"0" }}</div>
+            <div class="enroll-stat-label">Rad etilgan</div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Filter Toggle -->
+<button class="filter-toggle-btn" id="filterToggleUnenroll" type="button">
+    <span><i class="bi bi-funnel me-2"></i>Filtrlash</span>
+    <i class="bi bi-chevron-down"></i>
+</button>
+
+<!-- Filters -->
+<div class="filter-card" id="filterCardUnenroll">
+    <div class="filter-title">
+        <i class="bi bi-funnel"></i> Filtrlash
+    </div>
+    <form method="GET">
+        <input type="hidden" name="tab" value="unenroll">
+        <div class="row g-3">
+            <div class="col-md-3 col-6">
+                <label class="form-label small fw-semibold">Holat</label>
+                <select name="status" class="form-select">
+                    <option value="">Barchasi</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rad etilgan</option>
+                </select>
+            </div>
+            <div class="col-md-3 col-6">
+                <label class="form-label small fw-semibold">Kurs</label>
+                <select name="profession" class="form-select">
+                    <option value="">Barcha kurslar</option>
+                    {% for prof in professions %}
+                    <option value="{{ prof.pk }}" {% if profession_filter == prof.pk|stringformat:"s" %}selected{% endif %}>{{ prof.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 col-12">
+                <label class="form-label small fw-semibold">Qidiruv</label>
+                <input type="text" name="q" class="form-control" placeholder="Ism, familiya, telefon..." value="{{ search|default:'' }}">
+            </div>
+            <div class="col-md-2 col-12 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search me-1"></i>Qidirish
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Desktop Table -->
+<div class="card desktop-table">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 enrollment-table">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Telefon</th>
+                        <th>Kurs</th>
+                        <th>Sabab</th>
+                        <th>Sana</th>
+                        <th>Holat</th>
+                        <th class="text-center">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in unenroll_requests %}
+                    <tr>
+                        <td>
+                            <div class="user-cell">
+                                {% if req.user.photo %}
+                                <img src="{{ req.user.photo.url }}" alt="" class="user-avatar-img">
+                                {% else %}
+                                <div class="user-avatar-init">
+                                    {{ req.user.get_initials }}
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="user-name">{{ req.user.full_name }}</div>
+                                    <div class="user-sub">{{ req.user.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ req.user.phone }}</td>
+                        <td>
+                            <span class="profession-badge">{{ req.profession.name }}</span>
+                        </td>
+                        <td>
+                            <span class="reason-text" title="{{ req.reason }}">{{ req.reason|truncatewords:8 }}</span>
+                        </td>
+                        <td>
+                            <span class="text-nowrap">{{ req.created_at|date:"d.m.Y" }}</span>
+                            <br>
+                            <small class="text-muted">{{ req.created_at|date:"H:i" }}</small>
+                        </td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                            <span class="status-badge pending">
+                                <i class="bi bi-clock"></i> Kutilmoqda
+                            </span>
+                            {% elif req.status == 'approved' %}
+                            <span class="status-badge approved">
+                                <i class="bi bi-check-circle"></i> Tasdiqlangan
+                            </span>
+                            {% else %}
+                            <span class="status-badge rejected">
+                                <i class="bi bi-x-circle"></i> Rad etilgan
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if req.status == 'pending' %}
+                            <div class="btn-group">
+                                <form method="POST" action="{% url 'approve_unenroll_request' req.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm" title="Tasdiqlash"
+                                            onclick="return confirm('{{ req.user.full_name }} ni {{ req.profession.name }} kursidan chiqarishni tasdiqlaysizmi?')">
+                                        <i class="bi bi-check-lg"></i> Tasdiqlash
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectUnenrollModal{{ req.pk }}" title="Rad etish">
+                                    <i class="bi bi-x-lg"></i> Rad
+                                </button>
+                            </div>
+
+                            <!-- Reject Modal -->
+                            <div class="modal fade" id="rejectUnenrollModal{{ req.pk }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="border-radius: 16px; border: none;">
+                                        <form method="POST" action="{% url 'reject_unenroll_request' req.pk %}">
+                                            {% csrf_token %}
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold">
+                                                    <i class="bi bi-x-circle text-danger me-2"></i>Chiqish so'rovini rad etish
+                                                </h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3" style="background: var(--bg-color);">
+                                                    {% if req.user.photo %}
+                                                    <img src="{{ req.user.photo.url }}" alt="" class="rounded-3" style="width: 44px; height: 44px; object-fit: cover;">
+                                                    {% else %}
+                                                    <div class="rounded-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: linear-gradient(135deg, #2563eb, #7c3aed); color: #fff; font-weight: 700; font-size: 0.85rem;">
+                                                        {{ req.user.get_initials }}
+                                                    </div>
+                                                    {% endif %}
+                                                    <div>
+                                                        <div class="fw-semibold">{{ req.user.full_name }}</div>
+                                                        <span class="profession-badge">{{ req.profession.name }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="p-3 rounded-3 mb-3" style="background: rgba(239,68,68,0.06);">
+                                                    <small class="fw-semibold text-muted">Chiqish sababi:</small>
+                                                    <p class="mb-0 mt-1" style="font-size: 0.9rem;">{{ req.reason }}</p>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Rad etish sababi (ixtiyoriy)</label>
+                                                    <textarea name="admin_message" class="form-control" rows="3" placeholder="Sababni kiriting..."></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 pt-0">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">Bekor qilish</button>
+                                                <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                                                    <i class="bi bi-x-circle me-1"></i>Rad etish
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <span class="text-muted small">
+                                {% if req.reviewed_by %}
+                                {{ req.reviewed_by.full_name }}
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="enroll-empty">
+                                <div class="enroll-empty-icon">
+                                    <i class="bi bi-inbox"></i>
+                                </div>
+                                <h4>So'rovlar yo'q</h4>
+                                <p>Hozircha kursdan chiqish so'rovlari mavjud emas</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% with page_obj=unenroll_requests %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+</div>
+
+<!-- Mobile Cards for Unenroll -->
+<div class="mobile-cards">
+    {% for req in unenroll_requests %}
+    <div class="enroll-mobile-card">
+        <div class="enroll-mobile-header">
+            <div class="enroll-mobile-user">
+                {% if req.user.photo %}
+                <img src="{{ req.user.photo.url }}" alt="" class="enroll-mobile-avatar">
+                {% else %}
+                <div class="enroll-mobile-avatar-placeholder">
+                    {{ req.user.get_initials }}
+                </div>
+                {% endif %}
+                <div style="min-width: 0;">
+                    <div class="enroll-mobile-name">{{ req.user.full_name }}</div>
+                    <div class="enroll-mobile-username">@{{ req.user.username }}</div>
+                </div>
+            </div>
+            {% if req.status == 'pending' %}
+            <span class="status-badge pending">
+                <i class="bi bi-clock"></i> Kutilmoqda
+            </span>
+            {% elif req.status == 'approved' %}
+            <span class="status-badge approved">
+                <i class="bi bi-check-circle"></i> Tasdiqlandi
+            </span>
+            {% else %}
+            <span class="status-badge rejected">
+                <i class="bi bi-x-circle"></i> Rad
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="enroll-mobile-details">
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Kurs</span>
+                <span class="enroll-mobile-detail-value">{{ req.profession.name }}</span>
+            </div>
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Sana</span>
+                <span class="enroll-mobile-detail-value">{{ req.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Telefon</span>
+                <span class="enroll-mobile-detail-value">{{ req.user.phone|default:"—" }}</span>
+            </div>
+            <div class="enroll-mobile-detail" style="grid-column: 1 / -1;">
+                <span class="enroll-mobile-detail-label">Sabab</span>
+                <span class="enroll-mobile-detail-value">{{ req.reason|truncatewords:15 }}</span>
+            </div>
+            {% if req.reviewed_by %}
+            <div class="enroll-mobile-detail">
+                <span class="enroll-mobile-detail-label">Ko'rib chiqdi</span>
+                <span class="enroll-mobile-detail-value">{{ req.reviewed_by.full_name }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if req.status == 'pending' %}
+        <div class="enroll-mobile-actions">
+            <form method="POST" action="{% url 'approve_unenroll_request' req.pk %}" class="flex-fill">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success w-100"
+                        onclick="return confirm('{{ req.user.full_name }} ni kursdan chiqarishni tasdiqlaysizmi?')">
+                    <i class="bi bi-check-lg me-1"></i>Tasdiqlash
+                </button>
+            </form>
+            <button type="button" class="btn btn-danger flex-fill" data-bs-toggle="modal" data-bs-target="#rejectUnenrollModal{{ req.pk }}">
+                <i class="bi bi-x-lg me-1"></i>Rad etish
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="enroll-empty">
+        <div class="enroll-empty-icon">
+            <i class="bi bi-inbox"></i>
+        </div>
+        <h4>So'rovlar yo'q</h4>
+        <p>Hozircha kursdan chiqish so'rovlari mavjud emas</p>
+    </div>
+    {% endfor %}
+
+    {% with page_obj=unenroll_requests %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+</div>
+
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
     // Mobile filter toggle
-    const filterToggle = document.getElementById('filterToggle');
-    const filterCard = document.getElementById('filterCard');
-
-    filterToggle.addEventListener('click', () => {
-        filterToggle.classList.toggle('active');
-        filterCard.classList.toggle('show');
+    document.querySelectorAll('[id^="filterToggle"]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var cardId = btn.id.replace('Toggle', 'Card');
+            var card = document.getElementById(cardId);
+            if (card) {
+                btn.classList.toggle('active');
+                card.classList.toggle('show');
+            }
+        });
     });
 </script>
 {% endblock %}
