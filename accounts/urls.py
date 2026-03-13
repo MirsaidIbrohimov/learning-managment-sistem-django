@@ -189,6 +189,7 @@ urlpatterns = [
     path('dashboard/enrollment-requests/<int:pk>/reject/', views.reject_enrollment_request, name='reject_enrollment_request'),
     
     # Admin: Kursdan chiqish so'rovlari
+    path('dashboard/unenroll-requests/', views.admin_unenroll_requests, name='admin_unenroll_requests'),
     path('dashboard/unenroll-requests/<int:pk>/approve/', views.approve_unenroll_request, name='approve_unenroll_request'),
     path('dashboard/unenroll-requests/<int:pk>/reject/', views.reject_unenroll_request, name='reject_unenroll_request'),
     

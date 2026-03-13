@@ -7107,7 +7107,7 @@ def reject_unenroll_request(request, pk):
 
         messages.warning(request, f"{unenroll_req.user.full_name} - chiqish so'rovi rad etildi!")
 
-    return redirect(f"{reverse('admin_enrollment_requests')}?tab=unenroll")
+    return redirect('admin_unenroll_requests')
 
 
 def password_reset_request_view(request):

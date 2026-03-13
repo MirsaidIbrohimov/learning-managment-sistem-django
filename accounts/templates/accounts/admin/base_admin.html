@@ -325,13 +325,13 @@
                 <span>Ota-onalar</span>
             </a>
             <a href="{% url 'admin_enrollment_requests' %}"
-                class="nav-link {% if 'enrollment' in request.resolver_match.url_name and 'tab=unenroll' not in request.get_full_path %}active{% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'admin_enrollment_requests' %}active{% endif %}">
                 <i class="bi bi-person-plus"></i>
                 <span>So'rovlar</span>
                 {% if admin_pending_enrollments %}<span class="sidebar-badge">{{ admin_pending_enrollments }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_enrollment_requests' %}?tab=unenroll"
-                class="nav-link {% if 'tab=unenroll' in request.get_full_path %}active{% endif %}">
+            <a href="{% url 'admin_unenroll_requests' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_unenroll_requests' %}active{% endif %}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Chiqish so'rovlari</span>
                 {% if admin_pending_unenrollments %}<span class="sidebar-badge" style="background:#ef4444;">{{ admin_pending_unenrollments }}</span>{% endif %}
