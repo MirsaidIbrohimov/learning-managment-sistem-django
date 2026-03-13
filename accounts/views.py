@@ -3529,7 +3529,9 @@ def homework_submissions(request):
             Q(homework__lesson__title__icontains=search_query)
         )
     
-    if status_filter:
+    if status_filter == 'ai_checked':
+        submissions = submissions.exclude(ai_feedback__isnull=True).exclude(ai_feedback='')
+    elif status_filter:
         submissions = submissions.filter(status=status_filter)
     else:
         submissions = submissions.exclude(status='graded')
@@ -3559,6 +3561,7 @@ def homework_submissions(request):
             'revision': hw_qs.filter(status='revision').count(),
             'accepted': hw_qs.filter(status='accepted').count(),
             'graded': hw_qs.filter(status='graded').count(),
+            'ai_checked': hw_qs.exclude(ai_feedback__isnull=True).exclude(ai_feedback='').count(),
         }
         professions = Profession.objects.filter(pk__in=teaching_ids)
     else:
@@ -3568,6 +3571,7 @@ def homework_submissions(request):
             'revision': HomeworkSubmission.objects.filter(status='revision').count(),
             'accepted': HomeworkSubmission.objects.filter(status='accepted').count(),
             'graded': HomeworkSubmission.objects.filter(status='graded').count(),
+            'ai_checked': HomeworkSubmission.objects.exclude(ai_feedback__isnull=True).exclude(ai_feedback='').count(),
         }
         professions = Profession.objects.all()
     
