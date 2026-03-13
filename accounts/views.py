@@ -390,7 +390,7 @@ def profession_detail(request, pk):
     
     is_teaching = False
     if request.user.is_student:
-        is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
+        is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
         if is_enrolled:
             unenroll_request = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
         else:
@@ -600,8 +600,9 @@ def unenroll_course(request, pk):
     
     profession = get_object_or_404(Profession, pk=pk)
     enrollment = CourseEnrollment.objects.filter(user=request.user, profession=profession).first()
+    is_enrolled = enrollment or request.user.profession == profession
     
-    if not enrollment:
+    if not is_enrolled:
         messages.warning(request, "Siz bu kursga yozilmagansiz!")
         return redirect('professions')
     
@@ -621,8 +622,10 @@ def unenroll_course(request, pk):
             messages.error(request, "Iltimos, kursdan chiqish sababini yozing!")
             return redirect('profession_detail', pk=pk)
         
-        # Eski rad etilgan so'rovni o'chirish
-        CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='rejected').delete()
+        # Eski yakunlangan so'rovlarni o'chirish (rejected yoki approved)
+        CourseUnenrollRequest.objects.filter(
+            user=request.user, profession=profession
+        ).exclude(status='pending').delete()
         
         CourseUnenrollRequest.objects.create(
             user=request.user,
