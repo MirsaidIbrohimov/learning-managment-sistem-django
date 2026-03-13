@@ -47,8 +47,42 @@ def check_first_test_passed(user, test_result):
         )
 
 
+def _notify_admin_progress(user, profession, milestone):
+    """Admin xabarlar bo'limiga va Telegram orqali kurs progress xabarini yuborish"""
+    from telegram_bot.utils import notify_admins
+
+    emoji_map = {25: '🌱', 50: '⭐', 75: '🔥', 90: '🏆'}
+    emoji = emoji_map.get(milestone, '📊')
+
+    # Adminlarga tizim ichida xabar
+    admins = CustomUser.objects.filter(role='admin')
+    for admin in admins:
+        Message.objects.create(
+            recipient=admin,
+            sender=None,
+            title=f"{emoji} {user.full_name} — {profession.name} {milestone}% tugatdi!",
+            content=(
+                f"O'quvchi: {user.full_name} (@{user.username})\n"
+                f"Kurs: {profession.name}\n"
+                f"Progress: {milestone}% bajarildi\n\n"
+                f"{'Tabriklaymiz! Kurs deyarli tugadi! 🎉' if milestone >= 90 else 'O`quvchi yaxshi rivojlanmoqda.'}"
+            ),
+            message_type='system'
+        )
+
+    # Telegram orqali adminlarga
+    bot_text = (
+        f"{emoji} <b>Kurs progress xabari</b>\n\n"
+        f"👤 O'quvchi: <b>{user.full_name}</b> (@{user.username})\n"
+        f"📚 Kurs: <b>{profession.name}</b>\n"
+        f"📊 Progress: <b>{milestone}%</b> bajarildi\n\n"
+        f"{'🎉 Kurs deyarli tugadi!' if milestone >= 90 else '✅ O`quvchi yaxshi rivojlanmoqda.'}"
+    )
+    notify_admins(bot_text)
+
+
 def check_course_progress_milestones(user, profession):
-    """Kurs progressi bosqichlarini tekshirish (25%, 50%, 75%)"""
+    """Kurs progressi bosqichlarini tekshirish (25%, 50%, 75%, 90%)"""
     # Umumiy darslar
     total_lessons = Lesson.objects.filter(profession=profession).count()
     if total_lessons == 0:
@@ -92,28 +126,21 @@ def check_course_progress_milestones(user, profession):
         message_type='motivation',
         title__icontains=profession.name
     ).values_list('title', flat=True)
-    
-    if progress >= 75 and "75%" not in str(existing_titles):
-        send_notification(
-            user,
-            f"🏆 {profession.name} kursining 75% tugadi!",
-            f"Siz allaqachon kursning 3/4 qismini tugatdingiz! Oxirigacha oz qoldi, davom eting! 💪",
-            'motivation'
-        )
-    elif progress >= 50 and "50%" not in str(existing_titles):
-        send_notification(
-            user,
-            f"🎉 {profession.name} kursining yarmiga yetdingiz!",
-            f"Siz kursning 50% ni tugatdingiz! Ajoyib natija, davom eting! 💪",
-            'motivation'
-        )
-    elif progress >= 25 and "25%" not in str(existing_titles):
-        send_notification(
-            user,
-            f"✨ {profession.name} kursining 25% tugadi!",
-            f"Yaxshi boshlang'ich! Siz allaqachon kursning chorak qismini tugatdingiz. Oldinga! 🚀",
-            'motivation'
-        )
+    existing_str = str(existing_titles)
+
+    milestones = [
+        (90, "🏆", f"{profession.name} kursining 90% tugadi!", f"Ajoyib! Kurs deyarli tugadi! Oxirgi qadamlarni ham bajaring va sertifikatingizni oling! 🎓🏆"),
+        (75, "🔥", f"{profession.name} kursining 75% tugadi!", f"Siz allaqachon kursning 3/4 qismini tugatdingiz! Oxirigacha oz qoldi, davom eting! 💪"),
+        (50, "🎉", f"{profession.name} kursining yarmiga yetdingiz!", f"Siz kursning 50% ni tugatdingiz! Ajoyib natija, davom eting! 💪"),
+        (25, "✨", f"{profession.name} kursining 25% tugadi!", f"Yaxshi boshlang'ich! Siz allaqachon kursning chorak qismini tugatdingiz. Oldinga! 🚀"),
+    ]
+
+    for threshold, emoji, title, content in milestones:
+        pct_str = f"{threshold}%"
+        if progress >= threshold and pct_str not in existing_str:
+            send_notification(user, f"{emoji} {title}", content, 'motivation')
+            _notify_admin_progress(user, profession, threshold)
+            break
 
 
 def check_coin_reward(user, amount):

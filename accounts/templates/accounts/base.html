@@ -429,8 +429,9 @@
                 <!-- ================= RIGHT USER ZONE ================= -->
                 <div class="d-flex align-items-center gap-3">
 
-                    <!-- SOCIAL MEDIA -->
-                    <div class="dropdown">
+                    <!-- SOCIAL MEDIA (Desktop: dropdown, Mobile: bottom sheet) -->
+                    <!-- Desktop dropdown -->
+                    <div class="dropdown d-none d-lg-block">
                         <button class="btn social-toggle-btn shadow-soft position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar">
                             <i class="bi bi-share-fill"></i>
                             <span class="social-pulse"></span>
@@ -471,6 +472,11 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Mobile button (triggers bottom sheet) -->
+                    <button class="btn social-toggle-btn shadow-soft position-relative d-lg-none" onclick="openSocialSheet()" title="Ijtimoiy tarmoqlar">
+                        <i class="bi bi-share-fill"></i>
+                        <span class="social-pulse"></span>
+                    </button>
 
                     <!-- COIN -->
                     <div class="coin-badge d-flex align-items-center gap-1 shadow-sm" title="Sizning coinlaringiz">
@@ -690,6 +696,80 @@
         @media (max-width: 576px) {
             .social-dropdown { min-width: 240px !important; }
         }
+
+        /* Mobile Social Bottom Sheet */
+        .social-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 99990;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s ease;
+        }
+        .social-sheet-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .social-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 99991;
+            background: var(--card, #fff);
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            box-shadow: 0 -10px 60px rgba(0,0,0,.25);
+            transform: translateY(100%);
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1);
+            padding-bottom: env(safe-area-inset-bottom, 16px);
+        }
+        .social-sheet.show {
+            transform: translateY(0);
+        }
+        .social-sheet-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 0 4px;
+        }
+        .social-sheet-bar {
+            width: 40px;
+            height: 5px;
+            background: var(--text-muted, #94a3b8);
+            opacity: .35;
+            border-radius: 99px;
+        }
+        .social-sheet-body {
+            padding: 8px 20px 24px;
+        }
+
+        /* Mob offcanvas social buttons */
+        .mob-social-section {
+            margin-bottom: 14px;
+            padding-top: 4px;
+        }
+        .mob-social-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 1.3rem;
+            color: #fff !important;
+            text-decoration: none !important;
+            transition: all .2s ease;
+        }
+        .mob-social-btn:active {
+            transform: scale(.93);
+        }
+        .telegram-mob-btn { background: linear-gradient(135deg, #0088cc, #00b4d8); }
+        .instagram-mob-btn { background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af); }
+        .youtube-mob-btn { background: linear-gradient(135deg, #ff0000, #cc0000); }
     </style>
 
     <!-- Mobile Profile Offcanvas -->
@@ -901,12 +981,73 @@
                 {% endif %}
             </div>
 
+            <!-- Ijtimoiy tarmoqlar -->
+            <div class="mob-social-section">
+                <div class="d-flex align-items-center gap-2 mb-2 px-1">
+                    <i class="bi bi-globe2 text-muted"></i>
+                    <span class="fw-semibold" style="font-size:.85rem;color:var(--text);">Ijtimoiy tarmoqlar</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="https://t.me/IT_Creative" target="_blank" class="mob-social-btn telegram-mob-btn">
+                        <i class="bi bi-telegram"></i>
+                    </a>
+                    <a href="https://instagram.com/ITC_Zomin" target="_blank" class="mob-social-btn instagram-mob-btn">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://youtube.com/@IT_Creative" target="_blank" class="mob-social-btn youtube-mob-btn">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                </div>
+            </div>
+
             <!-- Logout -->
             <a href="{% url 'logout' %}" class="mob-logout-btn">
                 <i class="bi bi-box-arrow-right"></i>Chiqish
             </a>
         </div>
     </div>
+
+    <!-- Mobile Social Bottom Sheet -->
+    <div class="social-sheet-backdrop" id="socialSheetBackdrop" onclick="closeSocialSheet()"></div>
+    <div class="social-sheet" id="socialSheet">
+        <div class="social-sheet-handle"><div class="social-sheet-bar"></div></div>
+        <div class="social-sheet-body">
+            <div class="text-center mb-3">
+                <div class="social-header-icon mb-2">
+                    <i class="bi bi-globe2"></i>
+                </div>
+                <h6 class="fw-bold mb-1" style="color:var(--text);">Bizni kuzating!</h6>
+                <small class="text-muted">Ijtimoiy tarmoqlarda biz bilan bo'ling</small>
+            </div>
+            <div class="d-flex flex-column gap-2">
+                <a href="https://t.me/IT_Creative" target="_blank" class="social-link-item telegram-item">
+                    <div class="social-link-icon telegram-bg"><i class="bi bi-telegram"></i></div>
+                    <div>
+                        <div class="fw-semibold">Telegram</div>
+                        <small class="text-muted">@IT_Creative</small>
+                    </div>
+                    <i class="bi bi-arrow-up-right ms-auto"></i>
+                </a>
+                <a href="https://instagram.com/ITC_Zomin" target="_blank" class="social-link-item instagram-item">
+                    <div class="social-link-icon instagram-bg"><i class="bi bi-instagram"></i></div>
+                    <div>
+                        <div class="fw-semibold">Instagram</div>
+                        <small class="text-muted">@ITC_Zomin</small>
+                    </div>
+                    <i class="bi bi-arrow-up-right ms-auto"></i>
+                </a>
+                <a href="https://youtube.com/@IT_Creative" target="_blank" class="social-link-item youtube-item">
+                    <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
+                    <div>
+                        <div class="fw-semibold">YouTube</div>
+                        <small class="text-muted">IT Creative</small>
+                    </div>
+                    <i class="bi bi-arrow-up-right ms-auto"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
     <script>
     (function(){
         var handle = document.getElementById('mobResizeHandle');
@@ -963,6 +1104,20 @@
             maxH = window.innerHeight * 0.9;
         });
     })();
+    </script>
+
+    <!-- Social Sheet JS -->
+    <script>
+    function openSocialSheet() {
+        document.getElementById('socialSheetBackdrop').classList.add('show');
+        document.getElementById('socialSheet').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeSocialSheet() {
+        document.getElementById('socialSheetBackdrop').classList.remove('show');
+        document.getElementById('socialSheet').classList.remove('show');
+        document.body.style.overflow = '';
+    }
     </script>
     {% endif %}
 

@@ -314,8 +314,31 @@ def home_view(request):
 
     # --- O'quvchi uchun kurslari ---
     my_enrollments = []
-    if request.user.is_student:
-        my_enrollments = request.user.enrollments.all()[:4]
+    dashboard_courses = []
+    if request.user.is_student or request.user.is_admin:
+        my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
+        for enrollment in my_enrollments:
+            profession = enrollment.profession
+            total = Lesson.objects.filter(profession=profession).count()
+            if total == 0:
+                progress = 0
+            else:
+                watched = VideoProgress.objects.filter(
+                    user=request.user,
+                    video__lesson__profession=profession,
+                    watched=True
+                ).count()
+                accepted = HomeworkSubmission.objects.filter(
+                    student=request.user,
+                    homework__lesson__profession=profession,
+                    status__in=['accepted', 'graded']
+                ).count()
+                completed = watched + accepted
+                progress = min(100, int((completed / total) * 100))
+            dashboard_courses.append({
+                'name': profession.name,
+                'progress': progress,
+            })
 
     # ⚠️ MUHIM:
     # unread_messages_count BU YERDA HISOBLANMAYDI!
@@ -327,6 +350,7 @@ def home_view(request):
         'total_courses': total_courses,
         'total_lessons': total_lessons,
         'my_enrollments': my_enrollments,
+        'dashboard_courses': dashboard_courses,
     }
 
     return render(request, 'accounts/home.html', context)
