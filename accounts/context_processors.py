@@ -68,14 +68,17 @@ def admin_badges(request):
 
     from .models import (
         CourseEnrollmentRequest,
+        CourseUnenrollRequest,
         HomeworkSubmission,
         HelpRequest,
         PasswordResetRequest,
         PremiumRequest,
     )
 
+    unenroll_pending = CourseUnenrollRequest.objects.filter(status="pending").count()
     badges = {
-        "admin_pending_enrollments": CourseEnrollmentRequest.objects.filter(status="pending").count(),
+        "admin_pending_enrollments": CourseEnrollmentRequest.objects.filter(status="pending").count() + unenroll_pending,
+        "admin_pending_unenrollments": unenroll_pending,
         "admin_pending_homeworks": HomeworkSubmission.objects.filter(status__in=["pending", "reviewing"]).count(),
         "admin_pending_help": HelpRequest.objects.filter(status="pending").count(),
         "admin_pending_passwords": PasswordResetRequest.objects.filter(status="pending").count(),
