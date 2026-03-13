@@ -281,182 +281,82 @@ main.main-container {
 }
 
 .hero-card-main {
-    background: #0d1117;
-    backdrop-filter: blur(20px);
+    background: var(--bg-card);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-radius: var(--radius-xl);
-    padding: 0;
-    border: 1px solid #30363d;
+    padding: 1.75rem;
+    border: 1px solid var(--border);
     width: 100%;
-    max-width: 440px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,.4), 0 0 40px rgba(88,166,255,.06);
-}
-
-.hero-card-titlebar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: #161b22;
-    border-bottom: 1px solid #30363d;
-}
-
-.hero-card-dots {
-    display: flex;
-    gap: 6px;
-}
-
-.hero-card-dots span {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.hero-card-dots span:nth-child(1) { background: #ff5f57; }
-.hero-card-dots span:nth-child(2) { background: #febc2e; }
-.hero-card-dots span:nth-child(3) { background: #28c840; }
-
-.hero-card-tab {
-    margin-left: 12px;
-    background: #0d1117;
-    border: 1px solid #30363d;
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    padding: 4px 14px;
-    font-size: .75rem;
-    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-    color: #8b949e;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.hero-card-tab i { color: #58a6ff; font-size: .7rem; }
-
-.hero-card-body {
-    padding: 1.25rem 1.5rem 1.5rem;
+    max-width: 420px;
+    box-shadow: var(--shadow-xl);
 }
 
 .hero-card-header {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: .85rem;
     margin-bottom: 1.25rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid #21262d;
 }
 
 .hero-card-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #58a6ff, #a371f7);
+    width: 50px;
+    height: 50px;
+    min-width: 50px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
     color: #fff;
-    box-shadow: 0 4px 16px rgba(88,166,255,.25);
     overflow: hidden;
 }
 
 .hero-card-info h4 {
-    color: #e6edf3;
-    font-size: 1rem;
+    color: var(--text-primary);
+    font-size: 1.05rem;
     font-weight: 700;
-    margin-bottom: 0.15rem;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    margin-bottom: 0.1rem;
 }
 
 .hero-card-info span {
-    color: #8b949e;
+    color: var(--text-muted);
     font-size: 0.8rem;
-}
-
-.hero-card-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: .7rem;
-    color: #3fb950;
-    background: rgba(63,185,80,.1);
-    border: 1px solid rgba(63,185,80,.2);
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-left: auto;
-}
-
-.hero-card-status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #3fb950;
-    animation: statusBlink 2s ease-in-out infinite;
-}
-
-@keyframes statusBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: .3; }
 }
 
 .hero-progress-list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
 .hero-progress-item {
-    background: #161b22;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid #21262d;
-    transition: border-color .2s;
-}
-
-.hero-progress-item:hover {
-    border-color: #30363d;
+    padding: 0;
 }
 
 .hero-progress-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .hero-progress-name {
-    color: #e6edf3;
+    color: var(--text-primary);
     font-weight: 600;
-    font-size: 0.85rem;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.hero-progress-name::before {
-    content: '>';
-    color: #3fb950;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: .8rem;
+    font-size: 0.875rem;
 }
 
 .hero-progress-percent {
     font-weight: 700;
     font-size: 0.8rem;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    padding: 2px 8px;
-    border-radius: 6px;
+    color: var(--primary);
 }
 
-.hero-progress-percent.clr-purple { color: #a371f7; background: rgba(163,113,247,.1); }
-.hero-progress-percent.clr-cyan { color: #39d2c0; background: rgba(57,210,192,.1); }
-.hero-progress-percent.clr-pink { color: #f778ba; background: rgba(247,120,186,.1); }
-.hero-progress-percent.clr-green { color: #3fb950; background: rgba(63,185,80,.1); }
-
 .hero-progress-bar {
-    height: 6px;
-    background: #21262d;
+    height: 8px;
+    background: var(--bg-secondary);
     border-radius: 50px;
     overflow: hidden;
 }
@@ -465,94 +365,71 @@ main.main-container {
     height: 100%;
     border-radius: 50px;
     transition: width 1.2s cubic-bezier(.4,0,.2,1);
-    position: relative;
 }
 
-.hero-progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20px;
-    height: 100%;
-    background: rgba(255,255,255,.3);
-    border-radius: 50px;
-    filter: blur(4px);
-}
-
-.hero-progress-fill.purple { background: linear-gradient(90deg, #8b5cf6, #a371f7); }
-.hero-progress-fill.cyan { background: linear-gradient(90deg, #06b6d4, #39d2c0); }
-.hero-progress-fill.pink { background: linear-gradient(90deg, #ec4899, #f778ba); }
-.hero-progress-fill.green { background: linear-gradient(90deg, #22c55e, #3fb950); }
+.hero-progress-fill.purple { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.hero-progress-fill.cyan { background: linear-gradient(90deg, #06b6d4, #22d3ee); }
+.hero-progress-fill.pink { background: linear-gradient(90deg, #ec4899, #f472b6); }
+.hero-progress-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
 
 .hero-empty-state {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1.5rem 0 .5rem;
+    color: var(--text-muted);
 }
 
-.hero-empty-terminal {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: .8rem;
-    color: #8b949e;
-    background: #161b22;
-    border-radius: 10px;
-    padding: 16px;
-    border: 1px solid #21262d;
-    text-align: left;
-    margin-bottom: 1rem;
+.hero-empty-state i {
+    font-size: 2rem;
+    margin-bottom: .5rem;
+    display: block;
+    opacity: .5;
 }
 
-.hero-empty-terminal .line {
-    margin-bottom: 4px;
-}
-
-.hero-empty-terminal .prompt {
-    color: #3fb950;
-}
-
-.hero-empty-terminal .cmd {
-    color: #e6edf3;
-}
-
-.hero-empty-terminal .output {
-    color: #f0883e;
-    margin-left: 16px;
-}
-
-.hero-empty-terminal .cursor {
-    display: inline-block;
-    width: 8px;
-    height: 14px;
-    background: #58a6ff;
-    margin-left: 4px;
-    vertical-align: text-bottom;
-    animation: termCursor .8s step-end infinite;
-}
-
-@keyframes termCursor {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+.hero-empty-state p {
+    font-size: .85rem;
+    margin: 0 0 1rem;
 }
 
 .hero-empty-btn {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 18px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #238636, #2ea043);
+    padding: 8px 20px;
+    border-radius: var(--radius);
+    background: var(--primary);
     color: #fff;
-    font-size: .82rem;
+    font-size: .85rem;
     font-weight: 600;
     text-decoration: none;
-    border: 1px solid #2ea043;
     transition: all .2s;
 }
 
 .hero-empty-btn:hover {
     color: #fff;
+    opacity: .9;
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(46,160,67,.35);
+    box-shadow: 0 4px 16px rgba(99,102,241,.3);
+}
+
+/* --- Mobile dashboard card (below hero, shown only < 1199px) --- */
+.hero-mobile-dashboard {
+    display: none;
+    margin-top: -3rem;
+    position: relative;
+    z-index: 2;
+    padding: 0 1rem;
+}
+
+.hero-mobile-dashboard .hero-card-main {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 1199px) {
+    .hero-mobile-dashboard { display: block; }
+}
+@media (min-width: 1200px) {
+    .hero-mobile-dashboard { display: none; }
 }
 
 .hero-floating-badge {
