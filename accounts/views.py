@@ -7071,7 +7071,7 @@ def approve_unenroll_request(request, pk):
 
         messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!")
 
-    return redirect(f"{reverse('admin_enrollment_requests')}?tab=unenroll")
+    return redirect('admin_unenroll_requests')
 
 
 @login_required
