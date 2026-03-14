@@ -611,6 +611,45 @@
     .ta-detail-stats { grid-template-columns: repeat(2, 1fr); padding: 16px; }
 }
 
+/* ===== Question Analysis ===== */
+.qa-card { margin-bottom: 12px; border-radius: 14px; border: 1px solid var(--border-color); background: var(--card-bg); overflow: hidden; }
+.qa-header { display: flex; align-items: flex-start; gap: 12px; padding: 16px 20px; cursor: pointer; transition: background 0.2s; }
+.qa-header:hover { background: rgba(99,102,241,0.03); }
+.qa-num { min-width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; color: #fff; flex-shrink: 0; }
+.qa-num.good { background: linear-gradient(135deg, #10b981, #059669); }
+.qa-num.warn { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.qa-num.bad { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.qa-question { font-weight: 600; font-size: 0.9rem; color: var(--text-color); flex: 1; }
+.qa-stats-mini { display: flex; gap: 12px; flex-shrink: 0; align-items: center; }
+.qa-mini { display: flex; align-items: center; gap: 4px; font-size: 0.78rem; font-weight: 600; }
+.qa-mini.correct { color: #10b981; }
+.qa-mini.wrong { color: #ef4444; }
+.qa-error-bar { width: 60px; height: 6px; border-radius: 3px; background: rgba(0,0,0,0.08); overflow: hidden; }
+[data-bs-theme="dark"] .qa-error-bar { background: rgba(255,255,255,0.1); }
+.qa-error-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.qa-error-fill.good { background: #10b981; }
+.qa-error-fill.warn { background: #f59e0b; }
+.qa-error-fill.bad { background: #ef4444; }
+.qa-body { display: none; padding: 0 20px 16px; border-top: 1px solid var(--border-color); }
+.qa-body.open { display: block; }
+.qa-answer { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-top: 8px; border-radius: 10px; font-size: 0.85rem; border: 1px solid var(--border-color); }
+.qa-answer.is-correct { border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.04); }
+.qa-answer.is-wrong-popular { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.04); }
+.qa-answer-icon { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
+.qa-answer-icon.correct { background: #10b981; color: #fff; }
+.qa-answer-icon.wrong { background: #ef4444; color: #fff; }
+.qa-answer-icon.neutral { background: var(--bg-color); color: #6c757d; }
+.qa-answer-text { flex: 1; font-weight: 500; }
+.qa-answer-bar { width: 80px; height: 6px; border-radius: 3px; background: rgba(0,0,0,0.06); overflow: hidden; }
+[data-bs-theme="dark"] .qa-answer-bar { background: rgba(255,255,255,0.08); }
+.qa-answer-bar-fill { height: 100%; border-radius: 3px; }
+.qa-answer-bar-fill.correct { background: #10b981; }
+.qa-answer-bar-fill.wrong { background: #ef4444; }
+.qa-answer-bar-fill.neutral { background: #6c757d; }
+.qa-answer-pct { font-weight: 700; font-size: 0.78rem; min-width: 40px; text-align: right; }
+.qa-toggle { font-size: 1rem; color: #6c757d; transition: transform 0.3s; }
+.qa-toggle.open { transform: rotate(180deg); }
+
 @media (max-width: 480px) {
     .ta-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
     .ta-stat { padding: 14px 10px; }
@@ -935,6 +974,59 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Savollar tahlili -->
+{% if question_analysis %}
+<div class="ta-card anim-f">
+    <div class="ta-card-head">
+        <h6><i class="bi bi-question-circle-fill" style="color:#f59e0b;"></i> {{ selected_test.lesson.title }} — Savollar tahlili</h6>
+        <span class="ta-badge" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;">{{ question_analysis|length }} savol</span>
+    </div>
+    <div style="padding: 16px 20px 8px;">
+        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Eng ko'p xato qilingan savollar yuqorida. Savol ustiga bosib javoblarni ko'ring.</small>
+    </div>
+    {% for qa in question_analysis %}
+    <div class="qa-card" style="margin: 8px 20px;">
+        <div class="qa-header" onclick="toggleQA(this)">
+            <div class="qa-num {% if qa.error_rate <= 30 %}good{% elif qa.error_rate <= 60 %}warn{% else %}bad{% endif %}">
+                {{ forloop.counter }}
+            </div>
+            <div class="qa-question">{{ qa.question.question_text|truncatewords:20 }}</div>
+            <div class="qa-stats-mini">
+                <span class="qa-mini correct"><i class="bi bi-check-lg"></i> {{ qa.correct }}</span>
+                <span class="qa-mini wrong"><i class="bi bi-x-lg"></i> {{ qa.wrong }}</span>
+                <div class="qa-error-bar">
+                    <div class="qa-error-fill {% if qa.error_rate <= 30 %}good{% elif qa.error_rate <= 60 %}warn{% else %}bad{% endif %}" style="width:{{ qa.error_rate }}%"></div>
+                </div>
+                <i class="bi bi-chevron-down qa-toggle"></i>
+            </div>
+        </div>
+        <div class="qa-body">
+            <div style="margin-bottom:6px;font-size:0.82rem;color:#6c757d;">
+                Jami: <b>{{ qa.total }}</b> javob &nbsp;|&nbsp;
+                To'g'ri: <b style="color:#10b981;">{{ qa.correct }}</b> &nbsp;|&nbsp;
+                Xato: <b style="color:#ef4444;">{{ qa.wrong }}</b> &nbsp;|&nbsp;
+                Xato foizi: <b style="color:{% if qa.error_rate <= 30 %}#10b981{% elif qa.error_rate <= 60 %}#f59e0b{% else %}#ef4444{% endif %};">{{ qa.error_rate }}%</b>
+            </div>
+            {% for ans in qa.answer_stats %}
+            <div class="qa-answer {% if ans.answer.is_correct %}is-correct{% elif ans.count > 0 and not ans.answer.is_correct %}is-wrong-popular{% endif %}">
+                <div class="qa-answer-icon {% if ans.answer.is_correct %}correct{% elif ans.count > 0 %}wrong{% else %}neutral{% endif %}">
+                    {% if ans.answer.is_correct %}<i class="bi bi-check-lg"></i>{% elif ans.count > 0 %}<i class="bi bi-x-lg"></i>{% else %}<i class="bi bi-dash"></i>{% endif %}
+                </div>
+                <div class="qa-answer-text">{{ ans.answer.answer_text }}</div>
+                <div class="qa-answer-bar">
+                    <div class="qa-answer-bar-fill {% if ans.answer.is_correct %}correct{% elif ans.count > 0 %}wrong{% else %}neutral{% endif %}" style="width:{{ ans.percent }}%"></div>
+                </div>
+                <div class="qa-answer-pct" style="color:{% if ans.answer.is_correct %}#10b981{% elif ans.count > 0 %}#ef4444{% else %}#6c757d{% endif %};">{{ ans.count }} ({{ ans.percent }}%)</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    <div style="padding: 0 20px 16px;"></div>
+</div>
+{% endif %}
+
 {% endif %}
 
 <!-- Barcha natijalar -->
@@ -1040,5 +1132,12 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 });
+
+function toggleQA(header) {
+    var body = header.nextElementSibling;
+    var icon = header.querySelector('.qa-toggle');
+    body.classList.toggle('open');
+    icon.classList.toggle('open');
+}
 </script>
 {% endblock %}

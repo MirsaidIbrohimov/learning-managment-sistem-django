@@ -4102,6 +4102,47 @@ def admin_test_analytics(request):
                 'worst_score': test_results.order_by('score').first(),
             }
             
+            # Savol bo'yicha tahlil
+            question_analysis = []
+            for question in selected_test.questions.prefetch_related('answers').all():
+                total_answered = TestUserAnswer.objects.filter(
+                    question=question,
+                    result__test=selected_test
+                ).count()
+                correct_count = TestUserAnswer.objects.filter(
+                    question=question,
+                    result__test=selected_test,
+                    is_correct=True
+                ).count()
+                wrong_count = total_answered - correct_count
+                
+                # Har bir javob variantining tanlangan soni
+                answer_stats = []
+                for answer in question.answers.all():
+                    selected_count = TestUserAnswer.objects.filter(
+                        question=question,
+                        selected_answer=answer,
+                        result__test=selected_test
+                    ).count()
+                    answer_stats.append({
+                        'answer': answer,
+                        'count': selected_count,
+                        'percent': round((selected_count / total_answered * 100) if total_answered > 0 else 0),
+                    })
+                
+                error_rate = round((wrong_count / total_answered * 100) if total_answered > 0 else 0)
+                question_analysis.append({
+                    'question': question,
+                    'total': total_answered,
+                    'correct': correct_count,
+                    'wrong': wrong_count,
+                    'error_rate': error_rate,
+                    'answer_stats': answer_stats,
+                })
+            
+            # Eng ko'p xato qilingan savollarni birinchi qo'yish
+            question_analysis.sort(key=lambda x: x['error_rate'], reverse=True)
+            
             # Also get profession_tests for this profession
             profession_tests = Test.objects.filter(
                 lesson__profession=selected_profession
@@ -4127,6 +4168,7 @@ def admin_test_analytics(request):
         'selected_test': selected_test,
         'test_results': test_results,
         'test_stats': test_stats,
+        'question_analysis': question_analysis if selected_test_id else [],
     })
 
 
