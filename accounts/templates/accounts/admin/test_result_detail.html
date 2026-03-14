@@ -1,0 +1,191 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{{ result.student.full_name }} - Test natijasi{% endblock %}
+
+{% block extra_css %}
+<style>
+.trd-header {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 16px; padding: 24px; margin-bottom: 20px;
+}
+.trd-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.trd-avatar { width: 52px; height: 52px; border-radius: 14px; object-fit: cover; }
+.trd-avatar-ph {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 1rem;
+}
+.trd-info h2 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.trd-info p { font-size: 0.85rem; color: #6c757d; margin: 2px 0 0; }
+.trd-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+}
+.trd-stat {
+    text-align: center; padding: 14px 8px; border-radius: 12px;
+    background: var(--bg-color, #f8f9fa);
+}
+.trd-stat-val { font-size: 1.3rem; font-weight: 800; }
+.trd-stat-lbl { font-size: 0.72rem; color: #6c757d; font-weight: 600; text-transform: uppercase; }
+
+.trd-list { display: flex; flex-direction: column; gap: 12px; }
+.trd-q {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 20px; transition: box-shadow 0.2s;
+    border-left: 4px solid transparent;
+}
+.trd-q.correct { border-left-color: #10b981; }
+.trd-q.wrong { border-left-color: #ef4444; }
+.trd-q-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.trd-q-num {
+    min-width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; color: #fff; flex-shrink: 0;
+}
+.trd-q-num.correct { background: #10b981; }
+.trd-q-num.wrong { background: #ef4444; }
+.trd-q-text { font-weight: 600; font-size: 0.92rem; flex: 1; }
+.trd-q-badge {
+    padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+    flex-shrink: 0;
+}
+.trd-q-badge.correct { background: rgba(16,185,129,0.1); color: #10b981; }
+.trd-q-badge.wrong { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+.trd-answers { display: flex; flex-direction: column; gap: 8px; }
+.trd-ans {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-radius: 10px; font-size: 0.85rem;
+    border: 1px solid var(--border-color); background: transparent;
+}
+.trd-ans.is-correct { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.05); }
+.trd-ans.is-selected-wrong { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.05); }
+.trd-ans-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; flex-shrink: 0;
+}
+.trd-ans-icon.correct { background: #10b981; color: #fff; }
+.trd-ans-icon.wrong { background: #ef4444; color: #fff; }
+.trd-ans-icon.neutral { background: var(--bg-color, #e9ecef); color: #6c757d; }
+.trd-ans-text { flex: 1; font-weight: 500; }
+
+.trd-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px; font-size: 0.85rem;
+    font-weight: 600; color: #6366f1; background: rgba(99,102,241,0.08);
+    text-decoration: none; transition: all 0.2s; margin-bottom: 16px;
+}
+.trd-back:hover { background: rgba(99,102,241,0.15); color: #4f46e5; }
+
+.trd-summary {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.trd-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+}
+.trd-chip.correct { background: rgba(16,185,129,0.1); color: #10b981; }
+.trd-chip.wrong { background: rgba(239,68,68,0.1); color: #ef4444; }
+.trd-chip.total { background: rgba(99,102,241,0.1); color: #6366f1; }
+
+@media (max-width: 768px) {
+    .trd-stats { grid-template-columns: repeat(2, 1fr); }
+    .trd-q { padding: 14px; }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<a href="javascript:history.back()" class="trd-back"><i class="bi bi-arrow-left"></i> Orqaga</a>
+
+<div class="trd-header">
+    <div class="trd-top">
+        {% if result.student.photo and result.student.photo.url %}
+        <img src="{{ result.student.photo.url }}" class="trd-avatar">
+        {% else %}
+        <div class="trd-avatar-ph">{{ result.student.get_initials }}</div>
+        {% endif %}
+        <div class="trd-info">
+            <h2>{{ result.student.full_name }}</h2>
+            <p>{{ result.test.lesson.title }} — {{ result.test.lesson.profession.name }}</p>
+        </div>
+    </div>
+    <div class="trd-stats">
+        <div class="trd-stat">
+            <div class="trd-stat-val" style="color:#6366f1;">{{ result.score }}%</div>
+            <div class="trd-stat-lbl">Ball</div>
+        </div>
+        <div class="trd-stat">
+            <div class="trd-stat-val" style="color:#10b981;">{{ result.correct_answers }}</div>
+            <div class="trd-stat-lbl">To'g'ri</div>
+        </div>
+        <div class="trd-stat">
+            <div class="trd-stat-val" style="color:#ef4444;">{{ result.total_questions|add:"-"|add:result.correct_answers }}</div>
+            <div class="trd-stat-lbl">Xato</div>
+        </div>
+        <div class="trd-stat">
+            <div class="trd-stat-val">{{ result.total_questions }}</div>
+            <div class="trd-stat-lbl">Jami savol</div>
+        </div>
+        <div class="trd-stat">
+            {% if result.passed %}
+            <div class="trd-stat-val" style="color:#10b981;"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="trd-stat-lbl">O'tdi</div>
+            {% else %}
+            <div class="trd-stat-val" style="color:#ef4444;"><i class="bi bi-x-circle-fill"></i></div>
+            <div class="trd-stat-lbl">O'tmadi</div>
+            {% endif %}
+        </div>
+        <div class="trd-stat">
+            <div class="trd-stat-val" style="font-size:0.95rem;">{{ result.completed_at|date:"d.m.Y" }}</div>
+            <div class="trd-stat-lbl">Sana</div>
+        </div>
+    </div>
+</div>
+
+<div class="trd-summary">
+    <span class="trd-chip total"><i class="bi bi-list-check"></i> {{ answer_details|length }} savol</span>
+    <span class="trd-chip correct"><i class="bi bi-check-circle-fill"></i> {{ result.correct_answers }} to'g'ri</span>
+    <span class="trd-chip wrong"><i class="bi bi-x-circle-fill"></i> {{ result.total_questions|add:"-"|add:result.correct_answers }} xato</span>
+</div>
+
+<div class="trd-list">
+    {% for ad in answer_details %}
+    <div class="trd-q {% if ad.is_correct %}correct{% else %}wrong{% endif %}">
+        <div class="trd-q-head">
+            <div class="trd-q-num {% if ad.is_correct %}correct{% else %}wrong{% endif %}">{{ forloop.counter }}</div>
+            <div class="trd-q-text">{{ ad.question.question_text }}</div>
+            <span class="trd-q-badge {% if ad.is_correct %}correct{% else %}wrong{% endif %}">
+                {% if ad.is_correct %}<i class="bi bi-check-lg"></i> To'g'ri{% else %}<i class="bi bi-x-lg"></i> Xato{% endif %}
+            </span>
+        </div>
+        <div class="trd-answers">
+            {% for answer in ad.question.answers.all %}
+            <div class="trd-ans {% if answer.is_correct %}is-correct{% elif ad.selected and answer.pk == ad.selected.pk and not ad.is_correct %}is-selected-wrong{% endif %}">
+                <div class="trd-ans-icon {% if answer.is_correct %}correct{% elif ad.selected and answer.pk == ad.selected.pk and not ad.is_correct %}wrong{% else %}neutral{% endif %}">
+                    {% if answer.is_correct %}<i class="bi bi-check-lg"></i>
+                    {% elif ad.selected and answer.pk == ad.selected.pk and not ad.is_correct %}<i class="bi bi-x-lg"></i>
+                    {% else %}<i class="bi bi-circle"></i>{% endif %}
+                </div>
+                <span class="trd-ans-text">{{ answer.answer_text }}</span>
+                {% if answer.is_correct %}<small style="color:#10b981;font-weight:600;">To'g'ri javob</small>{% endif %}
+                {% if ad.selected and answer.pk == ad.selected.pk and not ad.is_correct %}<small style="color:#ef4444;font-weight:600;">Tanlangan</small>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% if ad.question.explanation %}
+        <div style="margin-top:10px;padding:10px 14px;border-radius:10px;background:rgba(99,102,241,0.05);font-size:0.82rem;">
+            <i class="bi bi-lightbulb-fill" style="color:#f59e0b;"></i> <b>Izoh:</b> {{ ad.question.explanation }}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div style="text-align:center;padding:40px;color:#6c757d;">
+        <i class="bi bi-clipboard-x" style="font-size:2rem;"></i>
+        <p>Javoblar mavjud emas</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

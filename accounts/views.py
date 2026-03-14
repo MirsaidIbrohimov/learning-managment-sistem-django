@@ -4172,6 +4172,48 @@ def admin_test_analytics(request):
     })
 
 
+@login_required
+def admin_test_result_detail(request, pk):
+    """Admin/Teacher: O'quvchining test natijasi - savol-javob tahlili"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    
+    result = get_object_or_404(TestResult.objects.select_related(
+        'test__lesson__profession', 'student'
+    ), pk=pk)
+    
+    # Teacher faqat o'z kurslaridagi natijalarni ko'ra olsin
+    if request.user.is_teacher and not request.user.is_admin:
+        teaching_ids = request.user.teaching_professions.values_list('pk', flat=True)
+        if result.test.lesson.profession_id not in teaching_ids:
+            messages.error(request, "Sizda bu natijani ko'rish huquqi yo'q!")
+            return redirect('home')
+    
+    user_answers = result.user_answers.all().select_related(
+        'question', 'selected_answer'
+    ).order_by('question__order')
+    
+    # Har bir savol uchun to'g'ri javobni ham olish
+    answer_details = []
+    for ua in user_answers:
+        correct_answer = ua.question.answers.filter(is_correct=True).first()
+        answer_details.append({
+            'question': ua.question,
+            'selected': ua.selected_answer,
+            'correct_answer': correct_answer,
+            'is_correct': ua.is_correct,
+        })
+    
+    # Determine back URL
+    back_url = request.META.get('HTTP_REFERER', '')
+    
+    return render(request, 'accounts/admin/test_result_detail.html', {
+        'result': result,
+        'answer_details': answer_details,
+        'back_url': back_url,
+    })
+
+
 # Test results for teachers
 @login_required
 def all_test_results(request):

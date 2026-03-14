@@ -109,6 +109,7 @@ urlpatterns = [
     path('dashboard/users/<int:pk>/certificate/', views.issue_certificate, name='issue_certificate'),
     path('dashboard/statistics/', views.admin_statistics, name='admin_statistics'),
     path('dashboard/test-analytics/', views.admin_test_analytics, name='admin_test_analytics'),
+    path('dashboard/test-result/<int:pk>/', views.admin_test_result_detail, name='admin_test_result_detail'),
     path('dashboard/export-pdf/', views.export_system_pdf, name='export_system_pdf'),
     path('dashboard/messages/', views.admin_messages, name='admin_messages'),
     path('dashboard/messages/send/', views.admin_send_message, name='admin_send_message'),
