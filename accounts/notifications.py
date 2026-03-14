@@ -51,6 +51,15 @@ def _notify_admin_progress(user, profession, milestone):
     """Admin xabarlar bo'limiga va Telegram orqali kurs progress xabarini yuborish"""
     from telegram_bot.utils import notify_admins
 
+    # Allaqachon shu milestone uchun xabar yuborilganmi tekshirish
+    check_title = f"{user.full_name} — {profession.name} {milestone}%"
+    already_sent = Message.objects.filter(
+        message_type='system',
+        title__icontains=check_title
+    ).exists()
+    if already_sent:
+        return
+
     emoji_map = {25: '🌱', 50: '⭐', 75: '🔥', 90: '🏆'}
     emoji = emoji_map.get(milestone, '📊')
 
@@ -120,14 +129,6 @@ def check_course_progress_milestones(user, profession):
     
     progress = (completed / total_items) * 100
     
-    # Avvalgi xabarlar yuborilganmi tekshirish
-    existing_titles = Message.objects.filter(
-        recipient=user,
-        message_type='motivation',
-        title__icontains=profession.name
-    ).values_list('title', flat=True)
-    existing_str = str(existing_titles)
-
     milestones = [
         (90, "🏆", f"{profession.name} kursining 90% tugadi!", f"Ajoyib! Kurs deyarli tugadi! Oxirgi qadamlarni ham bajaring va sertifikatingizni oling! 🎓🏆"),
         (75, "🔥", f"{profession.name} kursining 75% tugadi!", f"Siz allaqachon kursning 3/4 qismini tugatdingiz! Oxirigacha oz qoldi, davom eting! 💪"),
@@ -136,10 +137,16 @@ def check_course_progress_milestones(user, profession):
     ]
 
     for threshold, emoji, title, content in milestones:
-        pct_str = f"{threshold}%"
-        if progress >= threshold and pct_str not in existing_str:
-            send_notification(user, f"{emoji} {title}", content, 'motivation')
-            _notify_admin_progress(user, profession, threshold)
+        if progress >= threshold:
+            # O'quvchiga shu milestone allaqachon yuborilganmi
+            already_sent_to_user = Message.objects.filter(
+                recipient=user,
+                message_type='motivation',
+                title__icontains=f"{profession.name} kursining {threshold}%"
+            ).exists()
+            if not already_sent_to_user:
+                send_notification(user, f"{emoji} {title}", content, 'motivation')
+                _notify_admin_progress(user, profession, threshold)
             break
 
 
