@@ -276,19 +276,27 @@ class DeviceLimitMiddleware:
         if request.session.get('device_limit_exceeded'):
             return redirect('device_limit')
         
-        # 🔒 Faqat 1 ta online: joriy sessiya hali faolmi tekshirish
+        # 🔒 Faqat 1 ta online: joriy sessiya ro'yxatdan o'tganmi tekshirish
         session_key = request.session.session_key
-        if session_key:
-            from .models import UserSession
-            active_session = UserSession.objects.filter(
-                user=request.user, is_active=True
-            ).first()
-            
-            # Agar faol sessiya bor va bu sessiya emas — demak boshqa qurilmadan login qilingan
-            if active_session and active_session.session_key != session_key:
-                from django.contrib.auth import logout as auth_logout
-                auth_logout(request)
-                return redirect('login')
+        if not session_key:
+            return self.get_response(request)
+        
+        from .models import UserSession
+        active_session = UserSession.objects.filter(
+            user=request.user, is_active=True
+        ).first()
+        
+        if active_session is None:
+            # Hech qanday ro'yxatdan o'tgan sessiya yo'q — qayta login qilish kerak
+            from django.contrib.auth import logout as auth_logout
+            auth_logout(request)
+            return redirect('login')
+        
+        if active_session.session_key != session_key:
+            # Boshqa qurilmadan login qilingan — bu qurilmani chiqarish
+            from django.contrib.auth import logout as auth_logout
+            auth_logout(request)
+            return redirect('login')
         
         return self.get_response(request)
 
