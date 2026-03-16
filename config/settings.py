@@ -340,7 +340,7 @@ CSP_SCRIPT_SRC = ("'self'",)
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net")
 CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_CONNECT_SRC = ("'self'",)
+CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
 
 # O'yin xavfsizligi
 GAME_HMAC_SECRET = SECRET_KEY[:16]
