@@ -204,6 +204,7 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'accounts.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -215,7 +216,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.BirthdayCheckMiddleware',
     'accounts.middleware.UpdateLastActivityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'accounts.middleware.BlockedUserMiddleware',
     'accounts.middleware.PaymentCheckMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
@@ -314,7 +314,7 @@ LOGIN_REDIRECT_URL = 'home'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # ============ XAVFSIZLIK SOZLAMALARI ============
 

@@ -1,419 +1,807 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}AI Yordamchi - LMS | IT Creative{% endblock %}
+{% block title %}AI Yordamchi - IT Creative LMS{% endblock %}
 
 {% block extra_css %}
-<!-- SEO META -->
 <meta name="keywords" content="Suyunov Husan, IT Creative, LMS AI yordamchi, Django AI Chat, Python AI tutor">
 <meta name="description" content="LMS ichida ishlovchi AI Yordamchi. Muallif: Suyunov Husan — IT Creative.">
 
 <style>
-:root{
-    --grad: linear-gradient(135deg,#2563eb,#7c3aed);
-    --grad-secondary: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+:root {
+    --ai-primary: #7c3aed;
+    --ai-primary-light: #a78bfa;
+    --ai-secondary: #2563eb;
+    --ai-accent: #10b981;
+    --ai-grad: linear-gradient(135deg, #2563eb, #7c3aed);
+    --ai-grad-soft: linear-gradient(135deg, rgba(37,99,235,.12), rgba(124,58,237,.12));
+    --ai-card: var(--card-bg, #ffffff);
+    --ai-border: var(--border, #e5e7eb);
+    --ai-text: var(--text, #1a1a2e);
+    --ai-text-muted: var(--text-muted, #6b7280);
+    --ai-surface: #f8fafc;
 }
 
-/* Animatsiyalar */
+[data-bs-theme="dark"] {
+    --ai-card: #1e1e2e;
+    --ai-border: #2d2d3f;
+    --ai-text: #e2e8f0;
+    --ai-text-muted: #94a3b8;
+    --ai-surface: #151521;
+}
+
+/* ===== ANIMATIONS ===== */
 @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,.3); }
+    50% { box-shadow: 0 0 40px rgba(124,58,237,.5), 0 0 60px rgba(37,99,235,.2); }
+}
+@keyframes pulseRing {
+    0% { transform: scale(1); opacity: .6; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes particleFloat {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: .6; }
+    25% { transform: translate(10px, -15px) rotate(90deg); opacity: .3; }
+    50% { transform: translate(-5px, -25px) rotate(180deg); opacity: .5; }
+    75% { transform: translate(15px, -10px) rotate(270deg); opacity: .4; }
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes fabPulse {
+    0%, 100% { box-shadow: 0 6px 30px rgba(124,58,237,.4); }
+    50% { box-shadow: 0 6px 40px rgba(124,58,237,.7), 0 0 60px rgba(37,99,235,.3); }
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.chat-container{
-    max-width: 1200px;
+/* ===== LAYOUT ===== */
+.ai-home {
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 2rem 1rem 3rem;
-    animation: fadeInUp 0.5s ease-out;
+    padding: 1.5rem 1rem 6rem;
+    animation: fadeIn .4s ease-out;
 }
 
-/* ===== HEADER ===== */
-.page-header{
-    background: var(--grad);
-    border-radius: 20px;
-    padding: 24px 28px;
-    color:#fff;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom: 32px;
-    box-shadow:0 10px 40px rgba(0,0,0,.2);
+/* ===== HERO HEADER ===== */
+.ai-hero {
+    background: var(--ai-grad);
+    background-size: 200% 200%;
+    animation: gradientShift 6s ease infinite;
+    border-radius: 24px;
+    padding: 2rem 2rem 2.25rem;
+    color: #fff;
     position: relative;
     overflow: hidden;
-    animation: slideIn 0.6s ease-out;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
 }
 
-.page-header::before {
+.ai-hero::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: pulse 3s ease-in-out infinite;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
 }
 
-.page-title{
-    font-size:2rem;
-    font-weight:700;
-    margin:0;
-    position: relative;
-    z-index: 1;
-}
-
-.page-sub{ 
-    opacity:.9; 
-    margin:0.5rem 0 0 0;
-    font-size: 1rem;
-    position: relative;
-    z-index: 1;
-}
-
-.coin-info{
-    background: rgba(255,255,255,.25);
-    backdrop-filter: blur(10px);
-    padding:12px 18px;
-    border-radius:15px;
-    font-weight:600;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    border: 1px solid rgba(255,255,255,0.3);
-    transition: all 0.3s;
-    position: relative;
-    z-index: 1;
-}
-
-.coin-info:hover {
+/* Floating particles */
+.ai-hero .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
     background: rgba(255,255,255,.35);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border-radius: 50%;
+    animation: particleFloat 6s ease-in-out infinite;
 }
+.ai-hero .particle:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; animation-duration: 5s; }
+.ai-hero .particle:nth-child(2) { top: 60%; left: 25%; animation-delay: 1s; animation-duration: 7s; width: 4px; height: 4px; }
+.ai-hero .particle:nth-child(3) { top: 30%; right: 15%; animation-delay: 2s; animation-duration: 6s; width: 8px; height: 8px; }
+.ai-hero .particle:nth-child(4) { bottom: 20%; right: 30%; animation-delay: .5s; animation-duration: 8s; }
+.ai-hero .particle:nth-child(5) { top: 50%; left: 50%; animation-delay: 3s; animation-duration: 5.5s; width: 5px; height: 5px; }
 
-/* ===== SESSION LIST ===== */
-.session-list{
-    display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
-    gap:20px;
-    animation: fadeInUp 0.7s ease-out;
-}
-
-.session-card{
-    background: var(--card-bg);
-    border:2px solid var(--border);
-    border-radius:18px;
-    padding:20px;
-    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position:relative;
-    overflow:hidden;
-    animation: slideIn 0.5s ease-out;
-    animation-fill-mode: both;
-}
-
-.session-card:nth-child(1) { animation-delay: 0.1s; }
-.session-card:nth-child(2) { animation-delay: 0.2s; }
-.session-card:nth-child(3) { animation-delay: 0.3s; }
-.session-card:nth-child(4) { animation-delay: 0.4s; }
-.session-card:nth-child(5) { animation-delay: 0.5s; }
-
-.session-card::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    background: var(--grad-secondary);
-    opacity:0;
-    transition:.4s;
-    pointer-events:none;
-}
-
-.session-card:hover::before{ 
-    opacity:0.08; 
-}
-
-.session-card:hover{
-    transform: translateY(-6px);
-    box-shadow:0 15px 35px rgba(0,0,0,.15);
-    border-color: #7c3aed;
-}
-
-.session-title{
-    font-weight:600;
-    font-size:1.1rem;
-    color:var(--text);
-    text-decoration:none;
-    position:relative;
-    z-index:2;
+.hero-left {
+    position: relative;
+    z-index: 2;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    transition: color 0.3s;
+    gap: 1.25rem;
 }
 
-.session-title:hover{ 
-    color:#7c3aed; 
-}
-
-.session-title i {
-    font-size: 1.2rem;
-    transition: transform 0.3s;
-}
-
-.session-card:hover .session-title i {
-    transform: scale(1.2) rotate(10deg);
-}
-
-.session-meta{
-    font-size:.9rem;
-    color:var(--text-muted);
-    margin-top:8px;
-    position:relative;
-    z-index:2;
+.hero-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255,255,255,.2);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.3);
+    border-radius: 20px;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    font-size: 1.75rem;
+    animation: float 3s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+.hero-icon::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 22px;
+    border: 2px solid rgba(255,255,255,.15);
+    animation: pulseRing 2s ease-out infinite;
+    pointer-events: none;
+}
+
+.hero-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -.02em;
+}
+
+.hero-sub {
+    margin: .35rem 0 0;
+    opacity: .85;
+    font-size: .95rem;
+    font-weight: 400;
+}
+
+.hero-right {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    position: relative;
+    z-index: 2;
     flex-wrap: wrap;
 }
 
-.session-actions{
-    display:flex;
-    gap:8px;
-    margin-top:16px;
-    position:relative;
-    z-index:2;
-    align-items:stretch;
+.coin-chip {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: rgba(255,255,255,.2);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.25);
+    padding: .6rem 1.1rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: .9rem;
+    transition: all .3s;
+    white-space: nowrap;
 }
 
-.session-actions .btn {
-    transition: all 0.3s;
-}
-
-.session-actions .btn:hover {
+.coin-chip:hover {
+    background: rgba(255,255,255,.3);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.coin-chip i { font-size: 1.1rem; }
+
+.btn-new-chat {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: #fff;
+    color: #7c3aed;
+    font-weight: 600;
+    padding: .65rem 1.5rem;
+    border-radius: 50px;
+    text-decoration: none;
+    border: none;
+    font-size: .9rem;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 4px 15px rgba(0,0,0,.1);
+    white-space: nowrap;
+}
+
+.btn-new-chat:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.15);
+    color: #6d28d9;
+}
+
+/* ===== STATS BAR ===== */
+.stats-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp .5s ease-out .1s both;
+}
+
+.stat-card {
+    flex: 1;
+    background: var(--ai-card);
+    border: 1px solid var(--ai-border);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    transition: all .3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+}
+
+.stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.stat-icon.purple {
+    background: rgba(124,58,237,.12);
+    color: #7c3aed;
+}
+
+.stat-icon.blue {
+    background: rgba(37,99,235,.12);
+    color: #2563eb;
+}
+
+.stat-icon.green {
+    background: rgba(16,185,129,.12);
+    color: #10b981;
+}
+
+.stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ai-text);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: .8rem;
+    color: var(--ai-text-muted);
+    margin-top: .15rem;
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--ai-text);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    animation: fadeInUp .5s ease-out .15s both;
+}
+
+.section-title i {
+    color: var(--ai-primary);
+}
+
+/* ===== SESSION GRID ===== */
+.session-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 1rem;
+}
+
+.session-card {
+    background: var(--ai-card);
+    border: 1px solid var(--ai-border);
+    border-radius: 18px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    animation: fadeInUp .5s ease-out both;
+    cursor: default;
+}
+
+.session-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--ai-grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .4s cubic-bezier(.4,0,.2,1);
+}
+
+.session-card:hover::before {
+    transform: scaleX(1);
+}
+
+.session-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 35px rgba(124,58,237,.1);
+    border-color: var(--ai-primary-light);
+}
+
+.session-card:nth-child(1) { animation-delay: .05s; }
+.session-card:nth-child(2) { animation-delay: .1s; }
+.session-card:nth-child(3) { animation-delay: .15s; }
+.session-card:nth-child(4) { animation-delay: .2s; }
+.session-card:nth-child(5) { animation-delay: .25s; }
+.session-card:nth-child(6) { animation-delay: .3s; }
+
+.session-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+}
+
+.session-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--ai-grad-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--ai-primary);
+    font-size: 1.1rem;
+    transition: all .3s;
+}
+
+.session-card:hover .session-icon {
+    background: var(--ai-grad);
+    color: #fff;
+    transform: scale(1.05);
+}
+
+.session-info { flex: 1; min-width: 0; }
+
+.session-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--ai-text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color .2s;
+}
+
+.session-card:hover .session-name {
+    color: var(--ai-primary);
+}
+
+.session-meta {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-top: .4rem;
+    font-size: .8rem;
+    color: var(--ai-text-muted);
+}
+
+.session-meta-item {
+    display: flex;
+    align-items: center;
+    gap: .3rem;
+}
+
+.session-actions {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin-top: .85rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--ai-border);
+}
+
+.btn-session {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .4rem;
+    padding: .5rem .75rem;
+    border-radius: 10px;
+    font-size: .82rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all .25s;
+    border: 1px solid var(--ai-border);
+    background: transparent;
+    color: var(--ai-text);
+}
+
+.btn-session:hover {
+    background: var(--ai-grad-soft);
+    border-color: var(--ai-primary-light);
+    color: var(--ai-primary);
+    transform: translateY(-1px);
+}
+
+.btn-session.primary {
+    background: var(--ai-grad);
+    color: #fff;
+    border: none;
+}
+
+.btn-session.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(124,58,237,.3);
+}
+
+.btn-session.danger {
+    color: #ef4444;
+    border-color: transparent;
+    flex: 0;
+    padding: .5rem .6rem;
+}
+
+.btn-session.danger:hover {
+    background: rgba(239,68,68,.1);
+    color: #dc2626;
 }
 
 /* ===== EMPTY STATE ===== */
-.empty-state{
-    text-align:center;
-    padding:100px 20px;
-    color:var(--text-muted);
-    background: var(--card-bg);
-    border: 2px dashed var(--border);
-    border-radius: 20px;
-    margin-top: 2rem;
-    animation: fadeInUp 0.8s ease-out;
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    animation: scaleIn .6s ease-out;
 }
 
-.empty-state i{
-    font-size:5rem;
-    margin-bottom:20px;
-    opacity:.6;
-    color: var(--text-muted);
-    animation: pulse 2s ease-in-out infinite;
+.empty-robot {
+    width: 100px;
+    height: 100px;
+    background: var(--ai-grad);
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.75rem;
+    font-size: 2.75rem;
+    color: #fff;
+    animation: float 3s ease-in-out infinite, glow 3s ease-in-out infinite;
+    position: relative;
 }
 
-.empty-state h3 {
-    color: var(--text);
+.empty-robot::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 32px;
+    border: 2px solid rgba(124,58,237,.2);
+    animation: pulseRing 2.5s ease-out infinite;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--ai-text);
+    margin-bottom: .5rem;
+}
+
+.empty-desc {
+    color: var(--ai-text-muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.suggestion-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: .6rem;
+    margin-bottom: 2rem;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--ai-card);
+    border: 1px solid var(--ai-border);
+    padding: .55rem 1rem;
+    border-radius: 50px;
+    font-size: .85rem;
+    color: var(--ai-text);
+    cursor: pointer;
+    transition: all .25s;
+    text-decoration: none;
+}
+
+.chip:hover {
+    border-color: var(--ai-primary-light);
+    background: var(--ai-grad-soft);
+    color: var(--ai-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(124,58,237,.1);
+}
+
+.chip i { font-size: .9rem; color: var(--ai-primary); }
+
+.btn-start {
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--ai-grad);
+    color: #fff;
+    padding: .85rem 2rem;
+    border-radius: 50px;
     font-weight: 600;
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    text-decoration: none;
+    border: none;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 6px 25px rgba(124,58,237,.3);
 }
 
-.empty-state p {
-    color: var(--text-muted);
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
-}
-
-.empty-state .btn {
-    padding: 0.75rem 2rem;
-    font-size: 1.1rem;
-    border-radius: 12px;
-    transition: all 0.3s;
-}
-
-.empty-state .btn:hover {
+.btn-start:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 10px 35px rgba(124,58,237,.4);
+    color: #fff;
 }
 
-/* ===== INFO BOX ===== */
-.info-box{
-    margin-top:30px;
-    border-radius:16px;
-    background: linear-gradient(135deg,rgba(37,99,235,.15),rgba(124,58,237,.15));
-    border:2px solid rgba(124,58,237,.4);
-    padding: 1.25rem;
-    animation: fadeInUp 0.9s ease-out;
+/* ===== INFO BAR ===== */
+.info-bar {
+    margin-top: 2rem;
+    background: var(--ai-grad-soft);
+    border: 1px solid rgba(124,58,237,.15);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .9rem;
+    color: var(--ai-text-muted);
+    animation: fadeInUp .5s ease-out .3s both;
 }
 
-.info-box i {
-    font-size: 1.2rem;
-    margin-right: 0.5rem;
+.info-bar i {
+    color: var(--ai-primary);
+    font-size: 1.15rem;
+    flex-shrink: 0;
 }
 
-/* Responsive */
+/* ===== FAB ===== */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 58px;
+    height: 58px;
+    background: var(--ai-grad);
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 90;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    animation: fabPulse 3s ease-in-out infinite;
+}
+
+.fab:hover {
+    transform: scale(1.1) rotate(90deg);
+    color: #fff;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-    .chat-container {
-        padding: 1.5rem 0.75rem 2rem;
-    }
-    
-    .page-header {
+    .ai-home { padding: 1rem .75rem 5rem; }
+    .ai-hero {
+        padding: 1.5rem;
+        border-radius: 18px;
         flex-direction: column;
-        gap: 1rem;
-        padding: 20px;
         text-align: center;
     }
-    
-    .page-title {
-        font-size: 1.5rem;
-    }
-    
-    .session-list {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    
-    .session-card {
-        padding: 16px;
-    }
-    
-    .empty-state {
-        padding: 60px 20px;
-    }
-    
-    .empty-state i {
-        font-size: 3.5rem;
-    }
+    .hero-left { flex-direction: column; }
+    .hero-title { font-size: 1.35rem; }
+    .hero-sub { font-size: .85rem; }
+    .hero-right { justify-content: center; }
+    .stats-bar { flex-direction: column; gap: .75rem; }
+    .session-grid { grid-template-columns: 1fr; gap: .75rem; }
+    .empty-state { padding: 3rem 1.5rem; }
+    .empty-robot { width: 80px; height: 80px; font-size: 2.25rem; border-radius: 22px; }
+    .fab { bottom: 1.5rem; right: 1.25rem; width: 52px; height: 52px; }
 }
 
 @media (max-width: 480px) {
-    .page-header {
-        padding: 16px;
-    }
-    
-    .page-title {
-        font-size: 1.25rem;
-    }
-    
-    .page-sub {
-        font-size: 0.9rem;
-    }
-    
-    .coin-info {
-        padding: 10px 14px;
-        font-size: 0.9rem;
-    }
-    
-    .session-title {
-        font-size: 1rem;
-    }
-    
-    .session-meta {
-        font-size: 0.85rem;
-    }
+    .ai-hero { padding: 1.25rem; }
+    .hero-icon { width: 52px; height: 52px; font-size: 1.4rem; border-radius: 16px; }
+    .hero-title { font-size: 1.2rem; }
+    .coin-chip { padding: .5rem .85rem; font-size: .82rem; }
+    .btn-new-chat { padding: .55rem 1.1rem; font-size: .82rem; }
+    .stat-card { padding: .85rem 1rem; }
+    .session-card { padding: 1rem; border-radius: 14px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="chat-container">
+<div class="ai-home">
 
-    <!-- HEADER -->
-    <div class="page-header">
-        <div>
-            <h1 class="page-title">
-                <i class="bi bi-robot me-2"></i>AI Yordamchi
-            </h1>
-            <p class="page-sub">Sun'iy intellekt bilan dasturlashni o'ring</p>
+    <!-- ===== HERO ===== -->
+    <div class="ai-hero">
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+        <span class="particle"></span>
+
+        <div class="hero-left">
+            <div class="hero-icon">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div>
+                <h1 class="hero-title">AI Yordamchi</h1>
+                <p class="hero-sub">Sun'iy intellekt bilan dasturlashni o'rganing</p>
+            </div>
         </div>
 
-        <div class="d-flex align-items-center gap-3 flex-wrap">
-            <div class="coin-info">
-                <i class="bi bi-coin"></i> {{ user.coins }} coin
+        <div class="hero-right">
+            <div class="coin-chip">
+                <i class="bi bi-coin"></i>
+                <span>{{ user.coins }} coin</span>
             </div>
-
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="btn btn-light fw-semibold" style="border-radius: 12px; padding: 0.6rem 1.5rem;">
-                <i class="bi bi-plus-lg me-1"></i> Yangi suhbat
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="btn-new-chat">
+                <i class="bi bi-plus-lg"></i> Yangi suhbat
             </a>
         </div>
     </div>
 
-    <!-- SESSIONS -->
+    <!-- ===== STATS ===== -->
     {% if sessions %}
-    <div class="session-list">
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-icon purple">
+                <i class="bi bi-chat-dots"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ sessions|length }}</div>
+                <div class="stat-label">Suhbatlar</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue">
+                <i class="bi bi-coin"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ user.coins }}</div>
+                <div class="stat-label">Mavjud coin</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon green">
+                <i class="bi bi-stars"></i>
+            </div>
+            <div>
+                <div class="stat-value">AI</div>
+                <div class="stat-label">Creative AI</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SESSIONS LIST ===== -->
+    <div class="section-title">
+        <i class="bi bi-clock-history"></i> So'nggi suhbatlar
+    </div>
+
+    <div class="session-grid">
         {% for session in sessions %}
         <div class="session-card">
-            <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="session-title d-block">
-                <i class="bi bi-chat-dots"></i>{{ session.title }}
+            <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="session-card-link">
+                <div class="session-icon">
+                    <i class="bi bi-chat-dots"></i>
+                </div>
+                <div class="session-info">
+                    <p class="session-name">{{ session.title }}</p>
+                    <div class="session-meta">
+                        <span class="session-meta-item">
+                            <i class="bi bi-clock"></i>
+                            {{ session.updated_at|date:"d.m.Y H:i" }}
+                        </span>
+                        <span class="session-meta-item">
+                            <i class="bi bi-chat-left-text"></i>
+                            {{ session.messages.count }} xabar
+                        </span>
+                    </div>
+                </div>
             </a>
-
-            <div class="session-meta">
-                <i class="bi bi-clock"></i>
-                <span>{{ session.updated_at|date:"d.m.Y H:i" }}</span>
-                <span>·</span>
-                <i class="bi bi-chat-left-text"></i>
-                <span>{{ session.messages.count }} xabar</span>
-            </div>
-
             <div class="session-actions">
-                <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}"
-                   class="btn btn-sm btn-outline-primary flex-grow-1">
-                    <i class="bi bi-arrow-right-circle me-1"></i>Davom etish
+                <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="btn-session primary">
+                    <i class="bi bi-arrow-right-circle"></i> Davom etish
                 </a>
-
                 <form action="{% url 'ai_yordamchi:delete_session' pk=session.pk %}"
                       method="post"
-                      onsubmit="return confirm('Bu suhbatni o'chirmoqchimisiz?')"
-                      class="d-inline">
+                      onsubmit="return confirm('Bu suhbatni o\'chirmoqchimisiz?')"
+                      style="display:inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i>
+                    <button type="submit" class="btn-session danger">
+                        <i class="bi bi-trash3"></i>
                     </button>
                 </form>
             </div>
         </div>
         {% endfor %}
     </div>
+
     {% else %}
+    <!-- ===== EMPTY STATE ===== -->
     <div class="empty-state">
-        <i class="bi bi-chat-square-dots"></i>
-        <h3 class="mt-3 mb-2">Hali suhbatlar yo'q</h3>
-        <p class="mb-4">AI yordamchi bilan suhbatlashishni boshlang</p>
-        <a href="{% url 'ai_yordamchi:new_session' %}" class="btn btn-primary btn-lg">
-            <i class="bi bi-plus-circle me-2"></i>Yangi suhbat yaratish
+        <div class="empty-robot">
+            <i class="bi bi-robot"></i>
+        </div>
+        <h3 class="empty-title">AI Yordamchi bilan boshlang!</h3>
+        <p class="empty-desc">Dasturlash, matematika va boshqa mavzularda sun'iy intellekt yordamida o'rganing</p>
+
+        <div class="suggestion-chips">
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
+                <i class="bi bi-code-slash"></i> Python o'rganish
+            </a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
+                <i class="bi bi-globe"></i> Django tutorial
+            </a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
+                <i class="bi bi-palette"></i> HTML/CSS
+            </a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
+                <i class="bi bi-lightbulb"></i> Algoritm yechish
+            </a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
+                <i class="bi bi-database"></i> SQL asoslari
+            </a>
+        </div>
+
+        <a href="{% url 'ai_yordamchi:new_session' %}" class="btn-start">
+            <i class="bi bi-plus-circle"></i> Yangi suhbat boshlash
         </a>
     </div>
     {% endif %}
 
-    <!-- INFO -->
-    <div class="alert info-box mt-4">
+    <!-- ===== INFO ===== -->
+    <div class="info-bar">
         <i class="bi bi-info-circle"></i>
-        <strong>Eslatma:</strong> Har bir xabar uchun 1 coin sarflanadi. Rasmli savollar ham qo'llab-quvvatlanadi.
+        <span><strong>Eslatma:</strong> Har bir xabar uchun 1 coin sarflanadi. Rasmli savollar ham qo'llab-quvvatlanadi.</span>
     </div>
-
 </div>
+
+<!-- FAB -->
+<a href="{% url 'ai_yordamchi:new_session' %}" class="fab" title="Yangi suhbat">
+    <i class="bi bi-plus-lg"></i>
+</a>
 {% endblock %}
