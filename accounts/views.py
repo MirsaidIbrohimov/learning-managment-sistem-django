@@ -6784,32 +6784,94 @@ def trust_device(request, pk):
 @login_required
 def logout_all_devices(request):
     if request.method == 'POST':
+        from django.contrib.sessions.models import Session
         current_session_key = request.session.session_key
         
-        # Deactivate all sessions except current
-        # Note: With the new middleware cookie logic, 'device' is stable. 
-        # But we still operate on sessions to log them out.
-        
-        from django.contrib.sessions.models import Session
-        
-        # Get all active sessions for user EXECPT current
         sessions_to_kill = UserSession.objects.filter(
-            user=request.user,
-            is_active=True
+            user=request.user, is_active=True
         ).exclude(session_key=current_session_key)
         
-        keys_to_kill = sessions_to_kill.values_list('session_key', flat=True)
-        
-        # Delete Django sessions
+        keys_to_kill = list(sessions_to_kill.values_list('session_key', flat=True))
         Session.objects.filter(session_key__in=keys_to_kill).delete()
-        
-        # Deactivate custom sessions
         sessions_to_kill.update(is_active=False)
         
-        # Optional: update device status if no active sessions remain?
-        # For now, we just kill sessions, which requires re-login on those devices.
+        messages.success(request, "Barcha boshqa qurilmalardan chiqildi!")
+    
+    return redirect('my_devices')
+
+
+@login_required
+def remove_all_devices(request):
+    """Joriy qurilmadan tashqari barcha qurilmalarni o'chirish"""
+    if request.method == 'POST':
+        from django.contrib.sessions.models import Session
+        current_session_key = request.session.session_key
         
-        messages.success(request, "Barcha boshqa qurilmalardan muvaffaqiyatli chiqildi!")
+        # Joriy qurilmani aniqlash
+        current_session = UserSession.objects.filter(
+            user=request.user, session_key=current_session_key, is_active=True
+        ).select_related('device').first()
+        current_device = current_session.device if current_session else None
+        
+        # Boshqa qurilmalarni olish
+        other_devices = UserDevice.objects.filter(user=request.user, is_active=True)
+        if current_device:
+            other_devices = other_devices.exclude(pk=current_device.pk)
+        
+        # Sessiyalarni o'chirish
+        for device in other_devices:
+            session_keys = list(device.sessions.filter(is_active=True).values_list('session_key', flat=True))
+            Session.objects.filter(session_key__in=session_keys).delete()
+            device.sessions.filter(is_active=True).update(is_active=False)
+        
+        count = other_devices.count()
+        other_devices.update(is_active=False)
+        
+        messages.success(request, f"{count} ta qurilma o'chirildi!")
+    
+    return redirect('my_devices')
+
+
+@login_required
+def bulk_remove_devices(request):
+    """Tanlangan qurilmalarni o'chirish"""
+    if request.method == 'POST':
+        from django.contrib.sessions.models import Session
+        current_session_key = request.session.session_key
+        device_ids = request.POST.getlist('device_ids')
+        
+        if not device_ids:
+            messages.error(request, "Hech qanday qurilma tanlanmadi!")
+            return redirect('my_devices')
+        
+        # Joriy qurilmani aniqlash
+        current_session = UserSession.objects.filter(
+            user=request.user, session_key=current_session_key, is_active=True
+        ).select_related('device').first()
+        current_device_pk = current_session.device.pk if current_session and current_session.device else None
+        
+        removed = 0
+        for device_id in device_ids:
+            try:
+                device = UserDevice.objects.get(pk=int(device_id), user=request.user, is_active=True)
+            except (UserDevice.DoesNotExist, ValueError):
+                continue
+            
+            # Joriy qurilmani o'chirib bo'lmaydi
+            if current_device_pk and device.pk == current_device_pk:
+                continue
+            
+            session_keys = list(device.sessions.filter(is_active=True).values_list('session_key', flat=True))
+            Session.objects.filter(session_key__in=session_keys).delete()
+            device.sessions.filter(is_active=True).update(is_active=False)
+            device.is_active = False
+            device.save(update_fields=['is_active'])
+            removed += 1
+        
+        if removed:
+            messages.success(request, f"{removed} ta qurilma o'chirildi!")
+        else:
+            messages.error(request, "Joriy qurilmani o'chirib bo'lmaydi!")
     
     return redirect('my_devices')
 

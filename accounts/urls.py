@@ -160,6 +160,8 @@ urlpatterns = [
     path('profile/devices/<int:pk>/logout/', views.logout_device, name='logout_device'),
     path('profile/devices/<int:pk>/trust/', views.trust_device, name='trust_device'),
     path('profile/devices/logout-all/', views.logout_all_devices, name='logout_all_devices'),
+    path('profile/devices/remove-all/', views.remove_all_devices, name='remove_all_devices'),
+    path('profile/devices/bulk-remove/', views.bulk_remove_devices, name='bulk_remove_devices'),
     
     # Coding / HTML Deploy
     path('coding/', views.my_deploys, name='my_deploys'),

@@ -106,7 +106,7 @@ class SessionTimeoutMiddleware:
     Session timeout qo'llaydi
     """
     
-    SESSION_TIMEOUT = 30 * 60  # 30 daqiqa
+    SESSION_TIMEOUT = 2 * 60 * 60  # 2 soat
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -118,6 +118,13 @@ class SessionTimeoutMiddleware:
             
             if last_activity:
                 if now - last_activity > self.SESSION_TIMEOUT:
+                    # Sessiyani deaktivatsiya qilish
+                    session_key = request.session.session_key
+                    if session_key:
+                        from .models import UserSession
+                        UserSession.objects.filter(
+                            user=request.user, session_key=session_key
+                        ).update(is_active=False)
                     request.session.flush()
                     return redirect('login')
             
