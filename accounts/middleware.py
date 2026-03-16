@@ -242,9 +242,9 @@ class SectionBlockMiddleware:
 
 class DeviceLimitMiddleware:
     """
-    Qurilmalar soni limitdan oshgan foydalanuvchilarni 
-    device_limit sahifasiga yo'naltiradi.
-    Har bir requestda sessiya hali faolligini tekshiradi.
+    Ikki qoida:
+    1. Faqat 1 ta qurilmada online — boshqa joydan login bo'lsa, bu sessiya o'chiriladi
+    2. Qurilma limiti — 4-chi qurilma login qilsa, device_limit sahifasi ochiladi
     """
     
     EXEMPT_URLS = ['device_limit', 'force_logout_device', 'login', 'logout', 'register']
@@ -260,22 +260,35 @@ class DeviceLimitMiddleware:
         if request.user.is_admin:
             return self.get_response(request)
         
+        # Static/media fayllar
+        if request.path.startswith(('/static/', '/media/')):
+            return self.get_response(request)
+        
         # Exempt URL larni o'tkazib yuborish
         try:
-            from django.urls import resolve
             resolved = resolve(request.path)
             if resolved.url_name in self.EXEMPT_URLS:
                 return self.get_response(request)
         except Exception:
             pass
         
-        # Static/media fayllar
-        if request.path.startswith(('/static/', '/media/')):
-            return self.get_response(request)
-        
-        # device_limit_exceeded flag tekshirish
+        # device_limit_exceeded flag — qurilma tanlash sahifasiga yo'naltirish
         if request.session.get('device_limit_exceeded'):
             return redirect('device_limit')
+        
+        # 🔒 Faqat 1 ta online: joriy sessiya hali faolmi tekshirish
+        session_key = request.session.session_key
+        if session_key:
+            from .models import UserSession
+            active_session = UserSession.objects.filter(
+                user=request.user, is_active=True
+            ).first()
+            
+            # Agar faol sessiya bor va bu sessiya emas — demak boshqa qurilmadan login qilingan
+            if active_session and active_session.session_key != session_key:
+                from django.contrib.auth import logout as auth_logout
+                auth_logout(request)
+                return redirect('login')
         
         return self.get_response(request)
 

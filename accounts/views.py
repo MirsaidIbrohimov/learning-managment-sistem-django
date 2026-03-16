@@ -184,45 +184,68 @@ def _parse_user_agent(ua):
     return device_name, device_type, browser, os_name
 
 
-def _register_device_and_session(request, user):
-    """Login paytida qurilma va sessiyani ro'yxatdan o'tkazish"""
+def _get_device_id(user, ua, ip_address):
+    """User-Agent va IP dan qurilma ID yaratish"""
     import hashlib
+    device_id_raw = f"{user.pk}-{ua}-{ip_address}"
+    return hashlib.md5(device_id_raw.encode()).hexdigest()
+
+
+def _register_device_and_session(request, user):
+    """Login paytida qurilma va sessiyani ro'yxatdan o'tkazish.
+    
+    Qoidalar:
+    - Max 3 ta qurilma saqlanadi. 4-chi bo'lsa, None qaytaradi (limit oynasi ochiladi)
+    - Faqat 1 ta qurilma online bo'ladi. Boshqa sessiyalar o'chiriladi.
+    """
+    from django.contrib.sessions.models import Session as DjangoSession
+    
     ua = request.META.get('HTTP_USER_AGENT', '')
     ip_address = request.META.get('REMOTE_ADDR', '')
-
     device_name, device_type, browser, os_name = _parse_user_agent(ua)
+    device_id = _get_device_id(user, ua, ip_address)
 
-    # Qurilma ID yaratish (UA + IP asosida)
-    device_id_raw = f"{user.pk}-{ua}-{ip_address}"
-    device_id = hashlib.md5(device_id_raw.encode()).hexdigest()
+    # Bu qurilma allaqachon ro'yxatdan o'tganmi?
+    device = UserDevice.objects.filter(user=user, device_id=device_id, is_active=True).first()
 
-    # Qurilmani topish yoki yaratish
-    device, created = UserDevice.objects.get_or_create(
-        user=user,
-        device_id=device_id,
-        defaults={
-            'device_name': device_name,
-            'device_type': device_type,
-            'browser': browser,
-            'os': os_name,
-            'ip_address': ip_address,
-            'is_active': True,
-        }
-    )
-    if not created:
+    if not device:
+        # Yangi qurilma — faol qurilmalar sonini tekshirish
+        active_devices = UserDevice.objects.filter(user=user, is_active=True)
+        if active_devices.count() >= 3:
+            # 4-chi qurilma — limit! Login qilingan, lekin device yaratilmaydi
+            return False
+        
+        # Yangi qurilma yaratish
+        device, created = UserDevice.objects.get_or_create(
+            user=user,
+            device_id=device_id,
+            defaults={
+                'device_name': device_name,
+                'device_type': device_type,
+                'browser': browser,
+                'os': os_name,
+                'ip_address': ip_address,
+                'is_active': True,
+            }
+        )
+        if not created:
+            device.is_active = True
+            device.save(update_fields=['is_active', 'last_login'])
+    else:
         device.ip_address = ip_address
-        device.is_active = True
-        device.save(update_fields=['ip_address', 'is_active', 'last_login'])
+        device.save(update_fields=['ip_address', 'last_login'])
 
     # Sessiyani yaratish
     if not request.session.session_key:
         request.session.create()
 
-    # Eski sessiyani tozalash (shu qurilma uchun)
-    UserSession.objects.filter(
-        user=user, device=device, is_active=True
-    ).update(is_active=False)
+    # ✅ FAQAT 1 TA ONLINE: barcha eski sessiyalarni o'chirish
+    old_sessions = UserSession.objects.filter(user=user, is_active=True)
+    old_session_keys = list(old_sessions.values_list('session_key', flat=True))
+    DjangoSession.objects.filter(session_key__in=old_session_keys).delete()
+    old_sessions.update(is_active=False)
 
+    # Yangi sessiya yaratish
     UserSession.objects.create(
         user=user,
         device=device,
@@ -231,6 +254,8 @@ def _register_device_and_session(request, user):
         expires_at=timezone.now() + timedelta(seconds=7200),
         is_active=True,
     )
+
+    return True
 
 
 def login_view(request):
@@ -312,31 +337,14 @@ def login_view(request):
         user.save(update_fields=["last_activity"])
 
         # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
-        _register_device_and_session(request, user)
-
-        # 🔒 Qurilmalar sonini tekshirish (max 3)
-        MAX_DEVICES = 3
-        from django.contrib.sessions.models import Session as DjangoSession
-        active_sessions = UserSession.objects.filter(
-            user=user, is_active=True
-        ).exclude(session_key=request.session.session_key)
+        # Admin uchun cheklov yo'q
+        if not user.is_admin:
+            device_ok = _register_device_and_session(request, user)
+            if not device_ok:
+                # 4-chi qurilma — limit oynasini ko'rsatish
+                request.session['device_limit_exceeded'] = True
+                return redirect('device_limit')
         
-        # Muddati o'tgan sessiyalarni tozalash
-        for s in active_sessions:
-            if s.is_expired or not DjangoSession.objects.filter(session_key=s.session_key).exists():
-                s.is_active = False
-                s.save(update_fields=['is_active'])
-        
-        # Qayta hisoblash
-        active_sessions = UserSession.objects.filter(
-            user=user, is_active=True
-        ).exclude(session_key=request.session.session_key)
-        
-        if active_sessions.count() >= MAX_DEVICES:
-            # Sessiya davom etsin, lekin qurilma tanlash sahifasiga yo'naltirish
-            request.session['device_limit_exceeded'] = True
-            return redirect('device_limit')
-
         # 💎 Premium kunlik bonus: 5 coin
         today = timezone.now().date()
         if user.is_premium and user.last_daily_login != today:
@@ -408,72 +416,59 @@ def login_view(request):
 
 @login_required
 def device_limit_view(request):
-    """Qurilmalar soni limitdan oshganida ko'rsatiladigan sahifa"""
+    """Qurilmalar soni limitdan oshganida ko'rsatiladigan sahifa.
+    
+    Foydalanuvchi 3 ta qurilmada ro'yxatdan o'tgan, 4-chi qurilmadan 
+    kirmoqchi — bitta qurilmani o'chirishi kerak.
+    """
     if not request.session.get('device_limit_exceeded'):
         return redirect('home')
 
-    from django.contrib.sessions.models import Session as DjangoSession
-    current_session_key = request.session.session_key
+    # Faol qurilmalarni ko'rsatish
+    active_devices = UserDevice.objects.filter(user=request.user, is_active=True)
 
-    # Faol sessiyalarni olish (joriy sessiyadan tashqari)
-    active_sessions = UserSession.objects.filter(
-        user=request.user, is_active=True
-    ).exclude(session_key=current_session_key).select_related('device')
-
-    # Muddati o'tganlarni tozalash
-    for s in active_sessions:
-        if s.is_expired or not DjangoSession.objects.filter(session_key=s.session_key).exists():
-            s.is_active = False
-            s.save(update_fields=['is_active'])
-
-    # Qayta olish
-    active_sessions = UserSession.objects.filter(
-        user=request.user, is_active=True
-    ).exclude(session_key=current_session_key).select_related('device')
-
-    # Agar limit ostiga tushgan bo'lsa, home ga yo'naltirish
-    if active_sessions.count() < 3:
+    # Agar limit ostiga tushgan bo'lsa (admin o'chirgan bo'lishi mumkin)
+    if active_devices.count() < 3:
         request.session.pop('device_limit_exceeded', None)
         return redirect('home')
 
     return render(request, 'accounts/device_limit.html', {
-        'active_sessions': active_sessions,
+        'active_devices': active_devices,
     })
 
 
 @login_required
 def force_logout_device(request, pk):
-    """Qurilma limitdan oshganda, boshqa qurilmani chiqarish"""
+    """Qurilma limitdan oshganda, bitta qurilmani o'chirish va o'rniga yangisini qo'shish"""
     if request.method != 'POST':
         return redirect('device_limit')
 
     from django.contrib.sessions.models import Session as DjangoSession
 
-    session_to_kill = get_object_or_404(
-        UserSession, pk=pk, user=request.user, is_active=True
+    device_to_remove = get_object_or_404(
+        UserDevice, pk=pk, user=request.user, is_active=True
     )
-    current_session_key = request.session.session_key
 
-    if session_to_kill.session_key == current_session_key:
-        messages.error(request, "Joriy sessiyani o'chirib bo'lmaydi!")
-        return redirect('device_limit')
+    # Bu qurilmaning barcha sessiyalarini o'chirish
+    device_sessions = device_to_remove.sessions.filter(is_active=True)
+    session_keys = list(device_sessions.values_list('session_key', flat=True))
+    DjangoSession.objects.filter(session_key__in=session_keys).delete()
+    device_sessions.update(is_active=False)
 
-    # Django sessiyani o'chirish
-    DjangoSession.objects.filter(session_key=session_to_kill.session_key).delete()
-    session_to_kill.is_active = False
-    session_to_kill.save(update_fields=['is_active'])
+    # Qurilmani deaktivatsiya qilish
+    device_to_remove.is_active = False
+    device_to_remove.save(update_fields=['is_active'])
 
-    # Tekshirish: endi limit ostida bo'lsa, home ga yo'naltirish
-    remaining = UserSession.objects.filter(
-        user=request.user, is_active=True
-    ).exclude(session_key=current_session_key).count()
+    # Endi yangi qurilmani ro'yxatdan o'tkazish (hozirgi qurilma)
+    remaining_count = UserDevice.objects.filter(user=request.user, is_active=True).count()
+    if remaining_count < 3:
+        device_ok = _register_device_and_session(request, request.user)
+        if device_ok:
+            request.session.pop('device_limit_exceeded', None)
+            messages.success(request, "Qurilma muvaffaqiyatli almashtirildi! ✅")
+            return redirect('home')
 
-    if remaining < 3:
-        request.session.pop('device_limit_exceeded', None)
-        messages.success(request, "Qurilma muvaffaqiyatli chiqarildi! ✅")
-        return redirect('home')
-
-    messages.success(request, "Qurilma chiqarildi. Yana bitta qurilmani tanlang.")
+    messages.success(request, "Qurilma o'chirildi. Yana bitta qurilmani tanlang.")
     return redirect('device_limit')
 
 

@@ -38,6 +38,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     transition: all 0.3s ease;
 }
 .device-item:hover {
@@ -53,6 +54,7 @@
     align-items: center;
     gap: 12px;
     flex: 1;
+    min-width: 0;
 }
 .device-icon-box {
     width: 44px;
@@ -76,10 +78,16 @@
     background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
     color: #f59e0b;
 }
+.device-details {
+    min-width: 0;
+}
 .device-details h6 {
     margin: 0;
     font-weight: 600;
     font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .device-details small {
     color: var(--text-secondary, #6c757d);
@@ -95,6 +103,7 @@
     font-size: 0.82rem;
     transition: all 0.3s;
     flex-shrink: 0;
+    white-space: nowrap;
 }
 .btn-kick:hover {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
@@ -114,48 +123,46 @@
             </div>
             <h4 class="fw-bold mb-2">Qurilmalar limiti!</h4>
             <p class="text-secondary mb-0" style="font-size:0.9rem;">
-                Sizning akkauntingizga <strong>3 ta</strong> qurilmadan kirilgan. 
-                Davom etish uchun bitta qurilmani chiqaring.
+                Sizning akkauntingizga allaqachon <strong>3 ta</strong> qurilma ulangan.
+                Yangi qurilmadan kirish uchun bitta qurilmani o'chiring.
             </p>
         </div>
 
         <h6 class="fw-bold mb-3">
             <i class="bi bi-devices me-2 text-primary"></i>
-            Faol qurilmalar ({{ active_sessions.count }})
+            Ulangan qurilmalar ({{ active_devices.count }})
         </h6>
 
-        {% for session in active_sessions %}
+        {% for device in active_devices %}
         <div class="device-item">
             <div class="device-info">
-                <div class="device-icon-box {% if session.device %}{{ session.device.device_type }}{% else %}desktop{% endif %}">
-                    {% if session.device and session.device.device_type == 'mobile' %}
+                <div class="device-icon-box {{ device.device_type }}">
+                    {% if device.device_type == 'mobile' %}
                         <i class="bi bi-phone"></i>
-                    {% elif session.device and session.device.device_type == 'tablet' %}
+                    {% elif device.device_type == 'tablet' %}
                         <i class="bi bi-tablet"></i>
                     {% else %}
                         <i class="bi bi-laptop"></i>
                     {% endif %}
                 </div>
                 <div class="device-details">
-                    <h6>
-                        {% if session.device %}
-                            {{ session.device.device_name }}
-                        {% else %}
-                            Noma'lum qurilma
-                        {% endif %}
-                    </h6>
+                    <h6>{{ device.device_name }}</h6>
                     <small>
-                        <i class="bi bi-geo-alt me-1"></i>{{ session.ip_address|default:"—" }}
+                        {% if device.browser %}<i class="bi bi-globe me-1"></i>{{ device.browser }}{% endif %}
                         &nbsp;·&nbsp;
-                        <i class="bi bi-clock me-1"></i>{{ session.last_activity|timesince }} oldin
+                        <i class="bi bi-clock me-1"></i>{{ device.last_login|timesince }} oldin
+                        {% if device.ip_address %}
+                        &nbsp;·&nbsp;
+                        <i class="bi bi-geo-alt me-1"></i>{{ device.ip_address }}
+                        {% endif %}
                     </small>
                 </div>
             </div>
-            <form method="POST" action="{% url 'force_logout_device' session.pk %}" 
-                  onsubmit="return confirm('Bu qurilmani chiqarishni xohlaysizmi?')">
+            <form method="POST" action="{% url 'force_logout_device' device.pk %}"
+                  onsubmit="return confirm('{{ device.device_name }} qurilmasini o\'chirishni xohlaysizmi?\n\nBu qurilmadagi sessiya ham o\'chiriladi.')">
                 {% csrf_token %}
                 <button type="submit" class="btn-kick">
-                    <i class="bi bi-box-arrow-right me-1"></i>Chiqarish
+                    <i class="bi bi-x-circle me-1"></i>O'chirish
                 </button>
             </form>
         </div>
@@ -163,7 +170,7 @@
 
         <hr class="my-3">
 
-        <div class="text-center">
+        <div class="d-flex justify-content-center gap-3">
             <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-power me-1"></i>Tizimdan chiqish
             </a>
