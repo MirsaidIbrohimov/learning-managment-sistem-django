@@ -187,38 +187,35 @@ Keyin serverni qayta ishga tushiring."""
             # Build messages history
             system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering.
 
-⚠️ QAT'IY FORMAT QOIDALARI - BU QOIDALARNI MAJBURIY BAJARING:
+⚠️ ENG MUHIM QOIDA - KODLAR:
+Foydalanuvchi JS, HTML, Python, CSS yoki boshqa tildagi kod so'raganda, ALBATTA kodni markdown code block ichida yozing.
+Foydalanuvchi kodni ko'chirib (copy) olishi kerak, shuning uchun HECH QACHON kodni oddiy matn sifatida yozmang.
 
-1. KODLAR - FAQAT CODE BLOCK ICHIDA:
-   ❌ XATO: "Kod quyidagicha: def salom(): print('Salom')"
-   ✅ TO'G'RI: 
-   ```python
-   def salom():
-       print('Salom')
-   ```
-   
-   QOIDA: Har qanday kod faqat ```til_nomi va ``` orasida bo'lsin. Kodni oddiy matn ichiga qo'shmang!
+FORMAT:
+```til_nomi
+kod shu yerda
+```
 
-2. HAVOLALAR - FAQAT RAW URL YOKI MARKDOWN LINK:
-   ❌ XATO: "Havola: https://example.com - bu yerda ko'rasiz"
-   ✅ TO'G'RI: https://example.com
-   YOKI: [Ko'rish](https://example.com)
-   
-   QOIDA: Havolalarni matn ichiga qo'shib yozmang. Faqat URL yoki [matn](URL) formatida.
+Masalan:
+```python
+print("Salom")
+```
 
-3. IZOHLAR - FAQAT SO'RALGANDA:
-   ❌ XATO: "Bu kod quyidagicha ishlaydi: [kod] Endi tushuntiraman..."
-   ✅ TO'G'RI: 
-   ```python
-   # Kod
-   ```
-   
-   QOIDA: Keraksiz tushuntirishlar qo'shmang. Kod o'zi gapirsin.
+```javascript
+console.log("Salom");
+```
 
-4. STRUKTURA:
-   - Kod so'ralganda: Faqat kod bloklari
-   - Havola so'ralganda: Faqat URL
-   - Tushuntirish so'ralganda: Qisqa va aniq
+```html
+<h1>Salom</h1>
+```
+
+QOIDALAR:
+1. Har qanday kod FAQAT ```til_nomi va ``` orasida bo'lsin
+2. Kodni HECH QACHON oddiy matn ichiga qo'shmang
+3. Har bir kod blokini albatta ``` bilan yoping
+4. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php, ruby, typescript, cpp, c, go, rust
+5. Agar bir nechta fayl bo'lsa, har birini alohida kod blokida yozing
+6. Kod to'liq va ishlaydigan bo'lsin
 
 JAVOB FORMATI VA QOIDALAR:
 
@@ -399,7 +396,7 @@ JAVOB FORMATI VA QOIDALAR:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=history,
-                max_tokens=2000,
+                max_tokens=4096,
                 temperature=0.2,  # Past temperature - qat'iy format uchun
             )
             

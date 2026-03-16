@@ -1279,40 +1279,21 @@ function typeText(element, text, speed = 5) {
                         const codeText = block.textContent || block.innerText;
                         const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
 
-                        wrapper.innerHTML = `
-                            <div class="code-header">
-                                <span class="code-lang">${lang}</span>
-                                <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                                    <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                                </button>
-                            </div>
-                            <pre>${block.outerHTML}</pre>
+                        const header = document.createElement('div');
+                        header.className = 'code-header';
+                        header.innerHTML = `
+                            <span class="code-lang">${lang}</span>
+                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                            </button>
                         `;
+                        wrapper.appendChild(header);
 
-                        block.parentElement.replaceChild(wrapper, block.parentElement);
+                        const pre = block.parentElement;
+                        pre.parentNode.insertBefore(wrapper, pre);
+                        wrapper.appendChild(pre);
                     }
                     hljs.highlightElement(block);
-                });
-
-                element.querySelectorAll('.code-block-wrapper').forEach((wrapper) => {
-                    if (!wrapper.querySelector('.copy-btn')) {
-                        const header = wrapper.querySelector('.code-header');
-                        const codeElement = wrapper.querySelector('code');
-                        if (header && codeElement) {
-                            const codeText = codeElement.textContent || codeElement.innerText;
-                            const codeId = wrapper.id || 'code-' + Math.random().toString(36).substr(2, 9);
-                            wrapper.id = codeId;
-                            const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
-
-                            const copyBtn = document.createElement('button');
-                            copyBtn.className = 'copy-btn';
-                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
-                            copyBtn.onclick = function() {
-                                copyCode(this, codeText, codeId);
-                            };
-                            header.appendChild(copyBtn);
-                        }
-                    }
                 });
             } catch(e) {
                 console.error('Error:', e);
@@ -1356,41 +1337,22 @@ document.addEventListener('DOMContentLoaded', function() {
                         const codeText = block.textContent || block.innerText;
                         const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
 
-                        wrapper.innerHTML = `
-                            <div class="code-header">
-                                <span class="code-lang">${lang}</span>
-                                <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                                    <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                                </button>
-                            </div>
-                            <pre>${block.outerHTML}</pre>
+                        const header = document.createElement('div');
+                        header.className = 'code-header';
+                        header.innerHTML = `
+                            <span class="code-lang">${lang}</span>
+                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
+                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                            </button>
                         `;
+                        wrapper.appendChild(header);
 
-                        block.parentElement.replaceChild(wrapper, block.parentElement);
+                        const pre = block.parentElement;
+                        pre.parentNode.insertBefore(wrapper, pre);
+                        wrapper.appendChild(pre);
                     }
 
                     hljs.highlightElement(block);
-                });
-
-                target.querySelectorAll('.code-block-wrapper').forEach((wrapper) => {
-                    if (!wrapper.querySelector('.copy-btn')) {
-                        const header = wrapper.querySelector('.code-header');
-                        const codeElement = wrapper.querySelector('code');
-                        if (header && codeElement) {
-                            const codeText = codeElement.textContent || codeElement.innerText;
-                            const codeId = wrapper.id || 'code-' + Math.random().toString(36).substr(2, 9);
-                            wrapper.id = codeId;
-                            const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
-
-                            const copyBtn = document.createElement('button');
-                            copyBtn.className = 'copy-btn';
-                            copyBtn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
-                            copyBtn.onclick = function() {
-                                copyCode(this, codeText, codeId);
-                            };
-                            header.appendChild(copyBtn);
-                        }
-                    }
                 });
 
                 target.querySelectorAll('a').forEach((link) => {
