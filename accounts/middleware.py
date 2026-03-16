@@ -240,6 +240,46 @@ class SectionBlockMiddleware:
         return self.get_response(request)
 
 
+class DeviceLimitMiddleware:
+    """
+    Qurilmalar soni limitdan oshgan foydalanuvchilarni 
+    device_limit sahifasiga yo'naltiradi.
+    Har bir requestda sessiya hali faolligini tekshiradi.
+    """
+    
+    EXEMPT_URLS = ['device_limit', 'force_logout_device', 'login', 'logout', 'register']
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        if not request.user.is_authenticated:
+            return self.get_response(request)
+        
+        # Admin uchun cheklov yo'q
+        if request.user.is_admin:
+            return self.get_response(request)
+        
+        # Exempt URL larni o'tkazib yuborish
+        try:
+            from django.urls import resolve
+            resolved = resolve(request.path)
+            if resolved.url_name in self.EXEMPT_URLS:
+                return self.get_response(request)
+        except Exception:
+            pass
+        
+        # Static/media fayllar
+        if request.path.startswith(('/static/', '/media/')):
+            return self.get_response(request)
+        
+        # device_limit_exceeded flag tekshirish
+        if request.session.get('device_limit_exceeded'):
+            return redirect('device_limit')
+        
+        return self.get_response(request)
+
+
 class SecurityHeadersMiddleware:
     """
     Barcha javoblarga xavfsizlik headerlarini qo'shadi

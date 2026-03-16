@@ -11,6 +11,8 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('device-limit/', views.device_limit_view, name='device_limit'),
+    path('device-limit/<int:pk>/force-logout/', views.force_logout_device, name='force_logout_device'),
     
     # Professions & Courses
     path('professions/', views.professions_view, name='professions'),

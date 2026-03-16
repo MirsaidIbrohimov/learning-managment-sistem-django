@@ -219,6 +219,7 @@ MIDDLEWARE = [
     'accounts.middleware.BlockedUserMiddleware',
     'accounts.middleware.PaymentCheckMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
+    'accounts.middleware.DeviceLimitMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
