@@ -337,13 +337,11 @@ def login_view(request):
         user.save(update_fields=["last_activity"])
 
         # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
-        # Admin uchun cheklov yo'q
-        if not user.is_admin:
-            device_ok = _register_device_and_session(request, user)
-            if not device_ok:
-                # 4-chi qurilma — limit oynasini ko'rsatish
-                request.session['device_limit_exceeded'] = True
-                return redirect('device_limit')
+        device_ok = _register_device_and_session(request, user)
+        if not device_ok and not user.is_admin:
+            # 4-chi qurilma — limit oynasini ko'rsatish (admin uchun cheklov yo'q)
+            request.session['device_limit_exceeded'] = True
+            return redirect('device_limit')
         
         # 💎 Premium kunlik bonus: 5 coin
         today = timezone.now().date()
