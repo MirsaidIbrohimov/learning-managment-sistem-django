@@ -5,176 +5,276 @@
 
 {% block extra_css %}
 <style>
-.device-limit-container {
-    max-width: 600px;
-    margin: 40px auto;
-    padding: 0 16px;
+.dl-page { max-width: 640px; margin: 0 auto; padding: 2.5rem 1rem; }
+
+/* ===== HERO ===== */
+.dl-hero {
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
 }
-.device-limit-card {
-    background: var(--card-bg, #fff);
-    border-radius: 20px;
-    border: 1.5px solid var(--border, #e2e8f0);
-    padding: 2rem;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-}
-.limit-icon {
-    width: 80px;
-    height: 80px;
+.dl-hero-icon {
+    width: 96px; height: 96px;
     border-radius: 50%;
-    background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.05));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.2rem;
-    font-size: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.04));
     color: #ef4444;
+    animation: dlPulse 2s ease-in-out infinite;
+    position: relative;
 }
-.device-item {
-    background: var(--bg-color, #f8fafc);
-    border: 1.5px solid var(--border, #e2e8f0);
-    border-radius: 16px;
-    padding: 1rem 1.2rem;
-    margin-bottom: 0.8rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    transition: all 0.3s ease;
+.dl-hero-icon::after {
+    content: '';
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 2px dashed rgba(239,68,68,0.2);
+    animation: dlSpin 12s linear infinite;
 }
-.device-item:hover {
-    border-color: #ef4444;
-    box-shadow: 0 4px 12px rgba(239,68,68,0.1);
+@keyframes dlPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes dlSpin { to { transform: rotate(360deg); } }
+.dl-hero h3 { font-weight: 800; margin-bottom: 0.5rem; font-size: 1.5rem; }
+.dl-hero p { color: var(--bs-secondary-color); font-size: 0.92rem; max-width: 420px; margin: 0 auto; line-height: 1.6; }
+.dl-hero p strong { color: #ef4444; }
+
+/* ===== PROGRESS BAR ===== */
+.dl-capacity {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    border-radius: 14px;
+    background: var(--bs-tertiary-bg);
+    margin-bottom: 1.75rem;
 }
-[data-bs-theme="dark"] .device-item {
-    background: rgba(255,255,255,0.04);
-    border-color: rgba(255,255,255,0.1);
-}
-.device-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0;
-}
-.device-icon-box {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-.device-icon-box.mobile {
-    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
-    color: #22c55e;
-}
-.device-icon-box.desktop {
-    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(99,102,241,0.05));
-    color: #6366f1;
-}
-.device-icon-box.tablet {
-    background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(245,158,11,0.05));
-    color: #f59e0b;
-}
-.device-details {
-    min-width: 0;
-}
-.device-details h6 {
-    margin: 0;
-    font-weight: 600;
-    font-size: 0.9rem;
-    white-space: nowrap;
+.dl-capacity-label { font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.dl-capacity-bar {
+    flex: 1; height: 8px;
+    border-radius: 99px;
+    background: var(--bs-border-color);
     overflow: hidden;
-    text-overflow: ellipsis;
 }
-.device-details small {
-    color: var(--text-secondary, #6c757d);
-    font-size: 0.78rem;
+.dl-capacity-fill {
+    height: 100%; border-radius: 99px;
+    background: linear-gradient(90deg, #ef4444, #f97316);
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
 }
-.btn-kick {
+.dl-capacity-text { font-size: 0.82rem; font-weight: 700; color: #ef4444; white-space: nowrap; }
+
+/* ===== SECTION LABEL ===== */
+.dl-section-label {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-weight: 700; font-size: 0.9rem;
+    margin-bottom: 1rem; color: var(--bs-body-color);
+}
+.dl-section-label i { color: #6366f1; }
+.dl-section-label .count-badge {
+    background: rgba(99,102,241,0.1); color: #6366f1;
+    padding: 0.15rem 0.6rem; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700;
+}
+
+/* ===== DEVICE CARD ===== */
+.dl-device {
+    border: 1.5px solid var(--bs-border-color);
+    border-radius: 18px;
+    padding: 1.25rem;
+    margin-bottom: 0.875rem;
+    background: var(--bs-body-bg);
+    transition: all 0.3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+.dl-device::before {
+    content: ''; position: absolute; top: 0; left: 0;
+    width: 0; height: 100%;
+    background: linear-gradient(180deg, #ef4444, #dc2626);
+    border-radius: 18px 0 0 18px;
+    transition: width 0.3s;
+}
+.dl-device:hover::before { width: 4px; }
+.dl-device:hover { border-color: rgba(239,68,68,0.4); box-shadow: 0 6px 24px rgba(239,68,68,0.08); }
+[data-bs-theme="dark"] .dl-device { background: rgba(255,255,255,0.03); }
+[data-bs-theme="dark"] .dl-device:hover { box-shadow: 0 6px 24px rgba(239,68,68,0.15); }
+
+.dl-device-body {
+    display: flex; align-items: center; gap: 1rem;
+    position: relative; z-index: 1;
+}
+
+/* Icon */
+.dl-device-icon {
+    width: 52px; height: 52px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: #fff; flex-shrink: 0;
+}
+.dl-device-icon.desktop { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.dl-device-icon.mobile { background: linear-gradient(135deg, #10b981, #059669); }
+.dl-device-icon.tablet { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+/* Info */
+.dl-device-info { flex: 1; min-width: 0; }
+.dl-device-name {
+    font-weight: 700; font-size: 0.95rem; margin: 0 0 0.25rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dl-device-meta {
+    display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem;
+    font-size: 0.78rem; color: var(--bs-secondary-color);
+}
+.dl-device-meta span { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+.dl-device-meta i { font-size: 0.8rem; }
+
+/* Remove Button */
+.dl-btn-remove {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border: none; border-radius: 12px;
+    font-weight: 700; font-size: 0.82rem;
+    color: #fff; cursor: pointer;
     background: linear-gradient(135deg, #ef4444, #dc2626);
-    border: none;
-    color: #fff;
-    padding: 8px 18px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.82rem;
-    transition: all 0.3s;
-    flex-shrink: 0;
-    white-space: nowrap;
+    transition: all 0.25s; flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(239,68,68,0.25);
 }
-.btn-kick:hover {
+.dl-btn-remove:hover {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
-    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239,68,68,0.35);
+}
+.dl-btn-remove:active { transform: translateY(0); }
+
+/* ===== TIP ===== */
+.dl-tip {
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.15);
+    margin-top: 1.5rem; margin-bottom: 1.5rem;
+    font-size: 0.84rem; color: var(--bs-body-color); line-height: 1.5;
+}
+[data-bs-theme="dark"] .dl-tip { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); }
+.dl-tip i { color: #f59e0b; font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+/* ===== FOOTER ===== */
+.dl-footer {
+    display: flex; justify-content: center; gap: 0.75rem;
+    padding-top: 1rem; border-top: 1px solid var(--bs-border-color);
+}
+.dl-btn-logout {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.25rem; border-radius: 12px;
+    font-weight: 600; font-size: 0.85rem;
+    text-decoration: none; transition: all 0.2s;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg); color: var(--bs-body-color);
+}
+.dl-btn-logout:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(239,68,68,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    color: var(--bs-body-color);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 576px) {
+    .dl-page { padding: 1.5rem 0.75rem; }
+    .dl-hero h3 { font-size: 1.25rem; }
+    .dl-hero-icon { width: 76px; height: 76px; font-size: 2rem; }
+    .dl-device { padding: 1rem; border-radius: 14px; }
+    .dl-device-icon { width: 42px; height: 42px; border-radius: 11px; font-size: 1.15rem; }
+    .dl-device-body { flex-wrap: wrap; }
+    .dl-btn-remove { width: 100%; justify-content: center; margin-top: 0.75rem; }
+    .dl-capacity { flex-wrap: wrap; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="device-limit-container">
-    <div class="device-limit-card">
-        <div class="text-center mb-4">
-            <div class="limit-icon">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-            </div>
-            <h4 class="fw-bold mb-2">Qurilmalar limiti!</h4>
-            <p class="text-secondary mb-0" style="font-size:0.9rem;">
-                Sizning akkauntingizga allaqachon <strong>3 ta</strong> qurilma ulangan.
-                Yangi qurilmadan kirish uchun bitta qurilmani o'chiring.
-            </p>
+<div class="dl-page">
+
+    <!-- Hero -->
+    <div class="dl-hero">
+        <div class="dl-hero-icon">
+            <i class="bi bi-shield-exclamation"></i>
         </div>
+        <h3>Qurilma limiti to'ldi!</h3>
+        <p>
+            Akkauntingizga <strong>3 ta qurilma</strong> ulangan. 
+            Yangi qurilmadan foydalanish uchun kamida bitta qurilmani o'chirib tashlang.
+        </p>
+    </div>
 
-        <h6 class="fw-bold mb-3">
-            <i class="bi bi-devices me-2 text-primary"></i>
-            Ulangan qurilmalar ({{ active_devices.count }})
-        </h6>
+    <!-- Capacity Bar -->
+    <div class="dl-capacity">
+        <span class="dl-capacity-label"><i class="bi bi-cpu me-1"></i>Qurilmalar</span>
+        <div class="dl-capacity-bar">
+            <div class="dl-capacity-fill" style="width: 100%;"></div>
+        </div>
+        <span class="dl-capacity-text">{{ active_devices.count }} / 3</span>
+    </div>
 
-        {% for device in active_devices %}
-        <div class="device-item">
-            <div class="device-info">
-                <div class="device-icon-box {{ device.device_type }}">
-                    {% if device.device_type == 'mobile' %}
-                        <i class="bi bi-phone"></i>
-                    {% elif device.device_type == 'tablet' %}
-                        <i class="bi bi-tablet"></i>
-                    {% else %}
-                        <i class="bi bi-laptop"></i>
+    <!-- Section Label -->
+    <div class="dl-section-label">
+        <i class="bi bi-devices"></i>
+        Ulangan qurilmalar
+        <span class="count-badge">{{ active_devices.count }} ta</span>
+    </div>
+
+    <!-- Device Cards -->
+    {% for device in active_devices %}
+    <div class="dl-device">
+        <div class="dl-device-body">
+            <div class="dl-device-icon {{ device.device_type }}">
+                {% if device.device_type == 'mobile' %}
+                    <i class="bi bi-phone"></i>
+                {% elif device.device_type == 'tablet' %}
+                    <i class="bi bi-tablet"></i>
+                {% else %}
+                    <i class="bi bi-laptop"></i>
+                {% endif %}
+            </div>
+
+            <div class="dl-device-info">
+                <h6 class="dl-device-name" title="{{ device.device_name }}">{{ device.device_name }}</h6>
+                <div class="dl-device-meta">
+                    {% if device.os %}
+                    <span><i class="bi bi-pc-display"></i> {{ device.os }}</span>
+                    {% endif %}
+                    {% if device.browser %}
+                    <span><i class="bi bi-globe2"></i> {{ device.browser }}</span>
+                    {% endif %}
+                    <span><i class="bi bi-clock"></i> {{ device.last_login|timesince }} oldin</span>
+                    {% if device.ip_address %}
+                    <span><i class="bi bi-geo-alt"></i> {{ device.ip_address }}</span>
                     {% endif %}
                 </div>
-                <div class="device-details">
-                    <h6>{{ device.device_name }}</h6>
-                    <small>
-                        {% if device.browser %}<i class="bi bi-globe me-1"></i>{{ device.browser }}{% endif %}
-                        &nbsp;·&nbsp;
-                        <i class="bi bi-clock me-1"></i>{{ device.last_login|timesince }} oldin
-                        {% if device.ip_address %}
-                        &nbsp;·&nbsp;
-                        <i class="bi bi-geo-alt me-1"></i>{{ device.ip_address }}
-                        {% endif %}
-                    </small>
-                </div>
             </div>
-            <form method="POST" action="{% url 'force_logout_device' device.pk %}"
-                  onsubmit="return confirm('{{ device.device_name }} qurilmasini o\'chirishni xohlaysizmi?\n\nBu qurilmadagi sessiya ham o\'chiriladi.')">
+
+            <form method="POST" action="{% url 'force_logout_device' device.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn-kick">
-                    <i class="bi bi-x-circle me-1"></i>O'chirish
+                <button type="submit" class="dl-btn-remove" 
+                        onclick="return confirm('«{{ device.device_name }}» qurilmasini o\'chirmoqchimisiz?\n\nBu qurilmadagi sessiya ham tugatiladi.')">
+                    <i class="bi bi-x-lg"></i> O'chirish
                 </button>
             </form>
         </div>
-        {% endfor %}
-
-        <hr class="my-3">
-
-        <div class="d-flex justify-content-center gap-3">
-            <a href="{% url 'logout' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-power me-1"></i>Tizimdan chiqish
-            </a>
-        </div>
     </div>
+    {% endfor %}
+
+    <!-- Tip -->
+    <div class="dl-tip">
+        <i class="bi bi-lightbulb"></i>
+        <span>
+            Qurilmani o'chirganingizdan so'ng, yangi qurilmangiz avtomatik ro'yxatga olinadi 
+            va siz saytga kirishingiz mumkin bo'ladi.
+        </span>
+    </div>
+
+    <!-- Footer -->
+    <div class="dl-footer">
+        <a href="{% url 'logout' %}" class="dl-btn-logout">
+            <i class="bi bi-box-arrow-left"></i> Tizimdan chiqish
+        </a>
+    </div>
+
 </div>
 {% endblock %}
