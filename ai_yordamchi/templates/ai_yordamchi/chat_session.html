@@ -4,6 +4,7 @@
 {% block title %}{{ session.title }} - AI Yordamchi{% endblock %}
 
 {% block extra_css %}
+!
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
 <style>
@@ -1072,61 +1073,50 @@
 
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
-// Enhanced markdown renderer
+// ===== MARKED RENDERER (v4 API — stable) =====
 const renderer = new marked.Renderer();
 
 renderer.code = function(code, lang, escaped) {
-    if (!escaped) {
-        code = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
     const language = (lang || 'plaintext').toLowerCase();
     let highlighted;
 
     try {
         if (hljs.getLanguage(language)) {
-            highlighted = hljs.highlight(code, { language: language }).value;
+            highlighted = hljs.highlight(code, { language }).value;
         } else {
             highlighted = hljs.highlightAuto(code).value;
         }
     } catch(e) {
-        highlighted = code;
+        highlighted = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
-    const escapedCode = code
-        .replace(/\\/g, '\\\\')
-        .replace(/`/g, '\\`')
-        .replace(/\$/g, '\\$')
-        .replace(/\n/g, '\\n')
-        .replace(/\r/g, '\\r');
 
     const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
 
-    return `<div class="code-block-wrapper" id="${codeId}">
-        <div class="code-header">
-            <span class="code-lang">${language}</span>
-            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-            </button>
-        </div>
-        <pre><code class="hljs language-${language}">${highlighted}</code></pre>
-    </div>`;
+    return '<div class="code-block-wrapper" id="' + codeId + '">'
+        + '<div class="code-header">'
+        + '<span class="code-lang">' + language + '</span>'
+        + '<button class="copy-btn" data-code-id="' + codeId + '" title="Kodni nusxalash">'
+        + '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>'
+        + '</button>'
+        + '</div>'
+        + '<pre><code class="hljs language-' + language + '">' + highlighted + '</code></pre>'
+        + '</div>';
 };
 
 renderer.link = function(href, title, text) {
-    const isExternal = href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//');
+    const isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
     const target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-    const titleAttr = title ? ` title="${title}"` : '';
-    const icon = isExternal ? '<i class="bi bi-box-arrow-up-right me-1"></i>' : '<i class="bi bi-link-45deg me-1"></i>';
-    return `<a href="${href}"${target}${titleAttr} class="markdown-link">${icon}${text}</a>`;
+    const titleAttr = title ? ' title="' + title + '"' : '';
+    const icon = isExternal
+        ? '<i class="bi bi-box-arrow-up-right me-1"></i>'
+        : '<i class="bi bi-link-45deg me-1"></i>';
+    return '<a href="' + href + '"' + target + titleAttr + ' class="markdown-link">' + icon + text + '</a>';
 };
 
 renderer.table = function(header, body) {
-    return `<div style="overflow-x: auto; margin: 1rem 0;">
-        <table>${header}${body}</table>
-    </div>`;
+    return '<div style="overflow-x:auto;margin:1rem 0"><table>' + header + body + '</table></div>';
 };
 
 marked.setOptions({
@@ -1141,270 +1131,141 @@ marked.setOptions({
     smartypants: false
 });
 
-// Copy function
-function copyCode(btn, code, codeId) {
-    let text = code
-        .replace(/\\\\/g, '\\')
-        .replace(/\\`/g, '`')
-        .replace(/\\\$/g, '$')
-        .replace(/\\n/g, '\n')
-        .replace(/\\r/g, '\r');
-
-    const codeBlock = document.getElementById(codeId);
-    if (codeBlock) {
-        const codeElement = codeBlock.querySelector('code');
-        if (codeElement) {
-            text = codeElement.textContent || codeElement.innerText;
-        }
-    }
+// ===== COPY CODE =====
+function copyCode(btn) {
+    const wrapper = btn.closest('.code-block-wrapper');
+    if (!wrapper) return;
+    const codeEl = wrapper.querySelector('code');
+    if (!codeEl) return;
+    const text = codeEl.textContent || codeEl.innerText;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
+        navigator.clipboard.writeText(text).then(function() {
             showCopySuccess(btn);
-        }).catch(() => {
-            fallbackCopyText(text, btn);
+        }).catch(function() {
+            fallbackCopy(text, btn);
         });
     } else {
-        fallbackCopyText(text, btn);
+        fallbackCopy(text, btn);
     }
 }
 
 function showCopySuccess(btn) {
-    const copyText = btn.querySelector('.copy-text');
-    const originalText = copyText ? copyText.textContent : 'Nusxalash';
-
+    const span = btn.querySelector('.copy-text');
     btn.classList.add('copied');
-    if (copyText) {
-        copyText.textContent = 'Nusxalandi!';
-    } else {
-        btn.innerHTML = '<i class="bi bi-check2"></i> Nusxalandi!';
-    }
-    btn.style.color = '#3fb950';
+    if (span) span.textContent = 'Nusxalandi!';
+    btn.querySelector('i').className = 'bi bi-check2';
 
-    setTimeout(() => {
+    setTimeout(function() {
         btn.classList.remove('copied');
-        if (copyText) {
-            copyText.textContent = originalText;
-        } else {
-            btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash';
-        }
-        btn.style.color = '';
+        if (span) span.textContent = 'Nusxalash';
+        btn.querySelector('i').className = 'bi bi-clipboard';
     }, 2000);
 }
 
-function fallbackCopyText(text, btn) {
-    const textArea = document.createElement('textarea');
-    textArea.value = text;
-    textArea.style.position = 'fixed';
-    textArea.style.left = '-999999px';
-    textArea.style.top = '-999999px';
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
+function fallbackCopy(text, btn) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta);
+    ta.select();
     try {
-        const successful = document.execCommand('copy');
-        if (successful) {
-            showCopySuccess(btn);
-        } else {
-            alert('Nusxalashda xatolik yuz berdi.');
-        }
-    } catch (err) {
-        alert('Nusxalashda xatolik yuz berdi.');
-    }
-
-    document.body.removeChild(textArea);
+        document.execCommand('copy');
+        showCopySuccess(btn);
+    } catch(e) { /* ignore */ }
+    document.body.removeChild(ta);
 }
 
-// Typing animation
-function typeText(element, text, speed = 5) {
-    element.innerHTML = '';
-    let index = 0;
-    let currentText = '';
+// ===== DELEGATED CLICK for copy buttons =====
+document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.copy-btn');
+    if (btn) copyCode(btn);
+});
 
-    function typeChar() {
-        if (index < text.length) {
-            currentText += text[index];
+// ===== PROCESS CODE BLOCKS (add wrapper + highlight) =====
+function processCodeBlocks(container) {
+    container.querySelectorAll('pre code').forEach(function(block) {
+        if (block.closest('.code-block-wrapper')) return;
 
-            try {
-                element.innerHTML = marked.parse(currentText);
+        var pre = block.parentElement;
+        if (!pre || pre.tagName !== 'PRE') return;
 
-                element.querySelectorAll('pre code').forEach((block) => {
-                    if (!block.closest('.code-block-wrapper')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'code-block-wrapper';
-                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-                        wrapper.id = codeId;
+        var wrapper = document.createElement('div');
+        wrapper.className = 'code-block-wrapper';
+        wrapper.id = 'code-' + Math.random().toString(36).substr(2, 9);
 
-                        const langMatch = block.className.match(/language-(\w+)/);
-                        const lang = langMatch ? langMatch[1] : 'plaintext';
-                        const codeText = block.textContent || block.innerText;
-                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+        var langMatch = block.className.match(/language-(\w+)/);
+        var lang = langMatch ? langMatch[1] : 'plaintext';
 
-                        const header = document.createElement('div');
-                        header.className = 'code-header';
-                        header.innerHTML = `
-                            <span class="code-lang">${lang}</span>
-                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                            </button>
-                        `;
-                        wrapper.appendChild(header);
+        var header = document.createElement('div');
+        header.className = 'code-header';
+        header.innerHTML = '<span class="code-lang">' + lang + '</span>'
+            + '<button class="copy-btn" title="Kodni nusxalash">'
+            + '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>'
+            + '</button>';
 
-                        const pre = block.parentElement;
-                        pre.parentNode.insertBefore(wrapper, pre);
-                        wrapper.appendChild(pre);
-                    }
-                    hljs.highlightElement(block);
-                });
-            } catch(e) {
-                element.textContent = currentText;
-            }
+        pre.parentNode.insertBefore(wrapper, pre);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
 
-            index++;
-            setTimeout(typeChar, speed);
-        } else {
-            try {
-                element.innerHTML = marked.parse(currentText);
-
-                element.querySelectorAll('pre code').forEach((block) => {
-                    if (!block.closest('.code-block-wrapper')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'code-block-wrapper';
-                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-                        wrapper.id = codeId;
-
-                        const langMatch = block.className.match(/language-(\w+)/);
-                        const lang = langMatch ? langMatch[1] : 'plaintext';
-                        const codeText = block.textContent || block.innerText;
-                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
-
-                        const header = document.createElement('div');
-                        header.className = 'code-header';
-                        header.innerHTML = `
-                            <span class="code-lang">${lang}</span>
-                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                            </button>
-                        `;
-                        wrapper.appendChild(header);
-
-                        const pre = block.parentElement;
-                        pre.parentNode.insertBefore(wrapper, pre);
-                        wrapper.appendChild(pre);
-                    }
-                    hljs.highlightElement(block);
-                });
-            } catch(e) {
-                console.error('Error:', e);
-            }
-        }
-    }
-
-    typeChar();
+        hljs.highlightElement(block);
+    });
 }
 
-// Render AI messages on load
+// ===== RENDER AI MESSAGES =====
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach((script, idx) => {
-        const id = script.id.replace('ai-content-', '');
-        const target = document.getElementById('ai-msg-' + id);
-        if (target && script.textContent) {
-            try {
-                let content = script.textContent.trim();
+    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach(function(script) {
+        var id = script.id.replace('ai-content-', '');
+        var target = document.getElementById('ai-msg-' + id);
+        if (!target || !script.textContent) return;
 
-                content = content.replace(/(```[a-zA-Z]*\n[\s\S]*?)(?=\n```|$)/g, function(match) {
-                    if (!match.endsWith('```') && match.includes('```')) {
-                        const codeBlocks = match.match(/```/g);
-                        if (codeBlocks && codeBlocks.length % 2 !== 0) {
-                            return match + '\n```';
-                        }
-                    }
-                    return match;
-                });
+        try {
+            var content = script.textContent.trim();
 
-                target.innerHTML = marked.parse(content);
+            // Fix unclosed code blocks
+            var ticks = (content.match(/```/g) || []).length;
+            if (ticks % 2 !== 0) content += '\n```';
 
-                target.querySelectorAll('pre code').forEach((block) => {
-                    if (!block.closest('.code-block-wrapper')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'code-block-wrapper';
-                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-                        wrapper.id = codeId;
+            // Render markdown
+            target.innerHTML = marked.parse(content);
 
-                        const langMatch = block.className.match(/language-(\w+)/);
-                        const lang = langMatch ? langMatch[1] : 'plaintext';
-                        const codeText = block.textContent || block.innerText;
-                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+            // Process code blocks
+            processCodeBlocks(target);
 
-                        const header = document.createElement('div');
-                        header.className = 'code-header';
-                        header.innerHTML = `
-                            <span class="code-lang">${lang}</span>
-                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Kodni nusxalash">
-                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                            </button>
-                        `;
-                        wrapper.appendChild(header);
-
-                        const pre = block.parentElement;
-                        pre.parentNode.insertBefore(wrapper, pre);
-                        wrapper.appendChild(pre);
-                    }
-
-                    hljs.highlightElement(block);
-                });
-
-                target.querySelectorAll('a').forEach((link) => {
+            // Process links
+            target.querySelectorAll('a').forEach(function(link) {
+                var href = link.getAttribute('href');
+                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                    link.setAttribute('target', '_blank');
+                    link.setAttribute('rel', 'noopener noreferrer');
                     if (!link.querySelector('i')) {
-                        const icon = document.createElement('i');
-                        const href = link.getAttribute('href');
-                        if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//'))) {
-                            icon.className = 'bi bi-box-arrow-up-right me-1';
-                        } else {
-                            icon.className = 'bi bi-link-45deg me-1';
-                        }
+                        var icon = document.createElement('i');
+                        icon.className = 'bi bi-box-arrow-up-right me-1';
                         link.insertBefore(icon, link.firstChild);
                     }
-                    const href = link.getAttribute('href');
-                    if (href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//'))) {
-                        link.setAttribute('target', '_blank');
-                        link.setAttribute('rel', 'noopener noreferrer');
-                    }
-                });
-
-            } catch(e) {
-                console.error('Markdown parsing error:', e);
-                target.innerHTML = script.textContent;
-            }
+                }
+            });
+        } catch(e) {
+            console.error('Markdown error:', e);
+            target.textContent = script.textContent;
         }
     });
 
     // Auto-scroll
-    const container = document.getElementById('messagesContainer');
+    var container = document.getElementById('messagesContainer');
     if (container) {
         container.scrollTop = container.scrollHeight;
-    }
 
-    // Observe for new content
-    const observer = new MutationObserver(() => {
-        if (container) {
-            container.scrollTo({
-                top: container.scrollHeight,
-                behavior: 'smooth'
-            });
-        }
-    });
-
-    if (container) {
-        observer.observe(container, { childList: true, subtree: true });
+        new MutationObserver(function() {
+            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }).observe(container, { childList: true, subtree: true });
     }
 });
 
-// Textarea auto-resize
-const textarea = document.getElementById('chatInput');
-const form = document.getElementById('chatForm');
-const sendBtn = document.getElementById('sendBtn');
+// ===== TEXTAREA =====
+var textarea = document.getElementById('chatInput');
+var form = document.getElementById('chatForm');
+var sendBtn = document.getElementById('sendBtn');
 
 if (textarea) {
     textarea.addEventListener('input', function() {
@@ -1426,15 +1287,15 @@ if (textarea) {
     textarea.focus();
 }
 
-// Image preview
+// ===== IMAGE PREVIEW =====
 function previewImage(input) {
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = function(e) {
             document.getElementById('imagePreview').src = e.target.result;
             document.getElementById('imagePreview').style.display = 'block';
             document.getElementById('removeImage').style.display = 'flex';
-        }
+        };
         reader.readAsDataURL(input.files[0]);
     }
 }
