@@ -631,7 +631,7 @@
                         <div class="msg-bubble">
                             {% if msg.role == 'assistant' %}
                                 <div class="markdown-body" id="ai-msg-{{ forloop.counter }}"></div>
-                                <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content }}</script>
+                                <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content|safe }}</script>
                             {% else %}
                                 <div style="white-space:pre-wrap;">{{ msg.content }}</div>
                             {% endif %}
