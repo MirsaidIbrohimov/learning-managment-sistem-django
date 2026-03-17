@@ -342,6 +342,107 @@ body {
 
 .ios-msg-image:hover { transform: scale(1.015); }
 
+/* File attachment */
+.ios-file-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ios-fill2);
+    border: .5px solid var(--ios-separator);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 6px;
+    text-decoration: none;
+    color: var(--ios-text);
+    transition: background .15s;
+    max-width: 280px;
+}
+
+.ios-file-card:hover { background: var(--ios-fill); color: var(--ios-text); }
+
+.ios-msg.user .ios-file-card {
+    background: rgba(255,255,255,.15);
+    border-color: rgba(255,255,255,.2);
+    color: #fff;
+}
+
+.ios-msg.user .ios-file-card:hover {
+    background: rgba(255,255,255,.22);
+    color: #fff;
+}
+
+.ios-file-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--ios-fill);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: var(--ios-tint);
+    flex-shrink: 0;
+}
+
+.ios-msg.user .ios-file-icon {
+    background: rgba(255,255,255,.2);
+    color: #fff;
+}
+
+.ios-file-info { min-width: 0; }
+
+.ios-file-name {
+    font-size: .82rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ios-file-ext {
+    font-size: .68rem;
+    color: var(--ios-text3);
+    text-transform: uppercase;
+}
+
+.ios-msg.user .ios-file-ext { color: rgba(255,255,255,.6); }
+
+/* File preview in input */
+.ios-attach-preview {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    background: var(--ios-fill2);
+    border: .5px solid var(--ios-separator);
+    border-radius: 10px;
+    padding: 6px 10px;
+    margin-top: 6px;
+    font-size: .8rem;
+    color: var(--ios-text);
+}
+
+.ios-attach-preview.active { display: flex; }
+
+.ios-attach-preview i { color: var(--ios-tint); font-size: 1rem; }
+
+.ios-attach-preview .name {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.ios-attach-preview .remove {
+    background: none;
+    border: none;
+    color: var(--ios-red);
+    cursor: pointer;
+    padding: 2px;
+    font-size: .85rem;
+    line-height: 1;
+}
+
 /* ===== MARKDOWN ===== */
 .markdown-body {
     color: var(--ios-text);
@@ -907,6 +1008,15 @@ body {
                             {% if msg.image %}
                             <img src="{{ msg.image.url }}" alt="Rasm" class="ios-msg-image" onclick="window.open(this.src, '_blank')">
                             {% endif %}
+                            {% if msg.file %}
+                            <a href="{{ msg.file.url }}" target="_blank" class="ios-file-card" download>
+                                <div class="ios-file-icon"><i class="bi {{ msg.file_icon }}"></i></div>
+                                <div class="ios-file-info">
+                                    <div class="ios-file-name">{{ msg.file_name }}</div>
+                                    <div class="ios-file-ext">{{ msg.file_extension }} fayl</div>
+                                </div>
+                            </a>
+                            {% endif %}
                         </div>
                         <div class="ios-msg-time">
                             {{ msg.created_at|date:"H:i" }}
@@ -964,11 +1074,20 @@ body {
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
+                    <div class="ios-attach-preview" id="filePreview">
+                        <i class="bi bi-file-earmark" id="filePreviewIcon"></i>
+                        <span class="name" id="filePreviewName"></span>
+                        <button type="button" class="remove" onclick="removeFilePreview()"><i class="bi bi-x-circle"></i></button>
+                    </div>
                 </div>
                 <div class="ios-form-btns">
                     <div class="ios-btn-attach">
-                        <i class="bi bi-paperclip"></i>
+                        <i class="bi bi-image"></i>
                         <input type="file" name="image" accept="image/*" id="imageInput" class="ios-file-input" onchange="previewImage(this)">
+                    </div>
+                    <div class="ios-btn-attach">
+                        <i class="bi bi-paperclip"></i>
+                        <input type="file" name="file" id="fileInput" class="ios-file-input" onchange="previewFile(this)">
                     </div>
                     <button type="submit" class="ios-btn-send" id="sendBtn">
                         <i class="bi bi-arrow-up"></i>
@@ -1232,6 +1351,49 @@ function removeImagePreview() {
     document.getElementById('imageInput').value = '';
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('removeImage').style.display = 'none';
+}
+
+// ===== FILE PREVIEW =====
+function previewFile(input) {
+    if (input.files && input.files[0]) {
+        var file = input.files[0];
+        var name = file.name;
+        var ext = name.split('.').pop().toLowerCase();
+
+        document.getElementById('filePreviewName').textContent = name;
+        document.getElementById('filePreview').classList.add('active');
+
+        // Set icon based on extension
+        var iconMap = {
+            py: 'bi-filetype-py', js: 'bi-filetype-js', ts: 'bi-filetype-tsx',
+            html: 'bi-filetype-html', css: 'bi-filetype-css', json: 'bi-filetype-json',
+            pdf: 'bi-filetype-pdf', doc: 'bi-filetype-doc', docx: 'bi-filetype-docx',
+            xls: 'bi-filetype-xls', xlsx: 'bi-filetype-xlsx', csv: 'bi-filetype-csv',
+            txt: 'bi-filetype-txt', md: 'bi-filetype-md', sql: 'bi-filetype-sql',
+            zip: 'bi-file-zip', rar: 'bi-file-zip',
+            png: 'bi-filetype-png', jpg: 'bi-filetype-jpg', jpeg: 'bi-filetype-jpg',
+            gif: 'bi-filetype-gif', svg: 'bi-filetype-svg'
+        };
+        var iconClass = iconMap[ext] || 'bi-file-earmark';
+        document.getElementById('filePreviewIcon').className = 'bi ' + iconClass;
+
+        // If image file, also show image preview
+        var imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
+        if (imgExts.indexOf(ext) !== -1) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('imagePreview').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.getElementById('removeImage').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+}
+
+function removeFilePreview() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('filePreview').classList.remove('active');
 }
 </script>
 {% endblock %}

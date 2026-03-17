@@ -98,9 +98,10 @@ def send_message(request, pk):
     
     content = request.POST.get('content', '').strip()
     image = request.FILES.get('image')
+    file = request.FILES.get('file')
     
-    if not content and not image:
-        messages.error(request, "Xabar yoki rasm yuborishingiz kerak.")
+    if not content and not image and not file:
+        messages.error(request, "Xabar, rasm yoki fayl yuborishingiz kerak.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
     # Check coins
@@ -108,12 +109,27 @@ def send_message(request, pk):
         messages.error(request, "Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
+    # Handle file - if it's an image type, save as image field too
+    uploaded_image = image
+    uploaded_file = None
+    uploaded_file_name = ''
+    
+    if file:
+        uploaded_file_name = file.name
+        img_exts = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')
+        if file.name.lower().endswith(img_exts):
+            uploaded_image = file
+        else:
+            uploaded_file = file
+    
     # Save user message
     user_message = ChatMessage.objects.create(
         session=session,
         role='user',
         content=content,
-        image=image,
+        image=uploaded_image,
+        file=uploaded_file,
+        file_name=uploaded_file_name,
         coins_spent=1,
     )
     
@@ -370,25 +386,43 @@ JAVOB FORMATI VA QOIDALAR:
                     if is_last_user_message:
                         format_instruction = "\n\n⚠️ MUHIM: Javobda kodlar faqat ```til_nomi va ``` orasida, linklar faqat URL formatida bo'lsin!"
                     
+                    # Build user message text (content + file content if text file)
+                    user_text = (msg.content or '') + format_instruction
+                    
+                    # Read text file content and append
+                    if msg.file and msg.file_name:
+                        text_exts = ('.py', '.js', '.ts', '.html', '.css', '.json', '.xml',
+                                     '.sql', '.txt', '.md', '.csv', '.java', '.php', '.rb',
+                                     '.c', '.cpp', '.h', '.go', '.rs', '.sh', '.bat', '.yaml',
+                                     '.yml', '.toml', '.ini', '.cfg', '.env', '.log')
+                        if msg.file_name.lower().endswith(text_exts):
+                            try:
+                                file_content = msg.file.read().decode('utf-8', errors='replace')
+                                msg.file.seek(0)
+                                ext = msg.file_name.rsplit('.', 1)[-1] if '.' in msg.file_name else 'txt'
+                                user_text += f"\n\nFayl: {msg.file_name}\n```{ext}\n{file_content}\n```"
+                            except Exception:
+                                pass
+                    
                     if msg.image:
                         # Handle image message
                         try:
                             image_data = base64.b64encode(msg.image.read()).decode('utf-8')
                             msg.image.seek(0)
                             content_parts = []
-                            if msg.content:
-                                content_parts.append({"type": "text", "text": msg.content + format_instruction})
+                            if user_text.strip():
+                                content_parts.append({"type": "text", "text": user_text})
                             content_parts.append({
                                 "type": "image_url",
                                 "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
                             })
                             history.append({"role": "user", "content": content_parts})
                         except Exception:
-                            if msg.content:
-                                history.append({"role": "user", "content": msg.content + format_instruction})
+                            if user_text.strip():
+                                history.append({"role": "user", "content": user_text})
                     else:
-                        if msg.content:
-                            history.append({"role": "user", "content": msg.content + format_instruction})
+                        if user_text.strip():
+                            history.append({"role": "user", "content": user_text})
                 else:
                     if msg.content:
                         history.append({"role": "assistant", "content": msg.content})
