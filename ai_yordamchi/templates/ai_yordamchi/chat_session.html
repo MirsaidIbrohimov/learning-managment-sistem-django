@@ -242,6 +242,7 @@ body {
     display: flex;
     gap: 8px;
     max-width: 85%;
+    align-items: flex-end;
 }
 
 .ios-msg.user .ios-msg-row {
@@ -260,8 +261,7 @@ body {
     font-size: .75rem;
     font-weight: 700;
     flex-shrink: 0;
-    align-self: flex-end;
-    margin-bottom: 18px;
+    margin-bottom: 2px;
 }
 
 .ios-msg.user .ios-avatar {
@@ -900,14 +900,10 @@ body {
                     </div>
                     <div class="ios-bubble-wrap">
                         <div class="ios-bubble">
-                            <div class="ios-msg-text">
-                                {% if msg.role == 'assistant' %}
+                            <div class="ios-msg-text">{% if msg.role == 'assistant' %}
                                     <div class="markdown-body" id="ai-msg-{{ forloop.counter }}"></div>
                                     <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content }}</script>
-                                {% else %}
-                                    {{ msg.content }}
-                                {% endif %}
-                            </div>
+{% else %}{{ msg.content }}{% endif %}</div>
                             {% if msg.image %}
                             <img src="{{ msg.image.url }}" alt="Rasm" class="ios-msg-image" onclick="window.open(this.src, '_blank')">
                             {% endif %}
