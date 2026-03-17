@@ -4,317 +4,763 @@
 
 {% block admin_content %}
 <style>
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-    
-    @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
+
+    .fade-in {
+        animation: fadeIn .4s ease-out both;
     }
-    
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+
+    .fade-in-1 { animation-delay: .05s; }
+    .fade-in-2 { animation-delay: .1s; }
+    .fade-in-3 { animation-delay: .15s; }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 1.75rem;
     }
-    
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px;
-        padding: 1.75rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
-        animation: fadeInUp 0.5s ease-out;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .stats-card::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: pulse 3s ease-in-out infinite;
-    }
-    
-    .stats-card h3 {
-        font-size: 2.25rem;
+
+    .page-header h2 {
+        font-size: 1.5rem;
         font-weight: 700;
+        color: var(--text-color);
+        margin: 0 0 .25rem;
+    }
+
+    .page-header p {
+        color: #6b7280;
         margin: 0;
-        position: relative;
-        z-index: 1;
+        font-size: .9rem;
     }
-    
-    .stats-card p {
-        margin: 0.5rem 0 0 0;
-        opacity: 0.95;
-        position: relative;
-        z-index: 1;
-    }
-    
-    .stats-grid {
+
+    [data-bs-theme="dark"] .page-header p { color: #94a3b8; }
+
+    /* Stats */
+    .stats-row {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 2rem;
-        animation: fadeInUp 0.6s ease-out;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
     }
-    
-    .stat-box {
+
+    .stat-card {
         background: var(--card-bg);
-        border: 2px solid var(--border);
+        border: 1px solid var(--border-color);
         border-radius: 14px;
-        padding: 1.5rem;
-        text-align: center;
-        transition: all 0.3s;
-        animation: slideIn 0.5s ease-out;
-        animation-fill-mode: both;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all .25s;
     }
-    
-    .stat-box:nth-child(1) { animation-delay: 0.1s; }
-    .stat-box:nth-child(2) { animation-delay: 0.2s; }
-    .stat-box:nth-child(3) { animation-delay: 0.3s; }
-    
-    .stat-box:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        border-color: #667eea;
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,.08);
     }
-    
-    .stat-box .stat-value {
-        font-size: 2rem;
+
+    [data-bs-theme="dark"] .stat-card:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .stat-icon.total {
+        background: rgba(99, 102, 241, .12);
+        color: #6366f1;
+    }
+
+    .stat-icon.active {
+        background: rgba(16, 185, 129, .12);
+        color: #10b981;
+    }
+
+    .stat-icon.inactive {
+        background: rgba(239, 68, 68, .12);
+        color: #ef4444;
+    }
+
+    [data-bs-theme="dark"] .stat-icon.total { background: rgba(99, 102, 241, .2); }
+    [data-bs-theme="dark"] .stat-icon.active { background: rgba(16, 185, 129, .2); }
+    [data-bs-theme="dark"] .stat-icon.inactive { background: rgba(239, 68, 68, .2); }
+
+    .stat-info .stat-value {
+        font-size: 1.5rem;
         font-weight: 700;
-        color: var(--text);
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+        color: var(--text-color);
+        line-height: 1.2;
     }
-    
-    .stat-box .stat-label {
-        font-size: 0.9rem;
-        color: var(--text-muted);
+
+    .stat-info .stat-label {
+        font-size: .8rem;
+        color: #6b7280;
         font-weight: 500;
     }
-    
-    .table-hover tbody tr {
-        transition: all 0.2s;
-        animation: slideIn 0.4s ease-out;
-        animation-fill-mode: both;
+
+    [data-bs-theme="dark"] .stat-info .stat-label { color: #94a3b8; }
+
+    /* Toolbar */
+    .toolbar {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: .75rem 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+        flex-wrap: wrap;
     }
-    
-    .table-hover tbody tr:nth-child(1) { animation-delay: 0.1s; }
-    .table-hover tbody tr:nth-child(2) { animation-delay: 0.15s; }
-    .table-hover tbody tr:nth-child(3) { animation-delay: 0.2s; }
-    .table-hover tbody tr:nth-child(4) { animation-delay: 0.25s; }
-    
-    .table-hover tbody tr:hover {
-        background-color: rgba(102, 126, 234, 0.08);
-        transform: translateX(5px);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+    .search-box {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+        max-width: 360px;
     }
-    
-    .card {
-        animation: fadeInUp 0.7s ease-out;
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+
+    .search-box input {
+        width: 100%;
+        padding: .5rem .75rem .5rem 2.25rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: var(--bg-color);
+        color: var(--text-color);
+        font-size: .875rem;
+        transition: border-color .2s;
     }
-    
-    .card-header {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        border-bottom: 2px solid var(--border);
-        border-radius: 16px 16px 0 0;
+
+    .search-box input:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, .1);
     }
-    
-    .btn {
-        transition: all 0.3s;
+
+    .search-box i {
+        position: absolute;
+        left: .75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af;
+        font-size: .9rem;
     }
-    
-    .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+
+    .filter-btns {
+        display: flex;
+        gap: .35rem;
     }
-    
+
+    .filter-btn {
+        padding: .4rem .85rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-color);
+        font-size: .8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    .filter-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .filter-btn.active {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: #fff;
+    }
+
+    /* Table Container */
+    .table-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .table-card table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+
+    .table-card thead th {
+        background: var(--bg-color);
+        padding: .75rem 1rem;
+        font-size: .78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+        color: #6b7280;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    [data-bs-theme="dark"] .table-card thead th { color: #94a3b8; }
+
+    .table-card tbody tr {
+        border-bottom: 1px solid var(--border-color);
+        transition: background .15s;
+    }
+
+    .table-card tbody tr:last-child { border-bottom: none; }
+
+    .table-card tbody tr:hover {
+        background: rgba(13, 110, 253, .04);
+    }
+
+    [data-bs-theme="dark"] .table-card tbody tr:hover {
+        background: rgba(99, 102, 241, .06);
+    }
+
+    .table-card td {
+        padding: .85rem 1rem;
+        font-size: .9rem;
+        color: var(--text-color);
+        vertical-align: middle;
+    }
+
+    /* User cell */
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: .75rem;
+        flex-shrink: 0;
+    }
+
+    .user-name { font-weight: 600; font-size: .875rem; }
+    .user-username { font-size: .75rem; color: #9ca3af; }
+
+    /* Session title */
+    .session-title {
+        font-weight: 500;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Msg badge */
+    .msg-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .3rem;
+        background: rgba(13, 110, 253, .1);
+        color: var(--primary-blue);
+        padding: .25rem .6rem;
+        border-radius: 8px;
+        font-size: .8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all .2s;
+    }
+
+    .msg-badge:hover {
+        background: var(--primary-blue);
+        color: #fff;
+    }
+
+    /* Date cell */
+    .date-text {
+        font-size: .82rem;
+        color: var(--text-color);
+    }
+
+    .date-sub {
+        font-size: .72rem;
+        color: #9ca3af;
+    }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .25rem;
+        padding: .25rem .65rem;
+        border-radius: 20px;
+        font-size: .75rem;
+        font-weight: 600;
+    }
+
+    .status-badge.active {
+        background: rgba(16, 185, 129, .12);
+        color: #10b981;
+    }
+
+    .status-badge.inactive {
+        background: rgba(107, 114, 128, .12);
+        color: #6b7280;
+    }
+
+    [data-bs-theme="dark"] .status-badge.active { background: rgba(16, 185, 129, .2); }
+    [data-bs-theme="dark"] .status-badge.inactive { background: rgba(107, 114, 128, .2); color: #94a3b8; }
+
+    /* Action buttons */
+    .action-btns {
+        display: flex;
+        gap: .35rem;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: .85rem;
+        cursor: pointer;
+        transition: all .2s;
+        text-decoration: none;
+    }
+
+    .action-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+        background: rgba(13, 110, 253, .06);
+    }
+
+    .action-btn.view:hover { border-color: #6366f1; color: #6366f1; background: rgba(99, 102, 241, .06); }
+    .action-btn.edit:hover { border-color: #f59e0b; color: #f59e0b; background: rgba(245, 158, 11, .06); }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+
+    .empty-state i { font-size: 3rem; opacity: .4; margin-bottom: 1rem; display: block; }
+    .empty-state p { margin: 0; font-size: .95rem; }
+
+    /* Pagination */
+    .pagination-wrap {
+        padding: 1rem;
+        display: flex;
+        justify-content: center;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .pagination-wrap .page-link {
+        border-radius: 8px;
+        margin: 0 2px;
+        font-size: .85rem;
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        background: transparent;
+        padding: .4rem .7rem;
+    }
+
+    .pagination-wrap .page-item.active .page-link {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: #fff;
+    }
+
+    /* ===== MOBILE CARDS ===== */
+    .mobile-cards { display: none; }
+
+    .session-card-mobile {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1rem;
+        margin-bottom: .75rem;
+        transition: all .2s;
+    }
+
+    .session-card-mobile:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,.06);
+    }
+
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: .75rem;
+    }
+
+    .card-user {
+        display: flex;
+        align-items: center;
+        gap: .6rem;
+    }
+
+    .card-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: .75rem;
+        flex-shrink: 0;
+    }
+
+    .card-username { font-weight: 600; font-size: .875rem; color: var(--text-color); }
+    .card-handle { font-size: .75rem; color: #9ca3af; }
+
+    .card-title {
+        font-weight: 600;
+        color: var(--text-color);
+        margin-bottom: .65rem;
+        font-size: .9rem;
+        line-height: 1.4;
+    }
+
+    .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        align-items: center;
+        margin-bottom: .75rem;
+    }
+
+    .card-meta-item {
+        display: flex;
+        align-items: center;
+        gap: .25rem;
+        font-size: .78rem;
+        color: #6b7280;
+    }
+
+    [data-bs-theme="dark"] .card-meta-item { color: #94a3b8; }
+
+    .card-actions {
+        display: flex;
+        gap: .5rem;
+        padding-top: .65rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .card-action-btn {
+        flex: 1;
+        padding: .45rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-color);
+        font-size: .8rem;
+        font-weight: 500;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .3rem;
+        transition: all .2s;
+    }
+
+    .card-action-btn:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .card-action-btn.primary {
+        background: var(--primary-blue);
+        border-color: var(--primary-blue);
+        color: #fff;
+    }
+
+    .card-action-btn.primary:hover {
+        background: var(--dark-blue);
+        color: #fff;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 991px) {
+        .stats-row { grid-template-columns: repeat(3, 1fr); gap: .75rem; }
+        .session-title { max-width: 160px; }
+    }
+
     @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .stat-box {
-            padding: 1.25rem;
-        }
+        .stats-row { grid-template-columns: 1fr; gap: .6rem; }
+        .stat-card { padding: 1rem; }
+        .stat-info .stat-value { font-size: 1.25rem; }
+
+        .toolbar { flex-direction: column; }
+        .search-box { max-width: 100%; }
+        .filter-btns { width: 100%; justify-content: center; }
+
+        .desktop-table { display: none; }
+        .mobile-cards { display: block; }
+    }
+
+    @media (max-width: 480px) {
+        .stats-row { grid-template-columns: 1fr 1fr 1fr; }
+        .stat-card { flex-direction: column; text-align: center; gap: .5rem; padding: .85rem .5rem; }
+        .stat-icon { width: 40px; height: 40px; font-size: 1rem; }
+        .stat-info .stat-value { font-size: 1.1rem; }
+        .stat-info .stat-label { font-size: .72rem; }
     }
 </style>
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-start flex-wrap gap-2">
         <div>
-            <h2 class="mb-1">
-                <i class="bi bi-robot me-2"></i>AI Chatlar Boshqaruvi
-            </h2>
-            <p class="text-muted mb-0">Barcha foydalanuvchilarning AI suhbatlarini ko'rib chiqing va boshqaring</p>
+            <h2><i class="bi bi-robot me-2"></i>AI Chatlar</h2>
+            <p>Barcha foydalanuvchilarning AI suhbatlarini boshqaring</p>
         </div>
-        <div>
-            <a href="/admin/ai_yordamchi/chatsession/" class="btn btn-primary">
-                <i class="bi bi-gear me-2"></i>Django Admin
+        <a href="/admin/ai_yordamchi/chatsession/" class="btn btn-sm btn-outline-primary" style="border-radius:10px;">
+            <i class="bi bi-gear me-1"></i>Django Admin
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row fade-in fade-in-1">
+        <div class="stat-card">
+            <div class="stat-icon total"><i class="bi bi-chat-square-dots"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_sessions|default:0 }}</div>
+                <div class="stat-label">Jami suhbatlar</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon active"><i class="bi bi-check-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ active_sessions|default:0 }}</div>
+                <div class="stat-label">Faol</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon inactive"><i class="bi bi-x-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ inactive_sessions|default:0 }}</div>
+                <div class="stat-label">Nofaol</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar fade-in fade-in-2">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Suhbat qidirish..." autocomplete="off">
+        </div>
+        <div class="filter-btns">
+            <a href="{% url 'ai_yordamchi:admin_chats' %}" class="filter-btn {% if not request.GET.is_active %}active{% endif %}">
+                <i class="bi bi-grid"></i> Barchasi
+            </a>
+            <a href="?is_active=1" class="filter-btn {% if request.GET.is_active == '1' %}active{% endif %}">
+                <i class="bi bi-check-circle"></i> Faol
+            </a>
+            <a href="?is_active=0" class="filter-btn {% if request.GET.is_active == '0' %}active{% endif %}">
+                <i class="bi bi-x-circle"></i> Nofaol
             </a>
         </div>
     </div>
-    
-    <!-- Statistics -->
-    <div class="stats-grid">
-        <div class="stat-box">
-            <div class="stat-value">{{ total_sessions|default:0 }}</div>
-            <div class="stat-label">Jami Suhbatlar</div>
+
+    <!-- Desktop Table -->
+    <div class="table-card fade-in fade-in-3 desktop-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Foydalanuvchi</th>
+                    <th>Suhbat</th>
+                    <th>Xabarlar</th>
+                    <th>Yaratilgan</th>
+                    <th>Holat</th>
+                    <th style="width:100px;">Amallar</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for session in sessions %}
+                <tr class="session-row" data-title="{{ session.title|lower }}" data-user="{{ session.user.full_name|lower }}">
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">{{ session.user.first_name.0|upper }}{{ session.user.last_name.0|upper }}</div>
+                            <div>
+                                <div class="user-name">{{ session.user.full_name }}</div>
+                                <div class="user-username">@{{ session.user.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><div class="session-title">{{ session.title|truncatechars:40 }}</div></td>
+                    <td>
+                        <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="msg-badge">
+                            <i class="bi bi-chat-dots"></i> {{ session.messages.count }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="date-text">{{ session.created_at|date:"d.m.Y" }}</div>
+                        <div class="date-sub">{{ session.created_at|date:"H:i" }}</div>
+                    </td>
+                    <td>
+                        {% if session.is_active %}
+                        <span class="status-badge active"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Faol</span>
+                        {% else %}
+                        <span class="status-badge inactive"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="action-btn view" title="Ko'rish">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="action-btn edit" title="Tahrirlash">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="bi bi-chat-square-dots"></i>
+                            <p>Hali chatlar yo'q</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if sessions.has_other_pages %}
+        <div class="pagination-wrap">
+            <ul class="pagination mb-0">
+                {% if sessions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sessions.previous_page_number }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in sessions.paginator.page_range %}
+                <li class="page-item {% if sessions.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if sessions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sessions.next_page_number }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
         </div>
-        <div class="stat-box">
-            <div class="stat-value">{{ active_sessions|default:0 }}</div>
-            <div class="stat-label">Faol Suhbatlar</div>
-        </div>
-        <div class="stat-box">
-            <div class="stat-value">{{ inactive_sessions|default:0 }}</div>
-            <div class="stat-label">Nofaol Suhbatlar</div>
-        </div>
+        {% endif %}
     </div>
-    
-    <div class="card shadow-sm">
-        <div class="card-header bg-white border-bottom">
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="bi bi-list-ul me-2"></i>Suhbatlar Ro'yxati
-                </h5>
-                <div class="d-flex gap-2">
-                    <a href="?user=" class="btn btn-sm btn-outline-secondary">Barchasi</a>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-cards fade-in fade-in-3">
+        {% for session in sessions %}
+        <div class="session-card-mobile session-row" data-title="{{ session.title|lower }}" data-user="{{ session.user.full_name|lower }}">
+            <div class="card-top">
+                <div class="card-user">
+                    <div class="card-avatar">{{ session.user.first_name.0|upper }}{{ session.user.last_name.0|upper }}</div>
+                    <div>
+                        <div class="card-username">{{ session.user.full_name }}</div>
+                        <div class="card-handle">@{{ session.user.username }}</div>
+                    </div>
                 </div>
+                {% if session.is_active %}
+                <span class="status-badge active"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Faol</span>
+                {% else %}
+                <span class="status-badge inactive"><i class="bi bi-circle-fill" style="font-size:.45rem;"></i> Nofaol</span>
+                {% endif %}
+            </div>
+            <div class="card-title">{{ session.title|truncatechars:50 }}</div>
+            <div class="card-meta">
+                <span class="card-meta-item">
+                    <i class="bi bi-chat-dots"></i> {{ session.messages.count }} xabar
+                </span>
+                <span class="card-meta-item">
+                    <i class="bi bi-calendar3"></i> {{ session.created_at|date:"d.m.Y H:i" }}
+                </span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="card-action-btn primary">
+                    <i class="bi bi-eye"></i> Ko'rish
+                </a>
+                <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="card-action-btn">
+                    <i class="bi bi-pencil"></i> Tahrirlash
+                </a>
             </div>
         </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Foydalanuvchi</th>
-                            <th>Suhbat nomi</th>
-                            <th>Xabarlar</th>
-                            <th>Yaratilgan</th>
-                            <th>Yangilangan</th>
-                            <th>Holat</th>
-                            <th>Amallar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for session in sessions %}
-                        <tr>
-                            <td><strong>#{{ session.pk }}</strong></td>
-                            <td>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 0.875rem;">
-                                        {{ session.user.first_name.0 }}{{ session.user.last_name.0 }}
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">{{ session.user.full_name }}</div>
-                                        <small class="text-muted">@{{ session.user.username }}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="fw-medium">{{ session.title|truncatechars:40 }}</div>
-                            </td>
-                            <td>
-                                <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="badge bg-info text-decoration-none">
-                                    <i class="bi bi-chat-dots me-1"></i>{{ session.messages.count }}
-                                </a>
-                            </td>
-                            <td>
-                                <small>{{ session.created_at|date:"d.m.Y" }}</small><br>
-                                <small class="text-muted">{{ session.created_at|date:"H:i" }}</small>
-                            </td>
-                            <td>
-                                <small>{{ session.updated_at|date:"d.m.Y" }}</small><br>
-                                <small class="text-muted">{{ session.updated_at|date:"H:i" }}</small>
-                            </td>
-                            <td>
-                                {% if session.is_active %}
-                                <span class="badge bg-success">
-                                    <i class="bi bi-check-circle me-1"></i>Faol
-                                </span>
-                                {% else %}
-                                <span class="badge bg-secondary">
-                                    <i class="bi bi-x-circle me-1"></i>Nofaol
-                                </span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="d-flex gap-1">
-                                    <a href="{% url 'ai_yordamchi:admin_chat_detail' pk=session.pk %}" class="btn btn-sm btn-outline-primary" title="Batafsil ko'rish">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="btn btn-sm btn-outline-info" title="Tahrirlash">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                <i class="bi bi-chat-square-dots fs-1 d-block mb-2 opacity-50"></i>
-                                <p class="mb-0">Hali chatlar yo'q</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            
-            {% if sessions.has_other_pages %}
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    {% if sessions.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ sessions.previous_page_number }}">
-                            <i class="bi bi-chevron-left"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    {% for num in sessions.paginator.page_range %}
-                    <li class="page-item {% if sessions.number == num %}active{% endif %}">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                    {% endfor %}
-                    
-                    {% if sessions.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ sessions.next_page_number }}">
-                            <i class="bi bi-chevron-right"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+        {% empty %}
+        <div class="empty-state" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;">
+            <i class="bi bi-chat-square-dots"></i>
+            <p>Hali chatlar yo'q</p>
         </div>
+        {% endfor %}
+
+        {% if sessions.has_other_pages %}
+        <div class="pagination-wrap" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;margin-top:.5rem;">
+            <ul class="pagination mb-0">
+                {% if sessions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sessions.previous_page_number }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                {% endif %}
+                {% for num in sessions.paginator.page_range %}
+                <li class="page-item {% if sessions.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if sessions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ sessions.next_page_number }}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.session-row').forEach(function(row) {
+        const title = row.getAttribute('data-title') || '';
+        const user = row.getAttribute('data-user') || '';
+        row.style.display = (title.includes(q) || user.includes(q)) ? '' : 'none';
+    });
+});
+</script>
 {% endblock %}

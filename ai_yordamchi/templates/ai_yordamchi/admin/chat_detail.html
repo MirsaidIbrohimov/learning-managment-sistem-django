@@ -2,234 +2,805 @@
 
 {% block title %}Suhbat #{{ session.pk }} - Admin{% endblock %}
 
-{% block admin_content %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in { animation: fadeIn .4s ease-out both; }
+
+    /* Session Header */
     .session-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 16px;
         padding: 1.5rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
     }
-    .session-header h2 {
-        color: white;
-        margin: 0;
+
+    .session-header::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -20%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,.1) 0%, transparent 70%);
+        pointer-events: none;
     }
-    .session-info {
+
+    .header-top {
         display: flex;
-        gap: 2rem;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
         flex-wrap: wrap;
-        margin-top: 1rem;
+        position: relative;
+        z-index: 1;
     }
-    .info-item {
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        padding: .45rem .85rem;
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 10px;
+        background: rgba(255,255,255,.15);
+        backdrop-filter: blur(8px);
+        color: #fff;
+        text-decoration: none;
+        font-size: .85rem;
+        font-weight: 500;
+        transition: all .2s;
+    }
+
+    .btn-back:hover {
+        background: rgba(255,255,255,.25);
+        color: #fff;
+    }
+
+    .session-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: .75rem 0 .65rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .session-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem .75rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .meta-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .3rem .7rem;
+        background: rgba(255,255,255,.15);
+        backdrop-filter: blur(4px);
+        border-radius: 8px;
+        font-size: .78rem;
+        font-weight: 500;
+    }
+
+    .meta-chip.status-active {
+        background: rgba(16, 185, 129, .3);
+    }
+
+    .meta-chip.status-inactive {
+        background: rgba(239, 68, 68, .3);
+    }
+
+    .header-actions {
+        display: flex;
+        gap: .5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .header-action-btn {
+        padding: .45rem .85rem;
+        border: 1px solid rgba(255,255,255,.3);
+        border-radius: 10px;
+        background: rgba(255,255,255,.15);
+        color: #fff;
+        text-decoration: none;
+        font-size: .82rem;
+        font-weight: 500;
+        transition: all .2s;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .header-action-btn:hover {
+        background: rgba(255,255,255,.25);
+        color: #fff;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+        display: flex;
+        gap: .75rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .mini-stat {
+        flex: 1;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: .85rem 1rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: .75rem;
     }
-    .chat-message {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-        padding: 1.25rem;
-        border-radius: 12px;
-        background: var(--card-bg);
-        border: 1px solid var(--border);
-        transition: all 0.2s;
-    }
-    .chat-message:hover {
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        transform: translateY(-2px);
-    }
-    .chat-message.user {
-        background: rgba(13, 110, 253, 0.08);
-        border-left: 4px solid #0d6efd;
-    }
-    .chat-message.assistant {
-        background: rgba(16, 185, 129, 0.08);
-        border-left: 4px solid #10b981;
-    }
-    .message-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
+
+    .mini-stat-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 600;
-        color: white;
-        flex-shrink: 0;
-        font-size: 1.1rem;
+        font-size: 1rem;
     }
-    .chat-message.user .message-avatar {
-        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+
+    .mini-stat-icon.msgs {
+        background: rgba(13, 110, 253, .1);
+        color: var(--primary-blue);
     }
-    .chat-message.assistant .message-avatar {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+    .mini-stat-icon.coins {
+        background: rgba(245, 158, 11, .1);
+        color: #f59e0b;
     }
-    .message-body {
-        flex: 1;
-        min-width: 0;
+
+    [data-bs-theme="dark"] .mini-stat-icon.msgs { background: rgba(13, 110, 253, .2); }
+    [data-bs-theme="dark"] .mini-stat-icon.coins { background: rgba(245, 158, 11, .2); }
+
+    .mini-stat-value {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--text-color);
+        line-height: 1.2;
     }
-    .message-header {
+
+    .mini-stat-label {
+        font-size: .75rem;
+        color: #6b7280;
+    }
+
+    [data-bs-theme="dark"] .mini-stat-label { color: #94a3b8; }
+
+    /* Messages Container */
+    .messages-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .messages-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.75rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+        padding: .85rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        background: var(--bg-color);
     }
-    .message-sender {
+
+    .messages-header h5 {
+        margin: 0;
+        font-size: .95rem;
         font-weight: 600;
-        color: var(--text);
-        font-size: 0.95rem;
-    }
-    .message-time {
-        font-size: 0.8rem;
-        color: var(--text-muted);
+        color: var(--text-color);
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: .5rem;
     }
-    .message-content {
-        line-height: 1.8;
-        color: var(--text);
+
+    .messages-header .count-badge {
+        background: var(--primary-blue);
+        color: #fff;
+        padding: .15rem .5rem;
+        border-radius: 20px;
+        font-size: .72rem;
+        font-weight: 600;
+    }
+
+    .btn-scroll-bottom {
+        padding: .35rem .7rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-color);
+        font-size: .78rem;
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        gap: .3rem;
+    }
+
+    .btn-scroll-bottom:hover {
+        border-color: var(--primary-blue);
+        color: var(--primary-blue);
+    }
+
+    .messages-body {
+        max-height: 65vh;
+        overflow-y: auto;
+        padding: 1.25rem;
+    }
+
+    .messages-body::-webkit-scrollbar { width: 6px; }
+    .messages-body::-webkit-scrollbar-track { background: transparent; }
+    .messages-body::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+    /* Message */
+    .chat-msg {
+        display: flex;
+        gap: .75rem;
+        margin-bottom: 1.25rem;
+        animation: fadeIn .3s ease-out both;
+    }
+
+    .chat-msg:last-child { margin-bottom: 0; }
+
+    .msg-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: .8rem;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    .chat-msg.user .msg-avatar {
+        background: linear-gradient(135deg, var(--primary-blue), #0a58ca);
+    }
+
+    .chat-msg.assistant .msg-avatar {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .msg-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .msg-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: .4rem;
+        flex-wrap: wrap;
+        gap: .35rem;
+    }
+
+    .msg-sender {
+        font-weight: 600;
+        font-size: .85rem;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: .35rem;
+    }
+
+    .msg-time {
+        font-size: .75rem;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .coin-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: .2rem;
+        background: rgba(245, 158, 11, .12);
+        color: #d97706;
+        padding: .15rem .45rem;
+        border-radius: 6px;
+        font-size: .72rem;
+        font-weight: 600;
+    }
+
+    [data-bs-theme="dark"] .coin-tag {
+        background: rgba(245, 158, 11, .2);
+        color: #fbbf24;
+    }
+
+    .msg-bubble {
+        border-radius: 14px;
+        padding: .85rem 1rem;
+        line-height: 1.7;
+        font-size: .9rem;
         word-wrap: break-word;
     }
-    .message-content pre {
-        background: rgba(0,0,0,0.05);
-        padding: 1rem;
-        border-radius: 8px;
-        overflow-x: auto;
-        margin: 0.5rem 0;
+
+    .chat-msg.user .msg-bubble {
+        background: rgba(13, 110, 253, .06);
+        border: 1px solid rgba(13, 110, 253, .12);
+        color: var(--text-color);
+        border-top-left-radius: 4px;
     }
-    .message-image {
+
+    .chat-msg.assistant .msg-bubble {
+        background: rgba(16, 185, 129, .04);
+        border: 1px solid rgba(16, 185, 129, .1);
+        color: var(--text-color);
+        border-top-left-radius: 4px;
+    }
+
+    [data-bs-theme="dark"] .chat-msg.user .msg-bubble {
+        background: rgba(13, 110, 253, .08);
+        border-color: rgba(13, 110, 253, .15);
+    }
+
+    [data-bs-theme="dark"] .chat-msg.assistant .msg-bubble {
+        background: rgba(16, 185, 129, .06);
+        border-color: rgba(16, 185, 129, .12);
+    }
+
+    .msg-image {
         max-width: 100%;
-        max-height: 400px;
-        border-radius: 8px;
-        margin-top: 0.75rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        max-height: 350px;
+        border-radius: 10px;
+        margin-top: .65rem;
+        border: 1px solid var(--border-color);
         cursor: pointer;
+        transition: transform .2s;
     }
-    .stats-badge {
-        background: rgba(255,255,255,0.2);
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.875rem;
+
+    .msg-image:hover { transform: scale(1.02); }
+
+    /* Markdown styles for admin */
+    .markdown-body {
+        color: var(--text-color);
+        line-height: 1.75;
+        font-size: .9rem;
+    }
+
+    .markdown-body p { margin-bottom: .65rem; }
+    .markdown-body p:last-child { margin-bottom: 0; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin: 1rem 0 .5rem; font-weight: 600; color: var(--text-color); }
+    .markdown-body h1 { font-size: 1.4rem; }
+    .markdown-body h2 { font-size: 1.2rem; }
+    .markdown-body h3 { font-size: 1.05rem; }
+    .markdown-body ul, .markdown-body ol { margin: .5rem 0; padding-left: 1.5rem; }
+    .markdown-body li { margin: .3rem 0; }
+
+    .markdown-body a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .markdown-body a:hover { text-decoration: underline; }
+
+    .markdown-body strong { font-weight: 600; }
+
+    .markdown-body p code, .markdown-body li code {
+        background: rgba(99, 102, 241, .1);
+        padding: 1px 6px;
+        border-radius: 5px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: .82rem;
+        color: #6366f1;
+    }
+
+    [data-bs-theme="dark"] .markdown-body p code,
+    [data-bs-theme="dark"] .markdown-body li code {
+        background: rgba(139, 92, 246, .15);
+        color: #a78bfa;
+    }
+
+    .markdown-body blockquote {
+        border-left: 3px solid var(--primary-blue);
+        margin: .75rem 0;
+        padding: .5rem 1rem;
+        background: rgba(13, 110, 253, .04);
+        border-radius: 0 8px 8px 0;
+    }
+
+    .markdown-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: .75rem 0;
+        font-size: .85rem;
+    }
+
+    .markdown-body table th, .markdown-body table td {
+        padding: .5rem .65rem;
+        border: 1px solid var(--border-color);
+        text-align: left;
+    }
+
+    .markdown-body table th { background: var(--bg-color); font-weight: 600; }
+
+    /* Code blocks */
+    .code-block-wrapper {
+        position: relative;
+        margin: .85rem 0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #0d1117;
+        border: 1px solid #21262d;
+    }
+
+    .code-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 12px;
+        background: #161b22;
+        border-bottom: 1px solid #21262d;
+    }
+
+    .code-lang {
+        font-size: 10px;
+        color: #8b949e;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+
+    .copy-btn {
+        background: transparent;
+        border: 1px solid #30363d;
+        color: #8b949e;
+        font-size: 10px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 5px;
+        transition: all .2s;
+    }
+
+    .copy-btn:hover { background: #30363d; color: #c9d1d9; }
+    .copy-btn.copied { color: #3fb950; border-color: #3fb950; }
+
+    .markdown-body pre {
+        margin: 0;
+        padding: 12px;
+        overflow-x: auto;
+        background: transparent !important;
+    }
+
+    .markdown-body pre code {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        color: #c9d1d9;
+        background: transparent !important;
+    }
+
+    /* Empty state */
+    .empty-msgs {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+
+    .empty-msgs i { font-size: 3rem; opacity: .4; display: block; margin-bottom: 1rem; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .session-header { padding: 1.15rem; border-radius: 12px; }
+        .session-title { font-size: 1.05rem; }
+        .header-top { flex-direction: column; }
+        .header-actions { width: 100%; }
+        .header-action-btn { flex: 1; justify-content: center; }
+
+        .stats-bar { flex-direction: column; gap: .5rem; }
+        .mini-stat { padding: .65rem .85rem; }
+
+        .messages-body { padding: .85rem; max-height: 60vh; }
+        .msg-avatar { width: 34px; height: 34px; font-size: .72rem; border-radius: 10px; }
+        .msg-bubble { padding: .7rem .85rem; border-radius: 12px; }
+        .msg-sender { font-size: .8rem; }
+    }
+
+    @media (max-width: 480px) {
+        .session-header { padding: 1rem; }
+        .meta-chip { font-size: .72rem; padding: .25rem .55rem; }
+        .chat-msg { gap: .5rem; }
+        .msg-avatar { width: 30px; height: 30px; font-size: .65rem; }
     }
 </style>
+{% endblock %}
 
-<div class="container-fluid py-4">
+{% block admin_content %}
+<div class="fade-in">
     <!-- Session Header -->
     <div class="session-header">
-        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-            <div class="d-flex align-items-center gap-3">
-                <a href="{% url 'ai_yordamchi:admin_chats' %}" class="btn btn-light btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i>Orqaga
+        <div class="header-top">
+            <a href="{% url 'ai_yordamchi:admin_chats' %}" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Orqaga
+            </a>
+            <div class="header-actions">
+                <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="header-action-btn">
+                    <i class="bi bi-pencil"></i> Tahrirlash
                 </a>
-                <div>
-                    <h2 class="mb-2">
-                        <i class="bi bi-chat-dots me-2"></i>{{ session.title }}
-                    </h2>
-                    <div class="session-info">
-                        <div class="info-item">
-                            <i class="bi bi-person-circle"></i>
-                            <span><strong>{{ session.user.full_name }}</strong> (@{{ session.user.username }})</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="bi bi-calendar3"></i>
-                            <span>Yaratilgan: {{ session.created_at|date:"d.m.Y H:i" }}</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="bi bi-clock-history"></i>
-                            <span>Yangilangan: {{ session.updated_at|date:"d.m.Y H:i" }}</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="bi bi-chat-left-text"></i>
-                            <span>{{ chat_messages.count }} xabar</span>
-                        </div>
-                        {% if session.is_active %}
-                        <div class="info-item">
-                            <span class="badge bg-success">Faol</span>
-                        </div>
-                        {% else %}
-                        <div class="info-item">
-                            <span class="badge bg-secondary">Nofaol</span>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
+                <a href="/admin/ai_yordamchi/chatmessage/?session__id__exact={{ session.pk }}" class="header-action-btn">
+                    <i class="bi bi-list-ul"></i> Xabarlar
+                </a>
             </div>
-            <div class="d-flex gap-2">
-                <a href="/admin/ai_yordamchi/chatsession/{{ session.pk }}/change/" class="btn btn-light">
-                    <i class="bi bi-pencil me-1"></i>Tahrirlash
-                </a>
+        </div>
+        <div class="session-title">
+            <i class="bi bi-chat-dots me-2"></i>{{ session.title }}
+        </div>
+        <div class="session-meta">
+            <span class="meta-chip">
+                <i class="bi bi-person-fill"></i> {{ session.user.full_name }} (@{{ session.user.username }})
+            </span>
+            <span class="meta-chip">
+                <i class="bi bi-calendar3"></i> {{ session.created_at|date:"d.m.Y H:i" }}
+            </span>
+            <span class="meta-chip">
+                <i class="bi bi-clock-history"></i> {{ session.updated_at|date:"d.m.Y H:i" }}
+            </span>
+            {% if session.is_active %}
+            <span class="meta-chip status-active">
+                <i class="bi bi-check-circle"></i> Faol
+            </span>
+            {% else %}
+            <span class="meta-chip status-inactive">
+                <i class="bi bi-x-circle"></i> Nofaol
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="mini-stat">
+            <div class="mini-stat-icon msgs"><i class="bi bi-chat-left-text"></i></div>
+            <div>
+                <div class="mini-stat-value">{{ chat_messages.count }}</div>
+                <div class="mini-stat-label">Xabarlar</div>
+            </div>
+        </div>
+        <div class="mini-stat">
+            <div class="mini-stat-icon coins"><i class="bi bi-coin"></i></div>
+            <div>
+                <div class="mini-stat-value" id="totalCoins">0</div>
+                <div class="mini-stat-label">Sarflangan coin</div>
             </div>
         </div>
     </div>
-    
+
     <!-- Messages -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">
-                <i class="bi bi-chat-left-text me-2"></i>
-                Xabarlar
-                <span class="badge bg-primary ms-2">{{ chat_messages.count }}</span>
+    <div class="messages-card">
+        <div class="messages-header">
+            <h5>
+                <i class="bi bi-chat-left-text"></i> Xabarlar
+                <span class="count-badge">{{ chat_messages.count }}</span>
             </h5>
-            <a href="/admin/ai_yordamchi/chatmessage/?session__id__exact={{ session.pk }}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-list-ul me-1"></i>Barcha xabarlarni ko'rish
-            </a>
+            <button class="btn-scroll-bottom" onclick="scrollToBottom()">
+                <i class="bi bi-arrow-down"></i> Pastga
+            </button>
         </div>
-        <div class="card-body" style="max-height: 70vh; overflow-y: auto;">
+        <div class="messages-body" id="messagesBody">
             {% if chat_messages %}
                 {% for msg in chat_messages %}
-                <div class="chat-message {{ msg.role }}">
-                    <div class="message-avatar">
+                <div class="chat-msg {{ msg.role }}" {% if msg.coins_spent %}data-coins="{{ msg.coins_spent }}"{% endif %}>
+                    <div class="msg-avatar">
                         {% if msg.role == 'user' %}
-                            {{ session.user.first_name.0 }}{{ session.user.last_name.0 }}
+                            {{ session.user.first_name.0|upper }}{{ session.user.last_name.0|upper }}
                         {% else %}
                             <i class="bi bi-robot"></i>
                         {% endif %}
                     </div>
-                    <div class="message-body">
-                        <div class="message-header">
-                            <span class="message-sender">
+                    <div class="msg-content">
+                        <div class="msg-top">
+                            <span class="msg-sender">
                                 {% if msg.role == 'user' %}
-                                    <i class="bi bi-person me-1"></i>{{ session.user.full_name }}
+                                    <i class="bi bi-person-fill"></i> {{ session.user.full_name }}
                                 {% else %}
-                                    <i class="bi bi-robot me-1"></i>AI Yordamchi
+                                    <i class="bi bi-robot"></i> AI Yordamchi
                                 {% endif %}
                             </span>
-                            <span class="message-time">
-                                <i class="bi bi-clock"></i>{{ msg.created_at|date:"d.m.Y H:i" }}
+                            <span class="msg-time">
+                                <i class="bi bi-clock"></i> {{ msg.created_at|date:"d.m.Y H:i" }}
                                 {% if msg.coins_spent %}
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-coin"></i> -{{ msg.coins_spent }} coin
+                                <span class="coin-tag">
+                                    <i class="bi bi-coin"></i> -{{ msg.coins_spent }}
                                 </span>
                                 {% endif %}
                             </span>
                         </div>
-                        <div class="message-content">
+                        <div class="msg-bubble">
                             {% if msg.role == 'assistant' %}
-                                <div style="white-space: pre-wrap;">{{ msg.content }}</div>
+                                <div class="markdown-body" id="ai-msg-{{ forloop.counter }}"></div>
+                                <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content }}</script>
                             {% else %}
-                                {{ msg.content|linebreaks }}
+                                <div style="white-space:pre-wrap;">{{ msg.content }}</div>
                             {% endif %}
                             {% if msg.image %}
-                            <div class="mt-2">
-                                <img src="{{ msg.image.url }}" alt="Uploaded image" class="message-image" onclick="window.open(this.src, '_blank')">
-                            </div>
+                            <img src="{{ msg.image.url }}" alt="Rasm" class="msg-image" onclick="window.open(this.src,'_blank')">
                             {% endif %}
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-chat-square-dots fs-1 d-block mb-2 opacity-50"></i>
-                    <p class="mb-0">Bu suhbatda xabarlar yo'q</p>
+                <div class="empty-msgs">
+                    <i class="bi bi-chat-square-dots"></i>
+                    <p>Bu suhbatda xabarlar yo'q</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script>
+// Marked renderer setup
+const renderer = new marked.Renderer();
+
+renderer.code = function(code, lang) {
+    let codeText, language;
+    if (typeof code === 'object' && code !== null) {
+        codeText = code.text || code.raw || '';
+        language = (code.lang || 'plaintext').toLowerCase();
+    } else {
+        codeText = code || '';
+        language = (lang || 'plaintext').toLowerCase();
+    }
+    codeText = codeText.replace(/\n$/, '');
+
+    let highlighted;
+    try {
+        if (hljs.getLanguage(language)) {
+            highlighted = hljs.highlight(codeText, { language: language }).value;
+        } else {
+            highlighted = hljs.highlightAuto(codeText).value;
+        }
+    } catch(e) {
+        highlighted = codeText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    const escapedCode = codeText
+        .replace(/\\/g, '\\\\').replace(/`/g, '\\`')
+        .replace(/\$/g, '\\$').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
+
+    const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+
+    return `<div class="code-block-wrapper" id="${codeId}">
+        <div class="code-header">
+            <span class="code-lang">${language}</span>
+            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Nusxalash">
+                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+            </button>
+        </div>
+        <pre><code class="hljs language-${language}">${highlighted}</code></pre>
+    </div>`;
+};
+
+renderer.link = function(href, title, text) {
+    let url, titleText, linkText;
+    if (typeof href === 'object' && href !== null) {
+        url = href.href || ''; titleText = href.title || ''; linkText = href.text || '';
+    } else {
+        url = href || ''; titleText = title || ''; linkText = text || '';
+    }
+    const isExt = url.startsWith('http://') || url.startsWith('https://');
+    const target = isExt ? ' target="_blank" rel="noopener noreferrer"' : '';
+    const titleAttr = titleText ? ` title="${titleText}"` : '';
+    return `<a href="${url}"${target}${titleAttr}>${linkText}</a>`;
+};
+
+marked.setOptions({ renderer: renderer, breaks: true, gfm: true, pedantic: false });
+
+// Copy function
+function copyCode(btn, code, codeId) {
+    let text = code.replace(/\\\\/g, '\\').replace(/\\`/g, '`').replace(/\\\$/g, '$').replace(/\\n/g, '\n').replace(/\\r/g, '\r');
+    const codeBlock = document.getElementById(codeId);
+    if (codeBlock) {
+        const el = codeBlock.querySelector('code');
+        if (el) text = el.textContent || el.innerText;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(text, btn));
+    } else {
+        fallbackCopy(text, btn);
+    }
+}
+
+function showCopied(btn) {
+    const t = btn.querySelector('.copy-text');
+    const orig = t ? t.textContent : 'Nusxalash';
+    btn.classList.add('copied');
+    if (t) t.textContent = 'Nusxalandi!';
+    setTimeout(() => { btn.classList.remove('copied'); if (t) t.textContent = orig; }, 2000);
+}
+
+function fallbackCopy(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showCopied(btn); } catch(e) {}
+    document.body.removeChild(ta);
+}
+
+// Scroll to bottom
+function scrollToBottom() {
+    const el = document.getElementById('messagesBody');
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+}
+
+// Render AI messages & calculate coins
+document.addEventListener('DOMContentLoaded', function() {
+    let totalCoins = 0;
+    document.querySelectorAll('.chat-msg[data-coins]').forEach(msg => {
+        totalCoins += parseInt(msg.getAttribute('data-coins')) || 0;
+    });
+    document.getElementById('totalCoins').textContent = totalCoins;
+
+    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach(script => {
+        const id = script.id.replace('ai-content-', '');
+        const target = document.getElementById('ai-msg-' + id);
+        if (target && script.textContent) {
+            try {
+                let content = script.textContent.trim();
+                target.innerHTML = marked.parse(content);
+
+                target.querySelectorAll('pre code').forEach(block => {
+                    if (!block.closest('.code-block-wrapper')) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-block-wrapper';
+                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+                        wrapper.id = codeId;
+                        const langMatch = block.className.match(/language-(\w+)/);
+                        const lang = langMatch ? langMatch[1] : 'plaintext';
+                        const codeText = block.textContent || block.innerText;
+                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
+
+                        const header = document.createElement('div');
+                        header.className = 'code-header';
+                        header.innerHTML = `
+                            <span class="code-lang">${lang}</span>
+                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Nusxalash">
+                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
+                            </button>
+                        `;
+                        wrapper.appendChild(header);
+                        const pre = block.parentElement;
+                        pre.parentNode.insertBefore(wrapper, pre);
+                        wrapper.appendChild(pre);
+                    }
+                    hljs.highlightElement(block);
+                });
+            } catch(e) {
+                console.error('Markdown parse error:', e);
+                target.innerHTML = '<div style="white-space:pre-wrap;">' + script.textContent + '</div>';
+            }
+        }
+    });
+
+    scrollToBottom();
+});
+</script>
 {% endblock %}
