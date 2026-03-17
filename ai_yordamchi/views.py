@@ -201,7 +201,10 @@ Keyin serverni qayta ishga tushiring."""
     else:
         try:
             # Build messages history
-            system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering.
+            system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. Sizni Husan Suyunov Shavkat o'g'li yaratgan. 
+            husanbek-coder.uz Telefon raqami: +998975216686. Telegrami: @husanbek_coder
+            Husan Suyunov IT Creative Zomin asoschisi va rahbari. 
+            Husan Suyunov Full-Stack Dasturchi. https://github.com/xusanbek0039            
 
 ⚠️ ENG MUHIM QOIDA - KODLAR:
 Foydalanuvchi JS, HTML, Python, CSS yoki boshqa tildagi kod so'raganda, ALBATTA kodni markdown code block ichida yozing.
