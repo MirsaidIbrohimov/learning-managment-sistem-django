@@ -547,6 +547,7 @@
                                     {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>{% endif %}
                                 </a>
                             </li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i>AI suhbat</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i>O'yinlar</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i>Vazifalarim</a></li>
                             <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
@@ -946,6 +947,10 @@
                         {% endif %}
                     </div>
                     <span>Xabarlar</span>
+                </a>
+                <a href="{% url 'ai_yordamchi:chat_home' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-green"><i class="bi bi-robot"></i></div>
+                    <span>AI suhbat</span>
                 </a>
                 <a href="{% url 'games:games_list' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-controller"></i></div>
@@ -1661,6 +1666,257 @@
     
     {% endif %}
 
+    {% if request.session.show_ai_ad %}
+    <!-- Creative AI reklama popup (login paytida) -->
+    <style>
+    .ai-ad-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 99998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: aiFadeIn 0.5s ease;
+    }
+    @keyframes aiFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .ai-ad-overlay.ai-hiding {
+        animation: aiFadeOut 0.5s ease forwards;
+    }
+    @keyframes aiFadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .ai-card {
+        background: linear-gradient(150deg, #0a192f, #112240, #1a365d);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        animation: aiCardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(16,185,129,0.15);
+    }
+    @keyframes aiCardPop {
+        from { opacity: 0; transform: scale(0.7) translateY(40px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .ai-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -30%;
+        width: 160%; height: 160%;
+        background: radial-gradient(ellipse, rgba(16,185,129,0.1) 0%, transparent 60%);
+        animation: aiFloat 5s ease-in-out infinite;
+    }
+    @keyframes aiFloat {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-15px) rotate(2deg); }
+    }
+    .ai-card > * { position: relative; z-index: 1; }
+    .ai-close {
+        position: absolute;
+        top: 14px; right: 16px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: rgba(255,255,255,0.6);
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ai-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .ai-logo-wrap {
+        width: 80px; height: 80px;
+        margin: 0 auto 1.2rem;
+        position: relative;
+    }
+    .ai-logo-inner {
+        width: 80px; height: 80px;
+        background: linear-gradient(135deg, #10b981, #059669, #047857);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        animation: aiBounce 2s ease-in-out infinite;
+        box-shadow: 0 8px 30px rgba(16,185,129,0.4);
+    }
+    @keyframes aiBounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-8px) scale(1.05); }
+    }
+    .ai-logo-ring {
+        position: absolute;
+        top: -8px; left: -8px; right: -8px; bottom: -8px;
+        border: 2px solid rgba(16,185,129,0.3);
+        border-radius: 30px;
+        animation: aiRingPulse 2s ease-in-out infinite;
+    }
+    @keyframes aiRingPulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0; }
+    }
+    .ai-card h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+        background: linear-gradient(90deg, #34d399, #fff, #34d399);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: aiShimmer 3s linear infinite;
+    }
+    @keyframes aiShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .ai-subtitle {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .ai-features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+    .ai-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.86rem;
+        color: rgba(255,255,255,0.85);
+        opacity: 0;
+        transform: translateX(-20px);
+        animation: aiSlideIn 0.4s ease forwards;
+    }
+    .ai-feature:nth-child(1) { animation-delay: 0.4s; }
+    .ai-feature:nth-child(2) { animation-delay: 0.5s; }
+    .ai-feature:nth-child(3) { animation-delay: 0.6s; }
+    .ai-feature:nth-child(4) { animation-delay: 0.7s; }
+    @keyframes aiSlideIn {
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .ai-feature:nth-child(1) i { color: #34d399; }
+    .ai-feature:nth-child(2) i { color: #60a5fa; }
+    .ai-feature:nth-child(3) i { color: #fbbf24; }
+    .ai-feature:nth-child(4) i { color: #a78bfa; }
+    .ai-feature i { font-size: 1.1rem; flex-shrink: 0; }
+    .ai-btn-try {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        margin-bottom: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+        opacity: 0;
+        animation: aiBtnUp 0.4s ease 0.85s forwards;
+    }
+    @keyframes aiBtnUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .ai-btn-try:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(16,185,129,0.5);
+        color: #fff;
+    }
+    .ai-btn-skip {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.45);
+        font-size: 0.82rem;
+        cursor: pointer;
+        padding: 8px;
+        transition: 0.2s;
+        opacity: 0;
+        animation: aiBtnUp 0.4s ease 0.95s forwards;
+    }
+    .ai-btn-skip:hover { color: rgba(255,255,255,0.7); }
+    .ai-dot-glow {
+        position: absolute;
+        width: 4px; height: 4px;
+        background: #34d399;
+        border-radius: 50%;
+        opacity: 0;
+    }
+    .ai-dot-glow:nth-child(1) { top: 10%; left: 10%; animation: aiDotGlow 3s ease infinite 0s; }
+    .ai-dot-glow:nth-child(2) { top: 18%; right: 10%; animation: aiDotGlow 3s ease infinite 0.7s; }
+    .ai-dot-glow:nth-child(3) { bottom: 30%; left: 12%; animation: aiDotGlow 3s ease infinite 1.4s; }
+    @keyframes aiDotGlow {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(2); }
+    }
+    @media (max-width: 480px) {
+        .ai-card { padding: 2rem 1.5rem; border-radius: 22px; }
+        .ai-card h2 { font-size: 1.3rem; }
+    }
+    </style>
+
+    <div class="ai-ad-overlay" id="aiAdOverlay">
+        <div class="ai-card">
+            <div class="ai-dot-glow"></div>
+            <div class="ai-dot-glow"></div>
+            <div class="ai-dot-glow"></div>
+            <button class="ai-close" onclick="closeAiAd()"><i class="bi bi-x"></i></button>
+            <div class="ai-logo-wrap">
+                <div class="ai-logo-ring"></div>
+                <div class="ai-logo-inner">
+                    <i class="bi bi-robot"></i>
+                </div>
+            </div>
+            <h2>Creative AI ni sinab ko'ring!</h2>
+            <p class="ai-subtitle">Sun'iy intellekt yordamchisi sizga har qanday savolingizda yordam beradi</p>
+            <div class="ai-features">
+                <div class="ai-feature"><i class="bi bi-code-slash"></i>Dasturlash kodlarini yozib beradi</div>
+                <div class="ai-feature"><i class="bi bi-chat-dots-fill"></i>Savollaringizga tezkor javob beradi</div>
+                <div class="ai-feature"><i class="bi bi-translate"></i>Har qanday mavzuda yordam beradi</div>
+                <div class="ai-feature"><i class="bi bi-lightning-fill"></i>Faqat 1 coin — tez va oson!</div>
+            </div>
+            <a href="{% url 'ai_yordamchi:chat_home' %}" class="ai-btn-try"><i class="bi bi-robot me-2"></i>AI suhbat boshlash</a>
+            <button class="ai-btn-skip" onclick="closeAiAd()">Keyinroq</button>
+        </div>
+    </div>
+
+    <script>
+    fetch('{% url "clear_ai_ad" %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    });
+    function closeAiAd() {
+        var ov = document.getElementById('aiAdOverlay');
+        if (ov) {
+            ov.classList.add('ai-hiding');
+            setTimeout(function(){ ov.remove(); }, 500);
+        }
+    }
+    </script>
+    {% endif %}
 
 
 </body>

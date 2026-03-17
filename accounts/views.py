@@ -404,6 +404,9 @@ def login_view(request):
         if user.role == 'student' and not user.is_premium:
             request.session['show_premium_ad'] = True
 
+        # AI yordamchi reklama (har safar login qilganda)
+        request.session['show_ai_ad'] = True
+
         return redirect('home')
 
     else:
@@ -8632,6 +8635,12 @@ def toggle_section_block(request, section):
 @login_required
 def clear_premium_ad(request):
     request.session.pop('show_premium_ad', None)
+    return JsonResponse({'ok': True})
+
+
+@login_required
+def clear_ai_ad(request):
+    request.session.pop('show_ai_ad', None)
     return JsonResponse({'ok': True})
 
 

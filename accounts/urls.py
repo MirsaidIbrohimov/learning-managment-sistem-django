@@ -249,6 +249,7 @@ urlpatterns = [
 
     # Premium reklama flagini tozalash
     path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
+    path('clear-ai-ad/', views.clear_ai_ad, name='clear_ai_ad'),
 
     # Ariza
     path('ariza/', views.ariza_view, name='ariza'),
