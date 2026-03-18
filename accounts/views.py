@@ -1151,6 +1151,99 @@ def _notify_homework_graded(grader, submission, grade):
     )
 
 
+def _check_similarity_with_others(homework, current_submission, student_answer):
+    """Boshqa o'quvchilarning javoblari bilan o'xshashlikni tekshirish"""
+    import json
+    from django.conf import settings
+    
+    # Shu vazifaga topshirilgan boshqa javoblarni olish (joriy submissiondan tashqari)
+    other_submissions = HomeworkSubmission.objects.filter(
+        homework=homework
+    ).exclude(
+        pk=current_submission.pk
+    ).exclude(
+        status='revision'
+    ).order_by('-submitted_at')[:20]
+    
+    if not other_submissions:
+        return None
+    
+    # Boshqa javoblarning mazmunini yig'ish
+    other_answers = []
+    for sub in other_submissions:
+        content = _read_submission_content(sub)
+        if content and len(content.strip()) > 20:
+            other_answers.append({
+                'student': sub.student.full_name,
+                'content': content[:2000]
+            })
+    
+    if not other_answers:
+        return None
+    
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        
+        # Boshqa javoblarni formatlash
+        others_text = ""
+        for i, ans in enumerate(other_answers, 1):
+            others_text += f"\n--- O'quvchi {i} ({ans['student']}) ---\n{ans['content']}\n"
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz o'quv platformasining kod o'xshashlik tekshiruvchisisiz.\n\n"
+                        "Yangi topshirilgan javobni avval topshirilgan javoblar bilan solishtiring.\n\n"
+                        "⚠️ MUHIM QOIDALAR:\n"
+                        "- Agar ikkala kod deyarli bir xil bo'lsa (faqat o'zgaruvchi nomlari yoki bo'sh joylar farq qilsa) — bu KO'CHIRISH\n"
+                        "- Agar ikkala kodning mantiqiy tuzilishi, funksiya nomlari, izohlar bir xil bo'lsa — bu KO'CHIRISH\n"
+                        "- Agar faqat print/input kabi oddiy buyruqlar bir xil bo'lsa — bu ko'chirish EMAS (chunki vazifa shuni talab qiladi)\n"
+                        "- Agar kodlar turli yondashuvlar bilan yozilgan bo'lsa — bu ko'chirish EMAS\n"
+                        "- Bitta vazifani bajarish uchun bir xil natija chiqishi tabiiy — bu ko'chirish EMAS\n"
+                        "- O'xshashlik 85% dan past bo'lsa — ko'chirish EMAS\n\n"
+                        "Faqat JSON formatda javob bering:\n"
+                        '{"is_plagiat": true/false, "similarity": <0-100>, "similar_to": "<kim bilan o\'xshash>", '
+                        '"reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
+                        "- is_plagiat: FAQAT 85% dan ortiq o'xshashlik bo'lsa true\n"
+                        "- similarity: aniq o'xshashlik foizi\n"
+                        "- similar_to: qaysi o'quvchining javobiga o'xshash\n"
+                        "- reason: O'zbek tilida 1-2 gapda sabab"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Yangi topshirilgan javob:\n{student_answer[:2000]}\n\n"
+                        f"Avval topshirilgan javoblar:\n{others_text}"
+                    )
+                }
+            ],
+            max_tokens=300,
+            temperature=0.1,
+        )
+        result_text = response.choices[0].message.content.strip()
+        if result_text.startswith('```'):
+            result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+        result = json.loads(result_text)
+        return {
+            'is_plagiat': bool(result.get('is_plagiat', False)),
+            'similarity': min(100, max(0, int(result.get('similarity', 0)))),
+            'similar_to': result.get('similar_to', ''),
+            'reason': result.get('reason', ''),
+        }
+    except Exception as e:
+        print(f"Similarity check error: {e}")
+        return None
+
+
 def _check_ai_generated(homework_description, student_answer):
     """Javob suniy intellekt yordamida yozilganligini tekshirish"""
     import json
@@ -1509,48 +1602,128 @@ def submit_homework(request, pk):
                         f"💳 Balans: {student.coins} coin"
                     )
                 else:
-                    # 2. Avtomatik baholash
-                    ai_result = _get_ai_grade(homework.description, student_answer)
-                    if ai_result:
-                        submission.grade = ai_result['grade']
-                        submission.status = ai_result['status']
-                        submission.graded_at = timezone.now()
-                        feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                        submission.ai_feedback = feedback_text
-                        submission.feedback = feedback_text
-                        submission.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                    # 2. O'xshashlik (plagiat) tekshirish — boshqa o'quvchilar bilan solishtirish
+                    similarity_result = _check_similarity_with_others(homework, submission, student_answer)
+                    if similarity_result and similarity_result['is_plagiat']:
+                        submission.status = 'revision'
+                        similar_user = similarity_result['similar_to']
+                        similarity_pct = similarity_result['similarity']
                         
-                        if ai_result['status'] == 'graded':
-                            messages.success(request, f"✅ AI baholadi: {ai_result['grade']}/10 ball!")
-                            # Coin berish
-                            if not submission.coin_awarded:
-                                coin_amount = 5
-                                if not submission.is_late:
-                                    coin_amount = 10
-                                if ai_result['grade'] >= 9:
-                                    coin_amount += 5
-                                elif ai_result['grade'] >= 8:
-                                    coin_amount += 3
-                                if submission.student.is_premium:
-                                    coin_amount *= 2
-                                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {homework.lesson.title}")
-                                submission.coin_awarded = True
-                                submission.save(update_fields=['coin_awarded'])
-                                ActivityLog.objects.create(
-                                    user=submission.student,
-                                    action_type='homework_graded',
-                                    description=f"Vazifa AI baholadi: {homework.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                                )
-                            _notify_ai_graded(submission, ai_result)
+                        # Jarima: 10-30 coin
+                        if similarity_pct >= 95:
+                            penalty = 30
+                        elif similarity_pct >= 90:
+                            penalty = 20
                         else:
-                            messages.warning(request, f"⚠️ AI xulosasi: qayta ishlash kerak ({ai_result['grade']}/10 ball)")
-                            _notify_ai_revision(submission, ai_result)
-                    elif request.user.is_premium:
-                        # AI grade ishlamasa, kamida premium feedback berish
-                        ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
-                        if ai_feedback:
-                            submission.ai_feedback = ai_feedback
-                            submission.save(update_fields=['ai_feedback'])
+                            penalty = 10
+                        
+                        submission.ai_feedback = (
+                            f"🔄 Boshqa o'quvchining javobiga juda o'xshash deb topildi! "
+                            f"(o'xshashlik: {similarity_pct}%)\n\n"
+                            f"📋 Sabab: {similarity_result['reason']}\n\n"
+                            f"💰 Jarima: -{penalty} coin\n\n"
+                            f"⚠️ Iltimos, vazifani mustaqil bajaring va qayta yuboring."
+                        )
+                        submission.save(update_fields=['status', 'ai_feedback'])
+                        
+                        student = submission.student
+                        student.coins -= penalty
+                        student.save(update_fields=['coins'])
+                        CoinTransaction.objects.create(
+                            user=student,
+                            amount=penalty,
+                            action='remove',
+                            reason=f"Kod ko'chirish jarimasi: {homework.lesson.title} (o'xshashlik: {similarity_pct}%)"
+                        )
+                        ActivityLog.objects.create(
+                            user=student,
+                            action_type='earn_coins',
+                            description=f"Kod ko'chirish jarimasi: -{penalty} coin ({homework.lesson.title}, o'xshashlik: {similarity_pct}%)"
+                        )
+                        
+                        Message.objects.create(
+                            title="🔄 Kod ko'chirish aniqlandi",
+                            content=(
+                                f"Sizning '{homework.lesson.title}' vazifangiz boshqa o'quvchining javobiga "
+                                f"juda o'xshash deb topildi.\n\n"
+                                f"📋 Sabab: {similarity_result['reason']}\n"
+                                f"🔢 O'xshashlik: {similarity_pct}%\n"
+                                f"💰 Jarima: -{penalty} coin\n"
+                                f"💳 Joriy balansingiz: {student.coins} coin\n\n"
+                                f"⚠️ Iltimos, vazifalarni mustaqil bajaring!"
+                            ),
+                            message_type='warning',
+                            recipient=student
+                        )
+                        
+                        messages.warning(request, f"⚠️ Javobingiz boshqa o'quvchinikiga juda o'xshash! Jarima: -{penalty} coin. Qayta ishlashga yuborildi!")
+                        
+                        notify_user(
+                            student.telegram_id,
+                            f"🔄 <b>Kod ko'chirish aniqlandi!</b>\n\n"
+                            f"📚 {homework.lesson.profession.name}\n"
+                            f"📖 {homework.lesson.title}\n"
+                            f"📋 {similarity_result['reason']}\n"
+                            f"🔢 O'xshashlik: {similarity_pct}%\n"
+                            f"💰 Jarima: <b>-{penalty} coin</b>\n\n"
+                            f"⚠️ Vazifani mustaqil bajaring va qayta yuboring!"
+                        )
+                        notify_group(
+                            f"🔄 <b>Kod ko'chirish aniqlandi!</b>\n\n"
+                            f"👤 {student.first_name} {student.last_name}\n"
+                            f"📚 {homework.lesson.profession.name} / {homework.lesson.title}\n"
+                            f"🔢 O'xshashlik: {similarity_pct}%\n"
+                            f"💰 Jarima: -{penalty} coin"
+                        )
+                        notify_admins(
+                            f"🔄 <b>Kod ko'chirish jarimasi!</b>\n\n"
+                            f"👤 {student.first_name} {student.last_name}\n"
+                            f"📚 {homework.lesson.profession.name} / {homework.lesson.title}\n"
+                            f"📋 {similarity_result['reason']}\n"
+                            f"🔢 O'xshashlik: {similarity_pct}%\n"
+                            f"💰 Jarima: -{penalty} coin"
+                        )
+                    else:
+                        # 3. Avtomatik baholash
+                        ai_result = _get_ai_grade(homework.description, student_answer)
+                        if ai_result:
+                            submission.grade = ai_result['grade']
+                            submission.status = ai_result['status']
+                            submission.graded_at = timezone.now()
+                            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                            submission.ai_feedback = feedback_text
+                            submission.feedback = feedback_text
+                            submission.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                            
+                            if ai_result['status'] == 'graded':
+                                messages.success(request, f"✅ AI baholadi: {ai_result['grade']}/10 ball!")
+                                if not submission.coin_awarded:
+                                    coin_amount = 5
+                                    if not submission.is_late:
+                                        coin_amount = 10
+                                    if ai_result['grade'] >= 9:
+                                        coin_amount += 5
+                                    elif ai_result['grade'] >= 8:
+                                        coin_amount += 3
+                                    if submission.student.is_premium:
+                                        coin_amount *= 2
+                                    submission.student.add_coins(coin_amount, f"Vazifa baholandi: {homework.lesson.title}")
+                                    submission.coin_awarded = True
+                                    submission.save(update_fields=['coin_awarded'])
+                                    ActivityLog.objects.create(
+                                        user=submission.student,
+                                        action_type='homework_graded',
+                                        description=f"Vazifa AI baholadi: {homework.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                                    )
+                                _notify_ai_graded(submission, ai_result)
+                            else:
+                                messages.warning(request, f"⚠️ AI xulosasi: qayta ishlash kerak ({ai_result['grade']}/10 ball)")
+                                _notify_ai_revision(submission, ai_result)
+                        elif request.user.is_premium:
+                            ai_feedback = _get_ai_homework_feedback(homework.description, student_answer)
+                            if ai_feedback:
+                                submission.ai_feedback = ai_feedback
+                                submission.save(update_fields=['ai_feedback'])
             elif submission.submission_type == 'file' and submission.file:
                 import os
                 if os.path.splitext(submission.file.name)[1].lower() == '.pdf':
