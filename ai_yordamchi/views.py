@@ -466,8 +466,11 @@ JAVOB FORMATI VA QOIDALAR:
                     if msg.image:
                         # Handle image message
                         try:
-                            image_data = base64.b64encode(msg.image.read()).decode('utf-8')
-                            msg.image.seek(0)
+                            # Rasmni o'qish - open() bilan qayta ochish
+                            msg.image.open('rb')
+                            raw = msg.image.read()
+                            msg.image.close()
+                            image_data = base64.b64encode(raw).decode('utf-8')
                             # Rasm formatini aniqlash
                             img_name = msg.image.name.lower() if msg.image.name else ''
                             if img_name.endswith('.png'):
@@ -491,9 +494,10 @@ JAVOB FORMATI VA QOIDALAR:
                                 }
                             })
                             history.append({"role": "user", "content": content_parts})
-                        except Exception:
+                        except Exception as img_err:
+                            print(f"IMAGE READ ERROR: {img_err}")
                             if user_text.strip():
-                                history.append({"role": "user", "content": user_text})
+                                history.append({"role": "user", "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)"})
                     else:
                         if user_text.strip():
                             history.append({"role": "user", "content": user_text})
