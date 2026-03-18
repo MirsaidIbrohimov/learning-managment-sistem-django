@@ -468,12 +468,27 @@ JAVOB FORMATI VA QOIDALAR:
                         try:
                             image_data = base64.b64encode(msg.image.read()).decode('utf-8')
                             msg.image.seek(0)
+                            # Rasm formatini aniqlash
+                            img_name = msg.image.name.lower() if msg.image.name else ''
+                            if img_name.endswith('.png'):
+                                mime = 'image/png'
+                            elif img_name.endswith('.gif'):
+                                mime = 'image/gif'
+                            elif img_name.endswith('.webp'):
+                                mime = 'image/webp'
+                            else:
+                                mime = 'image/jpeg'
                             content_parts = []
                             if user_text.strip():
                                 content_parts.append({"type": "text", "text": user_text})
+                            else:
+                                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
                             content_parts.append({
                                 "type": "image_url",
-                                "image_url": {"url": f"data:image/jpeg;base64,{image_data}"}
+                                "image_url": {
+                                    "url": f"data:{mime};base64,{image_data}",
+                                    "detail": "high"
+                                }
                             })
                             history.append({"role": "user", "content": content_parts})
                         except Exception:
