@@ -1378,11 +1378,24 @@ if (textarea) {
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
 
+    var isSending = false;
+    form.addEventListener('submit', function(e) {
+        if (isSending) {
+            e.preventDefault();
+            return;
+        }
+        isSending = true;
+        sendBtn.disabled = true;
+        textarea.readOnly = true;
+        sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    });
     textarea.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            if (this.value.trim()) {
+            if (this.value.trim() && !isSending) {
+                isSending = true;
                 sendBtn.disabled = true;
+                textarea.readOnly = true;
                 sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
                 form.submit();
             }
