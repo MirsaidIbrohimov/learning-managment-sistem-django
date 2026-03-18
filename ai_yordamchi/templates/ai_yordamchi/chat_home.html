@@ -793,10 +793,19 @@
     </div>
     {% endif %}
 
-    <!-- ===== INFO ===== -->
-    <div class="info-bar">
+    <!-- ===== LIMITS INFO ===== -->
+    <div class="info-bar" style="flex-wrap:wrap;gap:.75rem;">
+        <div style="flex:1;min-width:200px;">
+            <i class="bi bi-speedometer2"></i>
+            <strong>Kunlik limit:</strong>
+            {{ limits.msg_used }}/{{ limits.msg_limit }} xabar,
+            {{ limits.img_used }}/{{ limits.img_limit }} rasm
+            {% if limits.is_premium %}<span style="background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff;padding:1px 8px;border-radius:8px;font-size:.75rem;font-weight:600;margin-left:4px;">PREMIUM</span>{% endif %}
+        </div>
+    </div>
+    <div class="info-bar" style="margin-top:.5rem;">
         <i class="bi bi-info-circle"></i>
-        <span><strong>Eslatma:</strong> Har bir xabar uchun 1 coin sarflanadi. Rasmli savollar ham qo'llab-quvvatlanadi.</span>
+        <span><strong>Eslatma:</strong> Har bir xabar uchun 1 coin. Premium: 120 xabar + 5 rasm/kun. Oddiy: 60 xabar + 3 rasm/kun.</span>
     </div>
 </div>
 

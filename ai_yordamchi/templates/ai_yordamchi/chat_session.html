@@ -193,6 +193,54 @@ body {
     color: var(--ios-orange);
 }
 
+.ios-limit-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--ios-fill);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: .72rem;
+    font-weight: 500;
+    color: var(--ios-text2);
+}
+
+.ios-limit-pill.warn { color: var(--ios-orange); }
+.ios-limit-pill.danger { color: var(--ios-red); }
+.ios-limit-pill i { font-size: .8rem; }
+
+.ios-limits-bar {
+    display: flex;
+    gap: 8px;
+    padding: 6px 16px;
+    background: var(--ios-fill2);
+    border-bottom: .5px solid var(--ios-separator);
+    font-size: .72rem;
+    color: var(--ios-text2);
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.ios-limits-bar .lim-item {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.ios-limits-bar .lim-item i { font-size: .8rem; }
+.ios-limits-bar .lim-sep { color: var(--ios-text3); }
+.ios-limits-bar .premium-badge {
+    background: linear-gradient(135deg, #ff9500, #ff6b00);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+
 .ios-icon-btn {
     width: 34px;
     height: 34px;
@@ -984,6 +1032,16 @@ body {
                 <i class="bi bi-trash"></i>
             </button>
         </div>
+    </div>
+
+    <!-- ===== LIMITS BAR ===== -->
+    <div class="ios-limits-bar">
+        {% if limits.is_premium %}<span class="premium-badge">Premium</span>{% endif %}
+        <span class="lim-item"><i class="bi bi-chat-dots"></i> {{ limits.msg_left }}/{{ limits.msg_limit }}</span>
+        <span class="lim-sep">&middot;</span>
+        <span class="lim-item"><i class="bi bi-image"></i> {{ limits.img_left }}/{{ limits.img_limit }}</span>
+        <span class="lim-sep">&middot;</span>
+        <span class="lim-item"><i class="bi bi-coin"></i> {{ user_coins }} coin</span>
     </div>
 
     <!-- ===== MESSAGES ===== -->

@@ -5,10 +5,46 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.utils import timezone
 import base64
 
 from .models import ChatSession, ChatMessage
 from coin.models import CoinTransaction, ActivityLog
+
+# Daily limits
+DAILY_MSG_LIMIT = {'premium': 120, 'regular': 60}
+DAILY_IMG_LIMIT = {'premium': 5, 'regular': 3}
+
+
+def get_daily_usage(user):
+    """Get user's daily message and image count."""
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_msgs = ChatMessage.objects.filter(
+        session__user=user,
+        role='user',
+        created_at__gte=today_start
+    )
+    msg_count = today_msgs.count()
+    img_count = today_msgs.exclude(image='').exclude(image__isnull=True).count()
+    return msg_count, img_count
+
+
+def get_user_limits(user):
+    """Get limits and usage for a user."""
+    is_prem = getattr(user, 'is_premium', False)
+    tier = 'premium' if is_prem else 'regular'
+    msg_limit = DAILY_MSG_LIMIT[tier]
+    img_limit = DAILY_IMG_LIMIT[tier]
+    msg_used, img_used = get_daily_usage(user)
+    return {
+        'is_premium': is_prem,
+        'msg_limit': msg_limit,
+        'img_limit': img_limit,
+        'msg_used': msg_used,
+        'img_used': img_used,
+        'msg_left': max(0, msg_limit - msg_used),
+        'img_left': max(0, img_limit - img_used),
+    }
 
 
 def get_openai_client():
@@ -65,8 +101,10 @@ def validate_and_reformat_response(response_text, user_query):
 def chat_home(request):
     """List user's chat sessions."""
     sessions = ChatSession.objects.filter(user=request.user, is_active=True)
+    limits = get_user_limits(request.user)
     return render(request, 'ai_yordamchi/chat_home.html', {
         'sessions': sessions,
+        'limits': limits,
     })
 
 
@@ -82,11 +120,13 @@ def chat_session(request, pk):
     """Chat interface with a session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     chat_messages = session.messages.all()
+    limits = get_user_limits(request.user)
     
     return render(request, 'ai_yordamchi/chat_session.html', {
         'session': session,
         'chat_messages': chat_messages,
         'user_coins': request.user.coins,
+        'limits': limits,
     })
 
 
@@ -107,6 +147,19 @@ def send_message(request, pk):
     # Check coins
     if request.user.coins < 1:
         messages.error(request, "Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
+        return redirect('ai_yordamchi:chat_session', pk=pk)
+    
+    # Check daily limits
+    limits = get_user_limits(request.user)
+    if limits['msg_left'] <= 0:
+        limit_text = "120" if limits['is_premium'] else "60"
+        messages.error(request, "Kunlik xabar limitingiz tugadi (" + limit_text + "/" + limit_text + "). Ertaga qayta urinib ko'ring.")
+        return redirect('ai_yordamchi:chat_session', pk=pk)
+    
+    has_image = bool(image) or (file and file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')))
+    if has_image and limits['img_left'] <= 0:
+        img_text = "5" if limits['is_premium'] else "3"
+        messages.error(request, "Kunlik rasm limitingiz tugadi (" + img_text + "/" + img_text + "). Ertaga qayta urinib ko'ring.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
     # Handle file - if it's an image type, save as image field too
