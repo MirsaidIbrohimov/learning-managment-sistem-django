@@ -145,7 +145,9 @@ def send_message(request, pk):
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
     # Check coins
-    if request.user.coins < 1:
+    is_premium = getattr(request.user, 'is_premium', False)
+    
+    if not is_premium and request.user.coins < 1:
         messages.error(request, "Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
@@ -176,6 +178,7 @@ def send_message(request, pk):
             uploaded_file = file
     
     # Save user message
+    coin_cost = 0 if is_premium else 1
     user_message = ChatMessage.objects.create(
         session=session,
         role='user',
@@ -183,26 +186,26 @@ def send_message(request, pk):
         image=uploaded_image,
         file=uploaded_file,
         file_name=uploaded_file_name,
-        coins_spent=1,
+        coins_spent=coin_cost,
     )
     
-    # Deduct coin
-    request.user.coins -= 1
-    request.user.save()
-    
-    # Log transaction
-    CoinTransaction.objects.create(
-        user=request.user,
-        amount=1,
-        action='remove',
-        reason="AI yordamchi bilan suhbat"
-    )
+    # Deduct coin (only for non-premium)
+    if not is_premium:
+        request.user.coins -= 1
+        request.user.save()
+        
+        CoinTransaction.objects.create(
+            user=request.user,
+            amount=1,
+            action='remove',
+            reason="AI yordamchi bilan suhbat"
+        )
     
     # Log activity
     ActivityLog.objects.create(
         user=request.user,
         action_type='earn_coins',
-        description="AI yordamchi bilan suhbatlashdi (-1 coin)",
+        description="AI yordamchi bilan suhbatlashdi" + ("" if is_premium else " (-1 coin)"),
         ip_address=get_client_ip(request)
     )
     
