@@ -12,6 +12,7 @@ urlpatterns = [
     path('teacher/', include('teacher.urls')),
     path('', include('accounts.urls')),
     path('dashboard/parents/', include('parents.urls')),
+    path('parent/', include('parents.portal_urls')),
     path('', include('coin.urls')),
     path('blog/', include('blog.urls')),
     path('games/', include('games.urls')),

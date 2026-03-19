@@ -8,7 +8,8 @@ from datetime import timedelta
 from accounts.models import (
     Parent, ParentMessage, CustomUser, Profession, Section, Lesson,
     VideoLesson, VideoProgress, Homework, HomeworkSubmission,
-    Test, TestResult, Certificate, CourseEnrollment, BookRental
+    Test, TestResult, Certificate, CourseEnrollment, BookRental,
+    TestUserAnswer,
 )
 
 
@@ -218,6 +219,188 @@ def parent_children(request):
         'parent': parent,
         'children_data': children_data,
     })
+
+
+@parent_required
+def parent_child_detail(request, child_id):
+    """Farzand haqida to'liq batafsil ma'lumot"""
+    parent = request.parent
+    children = parent.children.all()
+    child = get_object_or_404(children, id=child_id)
+
+    enrollments = CourseEnrollment.objects.filter(user=child).select_related('profession')
+    profession_ids = enrollments.values_list('profession_id', flat=True)
+
+    # === UMUMIY STATISTIKA ===
+    total_videos = VideoLesson.objects.filter(lesson__profession_id__in=profession_ids).count()
+    watched_videos = VideoProgress.objects.filter(
+        user=child, watched=True,
+        video__lesson__profession_id__in=profession_ids
+    ).count()
+
+    total_homeworks = Homework.objects.filter(lesson__profession_id__in=profession_ids).count()
+    homework_submissions = HomeworkSubmission.objects.filter(
+        student=child, homework__lesson__profession_id__in=profession_ids
+    )
+    submitted_homeworks = homework_submissions.count()
+    graded_homeworks = homework_submissions.filter(status='graded').count()
+    accepted_homeworks = homework_submissions.filter(status='accepted').count()
+    pending_homeworks = homework_submissions.filter(status='pending').count()
+    revision_homeworks = homework_submissions.filter(status='revision').count()
+    late_homeworks = homework_submissions.filter(is_late=True).count()
+    hw_grades = homework_submissions.filter(grade__isnull=False)
+    avg_homework_grade = hw_grades.aggregate(avg=Avg('grade'))['avg'] or 0
+
+    all_test_results = TestResult.objects.filter(
+        student=child, test__lesson__profession_id__in=profession_ids
+    )
+    first_test_results = TestResult.first_attempts().filter(
+        student=child, test__lesson__profession_id__in=profession_ids
+    )
+    total_tests_available = Test.objects.filter(lesson__profession_id__in=profession_ids).count()
+    total_tests_taken = first_test_results.count()
+    passed_tests = first_test_results.filter(passed=True).count()
+    failed_tests = total_tests_taken - passed_tests
+    test_agg = first_test_results.aggregate(
+        avg_score=Avg('score'),
+        total_correct=Sum('correct_answers'),
+        total_questions=Sum('total_questions'),
+    )
+    avg_test_score = test_agg['avg_score'] or 0
+    pass_rate = (passed_tests / total_tests_taken * 100) if total_tests_taken > 0 else 0
+
+    # Ball taqsimoti
+    score_excellent = first_test_results.filter(score__gte=80).count()
+    score_good = first_test_results.filter(score__gte=60, score__lt=80).count()
+    score_poor = first_test_results.filter(score__lt=60).count()
+
+    # Umumiy progress
+    total_items = total_videos + total_tests_available + total_homeworks
+    completed_items = watched_videos + total_tests_taken + submitted_homeworks
+    overall_progress = (completed_items / total_items * 100) if total_items > 0 else 0
+
+    certificates = Certificate.objects.filter(student=child).select_related('profession', 'issued_by')
+    active_rentals = BookRental.objects.filter(student=child, status__in=['active', 'overdue']).select_related('book')
+
+    # === KURS BO'YICHA STATISTIKA ===
+    courses_data = []
+    for enrollment in enrollments:
+        profession = enrollment.profession
+
+        c_total_videos = VideoLesson.objects.filter(lesson__profession=profession).count()
+        c_watched = VideoProgress.objects.filter(
+            user=child, watched=True, video__lesson__profession=profession
+        ).count()
+
+        c_test_results = TestResult.first_attempts().filter(
+            student=child, test__lesson__profession=profession
+        )
+        c_tests_taken = c_test_results.count()
+        c_avg_test = c_test_results.aggregate(avg=Avg('score'))['avg'] or 0
+        c_passed = c_test_results.filter(passed=True).count()
+
+        c_total_hw = Homework.objects.filter(lesson__profession=profession).count()
+        c_hw_subs = HomeworkSubmission.objects.filter(
+            student=child, homework__lesson__profession=profession
+        )
+        c_submitted_hw = c_hw_subs.count()
+        c_avg_hw = c_hw_subs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
+
+        c_total = c_total_videos + Test.objects.filter(lesson__profession=profession).count() + c_total_hw
+        c_done = c_watched + c_tests_taken + c_submitted_hw
+        c_progress = (c_done / c_total * 100) if c_total > 0 else 0
+
+        courses_data.append({
+            'profession': profession,
+            'progress': round(c_progress, 1),
+            'watched_videos': c_watched,
+            'total_videos': c_total_videos,
+            'tests_taken': c_tests_taken,
+            'tests_passed': c_passed,
+            'avg_test_score': round(c_avg_test, 1),
+            'submitted_homeworks': c_submitted_hw,
+            'total_homeworks': c_total_hw,
+            'avg_homework_grade': round(c_avg_hw, 1),
+        })
+
+    # === SO'NGGI TEST NATIJALARI ===
+    recent_tests = all_test_results.select_related(
+        'test', 'test__lesson', 'test__lesson__profession'
+    ).order_by('-completed_at')[:10]
+
+    # === SO'NGGI VAZIFA TOPSHIRIQLARI ===
+    recent_homeworks = HomeworkSubmission.objects.filter(
+        student=child, homework__lesson__profession_id__in=profession_ids
+    ).select_related(
+        'homework', 'homework__lesson', 'homework__lesson__profession'
+    ).order_by('-submitted_at')[:10]
+
+    # === SO'NGGI FAOLLIK ===
+    recent_activities = []
+
+    for vp in VideoProgress.objects.filter(
+        user=child, watched=True
+    ).select_related('video__lesson').order_by('-watched_at')[:5]:
+        if vp.watched_at:
+            recent_activities.append({
+                'type': 'video', 'title': vp.video.lesson.title,
+                'date': vp.watched_at, 'description': "Video ko'rildi",
+            })
+
+    for hw in HomeworkSubmission.objects.filter(
+        student=child
+    ).select_related('homework__lesson').order_by('-submitted_at')[:5]:
+        recent_activities.append({
+            'type': 'homework', 'title': hw.homework.lesson.title,
+            'date': hw.submitted_at,
+            'description': f"Vazifa topshirildi - {hw.get_status_display()}",
+        })
+
+    for tr in all_test_results.select_related('test__lesson').order_by('-completed_at')[:5]:
+        recent_activities.append({
+            'type': 'test', 'title': tr.test.lesson.title,
+            'date': tr.completed_at,
+            'description': f"Test yakunlandi - {tr.score}%",
+        })
+
+    recent_activities.sort(key=lambda x: x['date'] if x['date'] else timezone.now(), reverse=True)
+    recent_activities = recent_activities[:10]
+
+    context = {
+        'parent': parent,
+        'children': children,
+        'child': child,
+        # Umumiy statistika
+        'overall_progress': round(overall_progress, 1),
+        'total_videos': total_videos,
+        'watched_videos': watched_videos,
+        'total_homeworks': total_homeworks,
+        'submitted_homeworks': submitted_homeworks,
+        'graded_homeworks': graded_homeworks,
+        'accepted_homeworks': accepted_homeworks,
+        'pending_homeworks': pending_homeworks,
+        'revision_homeworks': revision_homeworks,
+        'late_homeworks': late_homeworks,
+        'avg_homework_grade': round(avg_homework_grade, 1),
+        'total_tests_available': total_tests_available,
+        'total_tests_taken': total_tests_taken,
+        'passed_tests': passed_tests,
+        'failed_tests': failed_tests,
+        'avg_test_score': round(avg_test_score, 1),
+        'pass_rate': round(pass_rate, 1),
+        'score_excellent': score_excellent,
+        'score_good': score_good,
+        'score_poor': score_poor,
+        # Kurs bo'yicha
+        'courses_data': courses_data,
+        'certificates': certificates,
+        'active_rentals': active_rentals,
+        # Jadvallar
+        'recent_tests': recent_tests,
+        'recent_homeworks': recent_homeworks,
+        'recent_activities': recent_activities,
+    }
+    return render(request, 'accounts/parent/child_detail.html', context)
 
 
 @parent_required

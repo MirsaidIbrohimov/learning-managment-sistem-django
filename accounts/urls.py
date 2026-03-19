@@ -1,10 +1,5 @@
 from django.urls import path, re_path
 from . import views
-from .parent_views import (
-    parent_login_view, parent_logout_view, parent_dashboard, parent_children,
-    parent_lessons, parent_homework, parent_tests, parent_achievements,
-    parent_books, parent_messages, parent_password_reset_request
-)
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -204,20 +199,7 @@ urlpatterns = [
     path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
     path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),
     
-    # Ota-ona portali
-    path('parent/login/', parent_login_view, name='parent_login'),
-    path('parent/logout/', parent_logout_view, name='parent_logout'),
-    path('parent/', parent_dashboard, name='parent_dashboard'),
-    path('parent/children/', parent_children, name='parent_children'),
-    path('parent/lessons/', parent_lessons, name='parent_lessons'),
-    path('parent/homework/', parent_homework, name='parent_homework'),
-    path('parent/tests/', parent_tests, name='parent_tests'),
-    path('parent/achievements/', parent_achievements, name='parent_achievements'),
-    path('parent/books/', parent_books, name='parent_books'),
-    path('parent/messages/', parent_messages, name='parent_messages'),
-    path('parent/password-reset/', parent_password_reset_request, name='parent_password_reset_request'),
-    
-    # Admin: Ota-onalar boshqaruvi — parents app ga ko'chirildi (parents:admin_parents)
+    # Ota-ona portali — parents app ga ko'chirildi (parents.portal_urls)
     
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),
