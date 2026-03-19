@@ -217,18 +217,7 @@ urlpatterns = [
     path('parent/messages/', parent_messages, name='parent_messages'),
     path('parent/password-reset/', parent_password_reset_request, name='parent_password_reset_request'),
     
-    # Admin: Ota-onalar boshqaruvi
-    path('dashboard/parents/', views.admin_parents, name='admin_parents'),
-    path('dashboard/parents/add/', views.admin_parent_add, name='admin_parent_add'),
-    path('dashboard/parents/<int:pk>/', views.admin_parent_view, name='admin_parent_view'),
-    path('dashboard/parents/<int:pk>/edit/', views.admin_parent_edit, name='admin_parent_edit'),
-    path('dashboard/parents/<int:pk>/toggle/', views.admin_parent_toggle, name='admin_parent_toggle'),
-    path('dashboard/parents/<int:pk>/delete/', views.admin_parent_delete, name='admin_parent_delete'),
-    
-    # Admin: Ota-ona parol so'rovlari
-    path('dashboard/parent-password-requests/', views.admin_parent_password_requests, name='admin_parent_password_requests'),
-    path('dashboard/parent-password-requests/<int:pk>/approve/', views.approve_parent_password_reset, name='approve_parent_password_reset'),
-    path('dashboard/parent-password-requests/<int:pk>/reject/', views.reject_parent_password_reset, name='reject_parent_password_reset'),
+    # Admin: Ota-onalar boshqaruvi — parents app ga ko'chirildi (parents:admin_parents)
     
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),

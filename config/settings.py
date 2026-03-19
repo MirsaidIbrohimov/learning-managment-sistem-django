@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ai_yordamchi',
     'coin',
     'games',
+    'parents',
     'teacher',
     'telegram_bot',
 ]

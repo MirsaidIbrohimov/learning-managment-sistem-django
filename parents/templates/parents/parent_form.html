@@ -1,0 +1,142 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{% if parent %}Ota-ona tahrirlash{% else %}Ota-ona qo'shish{% endif %} - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<a href="{% url 'parents:admin_parents' %}" class="btn btn-outline-secondary rounded-pill mb-4">
+    <i class="bi bi-arrow-left me-1"></i>Orqaga
+</a>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-{% if parent %}pencil-square{% else %}person-plus{% endif %} me-2"></i>
+                {% if parent %}Ota-ona tahrirlash{% else %}Yangi ota-ona qo'shish{% endif %}
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ism <span class="text-danger">*</span></label>
+                            <input type="text" name="first_name" class="form-control"
+                                   value="{% if parent %}{{ parent.first_name }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Familiya <span class="text-danger">*</span></label>
+                            <input type="text" name="last_name" class="form-control"
+                                   value="{% if parent %}{{ parent.last_name }}{% endif %}" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Telefon <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" class="form-control"
+                                   value="{% if parent %}{{ parent.phone }}{% endif %}" placeholder="+998901234567" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control"
+                                   value="{% if parent %}{{ parent.email|default:'' }}{% endif %}" placeholder="email@example.com">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Login (username) <span class="text-danger">*</span></label>
+                            <input type="text" name="username" class="form-control"
+                                   value="{% if parent %}{{ parent.username }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Parol {% if not parent %}<span class="text-danger">*</span>{% endif %}
+                            </label>
+                            <input type="password" name="password" class="form-control"
+                                   {% if not parent %}required{% endif %}
+                                   placeholder="{% if parent %}Yangi parol (bo'sh qoldiring){% else %}Parol kiriting{% endif %}">
+                            {% if parent %}
+                            <small class="text-muted">O'zgartirmoqchi bo'lmasangiz bo'sh qoldiring</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Farzandlar</label>
+                        <select name="children" class="form-select" multiple size="8">
+                            {% for child in children %}
+                            <option value="{{ child.id }}"
+                                    {% if child.id in selected_children %}selected{% endif %}>
+                                {{ child.get_full_name|default:child.username }}
+                                {% if child.profession %} - {{ child.profession.name }}{% endif %}
+                            </option>
+                            {% empty %}
+                            <option disabled>O'quvchilar mavjud emas</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Bir nechta tanlash uchun Ctrl (yoki Cmd) tugmasini bosib turing
+                        </small>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Saqlash
+                        </button>
+                        <a href="{% url 'parents:admin_parents' %}" class="btn btn-outline-secondary">
+                            Bekor qilish
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        {% if parent %}
+        <div class="card text-center p-4">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold mx-auto mb-3"
+                 style="width:100px;height:100px;font-size:2rem;">
+                {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
+            </div>
+            <h5 class="fw-bold mb-1">{{ parent.full_name }}</h5>
+            <p class="text-muted mb-2">@{{ parent.username }}</p>
+            <span class="badge {% if parent.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                {% if parent.is_active %}Faol{% else %}Nofaol{% endif %}
+            </span>
+
+            {% if parent.children.count > 0 %}
+            <hr>
+            <h6 class="text-muted mb-2">Farzandlari ({{ parent.children.count }})</h6>
+            <ul class="list-unstyled text-start">
+                {% for child in parent.children.all %}
+                <li class="mb-1">
+                    <i class="bi bi-person me-1"></i>{{ child.get_full_name|default:child.username }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="card {% if parent %}mt-3{% endif %}">
+            <div class="card-header">
+                <i class="bi bi-info-circle me-2"></i>Yordam
+            </div>
+            <div class="card-body">
+                <ul class="text-muted small ps-3 mb-0">
+                    <li class="mb-2">Ota-ona o'z farzandlarining o'qish jarayonini kuzatib boradi</li>
+                    <li class="mb-2">Bir nechta farzand tanlash mumkin</li>
+                    <li class="mb-2">Telefon raqami orqali bog'lanish mumkin</li>
+                    <li>Login va parol orqali tizimga kiradi</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

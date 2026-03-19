@@ -1,0 +1,215 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Ota-onalar - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{
+    --p-bg:#f5f5f7;--p-card:#fff;--p-text:#111;--p-muted:#6b7280;
+    --p-border:rgba(0,0,0,.08);--p-primary:#6366f1;--p-success:#22c55e;
+    --p-danger:#ef4444;--p-warning:#f59e0b;--p-info:#3b82f6;
+}
+[data-bs-theme="dark"]{
+    --p-bg:#0b0b0c;--p-card:#1c1c1e;--p-text:#f5f5f7;--p-muted:#9ca3af;
+    --p-border:rgba(255,255,255,.08);
+}
+.p-page{max-width:1200px;margin:0 auto;padding:1rem;color:var(--p-text);}
+.p-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;}
+.p-title{font-size:1.5rem;font-weight:800;display:flex;align-items:center;gap:.5rem;margin:0;}
+.p-title .count{background:var(--p-primary);color:#fff;font-size:.8rem;padding:.2rem .6rem;border-radius:20px;}
+.p-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1.1rem;border-radius:12px;font-weight:600;font-size:.85rem;text-decoration:none;border:none;cursor:pointer;transition:all .2s;}
+.p-btn-primary{background:var(--p-primary);color:#fff;}
+.p-btn-primary:hover{opacity:.9;transform:translateY(-1px);color:#fff;}
+.p-card{background:var(--p-card);border:1px solid var(--p-border);border-radius:16px;overflow:hidden;}
+.p-card-header{padding:.85rem 1.25rem;border-bottom:1px solid var(--p-border);font-weight:600;font-size:.9rem;color:var(--p-muted);}
+.p-filter{padding:1rem 1.25rem;display:flex;gap:.75rem;flex-wrap:wrap;align-items:flex-end;}
+.p-filter .f-group{flex:1;min-width:180px;}
+.p-filter label{font-size:.75rem;font-weight:600;color:var(--p-muted);display:block;margin-bottom:.3rem;}
+.p-filter input,.p-filter select{width:100%;padding:.5rem .75rem;border-radius:10px;border:1px solid var(--p-border);background:var(--p-card);color:var(--p-text);font-size:.85rem;}
+.p-filter input:focus,.p-filter select:focus{outline:none;border-color:var(--p-primary);}
+.p-table{width:100%;border-collapse:collapse;}
+.p-table th{padding:.65rem 1rem;text-align:left;font-size:.75rem;font-weight:600;color:var(--p-muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--p-border);}
+.p-table td{padding:.75rem 1rem;border-bottom:1px solid var(--p-border);vertical-align:middle;font-size:.88rem;}
+.p-table tr:last-child td{border-bottom:none;}
+.p-table tr:hover td{background:rgba(99,102,241,.03);}
+.p-avatar{width:38px;height:38px;border-radius:50%;background:var(--p-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
+.p-user{display:flex;align-items:center;gap:.6rem;}
+.p-user-name{font-weight:600;}
+.p-user-sub{font-size:.78rem;color:var(--p-muted);}
+.p-badge{display:inline-flex;align-items:center;padding:.2rem .55rem;border-radius:8px;font-size:.72rem;font-weight:600;}
+.p-badge-success{background:rgba(34,197,94,.12);color:var(--p-success);}
+.p-badge-danger{background:rgba(239,68,68,.12);color:var(--p-danger);}
+.p-badge-info{background:rgba(59,130,246,.12);color:var(--p-info);}
+.p-actions{display:flex;gap:.35rem;}
+.p-act{width:32px;height:32px;border-radius:8px;border:1px solid var(--p-border);background:transparent;color:var(--p-text);display:inline-flex;align-items:center;justify-content:center;font-size:.82rem;text-decoration:none;transition:all .15s;cursor:pointer;}
+.p-act:hover{border-color:var(--p-primary);color:var(--p-primary);background:rgba(99,102,241,.06);}
+.p-act-danger:hover{border-color:var(--p-danger);color:var(--p-danger);background:rgba(239,68,68,.06);}
+.p-act-warning:hover{border-color:var(--p-warning);color:var(--p-warning);background:rgba(245,158,11,.06);}
+.p-act-info:hover{border-color:var(--p-info);color:var(--p-info);background:rgba(59,130,246,.06);}
+.p-empty{text-align:center;padding:3rem 1rem;color:var(--p-muted);}
+.p-empty i{font-size:2.5rem;margin-bottom:.75rem;display:block;opacity:.5;}
+
+/* Delete modal */
+.p-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;}
+.p-modal-overlay.show{display:flex;}
+.p-modal{background:var(--p-card);border-radius:20px;padding:2rem;max-width:380px;width:90%;text-align:center;animation:p-scale .2s ease;}
+@keyframes p-scale{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.p-modal-icon{width:56px;height:56px;border-radius:50%;background:rgba(239,68,68,.1);color:var(--p-danger);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto .75rem;}
+.p-modal h4{font-weight:700;margin-bottom:.25rem;}
+.p-modal p{color:var(--p-muted);font-size:.88rem;margin-bottom:1.25rem;}
+.p-modal-btns{display:flex;gap:.5rem;justify-content:center;}
+.p-modal-btn{padding:.5rem 1.2rem;border-radius:10px;font-weight:600;font-size:.85rem;border:none;cursor:pointer;transition:all .15s;}
+.p-modal-btn-cancel{background:var(--p-border);color:var(--p-text);}
+.p-modal-btn-danger{background:var(--p-danger);color:#fff;}
+.p-modal-btn-danger:hover{opacity:.9;}
+
+@media(max-width:768px){
+    .p-table thead{display:none;}
+    .p-table tr{display:block;padding:.75rem 1rem;border-bottom:1px solid var(--p-border);}
+    .p-table td{display:flex;justify-content:space-between;align-items:center;border:none;padding:.3rem 0;font-size:.84rem;}
+    .p-table td::before{content:attr(data-label);font-weight:600;color:var(--p-muted);font-size:.78rem;}
+    .p-filter{flex-direction:column;}
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="p-page">
+
+<div class="p-header">
+    <h1 class="p-title">
+        <i class="bi bi-people-fill"></i> Ota-onalar
+        <span class="count">{{ parents|length }}</span>
+    </h1>
+    <a href="{% url 'parents:admin_parent_add' %}" class="p-btn p-btn-primary">
+        <i class="bi bi-plus-lg"></i> Yangi qo'shish
+    </a>
+</div>
+
+<!-- FILTERS -->
+<div class="p-card" style="margin-bottom:1rem;">
+    <form method="GET" class="p-filter">
+        <div class="f-group" style="flex:2;">
+            <label>Qidirish</label>
+            <input type="text" name="search" placeholder="Ism, telefon, login..." value="{{ search_query|default:'' }}">
+        </div>
+        <div class="f-group" style="flex:1;">
+            <label>Holat</label>
+            <select name="status">
+                <option value="">Barchasi</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Nofaol</option>
+            </select>
+        </div>
+        <div style="display:flex;gap:.4rem;padding-bottom:1px;">
+            <button type="submit" class="p-btn p-btn-primary"><i class="bi bi-search"></i></button>
+            <a href="{% url 'parents:admin_parents' %}" class="p-btn" style="background:var(--p-border);color:var(--p-text);"><i class="bi bi-x-lg"></i></a>
+        </div>
+    </form>
+</div>
+
+<!-- TABLE -->
+<div class="p-card">
+    <div class="p-card-header">Ro'yxat ({{ parents|length }})</div>
+
+    {% if parents %}
+    <div style="overflow-x:auto;">
+        <table class="p-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>F.I.Sh</th>
+                    <th>Login</th>
+                    <th>Telefon</th>
+                    <th style="text-align:center">Farzandlar</th>
+                    <th>Oxirgi kirish</th>
+                    <th style="text-align:center">Holat</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in parents %}
+            <tr>
+                <td data-label="#">{{ forloop.counter }}</td>
+                <td data-label="F.I.Sh">
+                    <div class="p-user">
+                        <div class="p-avatar">{{ p.first_name.0|upper }}{{ p.last_name.0|upper }}</div>
+                        <div>
+                            <div class="p-user-name">{{ p.full_name }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td data-label="Login"><span class="p-user-sub">@{{ p.username }}</span></td>
+                <td data-label="Telefon">{{ p.phone|default:"—" }}</td>
+                <td data-label="Farzandlar" style="text-align:center">
+                    <span class="p-badge p-badge-info">{{ p.children.count }}</span>
+                </td>
+                <td data-label="Oxirgi kirish">
+                    {% if p.last_login %}
+                        <span class="p-user-sub">{{ p.last_login|timesince }} oldin</span>
+                    {% else %}
+                        <span class="p-user-sub">—</span>
+                    {% endif %}
+                </td>
+                <td data-label="Holat" style="text-align:center">
+                    {% if p.is_active %}
+                    <span class="p-badge p-badge-success"><i class="bi bi-check-circle me-1"></i>Faol</span>
+                    {% else %}
+                    <span class="p-badge p-badge-danger"><i class="bi bi-x-circle me-1"></i>Nofaol</span>
+                    {% endif %}
+                </td>
+                <td data-label="Amallar">
+                    <div class="p-actions">
+                        <a href="{% url 'parents:admin_parent_view' p.pk %}" class="p-act p-act-info" title="Ko'rish"><i class="bi bi-eye"></i></a>
+                        <a href="{% url 'parents:admin_parent_edit' p.pk %}" class="p-act" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'parents:admin_parent_toggle' p.pk %}" class="p-act p-act-warning" title="{% if p.is_active %}Nofaol qilish{% else %}Faol qilish{% endif %}">
+                            <i class="bi bi-{% if p.is_active %}toggle-on{% else %}toggle-off{% endif %}"></i>
+                        </a>
+                        <button type="button" class="p-act p-act-danger" title="O'chirish" onclick="openDeleteModal('{{ p.full_name }}', '{% url 'parents:admin_parent_delete' p.pk %}')">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="p-empty">
+        <i class="bi bi-people"></i>
+        <p>Ota-onalar topilmadi</p>
+        <a href="{% url 'parents:admin_parent_add' %}" class="p-btn p-btn-primary"><i class="bi bi-plus-lg me-1"></i>Ota-ona qo'shish</a>
+    </div>
+    {% endif %}
+</div>
+
+</div>
+
+<!-- DELETE MODAL -->
+<div class="p-modal-overlay" id="deleteModal">
+    <div class="p-modal">
+        <div class="p-modal-icon"><i class="bi bi-trash3"></i></div>
+        <h4>O'chirish</h4>
+        <p><strong id="deleteParentName"></strong> ni o'chirmoqchimisiz? Bu amalni qaytarib bo'lmaydi.</p>
+        <div class="p-modal-btns">
+            <button class="p-modal-btn p-modal-btn-cancel" onclick="closeDeleteModal()">Bekor qilish</button>
+            <a href="#" id="deleteConfirmBtn" class="p-modal-btn p-modal-btn-danger">O'chirish</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function openDeleteModal(name, url) {
+    document.getElementById('deleteParentName').textContent = name;
+    document.getElementById('deleteConfirmBtn').href = url;
+    document.getElementById('deleteModal').classList.add('show');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+}
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+</script>
+{% endblock %}
