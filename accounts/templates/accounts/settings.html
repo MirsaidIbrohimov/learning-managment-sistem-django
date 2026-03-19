@@ -73,6 +73,7 @@
 
 .s-card-icon.weather { background: rgba(6,182,212,0.12); color: #06b6d4; }
 .s-card-icon.theme   { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+.s-card-icon.lang    { background: rgba(16,185,129,0.12); color: #10b981; }
 
 .s-card-info h5 {
     font-size: 1.1rem;
@@ -258,6 +259,95 @@
     margin: 0;
 }
 
+/* ===== LANGUAGE GRID ===== */
+.lang-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.lang-option {
+    position: relative;
+    border: 2px solid var(--bs-border-color);
+    border-radius: 16px;
+    padding: 1.25rem 0.75rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: transparent;
+}
+
+.lang-option:hover {
+    border-color: rgba(16,185,129,0.4);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+[data-bs-theme="dark"] .lang-option:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.lang-option.active {
+    border-color: #10b981;
+    background: rgba(16,185,129,0.08);
+}
+
+[data-bs-theme="dark"] .lang-option.active {
+    background: rgba(16,185,129,0.15);
+    border-color: #34d399;
+}
+
+.lang-option .check-mark {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #fff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+}
+
+.lang-option.active .check-mark {
+    display: flex;
+}
+
+.lang-flag {
+    font-size: 2.5rem;
+    line-height: 1;
+    margin-bottom: 0.625rem;
+    display: block;
+}
+
+.lang-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    display: block;
+}
+
+.lang-note {
+    margin-top: 0.75rem;
+    padding: 0.65rem 1rem;
+    background: rgba(16,185,129,0.08);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--bs-secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.lang-note i {
+    color: #10b981;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
 /* ===== BACK BTN ===== */
 .settings-back {
     display: inline-flex;
@@ -437,10 +527,46 @@
         </div>
     </div>
 
+    <!-- LANGUAGE -->
+    <div class="s-card">
+        <div class="s-card-head">
+            <div class="s-card-icon lang">
+                <i class="bi bi-translate"></i>
+            </div>
+            <div class="s-card-info">
+                <h5 data-i18n="settings.lang_title">Sayt tili</h5>
+                <p data-i18n="settings.lang_desc">Sayt interfeys tilini tanlang</p>
+            </div>
+        </div>
+
+        <div class="lang-grid">
+            <div class="lang-option" data-lang="uz">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="lang-flag">🇺🇿</span>
+                <span class="lang-label">O'zbekcha</span>
+            </div>
+            <div class="lang-option" data-lang="ru">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="lang-flag">🇷🇺</span>
+                <span class="lang-label">Русский</span>
+            </div>
+            <div class="lang-option" data-lang="en">
+                <span class="check-mark"><i class="bi bi-check"></i></span>
+                <span class="lang-flag">🇬🇧</span>
+                <span class="lang-label">English</span>
+            </div>
+        </div>
+
+        <div class="lang-note">
+            <i class="bi bi-info-circle-fill"></i>
+            <span data-i18n="settings.lang_note">Faqat sayt tugmalari va menyu o'zgaradi. Videolar, topshiriqlar va kurs materiallari o'zgarmaydi.</span>
+        </div>
+    </div>
+
     <!-- BACK -->
     <div class="text-center">
         <a href="{% url 'profile' %}" class="settings-back">
-            <i class="bi bi-arrow-left"></i> Profilga qaytish
+            <i class="bi bi-arrow-left"></i> <span data-i18n="settings.back">Profilga qaytish</span>
         </a>
     </div>
 </div>
@@ -492,6 +618,55 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('theme', theme);
             showToast(theme === 'dark' ? 'Qorong\'u rejim yoqildi' : 'Yorug\' rejim yoqildi');
+        });
+    });
+
+    // LANGUAGE
+    var langToasts = {
+        uz: "O'zbekcha tiliga o'tkazildi",
+        ru: 'Язык изменён на Русский',
+        en: 'Language changed to English'
+    };
+    var settingsTranslations = {
+        uz: {
+            'settings.lang_title': 'Sayt tili',
+            'settings.lang_desc': 'Sayt interfeys tilini tanlang',
+            'settings.lang_note': "Faqat sayt tugmalari va menyu o'zgaradi. Videolar, topshiriqlar va kurs materiallari o'zgarmaydi.",
+            'settings.back': 'Profilga qaytish',
+        },
+        ru: {
+            'settings.lang_title': 'Язык сайта',
+            'settings.lang_desc': 'Выберите язык интерфейса',
+            'settings.lang_note': 'Изменятся только кнопки и меню сайта. Видео, задания и материалы курсов не изменятся.',
+            'settings.back': 'Вернуться в профиль',
+        },
+        en: {
+            'settings.lang_title': 'Site Language',
+            'settings.lang_desc': 'Choose interface language',
+            'settings.lang_note': 'Only site buttons and menus will change. Videos, homework and course materials will not be affected.',
+            'settings.back': 'Back to profile',
+        }
+    };
+    var currentLang = localStorage.getItem('siteLang') || 'uz';
+
+    document.querySelectorAll('.lang-option').forEach(function(opt) {
+        if (opt.dataset.lang === currentLang) {
+            opt.classList.add('active');
+        }
+
+        opt.addEventListener('click', function() {
+            document.querySelectorAll('.lang-option').forEach(function(o) { o.classList.remove('active'); });
+            this.classList.add('active');
+            var lang = this.dataset.lang;
+            localStorage.setItem('siteLang', lang);
+            if (window.applySiteLang) window.applySiteLang(lang);
+            // Apply settings page translations
+            var st = settingsTranslations[lang] || {};
+            document.querySelectorAll('[data-i18n]').forEach(function(el) {
+                var key = el.getAttribute('data-i18n');
+                if (st[key]) el.textContent = st[key];
+            });
+            showToast(langToasts[lang] || 'Til o\'zgartirildi');
         });
     });
 });

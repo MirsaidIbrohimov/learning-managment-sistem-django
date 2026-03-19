@@ -360,42 +360,42 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
                             href="{% url 'home' %}">
-                            <i class="bi bi-house me-1"></i>Bosh sahifa
+                            <i class="bi bi-house me-1"></i><span data-i18n="nav.home">Bosh sahifa</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}"
                             href="{% url 'professions' %}">
-                            <i class="bi bi-book me-1"></i>Kurslar
+                            <i class="bi bi-book me-1"></i><span data-i18n="nav.courses">Kurslar</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
                             href="{% url 'leaderboard' %}">
-                            <i class="bi bi-trophy me-1"></i>Reyting
+                            <i class="bi bi-trophy me-1"></i><span data-i18n="nav.rating">Reyting</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}"
                             href="{% url 'blog:post_list' %}">
-                            <i class="bi bi-newspaper me-1"></i>Postlar
+                            <i class="bi bi-newspaper me-1"></i><span data-i18n="nav.posts">Postlar</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}"
                             href="{% url 'coin:market_list' %}">
-                            <i class="bi bi-shop me-1"></i>Market
+                            <i class="bi bi-shop me-1"></i><span data-i18n="nav.market">Market</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <a class="nav-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}"
                             href="{% url 'my_deploys' %}">
-                            <i class="bi bi-code-slash me-1"></i>Coding
+                            <i class="bi bi-code-slash me-1"></i><span data-i18n="nav.coding">Coding</span>
                         </a>
                     </li>
 
@@ -409,7 +409,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}"
                             href="{% url 'help_page' %}">
-                            <i class="bi bi-question-circle me-1"></i>Yordam
+                            <i class="bi bi-question-circle me-1"></i><span data-i18n="nav.help">Yordam</span>
                         </a>
                     </li>
 
@@ -417,7 +417,7 @@
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}"
                             href="{% url 'homework_submissions' %}">
-                            <i class="bi bi-file-check me-1"></i>Vazifalar
+                            <i class="bi bi-file-check me-1"></i><span data-i18n="nav.tasks">Vazifalar</span>
                         </a>
                     </li>
                     {% endif %}
@@ -480,7 +480,7 @@
 
                     <!-- COIN -->
                     <div class="coin-badge d-flex align-items-center gap-1 shadow-sm" title="Sizning coinlaringiz">
-                        <i class="bi bi-coin">Balans: </i>
+                        <i class="bi bi-coin"><span data-i18n="nav.balance">Balans</span>: </i>
                         {{ user.coins|default:0 }}
                     </div>
 
@@ -540,26 +540,26 @@
                                 </span>
                             </li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profil</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i><span data-i18n="menu.profile">Profil</span></a></li>
                             <li>
                                 <a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
-                                    <span class="d-inline-flex align-items-center"><i class="bi bi-envelope me-2"></i>Xabarlar</span>
+                                    <span class="d-inline-flex align-items-center"><i class="bi bi-envelope me-2"></i><span data-i18n="menu.messages">Xabarlar</span></span>
                                     {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>{% endif %}
                                 </a>
                             </li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i>AI suhbat</a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i>O'yinlar</a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i>Vazifalarim</a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i>Qurilmalar</a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i>Sozlamalar</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i><span data-i18n="menu.ai_chat">AI suhbat</span></a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i><span data-i18n="menu.games">O'yinlar</span></a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i><span data-i18n="menu.my_homework">Vazifalarim</span></a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i><span data-i18n="menu.my_books">Ijaradagi kitoblarim</span></a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i><span data-i18n="menu.devices">Qurilmalar</span></a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i><span data-i18n="menu.settings">Sozlamalar</span></a></li>
                             {% if user.is_teacher %}
-                            <li><a class="dropdown-item rounded-3" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard me-2"></i>O'qituvchi paneli</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard me-2"></i><span data-i18n="menu.teacher_panel">O'qituvchi paneli</span></a></li>
                             {% endif %}
                             {% if user.is_admin %}
-                            <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Panel</a></li>
+                            <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i><span data-i18n="menu.admin_panel">Panel</span></a></li>
                             {% endif %}
-                            <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Chiqish</a></li>
+                            <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i><span data-i18n="menu.logout">Chiqish</span></a></li>
                         </ul>
                     </div>
 
@@ -1371,7 +1371,59 @@
     </script>
     {% endif %}
 
-    {% block extra_js %}{% endblock %}
+    <!-- Language Translation System -->
+<script>
+(function(){
+    var T = {
+        uz: {
+            'nav.home': 'Bosh sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
+            'nav.posts': 'Postlar', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.help': 'Yordam', 'nav.tasks': 'Vazifalar', 'nav.balance': 'Balans',
+            'menu.profile': 'Profil', 'menu.messages': 'Xabarlar', 'menu.ai_chat': 'AI suhbat',
+            'menu.games': "O'yinlar", 'menu.my_homework': 'Vazifalarim',
+            'menu.my_books': 'Ijaradagi kitoblarim', 'menu.devices': 'Qurilmalar',
+            'menu.settings': 'Sozlamalar', 'menu.teacher_panel': "O'qituvchi paneli",
+            'menu.admin_panel': 'Panel', 'menu.logout': 'Chiqish',
+        },
+        ru: {
+            'nav.home': 'Главная', 'nav.courses': 'Курсы', 'nav.rating': 'Рейтинг',
+            'nav.posts': 'Посты', 'nav.market': 'Магазин', 'nav.coding': 'Кодинг',
+            'nav.help': 'Помощь', 'nav.tasks': 'Задания', 'nav.balance': 'Баланс',
+            'menu.profile': 'Профиль', 'menu.messages': 'Сообщения', 'menu.ai_chat': 'AI чат',
+            'menu.games': 'Игры', 'menu.my_homework': 'Мои задания',
+            'menu.my_books': 'Арендованные книги', 'menu.devices': 'Устройства',
+            'menu.settings': 'Настройки', 'menu.teacher_panel': 'Панель учителя',
+            'menu.admin_panel': 'Панель', 'menu.logout': 'Выход',
+        },
+        en: {
+            'nav.home': 'Home', 'nav.courses': 'Courses', 'nav.rating': 'Rating',
+            'nav.posts': 'Posts', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.help': 'Help', 'nav.tasks': 'Tasks', 'nav.balance': 'Balance',
+            'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Chat',
+            'menu.games': 'Games', 'menu.my_homework': 'My Homework',
+            'menu.my_books': 'Rented Books', 'menu.devices': 'Devices',
+            'menu.settings': 'Settings', 'menu.teacher_panel': 'Teacher Panel',
+            'menu.admin_panel': 'Panel', 'menu.logout': 'Log out',
+        }
+    };
+    function applyLang(lang) {
+        if (!T[lang]) lang = 'uz';
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            if (T[lang][key]) el.textContent = T[lang][key];
+        });
+        document.documentElement.setAttribute('lang', lang);
+    }
+    var lang = localStorage.getItem('siteLang') || 'uz';
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ applyLang(lang); });
+    } else {
+        applyLang(lang);
+    }
+    window.applySiteLang = applyLang;
+})();
+</script>
+{% block extra_js %}{% endblock %}
 
     <!-- Global Toast Notifications -->
     {% if messages %}
