@@ -1151,97 +1151,123 @@ def _notify_homework_graded(grader, submission, grade):
     )
 
 
+def _normalize_code(text):
+    """Kodni normallashtirish — bo'sh joylar, izohlar, katta-kichik harflarni tenglashtirish"""
+    import re
+    lines = text.splitlines()
+    cleaned = []
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        # Izohlarni olib tashlash
+        line = re.sub(r'#.*$', '', line).strip()
+        line = re.sub(r'//.*$', '', line).strip()
+        if not line:
+            continue
+        # Bo'sh joylarni birlashtirish, kichik harfga
+        line = re.sub(r'\s+', ' ', line).lower()
+        cleaned.append(line)
+    return '\n'.join(cleaned)
+
+
+def _calculate_similarity(text1, text2):
+    """Ikki matnni solishtirish — SequenceMatcher + token-based"""
+    from difflib import SequenceMatcher
+    import re
+
+    if not text1 or not text2:
+        return 0
+
+    norm1 = _normalize_code(text1)
+    norm2 = _normalize_code(text2)
+
+    if not norm1 or not norm2:
+        return 0
+
+    # 1. SequenceMatcher — umumiy o'xshashlik
+    seq_ratio = SequenceMatcher(None, norm1, norm2).ratio() * 100
+
+    # 2. Qator-bo'yicha taqqoslash — bir xil qatorlar nisbati
+    lines1 = set(norm1.splitlines())
+    lines2 = set(norm2.splitlines())
+    if lines1 and lines2:
+        common = lines1 & lines2
+        total = max(len(lines1), len(lines2))
+        line_ratio = (len(common) / total) * 100
+    else:
+        line_ratio = 0
+
+    # 3. Token-based — o'zgaruvchi nomlarini hisobga olmaslik uchun
+    tokens1 = re.findall(r'[a-zA-Z_]\w*|[^\s\w]', norm1)
+    tokens2 = re.findall(r'[a-zA-Z_]\w*|[^\s\w]', norm2)
+    if tokens1 and tokens2:
+        token_ratio = SequenceMatcher(None, tokens1, tokens2).ratio() * 100
+    else:
+        token_ratio = 0
+
+    # Eng yuqori natijani olish (lekin oddiy/qisqa kodlarni filtrlash)
+    similarity = max(seq_ratio, line_ratio, token_ratio)
+
+    # Juda qisqa kodlar uchun filtrlash — 3 qatordan kam bo'lsa, plagiat emas
+    if len(norm1.splitlines()) <= 3 or len(norm2.splitlines()) <= 3:
+        similarity = min(similarity, 60)
+
+    return round(similarity, 1)
+
+
 def _check_similarity_with_others(homework, current_submission, student_answer):
-    """Boshqa o'quvchilarning javoblari bilan o'xshashlikni tekshirish"""
-    import json
-    from django.conf import settings
-    
-    # Shu vazifaga topshirilgan boshqa javoblarni olish (joriy submissiondan tashqari)
+    """Boshqa o'quvchilarning javoblari bilan o'xshashlikni tekshirish — lokal algoritm"""
+
     other_submissions = HomeworkSubmission.objects.filter(
         homework=homework
     ).exclude(
         pk=current_submission.pk
     ).exclude(
         status='revision'
-    ).order_by('-submitted_at')[:20]
-    
+    ).select_related('student').order_by('-submitted_at')[:30]
+
     if not other_submissions:
         return None
-    
-    # Boshqa javoblarning mazmunini yig'ish
-    other_answers = []
+
+    best_match = {'similarity': 0, 'student': '', 'student_id': None}
+
     for sub in other_submissions:
         content = _read_submission_content(sub)
-        if content and len(content.strip()) > 20:
-            other_answers.append({
-                'student': sub.student.full_name,
-                'content': content[:2000]
-            })
-    
-    if not other_answers:
-        return None
-    
-    api_key = getattr(settings, 'OPENAI_API_KEY', None)
-    if not api_key or not api_key.strip():
-        return None
-    
-    try:
-        from openai import OpenAI
-        client = OpenAI(api_key=api_key.strip(), timeout=30)
-        
-        # Boshqa javoblarni formatlash
-        others_text = ""
-        for i, ans in enumerate(other_answers, 1):
-            others_text += f"\n--- O'quvchi {i} ({ans['student']}) ---\n{ans['content']}\n"
-        
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Siz o'quv platformasining kod o'xshashlik tekshiruvchisisiz.\n\n"
-                        "Yangi topshirilgan javobni avval topshirilgan javoblar bilan solishtiring.\n\n"
-                        "⚠️ MUHIM QOIDALAR:\n"
-                        "- Agar ikkala kod deyarli bir xil bo'lsa (faqat o'zgaruvchi nomlari yoki bo'sh joylar farq qilsa) — bu KO'CHIRISH\n"
-                        "- Agar ikkala kodning mantiqiy tuzilishi, funksiya nomlari, izohlar bir xil bo'lsa — bu KO'CHIRISH\n"
-                        "- Agar faqat print/input kabi oddiy buyruqlar bir xil bo'lsa — bu ko'chirish EMAS (chunki vazifa shuni talab qiladi)\n"
-                        "- Agar kodlar turli yondashuvlar bilan yozilgan bo'lsa — bu ko'chirish EMAS\n"
-                        "- Bitta vazifani bajarish uchun bir xil natija chiqishi tabiiy — bu ko'chirish EMAS\n"
-                        "- O'xshashlik 85% dan past bo'lsa — ko'chirish EMAS\n\n"
-                        "Faqat JSON formatda javob bering:\n"
-                        '{"is_plagiat": true/false, "similarity": <0-100>, "similar_to": "<kim bilan o\'xshash>", '
-                        '"reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
-                        "- is_plagiat: FAQAT 85% dan ortiq o'xshashlik bo'lsa true\n"
-                        "- similarity: aniq o'xshashlik foizi\n"
-                        "- similar_to: qaysi o'quvchining javobiga o'xshash\n"
-                        "- reason: O'zbek tilida 1-2 gapda sabab"
-                    )
-                },
-                {
-                    "role": "user",
-                    "content": (
-                        f"Yangi topshirilgan javob:\n{student_answer[:2000]}\n\n"
-                        f"Avval topshirilgan javoblar:\n{others_text}"
-                    )
-                }
-            ],
-            max_tokens=300,
-            temperature=0.1,
-        )
-        result_text = response.choices[0].message.content.strip()
-        if result_text.startswith('```'):
-            result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
-        result = json.loads(result_text)
+        if not content or len(content.strip()) <= 20:
+            continue
+
+        sim = _calculate_similarity(student_answer, content)
+
+        if sim > best_match['similarity']:
+            best_match = {
+                'similarity': sim,
+                'student': sub.student.full_name if hasattr(sub.student, 'full_name') else f"{sub.student.first_name} {sub.student.last_name}",
+                'student_id': sub.student.pk,
+            }
+
+    if best_match['similarity'] < 85:
         return {
-            'is_plagiat': bool(result.get('is_plagiat', False)),
-            'similarity': min(100, max(0, int(result.get('similarity', 0)))),
-            'similar_to': result.get('similar_to', ''),
-            'reason': result.get('reason', ''),
+            'is_plagiat': False,
+            'similarity': int(best_match['similarity']),
+            'similar_to': best_match['student'],
+            'reason': '',
         }
-    except Exception as e:
-        print(f"Similarity check error: {e}")
-        return None
+
+    sim_pct = int(best_match['similarity'])
+    if sim_pct >= 95:
+        reason = f"Javob {best_match['student']} ning javobiga deyarli bir xil (faqat bo'sh joylar yoki o'zgaruvchi nomlari farq qiladi)"
+    elif sim_pct >= 90:
+        reason = f"Javobning asosiy tuzilishi va mantiqi {best_match['student']} ning javobi bilan juda o'xshash"
+    else:
+        reason = f"Javob {best_match['student']} ning javobiga yuqori darajada o'xshash"
+
+    return {
+        'is_plagiat': True,
+        'similarity': sim_pct,
+        'similar_to': best_match['student'],
+        'reason': reason,
+    }
 
 
 def _check_ai_generated(homework_description, student_answer):
@@ -1618,8 +1644,7 @@ def submit_homework(request, pk):
                             penalty = 10
                         
                         submission.ai_feedback = (
-                            f"🔄 Boshqa o'quvchining javobiga juda o'xshash deb topildi! "
-                            f"(o'xshashlik: {similarity_pct}%)\n\n"
+                            f"🔄 Sizning javobingiz {similar_user} ning javobiga {similarity_pct}% o'xshash!\n\n"
                             f"📋 Sabab: {similarity_result['reason']}\n\n"
                             f"💰 Jarima: -{penalty} coin\n\n"
                             f"⚠️ Iltimos, vazifani mustaqil bajaring va qayta yuboring."
@@ -1644,8 +1669,8 @@ def submit_homework(request, pk):
                         Message.objects.create(
                             title="🔄 Kod ko'chirish aniqlandi",
                             content=(
-                                f"Sizning '{homework.lesson.title}' vazifangiz boshqa o'quvchining javobiga "
-                                f"juda o'xshash deb topildi.\n\n"
+                                f"Sizning '{homework.lesson.title}' vazifangiz "
+                                f"👤 {similar_user} ning javobiga {similarity_pct}% o'xshash deb topildi.\n\n"
                                 f"📋 Sabab: {similarity_result['reason']}\n"
                                 f"🔢 O'xshashlik: {similarity_pct}%\n"
                                 f"💰 Jarima: -{penalty} coin\n"
@@ -1656,14 +1681,14 @@ def submit_homework(request, pk):
                             recipient=student
                         )
                         
-                        messages.warning(request, f"⚠️ Javobingiz boshqa o'quvchinikiga juda o'xshash! Jarima: -{penalty} coin. Qayta ishlashga yuborildi!")
+                        messages.warning(request, f"⚠️ Javobingiz {similar_user} ning javobiga {similarity_pct}% o'xshash! Jarima: -{penalty} coin. Qayta ishlashga yuborildi!")
                         
                         notify_user(
                             student.telegram_id,
                             f"🔄 <b>Kod ko'chirish aniqlandi!</b>\n\n"
                             f"📚 {homework.lesson.profession.name}\n"
                             f"📖 {homework.lesson.title}\n"
-                            f"📋 {similarity_result['reason']}\n"
+                            f"👤 O'xshash: {similar_user}\n"
                             f"🔢 O'xshashlik: {similarity_pct}%\n"
                             f"💰 Jarima: <b>-{penalty} coin</b>\n\n"
                             f"⚠️ Vazifani mustaqil bajaring va qayta yuboring!"
