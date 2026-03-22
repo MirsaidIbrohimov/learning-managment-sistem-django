@@ -60,6 +60,8 @@ def bot_webhook(request):
 
     message = data.get('message', {})
     text = message.get('text', '')
+    caption = message.get('caption', '')
+    photo = message.get('photo')
     chat = message.get('chat', {})
     user_data = message.get('from', {})
     telegram_id = user_data.get('id')
@@ -102,7 +104,7 @@ def bot_webhook(request):
 
         keyboard = {
             'keyboard': [
-                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔄 Yangi suhbat'}, {'text': '📊 Limitlarim'}],
                 [{'text': '🔙 Orqaga'}],
             ],
             'resize_keyboard': True,
@@ -134,7 +136,7 @@ def bot_webhook(request):
 
         keyboard = {
             'keyboard': [
-                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔄 Yangi suhbat'}, {'text': '📊 Limitlarim'}],
                 [{'text': '🔙 Orqaga'}],
             ],
             'resize_keyboard': True,
@@ -144,6 +146,42 @@ def bot_webhook(request):
             "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
             keyboard,
         )
+        return JsonResponse({'ok': True})
+
+    if text == '📊 Limitlarim':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt topilmadi!")
+            return JsonResponse({'ok': True})
+
+        from ai_yordamchi.views import get_user_limits
+        limits = get_user_limits(user)
+        is_premium = limits['is_premium']
+
+        msg = (
+            "📊 <b>Sizning limitlaringiz</b>\n\n"
+            f"👤 {user.full_name}\n"
+            f"💎 Status: <b>{'Premium' if is_premium else 'Oddiy'}</b>\n\n"
+            f"💬 <b>Xabar limiti:</b>\n"
+            f"   Ishlatilgan: {limits['msg_used']} / {limits['msg_limit']}\n"
+            f"   Qolgan: <b>{limits['msg_left']}</b> ta\n\n"
+            f"🖼 <b>Rasm limiti:</b>\n"
+            f"   Ishlatilgan: {limits['img_used']} / {limits['img_limit']}\n"
+            f"   Qolgan: <b>{limits['img_left']}</b> ta\n\n"
+            f"🪙 <b>Coin:</b> {user.coins}\n"
+        )
+        if not is_premium:
+            msg += "\n💡 Har bir xabar 1 coin sarflaydi."
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}, {'text': '📊 Limitlarim'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        _send_message_with_reply_markup(bot_token, chat['id'], msg, keyboard)
         return JsonResponse({'ok': True})
 
     if text == '✉️ Xabar yozish':
@@ -330,7 +368,7 @@ def bot_webhook(request):
         _send_ball_stats(bot_token, chat['id'], user, profession=None)
         return JsonResponse({'ok': True})
 
-    if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barcha ballar':
+    if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barcha ballar' and text != '📊 Limitlarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
@@ -345,6 +383,14 @@ def bot_webhook(request):
         else:
             _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
         return JsonResponse({'ok': True})
+
+    # AI Chat rejimida rasm yuborilsa
+    if photo:
+        from .models import TelegramChatState
+        chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
+        if chat_state:
+            _handle_ai_chat_image(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state)
+            return JsonResponse({'ok': True})
 
     # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
     if text and not text.startswith('/'):
@@ -610,6 +656,115 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
         content=ai_response,
     )
 
+    _send_message(bot_token, chat_id, ai_response)
+
+
+def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_state):
+    """AI Chat rasmli xabarni qayta ishlash (webhook versiya)"""
+    import base64
+    import requests
+    from ai_yordamchi.models import ChatSession, ChatMessage
+    from ai_yordamchi.views import get_user_limits
+    from coin.models import CoinTransaction
+    from django.conf import settings
+
+    user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+    if not user:
+        _send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+        return
+
+    is_premium = getattr(user, 'is_premium', False)
+    limits = get_user_limits(user)
+
+    if not is_premium and user.coins < 1:
+        _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+        return
+    if limits['msg_left'] <= 0:
+        limit_text = "120" if is_premium else "60"
+        _send_message(bot_token, chat_id, f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\nErtaga qayta urinib ko'ring.")
+        return
+    if limits['img_left'] <= 0:
+        img_text = "5" if is_premium else "3"
+        _send_message(bot_token, chat_id, f"❌ Kunlik rasm limitingiz tugadi ({img_text}/{img_text}).\nErtaga qayta urinib ko'ring.")
+        return
+
+    session = chat_state.ai_session
+    if not session or not session.is_active:
+        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        chat_state.ai_session = session
+        chat_state.save()
+
+    # Telegram'dan rasmni yuklab olish
+    file_id = photo[-1]['file_id']
+    try:
+        file_resp = requests.get(
+            f"https://api.telegram.org/bot{bot_token}/getFile",
+            params={'file_id': file_id}, timeout=10
+        )
+        file_path = file_resp.json()['result']['file_path']
+        img_resp = requests.get(
+            f"https://api.telegram.org/file/bot{bot_token}/{file_path}", timeout=15
+        )
+        image_data = base64.b64encode(img_resp.content).decode('utf-8')
+    except Exception:
+        _send_message(bot_token, chat_id, "❌ Rasmni yuklab olishda xatolik yuz berdi.")
+        return
+
+    mime = 'image/png' if file_path.endswith('.png') else 'image/gif' if file_path.endswith('.gif') else 'image/webp' if file_path.endswith('.webp') else 'image/jpeg'
+
+    user_text = caption or "[Rasm yuborildi]"
+    coin_cost = 0 if is_premium else 1
+    ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
+
+    if not is_premium:
+        user.coins -= 1
+        user.save(update_fields=['coins'])
+        CoinTransaction.objects.create(user=user, amount=1, action='remove', reason="AI yordamchi bilan suhbat - rasm (Telegram)")
+
+    if session.messages.filter(role='user').count() == 1:
+        title = caption[:45] if caption else "Rasm tahlili"
+        session.title = f"TG: {title}"
+        session.save()
+
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        ai_response = "⚠️ AI xizmati hozirda mavjud emas."
+    else:
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key.strip(), timeout=60)
+
+            system_prompt = (
+                "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
+                "Rasmlarni tahlil qiling va tushuntiring. "
+                "Telegram formatida javob bering (HTML format: "
+                "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
+                "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+            )
+
+            content_parts = []
+            if caption:
+                content_parts.append({"type": "text", "text": caption})
+            else:
+                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
+            content_parts.append({
+                "type": "image_url",
+                "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"}
+            })
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": content_parts}
+                ],
+                max_tokens=2048, temperature=0.7,
+            )
+            ai_response = response.choices[0].message.content
+        except Exception:
+            ai_response = "⚠️ Rasmni tahlil qilishda xatolik yuz berdi."
+
+    ChatMessage.objects.create(session=session, role='assistant', content=ai_response)
     _send_message(bot_token, chat_id, ai_response)
 
 
