@@ -87,8 +87,16 @@ def generate_ai_article_view(request, pk):
 
 
 def send_course_notification(profession, title, content, sender=None):
-    """Kursga yozilgan barcha o'quvchilarga xabar yuborish"""
-    enrollments = CourseEnrollment.objects.filter(profession=profession)
+    """Kursga yozilgan barcha o'quvchilarga xabar yuborish (sayt + Telegram)"""
+    import threading
+    
+    enrollments = CourseEnrollment.objects.filter(profession=profession).select_related('user')
+    
+    teacher_name = ""
+    if sender:
+        teacher_name = f"{sender.first_name} {sender.last_name}"
+    
+    telegram_ids = []
     for enrollment in enrollments:
         Message.objects.create(
             sender=sender,
@@ -97,6 +105,28 @@ def send_course_notification(profession, title, content, sender=None):
             content=content,
             message_type='system'
         )
+        if enrollment.user.telegram_id:
+            telegram_ids.append(enrollment.user.telegram_id)
+    
+    def _send_telegram():
+        for tid in telegram_ids:
+            telegram_text = (
+                f"📢 <b>{title}</b>\n\n"
+                f"{content}\n\n"
+            )
+            if teacher_name:
+                telegram_text += f"👨‍🏫 O'qituvchi: {teacher_name}\n"
+            telegram_text += f"🔗 Saytga kiring va ko'ring!"
+            notify_user(tid, telegram_text)
+        
+        notify_group(
+            f"📢 <b>{title}</b>\n\n"
+            f"📚 Kurs: {profession.name}\n"
+            + (f"👨‍🏫 O'qituvchi: {teacher_name}\n\n" if teacher_name else "\n")
+            + content
+        )
+    
+    threading.Thread(target=_send_telegram, daemon=True).start()
 
 
 def register_view(request):

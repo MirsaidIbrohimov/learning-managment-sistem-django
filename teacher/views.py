@@ -9,6 +9,7 @@ from accounts.models import (
     Test, TestQuestion, TestAnswer, TestResult
 )
 from .models import TeacherCertificate, TeacherSalary
+from accounts.views import send_course_notification
 
 
 def teacher_required(view_func):
@@ -342,6 +343,12 @@ def teacher_add_test(request, pk):
             question_count=question_count,
         )
         
+        send_course_notification(
+            profession=profession,
+            title=f"📋 Yangi test: {title}",
+            content=f"'{profession.name}' kursiga yangi test qo'shildi:\n\n📚 {title}\n\nTestni yechish uchun kursga kiring!",
+            sender=request.user
+        )
         messages.success(request, f"'{title}' testi yaratildi! Endi savollar qo'shing.")
         return redirect('teacher:manage_questions', pk=test.pk)
     
