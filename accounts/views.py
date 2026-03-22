@@ -1209,10 +1209,6 @@ def _calculate_similarity(text1, text2):
     # Eng yuqori natijani olish (lekin oddiy/qisqa kodlarni filtrlash)
     similarity = max(seq_ratio, line_ratio, token_ratio)
 
-    # Juda qisqa kodlar uchun filtrlash — 3 qatordan kam bo'lsa, plagiat emas
-    if len(norm1.splitlines()) <= 3 or len(norm2.splitlines()) <= 3:
-        similarity = min(similarity, 60)
-
     return round(similarity, 1)
 
 
@@ -1246,7 +1242,7 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
                 'student_id': sub.student.pk,
             }
 
-    if best_match['similarity'] < 85:
+    if best_match['similarity'] < 70:
         return {
             'is_plagiat': False,
             'similarity': int(best_match['similarity']),
@@ -1286,36 +1282,43 @@ def _check_ai_generated(homework_description, student_answer):
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining AI plagiat detektorisiz. "
-                        "O'quvchining javobini SINCHIKLAB tekshiring va AI yordamida yozilganligini aniqlang.\n\n"
-                        "🔍 AI BELGILARI (har biri alohida shubha uyg'otadi):\n"
-                        "1. STRUKTURA: Javob juda tartibli, mantiqiy izchil, mukammal tuzilgan\n"
-                        "2. TIL USLUBI: Professional, rasmiy, 'kitobiy' yozuv uslubi. Tabiiy inson xatolari yo'q\n"
-                        "3. IZOHLAR: Kodda inglizcha yoki juda batafsil izohlar (comments) mavjud\n"
-                        "4. MUKAMMALLIK: Hech qanday xato, typo, noto'g'ri nom yo'q — juda 'toza' javob\n"
-                        "5. AI IBORALARI: 'Here is', 'Let me', 'This code', 'I hope', 'certainly', 'of course', 'as follows' kabi iboralar\n"
-                        "6. HADDAN TASHQARI TUSHUNTIRISH: Savol oddiy lekin javob juda batafsil va uzun\n"
-                        "7. PATTERN: Javob ChatGPT/Claude/Gemini ning tipik javob formatiga o'xshaydi (ro'yxatlar, sarlavhalar, qadam-baqadam)\n"
-                        "8. DARAJAGA NOMOSLIK: O'quvchi darajasiga mos kelmaydigan murakkab yechim, kutubxonalar, patternlar ishlatilgan\n"
-                        "9. KOD SIFATI: Birinchi urinishda mukammal, professional darajadagi kod — boshlang'ich o'quvchidan kutilmaydi\n"
-                        "10. FORMATLASH: Markdown, emoji, sarlavhalar bilan chiroyli formatlangan javob\n\n"
-                        "✅ INSON BELGILARI (faqat bular BIRGA bo'lsa AI emas deng):\n"
-                        "- Typo, grammatik xatolar, noto'g'ri so'z tanlov\n"
-                        "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh kabi)\n"
-                        "- Noto'g'ri yoki notekis indentatsiya\n"
-                        "- Oddiy va qisqa javob, tushuntirish yo'q\n"
-                        "- Kodni to'liq yozmagan, qisman javob bergan\n\n"
-                        "⚠️ QATTIQ QOIDALAR:\n"
-                        "- Agar javobda 3 ta yoki undan ortiq AI belgisi bo'lsa — is_ai: true\n"
-                        "- Agar javob juda 'toza', mukammal va professional bo'lsa — bu AI, hatto oddiy kod bo'lsa ham\n"
-                        "- Agar javobda inglizcha izohlar yoki AI iboralari bo'lsa — darhol is_ai: true\n"
-                        "- Oddiy vazifaga haddan tashqari batafsil javob — AI belgisi\n"
-                        "- Shubha bo'lsa AI FOYDASIGA hal qiling (ya'ni is_ai: true)\n\n"
+                        "Siz o'quv platformasining QATTIQ AI plagiat detektorisiz. "
+                        "Bu platforma BOSHLANG'ICH dasturlash o'quvchilari uchun. "
+                        "O'quvchilar odatda 1-6 oylik tajribaga ega. "
+                        "Ularning HAQIQIY javoblari qisqa, sodda, xatoli bo'ladi.\n\n"
+                        "🔍 AI BELGILARI — har biri ALOHIDA shubha uyg'otadi:\n"
+                        "1. MUKAMMAL KOD: Xatosiz, to'g'ri indentatsiya, professional uslub — boshlang'ich o'quvchi bunday yozmaydi\n"
+                        "2. IZOHLAR: Kodda inglizcha comment yoki har qatorga izoh yozilgan\n"
+                        "3. AI IBORALARI: 'Here is', 'Let me', 'This code', 'certainly', 'of course', 'step by step', 'below', 'above', 'output', 'example' kabi so'zlar\n"
+                        "4. HADDAN TASHQARI TUSHUNTIRISH: Oddiy savol — lekin javob juda uzun va batafsil\n"
+                        "5. CHATGPT FORMATI: Qadam-baqadam tushuntirish, markdown, ro'yxatlar, sarlavhalar\n"
+                        "6. DARAJAGA NOMOSLIK: O'quvchi darajasidan yuqori — try/except, class, decorator, lambda, list comprehension, f-string kabi murakkab tushunchalar (agar darsda o'tilmagan bo'lsa)\n"
+                        "7. KOD NUSXALASH: Javob internetdagi tayyor yechim yoki tutorial kodiga o'xshaydi\n"
+                        "8. TOZA JAVOB: Hech qanday typo, grammatik xato, noto'g'ri nom yo'q\n"
+                        "9. FORMATLASH: Chiroyli formatlangan, emoji, markdown ishlatilgan\n"
+                        "10. ORTIQCHA KOD: Vazifada so'ralmagan qo'shimcha funksiyalar, validatsiyalar, error handling qo'shilgan\n"
+                        "11. INGLIZ TILI: O'zgaruvchi nomlari, funksiya nomlari to'liq inglizcha va professional (get_data, calculate_sum, is_valid kabi)\n"
+                        "12. COPY-PASTE BELGILARI: Javob to'liq tayyor ko'rinishda, biror joydan nusxalangandek\n\n"
+                        "✅ HAQIQIY O'QUVCHI BELGILARI (barchasi BIRGA bo'lgandagina AI emas):\n"
+                        "- Typo va xatolar mavjud (masalan: pritn, inpit, defr)\n"
+                        "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh, ism, soni kabi)\n"
+                        "- Notekis, noto'g'ri indentatsiya\n"
+                        "- Qisqa javob, tushuntirish yo'q, faqat kod\n"
+                        "- Kod to'liq ishlamaydi yoki mantiqiy xato bor\n\n"
+                        "⚠️ ENG QATTIQ QOIDALAR:\n"
+                        "- Agar javobda BITTA ham AI belgisi bo'lsa — is_ai: true, confidence: 75+\n"
+                        "- Agar javobda 2+ AI belgisi bo'lsa — is_ai: true, confidence: 85+\n"
+                        "- Agar javob mukammal va xatosiz bo'lsa — bu AI, hatto oddiy print bo'lsa ham\n"
+                        "- Agar inglizcha izoh yoki AI iborasi bo'lsa — darhol is_ai: true, confidence: 90+\n"
+                        "- Agar javob internetdan yoki AI dan nusxalangandek ko'rinsa — is_ai: true\n"
+                        "- Agar o'quvchi darajasiga mos kelmasa — is_ai: true\n"
+                        "- SHUBHA BO'LSA DOIMO AI DEB BELGILANG!\n"
+                        "- Kodni boshqa joydan ko'chirib olgan bo'lsa ham — is_ai: true (chunki mustaqil bajarmagan)\n\n"
                         "Faqat JSON formatda javob bering:\n"
                         '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
-                        "- is_ai: AI belgisi topilsa true qiling. Shubhada ham true qiling!\n"
-                        "- confidence: 70+ bo'lsa is_ai true bo'lishi kerak\n"
-                        "- reason: O'zbek tilida 1-2 gapda aniq sabab"
+                        "- is_ai: Har qanday shubhada true!\n"
+                        "- confidence: 70+ bo'lsa is_ai true bo'lishi SHART\n"
+                        "- reason: O'zbek tilida 1-2 gapda aniq sabab yozing"
                     )
                 },
                 {
@@ -1646,10 +1649,12 @@ def submit_homework(request, pk):
                         similar_user = similarity_result['similar_to']
                         similarity_pct = similarity_result['similarity']
                         
-                        # Jarima: 10-30 coin
+                        # Jarima: 10-40 coin
                         if similarity_pct >= 95:
-                            penalty = 30
+                            penalty = 40
                         elif similarity_pct >= 90:
+                            penalty = 30
+                        elif similarity_pct >= 80:
                             penalty = 20
                         else:
                             penalty = 10
