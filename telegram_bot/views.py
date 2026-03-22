@@ -81,6 +81,71 @@ def bot_webhook(request):
             # Oddiy /start — login kodi yaratish
             return _handle_start(chat['id'], telegram_id, tg_username, bot_token)
 
+    if text == '🤖 AI Chat':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ AI Chat ishlatish uchun avval Telegram akkauntingizni tizimga ulang!")
+            return JsonResponse({'ok': True})
+
+        from .models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        if chat_state.ai_session and chat_state.ai_session.is_active:
+            session = chat_state.ai_session
+        else:
+            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            chat_state.ai_session = session
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "🤖 <b>AI Chat rejimi yoqildi!</b>\n\n"
+            "Xabaringizni yozing va AI javob beradi.\n"
+            "Orqaga qaytish uchun 🔙 Orqaga tugmasini bosing.",
+            keyboard,
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '🔄 Yangi suhbat':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt topilmadi!")
+            return JsonResponse({'ok': True})
+
+        from .models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        chat_state.ai_session = session
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
+            keyboard,
+        )
+        return JsonResponse({'ok': True})
+
     if text == '✉️ Xabar yozish':
         keyboard = {
             'keyboard': [
@@ -96,6 +161,8 @@ def bot_webhook(request):
         return JsonResponse({'ok': True})
 
     if text == '🔙 Orqaga':
+        from .models import TelegramChatState
+        TelegramChatState.objects.filter(telegram_id=telegram_id).update(is_ai_chat=False)
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
             _send_message_with_reply_markup(
@@ -213,6 +280,14 @@ def bot_webhook(request):
         else:
             _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
         return JsonResponse({'ok': True})
+
+    # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
+    if text and not text.startswith('/'):
+        from .models import TelegramChatState
+        chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
+        if chat_state:
+            _handle_ai_chat_message(bot_token, chat['id'], telegram_id, text, chat_state)
+            return JsonResponse({'ok': True})
 
     # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
     if text and not text.startswith('/'):
@@ -337,7 +412,8 @@ def _linked_keyboard():
         'keyboard': [
             [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
             [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
-            [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
+            [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
+            [{'text': '🔓 Uzish'}],
         ],
         'resize_keyboard': True,
     }
@@ -364,6 +440,77 @@ def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
         'parse_mode': 'HTML',
         'reply_markup': reply_markup,
     })
+
+
+def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
+    """AI Chat xabarini qayta ishlash (webhook versiya)"""
+    from ai_yordamchi.models import ChatSession, ChatMessage
+    from django.conf import settings
+
+    user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+    if not user:
+        _send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+        return
+
+    session = chat_state.ai_session
+    if not session or not session.is_active:
+        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        chat_state.ai_session = session
+        chat_state.save()
+
+    # Foydalanuvchi xabarini saqlash
+    ChatMessage.objects.create(
+        session=session,
+        role='user',
+        content=text,
+    )
+
+    # Sessiya sarlavhasini yangilash
+    if session.messages.filter(role='user').count() == 1:
+        session.title = f"TG: {text[:45]}..." if len(text) > 45 else f"TG: {text}"
+        session.save()
+
+    # OpenAI ga yuborish
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        ai_response = "⚠️ AI xizmati hozirda mavjud emas. Keyinroq urinib ko'ring."
+    else:
+        try:
+            from openai import OpenAI
+            client = OpenAI(api_key=api_key.strip(), timeout=30)
+
+            system_prompt = (
+                "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
+                "Qisqa va aniq javoblar bering. Telegram formatida javob bering (HTML format: "
+                "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
+                "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+            )
+
+            history = [{"role": "system", "content": system_prompt}]
+
+            recent_messages = list(session.messages.order_by('-created_at')[:10])
+            recent_messages.reverse()
+            for msg in recent_messages:
+                history.append({"role": msg.role, "content": msg.content})
+
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=history,
+                max_tokens=2048,
+                temperature=0.7,
+            )
+            ai_response = response.choices[0].message.content
+        except Exception as e:
+            ai_response = "⚠️ AI bilan bog'lanishda xatolik yuz berdi. Keyinroq urinib ko'ring."
+
+    # AI javobini saqlash
+    ChatMessage.objects.create(
+        session=session,
+        role='assistant',
+        content=ai_response,
+    )
+
+    _send_message(bot_token, chat_id, ai_response)
 
 
 def _send_coin_stats(bot_token, chat_id, user, profession=None):

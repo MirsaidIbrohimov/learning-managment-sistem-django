@@ -130,6 +130,14 @@ class TelegramBotConfig(AppConfig):
                 self._handle_start(bot_token, chat_id, telegram_id, tg_username)
             return
 
+        if text == '🤖 AI Chat':
+            self._handle_ai_chat_start(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '🔄 Yangi suhbat':
+            self._handle_ai_new_session(bot_token, chat_id, telegram_id)
+            return
+
         if text == '💰 Coinlarim':
             self._handle_coins(bot_token, chat_id, telegram_id)
             return
@@ -172,6 +180,10 @@ class TelegramBotConfig(AppConfig):
             return
 
         if text == '🔙 Orqaga':
+            # AI chat rejimidan chiqish
+            from telegram_bot.models import TelegramChatState
+            TelegramChatState.objects.filter(telegram_id=telegram_id).update(is_ai_chat=False)
+
             linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
             if linked_user:
                 self._send_message_with_keyboard(
@@ -185,6 +197,14 @@ class TelegramBotConfig(AppConfig):
                     self._unlinked_keyboard(),
                 )
             return
+
+        # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
+        if text and not text.startswith('/'):
+            from telegram_bot.models import TelegramChatState
+            chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
+            if chat_state:
+                self._handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state)
+                return
 
         # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
         if text and not text.startswith('/'):
@@ -514,7 +534,8 @@ class TelegramBotConfig(AppConfig):
             'keyboard': [
                 [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
-                [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
+                [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
+                [{'text': '🔓 Uzish'}],
             ],
             'resize_keyboard': True,
         }
@@ -541,6 +562,151 @@ class TelegramBotConfig(AppConfig):
             'text': text,
             'parse_mode': 'HTML'
         })
+
+    def _handle_ai_chat_start(self, bot_token, chat_id, telegram_id):
+        """AI Chat rejimini boshlash"""
+        from accounts.models import CustomUser
+        from telegram_bot.models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ AI Chat ishlatish uchun avval Telegram akkauntingizni tizimga ulang!")
+            return
+
+        # Yangi sessiya yaratish yoki mavjudini davom ettirish
+        chat_state, created = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+
+        if chat_state.ai_session and chat_state.ai_session.is_active:
+            session = chat_state.ai_session
+        else:
+            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            chat_state.ai_session = session
+
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        self._send_message_with_reply_markup(
+            bot_token, chat_id,
+            "🤖 <b>AI Chat rejimi yoqildi!</b>\n\n"
+            "Xabaringizni yozing va AI javob beradi.\n"
+            "Orqaga qaytish uchun 🔙 Orqaga tugmasini bosing.\n"
+            "Yangi suhbat boshlash uchun 🔄 Yangi suhbat tugmasini bosing.",
+            keyboard,
+        )
+
+    def _handle_ai_chat_message(self, bot_token, chat_id, telegram_id, text, chat_state):
+        """AI Chat xabarini qayta ishlash"""
+        from accounts.models import CustomUser
+        from ai_yordamchi.models import ChatSession, ChatMessage
+        from django.conf import settings as django_settings
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        session = chat_state.ai_session
+        if not session or not session.is_active:
+            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            chat_state.ai_session = session
+            chat_state.save()
+
+        # Foydalanuvchi xabarini saqlash
+        ChatMessage.objects.create(
+            session=session,
+            role='user',
+            content=text,
+        )
+
+        # Sessiya sarlavhasini yangilash (birinchi xabar)
+        if session.messages.filter(role='user').count() == 1:
+            session.title = f"TG: {text[:45]}..." if len(text) > 45 else f"TG: {text}"
+            session.save()
+
+        # OpenAI ga yuborish
+        api_key = getattr(django_settings, 'OPENAI_API_KEY', None)
+        if not api_key or not api_key.strip():
+            ai_response = "⚠️ AI xizmati hozirda mavjud emas. Keyinroq urinib ko'ring."
+        else:
+            try:
+                from openai import OpenAI
+                client = OpenAI(api_key=api_key.strip(), timeout=30)
+
+                system_prompt = (
+                    "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
+                    "Qisqa va aniq javoblar bering. Telegram formatida javob bering (HTML format: "
+                    "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
+                    "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+                )
+
+                history = [{"role": "system", "content": system_prompt}]
+
+                # Oxirgi 10 ta xabarni olish
+                recent_messages = list(session.messages.order_by('-created_at')[:10])
+                recent_messages.reverse()
+                for msg in recent_messages:
+                    history.append({"role": msg.role, "content": msg.content})
+
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=history,
+                    max_tokens=2048,
+                    temperature=0.7,
+                )
+                ai_response = response.choices[0].message.content
+            except Exception as e:
+                print(f"Telegram AI Chat xatolik: {e}")
+                ai_response = f"⚠️ AI bilan bog'lanishda xatolik yuz berdi. Keyinroq urinib ko'ring."
+
+        # AI javobini saqlash
+        ChatMessage.objects.create(
+            session=session,
+            role='assistant',
+            content=ai_response,
+        )
+
+        self._send_message(bot_token, chat_id, ai_response)
+
+    def _handle_ai_new_session(self, bot_token, chat_id, telegram_id):
+        """Yangi AI chat sessiyasini boshlash"""
+        from accounts.models import CustomUser
+        from telegram_bot.models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        chat_state.ai_session = session
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        self._send_message_with_reply_markup(
+            bot_token, chat_id,
+            "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
+            keyboard,
+        )
 
     def _notify_admin_telegram_message(self, bot_token, tg_full, tg_username, telegram_id, text):
         import threading

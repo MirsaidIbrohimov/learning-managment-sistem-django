@@ -133,6 +133,14 @@ class Command(BaseCommand):
             self._handle_ball_stats_by_course(bot_token, chat_id, telegram_id, text[2:].strip())
             return
 
+        if text == '🤖 AI Chat':
+            self._handle_ai_chat_start(bot_token, chat_id, telegram_id)
+            return
+
+        if text == '🔄 Yangi suhbat':
+            self._handle_ai_new_session(bot_token, chat_id, telegram_id)
+            return
+
         if text == '📬 Xabarlarim':
             self._handle_messages(bot_token, chat_id, telegram_id)
             return
@@ -167,6 +175,9 @@ class Command(BaseCommand):
             return
 
         if text == '🔙 Orqaga':
+            from telegram_bot.models import TelegramChatState
+            TelegramChatState.objects.filter(telegram_id=telegram_id).update(is_ai_chat=False)
+
             linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
             if linked_user:
                 self._send_message_with_keyboard(
@@ -180,6 +191,14 @@ class Command(BaseCommand):
                     self._unlinked_keyboard(),
                 )
             return
+
+        # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
+        if text and not text.startswith('/'):
+            from telegram_bot.models import TelegramChatState
+            chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
+            if chat_state:
+                self._handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state)
+                return
 
         # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
         if text and not text.startswith('/'):
@@ -552,6 +571,146 @@ class Command(BaseCommand):
         })
         self.stdout.write(f"  🔓 Uzildi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
 
+    def _handle_ai_chat_start(self, bot_token, chat_id, telegram_id):
+        """AI Chat rejimini boshlash"""
+        from telegram_bot.models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ AI Chat ishlatish uchun avval Telegram akkauntingizni tizimga ulang!")
+            return
+
+        chat_state, created = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        
+        if chat_state.ai_session and chat_state.ai_session.is_active:
+            session = chat_state.ai_session
+        else:
+            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            chat_state.ai_session = session
+        
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        self._send_message_with_reply_markup(
+            bot_token, chat_id,
+            "🤖 <b>AI Chat rejimi yoqildi!</b>\n\n"
+            "Xabaringizni yozing va AI javob beradi.\n"
+            "Orqaga qaytish uchun 🔙 Orqaga tugmasini bosing.\n"
+            "Yangi suhbat boshlash uchun 🔄 Yangi suhbat tugmasini bosing.",
+            keyboard,
+        )
+
+    def _handle_ai_new_session(self, bot_token, chat_id, telegram_id):
+        """Yangi AI chat sessiyasini boshlash"""
+        from telegram_bot.models import TelegramChatState
+        from ai_yordamchi.models import ChatSession
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+        chat_state.ai_session = session
+        chat_state.is_ai_chat = True
+        chat_state.save()
+
+        keyboard = {
+            'keyboard': [
+                [{'text': '🔄 Yangi suhbat'}],
+                [{'text': '🔙 Orqaga'}],
+            ],
+            'resize_keyboard': True,
+        }
+        self._send_message_with_reply_markup(
+            bot_token, chat_id,
+            "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
+            keyboard,
+        )
+
+    def _handle_ai_chat_message(self, bot_token, chat_id, telegram_id, text, chat_state):
+        """AI Chat xabarini qayta ishlash"""
+        from ai_yordamchi.models import ChatSession, ChatMessage
+
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        session = chat_state.ai_session
+        if not session or not session.is_active:
+            session = ChatSession.objects.create(user=user, title="Telegram AI Chat")
+            chat_state.ai_session = session
+            chat_state.save()
+
+        # Foydalanuvchi xabarini saqlash
+        ChatMessage.objects.create(
+            session=session,
+            role='user',
+            content=text,
+        )
+
+        # Sessiya sarlavhasini yangilash (birinchi xabar)
+        if session.messages.filter(role='user').count() == 1:
+            session.title = f"TG: {text[:45]}..." if len(text) > 45 else f"TG: {text}"
+            session.save()
+
+        # OpenAI ga yuborish
+        api_key = getattr(settings, 'OPENAI_API_KEY', None)
+        if not api_key or not api_key.strip():
+            ai_response = "⚠️ AI xizmati hozirda mavjud emas. Keyinroq urinib ko'ring."
+        else:
+            try:
+                from openai import OpenAI
+                client = OpenAI(api_key=api_key.strip(), timeout=30)
+
+                system_prompt = (
+                    "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
+                    "Qisqa va aniq javoblar bering. Telegram formatida javob bering (HTML format: "
+                    "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
+                    "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
+                )
+
+                history = [{"role": "system", "content": system_prompt}]
+
+                # Oxirgi 10 ta xabarni olish
+                recent_messages = list(session.messages.order_by('-created_at')[:10])
+                recent_messages.reverse()
+                for msg in recent_messages:
+                    history.append({"role": msg.role, "content": msg.content})
+
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=history,
+                    max_tokens=2048,
+                    temperature=0.7,
+                )
+                ai_response = response.choices[0].message.content
+            except Exception as e:
+                self.stderr.write(f"Telegram AI Chat xatolik: {e}")
+                ai_response = "⚠️ AI bilan bog'lanishda xatolik yuz berdi. Keyinroq urinib ko'ring."
+
+        # AI javobini saqlash
+        ChatMessage.objects.create(
+            session=session,
+            role='assistant',
+            content=ai_response,
+        )
+
+        self._send_message(bot_token, chat_id, ai_response)
+
     def _answer_callback(self, bot_token, callback_query_id):
         url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
         requests.post(url, json={'callback_query_id': callback_query_id})
@@ -570,7 +729,8 @@ class Command(BaseCommand):
             'keyboard': [
                 [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
-                [{'text': '✉️ Xabar yozish'}, {'text': '🔓 Uzish'}],
+                [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
+                [{'text': '🔓 Uzish'}],
             ],
             'resize_keyboard': True,
         }

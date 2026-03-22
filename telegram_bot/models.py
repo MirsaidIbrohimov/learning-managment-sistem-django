@@ -137,3 +137,20 @@ class TelegramBroadcastMessage(models.Model):
 
     def __str__(self):
         return f"{self.get_recipient_type_display()} - {self.text[:50]}"
+
+
+class TelegramChatState(models.Model):
+    """Telegram foydalanuvchisining joriy holati (AI chat rejimida yoki yo'q)"""
+    telegram_id = models.BigIntegerField(unique=True, verbose_name="Telegram ID")
+    is_ai_chat = models.BooleanField(default=False, verbose_name="AI chat rejimida")
+    ai_session = models.ForeignKey(
+        'ai_yordamchi.ChatSession', on_delete=models.SET_NULL,
+        null=True, blank=True, verbose_name="AI chat sessiyasi"
+    )
+
+    class Meta:
+        verbose_name = "Telegram chat holati"
+        verbose_name_plural = "Telegram chat holatlari"
+
+    def __str__(self):
+        return f"TG:{self.telegram_id} - AI: {self.is_ai_chat}"
