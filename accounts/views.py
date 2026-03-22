@@ -1286,25 +1286,36 @@ def _check_ai_generated(homework_description, student_answer):
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining plagiat tekshiruvchisisiz. "
-                        "O'quvchining javobini JUDA EHTIYOTKORLIK bilan tahlil qiling.\n\n"
-                        "⚠️ MUHIM QOIDALAR:\n"
-                        "- Oddiy kodlar (print, input, if/else, for loop, oddiy funksiyalar) AI EMAS — bular darslikdan o'rganiladi\n"
-                        "- Qisqa va sodda javoblar AI EMAS\n"
-                        "- Kichik xatolar, noto'g'ri indentatsiya, o'zbek tilidagi o'zgaruvchi nomlari — inson belgisi\n"
-                        "- Faqat darsda o'tilgan mavzuga oid oddiy kod yozilgan bo'lsa — bu AI EMAS\n"
-                        "- O'quvchilar bir-biridan ko'chirib yozishi mumkin, bu ham AI EMAS\n\n"
-                        "FAQAT quyidagi hollarda AI deb belgilang:\n"
-                        "- Javob juda uzun, mukammal va professional darajada yozilgan\n"
-                        "- Har bir qatorga batafsil ingliz tilida izohlar (comments) yozilgan\n"
-                        "- Tipik ChatGPT uslubi: 'Here is...', 'Let me explain...', 'This code demonstrates...' kabi iboralar\n"
-                        "- O'quvchi darajasiga mutlaqo mos kelmaydigan murakkab dizayn patternlar, dekoratorlar, metaklasslar ishlatilgan\n"
-                        "- Javob oxirida 'I hope this helps!' yoki shunga o'xshash AI iboralari bor\n\n"
+                        "Siz o'quv platformasining AI plagiat detektorisiz. "
+                        "O'quvchining javobini SINCHIKLAB tekshiring va AI yordamida yozilganligini aniqlang.\n\n"
+                        "🔍 AI BELGILARI (har biri alohida shubha uyg'otadi):\n"
+                        "1. STRUKTURA: Javob juda tartibli, mantiqiy izchil, mukammal tuzilgan\n"
+                        "2. TIL USLUBI: Professional, rasmiy, 'kitobiy' yozuv uslubi. Tabiiy inson xatolari yo'q\n"
+                        "3. IZOHLAR: Kodda inglizcha yoki juda batafsil izohlar (comments) mavjud\n"
+                        "4. MUKAMMALLIK: Hech qanday xato, typo, noto'g'ri nom yo'q — juda 'toza' javob\n"
+                        "5. AI IBORALARI: 'Here is', 'Let me', 'This code', 'I hope', 'certainly', 'of course', 'as follows' kabi iboralar\n"
+                        "6. HADDAN TASHQARI TUSHUNTIRISH: Savol oddiy lekin javob juda batafsil va uzun\n"
+                        "7. PATTERN: Javob ChatGPT/Claude/Gemini ning tipik javob formatiga o'xshaydi (ro'yxatlar, sarlavhalar, qadam-baqadam)\n"
+                        "8. DARAJAGA NOMOSLIK: O'quvchi darajasiga mos kelmaydigan murakkab yechim, kutubxonalar, patternlar ishlatilgan\n"
+                        "9. KOD SIFATI: Birinchi urinishda mukammal, professional darajadagi kod — boshlang'ich o'quvchidan kutilmaydi\n"
+                        "10. FORMATLASH: Markdown, emoji, sarlavhalar bilan chiroyli formatlangan javob\n\n"
+                        "✅ INSON BELGILARI (faqat bular BIRGA bo'lsa AI emas deng):\n"
+                        "- Typo, grammatik xatolar, noto'g'ri so'z tanlov\n"
+                        "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh kabi)\n"
+                        "- Noto'g'ri yoki notekis indentatsiya\n"
+                        "- Oddiy va qisqa javob, tushuntirish yo'q\n"
+                        "- Kodni to'liq yozmagan, qisman javob bergan\n\n"
+                        "⚠️ QATTIQ QOIDALAR:\n"
+                        "- Agar javobda 3 ta yoki undan ortiq AI belgisi bo'lsa — is_ai: true\n"
+                        "- Agar javob juda 'toza', mukammal va professional bo'lsa — bu AI, hatto oddiy kod bo'lsa ham\n"
+                        "- Agar javobda inglizcha izohlar yoki AI iboralari bo'lsa — darhol is_ai: true\n"
+                        "- Oddiy vazifaga haddan tashqari batafsil javob — AI belgisi\n"
+                        "- Shubha bo'lsa AI FOYDASIGA hal qiling (ya'ni is_ai: true)\n\n"
                         "Faqat JSON formatda javob bering:\n"
                         '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
-                        "- is_ai: FAQAT 90% dan ortiq ishonchingiz bo'lsa true qiling. Shubhangiz bo'lsa false qiling!\n"
-                        "- confidence: aniq ishonch foizi. Oddiy kodlarga 30-50% bering, shubhali bo'lsa 60-80%, faqat aniq AI bo'lsa 90-100%\n"
-                        "- reason: O'zbek tilida 1-2 gapda sabab"
+                        "- is_ai: AI belgisi topilsa true qiling. Shubhada ham true qiling!\n"
+                        "- confidence: 70+ bo'lsa is_ai true bo'lishi kerak\n"
+                        "- reason: O'zbek tilida 1-2 gapda aniq sabab"
                     )
                 },
                 {
@@ -1539,18 +1550,18 @@ def submit_homework(request, pk):
             if student_answer:
                 # 1. Suniy intellekt bilan yozilganligini tekshirish
                 ai_check = _check_ai_generated(homework.description, student_answer)
-                if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 90:
+                if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
                     submission.status = 'revision'
                     
                     # Coin jarima hisoblash: ishonch darajasiga qarab 10-50 coin
                     confidence = ai_check['confidence']
-                    if confidence >= 98:
+                    if confidence >= 95:
                         penalty = 50
-                    elif confidence >= 95:
+                    elif confidence >= 90:
                         penalty = 40
-                    elif confidence >= 93:
+                    elif confidence >= 85:
                         penalty = 30
-                    elif confidence >= 91:
+                    elif confidence >= 80:
                         penalty = 20
                     else:
                         penalty = 10
