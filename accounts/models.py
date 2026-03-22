@@ -296,6 +296,7 @@ class Lesson(models.Model):
         ('video', 'Video darslik'),
         ('homework', 'Uyga vazifa'),
         ('test', 'Test'),
+        ('dictionary', "Lug'at"),
     )
     
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='lessons')
@@ -667,6 +668,37 @@ class TestUserAnswer(models.Model):
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
     selected_answer = models.ForeignKey(TestAnswer, on_delete=models.CASCADE, null=True, blank=True)
     is_correct = models.BooleanField(default=False)
+
+
+class Dictionary(models.Model):
+    lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='dictionary')
+    description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
+    
+    def __str__(self):
+        return self.lesson.title
+    
+    def word_count(self):
+        return self.words.count()
+    
+    class Meta:
+        verbose_name = "Lug'at"
+        verbose_name_plural = "Lug'atlar"
+
+
+class DictionaryWord(models.Model):
+    dictionary = models.ForeignKey(Dictionary, on_delete=models.CASCADE, related_name='words')
+    term = models.CharField(max_length=300, verbose_name="So'z / Atama")
+    translation = models.CharField(max_length=300, verbose_name="Tarjima / Ma'nosi")
+    example = models.TextField(blank=True, null=True, verbose_name="Misol")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    
+    class Meta:
+        ordering = ['order', 'term']
+        verbose_name = "Lug'at so'zi"
+        verbose_name_plural = "Lug'at so'zlari"
+    
+    def __str__(self):
+        return f"{self.term} — {self.translation}"
 
 
 class Certificate(models.Model):

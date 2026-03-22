@@ -581,6 +581,10 @@
                             <div class="ls-type-icon test"><i class="bi bi-question-circle-fill"></i></div>
                             Test
                         </a>
+                        <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=dictionary">
+                            <div class="ls-type-icon dictionary" style="background:rgba(139,92,246,0.1);color:#8b5cf6;"><i class="bi bi-book-fill"></i></div>
+                            Lug'at
+                        </a>
                     </div>
                 </div>
             </div>
@@ -628,6 +632,8 @@
                                 <i class="bi bi-play-circle-fill"></i>
                             {% elif lesson.lesson_type == 'homework' %}
                                 <i class="bi bi-file-earmark-text-fill"></i>
+                            {% elif lesson.lesson_type == 'dictionary' %}
+                                <i class="bi bi-book-fill"></i>
                             {% else %}
                                 <i class="bi bi-question-circle-fill"></i>
                             {% endif %}
@@ -640,6 +646,11 @@
                         {% if lesson.lesson_type == 'test' and lesson.test %}
                         <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
                             <i class="bi bi-list-ol"></i>
+                        </a>
+                        {% endif %}
+                        {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
+                        <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
+                            <i class="bi bi-book"></i>
                         </a>
                         {% endif %}
                         <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">
@@ -677,6 +688,8 @@
                             <i class="bi bi-play-circle-fill"></i>
                         {% elif lesson.lesson_type == 'homework' %}
                             <i class="bi bi-file-earmark-text-fill"></i>
+                        {% elif lesson.lesson_type == 'dictionary' %}
+                            <i class="bi bi-book-fill"></i>
                         {% else %}
                             <i class="bi bi-question-circle-fill"></i>
                         {% endif %}
@@ -689,6 +702,11 @@
                     {% if lesson.lesson_type == 'test' and lesson.test %}
                     <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
                         <i class="bi bi-list-ol"></i>
+                    </a>
+                    {% endif %}
+                    {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
+                    <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
+                        <i class="bi bi-book"></i>
                     </a>
                     {% endif %}
                     <a href="{% url 'edit_lesson' lesson.pk %}" class="ls-icon-btn edit" title="Tahrirlash">

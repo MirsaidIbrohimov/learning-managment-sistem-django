@@ -1,0 +1,213 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}{{ lesson.title }} - Lug'at{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --dl-primary: #8b5cf6;
+    --dl-primary-light: #a78bfa;
+    --dl-bg: #f1f5f9;
+    --dl-card: #ffffff;
+    --dl-border: #e2e8f0;
+    --dl-text: #1e293b;
+    --dl-text-muted: #64748b;
+    --dl-shadow: rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --dl-primary: #a78bfa;
+    --dl-primary-light: #c4b5fd;
+    --dl-bg: #0f172a;
+    --dl-card: #1e293b;
+    --dl-border: #334155;
+    --dl-text: #f1f5f9;
+    --dl-text-muted: #94a3b8;
+    --dl-shadow: rgba(0,0,0,0.25);
+}
+
+.dict-page {
+    min-height: 100vh; background: var(--dl-bg); padding: 2rem 0 4rem;
+}
+.dict-container { max-width: 800px; margin: 0 auto; padding: 0 1rem; }
+
+.back-link {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.625rem 1.25rem; border-radius: 12px;
+    background: var(--dl-card); border: 1px solid var(--dl-border);
+    color: var(--dl-primary); text-decoration: none;
+    font-weight: 600; font-size: 0.875rem;
+    box-shadow: 0 2px 8px var(--dl-shadow);
+    transition: all 0.2s; margin-bottom: 1.5rem;
+}
+.back-link:hover { transform: translateX(-4px); color: var(--dl-primary); }
+
+.dict-hero {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    border-radius: 24px; padding: 2.5rem 2rem; text-align: center;
+    margin-bottom: 1.5rem; position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(139,92,246,0.25);
+}
+.dict-hero::before {
+    content: ''; position: absolute; top: -30%; right: -10%;
+    width: 200px; height: 200px; background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+}
+.dict-hero-icon {
+    width: 80px; height: 80px; border-radius: 24px;
+    background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2.5rem; color: #fff;
+}
+.dict-hero h1 { color: #fff; font-size: 1.5rem; font-weight: 800; margin: 0 0 0.25rem; }
+.dict-hero p { color: rgba(255,255,255,0.8); font-size: 0.9rem; margin: 0; }
+.dict-hero-count {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.35rem 1rem; border-radius: 20px;
+    background: rgba(255,255,255,0.15); color: #fff;
+    font-size: 0.82rem; font-weight: 600; margin-top: 0.75rem;
+}
+
+.dict-search {
+    background: var(--dl-card); border-radius: 16px;
+    border: 1px solid var(--dl-border); padding: 0.5rem;
+    margin-bottom: 1.5rem; box-shadow: 0 4px 16px var(--dl-shadow);
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.dict-search i { color: var(--dl-text-muted); padding-left: 0.75rem; font-size: 1.1rem; }
+.dict-search input {
+    flex: 1; border: none; background: none; outline: none;
+    padding: 0.75rem 0.5rem; font-size: 0.95rem;
+    color: var(--dl-text);
+}
+.dict-search input::placeholder { color: var(--dl-text-muted); }
+.dict-search-btn {
+    padding: 0.6rem 1.25rem; border-radius: 12px;
+    background: var(--dl-primary); color: #fff; border: none;
+    font-weight: 600; font-size: 0.85rem; cursor: pointer;
+    transition: all 0.2s;
+}
+.dict-search-btn:hover { opacity: 0.9; }
+
+.dict-word-card {
+    background: var(--dl-card); border-radius: 16px;
+    border: 1px solid var(--dl-border); padding: 1.25rem 1.5rem;
+    margin-bottom: 0.75rem; box-shadow: 0 2px 8px var(--dl-shadow);
+    transition: all 0.25s; display: flex; align-items: flex-start; gap: 1rem;
+    animation: dictFadeIn 0.4s ease backwards;
+}
+.dict-word-card:hover {
+    transform: translateY(-2px); box-shadow: 0 8px 24px var(--dl-shadow);
+    border-color: var(--dl-primary);
+}
+
+@keyframes dictFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dict-word-num {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(109,40,217,0.1));
+    color: var(--dl-primary); display: flex; align-items: center;
+    justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
+}
+.dict-word-content { flex: 1; min-width: 0; }
+.dict-word-term {
+    font-size: 1.1rem; font-weight: 700; color: var(--dl-text);
+    margin-bottom: 0.2rem;
+}
+.dict-word-translation {
+    font-size: 0.95rem; color: var(--dl-primary); font-weight: 500;
+}
+.dict-word-example {
+    font-size: 0.82rem; color: var(--dl-text-muted); margin-top: 0.4rem;
+    padding: 0.5rem 0.75rem; background: rgba(139,92,246,0.04);
+    border-radius: 8px; border-left: 3px solid var(--dl-primary);
+}
+
+.dict-empty {
+    text-align: center; padding: 3rem 1rem;
+    background: var(--dl-card); border-radius: 16px;
+    border: 1px solid var(--dl-border);
+}
+.dict-empty i { font-size: 3rem; color: var(--dl-text-muted); opacity: 0.3; display: block; margin-bottom: 1rem; }
+.dict-empty p { color: var(--dl-text-muted); font-size: 0.9rem; margin: 0; }
+
+.dict-next {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.85rem 1.5rem; border-radius: 14px;
+    background: var(--dl-primary); color: #fff; text-decoration: none;
+    font-weight: 600; font-size: 0.95rem; margin-top: 1.5rem;
+    transition: all 0.25s; box-shadow: 0 4px 16px rgba(139,92,246,0.3);
+}
+.dict-next:hover { transform: translateY(-2px); color: #fff; opacity: 0.9; }
+
+{% if dictionary.description %}
+.dict-desc {
+    background: var(--dl-card); border-radius: 16px;
+    border: 1px solid var(--dl-border); padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem; box-shadow: 0 2px 8px var(--dl-shadow);
+    font-size: 0.9rem; color: var(--dl-text-muted); line-height: 1.6;
+}
+{% endif %}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dict-page">
+    <div class="dict-container">
+        <a href="{% url 'profession_detail' profession.pk %}" class="back-link">
+            <i class="bi bi-arrow-left"></i> {{ profession.name }}
+        </a>
+
+        <div class="dict-hero">
+            <div class="dict-hero-icon"><i class="bi bi-book-fill"></i></div>
+            <h1>{{ lesson.title }}</h1>
+            <p>{{ profession.name }}</p>
+            <div class="dict-hero-count">
+                <i class="bi bi-hash"></i> {{ words|length }} ta so'z
+            </div>
+        </div>
+
+        {% if dictionary.description %}
+        <div class="dict-desc">{{ dictionary.description }}</div>
+        {% endif %}
+
+        <form method="GET" class="dict-search">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" value="{{ search }}" placeholder="So'z qidirish..." autocomplete="off">
+            <button type="submit" class="dict-search-btn">Qidirish</button>
+        </form>
+
+        {% if words %}
+            {% for word in words %}
+            <div class="dict-word-card" style="animation-delay: {{ forloop.counter0 }}50ms;">
+                <div class="dict-word-num">{{ forloop.counter }}</div>
+                <div class="dict-word-content">
+                    <div class="dict-word-term">{{ word.term }}</div>
+                    <div class="dict-word-translation">{{ word.translation }}</div>
+                    {% if word.example %}
+                    <div class="dict-word-example">💡 {{ word.example }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="dict-empty">
+                <i class="bi bi-search"></i>
+                {% if search %}
+                <p>"{{ search }}" bo'yicha hech narsa topilmadi</p>
+                {% else %}
+                <p>Hali so'zlar qo'shilmagan</p>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if next_lesson %}
+        <a href="{% url 'lesson_view' next_lesson.pk %}" class="dict-next">
+            Keyingi dars <i class="bi bi-arrow-right"></i>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

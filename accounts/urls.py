@@ -38,6 +38,12 @@ urlpatterns = [
     path('question/<int:pk>/delete/', views.delete_test_question, name='delete_test_question'),
     path('test/<int:pk>/import/', views.import_test_questions, name='import_test_questions'),
     
+    # Dictionary
+    path('dictionary/<int:pk>/manage/', views.manage_dictionary, name='manage_dictionary'),
+    path('dictionary/<int:pk>/add-word/', views.add_dictionary_word, name='add_dictionary_word'),
+    path('dictionary-word/<int:pk>/delete/', views.delete_dictionary_word, name='delete_dictionary_word'),
+    path('dictionary/<int:pk>/import/', views.import_dictionary_words, name='import_dictionary_words'),
+    
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),

@@ -4,7 +4,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import (
     CustomUser, Profession, Section, Lesson, VideoLesson, Homework, 
-    Test, TestQuestion, TestAnswer, HomeworkSubmission, Certificate
+    Test, TestQuestion, TestAnswer, HomeworkSubmission, Certificate,
+    Dictionary, DictionaryWord
 )
 
 
@@ -267,6 +268,17 @@ class HomeworkForm(forms.Form):
     )
     description = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Vazifa tavsifi', 'rows': 4})
+    )
+
+
+class DictionaryForm(forms.Form):
+    title = forms.CharField(
+        max_length=300,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Lug'at nomi"})
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': "Lug'at haqida qisqa tavsif (ixtiyoriy)", 'rows': 2})
     )
 
 

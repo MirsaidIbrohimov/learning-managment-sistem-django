@@ -11,14 +11,14 @@ from datetime import timedelta
 import random
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
-    AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm,
+    AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm, DictionaryForm,
     HomeworkSubmissionForm, HomeworkGradeForm, TestForm, TestQuestionForm, CertificateForm,
     SectionForm, PasswordResetRequestForm
 )
 from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    TestUserAnswer, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
+    TestUserAnswer, Dictionary, DictionaryWord, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication
@@ -1022,6 +1022,19 @@ def lesson_view(request, pk):
         context['test'] = test
         context['result'] = result
         return render(request, 'accounts/lessons/test_lesson.html', context)
+    
+    elif lesson.lesson_type == 'dictionary':
+        dictionary = lesson.dictionary
+        words = dictionary.words.all()
+        search = request.GET.get('q', '').strip()
+        if search:
+            words = words.filter(
+                models.Q(term__icontains=search) | models.Q(translation__icontains=search)
+            )
+        context['dictionary'] = dictionary
+        context['words'] = words
+        context['search'] = search
+        return render(request, 'accounts/lessons/dictionary_lesson.html', context)
     
     return redirect('profession_detail', pk=profession.pk)
 
@@ -3625,11 +3638,36 @@ def add_lesson(request, pk):
                 )
                 messages.success(request, "Test qo'shildi! Endi savollarni qo'shing.")
                 return redirect('manage_test_questions', pk=lesson.test.pk)
+        
+        elif lesson_type == 'dictionary':
+            form = DictionaryForm(request.POST)
+            if form.is_valid():
+                lesson = Lesson.objects.create(
+                    profession=profession,
+                    section=section,
+                    title=form.cleaned_data['title'],
+                    lesson_type='dictionary',
+                    created_by=request.user
+                )
+                Dictionary.objects.create(
+                    lesson=lesson,
+                    description=form.cleaned_data.get('description') or ''
+                )
+                send_course_notification(
+                    profession=profession,
+                    title=f"📖 Yangi lug'at: {lesson.title}",
+                    content=f"'{profession.name}' kursiga yangi lug'at qo'shildi:\n\n📚 {lesson.title}\n\nLug'atni ko'rish uchun kursga kiring!",
+                    sender=request.user
+                )
+                messages.success(request, "Lug'at qo'shildi! Endi so'zlarni qo'shing.")
+                return redirect('manage_dictionary', pk=lesson.dictionary.pk)
     else:
         if lesson_type == 'video':
             form = VideoLessonForm()
         elif lesson_type == 'homework':
             form = HomeworkForm()
+        elif lesson_type == 'dictionary':
+            form = DictionaryForm()
         else:
             form = TestForm()
     
@@ -3704,6 +3742,11 @@ def edit_lesson(request, pk):
                 'title': lesson.title,
                 'description': lesson.homework.description,
             })
+        elif lesson.lesson_type == 'dictionary':
+            if hasattr(lesson, 'dictionary') and lesson.dictionary:
+                return redirect('manage_dictionary', pk=lesson.dictionary.pk)
+            else:
+                return redirect('manage_lessons', pk=lesson.profession.pk)
         else:
             if hasattr(lesson, 'test') and lesson.test:
                 return redirect('manage_test_questions', pk=lesson.test.pk)
@@ -3733,7 +3776,7 @@ def delete_lesson(request, pk):
     
     if request.method == 'POST':
         # Xabar yuborish
-        type_names = {'video': 'Video dars', 'homework': 'Uyga vazifa', 'test': 'Test'}
+        type_names = {'video': 'Video dars', 'homework': 'Uyga vazifa', 'test': 'Test', 'dictionary': "Lug'at"}
         type_name = type_names.get(lesson_type, 'Dars')
         send_course_notification(
             profession=profession,
@@ -3962,6 +4005,156 @@ def import_test_questions(request, pk):
 
     return render(request, 'accounts/manage/import_questions.html', {
         'test': test,
+        'errors': errors,
+        'success_count': success_count,
+    })
+
+
+@login_required
+def manage_dictionary(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    dictionary = get_object_or_404(Dictionary, pk=pk)
+    words = dictionary.words.all()
+    return render(request, 'accounts/manage/manage_dictionary.html', {
+        'dictionary': dictionary,
+        'words': words,
+    })
+
+
+@login_required
+def add_dictionary_word(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    dictionary = get_object_or_404(Dictionary, pk=pk)
+    if request.method == 'POST':
+        term = request.POST.get('term', '').strip()
+        translation = request.POST.get('translation', '').strip()
+        example = request.POST.get('example', '').strip()
+        if term and translation:
+            max_order = dictionary.words.count()
+            DictionaryWord.objects.create(
+                dictionary=dictionary,
+                term=term,
+                translation=translation,
+                example=example or None,
+                order=max_order + 1,
+            )
+            messages.success(request, f"'{term}' so'zi qo'shildi!")
+        else:
+            messages.error(request, "So'z va tarjimani kiriting!")
+    return redirect('manage_dictionary', pk=pk)
+
+
+@login_required
+def delete_dictionary_word(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    word = get_object_or_404(DictionaryWord, pk=pk)
+    dict_pk = word.dictionary.pk
+    if request.method == 'POST':
+        word.delete()
+        messages.success(request, "So'z o'chirildi!")
+    return redirect('manage_dictionary', pk=dict_pk)
+
+
+@login_required
+def import_dictionary_words(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+    dictionary = get_object_or_404(Dictionary, pk=pk)
+    errors = []
+    success_count = 0
+
+    if request.method == 'POST':
+        file = request.FILES.get('excel_file')
+        if not file:
+            errors.append("Fayl tanlanmadi.")
+        elif not file.name.endswith('.xlsx'):
+            errors.append("Faqat .xlsx formatdagi fayllar qabul qilinadi.")
+        else:
+            try:
+                import openpyxl
+            except ImportError:
+                errors.append("openpyxl kutubxonasi o'rnatilmagan.")
+
+            if not errors:
+                try:
+                    wb = openpyxl.load_workbook(file, read_only=True)
+                    ws = wb.active
+                    headers = [str(cell.value or '').strip().lower() for cell in next(ws.iter_rows(min_row=1, max_row=1))]
+
+                    term_col = None
+                    translation_col = None
+                    example_col = None
+
+                    for i, h in enumerate(headers):
+                        if h in ("so'z", 'soz', 'term', 'atama', 'word', "so'z / atama"):
+                            term_col = i
+                        elif h in ('tarjima', 'translation', "ma'no", "ma'nosi", "tarjima / ma'nosi"):
+                            translation_col = i
+                        elif h in ('misol', 'example', 'namuna', 'gap'):
+                            example_col = i
+
+                    if term_col is None:
+                        errors.append("'So'z' ustuni topilmadi. Ustun nomi: so'z, term, atama, word")
+                    if translation_col is None:
+                        errors.append("'Tarjima' ustuni topilmadi. Ustun nomi: tarjima, translation, ma'no")
+                    if errors:
+                        errors.append(f"Topilgan ustunlar: {', '.join(headers)}")
+
+                    if not errors:
+                        words_data = []
+                        max_col = max(c for c in [term_col, translation_col, example_col] if c is not None)
+                        for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+                            row = list(row)
+                            if len(row) <= max_col:
+                                row.extend([None] * (max_col - len(row) + 1))
+
+                            term = str(row[term_col] or '').strip()
+                            translation = str(row[translation_col] or '').strip()
+                            example = ''
+                            if example_col is not None:
+                                example = str(row[example_col] or '').strip()
+
+                            if not term and not translation:
+                                continue
+
+                            if not term:
+                                errors.append(f"Qator {row_num}: so'z bo'sh")
+                            elif not translation:
+                                errors.append(f"Qator {row_num}: tarjima bo'sh")
+                            else:
+                                words_data.append({
+                                    'term': term,
+                                    'translation': translation,
+                                    'example': example,
+                                })
+
+                        if not words_data and not errors:
+                            errors.append("Excelda hech qanday so'z topilmadi.")
+
+                        if not errors:
+                            with transaction.atomic():
+                                existing_count = dictionary.words.count()
+                                for i, wd in enumerate(words_data):
+                                    DictionaryWord.objects.create(
+                                        dictionary=dictionary,
+                                        term=wd['term'],
+                                        translation=wd['translation'],
+                                        example=wd['example'] or None,
+                                        order=existing_count + i + 1,
+                                    )
+                                success_count = len(words_data)
+                            messages.success(request, f"{success_count} ta so'z muvaffaqiyatli import qilindi!")
+                            return redirect('manage_dictionary', pk=dictionary.pk)
+
+                    wb.close()
+                except Exception as e:
+                    errors.append(f"Faylni o'qishda xatolik: {str(e)}")
+
+    return render(request, 'accounts/manage/import_dictionary.html', {
+        'dictionary': dictionary,
         'errors': errors,
         'success_count': success_count,
     })

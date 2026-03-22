@@ -1,0 +1,221 @@
+﻿{% extends 'accounts/base.html' %}
+
+{% block title %}Excel dan import - {{ dictionary.lesson.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --imp-bg: #f2f2f7;
+    --imp-card: rgba(255,255,255,0.85);
+    --imp-border: rgba(0,0,0,0.06);
+    --imp-text: #1d1d1f;
+    --imp-secondary: #86868b;
+    --imp-accent: #8b5cf6;
+    --imp-accent-light: rgba(139,92,246,0.08);
+    --imp-success: #34c759;
+    --imp-success-light: rgba(52,199,89,0.1);
+    --imp-danger: #ff3b30;
+    --imp-danger-light: rgba(255,59,48,0.08);
+    --imp-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] {
+    --imp-bg: #000000;
+    --imp-card: rgba(28,28,30,0.85);
+    --imp-border: rgba(255,255,255,0.08);
+    --imp-text: #f5f5f7;
+    --imp-secondary: #98989d;
+    --imp-accent-light: rgba(139,92,246,0.18);
+    --imp-success-light: rgba(52,199,89,0.18);
+    --imp-danger-light: rgba(255,59,48,0.15);
+    --imp-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+
+.imp-page { max-width: 800px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.imp-back {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.25rem; border-radius: 14px;
+    background: var(--imp-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border); color: var(--imp-accent);
+    text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    transition: all 0.25s; margin-bottom: 1.5rem;
+}
+.imp-back:hover { transform: translateX(-4px); color: var(--imp-accent); }
+
+.imp-card {
+    background: var(--imp-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--imp-border); border-radius: 24px;
+    overflow: hidden; box-shadow: var(--imp-shadow); margin-bottom: 1.5rem;
+}
+
+.imp-header {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    padding: 2rem 1.75rem; text-align: center;
+}
+.imp-header-icon {
+    width: 70px; height: 70px; border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2rem; color: #fff;
+}
+.imp-header h3 { color: #fff; font-size: 1.3rem; font-weight: 700; margin: 0; }
+.imp-header p { color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 0.25rem 0 0; }
+
+.imp-body { padding: 1.75rem; }
+
+.imp-info {
+    display: flex; gap: 0.75rem; padding: 1rem 1.25rem;
+    background: var(--imp-accent-light); border-radius: 16px;
+    border: 1px solid rgba(139,92,246,0.15); margin-bottom: 1.5rem;
+    font-size: 0.88rem; color: var(--imp-text); line-height: 1.5;
+}
+.imp-info i { color: var(--imp-accent); font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+
+.imp-table-preview {
+    width: 100%; border-collapse: collapse; margin: 1rem 0;
+    font-size: 0.82rem; border-radius: 12px; overflow: hidden;
+}
+.imp-table-preview th {
+    background: var(--imp-accent); color: #fff;
+    padding: 0.6rem 1rem; text-align: left; font-weight: 600;
+}
+.imp-table-preview td {
+    padding: 0.5rem 1rem; border-bottom: 1px solid var(--imp-border);
+    color: var(--imp-text);
+}
+.imp-table-preview tr:last-child td { border-bottom: none; }
+.imp-table-preview tr:nth-child(even) td { background: var(--imp-accent-light); }
+
+.imp-upload {
+    border: 2px dashed var(--imp-border); border-radius: 18px;
+    padding: 2rem; text-align: center; transition: all 0.3s;
+    margin-bottom: 1.25rem; cursor: pointer;
+}
+.imp-upload:hover { border-color: var(--imp-accent); background: var(--imp-accent-light); }
+.imp-upload i { font-size: 2.5rem; color: var(--imp-accent); display: block; margin-bottom: 0.75rem; }
+.imp-upload p { font-size: 0.9rem; color: var(--imp-secondary); margin: 0; }
+.imp-upload input[type="file"] { display: none; }
+.imp-upload .file-name { font-weight: 600; color: var(--imp-accent); margin-top: 0.5rem; }
+
+.imp-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.8rem 2rem; border-radius: 14px; border: none;
+    background: var(--imp-accent); color: #fff;
+    font-weight: 600; font-size: 0.95rem; cursor: pointer;
+    transition: all 0.25s; width: 100%;
+    justify-content: center;
+}
+.imp-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+.imp-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.imp-error {
+    display: flex; gap: 0.5rem; padding: 0.75rem 1rem;
+    background: var(--imp-danger-light); border-radius: 12px;
+    border: 1px solid rgba(255,59,48,0.15);
+    font-size: 0.82rem; color: var(--imp-danger); margin-bottom: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="imp-page">
+    <a href="{% url 'manage_dictionary' dictionary.pk %}" class="imp-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
+    </a>
+
+    <div class="imp-card">
+        <div class="imp-header">
+            <div class="imp-header-icon"><i class="bi bi-file-earmark-excel"></i></div>
+            <h3>Excel dan so'z import qilish</h3>
+            <p>{{ dictionary.lesson.title }}</p>
+        </div>
+
+        <div class="imp-body">
+            <div class="imp-info">
+                <i class="bi bi-info-circle-fill"></i>
+                <div>
+                    <strong>Excel fayl formati:</strong> .xlsx fayl tayyorlang. Birinchi qator ustun nomlari bo'lishi kerak.
+                    2 yoki 3 ustunli bo'lishi mumkin.
+                </div>
+            </div>
+
+            <table class="imp-table-preview">
+                <thead>
+                    <tr>
+                        <th>So'z</th>
+                        <th>Tarjima</th>
+                        <th>Misol (ixtiyoriy)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>variable</td>
+                        <td>o'zgaruvchi</td>
+                        <td>x = 5</td>
+                    </tr>
+                    <tr>
+                        <td>function</td>
+                        <td>funksiya</td>
+                        <td>def salom():</td>
+                    </tr>
+                    <tr>
+                        <td>loop</td>
+                        <td>takrorlanish, sikl</td>
+                        <td>for i in range(10):</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="imp-info" style="background: var(--imp-success-light); border-color: rgba(52,199,89,0.15);">
+                <i class="bi bi-check-circle-fill" style="color: var(--imp-success);"></i>
+                <div>
+                    <strong>Qabul qilinadigan ustun nomlari:</strong><br>
+                    So'z: <code>so'z, soz, term, atama, word</code><br>
+                    Tarjima: <code>tarjima, translation, ma'no, ma'nosi</code><br>
+                    Misol: <code>misol, example, namuna, gap</code> (ixtiyoriy)
+                </div>
+            </div>
+
+            {% if errors %}
+            <div style="margin-bottom: 1rem;">
+                {% for error in errors %}
+                <div class="imp-error">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    {{ error }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" id="importForm">
+                {% csrf_token %}
+                <div class="imp-upload" onclick="document.getElementById('excelFile').click()">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    <p>Excel faylni tanlash uchun bosing</p>
+                    <p style="font-size:0.78rem;">Faqat .xlsx format</p>
+                    <input type="file" name="excel_file" id="excelFile" accept=".xlsx" onchange="showFileName(this)">
+                    <div class="file-name" id="fileName"></div>
+                </div>
+
+                <button type="submit" class="imp-btn" id="importBtn" disabled>
+                    <i class="bi bi-cloud-arrow-up"></i> Import qilish
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showFileName(input) {
+    const name = input.files[0]?.name || '';
+    document.getElementById('fileName').textContent = name;
+    document.getElementById('importBtn').disabled = !name;
+}
+
+document.getElementById('importForm').addEventListener('submit', function() {
+    const btn = document.getElementById('importBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Import qilinmoqda...';
+});
+</script>
+{% endblock %}
