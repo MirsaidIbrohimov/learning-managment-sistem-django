@@ -15,12 +15,6 @@ class TelegramBotConfig(AppConfig):
         if _bot_started:
             return
         
-        # runserver da reloader ikki marta chaqiradi — faqat RUN_MAIN processda ishga tushirish
-        # Production (passenger/gunicorn/wsgi) da RUN_MAIN mavjud emas — shuning uchun ham ishga tushirish
-        is_runserver = 'runserver' in sys.argv
-        if is_runserver and os.environ.get('RUN_MAIN') != 'true':
-            return
-        
         # migrate, collectstatic kabi buyruqlarda botni ishga tushirmaslik
         skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser', 'shell', 'dbshell', 'check'}
         if skip_commands.intersection(sys.argv):
@@ -31,8 +25,58 @@ class TelegramBotConfig(AppConfig):
             return
         
         _bot_started = True
-        t = threading.Thread(target=self._run_bot, daemon=True)
-        t.start()
+        
+        is_runserver = 'runserver' in sys.argv
+        if is_runserver:
+            # Lokal: runserver da reloader ikki marta chaqiradi
+            if os.environ.get('RUN_MAIN') != 'true':
+                return
+            # Polling rejimida ishga tushirish
+            t = threading.Thread(target=self._run_bot, daemon=True)
+            t.start()
+        else:
+            # Production (Passenger/WSGI): webhook o'rnatish
+            t = threading.Thread(target=self._setup_webhook, daemon=True)
+            t.start()
+
+    def _setup_webhook(self):
+        """Production serverda webhook o'rnatish"""
+        import requests
+        from django.conf import settings
+        
+        bot_token = settings.TELEGRAM_BOT_TOKEN
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if not site_url:
+            print("SITE_URL sozlanmagan, webhook o'rnatilmadi!")
+            return
+        
+        webhook_url = f"{site_url}/telegram/webhook/"
+        try:
+            # Avval mavjud webhookni tekshirish
+            resp = requests.get(
+                f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
+                timeout=10
+            )
+            info = resp.json().get('result', {})
+            current_url = info.get('url', '')
+            
+            if current_url == webhook_url:
+                print(f"Telegram webhook allaqachon o'rnatilgan: {webhook_url}")
+                return
+            
+            # Webhook o'rnatish
+            resp = requests.post(
+                f"https://api.telegram.org/bot{bot_token}/setWebhook",
+                json={'url': webhook_url},
+                timeout=10
+            )
+            result = resp.json()
+            if result.get('ok'):
+                print(f"Telegram webhook o'rnatildi: {webhook_url}")
+            else:
+                print(f"Webhook o'rnatishda xatolik: {result}")
+        except Exception as e:
+            print(f"Webhook setup xatolik: {e}")
 
     def _run_bot(self):
         import time
@@ -610,12 +654,31 @@ class TelegramBotConfig(AppConfig):
         """AI Chat xabarini qayta ishlash"""
         from accounts.models import CustomUser
         from ai_yordamchi.models import ChatSession, ChatMessage
+        from ai_yordamchi.views import get_user_limits
+        from coin.models import CoinTransaction
         from django.conf import settings as django_settings
 
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        # Limit tekshirish
+        is_premium = getattr(user, 'is_premium', False)
+        limits = get_user_limits(user)
+
+        if not is_premium and user.coins < 1:
+            self._send_message(bot_token, chat_id,
+                "❌ Sizda yetarli coin yo'q.\n"
+                "AI bilan suhbatlashish uchun 1 coin kerak.")
+            return
+
+        if limits['msg_left'] <= 0:
+            limit_text = "120" if is_premium else "60"
+            self._send_message(bot_token, chat_id,
+                f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\n"
+                f"Ertaga qayta urinib ko'ring.")
             return
 
         session = chat_state.ai_session
@@ -625,11 +688,24 @@ class TelegramBotConfig(AppConfig):
             chat_state.save()
 
         # Foydalanuvchi xabarini saqlash
+        coin_cost = 0 if is_premium else 1
         ChatMessage.objects.create(
             session=session,
             role='user',
             content=text,
+            coins_spent=coin_cost,
         )
+
+        # Coin ayirish (faqat premium bo'lmaganlar uchun)
+        if not is_premium:
+            user.coins -= 1
+            user.save(update_fields=['coins'])
+            CoinTransaction.objects.create(
+                user=user,
+                amount=1,
+                action='remove',
+                reason="AI yordamchi bilan suhbat (Telegram)"
+            )
 
         # Sessiya sarlavhasini yangilash (birinchi xabar)
         if session.messages.filter(role='user').count() == 1:

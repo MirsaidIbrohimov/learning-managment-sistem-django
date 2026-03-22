@@ -355,3 +355,4 @@ GAME_MAX_SCORE_MULTIPLIER = 2.0
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
 TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")
+SITE_URL = os.getenv("SITE_URL", "https://itcreative.uz")

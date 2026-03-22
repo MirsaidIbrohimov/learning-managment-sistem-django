@@ -642,11 +642,30 @@ class Command(BaseCommand):
     def _handle_ai_chat_message(self, bot_token, chat_id, telegram_id, text, chat_state):
         """AI Chat xabarini qayta ishlash"""
         from ai_yordamchi.models import ChatSession, ChatMessage
+        from ai_yordamchi.views import get_user_limits
+        from coin.models import CoinTransaction
 
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             self._send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+
+        # Limit tekshirish
+        is_premium = getattr(user, 'is_premium', False)
+        limits = get_user_limits(user)
+
+        if not is_premium and user.coins < 1:
+            self._send_message(bot_token, chat_id,
+                "❌ Sizda yetarli coin yo'q.\n"
+                "AI bilan suhbatlashish uchun 1 coin kerak.")
+            return
+
+        if limits['msg_left'] <= 0:
+            limit_text = "120" if is_premium else "60"
+            self._send_message(bot_token, chat_id,
+                f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\n"
+                f"Ertaga qayta urinib ko'ring.")
             return
 
         session = chat_state.ai_session
@@ -656,11 +675,24 @@ class Command(BaseCommand):
             chat_state.save()
 
         # Foydalanuvchi xabarini saqlash
+        coin_cost = 0 if is_premium else 1
         ChatMessage.objects.create(
             session=session,
             role='user',
             content=text,
+            coins_spent=coin_cost,
         )
+
+        # Coin ayirish (faqat premium bo'lmaganlar uchun)
+        if not is_premium:
+            user.coins -= 1
+            user.save(update_fields=['coins'])
+            CoinTransaction.objects.create(
+                user=user,
+                amount=1,
+                action='remove',
+                reason="AI yordamchi bilan suhbat (Telegram)"
+            )
 
         # Sessiya sarlavhasini yangilash (birinchi xabar)
         if session.messages.filter(role='user').count() == 1:

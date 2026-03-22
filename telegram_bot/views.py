@@ -178,6 +178,71 @@ def bot_webhook(request):
             )
         return JsonResponse({'ok': True})
 
+    # ===== KITOBLAR, XABARLAR, UZISH =====
+    if text == '📬 Xabarlarim':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+        _send_user_messages(bot_token, chat['id'], user)
+        return JsonResponse({'ok': True})
+
+    if text == '📚 Kitoblarim':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+        _send_user_books(bot_token, chat['id'], user)
+        return JsonResponse({'ok': True})
+
+    if text == '🔓 Uzish':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Telegram akkauntingiz tizimga ulanmagan!")
+            return JsonResponse({'ok': True})
+        keyboard = {
+            'keyboard': [
+                [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qilish'}],
+            ],
+            'resize_keyboard': True,
+            'one_time_keyboard': True,
+        }
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
+            f"👤 {user.first_name} {user.last_name}\n\n"
+            f"Uzilgandan so'ng bot orqali login qila olmaysiz.",
+            keyboard,
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '✅ Ha, uzilsin':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
+            return JsonResponse({'ok': True})
+        user.telegram_id = None
+        user.telegram_username = None
+        user.save(update_fields=['telegram_id', 'telegram_username'])
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "✅ Telegram muvaffaqiyatli uzildi!",
+            {'remove_keyboard': True},
+        )
+        return JsonResponse({'ok': True})
+
+    if text == '❌ Bekor qilish':
+        _send_message_with_reply_markup(
+            bot_token, chat['id'],
+            "👌 Bekor qilindi. Telegram ulangan holda qoldi.",
+            _linked_keyboard(),
+        )
+        return JsonResponse({'ok': True})
+
     # ===== COIN STATISTIKA =====
     # Eski keyboard dan kelgan matnlar ham qo'llab-quvvatlanadi
     if text == '💰 Coinlarim':
@@ -445,11 +510,30 @@ def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
 def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
     """AI Chat xabarini qayta ishlash (webhook versiya)"""
     from ai_yordamchi.models import ChatSession, ChatMessage
+    from ai_yordamchi.views import get_user_limits
+    from coin.models import CoinTransaction
     from django.conf import settings
 
     user = CustomUser.objects.filter(telegram_id=telegram_id).first()
     if not user:
         _send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+        return
+
+    # Limit tekshirish
+    is_premium = getattr(user, 'is_premium', False)
+    limits = get_user_limits(user)
+
+    if not is_premium and user.coins < 1:
+        _send_message(bot_token, chat_id,
+            "❌ Sizda yetarli coin yo'q.\n"
+            "AI bilan suhbatlashish uchun 1 coin kerak.")
+        return
+
+    if limits['msg_left'] <= 0:
+        limit_text = "120" if is_premium else "60"
+        _send_message(bot_token, chat_id,
+            f"❌ Kunlik xabar limitingiz tugadi ({limit_text}/{limit_text}).\n"
+            f"Ertaga qayta urinib ko'ring.")
         return
 
     session = chat_state.ai_session
@@ -459,11 +543,24 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
         chat_state.save()
 
     # Foydalanuvchi xabarini saqlash
+    coin_cost = 0 if is_premium else 1
     ChatMessage.objects.create(
         session=session,
         role='user',
         content=text,
+        coins_spent=coin_cost,
     )
+
+    # Coin ayirish (faqat premium bo'lmaganlar uchun)
+    if not is_premium:
+        user.coins -= 1
+        user.save(update_fields=['coins'])
+        CoinTransaction.objects.create(
+            user=user,
+            amount=1,
+            action='remove',
+            reason="AI yordamchi bilan suhbat (Telegram)"
+        )
 
     # Sessiya sarlavhasini yangilash
     if session.messages.filter(role='user').count() == 1:
@@ -482,6 +579,9 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
             system_prompt = (
                 "Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. "
                 "Qisqa va aniq javoblar bering. Telegram formatida javob bering (HTML format: "
+                "Sizni Husan Suyunov Shavkat o'g'li yaratgan husanbek-coder.uz phone: +998975216686"
+                "Husan Suyunov IT Creative Academy asoschisi."
+
                 "<b>qalin</b>, <i>kursiv</i>, <code>kod</code>, <pre>kod bloki</pre>). "
                 "Markdown formatini ISHLATMANG. Faqat HTML teglarini ishlating."
             )
@@ -594,6 +694,81 @@ def _send_ball_stats(bot_token, chat_id, user, profession=None):
             msg += f"  {emoji} {r.test.lesson.title}: <b>{r.score}%</b>\n"
 
     _send_message_with_reply_markup(bot_token, chat_id, msg, _linked_keyboard())
+
+
+def _send_user_messages(bot_token, chat_id, user):
+    """Foydalanuvchi xabarlarini yuborish"""
+    from accounts.models import Message
+    from django.db.models import Q
+
+    personal = Message.objects.filter(recipient=user)
+    if user.is_student:
+        general = Message.objects.filter(
+            Q(message_type='all') | Q(message_type='students'),
+            recipient__isnull=True
+        )
+    elif user.is_teacher:
+        general = Message.objects.filter(
+            Q(message_type='all') | Q(message_type='teachers'),
+            recipient__isnull=True
+        )
+    else:
+        general = Message.objects.filter(message_type='all', recipient__isnull=True)
+
+    all_msgs = (personal | general).distinct().order_by('-created_at')
+    unread_count = all_msgs.filter(is_read=False).count()
+    latest = all_msgs[:5]
+
+    if not latest:
+        _send_message(bot_token, chat_id, "📬 Sizda hozircha xabarlar yo'q.")
+        return
+
+    type_icons = {
+        'system': '⚙️', 'payment': '💳', 'motivation': '🌟',
+        'warning': '⚠️', 'achievement': '🏆', 'reminder': '🔔',
+        'security': '🔒', 'personal': '✉️', 'all': '📢',
+        'students': '🎓', 'teachers': '👨‍🏫', 'recommendation': '💡',
+    }
+
+    lines = [f"📬 <b>Xabarlarim</b> (o'qilmagan: {unread_count})\n"]
+    for msg in latest:
+        icon = type_icons.get(msg.message_type, '📩')
+        read_mark = "" if msg.is_read else "🔴 "
+        date_str = msg.created_at.strftime("%d.%m %H:%M")
+        lines.append(f"{read_mark}{icon} <b>{msg.title}</b>")
+        content = msg.content[:80]
+        if len(msg.content) > 80:
+            content += "..."
+        lines.append(f"   {content}")
+        lines.append(f"   <i>{date_str}</i>\n")
+
+    if all_msgs.count() > 5:
+        lines.append(f"📋 Jami {all_msgs.count()} ta xabar. Saytda to'liq ko'ring.")
+
+    _send_message(bot_token, chat_id, "\n".join(lines))
+
+
+def _send_user_books(bot_token, chat_id, user):
+    """Foydalanuvchi kitoblarini yuborish"""
+    from accounts.models import BookRental
+
+    active_rentals = BookRental.objects.filter(
+        student=user, status__in=['active', 'overdue']
+    ).select_related('book')
+
+    if not active_rentals:
+        _send_message(bot_token, chat_id, "📚 Sizda hozirda ijaradagi kitob yo'q.")
+        return
+
+    lines = [f"📚 <b>Ijaradagi kitoblarim</b> ({active_rentals.count()} ta)\n"]
+    for rental in active_rentals:
+        status_icon = "🔴 Muddati o'tgan!" if rental.is_overdue else f"⏳ {rental.days_until_return} kun qoldi"
+        lines.append(f"📖 <b>{rental.book.title}</b>")
+        lines.append(f"   ✍️ {rental.book.author}")
+        lines.append(f"   📅 Qaytarish: {rental.return_date.strftime('%d.%m.%Y')}")
+        lines.append(f"   {status_icon}\n")
+
+    _send_message(bot_token, chat_id, "\n".join(lines))
 
 
 def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text):
