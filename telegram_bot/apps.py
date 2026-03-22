@@ -40,7 +40,10 @@ class TelegramBotConfig(AppConfig):
         from django.conf import settings
 
         bot_token = settings.TELEGRAM_BOT_TOKEN
-        print(f"\n🤖 Telegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
+        try:
+            print(f"\n Telegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
+        except UnicodeEncodeError:
+            print(f"\nTelegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
 
         # Session yaratish — TCP connectionlarni qayta ishlatish
         self._session = requests.Session()
@@ -67,12 +70,12 @@ class TelegramBotConfig(AppConfig):
                     try:
                         self._process_update(bot_token, update)
                     except Exception as e:
-                        print(f"⚠️ Bot xatolik: {e}")
+                        print(f"Bot xatolik: {e}")
 
             except KeyboardInterrupt:
                 break
             except Exception as e:
-                print(f"⚠️ Bot polling xatolik: {e}")
+                print(f"Bot polling xatolik: {e}")
                 time.sleep(3)
 
     def _process_update(self, bot_token, update):
@@ -260,7 +263,7 @@ class TelegramBotConfig(AppConfig):
             f"⏱ Kod 5 daqiqa amal qiladi.\n\n"
             f"💡 Bu kodni saytdagi login sahifasiga kiriting."
         )
-        print(f"  📨 Kod yuborildi: {user.username} → {code}")
+        print(f"  Kod yuborildi: {user.username} -> {code}")
 
     def _handle_link(self, bot_token, chat_id, telegram_id, tg_username, token_value, first_name):
         from accounts.models import CustomUser
@@ -308,7 +311,7 @@ class TelegramBotConfig(AppConfig):
             f"📱 @{user.username}\n\n"
             f"🎉 Tabriklaymiz! Endi login qilish uchun /start bosing va kodni oling."
         )
-        print(f"  🔗 Ulandi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
+        print(f"  Ulandi: {user.first_name} {user.last_name} ({user.username}) <- TG:{telegram_id}")
 
     def _handle_coins(self, bot_token, chat_id, telegram_id):
         from accounts.models import CustomUser
@@ -514,7 +517,7 @@ class TelegramBotConfig(AppConfig):
             'parse_mode': 'HTML',
             'reply_markup': keyboard,
         })
-        print(f"  🔓 Uzildi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
+        print(f"  Uzildi: {user.first_name} {user.last_name} ({user.username}) <- TG:{telegram_id}")
 
     def _answer_callback(self, bot_token, callback_query_id):
         url = f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery"
