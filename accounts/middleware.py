@@ -3,6 +3,7 @@ from django.core.cache import cache
 from django.urls import resolve
 from django.http import HttpResponse
 from django.utils import timezone
+from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode
 
@@ -29,7 +30,7 @@ class BirthdayCheckMiddleware:
 
 class UpdateLastActivityMiddleware:
     """
-    Foydalanuvchi oxirgi faolligini yangilaydi
+    Foydalanuvchi oxirgi faolligini yangilaydi va jami online vaqtini hisoblaydi
     """
     
     def __init__(self, get_response):
@@ -40,8 +41,21 @@ class UpdateLastActivityMiddleware:
         if request.user.is_authenticated:
             now = timezone.now()
             last_saved = request.session.get('_last_activity_saved', 0)
-            if now.timestamp() - last_saved > 60:
-                CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
+            diff_seconds = now.timestamp() - last_saved if last_saved else 0
+            if diff_seconds > 60:
+                # Online vaqtni hisoblash: agar oxirgi faollikdan 5 daqiqadan kam o'tgan bo'lsa
+                # bu oraliq vaqtni online vaqtga qo'shish (daqiqalarda)
+                if last_saved and diff_seconds <= 300:
+                    minutes_to_add = int(diff_seconds / 60)
+                    if minutes_to_add > 0:
+                        CustomUser.objects.filter(id=request.user.id).update(
+                            last_activity=now,
+                            total_online_time=models.F('total_online_time') + minutes_to_add
+                        )
+                    else:
+                        CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
+                else:
+                    CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
                 request.session['_last_activity_saved'] = now.timestamp()
         return response
 
