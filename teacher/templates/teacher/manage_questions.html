@@ -56,6 +56,9 @@
     <div class="t-mq-header">
         <h1>{{ test.lesson.title }} — Savollar</h1>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            <button type="button" class="t-btn" style="background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);" onclick="document.getElementById('aiTestModal').style.display='flex'">
+                <i class="bi bi-robot"></i> AI orqali yaratish
+            </button>
             <a href="{% url 'teacher:import_questions' test.pk %}" class="t-btn t-btn-outline" style="border-color:#10b981;color:#10b981;">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import
             </a>
@@ -114,4 +117,85 @@
     </div>
     {% endif %}
 </div>
+
+<!-- AI Test Modal -->
+<div id="aiTestModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:var(--bs-body-bg);border:1px solid var(--bs-border-color);border-radius:22px;padding:2rem;max-width:460px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.2);animation:fadeInUp 0.3s ease;">
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;">
+            <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#af52de,#bf5af2);display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;">
+                <i class="bi bi-robot"></i>
+            </div>
+            <div>
+                <h3 style="margin:0;font-size:1.15rem;font-weight:800;">AI orqali test yaratish</h3>
+                <p style="margin:0;font-size:0.8rem;color:var(--bs-secondary-color);">Savollar soni kiriting va AI yaratadi</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:1rem;">
+            <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:0.4rem;">Savollar soni</label>
+            <input type="number" id="aiQuestionCount" value="5" min="1" max="50" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--bs-border-color);border-radius:12px;font-size:1rem;font-weight:600;background:var(--bs-body-bg);color:var(--bs-body-color);outline:none;">
+        </div>
+
+        <div style="background:var(--bs-tertiary-bg);border-radius:12px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:var(--bs-secondary-color);line-height:1.5;">
+            <i class="bi bi-info-circle" style="color:#007aff;"></i>
+            <strong>{{ test.lesson.title }}</strong> mavzusiga mos savollar yaratiladi.
+            {% if test.lesson.section %}Bo'lim: <strong>{{ test.lesson.section.title }}</strong>{% endif %}
+        </div>
+
+        <div id="aiTestError" style="display:none;background:rgba(239,68,68,0.1);color:#ef4444;padding:0.75rem 1rem;border-radius:12px;font-size:0.85rem;margin-bottom:1rem;font-weight:600;"></div>
+
+        <div style="display:flex;gap:0.75rem;">
+            <button type="button" onclick="document.getElementById('aiTestModal').style.display='none'" style="flex:1;padding:0.75rem;border-radius:14px;border:1px solid var(--bs-border-color);background:transparent;color:var(--bs-body-color);font-weight:700;font-size:0.9rem;cursor:pointer;">
+                Bekor qilish
+            </button>
+            <button type="button" id="aiTestSubmitBtn" onclick="generateAiTest()" style="flex:2;padding:0.75rem;border-radius:14px;border:none;background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;font-weight:700;font-size:0.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);">
+                <i class="bi bi-stars"></i> Yaratish
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function generateAiTest() {
+    const btn = document.getElementById('aiTestSubmitBtn');
+    const errorDiv = document.getElementById('aiTestError');
+    const count = document.getElementById('aiQuestionCount').value;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> AI yaratmoqda...';
+    errorDiv.style.display = 'none';
+
+    fetch("{% url 'teacher:generate_ai_test' test.pk %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            question_count: parseInt(count)
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            errorDiv.textContent = data.error || 'Xatolik yuz berdi';
+            errorDiv.style.display = 'block';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-stars"></i> Yaratish';
+        }
+    })
+    .catch(() => {
+        errorDiv.textContent = 'Tarmoq xatoligi. Qayta urinib ko\'ring.';
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars"></i> Yaratish';
+    });
+}
+
+document.getElementById('aiTestModal').addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+});
+</script>
 {% endblock %}

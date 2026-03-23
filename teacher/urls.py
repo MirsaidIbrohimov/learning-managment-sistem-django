@@ -26,6 +26,7 @@ urlpatterns = [
     path('tests/<int:pk>/questions/add/', views.teacher_add_question, name='add_question'),
     path('questions/<int:pk>/delete/', views.teacher_delete_question, name='delete_question'),
     path('tests/<int:pk>/import/', views.teacher_import_questions, name='import_questions'),
+    path('tests/<int:pk>/generate-ai/', views.teacher_generate_ai_test, name='generate_ai_test'),
 
     # Sertifikatlarim
     path('certificates/', views.teacher_certificates, name='certificates'),

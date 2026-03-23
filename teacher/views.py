@@ -583,3 +583,138 @@ def teacher_import_questions(request, pk):
     return render(request, 'teacher/import_questions.html', {
         'test': test, 'errors': errors, 'success_count': success_count,
     })
+
+
+@teacher_required
+def teacher_generate_ai_test(request, pk):
+    """AI orqali test savollari yaratish"""
+    professions = request.user.teaching_professions.all()
+    test = get_object_or_404(Test, pk=pk, lesson__profession__in=professions)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST talab qilinadi'}, status=405)
+    
+    import json
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+    
+    question_count = data.get('question_count', 5)
+    try:
+        question_count = int(question_count)
+        if question_count < 1:
+            question_count = 1
+        elif question_count > 50:
+            question_count = 50
+    except (ValueError, TypeError):
+        question_count = 5
+    
+    lesson_title = test.lesson.title
+    profession_name = test.lesson.profession.name
+    section_name = test.lesson.section.title if test.lesson.section else ''
+    
+    topic = section_name if section_name else lesson_title
+    
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return JsonResponse({'error': 'AI xizmati sozlanmagan (OPENAI_API_KEY topilmadi)'}, status=500)
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=120)
+        
+        prompt_context = f"Kurs: {profession_name}"
+        if section_name:
+            prompt_context += f"\nBo'lim: {section_name}"
+        prompt_context += f"\nDars: {lesson_title}"
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Sen tajribali IT o'qituvchisan. Senden test savollari yaratish so'raladi. "
+                        "O'zbek tilida yoz. Faqat JSON formatda javob qaytar, boshqa hech narsa yozma.\n\n"
+                        "Har bir savol uchun 3 ta variant (A, B, C) bo'lsin.\n"
+                        "To'g'ri javob faqat A, B yoki C bo'lsin.\n"
+                        "Savollar real amaliy bo'lsin, kodli misollar ham bo'lishi mumkin.\n"
+                        "Javoblar bir-biriga yaqin va chalg'ituvchi bo'lsin.\n"
+                        "Izoh 1-2 gap bilan tushuntirsin.\n\n"
+                        "JSON formati:\n"
+                        "[\n"
+                        "  {\n"
+                        '    "question": "Savol matni",\n'
+                        '    "a": "A varianti",\n'
+                        '    "b": "B varianti",\n'
+                        '    "c": "C varianti",\n'
+                        '    "correct": "A",\n'
+                        '    "explanation": "Izoh"\n'
+                        "  }\n"
+                        "]\n\n"
+                        "MUHIM: Faqat JSON array qaytar. Markdown yoki boshqa text qo'shma."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha {question_count} ta test savoli yarat."
+                }
+            ],
+            max_tokens=4000,
+            temperature=0.7,
+        )
+        
+        ai_text = response.choices[0].message.content.strip()
+        
+        # Clean markdown code blocks if present
+        if ai_text.startswith('```'):
+            lines = ai_text.split('\n')
+            lines = [l for l in lines if not l.strip().startswith('```')]
+            ai_text = '\n'.join(lines)
+        
+        questions_data = json.loads(ai_text)
+        
+        if not isinstance(questions_data, list):
+            return JsonResponse({'error': 'AI noto\'g\'ri format qaytardi'}, status=500)
+        
+        from django.db import transaction
+        created_count = 0
+        
+        with transaction.atomic():
+            existing_count = test.questions.count()
+            for i, qd in enumerate(questions_data):
+                q_text = qd.get('question', '').strip()
+                opt_a = qd.get('a', '').strip()
+                opt_b = qd.get('b', '').strip()
+                opt_c = qd.get('c', '').strip()
+                correct = qd.get('correct', '').strip().upper()
+                explanation = qd.get('explanation', '').strip()
+                
+                if not q_text or not opt_a or not opt_b or not opt_c or correct not in ('A', 'B', 'C'):
+                    continue
+                
+                question = TestQuestion.objects.create(
+                    test=test,
+                    question_text=q_text,
+                    explanation=explanation,
+                    order=existing_count + i + 1,
+                )
+                for letter, text in [('A', opt_a), ('B', opt_b), ('C', opt_c)]:
+                    TestAnswer.objects.create(
+                        question=question,
+                        answer_text=text,
+                        is_correct=(letter == correct),
+                    )
+                created_count += 1
+        
+        return JsonResponse({
+            'success': True,
+            'created_count': created_count,
+            'message': f'{created_count} ta savol muvaffaqiyatli yaratildi!'
+        })
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
+    except Exception as e:
+        return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
