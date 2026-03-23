@@ -185,6 +185,12 @@ def bot_webhook(request):
         return JsonResponse({'ok': True})
 
     if text == '✉️ Xabar yozish':
+        from .models import TelegramChatState
+        chat_state, _ = TelegramChatState.objects.get_or_create(telegram_id=telegram_id)
+        chat_state.is_contact_mode = True
+        chat_state.is_ai_chat = False
+        chat_state.save(update_fields=['is_contact_mode', 'is_ai_chat'])
+
         keyboard = {
             'keyboard': [
                 [{'text': '🔙 Orqaga'}],
@@ -200,7 +206,7 @@ def bot_webhook(request):
 
     if text == '🔙 Orqaga':
         from .models import TelegramChatState
-        TelegramChatState.objects.filter(telegram_id=telegram_id).update(is_ai_chat=False)
+        TelegramChatState.objects.filter(telegram_id=telegram_id).update(is_ai_chat=False, is_contact_mode=False)
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
             _send_message_with_reply_markup(
@@ -400,29 +406,36 @@ def bot_webhook(request):
             _handle_ai_chat_message(bot_token, chat['id'], telegram_id, text, chat_state)
             return JsonResponse({'ok': True})
 
-    # Boshqa barcha matnlar — aloqa xabari sifatida saqlash
+    # Xabar yozish rejimida bo'lsa — aloqa xabari sifatida saqlash
     if text and not text.startswith('/'):
-        first_name = user_data.get('first_name', '')
-        last_name = user_data.get('last_name', '')
-        tg_full = f"{first_name} {last_name}".strip()
-        linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
+        from .models import TelegramChatState
+        chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_contact_mode=True).first()
+        if chat_state:
+            first_name = user_data.get('first_name', '')
+            last_name = user_data.get('last_name', '')
+            tg_full = f"{first_name} {last_name}".strip()
+            linked_user = CustomUser.objects.filter(telegram_id=telegram_id).first()
 
-        ContactMessage.objects.create(
-            name=tg_full or f"TG:{telegram_id}",
-            phone='',
-            email='',
-            subject='Telegram xabar',
-            message=text,
-            user=linked_user,
-        )
+            ContactMessage.objects.create(
+                name=tg_full or f"TG:{telegram_id}",
+                phone='',
+                email='',
+                subject='Telegram xabar',
+                message=text,
+                user=linked_user,
+            )
 
-        # Adminlarga xabar yuborish
-        _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text)
+            # Adminlarga xabar yuborish
+            _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text)
 
-        _send_message(
-            bot_token, chat['id'],
-            "✅ Xabaringiz adminga yuborildi! Tez orada javob olasiz."
-        )
+            # Rejimni o'chirish — har bir xabar alohida yuboriladi
+            chat_state.is_contact_mode = False
+            chat_state.save(update_fields=['is_contact_mode'])
+
+            _send_message(
+                bot_token, chat['id'],
+                "✅ Xabaringiz adminga yuborildi! Tez orada javob olasiz."
+            )
 
     return JsonResponse({'ok': True})
 

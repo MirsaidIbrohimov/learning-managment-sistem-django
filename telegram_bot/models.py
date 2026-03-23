@@ -143,6 +143,7 @@ class TelegramChatState(models.Model):
     """Telegram foydalanuvchisining joriy holati (AI chat rejimida yoki yo'q)"""
     telegram_id = models.BigIntegerField(unique=True, verbose_name="Telegram ID")
     is_ai_chat = models.BooleanField(default=False, verbose_name="AI chat rejimida")
+    is_contact_mode = models.BooleanField(default=False, verbose_name="Xabar yozish rejimida")
     ai_session = models.ForeignKey(
         'ai_yordamchi.ChatSession', on_delete=models.SET_NULL,
         null=True, blank=True, verbose_name="AI chat sessiyasi"
