@@ -1342,20 +1342,35 @@ def _calculate_similarity(text1, text2):
     if not norm1 or not norm2:
         return 0
 
+    # Qisqa kodlarni plagiat deb belgilamaslik (10 qatordan kam = oddiy vazifa)
+    lines1 = norm1.splitlines()
+    lines2 = norm2.splitlines()
+    min_lines = min(len(lines1), len(lines2))
+    if min_lines < 5:
+        return 0
+
     # 1. SequenceMatcher — umumiy o'xshashlik
     seq_ratio = SequenceMatcher(None, norm1, norm2).ratio() * 100
 
-    # 2. Qator-bo'yicha taqqoslash — bir xil qatorlar nisbati
-    lines1 = set(norm1.splitlines())
-    lines2 = set(norm2.splitlines())
-    if lines1 and lines2:
-        common = lines1 & lines2
-        total = max(len(lines1), len(lines2))
+    # 2. Qator-bo'yicha taqqoslash — NOYOB qatorlar (print("salom") kabi umumiy qatorlarni filtrlash)
+    common_patterns = {
+        'print(', 'input(', 'if ', 'else:', 'elif ', 'for ', 'while ',
+        'def ', 'return', 'import ', 'class ', 'pass', 'break', 'continue',
+        'true', 'false', 'none', '= int(', '= str(', '= float(',
+    }
+    set1 = set(lines1)
+    set2 = set(lines2)
+    # Umumiy pattern bo'lgan qatorlarni chiqarib tashlash
+    unique1 = {l for l in set1 if not any(p in l for p in common_patterns)}
+    unique2 = {l for l in set2 if not any(p in l for p in common_patterns)}
+    if unique1 and unique2:
+        common = unique1 & unique2
+        total = max(len(unique1), len(unique2))
         line_ratio = (len(common) / total) * 100
     else:
         line_ratio = 0
 
-    # 3. Token-based — o'zgaruvchi nomlarini hisobga olmaslik uchun
+    # 3. Token-based
     tokens1 = re.findall(r'[a-zA-Z_]\w*|[^\s\w]', norm1)
     tokens2 = re.findall(r'[a-zA-Z_]\w*|[^\s\w]', norm2)
     if tokens1 and tokens2:
@@ -1363,8 +1378,12 @@ def _calculate_similarity(text1, text2):
     else:
         token_ratio = 0
 
-    # Eng yuqori natijani olish (lekin oddiy/qisqa kodlarni filtrlash)
-    similarity = max(seq_ratio, line_ratio, token_ratio)
+    # O'rtacha olish (max emas!) — bitta yuqori chiqsa ham boshqalari pasaytiradi
+    similarity = (seq_ratio + line_ratio + token_ratio) / 3
+
+    # Qisqa kodlarda similarity ni pasaytirish (10 qatordan kam bo'lsa 20% kamaytirish)
+    if min_lines < 10:
+        similarity *= 0.8
 
     return round(similarity, 1)
 
@@ -1399,7 +1418,7 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
                 'student_id': sub.student.pk,
             }
 
-    if best_match['similarity'] < 70:
+    if best_match['similarity'] < 85:
         return {
             'is_plagiat': False,
             'similarity': int(best_match['similarity']),
@@ -1413,7 +1432,7 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
     elif sim_pct >= 90:
         reason = f"Javobning asosiy tuzilishi va mantiqi {best_match['student']} ning javobi bilan juda o'xshash"
     else:
-        reason = f"Javob {best_match['student']} ning javobiga yuqori darajada o'xshash"
+        reason = f"Javob {best_match['student']} ning javobiga o'xshash ko'rinadi"
 
     return {
         'is_plagiat': True,
