@@ -119,41 +119,49 @@ def generate_ai_homework(request):
         if section_name:
             prompt_context += f"\nBo'lim: {section_name}"
         
+        example_homework = """Misol (HTML mavzusi uchun):
+
+<h3>📌 Vazifa maqsadi</h3>
+<p>Bu vazifada HTML asosiy teglarini o'rganasiz. Sarlavhalar, ro'yxatlar va havolalar yaratishni mashq qilasiz.</p>
+
+<h3>📝 Topshiriqlar</h3>
+<ol>
+<li><strong>Shaxsiy sahifa yarating:</strong> O'zingiz haqingizda HTML sahifa yarating. Sahifada h1 teg bilan ismingiz, h2 bilan "Men haqimda" sarlavhasi va p tegda 3-4 jumla yozing. Misol: <code>&lt;h1&gt;Ali Valiyev&lt;/h1&gt;</code></li>
+<li><strong>Jadval tuzing:</strong> 4 qatorli va 3 ustunli jadval yarating. Jadvalda o'zingiz va oila a'zolaringiz haqida ma'lumot kiriting (ism, yosh, kasb). table, tr, th, td teglarini ishlating.</li>
+<li><strong>Ro'yxat yarating:</strong> Sevimli filmlaringiz tartibli ro'yxatini (ol) va sevimli ovqatlaringiz tartivsiz ro'yxatini (ul) yarating. Har bir ro'yxatda kamida 5 ta element bo'lsin.</li>
+<li><strong>Havola va rasm qo'shing:</strong> Sahifangizga 2 ta havola (a teg) va 1 ta rasm (img teg) qo'shing. Rasmga alt atribut yozing.</li>
+</ol>
+
+<h3>✅ Baholash mezonlari</h3>
+<ul>
+<li><strong>To'g'ri bajarilishi (4 ball):</strong> Barcha teglar to'g'ri yopilgan, sahifa brauzerde xatosiz ochiladi</li>
+<li><strong>Kod sifati (3 ball):</strong> Kod tartibli yozilgan, indentatsiya to'g'ri, teglar katta-kichik harfda bir xil</li>
+<li><strong>Ijodkorlik (3 ball):</strong> Qo'shimcha teglar ishlatilgan, sahifa mazmunli va chiroyli</li>
+</ul>
+<p><strong>Umumiy ball: 10</strong></p>"""
+
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. O'zbek tilida batafsil uyga vazifa yoz. "
-                        "HTML formatda yoz (h3, p, ul, ol, li, strong, em, code taglardan foydalan). "
-                        "MUHIM: Har bir bo'limni to'liq yoz, bo'sh qoldirma!\n\n"
-                        "Quyidagi strukturada yoz:\n\n"
-                        "<h3>📌 Vazifa maqsadi</h3>\n"
-                        "<p>Bu vazifada nimani o'rganasiz va qanday ko'nikmalar hosil qilasiz - 2-3 jumla yoz.</p>\n\n"
-                        "<h3>📝 Topshiriqlar</h3>\n"
-                        "<ol>\n"
-                        "<li><strong>1-topshiriq nomi:</strong> Batafsil tushuntirish - nima qilish kerak, "
-                        "qanday qilish kerak, misol keltir. Kamida 2-3 jumla.</li>\n"
-                        "<li><strong>2-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
-                        "<li><strong>3-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
-                        "<li><strong>4-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
-                        "</ol>\n\n"
-                        "<h3>✅ Baholash mezonlari</h3>\n"
-                        "<ul>\n"
-                        "<li><strong>To'g'ri bajarilishi (4 ball):</strong> tushuntirish</li>\n"
-                        "<li><strong>Kod sifati (3 ball):</strong> tushuntirish</li>\n"
-                        "<li><strong>Ijodkorlik (3 ball):</strong> tushuntirish</li>\n"
-                        "</ul>\n"
-                        "<p><strong>Umumiy ball: 10</strong></p>\n\n"
-                        "Har bir topshiriqda ANIQ misol yoki kod namunasi keltir. "
-                        "Faqat HTML content qaytar, <html>, <body>, <head> taglarini ISHLATMA."
+                        "Sen tajribali IT o'qituvchisan. Senden uyga vazifa yozish so'raladi. "
+                        "O'zbek tilida yoz. Faqat HTML formatda javob qaytar.\n\n"
+                        "QOIDALAR:\n"
+                        "- Har bir topshiriqni BATAFSIL yoz, ichida aniq ko'rsatma va kod misoli bo'lsin\n"
+                        "- Bo'sh ro'yxat yoki bo'sh sarlavha QOLDIRMA\n"
+                        "- Har bir <li> ichida kamida 2 jumla yoz\n"
+                        "- <html>, <body>, <head> teglarini ISHLATMA\n\n"
+                        f"{example_homework}\n\n"
+                        "Xuddi shu formatda, lekin BOSHQA mavzu uchun yoz. "
+                        "Topshiriqlar soni 4 ta. Umumiy ball 10."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha batafsil uyga vazifa yoz. "
-                               f"Har bir topshiriqni to'liq yoz, bo'sh qoldirma. Kodli misollar keltir."
+                    "content": f"{prompt_context}\n\nShu mavzu uchun uyga vazifa yoz. "
+                               f"Topshiriqlarni batafsil yoz, har birida aniq ko'rsatma va misol bo'lsin."
                 }
             ],
             max_tokens=2500,
