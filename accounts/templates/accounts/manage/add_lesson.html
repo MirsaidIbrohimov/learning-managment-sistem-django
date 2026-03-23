@@ -424,6 +424,15 @@
                     <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
                 </div>
 
+                <div class="al-info-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(59,130,246,0.08)); border-color: rgba(139,92,246,0.2); margin-top: 0.5rem;">
+                    <i class="bi bi-robot" style="color: #8b5cf6;"></i>
+                    <span>Bo'lim tanlang va AI vazifa yaratsin. Keyin matnni tahrirlashingiz mumkin.</span>
+                </div>
+
+                <button type="button" class="al-btn" id="aiHomeworkBtn" onclick="generateAIHomework()" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: #fff; border: none; margin-top: 0.5rem; width: 100%; padding: 0.85rem; border-radius: 14px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s;">
+                    <i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish
+                </button>
+
                 {% elif lesson_type == 'dictionary' %}
                 <div class="al-section" style="margin-top: 1.5rem;">
                     <i class="bi bi-book-fill"></i> Lug'at tavsifi
@@ -627,6 +636,66 @@ function toggleSwitch(toggle, name) {
     document.querySelector('form').onsubmit = function() {
         document.getElementById('descriptionField').value = quill.root.innerHTML;
     };
+
+    function generateAIHomework() {
+        var sectionId = document.getElementById('sectionInput').value;
+        var professionId = '{{ profession.pk }}';
+        var btn = document.getElementById('aiHomeworkBtn');
+        
+        if (!sectionId && !professionId) {
+            alert("Iltimos, avval bo'lim tanlang!");
+            return;
+        }
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> AI vazifa yaratmoqda...';
+        btn.style.opacity = '0.7';
+        
+        fetch("{% url 'generate_ai_homework' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                section_id: sectionId,
+                profession_id: professionId
+            })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                // Vazifa nomini to'ldirish
+                var titleInput = document.querySelector('input[name="title"]');
+                if (titleInput && !titleInput.value) {
+                    titleInput.value = data.title;
+                }
+                // Quill editorga vazifa matnini qo'yish
+                quill.root.innerHTML = data.description;
+                document.getElementById('descriptionField').value = data.description;
+                
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> ✅ Vazifa yaratildi! Tahrirlashingiz mumkin';
+                btn.style.background = 'linear-gradient(135deg, #34c759, #30d158)';
+                setTimeout(function() {
+                    btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+                    btn.style.background = 'linear-gradient(135deg, #8b5cf6, #3b82f6)';
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                }, 3000);
+            } else {
+                alert('❌ Xatolik: ' + (data.error || 'Noma\'lum xatolik'));
+                btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        })
+        .catch(function(err) {
+            alert('❌ Tarmoq xatolik: ' + err.message);
+            btn.innerHTML = '<i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+        });
+    }
 </script>
 {% endif %}
 {% endblock %}

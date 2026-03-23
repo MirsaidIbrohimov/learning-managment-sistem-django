@@ -67,6 +67,97 @@ def _generate_ai_article(lesson_title, profession_name):
         return None
 
 
+def generate_ai_homework(request):
+    """Bo'lim nomiga qarab AI orqali uyga vazifa yaratish"""
+    if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST talab qilinadi'}, status=405)
+    
+    import json
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        data = request.POST
+    
+    section_id = data.get('section_id')
+    profession_id = data.get('profession_id')
+    
+    section_name = ''
+    profession_name = ''
+    
+    if section_id:
+        try:
+            section = Section.objects.get(pk=section_id)
+            section_name = section.title
+            profession_name = section.profession.name
+        except Section.DoesNotExist:
+            pass
+    
+    if not profession_name and profession_id:
+        try:
+            profession = Profession.objects.get(pk=profession_id)
+            profession_name = profession.name
+        except Profession.DoesNotExist:
+            pass
+    
+    if not section_name and not profession_name:
+        return JsonResponse({'error': 'Bo\'lim yoki kurs tanlanmagan'}, status=400)
+    
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return JsonResponse({'error': 'AI xizmati sozlanmagan'}, status=500)
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=60)
+        
+        topic = section_name if section_name else profession_name
+        prompt_context = f"Kurs: {profession_name}" if profession_name else ""
+        if section_name:
+            prompt_context += f"\nBo'lim: {section_name}"
+        
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Sen tajribali IT o'qituvchisan. O'zbek tilida uyga vazifa yoz. "
+                        "HTML formatda yoz (h3, p, ul, ol, li, strong, em, code taglardan foydalan). "
+                        "Vazifa aniq va tushunarli bo'lsin. "
+                        "Vazifada quyidagilar bo'lishi kerak:\n"
+                        "1. Vazifa maqsadi (nimani o'rganish/mashq qilish kerak)\n"
+                        "2. Aniq topshiriqlar ro'yxati (3-5 ta topshiriq)\n"
+                        "3. Har bir topshiriq uchun batafsil ko'rsatmalar\n"
+                        "4. Baholash mezonlari\n"
+                        "5. Eng yuqori ball: 10\n"
+                        "Faqat HTML content qaytar, <html>, <body>, <head> taglarini ISHLATMA."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha uyga vazifa yoz."
+                }
+            ],
+            max_tokens=1500,
+            temperature=0.7,
+        )
+        
+        homework_content = response.choices[0].message.content.strip()
+        title = f"{topic} - Uyga vazifa"
+        
+        return JsonResponse({
+            'success': True,
+            'title': title,
+            'description': homework_content,
+        })
+    except Exception as e:
+        return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
+
+
 @login_required
 def generate_ai_article_view(request, pk):
     """AJAX: AI maqola yaratish yoki qayta yaratish"""
