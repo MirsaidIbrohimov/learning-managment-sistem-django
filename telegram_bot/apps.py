@@ -207,9 +207,6 @@ class TelegramBotConfig(AppConfig):
             self._handle_books(bot_token, chat_id, telegram_id)
             return
 
-        if text == '🔓 Uzish':
-            self._handle_unlink(bot_token, chat_id, telegram_id)
-            return
 
         if text == '✅ Ha, uzilsin':
             self._do_unlink(bot_token, chat_id, telegram_id)
@@ -596,7 +593,7 @@ class TelegramBotConfig(AppConfig):
                 [{'text': '💰 Coinlarim'}, {'text': '📊 Statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
                 [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
-                [{'text': '🔓 Uzish'}],
+
             ],
             'resize_keyboard': True,
         }

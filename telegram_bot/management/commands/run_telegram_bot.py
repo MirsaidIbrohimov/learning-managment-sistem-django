@@ -155,9 +155,6 @@ class Command(BaseCommand):
             self._handle_books(bot_token, chat_id, telegram_id)
             return
 
-        if text == '🔓 Uzish':
-            self._handle_unlink(bot_token, chat_id, telegram_id)
-            return
 
         if text == '✅ Ha, uzilsin':
             self._do_unlink(bot_token, chat_id, telegram_id)
@@ -922,7 +919,7 @@ class Command(BaseCommand):
                 [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
                 [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
                 [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
-                [{'text': '🔓 Uzish'}],
+
             ],
             'resize_keyboard': True,
         }

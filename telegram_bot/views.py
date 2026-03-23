@@ -524,7 +524,6 @@ def _linked_keyboard():
             [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
             [{'text': '📚 Kitoblarim'}, {'text': '📬 Xabarlarim'}],
             [{'text': '🤖 AI Chat'}, {'text': '✉️ Xabar yozish'}],
-            [{'text': '🔓 Uzish'}],
         ],
         'resize_keyboard': True,
     }
