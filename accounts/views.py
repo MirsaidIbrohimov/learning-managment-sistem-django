@@ -125,24 +125,38 @@ def generate_ai_homework(request):
                 {
                     "role": "system",
                     "content": (
-                        "Sen tajribali IT o'qituvchisan. O'zbek tilida uyga vazifa yoz. "
+                        "Sen tajribali IT o'qituvchisan. O'zbek tilida batafsil uyga vazifa yoz. "
                         "HTML formatda yoz (h3, p, ul, ol, li, strong, em, code taglardan foydalan). "
-                        "Vazifa aniq va tushunarli bo'lsin. "
-                        "Vazifada quyidagilar bo'lishi kerak:\n"
-                        "1. Vazifa maqsadi (nimani o'rganish/mashq qilish kerak)\n"
-                        "2. Aniq topshiriqlar ro'yxati (3-5 ta topshiriq)\n"
-                        "3. Har bir topshiriq uchun batafsil ko'rsatmalar\n"
-                        "4. Baholash mezonlari\n"
-                        "5. Eng yuqori ball: 10\n"
+                        "MUHIM: Har bir bo'limni to'liq yoz, bo'sh qoldirma!\n\n"
+                        "Quyidagi strukturada yoz:\n\n"
+                        "<h3>📌 Vazifa maqsadi</h3>\n"
+                        "<p>Bu vazifada nimani o'rganasiz va qanday ko'nikmalar hosil qilasiz - 2-3 jumla yoz.</p>\n\n"
+                        "<h3>📝 Topshiriqlar</h3>\n"
+                        "<ol>\n"
+                        "<li><strong>1-topshiriq nomi:</strong> Batafsil tushuntirish - nima qilish kerak, "
+                        "qanday qilish kerak, misol keltir. Kamida 2-3 jumla.</li>\n"
+                        "<li><strong>2-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
+                        "<li><strong>3-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
+                        "<li><strong>4-topshiriq nomi:</strong> Batafsil tushuntirish...</li>\n"
+                        "</ol>\n\n"
+                        "<h3>✅ Baholash mezonlari</h3>\n"
+                        "<ul>\n"
+                        "<li><strong>To'g'ri bajarilishi (4 ball):</strong> tushuntirish</li>\n"
+                        "<li><strong>Kod sifati (3 ball):</strong> tushuntirish</li>\n"
+                        "<li><strong>Ijodkorlik (3 ball):</strong> tushuntirish</li>\n"
+                        "</ul>\n"
+                        "<p><strong>Umumiy ball: 10</strong></p>\n\n"
+                        "Har bir topshiriqda ANIQ misol yoki kod namunasi keltir. "
                         "Faqat HTML content qaytar, <html>, <body>, <head> taglarini ISHLATMA."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha uyga vazifa yoz."
+                    "content": f"{prompt_context}\n\nShu mavzu bo'yicha batafsil uyga vazifa yoz. "
+                               f"Har bir topshiriqni to'liq yoz, bo'sh qoldirma. Kodli misollar keltir."
                 }
             ],
-            max_tokens=1500,
+            max_tokens=2500,
             temperature=0.7,
         )
         
