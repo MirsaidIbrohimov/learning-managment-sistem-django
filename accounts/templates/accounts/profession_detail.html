@@ -170,6 +170,11 @@
     color: white;
 }
 
+.lesson-icon.dictionary {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+}
+
 .lesson-info {
     flex: 1;
 }
@@ -778,6 +783,8 @@
                                 <i class="bi bi-play-fill"></i>
                             {% elif lesson.lesson_type == 'homework' %}
                                 <i class="bi bi-pencil"></i>
+                            {% elif lesson.lesson_type == 'dictionary' %}
+                                <i class="bi bi-translate"></i>
                             {% else %}
                                 <i class="bi bi-patch-question"></i>
                             {% endif %}
@@ -787,6 +794,7 @@
                             <div class="lesson-type">
                                 {% if lesson.lesson_type == 'video' %}Video darslik
                                 {% elif lesson.lesson_type == 'homework' %}Uy vazifasi
+                                {% elif lesson.lesson_type == 'dictionary' %}Lug'at
                                 {% else %}Test{% endif %}
                             </div>
                         </div>
@@ -858,6 +866,9 @@
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=test" class="btn btn-sm btn-outline-success">
                             <i class="bi bi-patch-question me-1"></i>Test
                         </a>
+                        <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=dictionary" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-translate me-1"></i>Lug'at
+                        </a>
                     </div>
                 </div>
                 {% endif %}
@@ -900,6 +911,8 @@
                             <i class="bi bi-play-fill"></i>
                         {% elif lesson.lesson_type == 'homework' %}
                             <i class="bi bi-pencil"></i>
+                        {% elif lesson.lesson_type == 'dictionary' %}
+                            <i class="bi bi-translate"></i>
                         {% else %}
                             <i class="bi bi-patch-question"></i>
                         {% endif %}
