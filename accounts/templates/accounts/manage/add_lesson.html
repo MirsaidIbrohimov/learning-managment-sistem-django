@@ -671,7 +671,8 @@ function toggleSwitch(toggle, name) {
                     titleInput.value = data.title;
                 }
                 // Quill editorga vazifa matnini qo'yish
-                quill.root.innerHTML = data.description;
+                quill.setContents([]);
+                quill.clipboard.dangerouslyPasteHTML(0, data.description);
                 document.getElementById('descriptionField').value = data.description;
                 
                 btn.innerHTML = '<i class="bi bi-check-circle"></i> ✅ Vazifa yaratildi! Tahrirlashingiz mumkin';
