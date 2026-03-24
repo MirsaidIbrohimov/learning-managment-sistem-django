@@ -416,6 +416,12 @@ class TestQuestionForm(forms.ModelForm):
 
 
 class CertificateForm(forms.ModelForm):
+    certificate_id = forms.CharField(
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: CERT-20260324-1234'}),
+        label="Sertifikat ID raqami",
+        required=False,
+        help_text="Bo'sh qoldirilsa avtomatik yaratiladi",
+    )
     file = forms.FileField(
         widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf'}),
         label="Sertifikat fayli (PDF)"
@@ -444,7 +450,17 @@ class CertificateForm(forms.ModelForm):
 
     class Meta:
         model = Certificate
-        fields = ['file', 'status', 'valid_from', 'valid_until', 'description']
+        fields = ['certificate_id', 'file', 'status', 'valid_from', 'valid_until', 'description']
+
+    def clean_certificate_id(self):
+        cert_id = self.cleaned_data.get('certificate_id', '').strip()
+        if cert_id:
+            qs = Certificate.objects.filter(certificate_id=cert_id)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("Bu ID raqam allaqachon mavjud!")
+        return cert_id
 
 
 class SectionForm(forms.ModelForm):

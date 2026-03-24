@@ -52,6 +52,15 @@
                 </div>
                 
                 <div class="ic-field">
+                    <label>Sertifikat ID raqami</label>
+                    {{ form.certificate_id }}
+                    <small class="text-muted d-block mt-1">Bo'sh qoldirilsa avtomatik yaratiladi</small>
+                    {% if form.certificate_id.errors %}
+                    <small class="text-danger fw-bold">{{ form.certificate_id.errors.0 }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="ic-field">
                     <label>{{ form.file.label }}</label>
                     {{ form.file }}
                 </div>

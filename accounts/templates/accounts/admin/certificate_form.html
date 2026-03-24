@@ -186,6 +186,15 @@
             </div>
 
             <div class="certf-group">
+                <label><i class="bi bi-hash me-1"></i> Sertifikat ID raqami</label>
+                {{ form.certificate_id }}
+                <div class="help-text">Bo'sh qoldirilsa avtomatik yaratiladi. Bu ID orqali sertifikatni tekshirish mumkin.</div>
+                {% if form.certificate_id.errors %}
+                <div style="color:#ff3b30;font-size:0.8rem;margin-top:0.3rem;font-weight:600;">{{ form.certificate_id.errors.0 }}</div>
+                {% endif %}
+            </div>
+
+            <div class="certf-group">
                 <label><i class="bi bi-file-pdf me-1"></i> Sertifikat fayli (PDF) <span class="required">*</span></label>
                 {{ form.file }}
                 <div class="help-text">Faqat PDF formatdagi fayllar qabul qilinadi</div>
