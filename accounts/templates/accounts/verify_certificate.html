@@ -72,8 +72,10 @@
     .vc-cert-preview{padding:0 2rem 1.5rem;animation:fadeUp .5s ease .7s both}
     .vc-cert-preview-title{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
     .vc-cert-embed{width:100%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
-    .vc-cert-embed iframe,.vc-cert-embed img{width:100%;border:none;border-radius:16px;display:block}
-    .vc-cert-embed iframe{height:450px}
+    .vc-cert-embed img{width:100%;border:none;border-radius:16px;display:block}
+    .vc-pdf-card{padding:2rem;text-align:center}
+    .vc-pdf-card i{font-size:4rem;color:#ff3b30;display:block;margin-bottom:.75rem}
+    .vc-pdf-card p{font-size:.85rem;color:rgba(255,255,255,.5);margin:0}
     .vc-cert-actions{display:flex;gap:.75rem;margin-top:1rem}
     .vc-download-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem 1rem;border-radius:16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:all .3s;border:none;cursor:pointer}
     .vc-download-btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
@@ -218,14 +220,17 @@
                 {% endif %}
             </div>
 
-            {% if certificate.file %}
+            {% if certificate.file and certificate.status == 'active' %}
             <div class="vc-cert-preview">
                 <div class="vc-cert-preview-title">
                     <i class="bi bi-file-earmark-richtext"></i> Sertifikat hujjati
                 </div>
                 <div class="vc-cert-embed">
                     {% if certificate.file.name|lower|slice:"-4:" == ".pdf" %}
-                    <iframe src="{{ certificate.file.url }}" title="Sertifikat"></iframe>
+                    <div class="vc-pdf-card">
+                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                        <p>PDF sertifikat hujjati</p>
+                    </div>
                     {% else %}
                     <img src="{{ certificate.file.url }}" alt="Sertifikat - {{ certificate.certificate_id }}">
                     {% endif %}
