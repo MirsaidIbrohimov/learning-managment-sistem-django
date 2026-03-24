@@ -1,0 +1,227 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sertifikat tekshirish | IT Creative Zomin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+    <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);color:#fff;overflow-x:hidden}
+
+    .bg-particles{position:fixed;inset:0;z-index:0;overflow:hidden}
+    .bg-particles span{position:absolute;display:block;width:20px;height:20px;background:rgba(255,255,255,.03);border-radius:50%;animation:float-up linear infinite}
+    @keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:0}50%{opacity:1}100%{transform:translateY(-100px) scale(1);opacity:0}}
+
+    .vc-wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:2rem 1rem;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+    .vc-logo{text-align:center;margin-bottom:2rem;animation:fadeDown .8s ease}
+    .vc-logo i{font-size:3rem;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;margin-bottom:.5rem}
+    .vc-logo h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
+    .vc-logo p{font-size:.85rem;color:rgba(255,255,255,.5);margin-top:.25rem}
+
+    .vc-search-card{width:100%;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:2rem;animation:fadeUp .8s ease .1s both}
+    .vc-search-card h2{font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:1.5rem}
+    .vc-input-group{position:relative;margin-bottom:1rem}
+    .vc-input-group>i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:1.1rem;z-index:2}
+    .vc-input{width:100%;padding:.9rem 1rem .9rem 48px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.1);border-radius:16px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:1px;outline:none;transition:all .3s}
+    .vc-input::placeholder{color:rgba(255,255,255,.3);font-weight:400;letter-spacing:0}
+    .vc-input:focus{border-color:rgba(99,102,241,.6);background:rgba(255,255,255,.1);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
+    .vc-btn{width:100%;padding:.9rem;border:none;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+    .vc-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,.4)}
+    .vc-btn:active{transform:translateY(0)}
+    .vc-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);transition:.6s}
+    .vc-btn:hover::after{left:100%}
+
+    .vc-result{width:100%;margin-top:1.5rem;animation:fadeUp .6s ease both}
+    .vc-result-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;overflow:hidden}
+    .vc-result-header{padding:1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
+    .vc-result-header::before{content:'';position:absolute;inset:0;opacity:.15}
+    .vc-result-header.active::before{background:linear-gradient(135deg,#34c759,#30d158)}
+    .vc-result-header.expired::before{background:linear-gradient(135deg,#ff9500,#ff6b00)}
+    .vc-result-header.frozen::before{background:linear-gradient(135deg,#007aff,#5ac8fa)}
+    .vc-result-header.revoked::before{background:linear-gradient(135deg,#ff3b30,#ff453a)}
+    .vc-status-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1.2rem;border-radius:50px;font-size:.82rem;font-weight:700;animation:pulse-badge 2s ease infinite}
+    .vc-status-badge.active{background:rgba(52,199,89,.2);color:#34c759;border:1px solid rgba(52,199,89,.3)}
+    .vc-status-badge.expired{background:rgba(255,149,0,.2);color:#ff9500;border:1px solid rgba(255,149,0,.3)}
+    .vc-status-badge.frozen{background:rgba(0,122,255,.2);color:#5ac8fa;border:1px solid rgba(0,122,255,.3)}
+    .vc-status-badge.revoked{background:rgba(255,59,48,.2);color:#ff3b30;border:1px solid rgba(255,59,48,.3)}
+    @keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .vc-cert-icon{font-size:3rem;margin-bottom:.5rem;animation:rotate-in .8s ease}
+    @keyframes rotate-in{from{transform:rotateY(90deg);opacity:0}to{transform:rotateY(0);opacity:1}}
+    .vc-cert-id{font-size:1.2rem;font-weight:800;letter-spacing:1px;margin:.5rem 0}
+
+    .vc-info{padding:1.5rem 2rem}
+    .vc-info-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.06);transition:all .3s}
+    .vc-info-row:last-child{border-bottom:none}
+    .vc-info-row:hover{padding-left:8px}
+    .vc-info-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+    .vc-info-label{font-size:.72rem;color:rgba(255,255,255,.4);font-weight:500}
+    .vc-info-value{font-size:.9rem;font-weight:600}
+
+    .vc-error{width:100%;margin-top:1.5rem;text-align:center;animation:shake .5s ease}
+    .vc-error-card{background:rgba(255,59,48,.1);backdrop-filter:blur(20px);border:1px solid rgba(255,59,48,.2);border-radius:20px;padding:2rem}
+    .vc-error i{font-size:3rem;color:#ff3b30;display:block;margin-bottom:.75rem}
+    .vc-error p{color:rgba(255,255,255,.7);font-size:.9rem}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+    .vc-footer{margin-top:2rem;text-align:center;font-size:.78rem;color:rgba(255,255,255,.3);animation:fadeUp .8s ease .3s both}
+    .vc-footer a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
+    .vc-footer a:hover{color:#a855f7}
+
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+
+    @media(max-width:576px){
+        .vc-wrap{padding:1.5rem .75rem}
+        .vc-search-card,.vc-info{padding:1.25rem}
+        .vc-result-header{padding:1.25rem}
+        .vc-logo h1{font-size:1.25rem}
+        .vc-cert-id{font-size:1rem}
+    }
+    </style>
+</head>
+<body>
+
+<div class="bg-particles">
+    <span style="left:5%;width:8px;height:8px;animation-duration:12s;animation-delay:0s"></span>
+    <span style="left:15%;width:14px;height:14px;animation-duration:18s;animation-delay:2s"></span>
+    <span style="left:25%;width:6px;height:6px;animation-duration:14s;animation-delay:4s"></span>
+    <span style="left:35%;width:20px;height:20px;animation-duration:20s;animation-delay:1s"></span>
+    <span style="left:45%;width:10px;height:10px;animation-duration:16s;animation-delay:3s"></span>
+    <span style="left:55%;width:16px;height:16px;animation-duration:22s;animation-delay:5s"></span>
+    <span style="left:65%;width:12px;height:12px;animation-duration:15s;animation-delay:2s"></span>
+    <span style="left:75%;width:8px;height:8px;animation-duration:19s;animation-delay:4s"></span>
+    <span style="left:85%;width:18px;height:18px;animation-duration:17s;animation-delay:1s"></span>
+    <span style="left:95%;width:10px;height:10px;animation-duration:13s;animation-delay:3s"></span>
+</div>
+
+<div class="vc-wrap">
+    <div class="vc-logo">
+        <i class="bi bi-patch-check-fill"></i>
+        <h1>Sertifikat tekshirish</h1>
+        <p>IT Creative Zomin</p>
+    </div>
+
+    <div class="vc-search-card">
+        <h2><i class="bi bi-search me-2"></i>Sertifikat ID raqamini kiriting</h2>
+        <form method="GET" action="{% url 'verify_certificate' %}">
+            <div class="vc-input-group">
+                <i class="bi bi-upc-scan"></i>
+                <input type="text" name="id" class="vc-input" placeholder="Masalan: CERT-20260324-1234" 
+                       value="{{ cert_id }}" autocomplete="off" required>
+            </div>
+            <button type="submit" class="vc-btn">
+                <i class="bi bi-shield-check me-2"></i>Tekshirish
+            </button>
+        </form>
+    </div>
+
+    {% if searched and certificate %}
+    <div class="vc-result">
+        <div class="vc-result-card">
+            <div class="vc-result-header {{ certificate.status }}">
+                <div class="vc-cert-icon">
+                    {% if certificate.status == 'active' %}
+                    <i class="bi bi-patch-check-fill" style="color:#34c759"></i>
+                    {% elif certificate.status == 'expired' %}
+                    <i class="bi bi-clock-history" style="color:#ff9500"></i>
+                    {% elif certificate.status == 'frozen' %}
+                    <i class="bi bi-snow2" style="color:#5ac8fa"></i>
+                    {% else %}
+                    <i class="bi bi-x-octagon-fill" style="color:#ff3b30"></i>
+                    {% endif %}
+                </div>
+                <div class="vc-cert-id">{{ certificate.certificate_id }}</div>
+                <div class="vc-status-badge {{ certificate.status }}">
+                    {% if certificate.status == 'active' %}<i class="bi bi-check-circle-fill"></i> Faol
+                    {% elif certificate.status == 'expired' %}<i class="bi bi-clock"></i> Muddati tugagan
+                    {% elif certificate.status == 'frozen' %}<i class="bi bi-snow2"></i> Muzlatilgan
+                    {% else %}<i class="bi bi-x-circle-fill"></i> Bekor qilingan
+                    {% endif %}
+                </div>
+            </div>
+            <div class="vc-info">
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .1s both">
+                    <div class="vc-info-icon" style="background:rgba(99,102,241,.15);color:#818cf8">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Egasi</div>
+                        <div class="vc-info-value">{{ certificate.student.full_name }}</div>
+                    </div>
+                </div>
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .2s both">
+                    <div class="vc-info-icon" style="background:rgba(168,85,247,.15);color:#a855f7">
+                        <i class="bi bi-book-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Kurs</div>
+                        <div class="vc-info-value">{{ certificate.profession.name }}</div>
+                    </div>
+                </div>
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .3s both">
+                    <div class="vc-info-icon" style="background:rgba(52,199,89,.15);color:#34c759">
+                        <i class="bi bi-calendar-check-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Berilgan sana</div>
+                        <div class="vc-info-value">{{ certificate.valid_from|date:"d.m.Y" }}</div>
+                    </div>
+                </div>
+                {% if certificate.valid_until %}
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .4s both">
+                    <div class="vc-info-icon" style="background:rgba(255,149,0,.15);color:#ff9500">
+                        <i class="bi bi-calendar-x-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Amal qilish muddati</div>
+                        <div class="vc-info-value">{{ certificate.valid_until|date:"d.m.Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .5s both">
+                    <div class="vc-info-icon" style="background:rgba(255,214,10,.15);color:#ffd60a">
+                        <i class="bi bi-award-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Kim tomonidan berilgan</div>
+                        <div class="vc-info-value">{{ certificate.issued_by.full_name }}</div>
+                    </div>
+                </div>
+                {% if certificate.description %}
+                <div class="vc-info-row" style="animation:fadeUp .5s ease .6s both">
+                    <div class="vc-info-icon" style="background:rgba(0,122,255,.15);color:#0a84ff">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div>
+                        <div class="vc-info-label">Tavsif</div>
+                        <div class="vc-info-value">{{ certificate.description }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% elif searched and error %}
+    <div class="vc-error">
+        <div class="vc-error-card">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <h5 style="font-weight:700;margin-bottom:.5rem">Sertifikat topilmadi</h5>
+            <p>{{ error }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="vc-footer">
+        <p>&copy; IT Creative Zomin — Sertifikat tekshirish tizimi</p>
+        <a href="{% url 'home' %}"><i class="bi bi-house me-1"></i>Bosh sahifa</a>
+    </div>
+</div>
+
+</body>
+</html>

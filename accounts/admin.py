@@ -172,11 +172,13 @@ class TestResultAdmin(admin.ModelAdmin):
 
 @admin.register(Certificate)
 class CertificateAdmin(admin.ModelAdmin):
-    list_display = ['student', 'profession', 'issued_by', 'issued_at']
-    list_filter = ['profession', 'issued_at']
-    search_fields = ['student__username', 'profession__name']
+    list_display = ['certificate_id', 'student', 'profession', 'status', 'valid_from', 'valid_until', 'issued_by', 'issued_at']
+    list_filter = ['status', 'profession', 'issued_at']
+    search_fields = ['certificate_id', 'student__username', 'student__first_name', 'student__last_name', 'profession__name']
     autocomplete_fields = ['student', 'profession', 'issued_by']
+    list_editable = ['status']
     date_hierarchy = 'issued_at'
+    readonly_fields = ['certificate_id', 'issued_at']
 
 
 @admin.register(Message)

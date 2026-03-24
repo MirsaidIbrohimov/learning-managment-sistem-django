@@ -533,26 +533,44 @@
     <div class="pf-sec-title">
         <i class="bi bi-award-fill ib" style="background:var(--warn-bg);color:#ff8c00;"></i>
         Sertifikatlarim
+        {% if certificates %}
+        <span class="badge bg-warning text-dark ms-auto" style="font-size:.72rem">{{ certificates|length }}</span>
+        {% endif %}
     </div>
 
     {% if certificates %}
     <div class="row g-3">
     {% for cert in certificates %}
     <div class="col-md-6">
-        <div class="pf-mini">
+        <div class="pf-mini" style="border:2px solid {{ cert.status_color }}20;transition:all .4s">
             <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="rounded-3 p-2" style="background:var(--success-bg);color:var(--success);">
-                    <i class="bi bi-award fs-5"></i>
+                <div class="rounded-3 p-2" style="background:{{ cert.status_color }}15;color:{{ cert.status_color }};">
+                    {% if cert.status == 'active' %}<i class="bi bi-patch-check-fill fs-5"></i>
+                    {% elif cert.status == 'expired' %}<i class="bi bi-clock-history fs-5"></i>
+                    {% elif cert.status == 'frozen' %}<i class="bi bi-snow2 fs-5"></i>
+                    {% else %}<i class="bi bi-x-octagon-fill fs-5"></i>{% endif %}
                 </div>
-                <div>
-                    <b>{{ cert.profession.name }}</b><br>
-                    <small style="color:var(--muted)">{{ cert.issued_at|date:"d.m.Y" }}</small>
+                <div class="flex-grow-1">
+                    <b>{{ cert.profession.name }}</b>
+                    <span class="badge rounded-pill ms-1" style="font-size:.6rem;background:{{ cert.status_color }}20;color:{{ cert.status_color }}">{{ cert.get_status_display }}</span>
+                    <br>
+                    <small style="color:var(--muted)">
+                        <i class="bi bi-upc-scan me-1"></i>{{ cert.certificate_id }}
+                    </small>
                 </div>
             </div>
-            <div class="d-flex justify-content-between align-items-center" style="font-size:.82rem;color:var(--muted)">
-                <span><i class="bi bi-person me-1"></i>{{ cert.issued_by.full_name }}</span>
-                <a href="{{ cert.file.url }}" target="_blank" download class="btn btn-sm btn-success rounded-pill">
+            <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">
+                <span><i class="bi bi-calendar-check me-1"></i>{{ cert.valid_from|date:"d.m.Y" }}</span>
+                {% if cert.valid_until %}
+                <span class="ms-2"><i class="bi bi-calendar-x me-1"></i>{{ cert.valid_until|date:"d.m.Y" }}</span>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ cert.file.url }}" target="_blank" download class="btn btn-sm btn-success rounded-pill flex-grow-1">
                     <i class="bi bi-file-pdf me-1"></i>Yuklab olish
+                </a>
+                <a href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                    <i class="bi bi-shield-check"></i>
                 </a>
             </div>
         </div>

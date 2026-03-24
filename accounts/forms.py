@@ -416,11 +416,35 @@ class TestQuestionForm(forms.ModelForm):
 
 
 class CertificateForm(forms.ModelForm):
-    file = forms.FileField(widget=forms.FileInput(attrs={'class': 'form-control'}))
+    file = forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf'}),
+        label="Sertifikat fayli (PDF)"
+    )
+    valid_from = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Berilgan sana",
+        required=False,
+    )
+    valid_until = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Amal qilish muddati",
+        required=False,
+    )
+    status = forms.ChoiceField(
+        choices=Certificate.STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Holat",
+        initial='active',
+    )
+    description = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tavsif (ixtiyoriy)'}),
+        label="Tavsif",
+        required=False,
+    )
 
     class Meta:
         model = Certificate
-        fields = ['file']
+        fields = ['file', 'status', 'valid_from', 'valid_until', 'description']
 
 
 class SectionForm(forms.ModelForm):

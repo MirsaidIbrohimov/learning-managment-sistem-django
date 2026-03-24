@@ -1,4 +1,5 @@
 import unicodedata
+import uuid
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -702,17 +703,60 @@ class DictionaryWord(models.Model):
 
 
 class Certificate(models.Model):
+    STATUS_CHOICES = (
+        ('active', 'Faol'),
+        ('expired', 'Muddati tugagan'),
+        ('frozen', 'Muzlatilgan'),
+        ('revoked', 'Bekor qilingan'),
+    )
+    
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='certificates')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='certificates')
-    file = models.FileField(upload_to='certificates/')
+    certificate_id = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Sertifikat ID")
+    file = models.FileField(upload_to='certificates/', verbose_name="Sertifikat fayli (PDF)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', verbose_name="Holat")
+    valid_from = models.DateField(verbose_name="Berilgan sana", null=True, blank=True)
+    valid_until = models.DateField(verbose_name="Amal qilish muddati", null=True, blank=True)
+    description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
     issued_at = models.DateTimeField(auto_now_add=True)
     issued_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, related_name='issued_certificates')
     
     class Meta:
         ordering = ['-issued_at']
+        verbose_name = "Sertifikat"
+        verbose_name_plural = "Sertifikatlar"
+    
+    def save(self, *args, **kwargs):
+        if not self.certificate_id:
+            from django.utils import timezone
+            import random
+            date_str = timezone.now().strftime('%Y%m%d')
+            random_part = random.randint(1000, 9999)
+            self.certificate_id = f"CERT-{date_str}-{random_part}"
+            while Certificate.objects.filter(certificate_id=self.certificate_id).exists():
+                random_part = random.randint(1000, 9999)
+                self.certificate_id = f"CERT-{date_str}-{random_part}"
+        if not self.valid_from:
+            from django.utils import timezone
+            self.valid_from = timezone.now().date()
+        super().save(*args, **kwargs)
+    
+    @property
+    def is_active(self):
+        return self.status == 'active'
+    
+    @property
+    def status_color(self):
+        colors = {
+            'active': '#34c759',
+            'expired': '#ff9500',
+            'frozen': '#007aff',
+            'revoked': '#ff3b30',
+        }
+        return colors.get(self.status, '#86868b')
     
     def __str__(self):
-        return f"{self.student.full_name} - {self.profession.name}"
+        return f"{self.certificate_id} - {self.student.full_name} - {self.profession.name}"
 
 
 class Message(models.Model):

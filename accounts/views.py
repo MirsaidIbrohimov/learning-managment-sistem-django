@@ -5145,7 +5145,30 @@ def issue_certificate(request, pk):
             cert.profession = profession
             cert.issued_by = request.user
             cert.save()
-            messages.success(request, "Sertifikat berildi!")
+            
+            # O'quvchiga xabar yuborish
+            Message.objects.create(
+                recipient=student,
+                sender=request.user,
+                title="🎓 Sizga sertifikat berildi!",
+                content=f"Tabriklaymiz! Sizga \"{profession.name}\" kursi bo'yicha sertifikat berildi.\n\nSertifikat ID: {cert.certificate_id}\nHolat: {cert.get_status_display()}\n\nSertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.",
+                message_type='achievement'
+            )
+            
+            # Telegram orqali xabar
+            try:
+                notify_user(
+                    student,
+                    f"🎓 <b>Sizga sertifikat berildi!</b>\n\n"
+                    f"📚 Kurs: <b>{profession.name}</b>\n"
+                    f"🆔 Sertifikat ID: <b>{cert.certificate_id}</b>\n"
+                    f"📅 Berilgan sana: {cert.valid_from}\n\n"
+                    f"Tabriklaymiz! 🎉"
+                )
+            except Exception:
+                pass
+            
+            messages.success(request, f"Sertifikat berildi! ID: {cert.certificate_id}")
             return redirect('admin_user_view', pk=pk)
     else:
         form = CertificateForm()
@@ -5154,6 +5177,28 @@ def issue_certificate(request, pk):
         'student': student,
         'professions': professions,
         'form': form,
+    })
+
+
+def verify_certificate(request):
+    """Sertifikatni tekshirish - login talab qilinmaydi"""
+    certificate = None
+    searched = False
+    error = None
+    
+    cert_id = request.GET.get('id', '').strip()
+    if cert_id:
+        searched = True
+        try:
+            certificate = Certificate.objects.select_related('student', 'profession', 'issued_by').get(certificate_id=cert_id)
+        except Certificate.DoesNotExist:
+            error = "Bu ID raqamga mos sertifikat topilmadi."
+    
+    return render(request, 'accounts/verify_certificate.html', {
+        'certificate': certificate,
+        'searched': searched,
+        'error': error,
+        'cert_id': cert_id,
     })
 
 

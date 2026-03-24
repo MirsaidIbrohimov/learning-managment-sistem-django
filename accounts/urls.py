@@ -230,6 +230,9 @@ urlpatterns = [
     path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
     path('clear-ai-ad/', views.clear_ai_ad, name='clear_ai_ad'),
 
+    # Sertifikat tekshirish (login talab qilinmaydi)
+    path('verify-certificate/', views.verify_certificate, name='verify_certificate'),
+    
     # Ariza
     path('ariza/', views.ariza_view, name='ariza'),
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
