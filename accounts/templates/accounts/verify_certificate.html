@@ -69,6 +69,18 @@
     .vc-error p{color:rgba(255,255,255,.7);font-size:.9rem}
     @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 
+    .vc-cert-preview{padding:0 2rem 1.5rem;animation:fadeUp .5s ease .7s both}
+    .vc-cert-preview-title{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+    .vc-cert-embed{width:100%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
+    .vc-cert-embed iframe,.vc-cert-embed img{width:100%;border:none;border-radius:16px;display:block}
+    .vc-cert-embed iframe{height:450px}
+    .vc-cert-actions{display:flex;gap:.75rem;margin-top:1rem}
+    .vc-download-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem 1rem;border-radius:16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:all .3s;border:none;cursor:pointer}
+    .vc-download-btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+    .vc-download-btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.4)}
+    .vc-download-btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
+    .vc-download-btn.secondary:hover{background:rgba(255,255,255,.15);transform:translateY(-2px)}
+
     .vc-footer{margin-top:2rem;text-align:center;font-size:.78rem;color:rgba(255,255,255,.3);animation:fadeUp .8s ease .3s both}
     .vc-footer a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
     .vc-footer a:hover{color:#a855f7}
@@ -205,6 +217,29 @@
                 </div>
                 {% endif %}
             </div>
+
+            {% if certificate.file %}
+            <div class="vc-cert-preview">
+                <div class="vc-cert-preview-title">
+                    <i class="bi bi-file-earmark-richtext"></i> Sertifikat hujjati
+                </div>
+                <div class="vc-cert-embed">
+                    {% if certificate.file.name|lower|slice:"-4:" == ".pdf" %}
+                    <iframe src="{{ certificate.file.url }}" title="Sertifikat"></iframe>
+                    {% else %}
+                    <img src="{{ certificate.file.url }}" alt="Sertifikat - {{ certificate.certificate_id }}">
+                    {% endif %}
+                </div>
+                <div class="vc-cert-actions">
+                    <a href="{{ certificate.file.url }}" download class="vc-download-btn primary">
+                        <i class="bi bi-download"></i> Yuklab olish
+                    </a>
+                    <a href="{{ certificate.file.url }}" target="_blank" class="vc-download-btn secondary">
+                        <i class="bi bi-box-arrow-up-right"></i> Ochish
+                    </a>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
     {% elif searched and error %}
