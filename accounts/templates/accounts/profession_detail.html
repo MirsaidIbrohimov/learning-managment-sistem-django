@@ -799,6 +799,11 @@
                             </div>
                         </div>
                         <div class="lesson-status">
+                            {% if lesson.lesson_type == 'dictionary' %}
+                                <span class="status-badge" style="background:rgba(108,117,125,0.1);color:#6c757d;">
+                                    <i class="bi bi-book"></i>Lug'at
+                                </span>
+                            {% else %}
                             {% with progress=lesson_progress|get_item:lesson.pk %}
                             {% if progress %}
                                 {% if progress.type == 'test' %}
@@ -844,6 +849,7 @@
                                 </span>
                             {% endif %}
                             {% endwith %}
+                            {% endif %}
                         </div>
                     </a>
                     {% endfor %}

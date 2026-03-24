@@ -973,6 +973,7 @@ def profession_detail(request, pk):
                 }
         
         # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
+        # Lug'at darslari shart emas - ular progress hisoblashda e'tiborga olinmaydi
         section_is_locked = {}
         if request.user.is_student and not request.user.is_admin:
             # Faqat haqiqatan completed=True bo'lgan darslarni hisoblash
@@ -983,11 +984,13 @@ def profession_detail(request, pk):
                 if i == 0:
                     section_is_locked[section.id] = False  # 1-bo'lim har doim ochiq
                 else:
-                    # Oldingi barcha bo'limlardagi darslarni tekshirish
+                    # Oldingi barcha bo'limlardagi darslarni tekshirish (lug'at bundan mustasno)
                     prev_sections = list(sections)[:i]
                     all_prev_completed = True
                     for prev_section in prev_sections:
                         for lesson in prev_section.lessons.all():
+                            if lesson.lesson_type == 'dictionary':
+                                continue
                             if lesson.pk not in completed_lesson_ids:
                                 all_prev_completed = False
                                 break
@@ -1000,6 +1003,7 @@ def profession_detail(request, pk):
                     lesson.pk in completed_lesson_ids
                     for section in sections
                     for lesson in section.lessons.all()
+                    if lesson.lesson_type != 'dictionary'
                 )
                 section_is_locked['no_section'] = not all_sections_completed
         else:
@@ -1184,6 +1188,8 @@ def _is_section_locked_for_student(user, section, profession):
     completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks
     for prev_section in sections_list[:section_idx]:
         for prev_lesson in prev_section.lessons.all():
+            if prev_lesson.lesson_type == 'dictionary':
+                continue
             if prev_lesson.pk not in completed_lesson_ids:
                 return True
     return False
@@ -1220,6 +1226,7 @@ def lesson_view(request, pk):
             all_sections_done = all(
                 l.pk in completed_lesson_ids
                 for s in sections for l in s.lessons.all()
+                if l.lesson_type != 'dictionary'
             )
             if not all_sections_done:
                 messages.warning(request, "Barcha bo'limlarni tugatgandan so'ng bu darsga kirish mumkin!")
@@ -5146,27 +5153,63 @@ def issue_certificate(request, pk):
             cert.issued_by = request.user
             cert.save()
             
-            # O'quvchiga xabar yuborish
+            # O'quvchiga chiroyli tabrik xabari yuborish
             Message.objects.create(
                 recipient=student,
                 sender=request.user,
-                title="🎓 Sizga sertifikat berildi!",
-                content=f"Tabriklaymiz! Sizga \"{profession.name}\" kursi bo'yicha sertifikat berildi.\n\nSertifikat ID: {cert.certificate_id}\nHolat: {cert.get_status_display()}\n\nSertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.",
+                title="🎓🎉 Tabriklaymiz! Sertifikat berildi!",
+                content=(
+                    f"🌟🌟🌟 TABRIKLAYMIZ! 🌟🌟🌟\n\n"
+                    f"Hurmatli {student.full_name}!\n\n"
+                    f"🎓 Sizga \"{profession.name}\" yo'nalishi bo'yicha SERTIFIKAT berildi!\n\n"
+                    f"📋 Ma'lumotlar:\n"
+                    f"   🆔 ID raqam: {student.id}\n"
+                    f"   📚 Yo'nalish: {profession.name}\n"
+                    f"   🏅 Sertifikat ID: {cert.certificate_id}\n"
+                    f"   📅 Berilgan sana: {cert.valid_from}\n"
+                    f"   ✅ Holat: {cert.get_status_display()}\n\n"
+                    f"🎊 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.\n\n"
+                    f"💜 Hurmat bilan,\nIT Creative Academy jamoasi"
+                ),
                 message_type='achievement'
             )
             
-            # Telegram orqali xabar
-            try:
-                notify_user(
-                    student,
-                    f"🎓 <b>Sizga sertifikat berildi!</b>\n\n"
-                    f"📚 Kurs: <b>{profession.name}</b>\n"
-                    f"🆔 Sertifikat ID: <b>{cert.certificate_id}</b>\n"
-                    f"📅 Berilgan sana: {cert.valid_from}\n\n"
-                    f"Tabriklaymiz! 🎉"
+            # Telegram orqali chiroyli tabrik xabari
+            if student.telegram_id:
+                telegram_text = (
+                    f"🎓🎉🎊 <b>TABRIKLAYMIZ!</b> 🎊🎉🎓\n\n"
+                    f"Hurmatli <b>{student.full_name}</b>!\n\n"
+                    f"✨ Sizga <b>«{profession.name}»</b> yo'nalishi bo'yicha <b>SERTIFIKAT</b> berildi!\n\n"
+                    f"📋 <b>Ma'lumotlar:</b>\n"
+                    f"┌ 🆔 ID raqam: <b>{student.id}</b>\n"
+                    f"├ 📚 Yo'nalish: <b>{profession.name}</b>\n"
+                    f"├ 🏅 Sertifikat: <b>{cert.certificate_id}</b>\n"
+                    f"└ 📅 Sana: <b>{cert.valid_from}</b>\n\n"
+                    f"🌟 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 <b>Yangi kurslarda ham kutib qolamiz!</b>\n"
+                    f"IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"💜 <i>IT Creative Academy jamoasi</i>"
                 )
-            except Exception:
-                pass
+                notify_user(student.telegram_id, telegram_text)
+            
+            # Adminlarga xabar
+            notify_admins(
+                f"🎓 <b>Sertifikat berildi!</b>\n\n"
+                f"👤 O'quvchi: <b>{student.full_name}</b> (ID: {student.id})\n"
+                f"📚 Yo'nalish: <b>{profession.name}</b>\n"
+                f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
+            )
+            
+            # Guruhga tabrik
+            notify_group(
+                f"🎓🎉 <b>TABRIKLAYMIZ!</b> 🎉🎓\n\n"
+                f"🌟 <b>{student.full_name}</b> 🌟\n\n"
+                f"<b>«{profession.name}»</b> yo'nalishini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
+                f"🎊 Tabriklaymiz va yangi kurslarda kutib qolamiz! 🚀\n\n"
+                f"💜 <b>IT Creative Academy</b>"
+            )
             
             messages.success(request, f"Sertifikat berildi! ID: {cert.certificate_id}")
             return redirect('admin_user_view', pk=pk)
@@ -7308,7 +7351,7 @@ def admin_lesson_statistics(request):
     # ==================== SERTIFIKATGA YAQIN O'QUVCHILAR ====================
     near_certificate_students = []
     for profession in Profession.objects.all():
-        total_lessons_in_course = profession.lessons.count()
+        total_lessons_in_course = profession.lessons.exclude(lesson_type='dictionary').count()
         if total_lessons_in_course == 0:
             continue
             
@@ -9839,27 +9882,63 @@ def admin_certificate_issue(request):
             cert.issued_by = request.user
             cert.save()
             
-            # O'quvchiga xabar yuborish
+            # O'quvchiga chiroyli tabrik xabari yuborish
             Message.objects.create(
                 recipient=student,
                 sender=request.user,
-                title="🎓 Sizga sertifikat berildi!",
-                content=f"Tabriklaymiz! Sizga \"{profession.name}\" kursi bo'yicha sertifikat berildi.\n\nSertifikat ID: {cert.certificate_id}\nHolat: {cert.get_status_display()}\n\nSertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.",
+                title="🎓🎉 Tabriklaymiz! Sertifikat berildi!",
+                content=(
+                    f"🌟🌟🌟 TABRIKLAYMIZ! 🌟🌟🌟\n\n"
+                    f"Hurmatli {student.full_name}!\n\n"
+                    f"🎓 Sizga \"{profession.name}\" yo'nalishi bo'yicha SERTIFIKAT berildi!\n\n"
+                    f"📋 Ma'lumotlar:\n"
+                    f"   🆔 ID raqam: {student.id}\n"
+                    f"   📚 Yo'nalish: {profession.name}\n"
+                    f"   🏅 Sertifikat ID: {cert.certificate_id}\n"
+                    f"   📅 Berilgan sana: {cert.valid_from}\n"
+                    f"   ✅ Holat: {cert.get_status_display()}\n\n"
+                    f"🎊 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 Yangi kurslarda ham kutib qolamiz! IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"📜 Sertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.\n\n"
+                    f"💜 Hurmat bilan,\nIT Creative Academy jamoasi"
+                ),
                 message_type='achievement'
             )
             
-            # Telegram orqali xabar
-            try:
-                notify_user(
-                    student,
-                    f"🎓 <b>Sizga sertifikat berildi!</b>\n\n"
-                    f"📚 Kurs: <b>{profession.name}</b>\n"
-                    f"🆔 Sertifikat ID: <b>{cert.certificate_id}</b>\n"
-                    f"📅 Berilgan sana: {cert.valid_from}\n\n"
-                    f"Tabriklaymiz! 🎉"
+            # Telegram orqali chiroyli tabrik xabari
+            if student.telegram_id:
+                telegram_text = (
+                    f"🎓🎉🎊 <b>TABRIKLAYMIZ!</b> 🎊🎉🎓\n\n"
+                    f"Hurmatli <b>{student.full_name}</b>!\n\n"
+                    f"✨ Sizga <b>«{profession.name}»</b> yo'nalishi bo'yicha <b>SERTIFIKAT</b> berildi!\n\n"
+                    f"📋 <b>Ma'lumotlar:</b>\n"
+                    f"┌ 🆔 ID raqam: <b>{student.id}</b>\n"
+                    f"├ 📚 Yo'nalish: <b>{profession.name}</b>\n"
+                    f"├ 🏅 Sertifikat: <b>{cert.certificate_id}</b>\n"
+                    f"└ 📅 Sana: <b>{cert.valid_from}</b>\n\n"
+                    f"🌟 Siz bu yo'nalishni muvaffaqiyatli tugatdingiz! Bu sizning mehnat va bilimingizning natijasi.\n\n"
+                    f"🚀 <b>Yangi kurslarda ham kutib qolamiz!</b>\n"
+                    f"IT Creative Academy sizga yanada ko'proq bilim va tajriba taqdim etishga tayyor.\n\n"
+                    f"💜 <i>IT Creative Academy jamoasi</i>"
                 )
-            except Exception:
-                pass
+                notify_user(student.telegram_id, telegram_text)
+            
+            # Adminlarga xabar
+            notify_admins(
+                f"🎓 <b>Sertifikat berildi!</b>\n\n"
+                f"👤 O'quvchi: <b>{student.full_name}</b> (ID: {student.id})\n"
+                f"📚 Yo'nalish: <b>{profession.name}</b>\n"
+                f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
+            )
+            
+            # Guruhga tabrik
+            notify_group(
+                f"🎓🎉 <b>TABRIKLAYMIZ!</b> 🎉🎓\n\n"
+                f"🌟 <b>{student.full_name}</b> 🌟\n\n"
+                f"<b>«{profession.name}»</b> yo'nalishini muvaffaqiyatli tugatdi va <b>SERTIFIKAT</b> oldi! 🏅\n\n"
+                f"🎊 Tabriklaymiz va yangi kurslarda kutib qolamiz! 🚀\n\n"
+                f"💜 <b>IT Creative Academy</b>"
+            )
             
             messages.success(request, f"Sertifikat muvaffaqiyatli berildi! ID: {cert.certificate_id}")
             return redirect('admin_certificates')
