@@ -781,6 +781,19 @@ def parent_profile_edit(request):
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
         phone = request.POST.get('phone', '').strip()
+        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        if not phone.startswith('+998'):
+            if phone.startswith('998'):
+                phone = '+' + phone
+            elif phone.startswith('9'):
+                phone = '+998' + phone
+        
+        if not phone.startswith('+998') or len(phone) != 13 or not phone[4:].isdigit():
+            return render(request, 'accounts/parent/profile_edit.html', {
+                'parent': parent,
+                'error': "Telefon raqami noto'g'ri formatda. Masalan: +998901234567",
+            })
+        
         email = request.POST.get('email', '').strip() or None
         
         if Parent.objects.filter(phone=phone).exclude(pk=parent.pk).exists():

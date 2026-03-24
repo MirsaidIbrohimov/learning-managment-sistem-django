@@ -142,7 +142,12 @@ class UserProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(required=False, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}))
-    phone = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    phone = forms.CharField(max_length=13, widget=forms.TextInput(attrs={
+        'class': 'form-control',
+        'placeholder': '+998XXXXXXXXX',
+        'maxlength': '13',
+        'data-phone': 'true',
+    }))
     photo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     bio = forms.CharField(
         required=False,
@@ -161,6 +166,27 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'birth_date', 'id_card', 'birth_certificate', 'photo', 'bio', 'obektivka']
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get('phone', '').strip()
+        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        
+        if not phone.startswith('+998'):
+            if phone.startswith('998'):
+                phone = '+' + phone
+            elif phone.startswith('9'):
+                phone = '+998' + phone
+            else:
+                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
+        
+        digits_after_code = phone[4:]
+        if not digits_after_code.isdigit():
+            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
+        
+        if len(phone) != 13:
+            raise forms.ValidationError("Telefon raqami noto'g'ri formatda. Masalan: +998901234567")
+        
+        return phone
 
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')

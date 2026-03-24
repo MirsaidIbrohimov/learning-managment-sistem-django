@@ -519,7 +519,20 @@
             </div>
             <div class="col-md-6">
                 <label class="pe-label"><i class="bi bi-telephone"></i> Telefon</label>
-                {{ form.phone }}
+                <div class="input-group">
+                    <span class="input-group-text" style="font-weight:600;background:var(--pe-section-bg);border-color:var(--pe-border);color:var(--bs-body-color);">+998</span>
+                    <input type="tel" name="phone" id="id_phone"
+                           class="form-control"
+                           maxlength="9"
+                           placeholder="901234567"
+                           inputmode="numeric"
+                           pattern="\d{9}"
+                           value="{% if form.phone.value and form.phone.value|length > 4 %}{{ form.phone.value|slice:'4:' }}{% elif form.phone.value %}{{ form.phone.value }}{% endif %}"
+                           required>
+                </div>
+                {% if form.phone.errors %}
+                <div class="text-danger mt-1" style="font-size:.85rem;">{{ form.phone.errors.0 }}</div>
+                {% endif %}
             </div>
             <div class="col-md-6">
                 <label class="pe-label"><i class="bi bi-envelope"></i> Email</label>
@@ -614,29 +627,62 @@
 </div>
 
 <script>
-// Avatar preview on file select
 document.addEventListener('DOMContentLoaded', function() {
+    // Avatar preview on file select
     var photoInput = document.querySelector('input[type="file"][name="photo"]');
-    if (!photoInput) return;
-    photoInput.addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (!file || !file.type.startsWith('image/')) return;
-        var reader = new FileReader();
-        reader.onload = function(ev) {
-            var existing = document.getElementById('avatarPreview');
-            var fallback = document.getElementById('avatarFallback');
-            if (existing) {
-                existing.src = ev.target.result;
-            } else if (fallback) {
-                var img = document.createElement('img');
-                img.src = ev.target.result;
-                img.className = 'pe-avatar-img';
-                img.id = 'avatarPreview';
-                fallback.replaceWith(img);
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                var existing = document.getElementById('avatarPreview');
+                var fallback = document.getElementById('avatarFallback');
+                if (existing) {
+                    existing.src = ev.target.result;
+                } else if (fallback) {
+                    var img = document.createElement('img');
+                    img.src = ev.target.result;
+                    img.className = 'pe-avatar-img';
+                    img.id = 'avatarPreview';
+                    fallback.replaceWith(img);
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Phone input: faqat raqam kiritish va +998 qo'shish
+    var phoneInput = document.getElementById('id_phone');
+    if (phoneInput) {
+        // Agar +998 bilan boshlangan qiymat bo'lsa, uni olib tashlash
+        if (phoneInput.value.startsWith('+998')) {
+            phoneInput.value = phoneInput.value.substring(4);
+        }
+        // Matn kiritishni bloklash - faqat raqam
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0, 9);
+        });
+        phoneInput.addEventListener('keypress', function(e) {
+            if (!/\d/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') {
+                e.preventDefault();
             }
-        };
-        reader.readAsDataURL(file);
-    });
+        });
+        // Paste qilganda faqat raqamlarni qoldirish
+        phoneInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            var text = (e.clipboardData || window.clipboardData).getData('text');
+            text = text.replace(/\D/g, '');
+            if (text.startsWith('998')) text = text.substring(3);
+            this.value = text.substring(0, 9);
+        });
+        // Form yuborishda +998 qo'shish
+        phoneInput.closest('form').addEventListener('submit', function() {
+            if (phoneInput.value && !phoneInput.value.startsWith('+998')) {
+                phoneInput.value = '+998' + phoneInput.value;
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
