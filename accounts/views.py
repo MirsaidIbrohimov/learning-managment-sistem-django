@@ -9756,3 +9756,167 @@ def admin_application_status(request, pk):
     
     return redirect('admin_applications')
 
+
+@login_required
+def admin_certificates(request):
+    """Admin: O'quvchi sertifikatlarini boshqarish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    certificates = Certificate.objects.select_related('student', 'profession', 'issued_by').all()
+    
+    # Filter by status
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        certificates = certificates.filter(status=status_filter)
+    
+    # Filter by profession
+    profession_filter = request.GET.get('profession', '')
+    if profession_filter:
+        certificates = certificates.filter(profession_id=profession_filter)
+    
+    # Search
+    q = request.GET.get('search', '').strip()
+    if q:
+        certificates = certificates.filter(
+            Q(student__first_name__icontains=q) |
+            Q(student__last_name__icontains=q) |
+            Q(student__username__icontains=q) |
+            Q(certificate_id__icontains=q)
+        )
+    
+    # Stats
+    total_certificates = Certificate.objects.count()
+    active_certificates = Certificate.objects.filter(status='active').count()
+    expired_certificates = Certificate.objects.filter(status='expired').count()
+    revoked_certificates = Certificate.objects.filter(status='revoked').count()
+    frozen_certificates = Certificate.objects.filter(status='frozen').count()
+    
+    professions = Profession.objects.all()
+    students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
+    
+    from django.core.paginator import Paginator
+    paginator = Paginator(certificates, 20)
+    page = request.GET.get('page')
+    certificates = paginator.get_page(page)
+    
+    context = {
+        'certificates': certificates,
+        'status_filter': status_filter,
+        'profession_filter': profession_filter,
+        'search': q,
+        'total_certificates': total_certificates,
+        'active_certificates': active_certificates,
+        'expired_certificates': expired_certificates,
+        'revoked_certificates': revoked_certificates,
+        'frozen_certificates': frozen_certificates,
+        'professions': professions,
+        'students': students,
+    }
+    return render(request, 'accounts/admin/certificates.html', context)
+
+
+@login_required
+def admin_certificate_issue(request):
+    """Admin: Yangi sertifikat berish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
+    professions = Profession.objects.all()
+    
+    if request.method == 'POST':
+        form = CertificateForm(request.POST, request.FILES)
+        student_id = request.POST.get('student')
+        profession_id = request.POST.get('profession')
+        
+        if form.is_valid() and student_id and profession_id:
+            student = get_object_or_404(CustomUser, pk=student_id, role='student')
+            profession = get_object_or_404(Profession, pk=profession_id)
+            cert = form.save(commit=False)
+            cert.student = student
+            cert.profession = profession
+            cert.issued_by = request.user
+            cert.save()
+            
+            # O'quvchiga xabar yuborish
+            Message.objects.create(
+                recipient=student,
+                sender=request.user,
+                title="🎓 Sizga sertifikat berildi!",
+                content=f"Tabriklaymiz! Sizga \"{profession.name}\" kursi bo'yicha sertifikat berildi.\n\nSertifikat ID: {cert.certificate_id}\nHolat: {cert.get_status_display()}\n\nSertifikatingizni profil sahifangizdagi \"Sertifikatlarim\" bo'limida ko'rishingiz mumkin.",
+                message_type='achievement'
+            )
+            
+            # Telegram orqali xabar
+            try:
+                notify_user(
+                    student,
+                    f"🎓 <b>Sizga sertifikat berildi!</b>\n\n"
+                    f"📚 Kurs: <b>{profession.name}</b>\n"
+                    f"🆔 Sertifikat ID: <b>{cert.certificate_id}</b>\n"
+                    f"📅 Berilgan sana: {cert.valid_from}\n\n"
+                    f"Tabriklaymiz! 🎉"
+                )
+            except Exception:
+                pass
+            
+            messages.success(request, f"Sertifikat muvaffaqiyatli berildi! ID: {cert.certificate_id}")
+            return redirect('admin_certificates')
+        else:
+            messages.error(request, "Iltimos, barcha maydonlarni to'ldiring!")
+    else:
+        form = CertificateForm()
+    
+    return render(request, 'accounts/admin/certificate_form.html', {
+        'students': students,
+        'professions': professions,
+        'form': form,
+        'is_edit': False,
+    })
+
+
+@login_required
+def admin_certificate_status(request, pk):
+    """Admin: Sertifikat holatini o'zgartirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    cert = get_object_or_404(Certificate, pk=pk)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in dict(Certificate.STATUS_CHOICES):
+            old_status = cert.get_status_display()
+            cert.status = new_status
+            cert.save()
+            
+            # O'quvchiga xabar
+            status_display = cert.get_status_display()
+            Message.objects.create(
+                recipient=cert.student,
+                sender=request.user,
+                title="📋 Sertifikat holati o'zgardi",
+                content=f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz holati o'zgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
+                message_type='system'
+            )
+            
+            messages.success(request, f"Sertifikat holati \"{status_display}\" ga o'zgartirildi!")
+    
+    return redirect('admin_certificates')
+
+
+@login_required
+def admin_certificate_delete(request, pk):
+    """Admin: Sertifikatni o'chirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    cert = get_object_or_404(Certificate, pk=pk)
+    
+    if request.method == 'POST':
+        cert.delete()
+        messages.success(request, "Sertifikat o'chirildi!")
+    
+    return redirect('admin_certificates')
+

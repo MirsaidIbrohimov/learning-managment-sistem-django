@@ -230,6 +230,12 @@ urlpatterns = [
     path('clear-premium-ad/', views.clear_premium_ad, name='clear_premium_ad'),
     path('clear-ai-ad/', views.clear_ai_ad, name='clear_ai_ad'),
 
+    # Admin: O'quvchi sertifikatlari
+    path('dashboard/certificates/', views.admin_certificates, name='admin_certificates'),
+    path('dashboard/certificates/issue/', views.admin_certificate_issue, name='admin_certificate_issue'),
+    path('dashboard/certificates/<int:pk>/status/', views.admin_certificate_status, name='admin_certificate_status'),
+    path('dashboard/certificates/<int:pk>/delete/', views.admin_certificate_delete, name='admin_certificate_delete'),
+    
     # Sertifikat tekshirish (login talab qilinmaydi)
     path('verify-certificate/', views.verify_certificate, name='verify_certificate'),
     

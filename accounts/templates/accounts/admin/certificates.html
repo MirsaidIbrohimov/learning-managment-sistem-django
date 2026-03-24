@@ -1,0 +1,623 @@
+﻿{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Sertifikatlar - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<style>
+    .cert-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+    @keyframes certSlideIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes certCountUp {
+        from { opacity: 0; transform: scale(0.5); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .cert-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: certSlideIn 0.4s ease-out;
+    }
+    .cert-header-left h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-color, #212529);
+    }
+    .cert-header-left h1 i { color: #f59e0b; font-size: 1.75rem; }
+    .cert-header-sub {
+        font-size: 0.85rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.35rem;
+    }
+    .cert-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cert-btn-primary {
+        background: #f59e0b;
+        color: #fff;
+    }
+    .cert-btn-primary:hover {
+        background: #d97706;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+
+    .cert-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+    .cert-stat-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1.25rem 1rem;
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        text-align: center;
+        animation: certSlideIn 0.5s ease-out backwards;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .cert-stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .cert-stat-card:nth-child(2) { animation-delay: 0.1s; }
+    .cert-stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .cert-stat-card:nth-child(4) { animation-delay: 0.2s; }
+    .cert-stat-card:nth-child(5) { animation-delay: 0.25s; }
+    .cert-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+    .cert-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.6rem;
+    }
+    .cert-stat-icon.total { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+    .cert-stat-icon.active { background: rgba(52, 199, 89, 0.12); color: #34c759; }
+    .cert-stat-icon.expired { background: rgba(255, 149, 0, 0.12); color: #ff9500; }
+    .cert-stat-icon.revoked { background: rgba(255, 59, 48, 0.12); color: #ff3b30; }
+    .cert-stat-icon.frozen { background: rgba(0, 122, 255, 0.12); color: #007aff; }
+    .cert-stat-val {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-color, #212529);
+        animation: certCountUp 0.6s ease-out backwards;
+        animation-delay: 0.3s;
+    }
+    .cert-stat-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 0.15rem;
+    }
+
+    .cert-filter-card {
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        padding: 1.25rem;
+        margin-bottom: 1.75rem;
+        animation: certSlideIn 0.4s ease-out 0.1s backwards;
+    }
+    .cert-filter-row {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    .cert-filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+    .cert-filter-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--bs-secondary-color, #6c757d);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-bottom: 0.4rem;
+    }
+    .cert-filter-group input,
+    .cert-filter-group select {
+        width: 100%;
+        padding: 0.55rem 0.85rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        font-size: 0.88rem;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        transition: all 0.2s;
+    }
+    .cert-filter-group input:focus,
+    .cert-filter-group select:focus {
+        outline: none;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+    .cert-filter-btn {
+        padding: 0.55rem 1.25rem;
+        border-radius: 10px;
+        border: none;
+        background: #f59e0b;
+        color: #fff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .cert-filter-btn:hover {
+        background: #d97706;
+        transform: translateY(-1px);
+    }
+    .cert-filter-reset {
+        padding: 0.55rem 1rem;
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        white-space: nowrap;
+    }
+    .cert-filter-reset:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    .cert-table-card {
+        border-radius: 14px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        overflow: hidden;
+        animation: certSlideIn 0.4s ease-out 0.15s backwards;
+    }
+    .cert-table-card .table {
+        margin: 0;
+    }
+    .cert-table-card .table thead th {
+        background: rgba(245, 158, 11, 0.06);
+        border-bottom: 2px solid var(--border-color, #dee2e6);
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        color: var(--bs-secondary-color, #6c757d);
+        padding: 0.85rem 1rem;
+        white-space: nowrap;
+    }
+    .cert-table-card .table tbody td {
+        padding: 0.85rem 1rem;
+        vertical-align: middle;
+        font-size: 0.88rem;
+        border-bottom: 1px solid var(--border-color, #dee2e6);
+    }
+    .cert-table-card .table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .cert-table-card .table tbody tr:hover {
+        background: rgba(245, 158, 11, 0.03);
+    }
+
+    .cert-user-name {
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        display: block;
+    }
+    .cert-user-sub {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+    }
+
+    .cert-id {
+        font-family: 'Courier New', monospace;
+        font-weight: 700;
+        font-size: 0.82rem;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.08);
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+    }
+
+    .cert-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .cert-badge.active {
+        background: rgba(52, 199, 89, 0.12);
+        color: #34c759;
+    }
+    .cert-badge.expired {
+        background: rgba(255, 149, 0, 0.12);
+        color: #ff9500;
+    }
+    .cert-badge.frozen {
+        background: rgba(0, 122, 255, 0.12);
+        color: #007aff;
+    }
+    .cert-badge.revoked {
+        background: rgba(255, 59, 48, 0.12);
+        color: #ff3b30;
+    }
+
+    .cert-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .cert-status-select {
+        padding: 0.3rem 0.5rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .cert-status-select:focus {
+        outline: none;
+        border-color: #f59e0b;
+    }
+    .cert-action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: transparent;
+        color: var(--bs-secondary-color, #6c757d);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .cert-action-btn:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+        background: rgba(245, 158, 11, 0.06);
+    }
+    .cert-action-btn.danger:hover {
+        border-color: #ff3b30;
+        color: #ff3b30;
+        background: rgba(255, 59, 48, 0.06);
+    }
+    .cert-action-btn.success {
+        border-color: #34c759;
+        color: #fff;
+        background: #34c759;
+    }
+    .cert-action-btn.success:hover {
+        background: #2da44e;
+    }
+
+    .cert-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        animation: certSlideIn 0.5s ease-out;
+    }
+    .cert-empty i {
+        font-size: 3.5rem;
+        color: #f59e0b;
+        opacity: 0.4;
+        display: block;
+        margin-bottom: 1rem;
+    }
+    .cert-empty h5 {
+        font-weight: 800;
+        color: var(--text-color, #212529);
+        margin-bottom: 0.5rem;
+    }
+    .cert-empty p {
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.9rem;
+        max-width: 360px;
+        margin: 0 auto 1.25rem;
+    }
+
+    .cert-pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .cert-pagination a,
+    .cert-pagination span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 0.5rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        color: var(--text-color, #212529);
+        transition: all 0.2s;
+    }
+    .cert-pagination a:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+    }
+    .cert-pagination .active {
+        background: #f59e0b;
+        border-color: #f59e0b;
+        color: #fff;
+    }
+    .cert-pagination .disabled {
+        opacity: 0.4;
+        pointer-events: none;
+    }
+
+    @media (max-width: 992px) {
+        .cert-stats { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+        .cert-stats { grid-template-columns: repeat(2, 1fr); }
+        .cert-header { flex-direction: column; text-align: center; }
+        .cert-filter-row { flex-direction: column; }
+    }
+    @media (max-width: 576px) {
+        .cert-stats { grid-template-columns: 1fr 1fr; }
+        .cert-page { padding: 1rem 0.5rem; }
+    }
+</style>
+
+<div class="cert-page">
+    <!-- Header -->
+    <div class="cert-header">
+        <div class="cert-header-left">
+            <h1><i class="bi bi-award"></i> Sertifikatlar</h1>
+            <div class="cert-header-sub">O'quvchilarga berilgan sertifikatlar va ularni boshqarish</div>
+        </div>
+        <div>
+            <a href="{% url 'admin_certificate_issue' %}" class="cert-btn cert-btn-primary">
+                <i class="bi bi-plus-lg"></i> Sertifikat berish
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="cert-stats">
+        <div class="cert-stat-card">
+            <div class="cert-stat-icon total"><i class="bi bi-award"></i></div>
+            <div class="cert-stat-val">{{ total_certificates }}</div>
+            <div class="cert-stat-label">Jami</div>
+        </div>
+        <div class="cert-stat-card">
+            <div class="cert-stat-icon active"><i class="bi bi-check-circle"></i></div>
+            <div class="cert-stat-val">{{ active_certificates }}</div>
+            <div class="cert-stat-label">Faol</div>
+        </div>
+        <div class="cert-stat-card">
+            <div class="cert-stat-icon expired"><i class="bi bi-clock-history"></i></div>
+            <div class="cert-stat-val">{{ expired_certificates }}</div>
+            <div class="cert-stat-label">Muddati tugagan</div>
+        </div>
+        <div class="cert-stat-card">
+            <div class="cert-stat-icon frozen"><i class="bi bi-snow"></i></div>
+            <div class="cert-stat-val">{{ frozen_certificates }}</div>
+            <div class="cert-stat-label">Muzlatilgan</div>
+        </div>
+        <div class="cert-stat-card">
+            <div class="cert-stat-icon revoked"><i class="bi bi-x-circle"></i></div>
+            <div class="cert-stat-val">{{ revoked_certificates }}</div>
+            <div class="cert-stat-label">Bekor qilingan</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="cert-filter-card">
+        <form method="get">
+            <div class="cert-filter-row">
+                <div class="cert-filter-group" style="flex:2;">
+                    <label><i class="bi bi-search"></i> Qidirish</label>
+                    <input type="text" name="search" placeholder="Ism, familiya yoki sertifikat ID..." value="{{ search }}">
+                </div>
+                <div class="cert-filter-group">
+                    <label><i class="bi bi-funnel"></i> Holat</label>
+                    <select name="status">
+                        <option value="">Barchasi</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
+                        <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Muddati tugagan</option>
+                        <option value="frozen" {% if status_filter == 'frozen' %}selected{% endif %}>Muzlatilgan</option>
+                        <option value="revoked" {% if status_filter == 'revoked' %}selected{% endif %}>Bekor qilingan</option>
+                    </select>
+                </div>
+                <div class="cert-filter-group">
+                    <label><i class="bi bi-briefcase"></i> Kurs</label>
+                    <select name="profession">
+                        <option value="">Barchasi</option>
+                        {% for p in professions %}
+                        <option value="{{ p.pk }}" {% if profession_filter == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:flex-end;">
+                    <button type="submit" class="cert-filter-btn">
+                        <i class="bi bi-search"></i> Qidirish
+                    </button>
+                    {% if search or status_filter or profession_filter %}
+                    <a href="{% url 'admin_certificates' %}" class="cert-filter-reset">
+                        <i class="bi bi-x-lg"></i> Tozalash
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    {% if certificates %}
+    <div class="cert-table-card">
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Sertifikat ID</th>
+                        <th>O'quvchi</th>
+                        <th>Kurs</th>
+                        <th>Holat</th>
+                        <th>Berilgan sana</th>
+                        <th>Amal qilish</th>
+                        <th>Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cert in certificates %}
+                    <tr>
+                        <td><span class="cert-id">{{ cert.certificate_id }}</span></td>
+                        <td>
+                            <span class="cert-user-name">{{ cert.student.full_name }}</span>
+                            <span class="cert-user-sub">@{{ cert.student.username }}</span>
+                        </td>
+                        <td>{{ cert.profession.name }}</td>
+                        <td>
+                            <span class="cert-badge {{ cert.status }}">
+                                {% if cert.status == 'active' %}<i class="bi bi-check-circle-fill"></i>
+                                {% elif cert.status == 'expired' %}<i class="bi bi-clock-fill"></i>
+                                {% elif cert.status == 'frozen' %}<i class="bi bi-snow"></i>
+                                {% elif cert.status == 'revoked' %}<i class="bi bi-x-circle-fill"></i>
+                                {% endif %}
+                                {{ cert.get_status_display }}
+                            </span>
+                        </td>
+                        <td><small>{{ cert.valid_from|date:"d.m.Y" }}</small></td>
+                        <td>
+                            {% if cert.valid_until %}
+                            <small>{{ cert.valid_until|date:"d.m.Y" }}</small>
+                            {% else %}
+                            <small class="text-muted">Cheksiz</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="cert-actions">
+                                <form method="post" action="{% url 'admin_certificate_status' cert.pk %}" style="display:flex; align-items:center; gap:0.3rem;">
+                                    {% csrf_token %}
+                                    <select name="status" class="cert-status-select" onchange="this.form.submit()">
+                                        <option value="active" {% if cert.status == 'active' %}selected{% endif %}>Faol</option>
+                                        <option value="expired" {% if cert.status == 'expired' %}selected{% endif %}>Muddati tugagan</option>
+                                        <option value="frozen" {% if cert.status == 'frozen' %}selected{% endif %}>Muzlatilgan</option>
+                                        <option value="revoked" {% if cert.status == 'revoked' %}selected{% endif %}>Bekor qilingan</option>
+                                    </select>
+                                </form>
+                                {% if cert.file %}
+                                <a href="{{ cert.file.url }}" target="_blank" class="cert-action-btn" title="Yuklab olish">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                {% endif %}
+                                <form method="post" action="{% url 'admin_certificate_delete' cert.pk %}" onsubmit="return confirm('Sertifikatni o\'chirmoqchimisiz?')" style="display:contents;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="cert-action-btn danger" title="O'chirish">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if certificates.has_other_pages %}
+    <div class="cert-pagination">
+        {% if certificates.has_previous %}
+        <a href="?page={{ certificates.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if profession_filter %}&profession={{ profession_filter }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% endif %}
+        {% for num in certificates.paginator.page_range %}
+        {% if certificates.number == num %}
+        <span class="active">{{ num }}</span>
+        {% elif num > certificates.number|add:'-3' and num < certificates.number|add:'3' %}
+        <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if profession_filter %}&profession={{ profession_filter }}{% endif %}">{{ num }}</a>
+        {% endif %}
+        {% endfor %}
+        {% if certificates.has_next %}
+        <a href="?page={{ certificates.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if profession_filter %}&profession={{ profession_filter }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="cert-empty">
+        <i class="bi bi-award"></i>
+        <h5>Sertifikatlar topilmadi</h5>
+        <p>{% if search or status_filter or profession_filter %}Qidiruv natijasi bo'sh. Boshqa parametrlar bilan sinab ko'ring.{% else %}Hali hech qanday sertifikat berilmagan.{% endif %}</p>
+        {% if search or status_filter or profession_filter %}
+        <a href="{% url 'admin_certificates' %}" class="cert-btn cert-btn-primary">
+            <i class="bi bi-x-lg"></i> Filtrni tozalash
+        </a>
+        {% else %}
+        <a href="{% url 'admin_certificate_issue' %}" class="cert-btn cert-btn-primary">
+            <i class="bi bi-plus-lg"></i> Sertifikat berish
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

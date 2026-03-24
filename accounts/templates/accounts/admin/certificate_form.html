@@ -1,0 +1,228 @@
+﻿{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Sertifikat berish - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<style>
+    .certf-page {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 1.5rem 1rem;
+    }
+    @keyframes certfSlideIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .certf-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        padding: 1.5rem;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        animation: certfSlideIn 0.4s ease-out;
+    }
+    .certf-header h1 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--text-color, #212529);
+    }
+    .certf-header h1 i { color: #f59e0b; font-size: 1.75rem; }
+    .certf-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--bs-secondary-color, #6c757d);
+        border: 1.5px solid var(--border-color, #dee2e6);
+        transition: all 0.2s;
+    }
+    .certf-back:hover {
+        border-color: #f59e0b;
+        color: #f59e0b;
+    }
+
+    .certf-card {
+        border-radius: 16px;
+        border: 1px solid var(--border-color, #dee2e6);
+        background: var(--card-bg, #fff);
+        padding: 2rem;
+        animation: certfSlideIn 0.4s ease-out 0.1s backwards;
+    }
+    .certf-group {
+        margin-bottom: 1.25rem;
+    }
+    .certf-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--text-color, #212529);
+        margin-bottom: 0.4rem;
+    }
+    .certf-group label .required {
+        color: #ff3b30;
+    }
+    .certf-group select,
+    .certf-group input,
+    .certf-group textarea {
+        width: 100%;
+        padding: 0.6rem 0.9rem;
+        border: 1.5px solid var(--border-color, #dee2e6);
+        border-radius: 10px;
+        font-size: 0.9rem;
+        background: var(--bg-color, #f8f9fa);
+        color: var(--text-color, #212529);
+        transition: all 0.2s;
+    }
+    .certf-group select:focus,
+    .certf-group input:focus,
+    .certf-group textarea:focus {
+        outline: none;
+        border-color: #f59e0b;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+    .certf-group textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+    .certf-group .help-text {
+        font-size: 0.75rem;
+        color: var(--bs-secondary-color, #6c757d);
+        margin-top: 0.3rem;
+    }
+    .certf-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .certf-submit {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+    }
+    .certf-submit-btn {
+        flex: 1;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .certf-submit-btn.primary {
+        background: #f59e0b;
+        color: #fff;
+    }
+    .certf-submit-btn.primary:hover {
+        background: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+    }
+    .certf-submit-btn.cancel {
+        background: var(--bg-color, #f1f5f9);
+        color: var(--text-color, #212529);
+        border: 1.5px solid var(--border-color, #dee2e6);
+    }
+    .certf-submit-btn.cancel:hover {
+        border-color: #ef4444;
+        color: #ef4444;
+    }
+
+    @media (max-width: 576px) {
+        .certf-page { padding: 1rem 0.5rem; }
+        .certf-card { padding: 1.25rem; }
+        .certf-row { grid-template-columns: 1fr; }
+        .certf-submit { flex-direction: column; }
+    }
+</style>
+
+<div class="certf-page">
+    <div class="certf-header">
+        <h1><i class="bi bi-award"></i> Sertifikat berish</h1>
+        <a href="{% url 'admin_certificates' %}" class="certf-back">
+            <i class="bi bi-arrow-left"></i> Orqaga
+        </a>
+    </div>
+
+    <div class="certf-card">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="certf-group">
+                <label><i class="bi bi-person me-1"></i> O'quvchi <span class="required">*</span></label>
+                <select name="student" required>
+                    <option value="">— O'quvchini tanlang —</option>
+                    {% for s in students %}
+                    <option value="{{ s.pk }}">{{ s.full_name }} (@{{ s.username }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="certf-group">
+                <label><i class="bi bi-briefcase me-1"></i> Kurs <span class="required">*</span></label>
+                <select name="profession" required>
+                    <option value="">— Kursni tanlang —</option>
+                    {% for p in professions %}
+                    <option value="{{ p.pk }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="certf-group">
+                <label><i class="bi bi-file-pdf me-1"></i> Sertifikat fayli (PDF) <span class="required">*</span></label>
+                {{ form.file }}
+                <div class="help-text">Faqat PDF formatdagi fayllar qabul qilinadi</div>
+            </div>
+
+            <div class="certf-group">
+                <label><i class="bi bi-flag me-1"></i> Holat</label>
+                {{ form.status }}
+            </div>
+
+            <div class="certf-row">
+                <div class="certf-group">
+                    <label><i class="bi bi-calendar-check me-1"></i> Berilgan sana</label>
+                    {{ form.valid_from }}
+                    <div class="help-text">Bo'sh qoldirilsa bugungi sana qo'yiladi</div>
+                </div>
+                <div class="certf-group">
+                    <label><i class="bi bi-calendar-x me-1"></i> Amal qilish muddati</label>
+                    {{ form.valid_until }}
+                    <div class="help-text">Bo'sh qoldirilsa cheksiz deb belgilanadi</div>
+                </div>
+            </div>
+
+            <div class="certf-group">
+                <label><i class="bi bi-chat-text me-1"></i> Tavsif</label>
+                {{ form.description }}
+            </div>
+
+            <div class="certf-submit">
+                <a href="{% url 'admin_certificates' %}" class="certf-submit-btn cancel">
+                    <i class="bi bi-x-lg"></i> Bekor qilish
+                </a>
+                <button type="submit" class="certf-submit-btn primary">
+                    <i class="bi bi-award"></i> Sertifikat berish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
