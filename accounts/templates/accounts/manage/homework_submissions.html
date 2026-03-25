@@ -4,260 +4,313 @@
 
 {% block admin_content %}
 <style>
-.hw-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
-.hw-page .hw-title {
-    font-size: 1.6rem; font-weight: 800;
-    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;
-}
-.hw-page .hw-title i { color: #6366f1; }
-.hw-page .hw-sub { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0 0 1.5rem 0; }
+.hw { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
 
-/* ── Kurs kartalari ── */
-.hw-courses { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
-.hw-course-card {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 1.25rem; border-radius: 16px;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    text-decoration: none; color: var(--text-color, #212529); transition: all 0.2s;
-}
-.hw-course-card:hover {
-    transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-    border-color: #6366f1; color: var(--text-color, #212529);
-}
-[data-bs-theme="dark"] .hw-course-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
-.hw-course-icon {
-    width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem; color: #fff;
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-}
-.hw-course-info { flex: 1; min-width: 0; }
-.hw-course-name { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hw-course-meta { display: flex; gap: 0.75rem; font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); }
-.hw-course-meta span { display: flex; align-items: center; gap: 0.25rem; }
-.hw-course-badge {
-    display: flex; align-items: center; justify-content: center;
-    min-width: 32px; height: 32px; border-radius: 10px; padding: 0 8px;
-    font-size: 0.9rem; font-weight: 800; color: #fff; flex-shrink: 0;
-}
-.hw-course-badge.has-pending { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.hw-course-badge.no-pending { background: var(--bg-color, #e5e7eb); color: var(--bs-secondary-color, #6c757d); }
+/* ── Header ── */
+.hw-head { margin-bottom: 1.5rem; }
+.hw-head h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 0.15rem; display: flex; align-items: center; gap: 0.5rem; }
+.hw-head h1 i { color: #6366f1; font-size: 1.3rem; }
+.hw-head p { color: var(--bs-secondary-color, #6c757d); font-size: 0.88rem; margin: 0; }
 
-/* ── Umumiy statistika ── */
-.hw-global-stats {
-    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;
-    padding: 1rem 1.25rem; border-radius: 14px;
+/* ── Landing: stat strip ── */
+.hw-strip {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.75rem;
+}
+.hw-strip-card {
+    text-align: center; padding: 1rem 0.5rem; border-radius: 14px;
     border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
 }
-.hw-gs-item {
-    display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; font-weight: 600;
-    padding: 0.35rem 0.75rem; border-radius: 8px;
-    background: var(--bg-color, #f3f4f6); color: var(--text-color, #212529);
-}
-.hw-gs-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.hw-gs-dot.d-pending { background: #f59e0b; }
-.hw-gs-dot.d-reviewing { background: #0ea5e9; }
-.hw-gs-dot.d-revision { background: #ef4444; }
-.hw-gs-dot.d-accepted { background: #10b981; }
-.hw-gs-dot.d-graded { background: #8b5cf6; }
+.hw-strip-num { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
+.hw-strip-num.c1 { color: #f59e0b; }
+.hw-strip-num.c2 { color: #0ea5e9; }
+.hw-strip-num.c3 { color: #ef4444; }
+.hw-strip-num.c4 { color: #10b981; }
+.hw-strip-num.c5 { color: #8b5cf6; }
+.hw-strip-label { font-size: 0.72rem; font-weight: 600; color: var(--bs-secondary-color, #6c757d); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 0.25rem; }
 
-/* ── Kurs ichidagi sahifa ── */
+/* ── Landing: course grid ── */
+.hw-grid-label { font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--bs-secondary-color, #6c757d); margin-bottom: 0.75rem; }
+.hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 0.875rem; }
+.hw-ccard {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1.15rem 1.25rem; border-radius: 16px;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+    text-decoration: none; color: inherit; transition: all 0.2s;
+    position: relative; overflow: hidden;
+}
+.hw-ccard::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: #6366f1; border-radius: 4px 0 0 4px; opacity: 0; transition: opacity 0.2s;
+}
+.hw-ccard:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.07); color: inherit; }
+.hw-ccard:hover::before { opacity: 1; }
+[data-bs-theme="dark"] .hw-ccard:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+.hw-ccard-icon {
+    width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+.hw-ccard-body { flex: 1; min-width: 0; }
+.hw-ccard-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-ccard-row { display: flex; gap: 1rem; font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); }
+.hw-ccard-row span { display: flex; align-items: center; gap: 0.25rem; }
+.hw-ccard-row .warn { color: #d97706; font-weight: 600; }
+.hw-ccard-badge {
+    align-self: center; min-width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 800; flex-shrink: 0; padding: 0 6px;
+}
+.hw-ccard-badge.has { background: #fef3c7; color: #b45309; }
+[data-bs-theme="dark"] .hw-ccard-badge.has { background: rgba(245,158,11,0.2); color: #fcd34d; }
+.hw-ccard-badge.zero { background: var(--bg-color, #f3f4f6); color: var(--bs-secondary-color, #9ca3af); }
+.hw-ccard-arrow { color: var(--bs-secondary-color, #9ca3af); font-size: 1.1rem; flex-shrink: 0; transition: transform 0.2s; }
+.hw-ccard:hover .hw-ccard-arrow { transform: translateX(3px); color: #6366f1; }
+
+/* ── Inner page: back + header ── */
 .hw-back {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    font-size: 0.9rem; font-weight: 600; color: #6366f1;
-    text-decoration: none; margin-bottom: 1rem; padding: 0.4rem 0;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-size: 0.85rem; font-weight: 600; color: var(--bs-secondary-color, #6c757d);
+    text-decoration: none; margin-bottom: 1.25rem; transition: color 0.15s;
 }
-.hw-back:hover { color: #4f46e5; }
-.hw-course-header {
+.hw-back:hover { color: #6366f1; }
+.hw-inner-head {
     display: flex; align-items: center; gap: 0.75rem;
-    margin-bottom: 1.25rem; padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color, #dee2e6);
+    padding: 1.15rem 1.35rem; border-radius: 16px; margin-bottom: 1.25rem;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
 }
-.hw-course-header .hw-course-icon { width: 44px; height: 44px; font-size: 1.2rem; border-radius: 12px; }
-.hw-course-header-name { font-size: 1.25rem; font-weight: 800; }
+.hw-inner-head .hw-ccard-icon { width: 42px; height: 42px; font-size: 1.15rem; border-radius: 11px; }
+.hw-inner-name { font-size: 1.15rem; font-weight: 800; }
+.hw-inner-sub { font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); }
 
-/* ── Status pills ── */
-.hw-stats-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.hw-stat-pill {
+/* ── Tabs ── */
+.hw-tabs {
+    display: flex; gap: 0.25rem; margin-bottom: 1.15rem; overflow-x: auto;
+    border-bottom: 2px solid var(--border-color, #dee2e6); padding-bottom: 0;
+}
+.hw-tab {
     display: inline-flex; align-items: center; gap: 0.3rem;
-    padding: 0.4rem 0.85rem; border-radius: 10px; font-size: 0.8rem; font-weight: 700;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    color: var(--text-color, #212529); text-decoration: none; transition: all 0.15s;
+    padding: 0.55rem 0.9rem; font-size: 0.8rem; font-weight: 700;
+    color: var(--bs-secondary-color, #6c757d); text-decoration: none;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    white-space: nowrap; transition: all 0.15s;
 }
-.hw-stat-pill:hover { border-color: #6366f1; color: var(--text-color, #212529); }
-.hw-stat-pill.active { border-color: #6366f1; background: rgba(99,102,241,0.06); }
+.hw-tab:hover { color: #6366f1; }
+.hw-tab.on { color: #6366f1; border-bottom-color: #6366f1; }
+.hw-tab-count {
+    font-size: 0.7rem; font-weight: 800; padding: 0.1rem 0.4rem;
+    border-radius: 6px; background: var(--bg-color, #f3f4f6); color: var(--bs-secondary-color, #6c757d);
+}
+.hw-tab.on .hw-tab-count { background: rgba(99,102,241,0.1); color: #6366f1; }
 
-/* ── Search ── */
-.hw-search { position: relative; margin-bottom: 1rem; }
-.hw-search-icon {
-    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
-    color: var(--bs-secondary-color, #6c757d); font-size: 1.1rem; pointer-events: none;
+/* ── Controls ── */
+.hw-controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.hw-search { position: relative; flex: 1; min-width: 200px; }
+.hw-search i {
+    position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+    color: var(--bs-secondary-color, #adb5bd); font-size: 0.95rem; pointer-events: none;
 }
-.hw-search-input {
-    width: 100%; padding: 0.7rem 2.5rem 0.7rem 2.75rem;
-    border: 2px solid var(--border-color, #dee2e6); border-radius: 14px;
+.hw-search input {
+    width: 100%; padding: 0.55rem 2.2rem 0.55rem 2.4rem;
+    border: 1.5px solid var(--border-color, #dee2e6); border-radius: 10px;
     background: var(--card-bg, #fff); color: var(--text-color, #212529);
-    font-size: 0.9rem; transition: border-color 0.2s;
+    font-size: 0.85rem; transition: border-color 0.15s;
 }
-.hw-search-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
-.hw-search-input::placeholder { color: var(--bs-secondary-color, #adb5bd); }
-.hw-search-clear {
-    position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
-    background: none; border: none; color: var(--bs-secondary-color, #6c757d);
-    cursor: pointer; font-size: 1.1rem; padding: 0.25rem; display: none;
+.hw-search input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.08); }
+.hw-search input::placeholder { color: var(--bs-secondary-color, #adb5bd); }
+.hw-search-x {
+    position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--bs-secondary-color, #adb5bd);
+    cursor: pointer; font-size: 1rem; padding: 0.15rem; display: none;
 }
-.hw-search-clear.hw-show { display: block; }
-
-/* ── Toolbar ── */
-.hw-toolbar {
-    display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;
-}
-.hw-select {
-    padding: 0.45rem 0.7rem; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+.hw-search-x.on { display: block; }
+.hw-sort {
+    padding: 0.55rem 0.75rem; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
+    border: 1.5px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
     color: var(--text-color, #212529); cursor: pointer;
 }
-.hw-select:focus { outline: none; border-color: #6366f1; }
-.hw-toolbar-count {
-    margin-left: auto; font-size: 0.82rem; color: var(--bs-secondary-color, #6c757d);
-    font-weight: 500; white-space: nowrap;
-}
+.hw-sort:focus { outline: none; border-color: #6366f1; }
+.hw-count { font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); font-weight: 500; margin-left: auto; white-space: nowrap; }
 
-/* ── Submission cards ── */
-.hw-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.hw-card {
-    display: grid; grid-template-columns: 2fr 1.8fr 1fr 0.8fr 0.7fr;
-    align-items: center; gap: 1rem; padding: 0.875rem 1.25rem;
-    border: 1px solid var(--border-color, #dee2e6); border-radius: 14px;
-    background: var(--card-bg, #fff); transition: box-shadow 0.2s;
+/* ── Table ── */
+.hw-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.hw-table thead th {
+    padding: 0.6rem 0.75rem; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--bs-secondary-color, #6c757d);
+    border-bottom: 1px solid var(--border-color, #dee2e6);
+    background: transparent; white-space: nowrap;
 }
-.hw-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-[data-bs-theme="dark"] .hw-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.25); }
-.hw-card.hw-has-unread { border-left: 3px solid #6366f1; }
-.hw-card.hw-ai-graded { border-left: 3px solid #10b981; }
+.hw-table tbody tr {
+    transition: background 0.12s;
+}
+.hw-table tbody tr:hover { background: rgba(99,102,241,0.02); }
+[data-bs-theme="dark"] .hw-table tbody tr:hover { background: rgba(99,102,241,0.06); }
+.hw-table tbody td {
+    padding: 0.75rem; border-bottom: 1px solid var(--border-color, #e9ecef);
+    vertical-align: middle; font-size: 0.88rem;
+}
+[data-bs-theme="dark"] .hw-table tbody td { border-bottom-color: var(--border-color, #2d3748); }
+.hw-table tbody tr:last-child td { border-bottom: none; }
 
-.hw-student { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-.hw-avatar { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
-.hw-avatar-ph {
-    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+/* ── Table cells ── */
+.hw-user { display: flex; align-items: center; gap: 0.65rem; }
+.hw-av { width: 34px; height: 34px; border-radius: 9px; object-fit: cover; flex-shrink: 0; }
+.hw-av-ph {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.8rem; color: #fff;
+    font-weight: 700; font-size: 0.72rem; color: #fff;
     background: linear-gradient(135deg, #6366f1, #4f46e5);
 }
-.hw-sname { font-weight: 700; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hw-late { font-size: 0.72rem; color: #ef4444; display: flex; align-items: center; gap: 0.2rem; }
-.hw-unread-badge {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 18px; height: 18px; border-radius: 50%; padding: 0 4px;
-    background: #ef4444; color: #fff; font-size: 0.65rem; font-weight: 700; margin-left: 4px;
+.hw-uname { font-weight: 700; font-size: 0.84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.hw-ulabel { font-size: 0.7rem; color: #ef4444; display: flex; align-items: center; gap: 0.15rem; }
+.hw-ubadge {
+    min-width: 16px; height: 16px; border-radius: 50%; padding: 0 3px;
+    background: #ef4444; color: #fff; font-size: 0.6rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center; margin-left: 3px;
 }
-.hw-lesson { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hw-tags { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-.hw-tag {
-    display: inline-flex; align-items: center; gap: 0.2rem;
-    padding: 0.15rem 0.45rem; border-radius: 6px; font-size: 0.68rem; font-weight: 600;
+.hw-lesson-name { font-weight: 600; font-size: 0.82rem; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hw-chips { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.2rem; }
+.hw-chip {
+    display: inline-flex; align-items: center; gap: 0.15rem;
+    padding: 0.1rem 0.4rem; border-radius: 5px; font-size: 0.65rem; font-weight: 600;
 }
-.hw-tag.t-text { background: rgba(14,165,233,0.1); color: #0ea5e9; }
-.hw-tag.t-file { background: rgba(99,102,241,0.1); color: #6366f1; }
-.hw-tag.t-revision { background: rgba(245,158,11,0.1); color: #d97706; }
-.hw-tag.t-ai { background: rgba(16,185,129,0.1); color: #10b981; }
-[data-bs-theme="dark"] .hw-tag.t-text { background: rgba(14,165,233,0.2); color: #7dd3fc; }
-[data-bs-theme="dark"] .hw-tag.t-file { background: rgba(99,102,241,0.2); color: #a5b4fc; }
-[data-bs-theme="dark"] .hw-tag.t-revision { background: rgba(245,158,11,0.2); color: #fcd34d; }
-[data-bs-theme="dark"] .hw-tag.t-ai { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+.hw-chip.ch-text { background: rgba(14,165,233,0.08); color: #0284c7; }
+.hw-chip.ch-file { background: rgba(99,102,241,0.08); color: #4f46e5; }
+.hw-chip.ch-rev { background: rgba(245,158,11,0.08); color: #b45309; }
+.hw-chip.ch-ai { background: rgba(16,185,129,0.08); color: #059669; }
+[data-bs-theme="dark"] .hw-chip.ch-text { background: rgba(14,165,233,0.15); color: #7dd3fc; }
+[data-bs-theme="dark"] .hw-chip.ch-file { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+[data-bs-theme="dark"] .hw-chip.ch-rev { background: rgba(245,158,11,0.15); color: #fcd34d; }
+[data-bs-theme="dark"] .hw-chip.ch-ai { background: rgba(16,185,129,0.15); color: #6ee7b7; }
 
-.hw-status {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    padding: 0.25rem 0.6rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+.hw-badge {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700;
 }
-.hw-status.s-pending { background: rgba(245,158,11,0.1); color: #d97706; }
-.hw-status.s-reviewing { background: rgba(14,165,233,0.1); color: #0ea5e9; }
-.hw-status.s-revision { background: rgba(239,68,68,0.1); color: #ef4444; }
-.hw-status.s-accepted { background: rgba(16,185,129,0.1); color: #10b981; }
-.hw-status.s-graded { background: rgba(139,92,246,0.1); color: #8b5cf6; }
-[data-bs-theme="dark"] .hw-status.s-pending { background: rgba(245,158,11,0.2); color: #fcd34d; }
-[data-bs-theme="dark"] .hw-status.s-reviewing { background: rgba(14,165,233,0.2); color: #7dd3fc; }
-[data-bs-theme="dark"] .hw-status.s-revision { background: rgba(239,68,68,0.2); color: #fca5a5; }
-[data-bs-theme="dark"] .hw-status.s-accepted { background: rgba(16,185,129,0.2); color: #6ee7b7; }
-[data-bs-theme="dark"] .hw-status.s-graded { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+.hw-badge.b-pending { background: rgba(245,158,11,0.1); color: #b45309; }
+.hw-badge.b-reviewing { background: rgba(14,165,233,0.1); color: #0369a1; }
+.hw-badge.b-revision { background: rgba(239,68,68,0.1); color: #dc2626; }
+.hw-badge.b-accepted { background: rgba(16,185,129,0.1); color: #047857; }
+.hw-badge.b-graded { background: rgba(139,92,246,0.1); color: #6d28d9; }
+[data-bs-theme="dark"] .hw-badge.b-pending { background: rgba(245,158,11,0.15); color: #fcd34d; }
+[data-bs-theme="dark"] .hw-badge.b-reviewing { background: rgba(14,165,233,0.15); color: #7dd3fc; }
+[data-bs-theme="dark"] .hw-badge.b-revision { background: rgba(239,68,68,0.15); color: #fca5a5; }
+[data-bs-theme="dark"] .hw-badge.b-accepted { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+[data-bs-theme="dark"] .hw-badge.b-graded { background: rgba(139,92,246,0.15); color: #c4b5fd; }
 
-.hw-time { font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); }
-
-.hw-view {
-    display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
-    padding: 0.4rem 0.85rem; border-radius: 10px; font-size: 0.8rem; font-weight: 600;
-    border: 1px solid rgba(99,102,241,0.3); background: var(--card-bg, #fff);
-    color: #6366f1; text-decoration: none; transition: all 0.2s; white-space: nowrap;
+.hw-date { font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); white-space: nowrap; }
+.hw-btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    padding: 0.35rem 0.7rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+    background: rgba(99,102,241,0.08); color: #6366f1;
+    text-decoration: none; transition: all 0.15s; border: none; white-space: nowrap;
 }
-.hw-view:hover { background: rgba(99,102,241,0.06); transform: translateY(-1px); color: #6366f1; }
+.hw-btn:hover { background: rgba(99,102,241,0.15); color: #4f46e5; }
 
+/* ── Empty ── */
 .hw-empty { text-align: center; padding: 3rem 1rem; }
-.hw-empty-icon {
-    width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 1rem;
+.hw-empty-ico {
+    width: 64px; height: 64px; border-radius: 16px; margin: 0 auto 0.75rem;
     display: flex; align-items: center; justify-content: center;
-    background: var(--bg-color, #f0f2f5); font-size: 1.75rem; color: var(--bs-secondary-color, #6c757d);
+    background: var(--bg-color, #f3f4f6); font-size: 1.5rem; color: var(--bs-secondary-color, #9ca3af);
 }
-.hw-empty h5 { font-weight: 700; margin-bottom: 0.4rem; }
-.hw-empty p { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0; }
+.hw-empty h5 { font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+.hw-empty p { color: var(--bs-secondary-color, #6c757d); font-size: 0.85rem; margin: 0; }
 
+/* ── Mobile cards ── */
+.hw-mob-list { display: none; flex-direction: column; gap: 0.5rem; }
+.hw-mob-card {
+    padding: 0.9rem 1rem; border-radius: 14px;
+    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
+}
+.hw-mob-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.hw-mob-mid { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.5rem; }
+.hw-mob-mid-lesson { font-weight: 600; font-size: 0.82rem; }
+.hw-mob-bot { display: flex; justify-content: space-between; align-items: center; }
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-    .hw-page { padding: 1rem 0.5rem; }
-    .hw-page .hw-title { font-size: 1.3rem; }
-    .hw-courses { grid-template-columns: 1fr; }
-    .hw-card { grid-template-columns: 1fr; gap: 0.5rem; padding: 1rem; }
-    .hw-desk { display: none !important; }
-    .hw-mob { display: flex !important; }
-    .hw-toolbar-count { margin-left: 0; width: 100%; text-align: center; order: 10; }
-    .hw-select { flex: 1; min-width: 0; }
-    .hw-stats-row { gap: 0.35rem; }
-    .hw-stat-pill { font-size: 0.72rem; padding: 0.3rem 0.6rem; }
+    .hw { padding: 1rem 0.5rem; }
+    .hw-head h1 { font-size: 1.25rem; }
+    .hw-strip { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+    .hw-strip-card { padding: 0.7rem 0.4rem; }
+    .hw-strip-num { font-size: 1.2rem; }
+    .hw-grid { grid-template-columns: 1fr; }
+    .hw-table-wrap { display: none; }
+    .hw-mob-list { display: flex; }
+    .hw-controls { flex-direction: column; }
+    .hw-search { width: 100%; }
+    .hw-count { margin-left: 0; }
+    .hw-tabs { gap: 0; }
+    .hw-tab { padding: 0.45rem 0.6rem; font-size: 0.72rem; }
 }
 @media (min-width: 769px) {
-    .hw-mob { display: none !important; }
+    .hw-mob-list { display: none !important; }
 }
 </style>
 
-<div class="hw-page">
+<div class="hw">
 
-    <h1 class="hw-title"><i class="bi bi-journal-check"></i> Uy Vazifalari</h1>
-    <p class="hw-sub">{% if profession_filter %}Vazifalarni tekshirish va baholash{% else %}Kursni tanlang va vazifalarni tekshiring{% endif %}</p>
+    <div class="hw-head">
+        <h1><i class="bi bi-journal-check"></i> Uy vazifalari</h1>
+        <p>{% if profession_filter %}Vazifalarni tekshirish va baholash{% else %}Kursni tanlang{% endif %}</p>
+    </div>
 
 {% if not profession_filter %}
 
     <!-- Umumiy statistika -->
-    <div class="hw-global-stats">
-        <div class="hw-gs-item"><span class="hw-gs-dot d-pending"></span> {{ stats.pending }} kutilmoqda</div>
-        <div class="hw-gs-item"><span class="hw-gs-dot d-reviewing"></span> {{ stats.reviewing }} ko'rilmoqda</div>
-        <div class="hw-gs-item"><span class="hw-gs-dot d-revision"></span> {{ stats.revision }} qayta ishlash</div>
-        <div class="hw-gs-item"><span class="hw-gs-dot d-accepted"></span> {{ stats.accepted }} qabul qilindi</div>
-        <div class="hw-gs-item"><span class="hw-gs-dot d-graded"></span> {{ stats.graded }} baholangan</div>
+    <div class="hw-strip">
+        <div class="hw-strip-card">
+            <div class="hw-strip-num c1">{{ stats.pending }}</div>
+            <div class="hw-strip-label">Kutilmoqda</div>
+        </div>
+        <div class="hw-strip-card">
+            <div class="hw-strip-num c2">{{ stats.reviewing }}</div>
+            <div class="hw-strip-label">Ko'rilmoqda</div>
+        </div>
+        <div class="hw-strip-card">
+            <div class="hw-strip-num c3">{{ stats.revision }}</div>
+            <div class="hw-strip-label">Qayta ishlash</div>
+        </div>
+        <div class="hw-strip-card">
+            <div class="hw-strip-num c4">{{ stats.accepted }}</div>
+            <div class="hw-strip-label">Qabul qilindi</div>
+        </div>
+        <div class="hw-strip-card">
+            <div class="hw-strip-num c5">{{ stats.graded }}</div>
+            <div class="hw-strip-label">Baholangan</div>
+        </div>
     </div>
 
     {% if profession_stats %}
-    <div class="hw-courses">
+    <div class="hw-grid-label"><i class="bi bi-grid-3x2-gap me-1"></i> Kurslar</div>
+    <div class="hw-grid">
         {% for ps in profession_stats %}
-        <a href="?profession={{ ps.profession.pk }}" class="hw-course-card">
-            <div class="hw-course-icon"><i class="bi bi-book"></i></div>
-            <div class="hw-course-info">
-                <div class="hw-course-name">{{ ps.profession.name }}</div>
-                <div class="hw-course-meta">
-                    <span><i class="bi bi-journal-text"></i> {{ ps.total }} ta vazifa</span>
+        <a href="?profession={{ ps.profession.pk }}" class="hw-ccard">
+            <div class="hw-ccard-icon"><i class="bi bi-book"></i></div>
+            <div class="hw-ccard-body">
+                <div class="hw-ccard-name">{{ ps.profession.name }}</div>
+                <div class="hw-ccard-row">
+                    <span><i class="bi bi-journal-text"></i> {{ ps.total }} vazifa</span>
                     {% if ps.pending > 0 %}
-                    <span style="color: #d97706;"><i class="bi bi-hourglass-split"></i> {{ ps.pending }} kutilmoqda</span>
+                    <span class="warn"><i class="bi bi-exclamation-circle"></i> {{ ps.pending }} kutilmoqda</span>
                     {% endif %}
                 </div>
             </div>
-            <div class="hw-course-badge {% if ps.pending > 0 %}has-pending{% else %}no-pending{% endif %}">
-                {{ ps.pending }}
-            </div>
+            {% if ps.pending > 0 %}
+            <div class="hw-ccard-badge has">{{ ps.pending }}</div>
+            {% else %}
+            <div class="hw-ccard-badge zero">0</div>
+            {% endif %}
+            <i class="bi bi-chevron-right hw-ccard-arrow"></i>
         </a>
         {% endfor %}
     </div>
     {% else %}
     <div class="hw-empty">
-        <div class="hw-empty-icon"><i class="bi bi-inbox"></i></div>
+        <div class="hw-empty-ico"><i class="bi bi-inbox"></i></div>
         <h5>Kurslar topilmadi</h5>
-        <p>Hozircha hech qanday kurs mavjud emas</p>
+        <p>Hozircha vazifa topshirilmagan</p>
     </div>
     {% endif %}
 
@@ -266,100 +319,137 @@
     <a href="{% url 'homework_submissions' %}" class="hw-back"><i class="bi bi-arrow-left"></i> Barcha kurslar</a>
 
     {% for ps in profession_stats %}{% if ps.profession.pk|stringformat:"i" == profession_filter %}
-    <div class="hw-course-header">
-        <div class="hw-course-icon"><i class="bi bi-book"></i></div>
+    <div class="hw-inner-head">
+        <div class="hw-ccard-icon"><i class="bi bi-book"></i></div>
         <div>
-            <div class="hw-course-header-name">{{ ps.profession.name }}</div>
-            <div style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);">{{ total_count }} ta vazifa</div>
+            <div class="hw-inner-name">{{ ps.profession.name }}</div>
+            <div class="hw-inner-sub">{{ total_count }} ta topshirilgan vazifa</div>
         </div>
     </div>
     {% endif %}{% endfor %}
 
-    <!-- Status filter pills -->
-    <div class="hw-stats-row">
-        <a href="?profession={{ profession_filter }}" class="hw-stat-pill {% if not status_filter %}active{% endif %}">
-            <i class="bi bi-stack"></i> Barchasi
+    <!-- Tabs -->
+    <div class="hw-tabs">
+        <a href="?profession={{ profession_filter }}" class="hw-tab {% if not status_filter %}on{% endif %}">
+            <i class="bi bi-layers"></i> Barchasi
         </a>
-        <a href="?profession={{ profession_filter }}&status=pending" class="hw-stat-pill {% if status_filter == 'pending' %}active{% endif %}">
-            <i class="bi bi-hourglass-split"></i> Kutilmoqda ({{ stats.pending }})
+        <a href="?profession={{ profession_filter }}&status=pending" class="hw-tab {% if status_filter == 'pending' %}on{% endif %}">
+            <i class="bi bi-hourglass-split"></i> Kutilmoqda <span class="hw-tab-count">{{ stats.pending }}</span>
         </a>
-        <a href="?profession={{ profession_filter }}&status=reviewing" class="hw-stat-pill {% if status_filter == 'reviewing' %}active{% endif %}">
-            <i class="bi bi-eye"></i> Ko'rilmoqda ({{ stats.reviewing }})
+        <a href="?profession={{ profession_filter }}&status=reviewing" class="hw-tab {% if status_filter == 'reviewing' %}on{% endif %}">
+            <i class="bi bi-eye"></i> Ko'rilmoqda <span class="hw-tab-count">{{ stats.reviewing }}</span>
         </a>
-        <a href="?profession={{ profession_filter }}&status=revision" class="hw-stat-pill {% if status_filter == 'revision' %}active{% endif %}">
-            <i class="bi bi-arrow-repeat"></i> Qayta ishlash ({{ stats.revision }})
+        <a href="?profession={{ profession_filter }}&status=revision" class="hw-tab {% if status_filter == 'revision' %}on{% endif %}">
+            <i class="bi bi-arrow-repeat"></i> Qayta ishlash <span class="hw-tab-count">{{ stats.revision }}</span>
         </a>
-        <a href="?profession={{ profession_filter }}&status=graded" class="hw-stat-pill {% if status_filter == 'graded' %}active{% endif %}">
-            <i class="bi bi-star-fill"></i> Baholangan ({{ stats.graded }})
+        <a href="?profession={{ profession_filter }}&status=graded" class="hw-tab {% if status_filter == 'graded' %}on{% endif %}">
+            <i class="bi bi-star"></i> Baholangan <span class="hw-tab-count">{{ stats.graded }}</span>
         </a>
-        <a href="?profession={{ profession_filter }}&status=ai_checked" class="hw-stat-pill {% if status_filter == 'ai_checked' %}active{% endif %}">
-            <i class="bi bi-robot"></i> AI ({{ stats.ai_checked }})
+        <a href="?profession={{ profession_filter }}&status=ai_checked" class="hw-tab {% if status_filter == 'ai_checked' %}on{% endif %}">
+            <i class="bi bi-robot"></i> AI <span class="hw-tab-count">{{ stats.ai_checked }}</span>
         </a>
     </div>
 
+    <!-- Controls -->
     <form method="GET" id="hwForm">
     <input type="hidden" name="profession" value="{{ profession_filter }}">
     {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
 
-    <div class="hw-search">
-        <i class="bi bi-search hw-search-icon"></i>
-        <input type="text" name="q" class="hw-search-input" id="hwSearchInput"
-               placeholder="O'quvchi ismi yoki dars nomi bo'yicha izlash..."
-               value="{{ search_query }}" autocomplete="off">
-        <button type="button" class="hw-search-clear {% if search_query %}hw-show{% endif %}"
-                id="hwSearchClear"><i class="bi bi-x-circle-fill"></i></button>
-    </div>
-
-    <div class="hw-toolbar">
-        <select name="sort" class="hw-select" onchange="document.getElementById('hwForm').submit()">
+    <div class="hw-controls">
+        <div class="hw-search">
+            <i class="bi bi-search"></i>
+            <input type="text" name="q" id="hwQ" placeholder="Izlash..."
+                   value="{{ search_query }}" autocomplete="off">
+            <button type="button" class="hw-search-x {% if search_query %}on{% endif %}" id="hwX"><i class="bi bi-x-circle-fill"></i></button>
+        </div>
+        <select name="sort" class="hw-sort" onchange="document.getElementById('hwForm').submit()">
             <option value="">Yangi birinchi</option>
             <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
             <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism bo'yicha</option>
         </select>
-        <span class="hw-toolbar-count"><i class="bi bi-journal-text me-1"></i>{{ total_count }} ta vazifa</span>
+        <span class="hw-count">{{ total_count }} ta vazifa</span>
     </div>
     </form>
 
     {% if submissions %}
-    <div class="hw-list">
-        {% for sub in submissions %}
-        <div class="hw-card {% if sub.unread_messages_count > 0 %}hw-has-unread{% endif %} {% if sub.ai_feedback %}hw-ai-graded{% endif %}">
-
-            <!-- DESKTOP -->
-            <div class="hw-student hw-desk">
-                {% if sub.student.photo and sub.student.photo.url %}
-                <img src="{{ sub.student.photo.url }}" class="hw-avatar" alt="">
-                {% else %}
-                <div class="hw-avatar-ph">{{ sub.student.get_initials }}</div>
-                {% endif %}
-                <div style="min-width:0;">
-                    <div class="hw-sname">
-                        {{ sub.student.full_name }}
-                        {% if sub.unread_messages_count > 0 %}<span class="hw-unread-badge">{{ sub.unread_messages_count }}</span>{% endif %}
+    <!-- Desktop table -->
+    <div class="hw-table-wrap">
+    <table class="hw-table">
+        <thead>
+            <tr>
+                <th>O'quvchi</th>
+                <th>Dars</th>
+                <th>Holat</th>
+                <th>Vaqt</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sub in submissions %}
+            <tr>
+                <td>
+                    <div class="hw-user">
+                        {% if sub.student.photo and sub.student.photo.url %}
+                        <img src="{{ sub.student.photo.url }}" class="hw-av" alt="">
+                        {% else %}
+                        <div class="hw-av-ph">{{ sub.student.get_initials }}</div>
+                        {% endif %}
+                        <div>
+                            <div class="hw-uname">
+                                {{ sub.student.full_name }}
+                                {% if sub.unread_messages_count > 0 %}<span class="hw-ubadge">{{ sub.unread_messages_count }}</span>{% endif %}
+                            </div>
+                            {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Kech</span>{% endif %}
+                        </div>
                     </div>
-                    {% if sub.is_late %}<span class="hw-late"><i class="bi bi-clock"></i> Kech topshirilgan</span>{% endif %}
-                </div>
-            </div>
+                </td>
+                <td>
+                    <div class="hw-lesson-name" title="{{ sub.homework.lesson.title }}">{{ sub.homework.lesson.title|truncatewords:5 }}</div>
+                    <div class="hw-chips">
+                        {% if sub.submission_type == 'text' %}<span class="hw-chip ch-text"><i class="bi bi-pencil-square"></i> Matn</span>
+                        {% elif sub.file %}<span class="hw-chip ch-file"><i class="bi bi-file-earmark"></i> Fayl</span>{% endif %}
+                        {% if sub.revision_count > 0 %}<span class="hw-chip ch-rev"><i class="bi bi-arrow-repeat"></i> {{ sub.revision_count }}x</span>{% endif %}
+                        {% if sub.ai_feedback %}<span class="hw-chip ch-ai"><i class="bi bi-robot"></i> AI</span>{% endif %}
+                    </div>
+                </td>
+                <td>
+                    <span class="hw-badge b-{{ sub.status }}">
+                        {% if sub.status == 'pending' %}<i class="bi bi-hourglass-split"></i> Kutilmoqda
+                        {% elif sub.status == 'reviewing' %}<i class="bi bi-eye"></i> Ko'rilmoqda
+                        {% elif sub.status == 'revision' %}<i class="bi bi-arrow-repeat"></i> Qayta ishlash
+                        {% elif sub.status == 'accepted' %}<i class="bi bi-check-lg"></i> Qabul qilindi
+                        {% elif sub.status == 'graded' %}<i class="bi bi-star-fill"></i> {{ sub.grade }}/10
+                        {% endif %}
+                    </span>
+                </td>
+                <td><span class="hw-date">{{ sub.submitted_at|timesince }} oldin</span></td>
+                <td><a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Ko'rish</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
 
-            <div class="hw-desk" style="min-width:0;">
-                <div class="hw-lesson" title="{{ sub.homework.lesson.title }}">{{ sub.homework.lesson.title|truncatewords:5 }}</div>
-                <div class="hw-tags">
-                    {% if sub.submission_type == 'text' %}
-                    <span class="hw-tag t-text"><i class="bi bi-pencil-square"></i> Matn</span>
-                    {% elif sub.file %}
-                    <span class="hw-tag t-file"><i class="bi bi-file-earmark"></i> Fayl</span>
+    <!-- Mobile cards -->
+    <div class="hw-mob-list">
+        {% for sub in submissions %}
+        <div class="hw-mob-card">
+            <div class="hw-mob-top">
+                <div class="hw-user">
+                    {% if sub.student.photo and sub.student.photo.url %}
+                    <img src="{{ sub.student.photo.url }}" class="hw-av" alt="">
+                    {% else %}
+                    <div class="hw-av-ph">{{ sub.student.get_initials }}</div>
                     {% endif %}
-                    {% if sub.revision_count > 0 %}
-                    <span class="hw-tag t-revision"><i class="bi bi-arrow-repeat"></i> {{ sub.revision_count }}x</span>
-                    {% endif %}
-                    {% if sub.ai_feedback %}
-                    <span class="hw-tag t-ai"><i class="bi bi-robot"></i> AI</span>
-                    {% endif %}
+                    <div>
+                        <div class="hw-uname">
+                            {{ sub.student.full_name }}
+                            {% if sub.unread_messages_count > 0 %}<span class="hw-ubadge">{{ sub.unread_messages_count }}</span>{% endif %}
+                        </div>
+                        {% if sub.is_late %}<span class="hw-ulabel"><i class="bi bi-clock"></i> Kech</span>{% endif %}
+                    </div>
                 </div>
-            </div>
-
-            <div class="hw-desk">
-                <span class="hw-status s-{{ sub.status }}">
+                <span class="hw-badge b-{{ sub.status }}">
                     {% if sub.status == 'pending' %}Kutilmoqda
                     {% elif sub.status == 'reviewing' %}Ko'rilmoqda
                     {% elif sub.status == 'revision' %}Qayta ishlash
@@ -368,61 +458,18 @@
                     {% endif %}
                 </span>
             </div>
-
-            <div class="hw-time hw-desk">{{ sub.submitted_at|timesince }} oldin</div>
-
-            <div class="hw-desk" style="text-align:right;">
-                <a href="{% url 'grade_homework' sub.pk %}" class="hw-view"><i class="bi bi-eye"></i> Ko'rish</a>
-            </div>
-
-            <!-- MOBILE -->
-            <div class="hw-mob" style="flex-direction:column; gap:0.6rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div class="hw-student">
-                        {% if sub.student.photo and sub.student.photo.url %}
-                        <img src="{{ sub.student.photo.url }}" class="hw-avatar" alt="">
-                        {% else %}
-                        <div class="hw-avatar-ph">{{ sub.student.get_initials }}</div>
-                        {% endif %}
-                        <div style="min-width:0;">
-                            <div class="hw-sname">
-                                {{ sub.student.full_name }}
-                                {% if sub.unread_messages_count > 0 %}<span class="hw-unread-badge">{{ sub.unread_messages_count }}</span>{% endif %}
-                            </div>
-                            {% if sub.is_late %}<span class="hw-late"><i class="bi bi-clock"></i> Kech</span>{% endif %}
-                        </div>
-                    </div>
-                    <span class="hw-status s-{{ sub.status }}">
-                        {% if sub.status == 'pending' %}Kutilmoqda
-                        {% elif sub.status == 'reviewing' %}Ko'rilmoqda
-                        {% elif sub.status == 'revision' %}Qayta ishlash
-                        {% elif sub.status == 'accepted' %}Qabul qilindi
-                        {% elif sub.status == 'graded' %}{{ sub.grade }}/10
-                        {% endif %}
-                    </span>
-                </div>
-                <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
-                    <span style="font-size:0.82rem; font-weight:600;">{{ sub.homework.lesson.title|truncatewords:4 }}</span>
-                    <div class="hw-tags">
-                        {% if sub.submission_type == 'text' %}
-                        <span class="hw-tag t-text"><i class="bi bi-pencil-square"></i> Matn</span>
-                        {% elif sub.file %}
-                        <span class="hw-tag t-file"><i class="bi bi-file-earmark"></i> Fayl</span>
-                        {% endif %}
-                        {% if sub.revision_count > 0 %}
-                        <span class="hw-tag t-revision"><i class="bi bi-arrow-repeat"></i> {{ sub.revision_count }}x</span>
-                        {% endif %}
-                        {% if sub.ai_feedback %}
-                        <span class="hw-tag t-ai"><i class="bi bi-robot"></i> AI</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="hw-time"><i class="bi bi-clock me-1"></i>{{ sub.submitted_at|timesince }} oldin</span>
-                    <a href="{% url 'grade_homework' sub.pk %}" class="hw-view"><i class="bi bi-eye"></i> Ko'rish</a>
+            <div class="hw-mob-mid">
+                <span class="hw-mob-mid-lesson">{{ sub.homework.lesson.title|truncatewords:4 }}</span>
+                <div class="hw-chips">
+                    {% if sub.submission_type == 'text' %}<span class="hw-chip ch-text"><i class="bi bi-pencil-square"></i> Matn</span>
+                    {% elif sub.file %}<span class="hw-chip ch-file"><i class="bi bi-file-earmark"></i> Fayl</span>{% endif %}
+                    {% if sub.ai_feedback %}<span class="hw-chip ch-ai"><i class="bi bi-robot"></i> AI</span>{% endif %}
                 </div>
             </div>
-
+            <div class="hw-mob-bot">
+                <span class="hw-date"><i class="bi bi-clock me-1"></i>{{ sub.submitted_at|timesince }} oldin</span>
+                <a href="{% url 'grade_homework' sub.pk %}" class="hw-btn"><i class="bi bi-eye"></i> Ko'rish</a>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -431,35 +478,21 @@
 
     {% else %}
     <div class="hw-empty">
-        <div class="hw-empty-icon"><i class="bi bi-inbox"></i></div>
+        <div class="hw-empty-ico"><i class="bi bi-inbox"></i></div>
         <h5>Vazifalar topilmadi</h5>
-        <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Bu kursda hozircha vazifalar yo'q{% endif %}</p>
+        <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Bu filtrda hozircha vazifa yo'q{% endif %}</p>
     </div>
     {% endif %}
 
 {% endif %}
-
 </div>
 
 {% if profession_filter %}
 <script>
 (function(){
-    var input = document.getElementById('hwSearchInput');
-    var clearBtn = document.getElementById('hwSearchClear');
-    var form = document.getElementById('hwForm');
-    var timer = null;
-
-    clearBtn.addEventListener('click', function(){
-        input.value = '';
-        clearBtn.classList.remove('hw-show');
-        form.submit();
-    });
-
-    input.addEventListener('input', function(){
-        clearBtn.classList.toggle('hw-show', input.value.length > 0);
-        clearTimeout(timer);
-        timer = setTimeout(function(){ form.submit(); }, 600);
-    });
+    var q=document.getElementById('hwQ'), x=document.getElementById('hwX'), f=document.getElementById('hwForm'), t;
+    x.onclick=function(){ q.value=''; x.classList.remove('on'); f.submit(); };
+    q.oninput=function(){ x.classList.toggle('on',q.value.length>0); clearTimeout(t); t=setTimeout(function(){f.submit();},600); };
 })();
 </script>
 {% endif %}
