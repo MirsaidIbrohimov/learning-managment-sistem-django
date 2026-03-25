@@ -30,7 +30,8 @@ class BirthdayCheckMiddleware:
 
 class UpdateLastActivityMiddleware:
     """
-    Foydalanuvchi oxirgi faolligini yangilaydi va jami online vaqtini hisoblaydi
+    Foydalanuvchi oxirgi faolligini yangilaydi va jami online vaqtini hisoblaydi.
+    Soniyalarni session da to'playdi, 1 daqiqa to'lganda DB ga yozadi.
     """
     
     def __init__(self, get_response):
@@ -40,23 +41,34 @@ class UpdateLastActivityMiddleware:
         response = self.get_response(request)
         if request.user.is_authenticated:
             now = timezone.now()
+            now_ts = now.timestamp()
             last_saved = request.session.get('_last_activity_saved', 0)
-            diff_seconds = now.timestamp() - last_saved if last_saved else 0
-            if diff_seconds > 60:
-                # Online vaqtni hisoblash: agar oxirgi faollikdan 5 daqiqadan kam o'tgan bo'lsa
-                # bu oraliq vaqtni online vaqtga qo'shish (daqiqalarda)
-                if last_saved and diff_seconds <= 300:
-                    minutes_to_add = int(diff_seconds / 60)
-                    if minutes_to_add > 0:
-                        CustomUser.objects.filter(id=request.user.id).update(
-                            last_activity=now,
-                            total_online_time=models.F('total_online_time') + minutes_to_add
-                        )
-                    else:
-                        CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
+            accumulated = request.session.get('_accumulated_seconds', 0)
+            
+            if last_saved:
+                diff_seconds = now_ts - last_saved
+                # Foydalanuvchi hali saytda (5 daqiqadan kam vaqt o'tgan)
+                if 0 < diff_seconds <= 300:
+                    accumulated += diff_seconds
+                # 5 daqiqadan ko'p — foydalanuvchi ketib qaytgan, oraliqni hisoblamaymiz
+            
+            # Har 30 sekundda session ni yangilash (ortiqcha yozishlarni kamaytirish)
+            if not last_saved or (now_ts - last_saved) > 30:
+                request.session['_last_activity_saved'] = now_ts
+                
+                # To'plangan soniyalar 60 dan oshganda DB ga yozish
+                if accumulated >= 60:
+                    minutes_to_add = int(accumulated / 60)
+                    remaining = accumulated - (minutes_to_add * 60)
+                    CustomUser.objects.filter(id=request.user.id).update(
+                        last_activity=now,
+                        total_online_time=models.F('total_online_time') + minutes_to_add
+                    )
+                    request.session['_accumulated_seconds'] = remaining
                 else:
+                    request.session['_accumulated_seconds'] = accumulated
+                    # last_activity ni har doim yangilaymiz (online statusni to'g'ri ko'rsatish uchun)
                     CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
-                request.session['_last_activity_saved'] = now.timestamp()
         return response
 
 
