@@ -523,6 +523,135 @@
 .prof-card:nth-child(8)  { animation-delay: 0.24s; }
 .prof-card:nth-child(9)  { animation-delay: 0.27s; }
 .prof-card:nth-child(10) { animation-delay: 0.30s; }
+
+/* ===== PAGINATION ===== */
+.prof-pagination-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+    animation: pgFadeIn 0.5s ease forwards;
+}
+
+@keyframes pgFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.prof-pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.pg-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pg-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(99,102,241,0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.pg-btn:hover::before { opacity: 1; }
+
+.pg-btn:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99,102,241,0.2);
+}
+
+.pg-btn:active {
+    transform: translateY(0) scale(0.96);
+}
+
+.pg-btn.pg-active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 18px rgba(99,102,241,0.35);
+    transform: scale(1.08);
+}
+.pg-btn.pg-active:hover {
+    transform: scale(1.08) translateY(-1px);
+    box-shadow: 0 6px 22px rgba(99,102,241,0.4);
+}
+
+.pg-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+}
+
+.pg-btn.pg-dots {
+    border: none;
+    background: none;
+    min-width: 28px;
+    color: var(--bs-secondary-color);
+    cursor: default;
+    letter-spacing: 2px;
+    font-size: 1rem;
+}
+.pg-btn.pg-dots:hover {
+    transform: none;
+    box-shadow: none;
+}
+.pg-btn.pg-dots::before { display: none; }
+
+.pg-btn.pg-prev,
+.pg-btn.pg-next {
+    font-size: 1rem;
+    min-width: 42px;
+}
+
+.pg-info {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--bs-secondary-color);
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 575px) {
+    .pg-btn {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+    }
+    .pg-btn.pg-active {
+        transform: scale(1.05);
+    }
+    .prof-pagination {
+        gap: 4px;
+    }
+    .pg-info {
+        font-size: 0.72rem;
+    }
+}
 </style>
 
 <div class="prof-page">
@@ -544,12 +673,12 @@
         <div class="prof-filters">
             <button class="prof-tab active" data-filter="all">
                 <i class="bi bi-grid-3x3-gap"></i> Barchasi
-                <span class="cnt">{{ professions|length }}</span>
+                <span class="cnt">{{ professions.paginator.count }}</span>
             </button>
-            {% if user.is_authenticated and user.is_student %}
+            {% if user.is_authenticated and user.is_student and enrolled_ids %}
             <button class="prof-tab" data-filter="my_courses">
                 <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
-                {% if enrolled_ids %}<span class="cnt">{{ enrolled_ids|length }}</span>{% endif %}
+                <span class="cnt">{{ enrolled_ids|length }}</span>
             </button>
             {% endif %}
             <button class="prof-tab" data-filter="free">
@@ -665,6 +794,48 @@
         </a>
         {% endfor %}
     </div>
+
+    <!-- PAGINATION -->
+    {% if professions.has_other_pages %}
+    <nav class="prof-pagination-wrap" aria-label="Sahifalar">
+        <div class="prof-pagination">
+            {% if professions.has_previous %}
+            <a href="?page={{ professions.previous_page_number }}" class="pg-btn pg-prev" aria-label="Oldingi">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            {% else %}
+            <span class="pg-btn pg-prev disabled" aria-disabled="true">
+                <i class="bi bi-chevron-left"></i>
+            </span>
+            {% endif %}
+
+            {% for num in professions.paginator.page_range %}
+                {% if professions.number == num %}
+                <span class="pg-btn pg-active">{{ num }}</span>
+                {% elif num > professions.number|add:'-3' and num < professions.number|add:'3' %}
+                <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
+                {% elif num == 1 or num == professions.paginator.num_pages %}
+                <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
+                {% elif num == professions.number|add:'-3' or num == professions.number|add:'3' %}
+                <span class="pg-btn pg-dots">&hellip;</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if professions.has_next %}
+            <a href="?page={{ professions.next_page_number }}" class="pg-btn pg-next" aria-label="Keyingi">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+            {% else %}
+            <span class="pg-btn pg-next disabled" aria-disabled="true">
+                <i class="bi bi-chevron-right"></i>
+            </span>
+            {% endif %}
+        </div>
+        <div class="pg-info">
+            {{ professions.start_index }}-{{ professions.end_index }} / {{ professions.paginator.count }} ta kurs
+        </div>
+    </nav>
+    {% endif %}
 
     {% else %}
     <div class="prof-empty">

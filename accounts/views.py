@@ -890,8 +890,14 @@ def professions_view(request):
                 completed = watched + passed_tests + done_hw
                 p.progress = min(round((completed / total_items) * 100), 100)
 
+    from django.core.paginator import Paginator
+    paginator = Paginator(professions, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'accounts/professions.html', {
-        'professions': professions,
+        'professions': page_obj,
+        'all_professions': professions,
         'enrolled_ids': enrolled_ids,
     })
 
