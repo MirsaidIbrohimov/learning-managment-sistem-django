@@ -4438,10 +4438,30 @@ def homework_submissions(request):
         }
         professions = Profession.objects.all()
     
+    # Kurslar bo'yicha vazifalar sonini hisoblash
+    # Faqat uyga vazifasi bor kurslarni ko'rsatish
+    if not professions.exists():
+        profession_ids = HomeworkSubmission.objects.values_list(
+            'homework__lesson__profession_id', flat=True
+        ).distinct()
+        professions = Profession.objects.filter(pk__in=profession_ids)
+    
+    profession_stats = []
+    for prof in professions:
+        base_qs = HomeworkSubmission.objects.filter(homework__lesson__profession=prof)
+        p_pending = base_qs.filter(status='pending').count()
+        p_total = base_qs.exclude(status='graded').count()
+        profession_stats.append({
+            'profession': prof,
+            'total': p_total,
+            'pending': p_pending,
+        })
+    
     return render(request, 'accounts/manage/homework_submissions.html', {
         'submissions': submissions,
         'stats': stats,
         'professions': professions,
+        'profession_stats': profession_stats,
         'search_query': search_query,
         'status_filter': status_filter,
         'profession_filter': profession_filter,
