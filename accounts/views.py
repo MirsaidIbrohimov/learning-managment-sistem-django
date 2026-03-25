@@ -795,6 +795,11 @@ def home_view(request):
     # --- O'quvchi uchun kurslari ---
     my_enrollments = []
     dashboard_courses = []
+    quick_courses = []
+    if request.user.is_teacher:
+        quick_courses = list(request.user.teaching_professions.all()[:3])
+    elif request.user.is_admin:
+        quick_courses = list(Profession.objects.all()[:3])
     if request.user.is_student or request.user.is_admin:
         my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
         for enrollment in my_enrollments:
@@ -839,6 +844,7 @@ def home_view(request):
         'total_lessons': total_lessons,
         'my_enrollments': my_enrollments,
         'dashboard_courses': dashboard_courses,
+        'quick_courses': quick_courses,
     }
 
     return render(request, 'accounts/home.html', context)

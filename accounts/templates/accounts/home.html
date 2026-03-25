@@ -372,6 +372,107 @@ main.main-container {
 .hero-progress-fill.pink { background: linear-gradient(90deg, #ec4899, #f472b6); }
 .hero-progress-fill.green { background: linear-gradient(90deg, #10b981, #34d399); }
 
+/* Quick course links for teacher/admin */
+.quick-course-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+    text-decoration: none;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-course-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    transition: width .3s ease;
+}
+
+.quick-course-link.clr-purple::before { background: linear-gradient(180deg, #8b5cf6, #a78bfa); }
+.quick-course-link.clr-cyan::before { background: linear-gradient(180deg, #06b6d4, #22d3ee); }
+.quick-course-link.clr-pink::before { background: linear-gradient(180deg, #ec4899, #f472b6); }
+
+.quick-course-link:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+    background: var(--bg-card);
+}
+
+.quick-course-link:hover::before {
+    width: 5px;
+}
+
+.quick-course-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+    flex-shrink: 0;
+    transition: transform .3s ease;
+}
+
+.quick-course-link:hover .quick-course-icon {
+    transform: scale(1.1);
+}
+
+.quick-course-icon.purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+.quick-course-icon.cyan { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
+.quick-course-icon.pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
+
+.quick-course-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.quick-course-name {
+    font-weight: 600;
+    font-size: .85rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.quick-course-sub {
+    font-size: .7rem;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+.quick-course-arrow {
+    font-size: .9rem;
+    color: var(--text-muted);
+    transition: all .3s ease;
+    flex-shrink: 0;
+}
+
+.quick-course-link:hover .quick-course-arrow {
+    color: var(--primary);
+    transform: translateX(3px);
+}
+
+@keyframes quickSlideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.quick-course-link:nth-child(1) { animation: quickSlideIn .4s ease both; }
+.quick-course-link:nth-child(2) { animation: quickSlideIn .4s ease .1s both; }
+.quick-course-link:nth-child(3) { animation: quickSlideIn .4s ease .2s both; }
+
 .hero-empty-state {
     text-align: center;
     padding: 1.5rem 0 .5rem;
@@ -1893,7 +1994,7 @@ main.main-container {
                                 </div>
                                 <div class="hero-card-info">
                                     <h4>{{ user.get_full_name|default:user.username }}</h4>
-                                    <span>{% if user.is_admin %}Admin{% else %}O'quvchi{% endif %} · IT Creative</span>
+                                    <span>{% if user.is_admin %}Admin{% elif user.is_teacher %}O'qituvchi{% else %}O'quvchi{% endif %} · IT Creative</span>
                                 </div>
                                 <div class="hero-card-status">
                                     <span class="hero-card-status-dot"></span> online
@@ -1911,6 +2012,19 @@ main.main-container {
                                             <div class="hero-progress-fill {% cycle 'purple' 'cyan' 'pink' 'green' %}" style="width: {{ course.progress }}%;"></div>
                                         </div>
                                     </div>
+                                    {% endfor %}
+                                {% elif quick_courses %}
+                                    {% for course in quick_courses %}
+                                    <a href="{% url 'profession_detail' pk=course.pk %}" class="quick-course-link clr-{% cycle 'purple' 'cyan' 'pink' %}">
+                                        <div class="quick-course-icon {% cycle 'purple' 'cyan' 'pink' %}">
+                                            <i class="bi bi-{% cycle 'mortarboard-fill' 'code-square' 'laptop' %}"></i>
+                                        </div>
+                                        <div class="quick-course-info">
+                                            <div class="quick-course-name">{{ course.name }}</div>
+                                            <div class="quick-course-sub">{% if user.is_teacher %}O'qituvchi{% else %}Boshqarish{% endif %} · Kursga o'tish</div>
+                                        </div>
+                                        <i class="bi bi-chevron-right quick-course-arrow"></i>
+                                    </a>
                                     {% endfor %}
                                 {% else %}
                                     <div class="hero-empty-state">
