@@ -4794,6 +4794,48 @@ def homework_chat(request, pk):
                     message=msg_text
                 )
                 
+                # O'qituvchi va adminlarga xabar yuborish (Telegram + sayt)
+                hw = submission.homework
+                profession = hw.lesson.profession
+                student = request.user
+                
+                # Sayt xabari — adminlarga
+                notify_admins(
+                    f"🔄 <b>Vazifa qayta topshirildi!</b>\n\n"
+                    f"👤 {student.first_name} {student.last_name}\n"
+                    f"📚 {profession.name} / {hw.lesson.title}\n"
+                    f"📎 Versiya: v{submission.version}\n"
+                    f"{'💬 Izoh: ' + note[:150] if note else ''}"
+                )
+                
+                # Kurs o'qituvchilariga xabar
+                course_teachers = profession.teachers.filter(
+                    telegram_id__isnull=False
+                ).exclude(telegram_id='')
+                for teacher in course_teachers:
+                    notify_user(
+                        teacher.telegram_id,
+                        f"🔄 <b>Vazifa qayta topshirildi!</b>\n\n"
+                        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
+                        f"📚 Kurs: {profession.name}\n"
+                        f"📖 Dars: {hw.lesson.title}\n"
+                        f"📎 Versiya: v{submission.version}\n"
+                        f"{'💬 Izoh: ' + note[:150] if note else ''}\n\n"
+                        f"👨‍🏫 Tekshirishni kutmoqda!"
+                    )
+                
+                # Saytda xabar yaratish (o'qituvchilar va adminlar ko'rishi uchun)
+                Message.objects.create(
+                    recipient=None,
+                    title=f"🔄 Vazifa qayta topshirildi: {hw.lesson.title}",
+                    content=(
+                        f"{student.first_name} {student.last_name} '{profession.name}' kursining "
+                        f"'{hw.lesson.title}' darsiga vazifani qayta topshirdi (v{submission.version}). "
+                        f"Tekshirishni kutmoqda."
+                    ),
+                    message_type='all'
+                )
+                
                 messages.success(request, "Vazifa qayta topshirildi!")
             else:
                 messages.error(request, "Fayl yoki matn kiriting!")
