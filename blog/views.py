@@ -3,29 +3,42 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
+from django.core.paginator import Paginator
 from .models import Post, PostComment, PostLike, CommentLike
 from .forms import PostForm, CommentForm
 from coin.models import ActivityLog
 from telegram_bot.utils import notify_group, notify_user
+import random
 
 @login_required
 def post_list(request):
     search_query = request.GET.get('q')
     filter_type = request.GET.get('type')
     
-    posts = Post.objects.all()
+    posts_qs = Post.objects.all()
     
     if search_query:
-        posts = posts.filter(
+        posts_qs = posts_qs.filter(
             Q(title__icontains=search_query) | 
             Q(content__icontains=search_query)
         )
     
     if filter_type:
-        posts = posts.filter(post_type=filter_type)
-        
-    # Random ordering per page load
-    posts = posts.order_by('?')
+        posts_qs = posts_qs.filter(post_type=filter_type)
+    
+    # Eng oxirgi post birinchi, qolganlari random
+    latest_post = posts_qs.order_by('-created_at').first()
+    rest_posts = list(posts_qs.exclude(pk=latest_post.pk)) if latest_post else []
+    random.shuffle(rest_posts)
+    
+    if latest_post:
+        all_posts = [latest_post] + rest_posts
+    else:
+        all_posts = rest_posts
+    
+    paginator = Paginator(all_posts, 6)
+    page_number = request.GET.get('page')
+    posts = paginator.get_page(page_number)
     
     return render(request, 'blog/post_list.html', {
         'posts': posts, 
@@ -103,25 +116,42 @@ def post_create(request):
             type_name = dict(Post.POST_TYPES).get(post.post_type, post.post_type)
             post_url = request.build_absolute_uri(reverse('blog:post_detail', args=[post.pk]))
 
-            notify_group(
-                f"📰 <b>Yangi post!</b>\n\n"
-                f"📌 <b>{post.title}</b>\n"
-                f"📂 Turi: {type_name}\n"
-                f"✍️ Muallif: {post.author.full_name}\n\n"
-                f"📖 {post.content[:200]}{'...' if len(post.content) > 200 else ''}\n\n"
-                f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
-            )
+            import threading
 
-            from accounts.models import CustomUser
-            for u in CustomUser.objects.filter(telegram_id__isnull=False).exclude(pk=request.user.pk):
-                notify_user(
-                    u.telegram_id,
-                    f"📰 <b>Yangi post chiqdi!</b>\n\n"
-                    f"📌 <b>{post.title}</b>\n"
-                    f"📂 {type_name}\n"
-                    f"✍️ {post.author.full_name}\n\n"
-                    f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
-                )
+            post_title = post.title
+            author_name = post.author.full_name
+            content_preview = post.content[:200] + ('...' if len(post.content) > 200 else '')
+            author_pk = request.user.pk
+
+            def _send_post_notifications():
+                from django.db import connection
+                connection.close()
+                try:
+                    notify_group(
+                        f"📰 <b>Yangi post!</b>\n\n"
+                        f"📌 <b>{post_title}</b>\n"
+                        f"📂 Turi: {type_name}\n"
+                        f"✍️ Muallif: {author_name}\n\n"
+                        f"📖 {content_preview}\n\n"
+                        f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
+                    )
+                    from accounts.models import CustomUser
+                    users = CustomUser.objects.filter(
+                        telegram_id__isnull=False
+                    ).exclude(telegram_id='').exclude(pk=author_pk)
+                    for u in users:
+                        notify_user(
+                            u.telegram_id,
+                            f"📰 <b>Yangi post chiqdi!</b>\n\n"
+                            f"📌 <b>{post_title}</b>\n"
+                            f"📂 {type_name}\n"
+                            f"✍️ {author_name}\n\n"
+                            f"🔗 <a href=\"{post_url}\">Saytda to'liq o'qing!</a>"
+                        )
+                except Exception as e:
+                    print(f"Post notification xatolik: {e}")
+
+            threading.Thread(target=_send_post_notifications, daemon=True).start()
 
             messages.success(request, "Post muvaffaqiyatli yaratildi!")
             return redirect('blog:post_list')

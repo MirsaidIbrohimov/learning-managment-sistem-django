@@ -352,6 +352,67 @@
     opacity: 0.3;
 }
 
+/* PAGINATION */
+.blog-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.blog-pagination a,
+.blog-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: .85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .25s ease;
+}
+
+.blog-pagination a {
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+}
+
+.blog-pagination a:hover {
+    background: var(--bs-primary);
+    color: #fff;
+    border-color: var(--bs-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--bs-primary-rgb), .3);
+}
+
+.blog-pagination .active-page {
+    background: var(--bs-primary);
+    color: #fff;
+    border: 1px solid var(--bs-primary);
+    box-shadow: 0 2px 8px rgba(var(--bs-primary-rgb), .25);
+}
+
+.blog-pagination .disabled {
+    opacity: .4;
+    pointer-events: none;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+    border: 1px solid var(--bs-border-color);
+}
+
+.blog-pagination .dots {
+    color: var(--bs-secondary-color);
+    border: none;
+    background: none;
+    min-width: 24px;
+}
+
 /* RESPONSIVE */
 @media (max-width: 991px) {
     .blog-grid { grid-template-columns: repeat(2, 1fr); }
@@ -398,7 +459,7 @@
         <a href="{% url 'blog:post_list' %}{% if search_query %}?q={{ search_query }}{% endif %}"
            class="blog-tab {% if not filter_type %}active{% endif %}">
             <i class="bi bi-grid-3x3-gap"></i> Barchasi
-            <span class="cnt">{{ posts|length }}</span>
+            <span class="cnt">{{ posts.paginator.count }}</span>
         </a>
         <a href="{% url 'blog:post_list' %}?type=news{% if search_query %}&q={{ search_query }}{% endif %}"
            class="blog-tab {% if filter_type == 'news' %}active{% endif %}">
@@ -485,6 +546,38 @@
         </a>
         {% endfor %}
     </div>
+
+    {% if posts.has_other_pages %}
+    <div class="blog-pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&type={{ filter_type }}{% endif %}">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% else %}
+        <span class="disabled"><i class="bi bi-chevron-left"></i></span>
+        {% endif %}
+
+        {% for num in posts.paginator.page_range %}
+            {% if posts.number == num %}
+            <span class="active-page">{{ num }}</span>
+            {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&type={{ filter_type }}{% endif %}">{{ num }}</a>
+            {% elif num == 1 or num == posts.paginator.num_pages %}
+            <a href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&type={{ filter_type }}{% endif %}">{{ num }}</a>
+            {% elif num == posts.number|add:'-3' or num == posts.number|add:'3' %}
+            <span class="dots">...</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_type %}&type={{ filter_type }}{% endif %}">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        {% else %}
+        <span class="disabled"><i class="bi bi-chevron-right"></i></span>
+        {% endif %}
+    </div>
+    {% endif %}
 
     {% else %}
     <div class="blog-empty">
