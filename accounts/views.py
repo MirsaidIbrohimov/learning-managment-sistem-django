@@ -5197,7 +5197,7 @@ def issue_certificate(request, pk):
             # Adminlarga xabar
             notify_admins(
                 f"🎓 <b>Sertifikat berildi!</b>\n\n"
-                f"👤 O'quvchi: <b>{student.full_name}</b> (ID: {student.id})\n"
+                f"👤 O'quvchi: <b>{student.full_name}</b>\n"
                 f"📚 Yo'nalish: <b>{profession.name}</b>\n"
                 f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
             )
@@ -9926,7 +9926,7 @@ def admin_certificate_issue(request):
             # Adminlarga xabar
             notify_admins(
                 f"🎓 <b>Sertifikat berildi!</b>\n\n"
-                f"👤 O'quvchi: <b>{student.full_name}</b> (ID: {student.id})\n"
+                f"👤 O'quvchi: <b>{student.full_name}</b>\n"
                 f"📚 Yo'nalish: <b>{profession.name}</b>\n"
                 f"🏅 Sertifikat: <b>{cert.certificate_id}</b>"
             )
