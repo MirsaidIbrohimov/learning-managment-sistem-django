@@ -2118,7 +2118,7 @@ main.main-container {
                         <div class="course-meta">
                             <div class="course-meta-item">
                                 <i class="bi bi-play-circle"></i>
-                                {{ profession.course_count|default:"12" }} dars
+                                {{ profession.lesson_count }} dars
                             </div>
                             <div class="course-meta-item">
                                 <i class="bi bi-clock"></i>
@@ -2126,15 +2126,21 @@ main.main-container {
                             </div>
                             <div class="course-meta-item">
                                 <i class="bi bi-people"></i>
-                                {{ profession.student_count|default:"50" }}+
+                                {{ profession.student_count }}+
                             </div>
                         </div>
                         <div class="course-footer">
                             <div class="course-instructor">
+                                {% with teacher=profession.teachers.first %}
                                 <div class="course-instructor-avatar">
-                                    {{ profession.instructor_name|default:"M"|slice:":1" }}
+                                    {% if teacher and teacher.photo %}
+                                    <img src="{{ teacher.photo.url }}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
+                                    {% else %}
+                                    {{ teacher.first_name|default:"M"|slice:":1" }}
+                                    {% endif %}
                                 </div>
-                                <span class="course-instructor-name">{{ profession.instructor_name|default:"Mentor" }}</span>
+                                <span class="course-instructor-name">{% if teacher %}{{ teacher.first_name }} {{ teacher.last_name }}{% else %}IT Creative AI{% endif %}</span>
+                                {% endwith %}
                             </div>
                             <a href="{% url 'profession_detail' profession.id %}" class="course-btn">
                                 Boshlash <i class="bi bi-arrow-right"></i>
@@ -2172,7 +2178,7 @@ main.main-container {
                         <div class="course-footer">
                             <div class="course-instructor">
                                 <div class="course-instructor-avatar">M</div>
-                                <span class="course-instructor-name">Mentor</span>
+                                <span class="course-instructor-name">IT Creative AI</span>
                             </div>
                             <a href="{% url 'professions' %}" class="course-btn">
                                 Boshlash <i class="bi bi-arrow-right"></i>

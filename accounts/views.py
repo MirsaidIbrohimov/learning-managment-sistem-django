@@ -786,7 +786,9 @@ def logout_view(request):
 @login_required
 def home_view(request):
     # --- Asosiy ma'lumotlar ---
-    professions = Profession.objects.all()[:6]
+    professions = Profession.objects.prefetch_related('teachers').annotate(
+        lesson_count=Count('lessons')
+    ).all()[:6]
 
     total_students = CustomUser.objects.filter(role='student').count()
     total_courses = Profession.objects.count()
