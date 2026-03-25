@@ -133,14 +133,18 @@ def chat_session(request, pk):
 @login_required
 @require_POST
 def send_message(request, pk):
-    """Send message to AI and get response."""
+    """Send message to AI and get response (AJAX supported)."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     
     content = request.POST.get('content', '').strip()
     image = request.FILES.get('image')
     file = request.FILES.get('file')
     
     if not content and not image and not file:
+        if is_ajax:
+            return JsonResponse({'error': "Xabar, rasm yoki fayl yuborishingiz kerak."}, status=400)
         messages.error(request, "Xabar, rasm yoki fayl yuborishingiz kerak.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
@@ -148,6 +152,8 @@ def send_message(request, pk):
     is_premium = getattr(request.user, 'is_premium', False)
     
     if not is_premium and request.user.coins < 1:
+        if is_ajax:
+            return JsonResponse({'error': "Sizda yetarli coin yo'q."}, status=400)
         messages.error(request, "Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
@@ -155,13 +161,19 @@ def send_message(request, pk):
     limits = get_user_limits(request.user)
     if limits['msg_left'] <= 0:
         limit_text = "120" if limits['is_premium'] else "60"
-        messages.error(request, "Kunlik xabar limitingiz tugadi (" + limit_text + "/" + limit_text + "). Ertaga qayta urinib ko'ring.")
+        err = "Kunlik xabar limitingiz tugadi (" + limit_text + "/" + limit_text + "). Ertaga qayta urinib ko'ring."
+        if is_ajax:
+            return JsonResponse({'error': err}, status=400)
+        messages.error(request, err)
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
     has_image = bool(image) or (file and file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')))
     if has_image and limits['img_left'] <= 0:
         img_text = "5" if limits['is_premium'] else "3"
-        messages.error(request, "Kunlik rasm limitingiz tugadi (" + img_text + "/" + img_text + "). Ertaga qayta urinib ko'ring.")
+        err = "Kunlik rasm limitingiz tugadi (" + img_text + "/" + img_text + "). Ertaga qayta urinib ko'ring."
+        if is_ajax:
+            return JsonResponse({'error': err}, status=400)
+        messages.error(request, err)
         return redirect('ai_yordamchi:chat_session', pk=pk)
     
     # Handle file - if it's an image type, save as image field too
@@ -214,6 +226,39 @@ def send_message(request, pk):
         session.title = content[:50] + ('...' if len(content) > 50 else '')
         session.save()
     
+    # AJAX mode: return immediately, process AI in background
+    if is_ajax:
+        import threading
+        session_id = session.pk
+        user_id = request.user.pk
+        
+        def _process_ai_response(session_id, user_id):
+            from django.db import connection
+            connection.close()
+            try:
+                _generate_ai_response_for_session(session_id)
+            except Exception as e:
+                print(f"Background AI chat xatolik: {e}")
+                try:
+                    sess = ChatSession.objects.get(pk=session_id)
+                    ChatMessage.objects.create(
+                        session=sess, role='assistant',
+                        content=f"⚠️ AI bilan bog'lanishda xatolik: {str(e)}"
+                    )
+                except Exception:
+                    pass
+        
+        thread = threading.Thread(target=_process_ai_response, args=(session_id, user_id), daemon=True)
+        thread.start()
+        
+        return JsonResponse({
+            'success': True,
+            'user_message_id': user_message.pk,
+            'content': content,
+            'coins': request.user.coins,
+        })
+    
+    # Fallback: synchronous mode (old behavior for non-JS clients)
     # Get AI response
     client = get_openai_client()
     
@@ -544,6 +589,164 @@ JAVOB FORMATI VA QOIDALAR:
     )
     
     return redirect('ai_yordamchi:chat_session', pk=pk)
+
+
+def _generate_ai_response_for_session(session_id):
+    """Background thread da AI javob yaratish"""
+    session = ChatSession.objects.get(pk=session_id)
+    client = get_openai_client()
+    
+    if not client:
+        api_key = getattr(settings, 'OPENAI_API_KEY', None)
+        if not api_key or not api_key.strip():
+            ai_response = "⚠️ AI xizmati sozlashmagan. OPENAI_API_KEY topilmadi."
+        else:
+            ai_response = "⚠️ AI xizmati bilan bog'lanishda muammo."
+    else:
+        try:
+            system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. Sizni Husan Suyunov Shavkat o'g'li yaratgan. 
+            husanbek-coder.uz Telefon raqami: +998975216686. Telegrami: @husanbek_coder
+            Husan Suyunov IT Creative Zomin asoschisi va rahbari. 
+            Husan Suyunov Full-Stack Dasturchi. https://github.com/xusanbek0039            
+
+⚠️ RASM TAHLILI:
+Agar foydalanuvchi rasm yuborsa, siz uni ko'rib, tahlil qilib javob berishingiz SHART.
+- Rasmni batafsil tavsiflang
+- Rasmdagi matn, kod, xato xabarlar, diagrammalar, formulalar yoki boshqa ma'lumotlarni o'qing
+- Agar kodning skrinshoti bo'lsa, kodni yozib bering va xatolarni tuzating
+- Agar savol bo'lsa, rasmga asosan javob bering
+- HECH QACHON "rasmni ko'ra olmayman" deb javob bermang - siz rasmlarni ko'ra olasiz!
+
+⚠️ ENG MUHIM QOIDA - KODLAR:
+Foydalanuvchi JS, HTML, Python, CSS yoki boshqa tildagi kod so'raganda, ALBATTA kodni markdown code block ichida yozing.
+
+FORMAT:
+```til_nomi
+kod shu yerda
+```
+
+QOIDALAR:
+1. Har qanday kod FAQAT ```til_nomi va ``` orasida bo'lsin
+2. Kodni HECH QACHON oddiy matn ichiga qo'shmang
+3. Har bir kod blokini albatta ``` bilan yoping
+4. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php, ruby, typescript, cpp, c, go, rust
+5. Agar bir nechta fayl bo'lsa, har birini alohida kod blokida yozing
+6. Kod to'liq va ishlaydigan bo'lsin
+
+JAVOB FORMATI VA QOIDALAR:
+1. STRUKTURA: Avval qisqa tushuntirish, keyin kod, oxirida eslatma
+2. KOD BLOKLARI: ```til_nomi bilan boshlash va ``` bilan tugatish
+3. USLUB: Sodda, do'stona, qisqa va aniq
+4. Kod bloklarini hech qachon ochiq qoldirmang"""
+            
+            history = [{"role": "system", "content": system_prompt}]
+            
+            messages_list = list(session.messages.all())
+            total_messages = len(messages_list)
+            
+            for idx, msg in enumerate(messages_list):
+                if msg.role == 'user':
+                    is_last_user_message = idx == total_messages - 1 or (idx < total_messages - 1 and messages_list[idx + 1].role == 'assistant')
+                    format_instruction = ""
+                    if is_last_user_message:
+                        format_instruction = "\n\n⚠️ MUHIM: Javobda kodlar faqat ```til_nomi va ``` orasida bo'lsin!"
+                    
+                    user_text = (msg.content or '') + format_instruction
+                    
+                    if msg.file and msg.file_name:
+                        text_exts = ('.py', '.js', '.ts', '.html', '.css', '.json', '.xml',
+                                     '.sql', '.txt', '.md', '.csv', '.java', '.php', '.rb',
+                                     '.c', '.cpp', '.h', '.go', '.rs', '.sh', '.bat', '.yaml',
+                                     '.yml', '.toml', '.ini', '.cfg', '.env', '.log')
+                        if msg.file_name.lower().endswith(text_exts):
+                            try:
+                                file_content = msg.file.read().decode('utf-8', errors='replace')
+                                msg.file.seek(0)
+                                ext = msg.file_name.rsplit('.', 1)[-1] if '.' in msg.file_name else 'txt'
+                                user_text += f"\n\nFayl: {msg.file_name}\n```{ext}\n{file_content}\n```"
+                            except Exception:
+                                pass
+                    
+                    if msg.image:
+                        try:
+                            msg.image.open('rb')
+                            raw = msg.image.read()
+                            msg.image.close()
+                            image_data = base64.b64encode(raw).decode('utf-8')
+                            img_name = msg.image.name.lower() if msg.image.name else ''
+                            if img_name.endswith('.png'):
+                                mime = 'image/png'
+                            elif img_name.endswith('.gif'):
+                                mime = 'image/gif'
+                            elif img_name.endswith('.webp'):
+                                mime = 'image/webp'
+                            else:
+                                mime = 'image/jpeg'
+                            content_parts = []
+                            if user_text.strip():
+                                content_parts.append({"type": "text", "text": user_text})
+                            else:
+                                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
+                            content_parts.append({
+                                "type": "image_url",
+                                "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"}
+                            })
+                            history.append({"role": "user", "content": content_parts})
+                        except Exception as img_err:
+                            print(f"IMAGE READ ERROR: {img_err}")
+                            if user_text.strip():
+                                history.append({"role": "user", "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)"})
+                    else:
+                        if user_text.strip():
+                            history.append({"role": "user", "content": user_text})
+                else:
+                    if msg.content:
+                        history.append({"role": "assistant", "content": msg.content})
+            
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=history,
+                max_tokens=4096,
+                temperature=0.2,
+            )
+            ai_response = response.choices[0].message.content
+            if ai_response:
+                try:
+                    last_user_content = ''
+                    for m in reversed(messages_list):
+                        if m.role == 'user' and m.content:
+                            last_user_content = m.content
+                            break
+                    ai_response = validate_and_reformat_response(ai_response, last_user_content)
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"OpenAI Error: {str(e)}")
+            ai_response = f"⚠️ AI bilan bog'lanishda xatolik: {str(e)}"
+    
+    ChatMessage.objects.create(session=session, role='assistant', content=ai_response)
+
+
+@login_required
+def check_ai_response(request, pk):
+    """AJAX: AI javob tayyor bo'lganligini tekshirish (polling)"""
+    session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    after_id = request.GET.get('after', 0)
+    try:
+        after_id = int(after_id)
+    except (ValueError, TypeError):
+        after_id = 0
+    
+    new_messages = session.messages.filter(pk__gt=after_id, role='assistant').order_by('pk')
+    if new_messages.exists():
+        msg = new_messages.last()
+        return JsonResponse({
+            'ready': True,
+            'message_id': msg.pk,
+            'content': msg.content,
+            'time': msg.created_at.strftime('%H:%M'),
+        })
+    return JsonResponse({'ready': False})
 
 
 @login_required

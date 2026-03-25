@@ -1368,10 +1368,200 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ===== TEXTAREA =====
+// ===== TEXTAREA + AJAX =====
 var textarea = document.getElementById('chatInput');
 var form = document.getElementById('chatForm');
 var sendBtn = document.getElementById('sendBtn');
+var messagesContainer = document.getElementById('messagesContainer');
+var pollTimer = null;
+var lastMessageId = 0;
+
+// Get CSRF token
+function getCsrf() {
+    var el = document.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+}
+
+// Add user message bubble to UI instantly
+function addUserBubble(text) {
+    var initials = '{{ user.first_name.0|upper }}';
+    var now = new Date();
+    var time = ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
+    var html = '<div class="ios-msg user" style="animation:slideFromRight .25s ease">'
+        + '<div class="ios-msg-row"><div class="ios-avatar">' + initials + '</div>'
+        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
+        + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
+        + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
+    messagesContainer.insertAdjacentHTML('beforeend', html);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Add typing indicator
+function addTypingIndicator() {
+    removeTypingIndicator();
+    var html = '<div class="ios-msg assistant" id="typingIndicator" style="animation:slideFromLeft .25s ease">'
+        + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
+        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
+        + '<div class="typing-dots"><span></span><span></span><span></span></div>'
+        + '</div></div></div></div></div>';
+    messagesContainer.insertAdjacentHTML('beforeend', html);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    var el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+// Add AI response bubble
+function addAiBubble(content, time) {
+    removeTypingIndicator();
+    var id = 'ajax-ai-' + Date.now();
+    var html = '<div class="ios-msg assistant" style="animation:slideFromLeft .3s ease">'
+        + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
+        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
+        + '<div class="markdown-body" id="' + id + '"></div>'
+        + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
+    messagesContainer.insertAdjacentHTML('beforeend', html);
+
+    var target = document.getElementById(id);
+    try {
+        var ticks = (content.match(/```/g) || []).length;
+        if (ticks % 2 !== 0) content += '\n```';
+        target.innerHTML = marked.parse(content);
+        processCodeBlocks(target);
+        target.querySelectorAll('a').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            }
+        });
+    } catch(e) {
+        target.textContent = content;
+    }
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+// Poll for AI response
+function pollForResponse(afterId) {
+    var checkUrl = '{% url "ai_yordamchi:check_ai_response" pk=session.pk %}?after=' + afterId;
+    fetch(checkUrl)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.ready) {
+                addAiBubble(data.content, data.time);
+                lastMessageId = data.message_id;
+                resetSendState();
+            } else {
+                pollTimer = setTimeout(function() { pollForResponse(afterId); }, 1500);
+            }
+        })
+        .catch(function() {
+            pollTimer = setTimeout(function() { pollForResponse(afterId); }, 3000);
+        });
+}
+
+function resetSendState() {
+    isSending = false;
+    if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="bi bi-arrow-up"></i>';
+    }
+    if (textarea) {
+        textarea.readOnly = false;
+        textarea.value = '';
+        textarea.style.height = 'auto';
+        textarea.focus();
+    }
+}
+
+// Send message via AJAX
+function sendMessageAjax() {
+    if (!textarea || !textarea.value.trim()) return;
+    var text = textarea.value.trim();
+    var imageInput = document.getElementById('imageInput');
+    var fileInput = document.getElementById('fileInput');
+    var hasFile = (imageInput && imageInput.files.length) || (fileInput && fileInput.files.length);
+
+    // If files attached, fallback to normal form submit (FormData with files)
+    if (hasFile) {
+        var fd = new FormData(form);
+        isSending = true;
+        sendBtn.disabled = true;
+        textarea.readOnly = true;
+        sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+        addUserBubble(text);
+        addTypingIndicator();
+
+        fetch(form.action, {
+            method: 'POST',
+            body: fd,
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.error) {
+                removeTypingIndicator();
+                addAiBubble('⚠️ ' + data.error, new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2));
+                resetSendState();
+            } else {
+                lastMessageId = data.user_message_id;
+                removeImagePreview();
+                removeFilePreview();
+                pollForResponse(lastMessageId);
+            }
+        })
+        .catch(function() {
+            form.removeAttribute('data-ajax');
+            form.submit();
+        });
+        return;
+    }
+
+    // Text-only: AJAX
+    isSending = true;
+    sendBtn.disabled = true;
+    textarea.readOnly = true;
+    sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+
+    addUserBubble(text);
+    addTypingIndicator();
+
+    var fd = new FormData();
+    fd.append('content', text);
+    fd.append('csrfmiddlewaretoken', getCsrf());
+
+    fetch(form.action, {
+        method: 'POST',
+        body: fd,
+        headers: {'X-Requested-With': 'XMLHttpRequest'}
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.error) {
+            removeTypingIndicator();
+            addAiBubble('⚠️ ' + data.error, new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2));
+            resetSendState();
+        } else {
+            lastMessageId = data.user_message_id;
+            // Update coin display
+            var coinEls = document.querySelectorAll('.ios-coin-pill');
+            coinEls.forEach(function(el) {
+                var i = el.querySelector('i');
+                el.textContent = '';
+                if (i) el.appendChild(i);
+                el.append(' ' + data.coins);
+            });
+            pollForResponse(lastMessageId);
+        }
+    })
+    .catch(function() {
+        // Fallback: normal form submit
+        form.submit();
+    });
+}
 
 if (textarea) {
     textarea.addEventListener('input', function() {
@@ -1381,24 +1571,15 @@ if (textarea) {
 
     var isSending = false;
     form.addEventListener('submit', function(e) {
-        if (isSending) {
-            e.preventDefault();
-            return;
-        }
-        isSending = true;
-        sendBtn.disabled = true;
-        textarea.readOnly = true;
-        sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+        e.preventDefault();
+        if (isSending) return;
+        sendMessageAjax();
     });
     textarea.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             if (this.value.trim() && !isSending) {
-                isSending = true;
-                sendBtn.disabled = true;
-                textarea.readOnly = true;
-                sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-                form.submit();
+                sendMessageAjax();
             }
         }
     });
