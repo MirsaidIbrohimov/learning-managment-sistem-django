@@ -1851,93 +1851,80 @@ def submit_homework(request, pk):
             else:
                 messages.error(request, "Matn kiritishingiz kerak!")
         
-        # AI avtomatik tekshiruv va baholash — BACKGROUND THREAD da ishlaydi (sayt tezligi uchun)
+        # AI avtomatik tekshiruv va baholash
         if submission:
-            import threading
-            submission_id = submission.pk
-            homework_id = homework.pk
-            student_id = request.user.pk
-            is_premium = request.user.is_premium
+            try:
+                sub = HomeworkSubmission.objects.select_related(
+                    'homework__lesson__profession', 'student'
+                ).get(pk=submission.pk)
+                hw = sub.homework
+                student_answer = _read_submission_content(sub)
 
-            def _process_ai_in_background(submission_id, homework_id, student_id, is_premium):
-                """AI tekshiruvlarni background da bajarish — sayt bloklanmaydi"""
-                import django
-                from django.db import connection
-                connection.close()
-                
-                try:
-                    sub = HomeworkSubmission.objects.select_related(
-                        'homework__lesson__profession', 'student'
-                    ).get(pk=submission_id)
-                    hw = sub.homework
-                    student_answer = _read_submission_content(sub)
+                if student_answer:
+                    # 1. AI plagiat tekshiruvi
+                    ai_check = _check_ai_generated(hw.description, student_answer)
+                    if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
+                        sub.status = 'revision'
+                        confidence = ai_check['confidence']
+                        if confidence >= 95:
+                            penalty = 50
+                        elif confidence >= 90:
+                            penalty = 40
+                        elif confidence >= 85:
+                            penalty = 30
+                        elif confidence >= 80:
+                            penalty = 20
+                        else:
+                            penalty = 10
 
-                    if student_answer:
-                        # 1. AI plagiat tekshiruvi
-                        ai_check = _check_ai_generated(hw.description, student_answer)
-                        if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
-                            sub.status = 'revision'
-                            confidence = ai_check['confidence']
-                            if confidence >= 95:
-                                penalty = 50
-                            elif confidence >= 90:
-                                penalty = 40
-                            elif confidence >= 85:
-                                penalty = 30
-                            elif confidence >= 80:
-                                penalty = 20
-                            else:
-                                penalty = 10
+                        sub.ai_feedback = (
+                            f"🚫 Suniy intellekt yordamida yozilgan deb topildi! "
+                            f"(ishonch: {confidence}%)\n\n"
+                            f"📋 Sabab: {ai_check['reason']}\n\n"
+                            f"💰 Jarima: -{penalty} coin\n\n"
+                            f"⚠️ Iltimos, vazifani o'zingiz mustaqil bajaring va qayta yuboring."
+                        )
+                        sub.save(update_fields=['status', 'ai_feedback'])
 
-                            sub.ai_feedback = (
-                                f"🚫 Suniy intellekt yordamida yozilgan deb topildi! "
-                                f"(ishonch: {confidence}%)\n\n"
-                                f"📋 Sabab: {ai_check['reason']}\n\n"
-                                f"💰 Jarima: -{penalty} coin\n\n"
-                                f"⚠️ Iltimos, vazifani o'zingiz mustaqil bajaring va qayta yuboring."
-                            )
-                            sub.save(update_fields=['status', 'ai_feedback'])
-
-                            student = sub.student
-                            student.coins -= penalty
-                            student.save(update_fields=['coins'])
-                            CoinTransaction.objects.create(
-                                user=student, amount=penalty, action='remove',
-                                reason=f"AI plagiat jarimasi: {hw.lesson.title} (ishonch: {confidence}%)"
-                            )
-                            ActivityLog.objects.create(
-                                user=student, action_type='earn_coins',
-                                description=f"AI plagiat jarimasi: -{penalty} coin ({hw.lesson.title}, ishonch: {confidence}%)"
-                            )
-                            Message.objects.create(
-                                title="🚫 AI plagiat jarimasi",
-                                content=(
-                                    f"Sizning '{hw.lesson.title}' vazifangiz suniy intellekt yordamida yozilgan deb topildi.\n\n"
-                                    f"📋 Sabab: {ai_check['reason']}\n"
-                                    f"🔢 Ishonch darajasi: {confidence}%\n"
-                                    f"💰 Jarima: -{penalty} coin\n"
-                                    f"💳 Joriy balansingiz: {student.coins} coin\n\n"
-                                    f"⚠️ Iltimos, vazifalarni mustaqil bajaring!"
-                                ),
-                                message_type='warning', recipient=student
-                            )
-                            notify_user(
-                                student.telegram_id,
-                                f"🚫 <b>Vazifangiz AI yordamida yozilgan deb topildi!</b>\n\n"
-                                f"📚 {hw.lesson.profession.name}\n📖 {hw.lesson.title}\n"
-                                f"📋 Sabab: {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
-                                f"💰 Jarima: <b>-{penalty} coin</b>\n💳 Balansingiz: {student.coins} coin\n\n"
-                                f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
-                            )
-                            notify_admins(
-                                f"🚫 <b>AI plagiat jarimasi!</b>\n\n"
-                                f"👤 {student.first_name} {student.last_name}\n"
-                                f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
-                                f"📋 {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
-                                f"💰 Jarima: -{penalty} coin\n💳 Balans: {student.coins} coin"
-                            )
-                            return
-
+                        student = sub.student
+                        student.coins -= penalty
+                        student.save(update_fields=['coins'])
+                        CoinTransaction.objects.create(
+                            user=student, amount=penalty, action='remove',
+                            reason=f"AI plagiat jarimasi: {hw.lesson.title} (ishonch: {confidence}%)"
+                        )
+                        ActivityLog.objects.create(
+                            user=student, action_type='earn_coins',
+                            description=f"AI plagiat jarimasi: -{penalty} coin ({hw.lesson.title}, ishonch: {confidence}%)"
+                        )
+                        Message.objects.create(
+                            title="🚫 AI plagiat jarimasi",
+                            content=(
+                                f"Sizning '{hw.lesson.title}' vazifangiz suniy intellekt yordamida yozilgan deb topildi.\n\n"
+                                f"📋 Sabab: {ai_check['reason']}\n"
+                                f"🔢 Ishonch darajasi: {confidence}%\n"
+                                f"💰 Jarima: -{penalty} coin\n"
+                                f"💳 Joriy balansingiz: {student.coins} coin\n\n"
+                                f"⚠️ Iltimos, vazifalarni mustaqil bajaring!"
+                            ),
+                            message_type='warning', recipient=student
+                        )
+                        notify_user(
+                            student.telegram_id,
+                            f"🚫 <b>Vazifangiz AI yordamida yozilgan deb topildi!</b>\n\n"
+                            f"📚 {hw.lesson.profession.name}\n📖 {hw.lesson.title}\n"
+                            f"📋 Sabab: {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
+                            f"💰 Jarima: <b>-{penalty} coin</b>\n💳 Balansingiz: {student.coins} coin\n\n"
+                            f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
+                        )
+                        notify_admins(
+                            f"🚫 <b>AI plagiat jarimasi!</b>\n\n"
+                            f"👤 {student.first_name} {student.last_name}\n"
+                            f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
+                            f"📋 {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
+                            f"💰 Jarima: -{penalty} coin\n💳 Balans: {student.coins} coin"
+                        )
+                    else:
                         # 2. O'xshashlik (plagiat) tekshirish
                         similarity_result = _check_similarity_with_others(hw, sub, student_answer)
                         if similarity_result and similarity_result['is_plagiat']:
@@ -2000,62 +1987,55 @@ def submit_homework(request, pk):
                                 f"📋 {similarity_result['reason']}\n"
                                 f"🔢 O'xshashlik: {similarity_pct}%\n💰 Jarima: -{penalty} coin"
                             )
-                            return
+                        else:
+                            # 3. Avtomatik baholash
+                            ai_result = _get_ai_grade(hw.description, student_answer)
+                            if ai_result:
+                                sub.grade = ai_result['grade']
+                                sub.status = ai_result['status']
+                                sub.graded_at = timezone.now()
+                                feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                                sub.ai_feedback = feedback_text
+                                sub.feedback = feedback_text
+                                sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
 
-                        # 3. Avtomatik baholash
-                        ai_result = _get_ai_grade(hw.description, student_answer)
-                        if ai_result:
-                            sub.grade = ai_result['grade']
-                            sub.status = ai_result['status']
-                            sub.graded_at = timezone.now()
-                            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                            sub.ai_feedback = feedback_text
-                            sub.feedback = feedback_text
-                            sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                                if ai_result['status'] == 'graded':
+                                    if not sub.coin_awarded:
+                                        coin_amount = 5
+                                        if not sub.is_late:
+                                            coin_amount = 10
+                                        if ai_result['grade'] >= 9:
+                                            coin_amount += 5
+                                        elif ai_result['grade'] >= 8:
+                                            coin_amount += 3
+                                        if sub.student.is_premium:
+                                            coin_amount *= 2
+                                        sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
+                                        sub.coin_awarded = True
+                                        sub.save(update_fields=['coin_awarded'])
+                                        ActivityLog.objects.create(
+                                            user=sub.student, action_type='homework_graded',
+                                            description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                                        )
+                                    _notify_ai_graded(sub, ai_result)
+                                else:
+                                    _notify_ai_revision(sub, ai_result)
+                            elif request.user.is_premium:
+                                ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
+                                if ai_feedback:
+                                    sub.ai_feedback = ai_feedback
+                                    sub.save(update_fields=['ai_feedback'])
 
-                            if ai_result['status'] == 'graded':
-                                if not sub.coin_awarded:
-                                    coin_amount = 5
-                                    if not sub.is_late:
-                                        coin_amount = 10
-                                    if ai_result['grade'] >= 9:
-                                        coin_amount += 5
-                                    elif ai_result['grade'] >= 8:
-                                        coin_amount += 3
-                                    if sub.student.is_premium:
-                                        coin_amount *= 2
-                                    sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
-                                    sub.coin_awarded = True
-                                    sub.save(update_fields=['coin_awarded'])
-                                    ActivityLog.objects.create(
-                                        user=sub.student, action_type='homework_graded',
-                                        description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                                    )
-                                _notify_ai_graded(sub, ai_result)
-                            else:
-                                _notify_ai_revision(sub, ai_result)
-                        elif is_premium:
-                            ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
-                            if ai_feedback:
-                                sub.ai_feedback = ai_feedback
-                                sub.save(update_fields=['ai_feedback'])
+                elif sub.submission_type == 'file' and sub.file:
+                    import os
+                    if os.path.splitext(sub.file.name)[1].lower() == '.pdf':
+                        sub.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+                        sub.save(update_fields=['ai_feedback'])
 
-                    elif sub.submission_type == 'file' and sub.file:
-                        import os
-                        if os.path.splitext(sub.file.name)[1].lower() == '.pdf':
-                            sub.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
-                            sub.save(update_fields=['ai_feedback'])
-
-                except Exception as e:
-                    print(f"Background AI tekshiruv xatolik: {e}")
-
-            # AI tekshiruvni background thread da ishga tushirish
-            thread = threading.Thread(
-                target=_process_ai_in_background,
-                args=(submission_id, homework_id, student_id, is_premium),
-                daemon=True
-            )
-            thread.start()
+            except Exception as e:
+                import traceback
+                print(f"AI tekshiruv xatolik: {e}")
+                traceback.print_exc()
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 
