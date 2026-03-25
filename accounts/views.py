@@ -1347,14 +1347,6 @@ def _notify_ai_graded(submission, ai_result):
         f"🏆 Baho: <b>{grade}/10</b>\n\n"
         f"💬 <b>AI izohi:</b>\n{feedback}"
     )
-    notify_group(
-        f"✅ <b>Uy vazifasi AI baholadi!</b>\n\n"
-        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
-        f"📚 Kurs: {profession}\n"
-        f"📖 Dars: {lesson}\n"
-        f"🏆 Baho: <b>{grade}/10</b>\n"
-        f"🤖 Baholadi: AI"
-    )
     notify_admins(
         f"✅ <b>Uy vazifasi AI baholadi!</b>\n\n"
         f"👤 {student.first_name} {student.last_name}\n"
@@ -1381,14 +1373,6 @@ def _notify_ai_revision(submission, ai_result):
         f"💬 <b>Sabab:</b>\n{feedback}\n\n"
         f"📝 Iltimos, tuzatib qayta yuboring!"
     )
-    notify_group(
-        f"⚠️ <b>Uy vazifasi qaytarildi!</b>\n\n"
-        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
-        f"📚 Kurs: {profession}\n"
-        f"📖 Dars: {lesson}\n"
-        f"🏆 Baho: <b>{grade}/10</b>\n"
-        f"🤖 AI sabab: {feedback[:150]}"
-    )
     notify_admins(
         f"⚠️ <b>Uy vazifasi AI qaytardi!</b>\n\n"
         f"👤 {student.first_name} {student.last_name}\n"
@@ -1411,13 +1395,6 @@ def _notify_homework_submitted(student, homework):
         f"📖 Dars: {lesson}\n"
         f"📋 {hw_text}\n\n"
         f"👨‍🏫 O'qituvchilar, tekshirishni unutmang!"
-    )
-    notify_group(
-        f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
-        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
-        f"📚 Kurs: {profession}\n"
-        f"📖 Dars: {lesson}\n\n"
-        f"👨‍🏫 O'qituvchilar, tekshirishni kutmoqda!"
     )
     Message.objects.create(
         recipient=None,
@@ -1442,14 +1419,6 @@ def _notify_homework_graded(grader, submission, grade):
         f"📊 Baho: <b>{grade}</b> ball\n"
         f"👨‍🏫 Baholadi: {grader.first_name} {grader.last_name}\n"
         f"{'💬 Izoh: ' + feedback[:100] if feedback else ''}"
-    )
-    notify_group(
-        f"✅ <b>Uy vazifasi baholandi!</b>\n\n"
-        f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
-        f"📚 Kurs: {profession}\n"
-        f"📖 Dars: {lesson}\n"
-        f"📊 Baho: <b>{grade}</b> ball\n"
-        f"👨‍🏫 Baholadi: {grader.first_name} {grader.last_name}"
     )
     notify_admins(
         f"✅ <b>Uy vazifasi baholandi!</b>\n\n"
@@ -1946,12 +1915,6 @@ def submit_homework(request, pk):
                                 f"💰 Jarima: <b>-{penalty} coin</b>\n💳 Balansingiz: {student.coins} coin\n\n"
                                 f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
                             )
-                            notify_group(
-                                f"🚫 <b>AI plagiat aniqlandi!</b>\n\n"
-                                f"👤 O'quvchi: {student.first_name} {student.last_name}\n"
-                                f"📚 Kurs: {hw.lesson.profession.name}\n📖 Dars: {hw.lesson.title}\n"
-                                f"🔢 Ishonch: {confidence}%\n💰 Jarima: -{penalty} coin"
-                            )
                             notify_admins(
                                 f"🚫 <b>AI plagiat jarimasi!</b>\n\n"
                                 f"👤 {student.first_name} {student.last_name}\n"
@@ -2015,12 +1978,6 @@ def submit_homework(request, pk):
                                 f"👤 O'xshash: {similar_user}\n🔢 O'xshashlik: {similarity_pct}%\n"
                                 f"💰 Jarima: <b>-{penalty} coin</b>\n\n"
                                 f"⚠️ Vazifani mustaqil bajaring va qayta yuboring!"
-                            )
-                            notify_group(
-                                f"🔄 <b>Kod ko'chirish aniqlandi!</b>\n\n"
-                                f"👤 {student.first_name} {student.last_name}\n"
-                                f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
-                                f"🔢 O'xshashlik: {similarity_pct}%\n💰 Jarima: -{penalty} coin"
                             )
                             notify_admins(
                                 f"🔄 <b>Kod ko'chirish jarimasi!</b>\n\n"
@@ -2380,26 +2337,6 @@ def submit_test(request, pk):
         f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
         f"{passed_text}"
     )
-    if result.passed:
-        notify_group(
-            f"🎉 <b>Barakalla!</b>\n\n"
-            f"👤 <b>{request.user.first_name} {request.user.last_name}</b> testdan muvaffaqiyatli o'tdi!\n"
-            f"📚 Kurs: {test.lesson.profession.name}\n"
-            f"📖 Test: {test.lesson.title}\n"
-            f"✅ Natija: {correct}/{total} to'g'ri ({score}%)\n\n"
-            f"🏆 Tabriklaymiz!"
-        )
-    else:
-        notify_group(
-            f"📊 <b>Test natijasi</b>\n\n"
-            f"Hurmatli <b>{request.user.first_name} {request.user.last_name}</b>, "
-            f"siz testdan o'ta olmadingiz.\n"
-            f"📚 Kurs: {test.lesson.profession.name}\n"
-            f"📖 Test: {test.lesson.title}\n"
-            f"❌ Natija: {correct}/{total} to'g'ri ({score}%)\n\n"
-            f"🔄 Ammo sizda qayta topshirish imkoni bor. Omad!"
-        )
-    
     return redirect('test_result', pk=result.pk)
 
 
