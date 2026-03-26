@@ -1,4 +1,4 @@
-﻿{% extends 'accounts/base.html' %}
+{% extends 'accounts/base.html' %}
 {% load static %}
 
 {% block title %}Ro'yxatdan o'tish | LMS - IT Creative{% endblock %}
@@ -9,7 +9,6 @@
 
   .reg-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -17,70 +16,124 @@
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     position: relative;
     overflow: hidden;
+    background: #0b1120;
   }
 
-  .reg-page::before,
-  .reg-page::after {
-    content: '';
+  /* --- Animated code rain background --- */
+  .code-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .code-col {
+    position: absolute;
+    top: -100%;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(74, 222, 128, 0.12);
+    white-space: pre;
+    animation: codeRain linear infinite;
+    user-select: none;
+    pointer-events: none;
+  }
+  @keyframes codeRain {
+    0%   { transform: translateY(-100%); }
+    100% { transform: translateY(calc(100vh + 100%)); }
+  }
+
+  /* --- Spring gradient blobs --- */
+  .spring-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.15;
-    animation: floatBg 15s ease-in-out infinite;
+    filter: blur(100px);
+    opacity: 0.08;
+    z-index: 0;
+    animation: blobFloat 20s ease-in-out infinite;
   }
-  .reg-page::before {
+  .spring-blob-1 {
+    width: 500px; height: 500px;
+    background: linear-gradient(135deg, #4ade80, #22d3ee);
+    top: -15%; left: -10%;
+  }
+  .spring-blob-2 {
     width: 400px; height: 400px;
-    background: #6366f1;
-    top: -100px; left: -100px;
+    background: linear-gradient(135deg, #a78bfa, #f472b6);
+    bottom: -10%; right: -8%;
+    animation-delay: -10s;
   }
-  .reg-page::after {
-    width: 350px; height: 350px;
-    background: #a855f7;
-    bottom: -100px; right: -100px;
-    animation-delay: -7s;
+  .spring-blob-3 {
+    width: 300px; height: 300px;
+    background: linear-gradient(135deg, #fbbf24, #fb923c);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -5s;
+    opacity: 0.05;
   }
-  @keyframes floatBg {
+  @keyframes blobFloat {
     0%, 100% { transform: translate(0, 0) scale(1); }
-    50% { transform: translate(30px, -20px) scale(1.1); }
+    33% { transform: translate(20px, -30px) scale(1.05); }
+    66% { transform: translate(-15px, 20px) scale(0.95); }
+  }
+
+  /* --- Leaf particles --- */
+  .leaf {
+    position: absolute;
+    width: 8px; height: 8px;
+    background: rgba(74, 222, 128, 0.15);
+    border-radius: 0 50% 50% 50%;
+    z-index: 0;
+    animation: leafFall linear infinite;
+    pointer-events: none;
+  }
+  @keyframes leafFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
   }
 
   .reg-card {
     width: 100%;
-    max-width: 520px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 28px;
-    padding: 36px 32px 32px;
-    box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+    max-width: 480px;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(74, 222, 128, 0.1);
+    border-radius: 24px;
+    padding: 36px 32px 30px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(74, 222, 128, 0.05) inset;
     position: relative;
     z-index: 1;
   }
 
   /* --- Header --- */
-  .reg-header { text-align: center; margin-bottom: 24px; }
+  .reg-header { text-align: center; margin-bottom: 28px; }
   .reg-logo {
-    width: 60px; height: 60px;
-    background: linear-gradient(135deg, #6366f1, #a855f7);
-    border-radius: 16px;
+    width: 56px; height: 56px;
+    background: linear-gradient(135deg, #22c55e, #0ea5e9);
+    border-radius: 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 28px;
     margin-bottom: 14px;
-    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+    box-shadow: 0 8px 24px rgba(34,197,94,0.3);
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+    font-family: 'Courier New', monospace;
   }
   .reg-header h2 {
     font-size: 22px;
     font-weight: 700;
-    color: #fff;
-    margin-bottom: 4px;
+    color: #f1f5f9;
+    margin-bottom: 6px;
     letter-spacing: -0.3px;
   }
   .reg-header p {
     font-size: 13px;
-    color: rgba(255,255,255,0.45);
+    color: rgba(148, 163, 184, 0.7);
   }
 
   /* --- Step Indicator --- */
@@ -89,8 +142,8 @@
     align-items: center;
     justify-content: center;
     gap: 0;
-    margin-bottom: 24px;
-    padding: 0 20px;
+    margin-bottom: 26px;
+    padding: 0 40px;
   }
   .step-item {
     display: flex;
@@ -100,7 +153,7 @@
     flex-shrink: 0;
   }
   .step-dot {
-    width: 34px; height: 34px;
+    width: 36px; height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -108,50 +161,49 @@
     font-size: 13px;
     font-weight: 600;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid rgba(255,255,255,0.12);
-    color: rgba(255,255,255,0.25);
+    border: 2px solid rgba(148, 163, 184, 0.15);
+    color: rgba(148, 163, 184, 0.3);
     background: transparent;
   }
   .step-dot.is-active {
-    background: linear-gradient(135deg, #6366f1, #818cf8);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
     border-color: transparent;
     color: white;
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.2), 0 4px 12px rgba(99,102,241,0.3);
-    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(34,197,94,0.15), 0 4px 16px rgba(34,197,94,0.25);
+    transform: scale(1.08);
   }
   .step-dot.is-done {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
     border-color: transparent;
     color: white;
   }
   .step-label {
     font-size: 10px;
-    color: rgba(255,255,255,0.25);
+    color: rgba(148, 163, 184, 0.3);
     font-weight: 500;
     letter-spacing: 0.3px;
     white-space: nowrap;
     transition: color 0.3s;
   }
-  .step-item.active .step-label { color: rgba(255,255,255,0.7); }
-  .step-item.done .step-label { color: rgba(34,197,94,0.7); }
-
+  .step-item.active .step-label { color: rgba(74, 222, 128, 0.8); }
+  .step-item.done .step-label { color: rgba(14, 165, 233, 0.7); }
   .step-connector {
     flex: 1;
-    max-width: 60px;
+    max-width: 80px;
     height: 2px;
-    background: rgba(255,255,255,0.08);
+    background: rgba(148, 163, 184, 0.08);
     transition: background 0.4s ease;
-    margin: 0 6px;
+    margin: 0 8px;
     margin-bottom: 20px;
   }
   .step-connector.is-done {
-    background: linear-gradient(90deg, #22c55e, #6366f1);
+    background: linear-gradient(90deg, #0ea5e9, #22c55e);
   }
 
   /* --- Messages --- */
   .msg-box {
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 13px;
     margin-bottom: 14px;
     display: flex;
@@ -160,20 +212,21 @@
     line-height: 1.5;
     animation: fadeUp 0.3s ease;
   }
+  .msg-box i { flex-shrink: 0; margin-top: 2px; }
   .msg-box.msg-error {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.15);
     color: #fca5a5;
   }
   .msg-box.msg-success {
-    background: rgba(34,197,94,0.1);
-    border: 1px solid rgba(34,197,94,0.2);
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.15);
     color: #86efac;
   }
   .msg-box.msg-info {
-    background: rgba(99,102,241,0.1);
-    border: 1px solid rgba(99,102,241,0.2);
-    color: #a5b4fc;
+    background: rgba(14,165,233,0.08);
+    border: 1px solid rgba(14,165,233,0.15);
+    color: #7dd3fc;
   }
 
   /* --- Step Panels --- */
@@ -188,47 +241,49 @@
   }
 
   .step-heading {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
-    color: rgba(255,255,255,0.5);
+    color: rgba(148, 163, 184, 0.5);
     margin-bottom: 18px;
     display: flex;
     align-items: center;
-    gap: 7px;
+    gap: 8px;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
+  }
+  .step-heading i {
+    color: #4ade80;
+    font-size: 14px;
   }
 
   /* --- Fields --- */
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: 16px; }
   .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
-
   .field label {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     font-size: 11px;
     font-weight: 600;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 6px;
+    color: rgba(148, 163, 184, 0.6);
+    margin-bottom: 7px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
   }
 
-  /* Style all form inputs */
-  .step-panel input:not([type="submit"]):not([type="radio"]),
+  .step-panel input:not([type="submit"]):not([type="hidden"]),
   .step-panel select {
     width: 100%;
     padding: 12px 14px;
-    background: rgba(255,255,255,0.06);
-    border: 1.5px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    color: white;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1.5px solid rgba(148, 163, 184, 0.1);
+    border-radius: 10px;
+    color: #f1f5f9;
     font-size: 14px;
     font-family: inherit;
     outline: none;
@@ -236,17 +291,17 @@
     appearance: none;
     -webkit-appearance: none;
   }
-  .step-panel input:not([type="submit"]):not([type="radio"]):focus,
+  .step-panel input:not([type="submit"]):not([type="hidden"]):focus,
   .step-panel select:focus {
-    border-color: rgba(99,102,241,0.6);
-    background: rgba(99,102,241,0.06);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+    border-color: rgba(34,197,94,0.5);
+    background: rgba(30, 41, 59, 1);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
   }
-  .step-panel input::placeholder { color: rgba(255,255,255,0.2); }
+  .step-panel input::placeholder { color: rgba(148, 163, 184, 0.3); }
   .step-panel input.has-error,
   .step-panel select.has-error {
-    border-color: rgba(239,68,68,0.5) !important;
-    background: rgba(239,68,68,0.05) !important;
+    border-color: rgba(239,68,68,0.4) !important;
+    background: rgba(239,68,68,0.04) !important;
   }
 
   .field-err {
@@ -255,8 +310,9 @@
     margin-top: 5px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
   }
+  .field-err i { font-size: 12px; }
 
   /* --- Phone field --- */
   .phone-wrap {
@@ -265,10 +321,10 @@
   }
   .phone-prefix {
     padding: 12px 12px;
-    background: rgba(255,255,255,0.06);
-    border: 1.5px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    color: rgba(255,255,255,0.55);
+    background: rgba(30, 41, 59, 0.8);
+    border: 1.5px solid rgba(148, 163, 184, 0.1);
+    border-radius: 10px;
+    color: rgba(148, 163, 184, 0.6);
     font-size: 14px;
     white-space: nowrap;
     display: flex;
@@ -284,25 +340,27 @@
   .pw-wrap input { padding-right: 44px; }
   .pw-eye {
     position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+    width: 42px;
     cursor: pointer;
-    background: none;
+    background: transparent;
     border: none;
-    color: rgba(255,255,255,0.3);
-    font-size: 16px;
-    line-height: 1;
-    padding: 4px;
+    color: rgba(148, 163, 184, 0.35);
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: color 0.2s;
-    border-radius: 6px;
+    border-radius: 0 9px 9px 0;
   }
-  .pw-eye:hover { color: rgba(255,255,255,0.6); }
+  .pw-eye:hover { color: rgba(148, 163, 184, 0.7); }
 
   .pw-strength { margin-top: 8px; }
   .strength-bar {
     height: 3px;
-    background: rgba(255,255,255,0.06);
+    background: rgba(148, 163, 184, 0.06);
     border-radius: 4px;
     overflow: hidden;
   }
@@ -314,20 +372,20 @@
   }
   .strength-label {
     font-size: 11px;
-    color: rgba(255,255,255,0.3);
+    color: rgba(148, 163, 184, 0.3);
     margin-top: 5px;
     display: block;
   }
 
   /* --- Buttons --- */
-  .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+  .btn-row { display: flex; gap: 10px; margin-top: 8px; }
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     padding: 12px 20px;
-    border-radius: 12px;
+    border-radius: 10px;
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
@@ -338,33 +396,33 @@
   }
   .btn-main {
     flex: 1;
-    background: linear-gradient(135deg, #6366f1, #818cf8);
+    background: linear-gradient(135deg, #22c55e, #16a34a);
     color: white;
-    box-shadow: 0 4px 16px rgba(99,102,241,0.3);
+    box-shadow: 0 4px 16px rgba(34,197,94,0.25);
   }
   .btn-main:hover {
-    box-shadow: 0 6px 24px rgba(99,102,241,0.45);
+    box-shadow: 0 6px 24px rgba(34,197,94,0.4);
     transform: translateY(-1px);
   }
   .btn-main:active { transform: translateY(0); }
   .btn-back {
     padding: 12px 16px;
-    background: rgba(255,255,255,0.06);
-    color: rgba(255,255,255,0.6);
-    border: 1.5px solid rgba(255,255,255,0.08);
+    background: rgba(30, 41, 59, 0.8);
+    color: rgba(148, 163, 184, 0.6);
+    border: 1.5px solid rgba(148, 163, 184, 0.1);
   }
   .btn-back:hover {
-    background: rgba(255,255,255,0.1);
-    color: rgba(255,255,255,0.8);
+    background: rgba(30, 41, 59, 1);
+    color: rgba(148, 163, 184, 0.9);
   }
   .btn-submit {
     flex: 1;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
     color: white;
-    box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+    box-shadow: 0 4px 16px rgba(14,165,233,0.25);
   }
   .btn-submit:hover {
-    box-shadow: 0 6px 24px rgba(34,197,94,0.45);
+    box-shadow: 0 6px 24px rgba(14,165,233,0.4);
     transform: translateY(-1px);
   }
   .btn-submit:active { transform: translateY(0); }
@@ -372,62 +430,26 @@
   /* --- Footer --- */
   .reg-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 22px;
     font-size: 13px;
-    color: rgba(255,255,255,0.35);
+    color: rgba(148, 163, 184, 0.4);
   }
   .reg-footer a {
-    color: #818cf8;
+    color: #4ade80;
     text-decoration: none;
     font-weight: 600;
     transition: color 0.2s;
   }
-  .reg-footer a:hover { color: #a5b4fc; }
+  .reg-footer a:hover { color: #86efac; }
 
-  /* --- Role selector cards --- */
-  .role-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .role-card {
-    position: relative;
-    padding: 16px 12px;
-    background: rgba(255,255,255,0.04);
-    border: 1.5px solid rgba(255,255,255,0.08);
-    border-radius: 14px;
+  /* --- Terminal decoration --- */
+  .terminal-line {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: rgba(74, 222, 128, 0.2);
     text-align: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-  }
-  .role-card:hover {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(255,255,255,0.15);
-  }
-  .role-card.selected {
-    background: rgba(99,102,241,0.08);
-    border-color: rgba(99,102,241,0.5);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-  }
-  .role-card input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .role-icon {
-    font-size: 28px;
-    margin-bottom: 6px;
-    display: block;
-  }
-  .role-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: rgba(255,255,255,0.75);
-  }
-  .role-desc {
-    font-size: 10px;
-    color: rgba(255,255,255,0.3);
-    margin-top: 2px;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
   }
 
   /* ===== RESPONSIVE ===== */
@@ -435,60 +457,56 @@
     .reg-page { padding: 12px 8px; }
     .reg-card {
       padding: 24px 18px 22px;
-      border-radius: 22px;
+      border-radius: 20px;
       max-width: 100%;
     }
     .reg-header h2 { font-size: 20px; }
     .reg-header p { font-size: 12px; }
-    .reg-logo { width: 52px; height: 52px; font-size: 24px; border-radius: 14px; }
-
-    .step-indicator { padding: 0 8px; margin-bottom: 20px; }
-    .step-dot { width: 30px; height: 30px; font-size: 12px; }
+    .reg-logo { width: 48px; height: 48px; font-size: 17px; border-radius: 12px; }
+    .step-indicator { padding: 0 20px; margin-bottom: 22px; }
+    .step-dot { width: 32px; height: 32px; font-size: 12px; }
     .step-label { font-size: 9px; }
-    .step-connector { max-width: 40px; margin: 0 4px; }
-
+    .step-connector { max-width: 50px; }
     .field-row {
       grid-template-columns: 1fr;
       gap: 0;
       margin-bottom: 0;
     }
-    .field-row .field { margin-bottom: 14px; }
-
-    .step-panel input:not([type="submit"]):not([type="radio"]),
+    .field-row .field { margin-bottom: 16px; }
+    .step-panel input:not([type="submit"]):not([type="hidden"]),
     .step-panel select {
       padding: 11px 12px;
       font-size: 15px;
     }
     .phone-prefix { padding: 11px 10px; font-size: 13px; }
-
     .btn { padding: 11px 14px; font-size: 13px; }
     .btn-row { gap: 8px; }
-
-    .role-cards { gap: 8px; }
-    .role-card { padding: 14px 10px; }
-    .role-icon { font-size: 24px; }
-    .role-title { font-size: 12px; }
+    .terminal-line { font-size: 9px; }
   }
 
   @media (max-width: 360px) {
     .reg-card { padding: 20px 14px 18px; }
-    .step-connector { max-width: 28px; }
-  }
-
-  @media (min-width: 577px) and (max-width: 768px) {
-    .reg-card { max-width: 480px; padding: 32px 28px; }
+    .step-connector { max-width: 32px; }
   }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="reg-page">
+  <!-- Animated background -->
+  <div class="code-bg" id="codeBg"></div>
+  <div class="spring-blob spring-blob-1"></div>
+  <div class="spring-blob spring-blob-2"></div>
+  <div class="spring-blob spring-blob-3"></div>
+
   <div class="reg-card">
     <div class="reg-header">
-      <div class="reg-logo">🚀</div>
+      <div class="reg-logo">&lt;/&gt;</div>
       <h2>Ro'yxatdan o'tish</h2>
-      <p>IT Creative platformasiga xush kelibsiz!</p>
+      <p>IT Creative platformasiga xush kelibsiz</p>
     </div>
+
+    <div class="terminal-line">// yangi hisob yarating</div>
 
     <!-- Step Indicator -->
     <div class="step-indicator">
@@ -499,11 +517,6 @@
       <div class="step-connector" id="conn1"></div>
       <div class="step-item" id="stepItem2">
         <div class="step-dot" id="dot2">2</div>
-        <span class="step-label">Aloqa</span>
-      </div>
-      <div class="step-connector" id="conn2"></div>
-      <div class="step-item" id="stepItem3">
-        <div class="step-dot" id="dot3">3</div>
         <span class="step-label">Parol</span>
       </div>
     </div>
@@ -512,7 +525,7 @@
     {% if messages %}
       {% for message in messages %}
         <div class="msg-box {% if 'error' in message.tags %}msg-error{% elif 'success' in message.tags %}msg-success{% else %}msg-info{% endif %}">
-          <span>{% if 'error' in message.tags %}⚠️{% elif 'success' in message.tags %}✅{% else %}ℹ️{% endif %}</span>
+          <i class="bi {% if 'error' in message.tags %}bi-exclamation-circle{% elif 'success' in message.tags %}bi-check-circle{% else %}bi-info-circle{% endif %}"></i>
           <span>{{ message }}</span>
         </div>
       {% endfor %}
@@ -520,7 +533,7 @@
 
     {% if form.non_field_errors %}
       <div class="msg-box msg-error">
-        <span>⚠️</span>
+        <i class="bi bi-exclamation-circle"></i>
         <span>{{ form.non_field_errors.0 }}</span>
       </div>
     {% endif %}
@@ -528,26 +541,27 @@
     <!-- Form -->
     <form method="POST" id="regForm" novalidate>
       {% csrf_token %}
-      <!-- Django role select (yashirilgan) -->
-      <div style="display:none">{{ form.role }}</div>
+      {{ form.role }}
 
-      <!-- ===== STEP 1: Shaxsiy ma'lumotlar ===== -->
+      <!-- ===== STEP 1 ===== -->
       <div class="step-panel" id="panel1">
-        <div class="step-heading">👤 Shaxsiy ma'lumotlar</div>
+        <div class="step-heading">
+          <i class="bi bi-person"></i> Shaxsiy ma'lumotlar
+        </div>
 
         <div class="field-row">
           <div class="field">
             <label for="{{ form.first_name.id_for_label }}">Ism</label>
             {{ form.first_name }}
             {% if form.first_name.errors %}
-              <div class="field-err">⚠ {{ form.first_name.errors.0 }}</div>
+              <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>
             {% endif %}
           </div>
           <div class="field">
             <label for="{{ form.last_name.id_for_label }}">Familiya</label>
             {{ form.last_name }}
             {% if form.last_name.errors %}
-              <div class="field-err">⚠ {{ form.last_name.errors.0 }}</div>
+              <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>
             {% endif %}
           </div>
         </div>
@@ -556,35 +570,26 @@
           <label for="{{ form.username.id_for_label }}">Username</label>
           {{ form.username }}
           {% if form.username.errors %}
-            <div class="field-err">⚠ {{ form.username.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>
           {% endif %}
         </div>
 
         <div class="field">
-          <label for="{{ form.email.id_for_label }}">Email manzil</label>
+          <label for="{{ form.email.id_for_label }}">Email</label>
           {{ form.email }}
           {% if form.email.errors %}
-            <div class="field-err">⚠ {{ form.email.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>
           {% endif %}
         </div>
-
-        <button type="button" class="btn btn-main" style="width:100%" onclick="moveStep(2)">
-          Davom etish →
-        </button>
-      </div>
-
-      <!-- ===== STEP 2: Aloqa ma'lumotlari ===== -->
-      <div class="step-panel" id="panel2">
-        <div class="step-heading">📱 Aloqa va rol</div>
 
         <div class="field">
           <label>Telefon raqam</label>
           <div class="phone-wrap">
-            <div class="phone-prefix">🇺🇿 +998</div>
+            <div class="phone-prefix">+998</div>
             {{ form.phone }}
           </div>
           {% if form.phone.errors %}
-            <div class="field-err">⚠ {{ form.phone.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>
           {% endif %}
         </div>
 
@@ -592,56 +597,37 @@
           <label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label>
           {{ form.birth_date }}
           {% if form.birth_date.errors %}
-            <div class="field-err">⚠ {{ form.birth_date.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>
           {% endif %}
         </div>
 
-        <div class="field">
-          <label>Rolni tanlang</label>
-          <div class="role-cards">
-            <label class="role-card selected" id="roleStudent" onclick="selectRole('student')">
-              <input type="radio" name="_role_card" value="student" checked>
-              <span class="role-icon">🎓</span>
-              <div class="role-title">O'quvchi</div>
-              <div class="role-desc">Kurslarni o'rganish</div>
-            </label>
-            <label class="role-card" id="roleTeacher" onclick="selectRole('teacher')">
-              <input type="radio" name="_role_card" value="teacher">
-              <span class="role-icon">👨‍🏫</span>
-              <div class="role-title">O'qituvchi</div>
-              <div class="role-desc">Kurslar yaratish</div>
-            </label>
-          </div>
-          {% if form.role.errors %}
-            <div class="field-err">⚠ {{ form.role.errors.0 }}</div>
-          {% endif %}
-        </div>
-
-        <div class="btn-row">
-          <button type="button" class="btn btn-back" onclick="moveStep(1)">← Orqaga</button>
-          <button type="button" class="btn btn-main" onclick="moveStep(3)">Davom etish →</button>
-        </div>
+        <button type="button" class="btn btn-main" style="width:100%" onclick="moveStep(2)">
+          Davom etish <i class="bi bi-arrow-right"></i>
+        </button>
       </div>
 
-      <!-- ===== STEP 3: Parol ===== -->
-      <div class="step-panel" id="panel3">
-        <div class="step-heading">🔐 Parol yaratish</div>
+      <!-- ===== STEP 2 ===== -->
+      <div class="step-panel" id="panel2">
+        <div class="step-heading">
+          <i class="bi bi-shield-lock"></i> Parol yaratish
+        </div>
 
         <div class="field">
           <label for="{{ form.password1.id_for_label }}">Parol</label>
           <div class="pw-wrap">
             {{ form.password1 }}
-            <button type="button" class="pw-eye"
-              onclick="togglePw('{{ form.password1.id_for_label }}', this)">👁</button>
+            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password1.id_for_label }}', this)">
+              <i class="bi bi-eye"></i>
+            </button>
           </div>
           {% if form.password1.errors %}
-            <div class="field-err">⚠ {{ form.password1.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>
           {% endif %}
           <div class="pw-strength">
             <div class="strength-bar">
               <div class="strength-fill" id="strengthFill"></div>
             </div>
-            <span class="strength-label" id="strengthLabel">Parol kuchi: —</span>
+            <span class="strength-label" id="strengthLabel">Parol kuchi: ---</span>
           </div>
         </div>
 
@@ -649,17 +635,22 @@
           <label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label>
           <div class="pw-wrap">
             {{ form.password2 }}
-            <button type="button" class="pw-eye"
-              onclick="togglePw('{{ form.password2.id_for_label }}', this)">👁</button>
+            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password2.id_for_label }}', this)">
+              <i class="bi bi-eye"></i>
+            </button>
           </div>
           {% if form.password2.errors %}
-            <div class="field-err">⚠ {{ form.password2.errors.0 }}</div>
+            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>
           {% endif %}
         </div>
 
         <div class="btn-row">
-          <button type="button" class="btn btn-back" onclick="moveStep(2)">← Orqaga</button>
-          <button type="submit" class="btn btn-submit">✅ Ro'yxatdan o'tish</button>
+          <button type="button" class="btn btn-back" onclick="moveStep(1)">
+            <i class="bi bi-arrow-left"></i> Orqaga
+          </button>
+          <button type="submit" class="btn btn-submit">
+            Ro'yxatdan o'tish <i class="bi bi-check-lg"></i>
+          </button>
         </div>
       </div>
 
@@ -667,76 +658,100 @@
 
     <div class="reg-footer">
       Akkauntingiz bormi?
-      <a href="{% url 'login' %}">Tizimga kirish →</a>
+      <a href="{% url 'login' %}">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
     </div>
-
   </div>
 </div>
 
 <script>
-  // --- Server tomonidan qaysi stepda xato borligini aniqlash ---
+  // --- Background: code rain ---
+  (function() {
+    var bg = document.getElementById('codeBg');
+    var snippets = [
+      'def hello():\n  print("salom")',
+      'for i in range(10):\n  sum += i',
+      'class User:\n  name = ""',
+      'if score >= 60:\n  pass_test()',
+      'import django\nfrom views',
+      'let x = 42;\nconst y = x;',
+      'function init() {\n  return true;\n}',
+      '<div class="">\n  <p>text</p>\n</div>',
+      'SELECT *\nFROM users\nWHERE id=1;',
+      'git commit -m\n"first commit"',
+      'npm install\nnode server.js',
+      'while True:\n  learn()',
+      'try:\n  code()\nexcept:\n  debug()',
+      '.container {\n  display: flex;\n}',
+      'const app =\n  express();',
+      'arr.map(x =>\n  x * 2);',
+      'model.fit(\n  X, y)',
+    ];
+    var colCount = Math.floor(window.innerWidth / 120);
+    for (var i = 0; i < colCount; i++) {
+      var col = document.createElement('div');
+      col.className = 'code-col';
+      col.style.left = (i * (100 / colCount)) + '%';
+      col.style.animationDuration = (18 + Math.random() * 20) + 's';
+      col.style.animationDelay = (-Math.random() * 30) + 's';
+      col.textContent = snippets[Math.floor(Math.random() * snippets.length)];
+      bg.appendChild(col);
+    }
+  })();
+
+  // --- Background: floating leaves ---
+  (function() {
+    var page = document.querySelector('.reg-page');
+    for (var i = 0; i < 12; i++) {
+      var leaf = document.createElement('div');
+      leaf.className = 'leaf';
+      leaf.style.left = Math.random() * 100 + '%';
+      leaf.style.animationDuration = (8 + Math.random() * 12) + 's';
+      leaf.style.animationDelay = (-Math.random() * 15) + 's';
+      leaf.style.width = (6 + Math.random() * 6) + 'px';
+      leaf.style.height = leaf.style.width;
+      leaf.style.opacity = (0.06 + Math.random() * 0.12);
+      page.appendChild(leaf);
+    }
+  })();
+
+  // --- Init step from server errors ---
   var INIT_STEP = 1;
   {% if form.password1.errors or form.password2.errors %}
-    INIT_STEP = 3;
-  {% elif form.birth_date.errors or form.phone.errors or form.role.errors %}
     INIT_STEP = 2;
-  {% elif form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors %}
+  {% elif form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors or form.phone.errors or form.birth_date.errors %}
     INIT_STEP = 1;
   {% endif %}
 
-  // --- Input'larni stillashtirish ---
-  document.querySelectorAll('.step-panel input:not([type="radio"]), .step-panel select').forEach(function(el) {
-    var fieldEl = el.closest('.field') || el.closest('[class^="field"]');
+  // --- Mark error inputs ---
+  document.querySelectorAll('.step-panel input:not([type="hidden"]), .step-panel select').forEach(function(el) {
+    var fieldEl = el.closest('.field');
     if (fieldEl && fieldEl.querySelector('.field-err')) {
       el.classList.add('has-error');
     }
   });
 
-  // --- Role tanlash ---
-  {% if form.role.value == 'teacher' %}
-    document.getElementById('roleStudent').classList.remove('selected');
-    document.getElementById('roleTeacher').classList.add('selected');
-    document.querySelector('#roleTeacher input').checked = true;
-    document.getElementById('{{ form.role.id_for_label }}').value = 'teacher';
-  {% endif %}
-
-  function selectRole(role) {
-    document.querySelectorAll('.role-card').forEach(function(c) { c.classList.remove('selected'); });
-    if (role === 'student') {
-      document.getElementById('roleStudent').classList.add('selected');
-    } else {
-      document.getElementById('roleTeacher').classList.add('selected');
-    }
-    var djangoSelect = document.getElementById('{{ form.role.id_for_label }}');
-    if (djangoSelect) djangoSelect.value = role;
-  }
-
-  // --- Step navigation ---
+  // --- Step navigation (2 steps) ---
+  var TOTAL_STEPS = 2;
   var currentStep = 0;
 
   function showStep(n) {
-    document.querySelectorAll('.step-panel').forEach(function(p) {
-      p.classList.remove('is-active');
-    });
-
-    for (var i = 1; i <= 3; i++) {
+    document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('is-active'); });
+    for (var i = 1; i <= TOTAL_STEPS; i++) {
       var dot = document.getElementById('dot' + i);
       var item = document.getElementById('stepItem' + i);
       dot.classList.remove('is-active', 'is-done');
       item.classList.remove('active', 'done');
       dot.textContent = i;
     }
-    for (var j = 1; j <= 2; j++) {
-      document.getElementById('conn' + j).classList.remove('is-done');
-    }
+    document.getElementById('conn1').classList.remove('is-done');
 
     for (var k = 1; k < n; k++) {
       var d = document.getElementById('dot' + k);
       var si = document.getElementById('stepItem' + k);
       d.classList.add('is-done');
       si.classList.add('done');
-      d.textContent = '✓';
-      if (k <= 2) document.getElementById('conn' + k).classList.add('is-done');
+      d.innerHTML = '<i class="bi bi-check-lg" style="font-size:13px"></i>';
+      if (k === 1) document.getElementById('conn1').classList.add('is-done');
     }
 
     document.getElementById('dot' + n).classList.add('is-active');
@@ -752,15 +767,19 @@
 
   showStep(INIT_STEP);
 
-  // --- Password ko'rish/yashirish ---
+  // --- Password toggle ---
   function togglePw(inputId, btn) {
     var input = document.getElementById(inputId);
     if (!input) return;
-    input.type = input.type === 'password' ? 'text' : 'password';
-    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+    var isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    var icon = btn.querySelector('i');
+    if (icon) {
+      icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+    }
   }
 
-  // --- Parol kuchi indikatori ---
+  // --- Password strength ---
   var pwInput = document.getElementById('{{ form.password1.id_for_label }}');
   if (pwInput) {
     pwInput.addEventListener('input', function() {
@@ -773,12 +792,12 @@
       if (/[^A-Za-z0-9]/.test(v)) score++;
 
       var levels = [
-        { label: '—',           color: 'rgba(255,255,255,0.15)', width: '0%'   },
-        { label: 'Juda zaif',   color: '#ef4444',               width: '20%'  },
-        { label: 'Zaif',        color: '#f97316',               width: '40%'  },
-        { label: "O'rtacha",    color: '#eab308',               width: '60%'  },
-        { label: 'Yaxshi',      color: '#22c55e',               width: '80%'  },
-        { label: "A'lo",        color: '#16a34a',               width: '100%' },
+        { label: '---',         color: 'rgba(148,163,184,0.15)', width: '0%'   },
+        { label: 'Juda zaif',   color: '#ef4444',                width: '20%'  },
+        { label: 'Zaif',        color: '#f97316',                width: '40%'  },
+        { label: "O'rtacha",    color: '#eab308',                width: '60%'  },
+        { label: 'Yaxshi',      color: '#22c55e',                width: '80%'  },
+        { label: "A'lo",        color: '#16a34a',                width: '100%' },
       ];
       var l = levels[Math.min(score, 5)];
       var fill  = document.getElementById('strengthFill');
@@ -789,14 +808,5 @@
       label.style.color     = l.color;
     });
   }
-
-  // --- Form submit paytida role ni sync qilish ---
-  document.getElementById('regForm').addEventListener('submit', function() {
-    var checkedRole = document.querySelector('.role-card.selected input[type="radio"]');
-    if (checkedRole) {
-      var djangoSelect = document.getElementById('{{ form.role.id_for_label }}');
-      if (djangoSelect) djangoSelect.value = checkedRole.value;
-    }
-  });
 </script>
 {% endblock %}

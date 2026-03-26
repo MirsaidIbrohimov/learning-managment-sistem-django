@@ -54,7 +54,8 @@ class RegisterForm(UserCreationForm):
     )
     role = forms.ChoiceField(
         choices=[('student', 'O\'quvchi'), ('teacher', 'O\'qituvchi')],
-        widget=forms.Select(attrs={'class': 'form-control'})
+        initial='student',
+        widget=forms.HiddenInput(),
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Parol'})
