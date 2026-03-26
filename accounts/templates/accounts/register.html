@@ -4,719 +4,596 @@
 {% block title %}Ro'yxatdan o'tish | LMS - IT Creative{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/login.css' %}">
 <style>
-/* ===== REGISTER OVERRIDES ===== */
-.auth-card {
-    max-width: 720px;
-}
+  * { box-sizing: border-box; }
 
-/* ===== STEP INDICATOR ===== */
-.step-indicator {
+  .reg-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0;
-    margin-bottom: 2rem;
-    animation: textFadeUp 0.6s 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.step-dot {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem;
-    background: rgba(99, 102, 241, 0.08);
-    color: #94a3b8;
-    border: 2px solid transparent;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    z-index: 1;
-}
-.step-dot.active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-    transform: scale(1.1);
-}
-.step-dot.done {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-}
-.step-line {
-    width: 50px; height: 3px;
-    background: rgba(99, 102, 241, 0.1);
-    border-radius: 3px;
-    transition: background 0.4s ease;
-}
-.step-line.done {
-    background: linear-gradient(90deg, #10b981, #6366f1);
-}
-[data-bs-theme="dark"] .step-dot {
+    padding: 24px 16px;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .reg-card {
+    width: 100%;
+    max-width: 460px;
     background: rgba(255, 255, 255, 0.06);
-}
-[data-bs-theme="dark"] .step-line {
-    background: rgba(255, 255, 255, 0.08);
-}
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 40px 36px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+  }
 
-/* ===== FORM STEPS ===== */
-.form-step {
-    display: none;
-}
-.form-step.active {
-    display: block;
-    animation: stepFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes stepFadeIn {
-    from { opacity: 0; transform: translateX(30px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* ===== FIELD GROUP ===== */
-.field-group {
-    margin-bottom: 1rem;
-}
-.field-group label {
+  /* --- Header --- */
+  .reg-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .reg-logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-radius: 18px;
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-color, #334155);
-    letter-spacing: 0.02em;
-}
-.field-group label i {
-    font-size: 0.9rem;
-    color: #6366f1;
-}
-.field-group .form-control,
-.field-group .form-select {
-    border-radius: 14px;
-    padding: 14px 16px;
-    font-size: 0.95rem;
-    border: 1.5px solid var(--border-color, #e2e8f0);
-    background: var(--bg-color, #f8fafc);
-    transition: all 0.3s ease;
-}
-.field-group .form-control:focus,
-.field-group .form-select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.08);
-}
-[data-bs-theme="dark"] .field-group .form-control,
-[data-bs-theme="dark"] .field-group .form-select {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-    color: #fff;
-}
-[data-bs-theme="dark"] .field-group .form-control:focus,
-[data-bs-theme="dark"] .field-group .form-select:focus {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: #6366f1;
-}
-[data-bs-theme="dark"] .field-group label {
-    color: #e2e8f0;
-}
-
-/* ===== PHONE INPUT ===== */
-.phone-input-wrap {
-    display: flex;
-    align-items: stretch;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1.5px solid var(--border-color, #e2e8f0);
-    background: var(--bg-color, #f8fafc);
-    transition: all 0.3s ease;
-}
-.phone-input-wrap:focus-within {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.08);
-}
-[data-bs-theme="dark"] .phone-input-wrap {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.12);
-}
-.phone-prefix {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0 14px;
-    background: rgba(99, 102, 241, 0.06);
-    border-right: 1px solid var(--border-color, #e2e8f0);
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.45);
+  }
+  .reg-header h2 {
+    font-size: 24px;
     font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    white-space: nowrap;
-    user-select: none;
-}
-[data-bs-theme="dark"] .phone-prefix {
-    background: rgba(255, 255, 255, 0.05);
-    border-right-color: rgba(255, 255, 255, 0.1);
-}
-.phone-prefix .flag { font-size: 1.2rem; }
-.phone-input-wrap input {
-    flex: 1;
-    border: none;
-    padding: 14px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    background: transparent;
-    color: var(--text-color);
-    outline: none;
-    letter-spacing: 1px;
-}
-.phone-input-wrap input::placeholder {
-    color: #94a3b8;
-    font-weight: 400;
-    letter-spacing: 0.5px;
-}
-[data-bs-theme="dark"] .phone-input-wrap input {
     color: #fff;
-}
+    margin: 0 0 6px;
+    letter-spacing: -0.3px;
+  }
+  .reg-header p {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    margin: 0;
+  }
 
-/* ===== PASSWORD WRAPPER ===== */
-.pwd-wrap {
-    position: relative;
-}
-.pwd-wrap .form-control {
-    padding-right: 3rem;
-}
-.pwd-toggle-btn {
+  /* --- Step Indicator --- */
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .step-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.3);
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .step-dot.is-active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.25);
+  }
+  .step-dot.is-done {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: white;
+  }
+  .step-connector {
+    flex: 1;
+    max-width: 72px;
+    height: 2px;
+    background: rgba(255,255,255,0.1);
+    transition: background 0.3s ease;
+    margin: 0 4px;
+  }
+  .step-connector.is-done {
+    background: linear-gradient(90deg, #22c55e, #6366f1);
+  }
+
+  /* --- Messages --- */
+  .msg-box {
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+  .msg-box.msg-error {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+  }
+  .msg-box.msg-success {
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: #86efac;
+  }
+  .msg-box.msg-info {
+    background: rgba(99,102,241,0.12);
+    border: 1px solid rgba(99,102,241,0.3);
+    color: #a5b4fc;
+  }
+
+  /* --- Step Panels --- */
+  .step-panel { display: none; }
+  .step-panel.is-active {
+    display: block;
+    animation: fadeUp 0.3s ease;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-heading {
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* --- Fields --- */
+  .field { margin-bottom: 16px; }
+  .field-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.55);
+    margin-bottom: 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  /* Style all form inputs */
+  .step-panel input:not([type="submit"]),
+  .step-panel select {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+  }
+  .step-panel input:not([type="submit"]):focus,
+  .step-panel select:focus {
+    border-color: rgba(99,102,241,0.7);
+    background: rgba(99,102,241,0.08);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+  .step-panel input::placeholder { color: rgba(255,255,255,0.22); }
+  .step-panel input.has-error {
+    border-color: rgba(239,68,68,0.6) !important;
+    background: rgba(239,68,68,0.06) !important;
+  }
+
+  .field-err {
+    font-size: 12px;
+    color: #fca5a5;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* --- Phone field --- */
+  .phone-wrap {
+    display: flex;
+    gap: 8px;
+  }
+  .phone-prefix {
+    padding: 11px 12px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: rgba(255,255,255,0.6);
+    font-size: 14px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .phone-wrap input { flex: 1; }
+
+  /* --- Password --- */
+  .pw-wrap { position: relative; }
+  .pw-wrap input { padding-right: 44px; }
+  .pw-eye {
     position: absolute;
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
+    cursor: pointer;
+    background: none;
     border: none;
-    background: transparent;
-    padding: 4px;
-    color: #94a3b8;
+    color: rgba(255,255,255,0.35);
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px;
+    transition: color 0.2s;
+  }
+  .pw-eye:hover { color: rgba(255,255,255,0.65); }
+
+  .pw-strength { margin-top: 8px; }
+  .strength-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .strength-fill {
+    height: 100%;
+    border-radius: 2px;
+    width: 0;
+    transition: all 0.35s ease;
+  }
+  .strength-label {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* --- Buttons --- */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 11px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    z-index: 2;
-}
-.pwd-toggle-btn:hover {
-    color: #6366f1;
-    transform: translateY(-50%) scale(1.1);
-}
-[data-bs-theme="dark"] .pwd-toggle-btn { color: #cbd5e1; }
-
-/* ===== PASSWORD STRENGTH METER ===== */
-.password-meter {
-    height: 6px;
-    background: rgba(0, 0, 0, 0.06);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-top: 10px;
-}
-[data-bs-theme="dark"] .password-meter { background: rgba(255, 255, 255, 0.06); }
-.password-meter .meter-bar {
-    height: 100%;
-    width: 0%;
-    border-radius: 6px;
-    transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
-}
-.meter-label {
-    font-size: 0.75rem;
-    margin-top: 6px;
-    font-weight: 500;
-    color: #94a3b8;
-}
-.meter-very-weak { background: linear-gradient(90deg, #ef4444, #f87171); }
-.meter-weak { background: linear-gradient(90deg, #f97316, #fb923c); }
-.meter-fair { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-.meter-good { background: linear-gradient(90deg, #84cc16, #a3e635); }
-.meter-strong { background: linear-gradient(90deg, #10b981, #34d399); }
-
-/* ===== NAV BUTTONS ===== */
-.step-nav {
-    display: flex;
-    gap: 12px;
-    margin-top: 0.5rem;
-}
-.btn-step-back {
-    flex: 0 0 auto;
-    padding: 14px 24px;
-    border-radius: 14px;
-    border: 1.5px solid var(--border-color, #e2e8f0);
-    background: transparent;
-    color: var(--text-color, #334155);
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.btn-step-back:hover {
-    border-color: #6366f1;
-    color: #6366f1;
-    background: rgba(99, 102, 241, 0.05);
-}
-[data-bs-theme="dark"] .btn-step-back {
-    border-color: rgba(255, 255, 255, 0.15);
-    color: #e2e8f0;
-}
-.btn-step-next {
-    flex: 1;
-    padding: 14px 24px;
-    border-radius: 14px;
     border: none;
+    outline: none;
+    letter-spacing: 0.2px;
+  }
+  .btn-main {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-.btn-step-next::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.btn-step-next:hover::before { opacity: 1; }
-.btn-step-next:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
-}
-.btn-step-next:active { transform: translateY(0) scale(0.98); }
-.btn-step-next i, .btn-step-next span {
-    position: relative; z-index: 1;
-}
+    color: white;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  }
+  .btn-main:hover {
+    box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+    transform: translateY(-1px);
+  }
+  .btn-main:active { transform: translateY(0); }
+  .btn-back {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.65);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.12); color: white; }
+  .btn-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 10px;
+    margin-top: 4px;
+  }
 
-/* ===== STAGGER ANIMATION ===== */
-.form-step.active .field-group:nth-child(1) { animation: formItemIn 0.4s 0.05s cubic-bezier(0.16,1,0.3,1) both; }
-.form-step.active .field-group:nth-child(2) { animation: formItemIn 0.4s 0.1s cubic-bezier(0.16,1,0.3,1) both; }
-.form-step.active .field-group:nth-child(3) { animation: formItemIn 0.4s 0.15s cubic-bezier(0.16,1,0.3,1) both; }
-.form-step.active .field-group:nth-child(4) { animation: formItemIn 0.4s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
-.form-step.active .step-nav { animation: formItemIn 0.4s 0.25s cubic-bezier(0.16,1,0.3,1) both; }
-
-/* ===== TOAST ERROR ===== */
-.field-error {
-    font-size: 0.75rem;
-    color: #ef4444;
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    animation: formItemIn 0.3s ease both;
-}
-
-/* ===== ALERT ===== */
-.reg-alert {
-    border: none;
-    border-radius: 14px;
-    padding: 12px 16px;
-    font-size: 0.85rem;
+  /* --- Footer --- */
+  .reg-footer {
+    text-align: center;
+    margin-top: 22px;
+    font-size: 13.5px;
+    color: rgba(255,255,255,0.45);
+  }
+  .reg-footer a {
+    color: #818cf8;
+    text-decoration: none;
     font-weight: 500;
-    animation: formItemIn 0.4s ease both;
-    backdrop-filter: blur(10px);
-}
+    transition: color 0.2s;
+  }
+  .reg-footer a:hover { color: #c4b5fd; }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 576px) {
-    .auth-card { padding: 1.6rem 1.2rem; }
-    .step-line { width: 30px; }
-    .step-dot { width: 32px; height: 32px; font-size: 0.8rem; }
-}
+  /* Date picker */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.6);
+    cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .reg-card { padding: 28px 18px; }
+    .field-row { grid-template-columns: 1fr; }
+    .step-connector { max-width: 44px; }
+  }
 </style>
 {% endblock %}
 
+
 {% block content %}
-<div class="page-center">
-
-<div class="blob one"></div>
-<div class="blob two"></div>
-<div class="blob three"></div>
-<div class="particles" id="particles"></div>
-
-<div class="toast-box" id="toastBox"></div>
-
-<div class="auth-card">
+<div class="reg-page">
+  <div class="reg-card">
 
     <!-- Header -->
-    <div class="text-center mb-4">
-        <div class="auth-logo mb-3 mx-auto">
-            <i class="bi bi-person-plus-fill"></i>
-        </div>
-        <h4 class="fw-bold mb-1">Ro'yxatdan o'tish</h4>
-        <p class="text-secondary small mb-0">LMS platformasiga qo'shiling 🚀</p>
+    <div class="reg-header">
+      <div class="reg-logo">🎓</div>
+      <h2>Ro'yxatdan o'tish</h2>
+      <p>LMS platformasiga qo'shiling 🚀</p>
     </div>
 
     <!-- Step Indicator -->
     <div class="step-indicator">
-        <div class="step-dot active" data-step="1">1</div>
-        <div class="step-line"></div>
-        <div class="step-dot" data-step="2">2</div>
-        <div class="step-line"></div>
-        <div class="step-dot" data-step="3">3</div>
+      <div class="step-dot" id="dot1">1</div>
+      <div class="step-connector" id="conn1"></div>
+      <div class="step-dot" id="dot2">2</div>
+      <div class="step-connector" id="conn2"></div>
+      <div class="step-dot" id="dot3">3</div>
     </div>
 
+    <!-- Django Messages -->
     {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} reg-alert mb-3">
-            <i class="bi bi-exclamation-circle me-1"></i>{{ message }}
+      {% for message in messages %}
+        <div class="msg-box {% if 'error' in message.tags %}msg-error{% elif 'success' in message.tags %}msg-success{% else %}msg-info{% endif %}">
+          <span>{% if 'error' in message.tags %}⚠️{% elif 'success' in message.tags %}✅{% else %}ℹ️{% endif %}</span>
+          <span>{{ message }}</span>
         </div>
-        {% endfor %}
+      {% endfor %}
     {% endif %}
 
-    <form method="POST" id="registerForm" novalidate>
-        {% csrf_token %}
-        <input type="hidden" name="role" value="student">
-        <!-- Hidden phone field for final submission -->
-        <input type="hidden" name="phone" id="phoneHidden" value="">
+    {% if form.non_field_errors %}
+      <div class="msg-box msg-error">
+        <span>⚠️</span>
+        <span>{{ form.non_field_errors.0 }}</span>
+      </div>
+    {% endif %}
 
-        <!-- ===== STEP 1: Shaxsiy ma'lumotlar ===== -->
-        <div class="form-step active" data-step="1">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-person"></i> Ism</label>
-                        {{ form.first_name }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-person"></i> Familiya</label>
-                        {{ form.last_name }}
-                    </div>
-                </div>
-            </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-at"></i> Username</label>
-                        {{ form.username }}
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-envelope"></i> Email</label>
-                        {{ form.email }}
-                    </div>
-                </div>
-            </div>
-            <div class="step-nav">
-                <button type="button" class="btn-step-next w-100" onclick="goStep(2)">
-                    <span>Davom etish</span> <i class="bi bi-arrow-right ms-1"></i>
-                </button>
-            </div>
+    <!-- Form -->
+    <form method="POST" id="regForm" novalidate>
+      {% csrf_token %}
+
+      <!-- ===== STEP 1: Shaxsiy ma'lumotlar ===== -->
+      <div class="step-panel" id="panel1">
+        <div class="step-heading">👤 Shaxsiy ma'lumotlar</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="{{ form.first_name.id_for_label }}">Ism</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <div class="field-err">⚠ {{ form.first_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+          <div class="field">
+            <label for="{{ form.last_name.id_for_label }}">Familiya</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <div class="field-err">⚠ {{ form.last_name.errors.0 }}</div>
+            {% endif %}
+          </div>
         </div>
 
-        <!-- ===== STEP 2: Aloqa ma'lumotlari ===== -->
-        <div class="form-step" data-step="2">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-phone"></i> Telefon raqam</label>
-                        <div class="phone-input-wrap">
-                            <div class="phone-prefix">
-                                <img src="https://flagcdn.com/w40/uz.png" alt="UZ" class="flag" width="24" height="16" style="border-radius:3px;object-fit:cover;">
-                                <span>+998</span>
-                            </div>
-                            <input type="tel" id="phoneInput"
-                                   placeholder="90 123 45 67"
-                                   maxlength="12"
-                                   autocomplete="tel">
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-calendar-event"></i> Tug'ilgan kun</label>
-                        {{ form.birth_date }}
-                    </div>
-                </div>
-            </div>
-            <div class="step-nav">
-                <button type="button" class="btn-step-back" onclick="goStep(1)">
-                    <i class="bi bi-arrow-left"></i>
-                </button>
-                <button type="button" class="btn-step-next" onclick="goStep(3)">
-                    <span>Davom etish</span> <i class="bi bi-arrow-right ms-1"></i>
-                </button>
-            </div>
+        <div class="field">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="field-err">⚠ {{ form.username.errors.0 }}</div>
+          {% endif %}
         </div>
 
-        <!-- ===== STEP 3: Parol ===== -->
-        <div class="form-step" data-step="3">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-lock"></i> Parol</label>
-                        <div class="pwd-wrap">
-                            {{ form.password1 }}
-                            <button type="button" class="pwd-toggle-btn" data-target="{{ form.password1.id_for_label }}">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <div class="password-meter">
-                            <div class="meter-bar" id="meterBar"></div>
-                        </div>
-                        <div class="meter-label" id="meterLabel">Parol kuchi: —</div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="field-group">
-                        <label><i class="bi bi-lock-fill"></i> Parolni tasdiqlang</label>
-                        <div class="pwd-wrap">
-                            {{ form.password2 }}
-                            <button type="button" class="pwd-toggle-btn" data-target="{{ form.password2.id_for_label }}">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                        <div class="meter-label" id="matchLabel" style="display:none;"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="step-nav">
-                <button type="button" class="btn-step-back" onclick="goStep(2)">
-                    <i class="bi bi-arrow-left"></i>
-                </button>
-                <button type="submit" class="btn btn-primary flex-grow-1 py-3 fw-semibold" style="border-radius:14px;">
-                    <i class="bi bi-person-plus me-2"></i><span>Ro'yxatdan o'tish</span>
-                </button>
-            </div>
+        <div class="field">
+          <label for="{{ form.email.id_for_label }}">Email manzil</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="field-err">⚠ {{ form.email.errors.0 }}</div>
+          {% endif %}
         </div>
+
+        {# type="button" — MUHIM: submit bo'lmasligi kerak! #}
+        <button type="button" class="btn btn-main" onclick="moveStep(2)">
+          Davom etish →
+        </button>
+      </div>
+
+      <!-- ===== STEP 2: Aloqa ma'lumotlari ===== -->
+      <div class="step-panel" id="panel2">
+        <div class="step-heading">📱 Aloqa ma'lumotlari</div>
+
+        <div class="field">
+          <label>Telefon raqam</label>
+          <div class="phone-wrap">
+            <div class="phone-prefix">🇺🇿 +998</div>
+            {{ form.phone }}
+          </div>
+          {% if form.phone.errors %}
+            <div class="field-err">⚠ {{ form.phone.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label>
+          {{ form.birth_date }}
+          {% if form.birth_date.errors %}
+            <div class="field-err">⚠ {{ form.birth_date.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-back" onclick="moveStep(1)">← Orqaga</button>
+          <button type="button" class="btn btn-main" onclick="moveStep(3)">Davom etish →</button>
+        </div>
+      </div>
+
+      <!-- ===== STEP 3: Parol ===== -->
+      <div class="step-panel" id="panel3">
+        <div class="step-heading">🔐 Parol yaratish</div>
+
+        <div class="field">
+          <label for="{{ form.password1.id_for_label }}">Parol</label>
+          <div class="pw-wrap">
+            {{ form.password1 }}
+            <button type="button" class="pw-eye"
+              onclick="togglePw('{{ form.password1.id_for_label }}', this)">👁</button>
+          </div>
+          {% if form.password1.errors %}
+            <div class="field-err">⚠ {{ form.password1.errors.0 }}</div>
+          {% endif %}
+          <div class="pw-strength">
+            <div class="strength-bar">
+              <div class="strength-fill" id="strengthFill"></div>
+            </div>
+            <span class="strength-label" id="strengthLabel">Parol kuchi: —</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label>
+          <div class="pw-wrap">
+            {{ form.password2 }}
+            <button type="button" class="pw-eye"
+              onclick="togglePw('{{ form.password2.id_for_label }}', this)">👁</button>
+          </div>
+          {% if form.password2.errors %}
+            <div class="field-err">⚠ {{ form.password2.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn btn-back" onclick="moveStep(2)">← Orqaga</button>
+          <button type="submit" class="btn btn-main">✅ Ro'yxatdan o'tish</button>
+        </div>
+      </div>
+
     </form>
 
-    <div class="auth-links" style="animation: textFadeUp 0.6s 0.5s cubic-bezier(0.16,1,0.3,1) both;">
-        <div class="text-center small mt-3">
-            Akkauntingiz bormi?
-            <a href="{% url 'login' %}" class="text-info text-decoration-none fw-semibold">
-                Tizimga kirish →
-            </a>
-        </div>
+    <div class="reg-footer">
+      Akkauntingiz bormi?
+      <a href="{% url 'login' %}">Tizimga kirish →</a>
     </div>
 
-</div>
+  </div>
 </div>
 
 <script>
-/* ===== Particles ===== */
-(function(){
-    const c = document.getElementById('particles');
-    if (!c) return;
-    for (let i = 0; i < 20; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
-        p.style.animationDuration = (8 + Math.random() * 14) + 's';
-        p.style.animationDelay = (Math.random() * 10) + 's';
-        p.style.opacity = (0.2 + Math.random() * 0.4).toString();
-        c.appendChild(p);
+  // ─── Server tomonidan qaysi stepda xato borligini aniqlash ───
+  // Bu yerda Django template teglari ishlaydi
+  var INIT_STEP = 1;
+  {% if form.password1.errors or form.password2.errors %}
+    INIT_STEP = 3;
+  {% elif form.birth_date.errors or form.phone.errors %}
+    INIT_STEP = 2;
+  {% elif form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors %}
+    INIT_STEP = 1;
+  {% endif %}
+
+  // ─── Input'larni stillashtirish ──────────────────────────────
+  document.querySelectorAll('.step-panel input, .step-panel select').forEach(function(el) {
+    // Xatosi bor inputlarni belgilash
+    var fieldEl = el.closest('.field') || el.closest('[class^="field"]');
+    if (fieldEl && fieldEl.querySelector('.field-err')) {
+      el.classList.add('has-error');
     }
-})();
+  });
 
-/* ===== Multi-step Navigation ===== */
-let currentStep = 1;
+  // ─── Step navigation ─────────────────────────────────────────
+  var currentStep = 0;
 
-function goStep(step) {
-    // Validate current step before going forward
-    if (step > currentStep && !validateStep(currentStep)) return;
-
-    const oldPanel = document.querySelector('.form-step.active');
-    if (oldPanel) {
-        oldPanel.classList.remove('active');
-        oldPanel.style.display = 'none';
-    }
-
-    currentStep = step;
-
-    const newPanel = document.querySelector('.form-step[data-step="' + step + '"]');
-    newPanel.style.display = 'block';
-    newPanel.style.animation = 'none';
-    newPanel.offsetHeight;
-    newPanel.style.animation = '';
-    newPanel.classList.add('active');
-
-    // Update step indicator
-    document.querySelectorAll('.step-dot').forEach(dot => {
-        const s = parseInt(dot.dataset.step);
-        dot.classList.remove('active', 'done');
-        if (s === step) dot.classList.add('active');
-        else if (s < step) dot.classList.add('done');
+  function showStep(n) {
+    // Barcha panellarni yashirish
+    document.querySelectorAll('.step-panel').forEach(function(p) {
+      p.classList.remove('is-active');
     });
-    document.querySelectorAll('.step-line').forEach((line, i) => {
-        line.classList.toggle('done', (i + 1) < step);
-    });
-}
 
-function validateStep(step) {
-    if (step === 1) {
-        const firstName = document.getElementById('{{ form.first_name.id_for_label }}');
-        const lastName = document.getElementById('{{ form.last_name.id_for_label }}');
-        const username = document.getElementById('{{ form.username.id_for_label }}');
-        const email = document.getElementById('{{ form.email.id_for_label }}');
-        let valid = true;
-
-        [firstName, lastName, username, email].forEach(el => {
-            el.classList.remove('is-invalid');
-            if (!el.value.trim()) {
-                el.classList.add('is-invalid');
-                valid = false;
-            }
-        });
-        if (!valid) showToast("Iltimos, barcha maydonlarni to'ldiring");
-        return valid;
+    // Dot va connectorlarni reset
+    for (var i = 1; i <= 3; i++) {
+      var dot = document.getElementById('dot' + i);
+      dot.classList.remove('is-active', 'is-done');
+      dot.textContent = i;
     }
-    if (step === 2) {
-        const phone = document.getElementById('phoneInput');
-        const birth = document.getElementById('{{ form.birth_date.id_for_label }}');
-        let valid = true;
-
-        phone.closest('.phone-input-wrap').style.borderColor = '';
-        if (phone.value.replace(/\D/g, '').length !== 9) {
-            phone.closest('.phone-input-wrap').style.borderColor = '#ef4444';
-            phone.closest('.phone-input-wrap').style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
-            setTimeout(() => {
-                phone.closest('.phone-input-wrap').style.boxShadow = '';
-            }, 2000);
-            valid = false;
-        }
-
-        if (birth) {
-            birth.classList.remove('is-invalid');
-            if (!birth.value) {
-                birth.classList.add('is-invalid');
-                valid = false;
-            }
-        }
-        if (!valid) showToast("Iltimos, barcha maydonlarni to'ldiring");
-        return valid;
+    for (var j = 1; j <= 2; j++) {
+      document.getElementById('conn' + j).classList.remove('is-done');
     }
-    return true;
-}
 
-/* ===== Phone Input ===== */
-const phoneInput = document.getElementById('phoneInput');
-if (phoneInput) {
-    phoneInput.addEventListener('input', function() {
-        let val = this.value.replace(/\D/g, '');
-        if (val.length > 9) val = val.slice(0, 9);
-        let f = '';
-        if (val.length > 0) f = val.slice(0, 2);
-        if (val.length > 2) f += ' ' + val.slice(2, 5);
-        if (val.length > 5) f += ' ' + val.slice(5, 7);
-        if (val.length > 7) f += ' ' + val.slice(7, 9);
-        this.value = f;
-    });
-}
-
-/* ===== On form submit: set hidden phone with +998 ===== */
-document.getElementById('registerForm').addEventListener('submit', function() {
-    const raw = document.getElementById('phoneInput').value.replace(/\D/g, '');
-    document.getElementById('phoneHidden').value = '+998' + raw;
-
-    // Loading state on button
-    const btn = this.querySelector('button[type="submit"]');
-    if (btn) {
-        btn.classList.add('loading');
-        const span = btn.querySelector('span');
-        const icon = btn.querySelector('i');
-        if (span) span.style.opacity = '0';
-        if (icon) icon.style.opacity = '0';
+    // Tugagan steplarni belgilash
+    for (var k = 1; k < n; k++) {
+      var d = document.getElementById('dot' + k);
+      d.classList.add('is-done');
+      d.textContent = '✓';
+      if (k <= 2) document.getElementById('conn' + k).classList.add('is-done');
     }
-});
 
-/* ===== Password Toggle ===== */
-document.querySelectorAll('.pwd-toggle-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const input = document.getElementById(this.dataset.target);
-        const icon = this.querySelector('i');
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.className = 'bi bi-eye-slash';
-        } else {
-            input.type = 'password';
-            icon.className = 'bi bi-eye';
-        }
+    // Faol stepni ko'rsatish
+    document.getElementById('dot' + n).classList.add('is-active');
+    document.getElementById('panel' + n).classList.add('is-active');
+    currentStep = n;
+  }
+
+  function moveStep(n) {
+    showStep(n);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Boshlang'ich stepni ko'rsatish
+  showStep(INIT_STEP);
+
+  // ─── Password ko'rish/yashirish ──────────────────────────────
+  function togglePw(inputId, btn) {
+    var input = document.getElementById(inputId);
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.textContent = input.type === 'password' ? '👁' : '🙈';
+  }
+
+  // ─── Parol kuchi indikatori ──────────────────────────────────
+  var pwInput = document.getElementById('{{ form.password1.id_for_label }}');
+  if (pwInput) {
+    pwInput.addEventListener('input', function() {
+      var v = this.value;
+      var score = 0;
+      if (v.length >= 8) score++;
+      if (v.length >= 12) score++;
+      if (/[A-Z]/.test(v)) score++;
+      if (/[0-9]/.test(v)) score++;
+      if (/[^A-Za-z0-9]/.test(v)) score++;
+
+      var levels = [
+        { label: '—',           color: 'rgba(255,255,255,0.15)', width: '0%'   },
+        { label: 'Juda zaif 😟', color: '#ef4444',               width: '20%'  },
+        { label: 'Zaif 😐',      color: '#f97316',               width: '40%'  },
+        { label: "O'rtacha 🙂",  color: '#eab308',               width: '60%'  },
+        { label: 'Yaxshi 😊',    color: '#22c55e',               width: '80%'  },
+        { label: "A'lo 💪",      color: '#16a34a',               width: '100%' },
+      ];
+      var l = levels[Math.min(score, 5)];
+      var fill  = document.getElementById('strengthFill');
+      var label = document.getElementById('strengthLabel');
+      fill.style.width      = l.width;
+      fill.style.background = l.color;
+      label.textContent     = 'Parol kuchi: ' + l.label;
+      label.style.color     = l.color;
     });
-});
-
-/* ===== Password Strength ===== */
-function calcStrength(pw) {
-    if (!pw) return { score: 0, label: '—' };
-    let s = 0;
-    if (pw.length >= 8) s++;
-    if (pw.length >= 12) s++;
-    const v = [/[a-z]/, /[A-Z]/, /[0-9]/, /[^A-Za-z0-9]/].filter(r => r.test(pw)).length;
-    if (v >= 2) s++;
-    if (v >= 3) s++;
-    if (s > 5) s = 5;
-    const labels = ['Juda zaif', 'Juda zaif', 'Zaif', "O'rta", 'Yaxshi', 'Juda kuchli'];
-    return { score: s, label: labels[s] };
-}
-
-const pwd1 = document.getElementById('{{ form.password1.id_for_label }}');
-const pwd2 = document.getElementById('{{ form.password2.id_for_label }}');
-const meterBar = document.getElementById('meterBar');
-const meterLabel = document.getElementById('meterLabel');
-const matchLabel = document.getElementById('matchLabel');
-
-if (pwd1) {
-    pwd1.addEventListener('input', function() {
-        const { score, label } = calcStrength(this.value);
-        const pct = Math.round((score / 5) * 100);
-        meterBar.style.width = pct + '%';
-        meterBar.className = 'meter-bar';
-        const cls = ['meter-very-weak', 'meter-very-weak', 'meter-weak', 'meter-fair', 'meter-good', 'meter-strong'];
-        if (this.value) meterBar.classList.add(cls[score]);
-        meterLabel.textContent = 'Parol kuchi: ' + label;
-        checkMatch();
-    });
-}
-if (pwd2) {
-    pwd2.addEventListener('input', checkMatch);
-}
-
-function checkMatch() {
-    if (!pwd2 || !pwd2.value) { matchLabel.style.display = 'none'; return; }
-    matchLabel.style.display = 'block';
-    if (pwd1.value === pwd2.value) {
-        matchLabel.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i> Parollar mos';
-        matchLabel.style.color = '#10b981';
-    } else {
-        matchLabel.innerHTML = '<i class="bi bi-x-circle text-danger me-1"></i> Parollar mos emas';
-        matchLabel.style.color = '#ef4444';
-    }
-}
-
-/* ===== Toast ===== */
-function showToast(text) {
-    const box = document.getElementById("toastBox");
-    const div = document.createElement("div");
-    div.className = "toast-ios";
-    div.innerHTML = '<i class="bi bi-exclamation-triangle me-2 text-danger"></i> ' + text;
-    box.appendChild(div);
-    setTimeout(() => { div.style.opacity = "0"; div.style.transform = "translateX(40px)"; }, 4500);
-    setTimeout(() => { div.remove(); }, 5000);
-}
-
-/* ===== Show server errors as toasts ===== */
-document.addEventListener("DOMContentLoaded", () => {
-    {% if messages %}
-        {% for message in messages %}
-            showToast("{{ message|escapejs }}");
-        {% endfor %}
-    {% endif %}
-
-    // If there are form errors, go to relevant step
-    {% if form.errors %}
-        {% if form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors %}
-            goStep(1);
-        {% elif form.phone.errors or form.birth_date.errors %}
-            goStep(2);
-        {% elif form.password1.errors or form.password2.errors %}
-            goStep(3);
-        {% endif %}
-    {% endif %}
-});
+  }
 </script>
 {% endblock %}
