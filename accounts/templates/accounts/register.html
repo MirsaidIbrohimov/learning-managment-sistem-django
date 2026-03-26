@@ -1,11 +1,11 @@
-{% extends 'accounts/base.html' %}
+﻿{% extends 'accounts/base.html' %}
 {% load static %}
 
 {% block title %}Ro'yxatdan o'tish | LMS - IT Creative{% endblock %}
 
 {% block extra_css %}
 <style>
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .reg-page {
     min-height: 100vh;
@@ -13,50 +13,74 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
-    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 20px 12px;
+    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reg-page::before,
+  .reg-page::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: floatBg 15s ease-in-out infinite;
+  }
+  .reg-page::before {
+    width: 400px; height: 400px;
+    background: #6366f1;
+    top: -100px; left: -100px;
+  }
+  .reg-page::after {
+    width: 350px; height: 350px;
+    background: #a855f7;
+    bottom: -100px; right: -100px;
+    animation-delay: -7s;
+  }
+  @keyframes floatBg {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, -20px) scale(1.1); }
   }
 
   .reg-card {
     width: 100%;
-    max-width: 460px;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    padding: 40px 36px;
-    box-shadow: 0 32px 64px rgba(0,0,0,0.5);
+    max-width: 520px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 28px;
+    padding: 36px 32px 32px;
+    box-shadow: 0 32px 64px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 1;
   }
 
   /* --- Header --- */
-  .reg-header {
-    text-align: center;
-    margin-bottom: 28px;
-  }
+  .reg-header { text-align: center; margin-bottom: 24px; }
   .reg-logo {
-    width: 64px;
-    height: 64px;
+    width: 60px; height: 60px;
     background: linear-gradient(135deg, #6366f1, #a855f7);
-    border-radius: 18px;
-    display: flex;
+    border-radius: 16px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
-    margin: 0 auto 16px;
-    box-shadow: 0 8px 24px rgba(99,102,241,0.45);
+    font-size: 28px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.4);
   }
   .reg-header h2 {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: 700;
     color: #fff;
-    margin: 0 0 6px;
+    margin-bottom: 4px;
     letter-spacing: -0.3px;
   }
   .reg-header p {
-    font-size: 14px;
-    color: rgba(255,255,255,0.5);
-    margin: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.45);
   }
 
   /* --- Step Indicator --- */
@@ -64,41 +88,61 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 28px;
+    gap: 0;
+    margin-bottom: 24px;
+    padding: 0 20px;
+  }
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .step-dot {
-    width: 36px;
-    height: 36px;
+    width: 34px; height: 34px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 13px;
     font-weight: 600;
-    transition: all 0.3s ease;
-    border: 2px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.25);
     background: transparent;
-    flex-shrink: 0;
   }
   .step-dot.is-active {
-    background: #6366f1;
-    border-color: #6366f1;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    border-color: transparent;
     color: white;
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.25);
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.2), 0 4px 12px rgba(99,102,241,0.3);
+    transform: scale(1.05);
   }
   .step-dot.is-done {
-    background: #22c55e;
-    border-color: #22c55e;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border-color: transparent;
     color: white;
   }
+  .step-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.25);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    transition: color 0.3s;
+  }
+  .step-item.active .step-label { color: rgba(255,255,255,0.7); }
+  .step-item.done .step-label { color: rgba(34,197,94,0.7); }
+
   .step-connector {
     flex: 1;
-    max-width: 72px;
+    max-width: 60px;
     height: 2px;
-    background: rgba(255,255,255,0.1);
-    transition: background 0.3s ease;
-    margin: 0 4px;
+    background: rgba(255,255,255,0.08);
+    transition: background 0.4s ease;
+    margin: 0 6px;
+    margin-bottom: 20px;
   }
   .step-connector.is-done {
     background: linear-gradient(90deg, #22c55e, #6366f1);
@@ -106,28 +150,29 @@
 
   /* --- Messages --- */
   .msg-box {
-    padding: 12px 14px;
-    border-radius: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
     font-size: 13px;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     display: flex;
     align-items: flex-start;
     gap: 8px;
     line-height: 1.5;
+    animation: fadeUp 0.3s ease;
   }
   .msg-box.msg-error {
-    background: rgba(239,68,68,0.12);
-    border: 1px solid rgba(239,68,68,0.3);
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
     color: #fca5a5;
   }
   .msg-box.msg-success {
-    background: rgba(34,197,94,0.12);
-    border: 1px solid rgba(34,197,94,0.3);
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.2);
     color: #86efac;
   }
   .msg-box.msg-info {
-    background: rgba(99,102,241,0.12);
-    border: 1px solid rgba(99,102,241,0.3);
+    background: rgba(99,102,241,0.1);
+    border: 1px solid rgba(99,102,241,0.2);
     color: #a5b4fc;
   }
 
@@ -135,72 +180,77 @@
   .step-panel { display: none; }
   .step-panel.is-active {
     display: block;
-    animation: fadeUp 0.3s ease;
+    animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
   .step-heading {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: rgba(255,255,255,0.6);
-    margin-bottom: 20px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 18px;
     display: flex;
     align-items: center;
     gap: 7px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
   }
 
   /* --- Fields --- */
-  .field { margin-bottom: 16px; }
+  .field { margin-bottom: 14px; }
   .field-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 16px;
+    gap: 12px;
+    margin-bottom: 14px;
   }
 
   .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.55);
-    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 6px;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
   }
 
   /* Style all form inputs */
-  .step-panel input:not([type="submit"]),
+  .step-panel input:not([type="submit"]):not([type="radio"]),
   .step-panel select {
     width: 100%;
-    padding: 11px 14px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
     color: white;
     font-size: 14px;
+    font-family: inherit;
     outline: none;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
     appearance: none;
+    -webkit-appearance: none;
   }
-  .step-panel input:not([type="submit"]):focus,
+  .step-panel input:not([type="submit"]):not([type="radio"]):focus,
   .step-panel select:focus {
-    border-color: rgba(99,102,241,0.7);
-    background: rgba(99,102,241,0.08);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    border-color: rgba(99,102,241,0.6);
+    background: rgba(99,102,241,0.06);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
   }
-  .step-panel input::placeholder { color: rgba(255,255,255,0.22); }
-  .step-panel input.has-error {
-    border-color: rgba(239,68,68,0.6) !important;
-    background: rgba(239,68,68,0.06) !important;
+  .step-panel input::placeholder { color: rgba(255,255,255,0.2); }
+  .step-panel input.has-error,
+  .step-panel select.has-error {
+    border-color: rgba(239,68,68,0.5) !important;
+    background: rgba(239,68,68,0.05) !important;
   }
 
   .field-err {
-    font-size: 12px;
+    font-size: 11px;
     color: #fca5a5;
     margin-top: 5px;
     display: flex;
@@ -214,19 +264,20 @@
     gap: 8px;
   }
   .phone-prefix {
-    padding: 11px 12px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: rgba(255,255,255,0.6);
+    padding: 12px 12px;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: rgba(255,255,255,0.55);
     font-size: 14px;
     white-space: nowrap;
     display: flex;
     align-items: center;
     gap: 5px;
     flex-shrink: 0;
+    font-weight: 500;
   }
-  .phone-wrap input { flex: 1; }
+  .phone-wrap input { flex: 1; min-width: 0; }
 
   /* --- Password --- */
   .pw-wrap { position: relative; }
@@ -239,118 +290,222 @@
     cursor: pointer;
     background: none;
     border: none;
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.3);
     font-size: 16px;
     line-height: 1;
-    padding: 2px;
+    padding: 4px;
     transition: color 0.2s;
+    border-radius: 6px;
   }
-  .pw-eye:hover { color: rgba(255,255,255,0.65); }
+  .pw-eye:hover { color: rgba(255,255,255,0.6); }
 
   .pw-strength { margin-top: 8px; }
   .strength-bar {
     height: 3px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 4px;
   }
   .strength-fill {
     height: 100%;
-    border-radius: 2px;
     width: 0;
-    transition: all 0.35s ease;
+    border-radius: 4px;
+    transition: all 0.4s ease;
   }
   .strength-label {
-    font-size: 11.5px;
-    color: rgba(255,255,255,0.4);
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 5px;
+    display: block;
   }
 
   /* --- Buttons --- */
+  .btn-row { display: flex; gap: 10px; margin-top: 6px; }
   .btn {
-    width: 100%;
-    padding: 13px;
-    border-radius: 11px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 20px;
+    border-radius: 12px;
     font-size: 14px;
     font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
-    transition: all 0.2s ease;
     border: none;
-    outline: none;
-    letter-spacing: 0.2px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
   }
   .btn-main {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    flex: 1;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
     color: white;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+    box-shadow: 0 4px 16px rgba(99,102,241,0.3);
   }
   .btn-main:hover {
-    box-shadow: 0 6px 20px rgba(99,102,241,0.5);
+    box-shadow: 0 6px 24px rgba(99,102,241,0.45);
     transform: translateY(-1px);
   }
   .btn-main:active { transform: translateY(0); }
   .btn-back {
-    background: rgba(255,255,255,0.07);
-    color: rgba(255,255,255,0.65);
-    border: 1px solid rgba(255,255,255,0.1);
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.6);
+    border: 1.5px solid rgba(255,255,255,0.08);
   }
-  .btn-back:hover { background: rgba(255,255,255,0.12); color: white; }
-  .btn-row {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 10px;
-    margin-top: 4px;
+  .btn-back:hover {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.8);
   }
+  .btn-submit {
+    flex: 1;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+  }
+  .btn-submit:hover {
+    box-shadow: 0 6px 24px rgba(34,197,94,0.45);
+    transform: translateY(-1px);
+  }
+  .btn-submit:active { transform: translateY(0); }
 
   /* --- Footer --- */
   .reg-footer {
     text-align: center;
-    margin-top: 22px;
-    font-size: 13.5px;
-    color: rgba(255,255,255,0.45);
+    margin-top: 20px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
   }
   .reg-footer a {
     color: #818cf8;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
     transition: color 0.2s;
   }
-  .reg-footer a:hover { color: #c4b5fd; }
+  .reg-footer a:hover { color: #a5b4fc; }
 
-  /* Date picker */
-  input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(0.6);
+  /* --- Role selector cards --- */
+  .role-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .role-card {
+    position: relative;
+    padding: 16px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    text-align: center;
     cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .role-card:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,255,255,0.15);
+  }
+  .role-card.selected {
+    background: rgba(99,102,241,0.08);
+    border-color: rgba(99,102,241,0.5);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+  }
+  .role-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .role-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .role-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
+  }
+  .role-desc {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    margin-top: 2px;
   }
 
-  /* Responsive */
-  @media (max-width: 480px) {
-    .reg-card { padding: 28px 18px; }
-    .field-row { grid-template-columns: 1fr; }
-    .step-connector { max-width: 44px; }
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 576px) {
+    .reg-page { padding: 12px 8px; }
+    .reg-card {
+      padding: 24px 18px 22px;
+      border-radius: 22px;
+      max-width: 100%;
+    }
+    .reg-header h2 { font-size: 20px; }
+    .reg-header p { font-size: 12px; }
+    .reg-logo { width: 52px; height: 52px; font-size: 24px; border-radius: 14px; }
+
+    .step-indicator { padding: 0 8px; margin-bottom: 20px; }
+    .step-dot { width: 30px; height: 30px; font-size: 12px; }
+    .step-label { font-size: 9px; }
+    .step-connector { max-width: 40px; margin: 0 4px; }
+
+    .field-row {
+      grid-template-columns: 1fr;
+      gap: 0;
+      margin-bottom: 0;
+    }
+    .field-row .field { margin-bottom: 14px; }
+
+    .step-panel input:not([type="submit"]):not([type="radio"]),
+    .step-panel select {
+      padding: 11px 12px;
+      font-size: 15px;
+    }
+    .phone-prefix { padding: 11px 10px; font-size: 13px; }
+
+    .btn { padding: 11px 14px; font-size: 13px; }
+    .btn-row { gap: 8px; }
+
+    .role-cards { gap: 8px; }
+    .role-card { padding: 14px 10px; }
+    .role-icon { font-size: 24px; }
+    .role-title { font-size: 12px; }
+  }
+
+  @media (max-width: 360px) {
+    .reg-card { padding: 20px 14px 18px; }
+    .step-connector { max-width: 28px; }
+  }
+
+  @media (min-width: 577px) and (max-width: 768px) {
+    .reg-card { max-width: 480px; padding: 32px 28px; }
   }
 </style>
 {% endblock %}
 
-
 {% block content %}
 <div class="reg-page">
   <div class="reg-card">
-
-    <!-- Header -->
     <div class="reg-header">
-      <div class="reg-logo">🎓</div>
+      <div class="reg-logo">🚀</div>
       <h2>Ro'yxatdan o'tish</h2>
-      <p>LMS platformasiga qo'shiling 🚀</p>
+      <p>IT Creative platformasiga xush kelibsiz!</p>
     </div>
 
     <!-- Step Indicator -->
     <div class="step-indicator">
-      <div class="step-dot" id="dot1">1</div>
+      <div class="step-item" id="stepItem1">
+        <div class="step-dot" id="dot1">1</div>
+        <span class="step-label">Ma'lumotlar</span>
+      </div>
       <div class="step-connector" id="conn1"></div>
-      <div class="step-dot" id="dot2">2</div>
+      <div class="step-item" id="stepItem2">
+        <div class="step-dot" id="dot2">2</div>
+        <span class="step-label">Aloqa</span>
+      </div>
       <div class="step-connector" id="conn2"></div>
-      <div class="step-dot" id="dot3">3</div>
+      <div class="step-item" id="stepItem3">
+        <div class="step-dot" id="dot3">3</div>
+        <span class="step-label">Parol</span>
+      </div>
     </div>
 
     <!-- Django Messages -->
@@ -373,6 +528,8 @@
     <!-- Form -->
     <form method="POST" id="regForm" novalidate>
       {% csrf_token %}
+      <!-- Django role select (yashirilgan) -->
+      <div style="display:none">{{ form.role }}</div>
 
       <!-- ===== STEP 1: Shaxsiy ma'lumotlar ===== -->
       <div class="step-panel" id="panel1">
@@ -411,15 +568,14 @@
           {% endif %}
         </div>
 
-        {# type="button" — MUHIM: submit bo'lmasligi kerak! #}
-        <button type="button" class="btn btn-main" onclick="moveStep(2)">
+        <button type="button" class="btn btn-main" style="width:100%" onclick="moveStep(2)">
           Davom etish →
         </button>
       </div>
 
       <!-- ===== STEP 2: Aloqa ma'lumotlari ===== -->
       <div class="step-panel" id="panel2">
-        <div class="step-heading">📱 Aloqa ma'lumotlari</div>
+        <div class="step-heading">📱 Aloqa va rol</div>
 
         <div class="field">
           <label>Telefon raqam</label>
@@ -437,6 +593,27 @@
           {{ form.birth_date }}
           {% if form.birth_date.errors %}
             <div class="field-err">⚠ {{ form.birth_date.errors.0 }}</div>
+          {% endif %}
+        </div>
+
+        <div class="field">
+          <label>Rolni tanlang</label>
+          <div class="role-cards">
+            <label class="role-card selected" id="roleStudent" onclick="selectRole('student')">
+              <input type="radio" name="_role_card" value="student" checked>
+              <span class="role-icon">🎓</span>
+              <div class="role-title">O'quvchi</div>
+              <div class="role-desc">Kurslarni o'rganish</div>
+            </label>
+            <label class="role-card" id="roleTeacher" onclick="selectRole('teacher')">
+              <input type="radio" name="_role_card" value="teacher">
+              <span class="role-icon">👨‍🏫</span>
+              <div class="role-title">O'qituvchi</div>
+              <div class="role-desc">Kurslar yaratish</div>
+            </label>
+          </div>
+          {% if form.role.errors %}
+            <div class="field-err">⚠ {{ form.role.errors.0 }}</div>
           {% endif %}
         </div>
 
@@ -482,7 +659,7 @@
 
         <div class="btn-row">
           <button type="button" class="btn btn-back" onclick="moveStep(2)">← Orqaga</button>
-          <button type="submit" class="btn btn-main">✅ Ro'yxatdan o'tish</button>
+          <button type="submit" class="btn btn-submit">✅ Ro'yxatdan o'tish</button>
         </div>
       </div>
 
@@ -497,55 +674,73 @@
 </div>
 
 <script>
-  // ─── Server tomonidan qaysi stepda xato borligini aniqlash ───
-  // Bu yerda Django template teglari ishlaydi
+  // --- Server tomonidan qaysi stepda xato borligini aniqlash ---
   var INIT_STEP = 1;
   {% if form.password1.errors or form.password2.errors %}
     INIT_STEP = 3;
-  {% elif form.birth_date.errors or form.phone.errors %}
+  {% elif form.birth_date.errors or form.phone.errors or form.role.errors %}
     INIT_STEP = 2;
   {% elif form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors %}
     INIT_STEP = 1;
   {% endif %}
 
-  // ─── Input'larni stillashtirish ──────────────────────────────
-  document.querySelectorAll('.step-panel input, .step-panel select').forEach(function(el) {
-    // Xatosi bor inputlarni belgilash
+  // --- Input'larni stillashtirish ---
+  document.querySelectorAll('.step-panel input:not([type="radio"]), .step-panel select').forEach(function(el) {
     var fieldEl = el.closest('.field') || el.closest('[class^="field"]');
     if (fieldEl && fieldEl.querySelector('.field-err')) {
       el.classList.add('has-error');
     }
   });
 
-  // ─── Step navigation ─────────────────────────────────────────
+  // --- Role tanlash ---
+  {% if form.role.value == 'teacher' %}
+    document.getElementById('roleStudent').classList.remove('selected');
+    document.getElementById('roleTeacher').classList.add('selected');
+    document.querySelector('#roleTeacher input').checked = true;
+    document.getElementById('{{ form.role.id_for_label }}').value = 'teacher';
+  {% endif %}
+
+  function selectRole(role) {
+    document.querySelectorAll('.role-card').forEach(function(c) { c.classList.remove('selected'); });
+    if (role === 'student') {
+      document.getElementById('roleStudent').classList.add('selected');
+    } else {
+      document.getElementById('roleTeacher').classList.add('selected');
+    }
+    var djangoSelect = document.getElementById('{{ form.role.id_for_label }}');
+    if (djangoSelect) djangoSelect.value = role;
+  }
+
+  // --- Step navigation ---
   var currentStep = 0;
 
   function showStep(n) {
-    // Barcha panellarni yashirish
     document.querySelectorAll('.step-panel').forEach(function(p) {
       p.classList.remove('is-active');
     });
 
-    // Dot va connectorlarni reset
     for (var i = 1; i <= 3; i++) {
       var dot = document.getElementById('dot' + i);
+      var item = document.getElementById('stepItem' + i);
       dot.classList.remove('is-active', 'is-done');
+      item.classList.remove('active', 'done');
       dot.textContent = i;
     }
     for (var j = 1; j <= 2; j++) {
       document.getElementById('conn' + j).classList.remove('is-done');
     }
 
-    // Tugagan steplarni belgilash
     for (var k = 1; k < n; k++) {
       var d = document.getElementById('dot' + k);
+      var si = document.getElementById('stepItem' + k);
       d.classList.add('is-done');
+      si.classList.add('done');
       d.textContent = '✓';
       if (k <= 2) document.getElementById('conn' + k).classList.add('is-done');
     }
 
-    // Faol stepni ko'rsatish
     document.getElementById('dot' + n).classList.add('is-active');
+    document.getElementById('stepItem' + n).classList.add('active');
     document.getElementById('panel' + n).classList.add('is-active');
     currentStep = n;
   }
@@ -555,10 +750,9 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Boshlang'ich stepni ko'rsatish
   showStep(INIT_STEP);
 
-  // ─── Password ko'rish/yashirish ──────────────────────────────
+  // --- Password ko'rish/yashirish ---
   function togglePw(inputId, btn) {
     var input = document.getElementById(inputId);
     if (!input) return;
@@ -566,7 +760,7 @@
     btn.textContent = input.type === 'password' ? '👁' : '🙈';
   }
 
-  // ─── Parol kuchi indikatori ──────────────────────────────────
+  // --- Parol kuchi indikatori ---
   var pwInput = document.getElementById('{{ form.password1.id_for_label }}');
   if (pwInput) {
     pwInput.addEventListener('input', function() {
@@ -580,11 +774,11 @@
 
       var levels = [
         { label: '—',           color: 'rgba(255,255,255,0.15)', width: '0%'   },
-        { label: 'Juda zaif 😟', color: '#ef4444',               width: '20%'  },
-        { label: 'Zaif 😐',      color: '#f97316',               width: '40%'  },
-        { label: "O'rtacha 🙂",  color: '#eab308',               width: '60%'  },
-        { label: 'Yaxshi 😊',    color: '#22c55e',               width: '80%'  },
-        { label: "A'lo 💪",      color: '#16a34a',               width: '100%' },
+        { label: 'Juda zaif',   color: '#ef4444',               width: '20%'  },
+        { label: 'Zaif',        color: '#f97316',               width: '40%'  },
+        { label: "O'rtacha",    color: '#eab308',               width: '60%'  },
+        { label: 'Yaxshi',      color: '#22c55e',               width: '80%'  },
+        { label: "A'lo",        color: '#16a34a',               width: '100%' },
       ];
       var l = levels[Math.min(score, 5)];
       var fill  = document.getElementById('strengthFill');
@@ -595,5 +789,14 @@
       label.style.color     = l.color;
     });
   }
+
+  // --- Form submit paytida role ni sync qilish ---
+  document.getElementById('regForm').addEventListener('submit', function() {
+    var checkedRole = document.querySelector('.role-card.selected input[type="radio"]');
+    if (checkedRole) {
+      var djangoSelect = document.getElementById('{{ form.role.id_for_label }}');
+      if (djangoSelect) djangoSelect.value = checkedRole.value;
+    }
+  });
 </script>
 {% endblock %}
