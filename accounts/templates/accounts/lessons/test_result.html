@@ -1372,21 +1372,18 @@ function showCelebrationModal() {
                         <div class="answers-header-icon">
                             <i class="bi bi-list-check"></i>
                         </div>
-                        <h5>Javoblar tahlili</h5>
+                        <h5>Noto'g'ri javoblar tahlili</h5>
                     </div>
                     
                     <div class="answers-body">
                         {% for ua in user_answers %}
-                        <div class="answer-item {% if ua.is_correct %}correct{% else %}wrong{% endif %}">
+                        {% if not ua.is_correct %}
+                        <div class="answer-item wrong">
                             <div class="answer-top">
                                 <div class="answer-num">{{ forloop.counter }}</div>
                                 <div class="answer-question">{{ ua.question.question_text|render_code }}</div>
                                 <div class="answer-badge">
-                                    {% if ua.is_correct %}
-                                        <i class="bi bi-check-lg"></i>
-                                    {% else %}
-                                        <i class="bi bi-x-lg"></i>
-                                    {% endif %}
+                                    <i class="bi bi-x-lg"></i>
                                 </div>
                             </div>
                             
@@ -1398,7 +1395,7 @@ function showCelebrationModal() {
                                 <div class="detail-row">
                                     <span class="detail-label">Sizning javobingiz:</span>
                                     {% if ua.selected_answer %}
-                                        <span class="detail-value {% if ua.is_correct %}user-correct{% else %}user-wrong{% endif %}">
+                                        <span class="detail-value user-wrong">
                                             {{ ua.selected_answer.answer_text }}
                                         </span>
                                     {% else %}
@@ -1406,7 +1403,6 @@ function showCelebrationModal() {
                                     {% endif %}
                                 </div>
                                 
-                                {% if not ua.is_correct %}
                                 <div class="detail-row">
                                     <span class="detail-label">To'g'ri javob:</span>
                                     <span class="detail-value correct-ans">
@@ -1415,7 +1411,6 @@ function showCelebrationModal() {
                                         {% endfor %}
                                     </span>
                                 </div>
-                                {% endif %}
                                 {% if ua.question.explanation %}
                                 <div class="detail-row explanation-row">
                                     <span class="detail-label"><i class="bi bi-lightbulb" style="color:var(--r-warning);"></i> Izoh:</span>
@@ -1424,6 +1419,7 @@ function showCelebrationModal() {
                                 {% endif %}
                             </div>
                         </div>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>
