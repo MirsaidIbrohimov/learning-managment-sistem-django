@@ -1,459 +1,656 @@
-{% extends 'accounts/admin/base_admin.html' %}
+﻿{% extends 'accounts/admin/base_admin.html' %}
 
 {% block title %}Statistika - Admin Panel{% endblock %}
 
 {% block admin_content %}
 <style>
-/* ==================== ANIMATIONS ==================== */
 @keyframes fadeInUp {
-    from { opacity:0; transform:translateY(24px); }
+    from { opacity:0; transform:translateY(30px); }
     to { opacity:1; transform:translateY(0); }
 }
 @keyframes scaleIn {
-    from { opacity:0; transform:scale(0.82); }
+    from { opacity:0; transform:scale(0.8); }
     to { opacity:1; transform:scale(1); }
 }
-@keyframes countPop {
-    0% { transform:scale(0.6); opacity:0; }
-    60% { transform:scale(1.1); }
+@keyframes countUp {
+    0% { transform:scale(0.5); opacity:0; }
+    60% { transform:scale(1.08); }
     100% { transform:scale(1); opacity:1; }
 }
-@keyframes slideRight {
-    from { width:0; }
-    to { width:var(--target-w); }
-}
 @keyframes rowSlide {
-    from { opacity:0; transform:translateX(-14px); }
+    from { opacity:0; transform:translateX(-18px); }
     to { opacity:1; transform:translateX(0); }
 }
 @keyframes float {
     0%,100% { transform:translateY(0); }
-    50% { transform:translateY(-5px); }
+    50% { transform:translateY(-6px); }
 }
 @keyframes pulseGlow {
-    0%,100% { box-shadow:0 0 0 0 var(--glow-color,rgba(99,102,241,.25)); }
-    50% { box-shadow:0 0 0 8px transparent; }
+    0%,100% { box-shadow:0 0 0 0 var(--glow,rgba(99,102,241,.25)); }
+    50% { box-shadow:0 0 0 10px transparent; }
+}
+@keyframes barGrow {
+    from { transform:scaleY(0); }
+    to { transform:scaleY(1); }
 }
 
-.as-a1 { animation:fadeInUp .5s ease both; }
-.as-a2 { animation:fadeInUp .5s ease .06s both; }
-.as-a3 { animation:fadeInUp .5s ease .12s both; }
-.as-a4 { animation:fadeInUp .5s ease .18s both; }
-.as-a5 { animation:fadeInUp .5s ease .24s both; }
-.as-a6 { animation:fadeInUp .5s ease .30s both; }
-.as-a7 { animation:fadeInUp .5s ease .36s both; }
+.sa1 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) both; }
+.sa2 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .05s both; }
+.sa3 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .10s both; }
+.sa4 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .15s both; }
+.sa5 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .20s both; }
+.sa6 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .25s both; }
+.sa7 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .30s both; }
+.sa8 { animation:fadeInUp .55s cubic-bezier(.23,1,.32,1) .35s both; }
 
-/* ==================== HEADER ==================== */
-.as-header {
+.st-header {
     display:flex; align-items:center; justify-content:space-between;
-    flex-wrap:wrap; gap:16px; margin-bottom:28px;
+    flex-wrap:wrap; gap:16px; margin-bottom:32px;
 }
-.as-header-left {
-    display:flex; align-items:center; gap:14px;
-}
-.as-header-icon {
-    width:48px; height:48px; border-radius:16px;
+.st-header-left { display:flex; align-items:center; gap:16px; }
+.st-header-icon {
+    width:54px; height:54px; border-radius:18px;
     background:linear-gradient(135deg,#6366f1,#8b5cf6);
     display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:1.3rem;
+    color:#fff; font-size:1.4rem;
     animation:scaleIn .5s ease both;
+    box-shadow:0 8px 24px rgba(99,102,241,.3);
 }
-.as-header h1 { font-size:1.4rem; font-weight:800; margin:0; }
-.as-header-sub { font-size:.82rem; color:var(--bs-secondary-color); }
-
-.as-pdf-btn {
+.st-header h1 { font-size:1.5rem; font-weight:800; margin:0; }
+.st-header-sub { font-size:.82rem; color:var(--bs-secondary-color); margin-top:2px; }
+.st-header-sub .st-live {
+    display:inline-flex; align-items:center; gap:6px;
+    color:#22c55e; font-weight:700;
+}
+.st-header-sub .st-live::before {
+    content:''; width:8px; height:8px; border-radius:50%;
+    background:#22c55e; animation:pulseGlow 2s infinite; --glow:rgba(34,197,94,.4);
+}
+.st-pdf-btn {
     display:inline-flex; align-items:center; gap:8px;
-    padding:11px 24px; border-radius:14px;
+    padding:12px 26px; border-radius:14px;
     background:linear-gradient(135deg,#ef4444,#dc2626);
     color:#fff; font-weight:700; font-size:.88rem;
     text-decoration:none; border:none;
     transition:all .3s ease;
-    box-shadow:0 4px 14px rgba(239,68,68,.3);
+    box-shadow:0 4px 16px rgba(239,68,68,.25);
 }
-.as-pdf-btn:hover {
-    transform:translateY(-2px); color:#fff;
-    box-shadow:0 8px 24px rgba(239,68,68,.4);
+.st-pdf-btn:hover {
+    transform:translateY(-3px); color:#fff;
+    box-shadow:0 10px 30px rgba(239,68,68,.35);
 }
 
-/* ==================== STAT CARDS ==================== */
-.as-stats {
-    display:grid; grid-template-columns:repeat(6,1fr);
-    gap:14px; margin-bottom:28px;
+.st-stats {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    gap:16px; margin-bottom:32px;
 }
-.as-stat {
+.st-stat {
     background:var(--bs-body-bg); border:1px solid var(--bs-border-color);
-    border-radius:20px; padding:22px 16px; text-align:center;
+    border-radius:22px; padding:24px 20px;
     position:relative; overflow:hidden;
-    transition:all .3s ease; cursor:default;
-    box-shadow:0 4px 16px rgba(0,0,0,.06);
+    transition:all .35s cubic-bezier(.23,1,.32,1); cursor:default;
+    box-shadow:0 4px 20px rgba(0,0,0,.06);
 }
-.as-stat:hover {
-    transform:translateY(-5px);
-    box-shadow:0 12px 36px rgba(0,0,0,.12);
+.st-stat:hover {
+    transform:translateY(-6px);
+    box-shadow:0 16px 48px rgba(0,0,0,.12);
 }
-.as-stat::before {
+.st-stat::before {
     content:''; position:absolute; top:0; left:0; right:0; height:4px;
 }
-.as-stat.users::before { background:linear-gradient(90deg,#3b82f6,#6366f1); }
-.as-stat.students::before { background:linear-gradient(90deg,#f59e0b,#eab308); }
-.as-stat.teachers::before { background:linear-gradient(90deg,#22c55e,#16a34a); }
-.as-stat.admins::before { background:linear-gradient(90deg,#8b5cf6,#a855f7); }
-.as-stat.online::before { background:linear-gradient(90deg,#06b6d4,#0891b2); }
-.as-stat.blocked::before { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.st-stat.c-blue::before { background:linear-gradient(90deg,#3b82f6,#6366f1); }
+.st-stat.c-amber::before { background:linear-gradient(90deg,#f59e0b,#eab308); }
+.st-stat.c-green::before { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.st-stat.c-purple::before { background:linear-gradient(90deg,#8b5cf6,#a855f7); }
+.st-stat.c-cyan::before { background:linear-gradient(90deg,#06b6d4,#0891b2); }
+.st-stat.c-red::before { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.st-stat.c-pink::before { background:linear-gradient(90deg,#ec4899,#db2777); }
+.st-stat.c-teal::before { background:linear-gradient(90deg,#14b8a6,#0d9488); }
 
-.as-stat-icon {
+.st-stat-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:14px;
+}
+.st-stat-icon {
     width:48px; height:48px; border-radius:14px;
-    display:inline-flex; align-items:center; justify-content:center;
-    font-size:1.2rem; margin-bottom:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.2rem;
 }
-.as-stat.users .as-stat-icon { background:rgba(59,130,246,.12); color:#3b82f6; }
-.as-stat.students .as-stat-icon { background:rgba(245,158,11,.12); color:#f59e0b; }
-.as-stat.teachers .as-stat-icon { background:rgba(34,197,94,.12); color:#22c55e; }
-.as-stat.admins .as-stat-icon { background:rgba(139,92,246,.12); color:#8b5cf6; }
-.as-stat.online .as-stat-icon { background:rgba(6,182,212,.12); color:#06b6d4; animation:pulseGlow 2s infinite; --glow-color:rgba(6,182,212,.2); }
-.as-stat.blocked .as-stat-icon { background:rgba(239,68,68,.12); color:#ef4444; }
+.st-stat.c-blue .st-stat-icon { background:rgba(59,130,246,.12); color:#3b82f6; }
+.st-stat.c-amber .st-stat-icon { background:rgba(245,158,11,.12); color:#f59e0b; }
+.st-stat.c-green .st-stat-icon { background:rgba(34,197,94,.12); color:#22c55e; }
+.st-stat.c-purple .st-stat-icon { background:rgba(139,92,246,.12); color:#8b5cf6; }
+.st-stat.c-cyan .st-stat-icon { background:rgba(6,182,212,.12); color:#06b6d4; }
+.st-stat.c-red .st-stat-icon { background:rgba(239,68,68,.12); color:#ef4444; }
+.st-stat.c-pink .st-stat-icon { background:rgba(236,72,153,.12); color:#ec4899; }
+.st-stat.c-teal .st-stat-icon { background:rgba(20,184,166,.12); color:#14b8a6; }
 
-.as-stat-num {
-    font-size:1.8rem; font-weight:800; line-height:1;
+.st-stat-badge {
+    display:inline-flex; align-items:center; gap:4px;
+    padding:4px 10px; border-radius:50px;
+    font-size:.72rem; font-weight:700;
+}
+.st-stat-badge.up { background:rgba(34,197,94,.1); color:#22c55e; }
+.st-stat-badge.down { background:rgba(239,68,68,.1); color:#ef4444; }
+.st-stat-badge.neutral { background:var(--bs-tertiary-bg); color:var(--bs-secondary-color); }
+
+.st-stat-num {
+    font-size:2rem; font-weight:800; line-height:1;
     color:var(--bs-body-color); margin-bottom:4px;
-    animation:countPop .6s ease both;
+    animation:countUp .6s ease both;
 }
-.as-stat-label {
-    font-size:.78rem; font-weight:600; color:var(--bs-secondary-color);
+.st-stat-label { font-size:.78rem; font-weight:600; color:var(--bs-secondary-color); }
+.st-stat-glow {
+    position:absolute; bottom:-30px; right:-30px;
+    width:90px; height:90px; border-radius:50%; opacity:.06;
 }
-.as-stat-glow {
-    position:absolute; bottom:-25px; right:-25px;
-    width:80px; height:80px; border-radius:50%; opacity:.06;
-}
-.as-stat.users .as-stat-glow { background:#3b82f6; }
-.as-stat.students .as-stat-glow { background:#f59e0b; }
-.as-stat.teachers .as-stat-glow { background:#22c55e; }
-.as-stat.admins .as-stat-glow { background:#8b5cf6; }
-.as-stat.online .as-stat-glow { background:#06b6d4; }
-.as-stat.blocked .as-stat-glow { background:#ef4444; }
+.st-stat.c-blue .st-stat-glow { background:#3b82f6; }
+.st-stat.c-amber .st-stat-glow { background:#f59e0b; }
+.st-stat.c-green .st-stat-glow { background:#22c55e; }
+.st-stat.c-purple .st-stat-glow { background:#8b5cf6; }
+.st-stat.c-cyan .st-stat-glow { background:#06b6d4; }
+.st-stat.c-red .st-stat-glow { background:#ef4444; }
+.st-stat.c-pink .st-stat-glow { background:#ec4899; }
+.st-stat.c-teal .st-stat-glow { background:#14b8a6; }
 
-/* ==================== CARD BASE ==================== */
-.as-card {
+.st-card {
     background:var(--bs-body-bg); border:1px solid var(--bs-border-color);
     border-radius:24px; overflow:hidden;
-    box-shadow:0 8px 32px rgba(0,0,0,.08);
-    transition:box-shadow .3s ease;
+    box-shadow:0 8px 32px rgba(0,0,0,.06);
+    transition:all .35s cubic-bezier(.23,1,.32,1);
+    height:100%;
 }
-.as-card:hover { box-shadow:0 12px 48px rgba(0,0,0,.12); }
-
-.as-card-header {
+.st-card:hover { box-shadow:0 16px 56px rgba(0,0,0,.1); }
+.st-card-header {
     padding:20px 24px; border-bottom:1px solid var(--bs-border-color);
     display:flex; align-items:center; gap:12px;
 }
-.as-card-icon {
+.st-card-icon {
     width:40px; height:40px; border-radius:12px;
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:1rem; flex-shrink:0;
 }
-.as-card-header h5 { margin:0; font-weight:700; font-size:1rem; }
-.as-card-body { padding:24px; }
+.st-card-header h5 { margin:0; font-weight:700; font-size:1rem; flex:1; }
+.st-card-header .st-card-extra { font-size:.8rem; color:var(--bs-secondary-color); font-weight:600; }
+.st-card-body { padding:24px; }
 
-/* ==================== PROFESSION TABLE ==================== */
-.as-prof-table { width:100%; border-collapse:separate; border-spacing:0; }
-.as-prof-table thead th {
-    padding:12px 18px; font-size:.75rem; font-weight:700;
+.st-bars {
+    display:flex; align-items:flex-end; gap:8px;
+    height:160px; padding-top:16px;
+}
+.st-bar-col {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; gap:6px; height:100%;
+    justify-content:flex-end;
+}
+.st-bar {
+    width:100%; border-radius:8px 8px 4px 4px;
+    min-height:4px; transform-origin:bottom;
+    animation:barGrow .8s cubic-bezier(.23,1,.32,1) both;
+    transition:all .3s ease; cursor:default;
+    position:relative;
+}
+.st-bar:hover { filter:brightness(1.15); transform:scaleY(1.03); }
+.st-bar-tooltip {
+    display:none; position:absolute; top:-32px; left:50%; transform:translateX(-50%);
+    padding:4px 10px; border-radius:8px; font-size:.72rem; font-weight:700;
+    background:var(--bs-body-color); color:var(--bs-body-bg); white-space:nowrap;
+    z-index:10;
+}
+.st-bar:hover .st-bar-tooltip { display:block; }
+.st-bar-lbl {
+    font-size:.68rem; font-weight:700; color:var(--bs-secondary-color);
+    text-align:center;
+}
+
+.st-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.st-mini {
+    padding:16px; border-radius:16px;
+    background:var(--bs-tertiary-bg);
+    border:1px solid var(--bs-border-color);
+    text-align:center; transition:all .3s ease;
+}
+.st-mini:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+.st-mini-icon {
+    width:36px; height:36px; border-radius:10px;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:1rem; margin-bottom:8px;
+}
+.st-mini-num { font-size:1.3rem; font-weight:800; line-height:1; margin-bottom:2px; }
+.st-mini-lbl { font-size:.7rem; font-weight:600; color:var(--bs-secondary-color); }
+
+.st-prof-table { width:100%; border-collapse:separate; border-spacing:0; }
+.st-prof-table thead th {
+    padding:12px 16px; font-size:.72rem; font-weight:700;
     text-transform:uppercase; letter-spacing:.5px;
     color:var(--bs-secondary-color);
     border-bottom:1px solid var(--bs-border-color);
     background:var(--bs-tertiary-bg);
 }
-.as-prof-table tbody tr {
+.st-prof-table tbody tr {
     transition:all .2s ease;
-    animation:rowSlide .4s ease both;
+    animation:rowSlide .45s ease both;
 }
-.as-prof-table tbody tr:nth-child(1) { animation-delay:.04s; }
-.as-prof-table tbody tr:nth-child(2) { animation-delay:.08s; }
-.as-prof-table tbody tr:nth-child(3) { animation-delay:.12s; }
-.as-prof-table tbody tr:nth-child(4) { animation-delay:.16s; }
-.as-prof-table tbody tr:nth-child(5) { animation-delay:.2s; }
-.as-prof-table tbody tr:nth-child(6) { animation-delay:.24s; }
-.as-prof-table tbody tr:nth-child(7) { animation-delay:.28s; }
-.as-prof-table tbody tr:nth-child(8) { animation-delay:.32s; }
-.as-prof-table tbody tr:hover { background:rgba(99,102,241,.04); }
-.as-prof-table tbody td {
-    padding:14px 18px; font-size:.9rem;
+.st-prof-table tbody tr:nth-child(1) { animation-delay:.04s; }
+.st-prof-table tbody tr:nth-child(2) { animation-delay:.08s; }
+.st-prof-table tbody tr:nth-child(3) { animation-delay:.12s; }
+.st-prof-table tbody tr:nth-child(4) { animation-delay:.16s; }
+.st-prof-table tbody tr:nth-child(5) { animation-delay:.20s; }
+.st-prof-table tbody tr:nth-child(6) { animation-delay:.24s; }
+.st-prof-table tbody tr:nth-child(7) { animation-delay:.28s; }
+.st-prof-table tbody tr:nth-child(8) { animation-delay:.32s; }
+.st-prof-table tbody tr:hover { background:rgba(99,102,241,.04); }
+.st-prof-table tbody td {
+    padding:14px 16px; font-size:.88rem;
     border-bottom:1px solid var(--bs-border-color);
     vertical-align:middle;
 }
-.as-prof-table tbody tr:last-child td { border-bottom:none; }
+.st-prof-table tbody tr:last-child td { border-bottom:none; }
 
-.as-prof-rank {
+.st-rank {
     width:30px; height:30px; border-radius:10px;
     background:var(--bs-tertiary-bg);
     display:inline-flex; align-items:center; justify-content:center;
     font-size:.75rem; font-weight:800; color:var(--bs-secondary-color);
 }
-.as-prof-rank.top1 { background:linear-gradient(135deg,#facc15,#f59e0b); color:#000; }
-.as-prof-rank.top2 { background:linear-gradient(135deg,#cbd5e1,#94a3b8); color:#000; }
-.as-prof-rank.top3 { background:linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
+.st-rank.r1 { background:linear-gradient(135deg,#facc15,#f59e0b); color:#000; }
+.st-rank.r2 { background:linear-gradient(135deg,#cbd5e1,#94a3b8); color:#000; }
+.st-rank.r3 { background:linear-gradient(135deg,#f97316,#ea580c); color:#fff; }
+.st-prof-name { font-weight:700; color:var(--bs-body-color); }
 
-.as-prof-name { font-weight:700; color:var(--bs-body-color); }
-
-.as-badge {
+.st-badge {
     display:inline-flex; align-items:center; justify-content:center;
-    min-width:36px; padding:4px 12px; border-radius:10px;
+    min-width:34px; padding:4px 12px; border-radius:10px;
     font-weight:700; font-size:.82rem;
 }
-.as-badge.primary { background:rgba(99,102,241,.12); color:#6366f1; }
-.as-badge.success { background:rgba(34,197,94,.12); color:#22c55e; }
-.as-badge.secondary { background:var(--bs-tertiary-bg); color:var(--bs-secondary-color); }
+.st-badge.b-blue { background:rgba(99,102,241,.12); color:#6366f1; }
+.st-badge.b-green { background:rgba(34,197,94,.12); color:#22c55e; }
+.st-badge.b-gray { background:var(--bs-tertiary-bg); color:var(--bs-secondary-color); }
 
-.as-progress-wrap { display:flex; align-items:center; gap:10px; }
-.as-progress-bar {
+.st-progress-wrap { display:flex; align-items:center; gap:10px; }
+.st-progress-bar {
     flex:1; height:8px; border-radius:50px;
-    background:var(--bs-tertiary-bg); overflow:hidden;
-    min-width:60px;
+    background:var(--bs-tertiary-bg); overflow:hidden; min-width:50px;
 }
-.as-progress-fill {
+.st-progress-fill {
     height:100%; border-radius:50px;
     background:linear-gradient(90deg,#6366f1,#8b5cf6);
-    transition:width 1.2s ease;
+    transition:width 1.2s cubic-bezier(.23,1,.32,1);
 }
-.as-progress-pct {
-    font-weight:800; font-size:.82rem; color:#6366f1;
-    min-width:36px; text-align:right;
+.st-progress-pct {
+    font-weight:800; font-size:.8rem; color:#6366f1;
+    min-width:34px; text-align:right;
 }
 
-/* ==================== DAILY REGISTRATIONS ==================== */
-.as-daily-list { display:flex; flex-direction:column; gap:10px; }
-.as-daily-item {
-    display:flex; align-items:center; gap:14px;
-    padding:12px 16px; border-radius:14px;
+.st-daily-list { display:flex; flex-direction:column; gap:8px; }
+.st-daily-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:14px;
     background:var(--bs-tertiary-bg);
     border:1px solid var(--bs-border-color);
-    transition:all .2s ease;
+    transition:all .25s ease;
     animation:rowSlide .4s ease both;
 }
-.as-daily-item:nth-child(1) { animation-delay:.04s; }
-.as-daily-item:nth-child(2) { animation-delay:.08s; }
-.as-daily-item:nth-child(3) { animation-delay:.12s; }
-.as-daily-item:nth-child(4) { animation-delay:.16s; }
-.as-daily-item:nth-child(5) { animation-delay:.20s; }
-.as-daily-item:nth-child(6) { animation-delay:.24s; }
-.as-daily-item:nth-child(7) { animation-delay:.28s; }
-.as-daily-item:hover { background:rgba(99,102,241,.05); border-color:rgba(99,102,241,.15); }
-
-.as-daily-date {
-    font-weight:700; font-size:.88rem; color:var(--bs-body-color);
-    flex:1;
-}
-.as-daily-day {
-    font-size:.72rem; color:var(--bs-secondary-color); font-weight:600;
-}
-.as-daily-count {
+.st-daily-item:nth-child(1) { animation-delay:.04s; }
+.st-daily-item:nth-child(2) { animation-delay:.08s; }
+.st-daily-item:nth-child(3) { animation-delay:.10s; }
+.st-daily-item:nth-child(4) { animation-delay:.12s; }
+.st-daily-item:nth-child(5) { animation-delay:.14s; }
+.st-daily-item:nth-child(6) { animation-delay:.16s; }
+.st-daily-item:nth-child(7) { animation-delay:.18s; }
+.st-daily-item:hover { background:rgba(99,102,241,.05); border-color:rgba(99,102,241,.15); }
+.st-daily-date { font-weight:700; font-size:.85rem; color:var(--bs-body-color); flex:1; }
+.st-daily-day { font-size:.7rem; color:var(--bs-secondary-color); font-weight:600; }
+.st-daily-count {
     display:inline-flex; align-items:center; justify-content:center;
-    min-width:38px; height:32px; border-radius:10px;
+    min-width:36px; height:30px; border-radius:10px;
+    font-weight:800; font-size:.85rem;
+}
+.st-daily-count.has { background:rgba(34,197,94,.12); color:#22c55e; }
+.st-daily-count.no { background:var(--bs-body-bg); color:var(--bs-secondary-color); }
+.st-daily-bar-w { width:70px; height:5px; border-radius:50px; background:var(--bs-body-bg); overflow:hidden; }
+.st-daily-bar-f { height:100%; border-radius:50px; background:linear-gradient(90deg,#22c55e,#16a34a); transition:width 1s ease; }
+
+.st-top-list { display:flex; flex-direction:column; gap:8px; }
+.st-top-item {
+    display:flex; align-items:center; gap:12px;
+    padding:12px 14px; border-radius:14px;
+    background:var(--bs-tertiary-bg);
+    border:1px solid var(--bs-border-color);
+    transition:all .25s ease;
+    animation:rowSlide .4s ease both;
+}
+.st-top-item:hover { background:rgba(99,102,241,.05); }
+.st-top-avatar {
+    width:38px; height:38px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:.8rem; color:#fff; flex-shrink:0;
+}
+.st-top-info { flex:1; min-width:0; }
+.st-top-name { font-weight:700; font-size:.88rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.st-top-detail { font-size:.72rem; color:var(--bs-secondary-color); font-weight:600; }
+.st-top-score {
+    padding:6px 14px; border-radius:10px;
     font-weight:800; font-size:.88rem;
-}
-.as-daily-count.has-data {
-    background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(22,163,74,.1));
-    color:#22c55e;
-}
-.as-daily-count.no-data {
-    background:var(--bs-body-bg); color:var(--bs-secondary-color);
-}
-.as-daily-bar-wrap {
-    width:80px; height:6px; border-radius:50px;
-    background:var(--bs-body-bg); overflow:hidden;
-}
-.as-daily-bar-fill {
-    height:100%; border-radius:50px;
-    background:linear-gradient(90deg,#22c55e,#16a34a);
-    transition:width 1s ease;
+    background:rgba(99,102,241,.1); color:#6366f1;
 }
 
-/* ==================== ROLES CHART ==================== */
-.as-role-list { display:flex; flex-direction:column; gap:16px; }
-.as-role-item { animation:fadeInUp .4s ease both; }
-.as-role-item:nth-child(1) { animation-delay:.06s; }
-.as-role-item:nth-child(2) { animation-delay:.12s; }
-.as-role-item:nth-child(3) { animation-delay:.18s; }
+.st-activity-list { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
+.st-activity-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:12px;
+    transition:all .2s ease;
+    animation:rowSlide .35s ease both;
+}
+.st-activity-item:hover { background:var(--bs-tertiary-bg); }
+.st-activity-icon {
+    width:36px; height:36px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.9rem; flex-shrink:0;
+}
+.st-activity-icon.test { background:rgba(139,92,246,.12); color:#8b5cf6; }
+.st-activity-icon.hw { background:rgba(245,158,11,.12); color:#f59e0b; }
+.st-activity-info { flex:1; min-width:0; }
+.st-activity-text { font-size:.82rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.st-activity-time { font-size:.7rem; color:var(--bs-secondary-color); }
+.st-activity-result {
+    padding:4px 10px; border-radius:8px;
+    font-weight:700; font-size:.75rem; flex-shrink:0;
+}
+.st-activity-result.pass { background:rgba(34,197,94,.1); color:#22c55e; }
+.st-activity-result.fail { background:rgba(239,68,68,.1); color:#ef4444; }
 
-.as-role-top {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:8px;
-}
-.as-role-info { display:flex; align-items:center; gap:10px; }
-.as-role-dot {
-    width:12px; height:12px; border-radius:4px; flex-shrink:0;
-}
-.as-role-dot.student { background:#6366f1; }
-.as-role-dot.teacher { background:#22c55e; }
-.as-role-dot.admin { background:#ef4444; }
+.st-role-list { display:flex; flex-direction:column; gap:14px; }
+.st-role-item { animation:fadeInUp .4s ease both; }
+.st-role-item:nth-child(1) { animation-delay:.06s; }
+.st-role-item:nth-child(2) { animation-delay:.12s; }
+.st-role-item:nth-child(3) { animation-delay:.18s; }
+.st-role-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.st-role-info { display:flex; align-items:center; gap:10px; }
+.st-role-dot { width:12px; height:12px; border-radius:4px; flex-shrink:0; }
+.st-role-dot.student { background:#6366f1; }
+.st-role-dot.teacher { background:#22c55e; }
+.st-role-dot.admin { background:#ef4444; }
+.st-role-name { font-weight:700; font-size:.88rem; }
+.st-role-count { font-weight:800; font-size:.92rem; }
+.st-role-bar { height:10px; border-radius:50px; background:var(--bs-tertiary-bg); overflow:hidden; }
+.st-role-fill { height:100%; border-radius:50px; transition:width 1.2s cubic-bezier(.23,1,.32,1); }
+.st-role-fill.student { background:linear-gradient(90deg,#6366f1,#8b5cf6); }
+.st-role-fill.teacher { background:linear-gradient(90deg,#22c55e,#16a34a); }
+.st-role-fill.admin { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.st-role-pct { text-align:right; font-size:.73rem; font-weight:700; color:var(--bs-secondary-color); margin-top:4px; }
 
-.as-role-name { font-weight:700; font-size:.9rem; color:var(--bs-body-color); }
-.as-role-count { font-weight:800; font-size:.95rem; color:var(--bs-body-color); }
+.st-pay-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+.st-pay-item {
+    padding:18px 14px; border-radius:16px; text-align:center;
+    background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color);
+    transition:all .3s ease;
+}
+.st-pay-item:hover { transform:translateY(-3px); }
+.st-pay-num { font-size:1.4rem; font-weight:800; line-height:1; margin-bottom:4px; }
+.st-pay-lbl { font-size:.72rem; font-weight:600; color:var(--bs-secondary-color); }
 
-.as-role-bar {
-    height:10px; border-radius:50px;
-    background:var(--bs-tertiary-bg); overflow:hidden;
-}
-.as-role-fill {
-    height:100%; border-radius:50px;
-    transition:width 1.2s ease;
-}
-.as-role-fill.student { background:linear-gradient(90deg,#6366f1,#8b5cf6); }
-.as-role-fill.teacher { background:linear-gradient(90deg,#22c55e,#16a34a); }
-.as-role-fill.admin { background:linear-gradient(90deg,#ef4444,#dc2626); }
-
-.as-role-pct {
-    text-align:right; font-size:.75rem; font-weight:700;
-    color:var(--bs-secondary-color); margin-top:4px;
-}
-
-/* ==================== EMPTY ==================== */
-.as-empty {
-    text-align:center; padding:48px 20px;
-}
-.as-empty-icon {
-    width:72px; height:72px; border-radius:20px; margin:0 auto 14px;
+.st-empty { text-align:center; padding:40px 20px; }
+.st-empty-icon {
+    width:64px; height:64px; border-radius:18px; margin:0 auto 12px;
     background:var(--bs-tertiary-bg);
     display:flex; align-items:center; justify-content:center;
-    font-size:1.8rem; color:var(--bs-secondary-color);
+    font-size:1.5rem; color:var(--bs-secondary-color);
     animation:float 3s ease-in-out infinite;
 }
-.as-empty-text { font-size:.9rem; color:var(--bs-secondary-color); font-weight:600; }
+.st-empty-text { font-size:.88rem; color:var(--bs-secondary-color); font-weight:600; }
 
-/* ==================== MOBILE PROFESSION CARDS ==================== */
-.as-prof-mobile { display:none; }
-
-.as-pm-card {
+.st-prof-mobile { display:none; }
+.st-pm-card {
     background:var(--bs-tertiary-bg); border:1px solid var(--bs-border-color);
     border-radius:16px; padding:16px; transition:all .2s ease;
     animation:fadeInUp .4s ease both;
 }
-.as-pm-card:nth-child(2) { animation-delay:.06s; }
-.as-pm-card:nth-child(3) { animation-delay:.12s; }
-.as-pm-card:nth-child(4) { animation-delay:.18s; }
-.as-pm-card-top {
-    display:flex; align-items:center; justify-content:space-between;
-    margin-bottom:12px;
-}
-.as-pm-card-name { font-weight:700; font-size:.95rem; }
-.as-pm-card-stats {
-    display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
-}
-.as-pm-stat {
-    text-align:center; padding:8px 4px; border-radius:10px;
-    background:var(--bs-body-bg);
-}
-.as-pm-stat-num { font-size:1rem; font-weight:800; }
-.as-pm-stat-label { font-size:.68rem; font-weight:600; color:var(--bs-secondary-color); }
-.as-pm-progress { margin-top:10px; }
+.st-pm-card:nth-child(2) { animation-delay:.06s; }
+.st-pm-card:nth-child(3) { animation-delay:.12s; }
+.st-pm-card:nth-child(4) { animation-delay:.18s; }
+.st-pm-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.st-pm-name { font-weight:700; font-size:.92rem; }
+.st-pm-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.st-pm-stat { text-align:center; padding:8px 4px; border-radius:10px; background:var(--bs-body-bg); }
+.st-pm-stat-num { font-size:1rem; font-weight:800; }
+.st-pm-stat-lbl { font-size:.68rem; font-weight:600; color:var(--bs-secondary-color); }
+.st-pm-progress { margin-top:10px; }
 
-/* ==================== RESPONSIVE ==================== */
-@media (max-width:1199px) {
-    .as-stats { grid-template-columns:repeat(3,1fr); }
-}
+@media (max-width:1399px) { .st-stats { grid-template-columns:repeat(4,1fr); } }
+@media (max-width:1199px) { .st-stats { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:991px) {
-    .as-stats { grid-template-columns:repeat(3,1fr); }
-    .as-stat { padding:18px 12px; }
-    .as-stat-icon { width:42px; height:42px; }
-    .as-stat-num { font-size:1.5rem; }
+    .st-stat { padding:18px 14px; }
+    .st-stat-num { font-size:1.6rem; }
 }
 @media (max-width:767px) {
-    .as-stats { grid-template-columns:repeat(2,1fr); gap:10px; }
-    .as-stat { padding:16px 12px; border-radius:16px; }
-    .as-stat-icon { width:38px; height:38px; border-radius:10px; font-size:1rem; }
-    .as-stat-num { font-size:1.3rem; }
-    .as-stat-label { font-size:.72rem; }
-    .as-header h1 { font-size:1.15rem; }
-    .as-header-icon { width:40px; height:40px; border-radius:12px; }
-    .as-card { border-radius:18px; }
-    .as-card-header { padding:16px 18px; }
-    .as-card-body { padding:16px 18px; }
-
-    .as-prof-desktop { display:none; }
-    .as-prof-mobile { display:flex; flex-direction:column; gap:10px; }
+    .st-stats { grid-template-columns:repeat(2,1fr); gap:10px; }
+    .st-stat { padding:16px 12px; border-radius:16px; }
+    .st-stat-icon { width:40px; height:40px; border-radius:10px; font-size:1rem; }
+    .st-stat-num { font-size:1.3rem; }
+    .st-stat-label { font-size:.72rem; }
+    .st-header h1 { font-size:1.2rem; }
+    .st-header-icon { width:44px; height:44px; border-radius:14px; }
+    .st-card { border-radius:18px; }
+    .st-card-header { padding:16px 18px; }
+    .st-card-body { padding:16px 18px; }
+    .st-prof-desktop { display:none; }
+    .st-prof-mobile { display:flex; flex-direction:column; gap:10px; }
+    .st-pay-grid { grid-template-columns:1fr; }
+    .st-mini-grid { grid-template-columns:1fr 1fr; gap:8px; }
 }
 @media (max-width:575px) {
-    .as-stats { grid-template-columns:1fr 1fr; }
-    .as-header { flex-direction:column; align-items:flex-start; }
-    .as-daily-bar-wrap { width:50px; }
+    .st-header { flex-direction:column; align-items:flex-start; }
+    .st-daily-bar-w { width:40px; }
 }
 
-/* ==================== DARK ==================== */
-[data-bs-theme="dark"] .as-stat { box-shadow:0 4px 16px rgba(0,0,0,.25); }
-[data-bs-theme="dark"] .as-stat:hover { box-shadow:0 12px 36px rgba(0,0,0,.35); }
-[data-bs-theme="dark"] .as-card { box-shadow:0 8px 32px rgba(0,0,0,.25); }
+[data-bs-theme="dark"] .st-stat { box-shadow:0 4px 20px rgba(0,0,0,.25); }
+[data-bs-theme="dark"] .st-stat:hover { box-shadow:0 16px 48px rgba(0,0,0,.35); }
+[data-bs-theme="dark"] .st-card { box-shadow:0 8px 32px rgba(0,0,0,.25); }
 </style>
 
-<!-- ==================== HEADER ==================== -->
-<div class="as-header as-a1">
-    <div class="as-header-left">
-        <div class="as-header-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+<!-- HEADER -->
+<div class="st-header sa1">
+    <div class="st-header-left">
+        <div class="st-header-icon"><i class="bi bi-graph-up-arrow"></i></div>
         <div>
-            <h1>Tizim Statistikasi</h1>
-            <div class="as-header-sub">Barcha ko'rsatkichlar real vaqtda</div>
+            <h1>Analitika & Statistika</h1>
+            <div class="st-header-sub">
+                <span class="st-live">Jonli</span> — Barcha ko'rsatkichlar real vaqtda
+            </div>
         </div>
     </div>
-    <a href="{% url 'export_system_pdf' %}" class="as-pdf-btn">
+    <a href="{% url 'export_system_pdf' %}" class="st-pdf-btn">
         <i class="bi bi-file-earmark-pdf-fill"></i> PDF yuklab olish
     </a>
 </div>
 
-<!-- ==================== STAT CARDS ==================== -->
-<div class="as-stats">
-    <div class="as-stat users as-a1">
-        <div class="as-stat-icon"><i class="bi bi-people-fill"></i></div>
-        <div class="as-stat-num">{{ total_users }}</div>
-        <div class="as-stat-label">Jami foydalanuvchilar</div>
-        <div class="as-stat-glow"></div>
+<!-- STAT CARDS ROW 1 -->
+<div class="st-stats">
+    <div class="st-stat c-blue sa1">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-people-fill"></i></div>
+            {% if growth_percent != 0 %}
+            <div class="st-stat-badge {% if growth_percent > 0 %}up{% elif growth_percent < 0 %}down{% else %}neutral{% endif %}">
+                <i class="bi bi-arrow-{% if growth_percent > 0 %}up{% else %}down{% endif %}-short"></i>
+                {{ growth_percent }}%
+            </div>
+            {% endif %}
+        </div>
+        <div class="st-stat-num" data-count="{{ total_users }}">0</div>
+        <div class="st-stat-label">Jami foydalanuvchilar</div>
+        <div class="st-stat-glow"></div>
     </div>
-    <div class="as-stat students as-a2">
-        <div class="as-stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
-        <div class="as-stat-num">{{ total_students }}</div>
-        <div class="as-stat-label">O'quvchilar</div>
-        <div class="as-stat-glow"></div>
+    <div class="st-stat c-amber sa2">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            <div class="st-stat-badge neutral">
+                <i class="bi bi-plus"></i>{{ new_users_this_month }} bu oy
+            </div>
+        </div>
+        <div class="st-stat-num" data-count="{{ total_students }}">0</div>
+        <div class="st-stat-label">O'quvchilar</div>
+        <div class="st-stat-glow"></div>
     </div>
-    <div class="as-stat teachers as-a3">
-        <div class="as-stat-icon"><i class="bi bi-person-workspace"></i></div>
-        <div class="as-stat-num">{{ total_teachers }}</div>
-        <div class="as-stat-label">O'qituvchilar</div>
-        <div class="as-stat-glow"></div>
+    <div class="st-stat c-green sa3">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-person-workspace"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ total_teachers }}">0</div>
+        <div class="st-stat-label">O'qituvchilar</div>
+        <div class="st-stat-glow"></div>
     </div>
-    <div class="as-stat admins as-a4">
-        <div class="as-stat-icon"><i class="bi bi-shield-check"></i></div>
-        <div class="as-stat-num">{{ total_admins }}</div>
-        <div class="as-stat-label">Adminlar</div>
-        <div class="as-stat-glow"></div>
-    </div>
-    <div class="as-stat online as-a5">
-        <div class="as-stat-icon"><i class="bi bi-wifi"></i></div>
-        <div class="as-stat-num">{{ online_users }}</div>
-        <div class="as-stat-label">Hozir online</div>
-        <div class="as-stat-glow"></div>
-    </div>
-    <div class="as-stat blocked as-a6">
-        <div class="as-stat-icon"><i class="bi bi-slash-circle-fill"></i></div>
-        <div class="as-stat-num">{{ blocked_users }}</div>
-        <div class="as-stat-label">Bloklangan</div>
-        <div class="as-stat-glow"></div>
+    <div class="st-stat c-cyan sa4">
+        <div class="st-stat-top">
+            <div class="st-stat-icon" style="animation:pulseGlow 2s infinite;--glow:rgba(6,182,212,.3);"><i class="bi bi-wifi"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ online_users }}">0</div>
+        <div class="st-stat-label">Hozir online</div>
+        <div class="st-stat-glow"></div>
     </div>
 </div>
 
-<div class="row g-4">
-<!-- ==================== PROFESSION STATS ==================== -->
+<!-- STAT CARDS ROW 2 -->
+<div class="st-stats" style="margin-top:-16px;">
+    <div class="st-stat c-purple sa3">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-collection-play-fill"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ total_lessons }}">0</div>
+        <div class="st-stat-label">Jami darslar</div>
+        <div class="st-stat-glow"></div>
+    </div>
+    <div class="st-stat c-teal sa4">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-check2-circle"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ test_pass_rate }}">0</div>
+        <div class="st-stat-label">Test o'tish foizi (%)</div>
+        <div class="st-stat-glow"></div>
+    </div>
+    <div class="st-stat c-pink sa5">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-star-fill"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ premium_users }}">0</div>
+        <div class="st-stat-label">Premium a'zolar</div>
+        <div class="st-stat-glow"></div>
+    </div>
+    <div class="st-stat c-red sa6">
+        <div class="st-stat-top">
+            <div class="st-stat-icon"><i class="bi bi-slash-circle-fill"></i></div>
+        </div>
+        <div class="st-stat-num" data-count="{{ blocked_users }}">0</div>
+        <div class="st-stat-label">Bloklangan</div>
+        <div class="st-stat-glow"></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+<!-- MONTHLY CHART -->
 <div class="col-lg-8">
-    <div class="as-card as-a6">
-        <div class="as-card-header">
-            <div class="as-card-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+    <div class="st-card sa5">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#3b82f6,#6366f1);">
+                <i class="bi bi-bar-chart-fill"></i>
+            </div>
+            <h5>Oylik ro'yxatdan o'tishlar</h5>
+            <span class="st-card-extra">Oxirgi 6 oy</span>
+        </div>
+        <div class="st-card-body">
+            <div class="st-bars">
+                {% for m in monthly_registrations %}
+                <div class="st-bar-col">
+                    <div class="st-bar" style="height:{% if m.pct > 0 %}{{ m.pct }}{% else %}3{% endif %}%; background:linear-gradient(180deg,#6366f1,#8b5cf6); animation-delay:.{{ forloop.counter }}s;">
+                        <div class="st-bar-tooltip">{{ m.count }} ta</div>
+                    </div>
+                    <div class="st-bar-lbl">{{ m.month }}<br><small style="opacity:.5;">{{ m.year }}</small></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TEST & HW ANALYTICS -->
+<div class="col-lg-4">
+    <div class="st-card sa6">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#8b5cf6,#a855f7);">
+                <i class="bi bi-clipboard-data-fill"></i>
+            </div>
+            <h5>O'quv ko'rsatkichlari</h5>
+        </div>
+        <div class="st-card-body">
+            <div class="st-mini-grid">
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">
+                        <i class="bi bi-pencil-square"></i>
+                    </div>
+                    <div class="st-mini-num">{{ total_tests }}</div>
+                    <div class="st-mini-lbl">Testlar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(34,197,94,.12);color:#22c55e;">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                    <div class="st-mini-num">{{ total_test_results }}</div>
+                    <div class="st-mini-lbl">Natijalar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="st-mini-num">{{ total_hw_submissions }}</div>
+                    <div class="st-mini-lbl">Vazifalar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(6,182,212,.12);color:#06b6d4;">
+                        <i class="bi bi-play-circle"></i>
+                    </div>
+                    <div class="st-mini-num">{{ videos_watched }}</div>
+                    <div class="st-mini-lbl">Ko'rilgan</div>
+                </div>
+            </div>
+            <hr style="margin:18px 0;opacity:.1;">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span style="font-size:.82rem;font-weight:700;">O'rtacha test bali</span>
+                <span class="st-badge b-blue">{{ avg_test_score }}%</span>
+            </div>
+            <div class="st-progress-wrap mb-3">
+                <div class="st-progress-bar">
+                    <div class="st-progress-fill" style="width:{{ avg_test_score }}%;background:linear-gradient(90deg,#8b5cf6,#a855f7);"></div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span style="font-size:.82rem;font-weight:700;">O'rtacha vazifa bali</span>
+                <span class="st-badge b-green">{{ hw_avg_grade }}/10</span>
+            </div>
+            <div class="st-progress-wrap">
+                <div class="st-progress-bar">
+                    <div class="st-progress-fill" style="width:{% widthratio hw_avg_grade 10 100 %}%;background:linear-gradient(90deg,#22c55e,#16a34a);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="row g-4 mb-4">
+<!-- PROFESSION STATS -->
+<div class="col-lg-8">
+    <div class="st-card sa6">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
                 <i class="bi bi-briefcase-fill"></i>
             </div>
-            <h5>Yo'nalishlar bo'yicha statistika</h5>
+            <h5>Yo'nalishlar bo'yicha</h5>
         </div>
-        <div class="as-card-body">
+        <div class="st-card-body">
             {% if profession_stats %}
-
-            <!-- Desktop Table -->
-            <div class="as-prof-desktop">
+            <div class="st-prof-desktop">
                 <div class="table-responsive">
-                    <table class="as-prof-table">
+                    <table class="st-prof-table">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -468,31 +665,31 @@
                             {% for p in profession_stats %}
                             <tr>
                                 <td>
-                                    <span class="as-prof-rank {% if forloop.counter == 1 %}top1{% elif forloop.counter == 2 %}top2{% elif forloop.counter == 3 %}top3{% endif %}">
+                                    <span class="st-rank {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}">
                                         {{ forloop.counter }}
                                     </span>
                                 </td>
-                                <td><span class="as-prof-name">{{ p.name }}</span></td>
+                                <td><span class="st-prof-name">{{ p.name }}</span></td>
                                 <td style="text-align:center;">
-                                    <span class="as-badge primary">{{ p.student_count }}</span>
+                                    <span class="st-badge b-blue">{{ p.student_count }}</span>
                                 </td>
                                 <td style="text-align:center;">
-                                    <span class="as-badge success">{{ p.teacher_count }}</span>
+                                    <span class="st-badge b-green">{{ p.teacher_count }}</span>
                                 </td>
                                 <td style="text-align:center;">
-                                    <span class="as-badge secondary">{{ p.total }}</span>
+                                    <span class="st-badge b-gray">{{ p.total }}</span>
                                 </td>
                                 <td>
                                     {% if total_users > 0 %}
                                     {% widthratio p.total total_users 100 as percent %}
-                                    <div class="as-progress-wrap">
-                                        <div class="as-progress-bar">
-                                            <div class="as-progress-fill" style="width:{{ percent }}%;"></div>
+                                    <div class="st-progress-wrap">
+                                        <div class="st-progress-bar">
+                                            <div class="st-progress-fill" style="width:{{ percent }}%;"></div>
                                         </div>
-                                        <span class="as-progress-pct">{{ percent }}%</span>
+                                        <span class="st-progress-pct">{{ percent }}%</span>
                                     </div>
                                     {% else %}
-                                    <span class="as-progress-pct">0%</span>
+                                    <span class="st-progress-pct">0%</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -501,160 +698,381 @@
                     </table>
                 </div>
             </div>
-
-            <!-- Mobile Cards -->
-            <div class="as-prof-mobile">
+            <div class="st-prof-mobile">
                 {% for p in profession_stats %}
-                <div class="as-pm-card">
-                    <div class="as-pm-card-top">
-                        <div class="as-pm-card-name">
-                            <span class="as-prof-rank {% if forloop.counter == 1 %}top1{% elif forloop.counter == 2 %}top2{% elif forloop.counter == 3 %}top3{% endif %}" style="display:inline-flex;margin-right:8px;">{{ forloop.counter }}</span>
+                <div class="st-pm-card">
+                    <div class="st-pm-top">
+                        <div class="st-pm-name">
+                            <span class="st-rank {% if forloop.counter == 1 %}r1{% elif forloop.counter == 2 %}r2{% elif forloop.counter == 3 %}r3{% endif %}" style="display:inline-flex;margin-right:8px;">{{ forloop.counter }}</span>
                             {{ p.name }}
                         </div>
                     </div>
-                    <div class="as-pm-card-stats">
-                        <div class="as-pm-stat">
-                            <div class="as-pm-stat-num" style="color:#6366f1;">{{ p.student_count }}</div>
-                            <div class="as-pm-stat-label">O'quvchi</div>
+                    <div class="st-pm-stats">
+                        <div class="st-pm-stat">
+                            <div class="st-pm-stat-num" style="color:#6366f1;">{{ p.student_count }}</div>
+                            <div class="st-pm-stat-lbl">O'quvchi</div>
                         </div>
-                        <div class="as-pm-stat">
-                            <div class="as-pm-stat-num" style="color:#22c55e;">{{ p.teacher_count }}</div>
-                            <div class="as-pm-stat-label">O'qituvchi</div>
+                        <div class="st-pm-stat">
+                            <div class="st-pm-stat-num" style="color:#22c55e;">{{ p.teacher_count }}</div>
+                            <div class="st-pm-stat-lbl">O'qituvchi</div>
                         </div>
-                        <div class="as-pm-stat">
-                            <div class="as-pm-stat-num">{{ p.total }}</div>
-                            <div class="as-pm-stat-label">Jami</div>
+                        <div class="st-pm-stat">
+                            <div class="st-pm-stat-num">{{ p.total }}</div>
+                            <div class="st-pm-stat-lbl">Jami</div>
                         </div>
                     </div>
                     {% if total_users > 0 %}
                     {% widthratio p.total total_users 100 as percent %}
-                    <div class="as-pm-progress">
-                        <div class="as-progress-wrap">
-                            <div class="as-progress-bar">
-                                <div class="as-progress-fill" style="width:{{ percent }}%;"></div>
+                    <div class="st-pm-progress">
+                        <div class="st-progress-wrap">
+                            <div class="st-progress-bar">
+                                <div class="st-progress-fill" style="width:{{ percent }}%;"></div>
                             </div>
-                            <span class="as-progress-pct">{{ percent }}%</span>
+                            <span class="st-progress-pct">{{ percent }}%</span>
                         </div>
                     </div>
                     {% endif %}
                 </div>
                 {% endfor %}
             </div>
-
             {% else %}
-            <div class="as-empty">
-                <div class="as-empty-icon"><i class="bi bi-inbox"></i></div>
-                <div class="as-empty-text">Yo'nalishlar mavjud emas</div>
+            <div class="st-empty">
+                <div class="st-empty-icon"><i class="bi bi-inbox"></i></div>
+                <div class="st-empty-text">Yo'nalishlar mavjud emas</div>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- ==================== RIGHT COLUMN ==================== -->
+<!-- RIGHT COLUMN -->
 <div class="col-lg-4 d-flex flex-column gap-4">
-
-    <!-- Daily Registrations -->
-    <div class="as-card as-a7">
-        <div class="as-card-header">
-            <div class="as-card-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
-                <i class="bi bi-calendar-week-fill"></i>
-            </div>
-            <h5>Oxirgi 7 kun</h5>
-        </div>
-        <div class="as-card-body">
-            <div class="as-daily-list">
-                {% for day in daily_registrations %}
-                {% with max_count=daily_registrations.0.count %}
-                <div class="as-daily-item">
-                    <div>
-                        <div class="as-daily-date">{{ day.date|date:"d.m" }}</div>
-                        <div class="as-daily-day">{{ day.date|date:"l" }}</div>
-                    </div>
-                    <div class="as-daily-bar-wrap">
-                        <div class="as-daily-bar-fill" style="width:{% if day.count > 0 %}{% widthratio day.count 10 100 %}{% else %}0{% endif %}%;"></div>
-                    </div>
-                    <div class="as-daily-count {% if day.count > 0 %}has-data{% else %}no-data{% endif %}">
-                        {% if day.count > 0 %}+{% endif %}{{ day.count }}
-                    </div>
-                </div>
-                {% endwith %}
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-
-    <!-- Roles Distribution -->
-    <div class="as-card as-a7" style="animation-delay:.42s">
-        <div class="as-card-header">
-            <div class="as-card-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308);">
+    <div class="st-card sa7">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308);">
                 <i class="bi bi-pie-chart-fill"></i>
             </div>
             <h5>Rollar taqsimoti</h5>
         </div>
-        <div class="as-card-body">
-            <div class="as-role-list">
-                <div class="as-role-item">
-                    <div class="as-role-top">
-                        <div class="as-role-info">
-                            <div class="as-role-dot student"></div>
-                            <span class="as-role-name">O'quvchilar</span>
+        <div class="st-card-body">
+            <div class="st-role-list">
+                <div class="st-role-item">
+                    <div class="st-role-top">
+                        <div class="st-role-info">
+                            <div class="st-role-dot student"></div>
+                            <span class="st-role-name">O'quvchilar</span>
                         </div>
-                        <span class="as-role-count">{{ total_students }}</span>
+                        <span class="st-role-count">{{ total_students }}</span>
                     </div>
-                    <div class="as-role-bar">
+                    <div class="st-role-bar">
                         {% if total_users > 0 %}
                         {% widthratio total_students total_users 100 as student_pct %}
-                        <div class="as-role-fill student" style="width:{{ student_pct }}%;"></div>
+                        <div class="st-role-fill student" style="width:{{ student_pct }}%;"></div>
                         {% endif %}
                     </div>
-                    {% if total_users > 0 %}
-                    <div class="as-role-pct">{{ student_pct }}%</div>
-                    {% endif %}
+                    {% if total_users > 0 %}<div class="st-role-pct">{{ student_pct }}%</div>{% endif %}
                 </div>
-
-                <div class="as-role-item">
-                    <div class="as-role-top">
-                        <div class="as-role-info">
-                            <div class="as-role-dot teacher"></div>
-                            <span class="as-role-name">O'qituvchilar</span>
+                <div class="st-role-item">
+                    <div class="st-role-top">
+                        <div class="st-role-info">
+                            <div class="st-role-dot teacher"></div>
+                            <span class="st-role-name">O'qituvchilar</span>
                         </div>
-                        <span class="as-role-count">{{ total_teachers }}</span>
+                        <span class="st-role-count">{{ total_teachers }}</span>
                     </div>
-                    <div class="as-role-bar">
+                    <div class="st-role-bar">
                         {% if total_users > 0 %}
                         {% widthratio total_teachers total_users 100 as teacher_pct %}
-                        <div class="as-role-fill teacher" style="width:{{ teacher_pct }}%;"></div>
+                        <div class="st-role-fill teacher" style="width:{{ teacher_pct }}%;"></div>
                         {% endif %}
                     </div>
-                    {% if total_users > 0 %}
-                    <div class="as-role-pct">{{ teacher_pct }}%</div>
-                    {% endif %}
+                    {% if total_users > 0 %}<div class="st-role-pct">{{ teacher_pct }}%</div>{% endif %}
                 </div>
-
-                <div class="as-role-item">
-                    <div class="as-role-top">
-                        <div class="as-role-info">
-                            <div class="as-role-dot admin"></div>
-                            <span class="as-role-name">Adminlar</span>
+                <div class="st-role-item">
+                    <div class="st-role-top">
+                        <div class="st-role-info">
+                            <div class="st-role-dot admin"></div>
+                            <span class="st-role-name">Adminlar</span>
                         </div>
-                        <span class="as-role-count">{{ total_admins }}</span>
+                        <span class="st-role-count">{{ total_admins }}</span>
                     </div>
-                    <div class="as-role-bar">
+                    <div class="st-role-bar">
                         {% if total_users > 0 %}
                         {% widthratio total_admins total_users 100 as admin_pct %}
-                        <div class="as-role-fill admin" style="width:{{ admin_pct }}%;"></div>
+                        <div class="st-role-fill admin" style="width:{{ admin_pct }}%;"></div>
                         {% endif %}
                     </div>
-                    {% if total_users > 0 %}
-                    <div class="as-role-pct">{{ admin_pct }}%</div>
-                    {% endif %}
+                    {% if total_users > 0 %}<div class="st-role-pct">{{ admin_pct }}%</div>{% endif %}
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="st-card sa8">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">
+                <i class="bi bi-layers-fill"></i>
+            </div>
+            <h5>Kontent tarkibi</h5>
+        </div>
+        <div class="st-card-body">
+            <div class="st-mini-grid">
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;">
+                        <i class="bi bi-play-btn-fill"></i>
+                    </div>
+                    <div class="st-mini-num" style="color:#3b82f6;">{{ video_lessons_count }}</div>
+                    <div class="st-mini-lbl">Video darslar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">
+                        <i class="bi bi-ui-checks"></i>
+                    </div>
+                    <div class="st-mini-num" style="color:#8b5cf6;">{{ test_lessons_count }}</div>
+                    <div class="st-mini-lbl">Testlar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">
+                        <i class="bi bi-journal-richtext"></i>
+                    </div>
+                    <div class="st-mini-num" style="color:#f59e0b;">{{ hw_lessons_count }}</div>
+                    <div class="st-mini-lbl">Vazifalar</div>
+                </div>
+                <div class="st-mini">
+                    <div class="st-mini-icon" style="background:rgba(20,184,166,.12);color:#14b8a6;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="st-mini-num" style="color:#14b8a6;">{{ total_video_minutes }}</div>
+                    <div class="st-mini-lbl">Daqiqa video</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </div>
 
+<div class="row g-4 mb-4">
+<!-- TO'LOV -->
+<div class="col-lg-4">
+    <div class="st-card sa7">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
+                <i class="bi bi-credit-card-fill"></i>
+            </div>
+            <h5>To'lov holati</h5>
+            <span class="st-card-extra">Joriy oy</span>
+        </div>
+        <div class="st-card-body">
+            <div class="st-pay-grid">
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#22c55e;">{{ paid_this_month }}</div>
+                    <div class="st-pay-lbl">To'lagan</div>
+                </div>
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#ef4444;">{{ unpaid_this_month }}</div>
+                    <div class="st-pay-lbl">To'lamagan</div>
+                </div>
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#6366f1; font-size:1rem;">
+                        {% if total_revenue_this_month %}{{ total_revenue_this_month|floatformat:0 }}{% else %}0{% endif %}
+                    </div>
+                    <div class="st-pay-lbl">Tushum (so'm)</div>
+                </div>
+            </div>
+            {% if paid_this_month or unpaid_this_month %}
+            <div style="margin-top:16px;">
+                <div class="d-flex justify-content-between mb-1">
+                    <span style="font-size:.78rem;font-weight:600;">To'lov foizi</span>
+                    <span style="font-size:.78rem;font-weight:800;color:#22c55e;">
+                        {% widthratio paid_this_month paid_this_month|add:unpaid_this_month 100 %}%
+                    </span>
+                </div>
+                <div class="st-progress-bar" style="height:10px;">
+                    <div class="st-progress-fill" style="width:{% widthratio paid_this_month paid_this_month|add:unpaid_this_month 100 %}%;background:linear-gradient(90deg,#22c55e,#16a34a);"></div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- HOMEWORK STATUS -->
+<div class="col-lg-4">
+    <div class="st-card sa7">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308);">
+                <i class="bi bi-journal-check"></i>
+            </div>
+            <h5>Vazifalar holati</h5>
+        </div>
+        <div class="st-card-body">
+            <div class="st-pay-grid">
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#f59e0b;">{{ hw_pending }}</div>
+                    <div class="st-pay-lbl">Kutilmoqda</div>
+                </div>
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#22c55e;">{{ hw_accepted }}</div>
+                    <div class="st-pay-lbl">Qabul qilingan</div>
+                </div>
+                <div class="st-pay-item">
+                    <div class="st-pay-num" style="color:#8b5cf6;">{{ hw_graded }}</div>
+                    <div class="st-pay-lbl">Baholangan</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DAILY REGISTRATIONS -->
+<div class="col-lg-4">
+    <div class="st-card sa8">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
+                <i class="bi bi-calendar-week-fill"></i>
+            </div>
+            <h5>Oxirgi 7 kun</h5>
+        </div>
+        <div class="st-card-body" style="padding:16px 20px;">
+            <div class="st-daily-list">
+                {% for day in daily_registrations %}
+                <div class="st-daily-item">
+                    <div>
+                        <div class="st-daily-date">{{ day.date|date:"d.m" }}</div>
+                        <div class="st-daily-day">{{ day.date|date:"l" }}</div>
+                    </div>
+                    <div class="st-daily-bar-w">
+                        <div class="st-daily-bar-f" style="width:{% if day.count > 0 %}{% widthratio day.count 10 100 %}{% else %}0{% endif %}%;"></div>
+                    </div>
+                    <div class="st-daily-count {% if day.count > 0 %}has{% else %}no{% endif %}">
+                        {% if day.count > 0 %}+{% endif %}{{ day.count }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="row g-4">
+<!-- TOP STUDENTS -->
+<div class="col-lg-6">
+    <div class="st-card sa8">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#facc15,#f59e0b);">
+                <i class="bi bi-trophy-fill"></i>
+            </div>
+            <h5>Top o'quvchilar</h5>
+            <span class="st-card-extra">Test natijalari bo'yicha</span>
+        </div>
+        <div class="st-card-body">
+            {% if top_students %}
+            <div class="st-top-list">
+                {% for s in top_students %}
+                <div class="st-top-item" style="animation-delay:.{{ forloop.counter0 }}8s;">
+                    <div class="st-top-avatar" style="background:linear-gradient(135deg,{% if forloop.counter == 1 %}#facc15,#f59e0b{% elif forloop.counter == 2 %}#94a3b8,#64748b{% elif forloop.counter == 3 %}#f97316,#ea580c{% else %}#6366f1,#8b5cf6{% endif %});">
+                        {% if forloop.counter <= 3 %}
+                        <i class="bi bi-trophy-fill" style="font-size:.9rem;"></i>
+                        {% else %}
+                        {{ forloop.counter }}
+                        {% endif %}
+                    </div>
+                    <div class="st-top-info">
+                        <div class="st-top-name">{{ s.full_name }}</div>
+                        <div class="st-top-detail">{{ s.tests_taken }} ta test topshirgan</div>
+                    </div>
+                    <div class="st-top-score">{{ s.avg_score|floatformat:0 }}%</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="st-empty">
+                <div class="st-empty-icon"><i class="bi bi-trophy"></i></div>
+                <div class="st-empty-text">Hali test natijalari yo'q</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="col-lg-6">
+    <div class="st-card sa8">
+        <div class="st-card-header">
+            <div class="st-card-icon" style="background:linear-gradient(135deg,#ec4899,#db2777);">
+                <i class="bi bi-activity"></i>
+            </div>
+            <h5>So'nggi faoliyat</h5>
+        </div>
+        <div class="st-card-body">
+            <div class="st-activity-list">
+                {% for r in recent_test_results %}
+                <div class="st-activity-item" style="animation-delay:.{{ forloop.counter0 }}4s;">
+                    <div class="st-activity-icon test"><i class="bi bi-pencil-square"></i></div>
+                    <div class="st-activity-info">
+                        <div class="st-activity-text">{{ r.student.full_name }} — {{ r.test.lesson.title }}</div>
+                        <div class="st-activity-time"><i class="bi bi-clock me-1"></i>{{ r.completed_at|timesince }} oldin</div>
+                    </div>
+                    <div class="st-activity-result {% if r.passed %}pass{% else %}fail{% endif %}">{{ r.score }}%</div>
+                </div>
+                {% endfor %}
+                {% for s in recent_submissions %}
+                <div class="st-activity-item" style="animation-delay:.{{ forloop.counter0 }}4s;">
+                    <div class="st-activity-icon hw"><i class="bi bi-file-earmark-text"></i></div>
+                    <div class="st-activity-info">
+                        <div class="st-activity-text">{{ s.student.full_name }} — {{ s.homework.lesson.title }}</div>
+                        <div class="st-activity-time"><i class="bi bi-clock me-1"></i>{{ s.submitted_at|timesince }} oldin</div>
+                    </div>
+                    <div class="st-activity-result {% if s.status == 'accepted' or s.status == 'graded' %}pass{% else %}fail{% endif %}">{{ s.get_status_display }}</div>
+                </div>
+                {% endfor %}
+                {% if not recent_test_results and not recent_submissions %}
+                <div class="st-empty">
+                    <div class="st-empty-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="st-empty-text">Hali faoliyat yo'q</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const counters = document.querySelectorAll('[data-count]');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                const target = parseInt(el.dataset.count) || 0;
+                const duration = 1200;
+                const start = performance.now();
+                function update(now) {
+                    const elapsed = now - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 4);
+                    el.textContent = Math.round(eased * target).toLocaleString();
+                    if (progress < 1) requestAnimationFrame(update);
+                }
+                requestAnimationFrame(update);
+                observer.unobserve(el);
+            }
+        });
+    }, { threshold: 0.2 });
+    counters.forEach(c => observer.observe(c));
+
+    const progressBars = document.querySelectorAll('.st-progress-fill, .st-role-fill, .st-daily-bar-f');
+    const barObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.transition = 'width 1.5s cubic-bezier(.23,1,.32,1)';
+                barObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    progressBars.forEach(b => barObserver.observe(b));
+});
+</script>
 {% endblock %}
