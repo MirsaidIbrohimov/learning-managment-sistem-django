@@ -5912,37 +5912,178 @@ def admin_statistics(request):
     if not request.user.is_admin:
         return redirect('home')
     
+    today = timezone.now().date()
+    now = timezone.now()
+    
+    # ===== BASIC COUNTS =====
     total_users = CustomUser.objects.count()
     total_teachers = CustomUser.objects.filter(role='teacher').count()
     total_students = CustomUser.objects.filter(role='student').count()
     total_admins = CustomUser.objects.filter(role='admin').count()
     blocked_users = CustomUser.objects.filter(is_blocked=True).count()
-    online_users = sum(1 for u in CustomUser.objects.all() if u.is_online)
+    online_users = CustomUser.objects.filter(
+        last_activity__gte=now - timedelta(seconds=300)
+    ).count()
     
+    # ===== GROWTH: this month vs last month =====
+    this_month_start = today.replace(day=1)
+    last_month_end = this_month_start - timedelta(days=1)
+    last_month_start = last_month_end.replace(day=1)
+    
+    new_users_this_month = CustomUser.objects.filter(date_joined__date__gte=this_month_start).count()
+    new_users_last_month = CustomUser.objects.filter(
+        date_joined__date__gte=last_month_start,
+        date_joined__date__lt=this_month_start
+    ).count()
+    
+    if new_users_last_month > 0:
+        growth_percent = round(((new_users_this_month - new_users_last_month) / new_users_last_month) * 100)
+    else:
+        growth_percent = 100 if new_users_this_month > 0 else 0
+    
+    # ===== PROFESSION STATS =====
     profession_stats = Profession.objects.annotate(
         student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
         teacher_count=Count('students', filter=Q(students__role='teacher')),
         total=Count('enrollments')
-    )
+    ).order_by('-total')
     
-    from datetime import timedelta
-    today = timezone.now().date()
+    # ===== DAILY REGISTRATIONS (last 7 days for chart) =====
     daily_registrations = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
         count = CustomUser.objects.filter(date_joined__date=day).count()
         daily_registrations.append({'date': day, 'count': count})
     
-    return render(request, 'accounts/admin/statistics.html', {
+    # Monthly registrations for last 6 months (for bar chart)
+    monthly_registrations = []
+    month_names = ['', 'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+    for i in range(5, -1, -1):
+        m_date = today - timedelta(days=i*30)
+        m_start = m_date.replace(day=1)
+        if m_date.month == 12:
+            m_end = m_date.replace(year=m_date.year+1, month=1, day=1)
+        else:
+            m_end = m_date.replace(month=m_date.month+1, day=1)
+        count = CustomUser.objects.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
+        monthly_registrations.append({
+            'month': month_names[m_date.month],
+            'year': m_date.year,
+            'count': count,
+        })
+    max_monthly = max((m['count'] for m in monthly_registrations), default=1) or 1
+    for m in monthly_registrations:
+        m['pct'] = round(m['count'] / max_monthly * 100)
+    
+    # ===== TEST ANALYTICS =====
+    total_tests = Test.objects.count()
+    total_test_results = TestResult.objects.count()
+    avg_test_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    test_pass_rate = 0
+    if total_test_results > 0:
+        passed_tests = TestResult.objects.filter(passed=True).count()
+        test_pass_rate = round((passed_tests / total_test_results) * 100)
+    
+    # ===== HOMEWORK ANALYTICS =====
+    total_hw_submissions = HomeworkSubmission.objects.count()
+    hw_pending = HomeworkSubmission.objects.filter(status='pending').count()
+    hw_graded = HomeworkSubmission.objects.filter(status='graded').count()
+    hw_accepted = HomeworkSubmission.objects.filter(status='accepted').count()
+    hw_avg_grade = HomeworkSubmission.objects.filter(
+        grade__isnull=False
+    ).aggregate(avg=Avg('grade'))['avg'] or 0
+    
+    # ===== VIDEO ANALYTICS =====
+    total_videos = VideoLesson.objects.count()
+    total_video_minutes = VideoLesson.objects.aggregate(total=Sum('duration'))['total'] or 0
+    videos_watched = VideoProgress.objects.filter(watched=True).count()
+    
+    # ===== LESSON COUNTS =====
+    total_lessons = Lesson.objects.count()
+    video_lessons_count = Lesson.objects.filter(lesson_type='video').count()
+    test_lessons_count = Lesson.objects.filter(lesson_type='test').count()
+    hw_lessons_count = Lesson.objects.filter(lesson_type='homework').count()
+    
+    # ===== PAYMENT ANALYTICS =====
+    current_month = today.month
+    current_year = today.year
+    paid_this_month = PaymentRecord.objects.filter(
+        month=current_month, year=current_year, is_paid=True
+    ).count()
+    unpaid_this_month = PaymentRecord.objects.filter(
+        month=current_month, year=current_year, is_paid=False
+    ).count()
+    total_revenue_this_month = PaymentRecord.objects.filter(
+        month=current_month, year=current_year
+    ).aggregate(total=Sum('paid_amount'))['total'] or 0
+    
+    # ===== TOP STUDENTS (by test scores) =====
+    top_students = CustomUser.objects.filter(
+        role='student',
+        test_results__isnull=False
+    ).annotate(
+        avg_score=Avg('test_results__score'),
+        tests_taken=Count('test_results')
+    ).order_by('-avg_score')[:5]
+    
+    # ===== RECENT ACTIVITY =====
+    recent_test_results = TestResult.objects.select_related(
+        'student', 'test__lesson__profession'
+    ).order_by('-completed_at')[:8]
+    
+    recent_submissions = HomeworkSubmission.objects.select_related(
+        'student', 'homework__lesson__profession'
+    ).order_by('-submitted_at')[:8]
+    
+    # ===== PREMIUM STATS =====
+    premium_users = CustomUser.objects.filter(is_premium=True).count()
+    
+    context = {
         'total_users': total_users,
         'total_teachers': total_teachers,
         'total_students': total_students,
         'total_admins': total_admins,
         'blocked_users': blocked_users,
         'online_users': online_users,
+        'new_users_this_month': new_users_this_month,
+        'growth_percent': growth_percent,
         'profession_stats': profession_stats,
         'daily_registrations': daily_registrations,
-    })
+        'monthly_registrations': monthly_registrations,
+        # Test analytics
+        'total_tests': total_tests,
+        'total_test_results': total_test_results,
+        'avg_test_score': round(avg_test_score, 1),
+        'test_pass_rate': test_pass_rate,
+        # Homework analytics
+        'total_hw_submissions': total_hw_submissions,
+        'hw_pending': hw_pending,
+        'hw_graded': hw_graded,
+        'hw_accepted': hw_accepted,
+        'hw_avg_grade': round(hw_avg_grade, 1),
+        # Video analytics
+        'total_videos': total_videos,
+        'total_video_minutes': total_video_minutes,
+        'videos_watched': videos_watched,
+        # Lesson counts
+        'total_lessons': total_lessons,
+        'video_lessons_count': video_lessons_count,
+        'test_lessons_count': test_lessons_count,
+        'hw_lessons_count': hw_lessons_count,
+        # Payment
+        'paid_this_month': paid_this_month,
+        'unpaid_this_month': unpaid_this_month,
+        'total_revenue_this_month': total_revenue_this_month,
+        # Top students
+        'top_students': top_students,
+        # Recent activity
+        'recent_test_results': recent_test_results,
+        'recent_submissions': recent_submissions,
+        # Premium
+        'premium_users': premium_users,
+    }
+    
+    return render(request, 'accounts/admin/statistics.html', context)
 
 
 @login_required
