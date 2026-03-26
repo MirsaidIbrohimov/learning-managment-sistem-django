@@ -371,37 +371,212 @@
     animation: fadeInUp 0.4s ease both;
 }
 
-/* Top Bar */
-.db-topbar {
+/* ===== Welcome Hero ===== */
+.db-hero {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.75rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease both;
+}
+.db-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899, #f59e0b);
+    background-size: 300% 100%;
+    animation: shimmer 4s linear infinite;
+}
+.db-hero-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.75rem;
-    padding: 1.25rem 1.5rem;
-    background: var(--card-bg);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    animation: fadeInUp 0.4s ease both;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
-
-.db-topbar h1 {
-    font-size: 1.4rem;
+.db-hero-greeting {
+    font-size: 1.5rem;
     font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
     color: var(--text-color);
 }
-
-.db-topbar h1 i {
-    color: var(--primary-blue);
+.db-hero-greeting span {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
-
-.db-topbar-actions {
+.db-hero-subtitle {
+    font-size: 0.88rem;
+    color: #6c757d;
+    font-weight: 600;
+    margin-top: 0.15rem;
+}
+.db-hero-actions {
     display: flex;
     gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
 }
+.db-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    background: var(--primary-blue);
+    color: #fff;
+    border: 2px solid transparent;
+}
+.db-hero-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59,130,246,0.25);
+    color: #fff;
+}
+.db-hero-btn.outline {
+    background: transparent;
+    color: var(--text-color);
+    border: 2px solid var(--border-color);
+}
+.db-hero-btn.outline:hover {
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.db-hero-date {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* ===== Quick Links Grid ===== */
+.db-quick-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+}
+.db-quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.1rem 0.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.5s ease both;
+}
+.db-quick-card:nth-child(1) { animation-delay:0.05s; }
+.db-quick-card:nth-child(2) { animation-delay:0.08s; }
+.db-quick-card:nth-child(3) { animation-delay:0.11s; }
+.db-quick-card:nth-child(4) { animation-delay:0.14s; }
+.db-quick-card:nth-child(5) { animation-delay:0.17s; }
+.db-quick-card:nth-child(6) { animation-delay:0.20s; }
+.db-quick-card:nth-child(7) { animation-delay:0.23s; }
+.db-quick-card:nth-child(8) { animation-delay:0.26s; }
+.db-quick-card:nth-child(9) { animation-delay:0.29s; }
+.db-quick-card:nth-child(10) { animation-delay:0.32s; }
+.db-quick-card:nth-child(11) { animation-delay:0.35s; }
+.db-quick-card:nth-child(12) { animation-delay:0.38s; }
+
+.db-quick-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--qc, #3b82f6), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.db-quick-card:hover::before {
+    opacity: 1;
+}
+.db-quick-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+}
+.db-quick-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--qc) 15%, transparent), color-mix(in srgb, var(--qc) 8%, transparent));
+    color: var(--qc);
+    transition: all 0.3s;
+}
+.db-quick-card:hover .db-quick-icon {
+    transform: scale(1.12) rotate(-3deg);
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--qc) 30%, transparent);
+}
+.db-quick-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* ===== Alert Bar ===== */
+.db-alert-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    border-radius: 14px;
+    margin-bottom: 1.75rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    animation: fadeInUp 0.5s ease 0.2s both;
+}
+.db-alert-bar.warn {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2);
+    color: #d97706;
+}
+.db-alert-bar.warn i { font-size: 1.1rem; }
+.db-alert-bar a {
+    margin-left: auto;
+    font-weight: 700;
+    color: #d97706;
+    text-decoration: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(245,158,11,0.3);
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.db-alert-bar a:hover {
+    background: rgba(245,158,11,0.12);
+}
+[data-bs-theme="dark"] .db-alert-bar.warn {
+    background: rgba(245,158,11,0.1);
+    color: #fbbf24;
+}
+[data-bs-theme="dark"] .db-alert-bar.warn a { color: #fbbf24; }
 
 /* ===== Stat Cards Grid ===== */
 .db-stats-grid {
@@ -477,13 +652,13 @@
     transform: scale(1.1);
 }
 
-.db-stat.blue .db-stat-icon { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.db-stat.green .db-stat-icon { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.db-stat.orange .db-stat-icon { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.db-stat.cyan .db-stat-icon { background: rgba(6, 182, 212, 0.12); color: #06b6d4; }
-.db-stat.pink .db-stat-icon { background: rgba(236, 72, 153, 0.12); color: #ec4899; }
-.db-stat.red .db-stat-icon { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-.db-stat.purple .db-stat-icon { background: rgba(139, 92, 246, 0.12); color: #8b5cf6; }
+.db-stat.blue .db-stat-icon { background: linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.06)); color: #3b82f6; }
+.db-stat.green .db-stat-icon { background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.06)); color: #10b981; }
+.db-stat.orange .db-stat-icon { background: linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.06)); color: #f59e0b; }
+.db-stat.cyan .db-stat-icon { background: linear-gradient(135deg, rgba(6,182,212,0.18), rgba(6,182,212,0.06)); color: #06b6d4; }
+.db-stat.pink .db-stat-icon { background: linear-gradient(135deg, rgba(236,72,153,0.18), rgba(236,72,153,0.06)); color: #ec4899; }
+.db-stat.red .db-stat-icon { background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06)); color: #ef4444; }
+.db-stat.purple .db-stat-icon { background: linear-gradient(135deg, rgba(139,92,246,0.18), rgba(139,92,246,0.06)); color: #8b5cf6; }
 
 .db-stat-num {
     font-size: 1.75rem;
@@ -906,6 +1081,9 @@
     .db-info-grid {
         grid-template-columns: repeat(2, 1fr);
     }
+    .db-quick-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 @media (max-width: 992px) {
@@ -914,6 +1092,9 @@
     }
     .db-weekly-grid {
         grid-template-columns: repeat(4, 1fr);
+    }
+    .db-quick-grid {
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -927,12 +1108,20 @@
     .db-summary-grid {
         grid-template-columns: 1fr;
     }
-    .db-topbar {
+    .db-hero-content {
         flex-direction: column;
-        gap: 1rem;
         text-align: center;
     }
+    .db-hero-actions {
+        justify-content: center;
+    }
+    .db-hero-date {
+        justify-content: center;
+    }
     .db-weekly-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .db-quick-grid {
         grid-template-columns: repeat(3, 1fr);
     }
 }
@@ -966,6 +1155,16 @@
     .db-summary-item h3 {
         font-size: 1.2rem;
     }
+    .db-quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .db-hero-greeting {
+        font-size: 1.25rem;
+    }
+    .db-alert-bar {
+        flex-wrap: wrap;
+        font-size: 0.82rem;
+    }
 }
 
 @media (max-width: 400px) {
@@ -979,30 +1178,102 @@
 {% block admin_content %}
 <div class="db-page">
 
-    <!-- Top Bar -->
-    <div class="db-topbar">
-        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
-        <div class="db-topbar-actions">
-            <!-- Maintenance Toggle -->
-            <div class="db-maint-trigger {% if maintenance.is_active %}is-on{% else %}is-off{% endif %}" onclick="showMaintModal()">
-                <div class="db-maint-trigger-icon">
-                    <i class="bi bi-{% if maintenance.is_active %}tools{% else %}power{% endif %}"></i>
-                </div>
-                <div class="db-maint-trigger-text">
-                    <span class="db-maint-trigger-label">Texnik xizmat</span>
-                    <span class="db-maint-trigger-badge">
-                        {% if maintenance.is_active %}O'chirilgan{% else %}Yoniq{% endif %}
-                    </span>
-                </div>
+    <!-- Welcome Hero -->
+    <div class="db-hero">
+        <div class="db-hero-content">
+            <div class="db-hero-text">
+                <div class="db-hero-greeting">Salom, <span>{{ request.user.first_name|default:"Admin" }}</span> 👋</div>
+                <div class="db-hero-subtitle">Boshqaruv paneliga xush kelibsiz</div>
             </div>
-            <a href="{% url 'export_system_pdf' %}" class="btn btn-primary">
-                <i class="bi bi-file-pdf me-1"></i>PDF
-            </a>
-            <a href="/admin/" class="btn btn-outline-primary" target="_blank">
-                <i class="bi bi-gear me-1"></i>Django Admin
-            </a>
+            <div class="db-hero-actions">
+                <div class="db-maint-trigger {% if maintenance.is_active %}is-on{% else %}is-off{% endif %}" onclick="showMaintModal()">
+                    <div class="db-maint-trigger-icon">
+                        <i class="bi bi-{% if maintenance.is_active %}tools{% else %}power{% endif %}"></i>
+                    </div>
+                    <div class="db-maint-trigger-text">
+                        <span class="db-maint-trigger-label">Texnik xizmat</span>
+                        <span class="db-maint-trigger-badge">
+                            {% if maintenance.is_active %}O'chirilgan{% else %}Yoniq{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <a href="{% url 'export_system_pdf' %}" class="db-hero-btn">
+                    <i class="bi bi-file-pdf"></i> PDF
+                </a>
+                <a href="/admin/" class="db-hero-btn outline" target="_blank">
+                    <i class="bi bi-gear"></i>
+                </a>
+            </div>
+        </div>
+        <div class="db-hero-date">
+            <i class="bi bi-calendar3"></i> <span id="liveDateTime"></span>
         </div>
     </div>
+
+    <!-- Tezkor havolalar -->
+    <div class="db-section-header" style="animation-delay:0.1s;">
+        <i class="bi bi-lightning-charge-fill"></i>
+        <h2>Tezkor havolalar</h2>
+    </div>
+
+    <div class="db-quick-grid">
+        <a href="{% url 'admin_users' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#3b82f6;"><i class="bi bi-people-fill"></i></div>
+            <span class="db-quick-label">Foydalanuvchilar</span>
+        </a>
+        <a href="{% url 'admin_teachers' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#10b981;"><i class="bi bi-person-workspace"></i></div>
+            <span class="db-quick-label">O'qituvchilar</span>
+        </a>
+        <a href="{% url 'admin_professions' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#8b5cf6;"><i class="bi bi-mortarboard-fill"></i></div>
+            <span class="db-quick-label">Kurslar</span>
+        </a>
+        <a href="{% url 'admin_payments' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#f59e0b;"><i class="bi bi-credit-card-fill"></i></div>
+            <span class="db-quick-label">To'lovlar</span>
+        </a>
+        <a href="{% url 'admin_messages' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#06b6d4;"><i class="bi bi-envelope-fill"></i></div>
+            <span class="db-quick-label">Xabarlar</span>
+        </a>
+        <a href="{% url 'admin_statistics' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#ec4899;"><i class="bi bi-graph-up-arrow"></i></div>
+            <span class="db-quick-label">Statistika</span>
+        </a>
+        <a href="{% url 'admin_manage_coins' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#eab308;"><i class="bi bi-coin"></i></div>
+            <span class="db-quick-label">Coinlar</span>
+        </a>
+        <a href="{% url 'admin_reports' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#14b8a6;"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>
+            <span class="db-quick-label">Hisobotlar</span>
+        </a>
+        <a href="{% url 'admin_books' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#a855f7;"><i class="bi bi-book-fill"></i></div>
+            <span class="db-quick-label">Kitoblar</span>
+        </a>
+        <a href="{% url 'admin_help_requests' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#ef4444;"><i class="bi bi-question-circle-fill"></i></div>
+            <span class="db-quick-label">So'rovlar</span>
+        </a>
+        <a href="{% url 'admin_certificates' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#0ea5e9;"><i class="bi bi-award-fill"></i></div>
+            <span class="db-quick-label">Sertifikatlar</span>
+        </a>
+        <a href="{% url 'admin_discounts' %}" class="db-quick-card">
+            <div class="db-quick-icon" style="--qc:#f97316;"><i class="bi bi-percent"></i></div>
+            <span class="db-quick-label">Chegirmalar</span>
+        </a>
+    </div>
+
+    {% if pending_homeworks > 0 %}
+    <div class="db-alert-bar warn">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span><strong>{{ pending_homeworks }}</strong> ta uyga vazifa tekshirilishini kutmoqda</span>
+        <a href="{% url 'homework_submissions' %}">Ko'rish →</a>
+    </div>
+    {% endif %}
 
     <!-- Asosiy Statistika -->
     <div class="db-section-header">
@@ -1011,21 +1282,21 @@
     </div>
 
     <div class="db-stats-grid">
-        <div class="db-stat blue">
+        <a href="{% url 'admin_users' %}" class="db-stat blue" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-people"></i></div>
             <div class="db-stat-num">{{ total_users }}</div>
             <div class="db-stat-label">Foydalanuvchilar</div>
-        </div>
-        <div class="db-stat green">
+        </a>
+        <a href="{% url 'admin_teachers' %}" class="db-stat green" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-person-workspace"></i></div>
             <div class="db-stat-num">{{ total_teachers }}</div>
             <div class="db-stat-label">O'qituvchilar</div>
-        </div>
-        <div class="db-stat orange">
+        </a>
+        <a href="{% url 'admin_users' %}" class="db-stat orange" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-mortarboard"></i></div>
             <div class="db-stat-num">{{ total_students }}</div>
             <div class="db-stat-label">O'quvchilar</div>
-        </div>
+        </a>
         <div class="db-stat cyan online-card">
             <div class="db-stat-icon"><i class="bi bi-broadcast"></i></div>
             <div class="db-stat-num">{{ online_users }} <span class="db-online-dot"></span></div>
@@ -1036,16 +1307,16 @@
             <div class="db-stat-num">{{ total_parents }}</div>
             <div class="db-stat-label">Ota-onalar</div>
         </div>
-        <div class="db-stat red">
+        <a href="{% url 'admin_users' %}" class="db-stat red" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-slash-circle"></i></div>
             <div class="db-stat-num">{{ blocked_users }}</div>
             <div class="db-stat-label">Bloklangan</div>
-        </div>
-        <div class="db-stat purple">
+        </a>
+        <a href="{% url 'admin_manage_coins' %}" class="db-stat purple" style="text-decoration:none;">
             <div class="db-stat-icon"><i class="bi bi-coin"></i></div>
             <div class="db-stat-num">{{ total_coins }}</div>
             <div class="db-stat-label">Jami coinlar</div>
-        </div>
+        </a>
     </div>
 
     <!-- O'quv statistikasi -->
@@ -1466,6 +1737,53 @@
 </div>
 
 <script>
+/* Live date/time */
+function updateDateTime() {
+    var now = new Date();
+    var days = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
+    var months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
+    var h = now.getHours().toString().padStart(2,'0');
+    var m = now.getMinutes().toString().padStart(2,'0');
+    var s = now.getSeconds().toString().padStart(2,'0');
+    var el = document.getElementById('liveDateTime');
+    if (el) el.textContent = days[now.getDay()] + ', ' + now.getDate() + '-' + months[now.getMonth()] + ' ' + now.getFullYear() + '  •  ' + h + ':' + m + ':' + s;
+}
+updateDateTime();
+setInterval(updateDateTime, 1000);
+
+/* Number counter animation */
+document.addEventListener('DOMContentLoaded', function() {
+    var nums = document.querySelectorAll('.db-stat-num, .db-info-num, .db-summary-item h3');
+    var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            if (el.dataset.counted) return;
+            el.dataset.counted = '1';
+            var text = el.textContent.trim();
+            var suffix = text.replace(/[\d,.]/g, '').trim();
+            var numStr = text.replace(/[^\d.]/g, '');
+            var target = parseFloat(numStr);
+            if (isNaN(target) || target === 0) return;
+            var duration = 800;
+            var start = performance.now();
+            var isFloat = numStr.indexOf('.') !== -1;
+            function step(ts) {
+                var p = Math.min((ts - start) / duration, 1);
+                p = 1 - Math.pow(1 - p, 3);
+                var val = Math.round(target * p);
+                if (isFloat) val = (target * p).toFixed(1);
+                el.textContent = val + (suffix ? ' ' + suffix : '');
+                if (p < 1) requestAnimationFrame(step);
+                else el.textContent = text;
+            }
+            requestAnimationFrame(step);
+        });
+    }, {threshold: 0.3});
+    nums.forEach(function(el) { observer.observe(el); });
+});
+
+/* Maintenance modal */
 function showMaintModal() {
     var overlay = document.getElementById('maintOverlay');
     overlay.classList.add('show');
