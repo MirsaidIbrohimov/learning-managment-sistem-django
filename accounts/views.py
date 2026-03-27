@@ -4825,7 +4825,7 @@ def homework_chat(request, pk):
                 # Kurs o'qituvchilariga xabar
                 course_teachers = profession.teachers.filter(
                     telegram_id__isnull=False
-                ).exclude(telegram_id='')
+                )
                 for teacher in course_teachers:
                     notify_user(
                         teacher.telegram_id,

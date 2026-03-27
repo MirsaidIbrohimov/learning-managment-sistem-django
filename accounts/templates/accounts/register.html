@@ -1,10 +1,86 @@
-{% extends 'accounts/base.html' %}
+﻿{% extends 'accounts/base.html' %}
 {% load static %}
 
 {% block title %}Ro'yxatdan o'tish | LMS - IT Creative{% endblock %}
 
 {% block extra_css %}
 <style>
+  :root {
+    --reg-bg: #f0f4f8;
+    --reg-card-border: rgba(99, 102, 241, 0.1);
+    --reg-card-shadow: 0 24px 64px rgba(0,0,0,0.08), 0 0 0 1px rgba(99,102,241,0.06) inset;
+    --reg-text: #1e293b;
+    --reg-text-secondary: #64748b;
+    --reg-text-muted: #94a3b8;
+    --reg-input-bg: #f1f5f9;
+    --reg-input-border: #e2e8f0;
+    --reg-input-focus-border: rgba(99, 102, 241, 0.5);
+    --reg-input-focus-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    --reg-input-text: #1e293b;
+    --reg-input-placeholder: #94a3b8;
+    --reg-label-color: #64748b;
+    --reg-accent: #6366f1;
+    --reg-accent-glow: rgba(99, 102, 241, 0.25);
+    --reg-accent2: #8b5cf6;
+    --reg-error-bg: rgba(239, 68, 68, 0.06);
+    --reg-error-border: rgba(239, 68, 68, 0.15);
+    --reg-error-text: #dc2626;
+    --reg-success-bg: rgba(34, 197, 94, 0.06);
+    --reg-success-border: rgba(34, 197, 94, 0.15);
+    --reg-success-text: #16a34a;
+    --reg-info-bg: rgba(14, 165, 233, 0.06);
+    --reg-info-border: rgba(14, 165, 233, 0.15);
+    --reg-info-text: #0284c7;
+    --reg-blob1: rgba(99, 102, 241, 0.08);
+    --reg-blob2: rgba(139, 92, 246, 0.06);
+    --reg-blob3: rgba(236, 72, 153, 0.05);
+    --reg-code-color: rgba(99, 102, 241, 0.07);
+    --reg-footer-link: #6366f1;
+    --reg-footer-link-hover: #4f46e5;
+    --reg-back-bg: #f1f5f9;
+    --reg-back-border: #e2e8f0;
+    --reg-back-color: #64748b;
+    --reg-back-hover-bg: #e2e8f0;
+  }
+
+  [data-bs-theme="dark"] {
+    --reg-bg: #0b1120;
+    --reg-card-border: rgba(99, 102, 241, 0.12);
+    --reg-card-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.08) inset;
+    --reg-text: #f1f5f9;
+    --reg-text-secondary: #94a3b8;
+    --reg-text-muted: rgba(148, 163, 184, 0.5);
+    --reg-input-bg: rgba(30, 41, 59, 0.8);
+    --reg-input-border: rgba(148, 163, 184, 0.12);
+    --reg-input-focus-border: rgba(99, 102, 241, 0.5);
+    --reg-input-focus-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    --reg-input-text: #f1f5f9;
+    --reg-input-placeholder: rgba(148, 163, 184, 0.35);
+    --reg-label-color: rgba(148, 163, 184, 0.6);
+    --reg-accent: #818cf8;
+    --reg-accent-glow: rgba(99, 102, 241, 0.3);
+    --reg-accent2: #a78bfa;
+    --reg-error-bg: rgba(239, 68, 68, 0.08);
+    --reg-error-border: rgba(239, 68, 68, 0.18);
+    --reg-error-text: #fca5a5;
+    --reg-success-bg: rgba(34, 197, 94, 0.08);
+    --reg-success-border: rgba(34, 197, 94, 0.18);
+    --reg-success-text: #86efac;
+    --reg-info-bg: rgba(14, 165, 233, 0.08);
+    --reg-info-border: rgba(14, 165, 233, 0.18);
+    --reg-info-text: #7dd3fc;
+    --reg-blob1: rgba(99, 102, 241, 0.06);
+    --reg-blob2: rgba(139, 92, 246, 0.05);
+    --reg-blob3: rgba(236, 72, 153, 0.04);
+    --reg-code-color: rgba(99, 102, 241, 0.08);
+    --reg-footer-link: #818cf8;
+    --reg-footer-link-hover: #a5b4fc;
+    --reg-back-bg: rgba(30, 41, 59, 0.8);
+    --reg-back-border: rgba(148, 163, 184, 0.1);
+    --reg-back-color: rgba(148, 163, 184, 0.6);
+    --reg-back-hover-bg: rgba(30, 41, 59, 1);
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   .reg-page {
@@ -12,503 +88,187 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 12px;
+    padding: 24px 16px;
     font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     position: relative;
     overflow: hidden;
-    background: #0b1120;
   }
 
-  /* --- Animated code rain background --- */
-  .code-bg {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    z-index: 0;
-  }
+  .code-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
   .code-col {
-    position: absolute;
-    top: -100%;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
-    line-height: 1.6;
-    color: rgba(74, 222, 128, 0.12);
-    white-space: pre;
+    position: absolute; top: -100%;
+    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;
+    color: var(--reg-code-color); white-space: pre;
     animation: codeRain linear infinite;
-    user-select: none;
-    pointer-events: none;
+    user-select: none; pointer-events: none;
   }
   @keyframes codeRain {
     0%   { transform: translateY(-100%); }
     100% { transform: translateY(calc(100vh + 100%)); }
   }
 
-  /* --- Spring gradient blobs --- */
-  .spring-blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.08;
-    z-index: 0;
-    animation: blobFloat 20s ease-in-out infinite;
-  }
-  .spring-blob-1 {
-    width: 500px; height: 500px;
-    background: linear-gradient(135deg, #4ade80, #22d3ee);
-    top: -15%; left: -10%;
-  }
-  .spring-blob-2 {
-    width: 400px; height: 400px;
-    background: linear-gradient(135deg, #a78bfa, #f472b6);
-    bottom: -10%; right: -8%;
-    animation-delay: -10s;
-  }
-  .spring-blob-3 {
-    width: 300px; height: 300px;
-    background: linear-gradient(135deg, #fbbf24, #fb923c);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation-delay: -5s;
-    opacity: 0.05;
-  }
+  .reg-blob { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; animation: blobFloat 20s ease-in-out infinite; }
+  .reg-blob-1 { width: 500px; height: 500px; background: var(--reg-blob1); top: -15%; left: -10%; }
+  .reg-blob-2 { width: 400px; height: 400px; background: var(--reg-blob2); bottom: -10%; right: -8%; animation-delay: -10s; }
+  .reg-blob-3 { width: 300px; height: 300px; background: var(--reg-blob3); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -5s; }
   @keyframes blobFloat {
     0%, 100% { transform: translate(0, 0) scale(1); }
     33% { transform: translate(20px, -30px) scale(1.05); }
     66% { transform: translate(-15px, 20px) scale(0.95); }
   }
 
-  /* --- Leaf particles --- */
-  .leaf {
-    position: absolute;
-    width: 8px; height: 8px;
-    background: rgba(74, 222, 128, 0.15);
-    border-radius: 0 50% 50% 50%;
-    z-index: 0;
-    animation: leafFall linear infinite;
-    pointer-events: none;
-  }
-  @keyframes leafFall {
-    0%   { transform: translateY(-20px) rotate(0deg); opacity: 0; }
-    10%  { opacity: 1; }
-    90%  { opacity: 1; }
-    100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-  }
-
   .reg-card {
-    width: 100%;
-    max-width: 480px;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid rgba(74, 222, 128, 0.1);
-    border-radius: 24px;
-    padding: 36px 32px 30px;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(74, 222, 128, 0.05) inset;
-    position: relative;
-    z-index: 1;
+    width: 100%; max-width: 480px;
+    backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+    border: 1px solid var(--reg-card-border);
+    border-radius: 24px; padding: 36px 32px 30px;
+    box-shadow: var(--reg-card-shadow);
+    position: relative; z-index: 1;
   }
 
-  /* --- Header --- */
   .reg-header { text-align: center; margin-bottom: 28px; }
   .reg-logo {
-    width: 56px; height: 56px;
-    background: linear-gradient(135deg, #22c55e, #0ea5e9);
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    width: 60px; height: 60px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
     margin-bottom: 14px;
-    box-shadow: 0 8px 24px rgba(34,197,94,0.3);
+    box-shadow: 0 8px 24px rgba(99,102,241,0.3);
     color: #fff;
-    font-weight: 800;
-    font-size: 20px;
-    font-family: 'Courier New', monospace;
   }
-  .reg-header h2 {
-    font-size: 22px;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
-  }
-  .reg-header p {
-    font-size: 13px;
-    color: rgba(148, 163, 184, 0.7);
-  }
+  .reg-logo i { font-size: 24px; }
+  .reg-header h2 { font-size: 22px; font-weight: 700; color: var(--reg-text); margin-bottom: 6px; letter-spacing: -0.3px; }
+  .reg-header p { font-size: 13px; color: var(--reg-text-muted); }
 
-  /* --- Step Indicator --- */
-  .step-indicator {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    margin-bottom: 26px;
-    padding: 0 40px;
-  }
-  .step-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-  }
+  .step-indicator { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 26px; padding: 0 40px; }
+  .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
   .step-dot {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 13px;
-    font-weight: 600;
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid rgba(148, 163, 184, 0.15);
-    color: rgba(148, 163, 184, 0.3);
-    background: transparent;
+    border: 2px solid var(--reg-input-border);
+    color: var(--reg-text-muted); background: transparent;
   }
   .step-dot.is-active {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 0 0 4px rgba(34,197,94,0.15), 0 4px 16px rgba(34,197,94,0.25);
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent; color: white;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.15), 0 4px 16px rgba(99,102,241,0.25);
     transform: scale(1.08);
   }
-  .step-dot.is-done {
-    background: linear-gradient(135deg, #0ea5e9, #0284c7);
-    border-color: transparent;
-    color: white;
-  }
-  .step-label {
-    font-size: 10px;
-    color: rgba(148, 163, 184, 0.3);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    white-space: nowrap;
-    transition: color 0.3s;
-  }
-  .step-item.active .step-label { color: rgba(74, 222, 128, 0.8); }
-  .step-item.done .step-label { color: rgba(14, 165, 233, 0.7); }
-  .step-connector {
-    flex: 1;
-    max-width: 80px;
-    height: 2px;
-    background: rgba(148, 163, 184, 0.08);
-    transition: background 0.4s ease;
-    margin: 0 8px;
-    margin-bottom: 20px;
-  }
-  .step-connector.is-done {
-    background: linear-gradient(90deg, #0ea5e9, #22c55e);
-  }
+  .step-dot.is-done { background: linear-gradient(135deg, #6366f1, #4f46e5); border-color: transparent; color: white; }
+  .step-label { font-size: 10px; color: var(--reg-text-muted); font-weight: 500; letter-spacing: 0.3px; white-space: nowrap; transition: color 0.3s; }
+  .step-item.active .step-label { color: var(--reg-accent); }
+  .step-item.done .step-label { color: var(--reg-accent2); }
+  .step-connector { flex: 1; max-width: 80px; height: 2px; background: var(--reg-input-border); transition: background 0.4s ease; margin: 0 8px; margin-bottom: 20px; }
+  .step-connector.is-done { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
 
-  /* --- Messages --- */
-  .msg-box {
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 13px;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    line-height: 1.5;
-    animation: fadeUp 0.3s ease;
-  }
+  .msg-box { padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; animation: fadeUp 0.3s ease; }
   .msg-box i { flex-shrink: 0; margin-top: 2px; }
-  .msg-box.msg-error {
-    background: rgba(239,68,68,0.08);
-    border: 1px solid rgba(239,68,68,0.15);
-    color: #fca5a5;
-  }
-  .msg-box.msg-success {
-    background: rgba(34,197,94,0.08);
-    border: 1px solid rgba(34,197,94,0.15);
-    color: #86efac;
-  }
-  .msg-box.msg-info {
-    background: rgba(14,165,233,0.08);
-    border: 1px solid rgba(14,165,233,0.15);
-    color: #7dd3fc;
-  }
+  .msg-box.msg-error { background: var(--reg-error-bg); border: 1px solid var(--reg-error-border); color: var(--reg-error-text); }
+  .msg-box.msg-success { background: var(--reg-success-bg); border: 1px solid var(--reg-success-border); color: var(--reg-success-text); }
+  .msg-box.msg-info { background: var(--reg-info-bg); border: 1px solid var(--reg-info-border); color: var(--reg-info-text); }
 
-  /* --- Step Panels --- */
   .step-panel { display: none; }
-  .step-panel.is-active {
-    display: block;
-    animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .step-panel.is-active { display: block; animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-  .step-heading {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(148, 163, 184, 0.5);
-    margin-bottom: 18px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-  .step-heading i {
-    color: #4ade80;
-    font-size: 14px;
-  }
+  .step-heading { font-size: 12px; font-weight: 600; color: var(--reg-text-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .step-heading i { color: var(--reg-accent); font-size: 14px; }
 
-  /* --- Fields --- */
   .field { margin-bottom: 16px; }
-  .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .field label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    color: rgba(148, 163, 184, 0.6);
-    margin-bottom: 7px;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .field label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--reg-label-color); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.6px; }
 
   .step-panel input:not([type="submit"]):not([type="hidden"]),
   .step-panel select {
-    width: 100%;
-    padding: 12px 14px;
-    background: rgba(30, 41, 59, 0.8);
-    border: 1.5px solid rgba(148, 163, 184, 0.1);
-    border-radius: 10px;
-    color: #f1f5f9;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-    transition: all 0.25s ease;
-    appearance: none;
-    -webkit-appearance: none;
+    width: 100%; padding: 12px 14px;
+    background: var(--reg-input-bg); border: 1.5px solid var(--reg-input-border);
+    border-radius: 12px; color: var(--reg-input-text);
+    font-size: 14px; font-family: inherit; outline: none;
+    transition: all 0.25s ease; appearance: none; -webkit-appearance: none;
   }
   .step-panel input:not([type="submit"]):not([type="hidden"]):focus,
-  .step-panel select:focus {
-    border-color: rgba(34,197,94,0.5);
-    background: rgba(30, 41, 59, 1);
-    box-shadow: 0 0 0 3px rgba(34,197,94,0.08);
-  }
-  .step-panel input::placeholder { color: rgba(148, 163, 184, 0.3); }
-  .step-panel input.has-error,
-  .step-panel select.has-error {
-    border-color: rgba(239,68,68,0.4) !important;
-    background: rgba(239,68,68,0.04) !important;
-  }
+  .step-panel select:focus { border-color: var(--reg-input-focus-border); box-shadow: var(--reg-input-focus-shadow); }
+  .step-panel input::placeholder { color: var(--reg-input-placeholder); }
+  .step-panel input.has-error, .step-panel select.has-error { border-color: rgba(239,68,68,0.4) !important; background: var(--reg-error-bg) !important; }
 
-  .field-err {
-    font-size: 11px;
-    color: #fca5a5;
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
+  .field-err { font-size: 11px; color: var(--reg-error-text); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
   .field-err i { font-size: 12px; }
 
-  /* --- Phone field --- */
-  .phone-wrap {
-    display: flex;
-    gap: 8px;
-  }
-  .phone-prefix {
-    padding: 12px 12px;
-    background: rgba(30, 41, 59, 0.8);
-    border: 1.5px solid rgba(148, 163, 184, 0.1);
-    border-radius: 10px;
-    color: rgba(148, 163, 184, 0.6);
-    font-size: 14px;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-shrink: 0;
-    font-weight: 500;
-  }
+  .phone-wrap { display: flex; gap: 8px; }
+  .phone-prefix { padding: 12px; background: var(--reg-input-bg); border: 1.5px solid var(--reg-input-border); border-radius: 12px; color: var(--reg-text-secondary); font-size: 14px; white-space: nowrap; display: flex; align-items: center; gap: 5px; flex-shrink: 0; font-weight: 500; }
   .phone-wrap input { flex: 1; min-width: 0; }
 
-  /* --- Password --- */
   .pw-wrap { position: relative; }
   .pw-wrap input { padding-right: 44px; }
-  .pw-eye {
-    position: absolute;
-    right: 1px;
-    top: 1px;
-    bottom: 1px;
-    width: 42px;
-    cursor: pointer;
-    background: transparent;
-    border: none;
-    color: rgba(148, 163, 184, 0.35);
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.2s;
-    border-radius: 0 9px 9px 0;
-  }
-  .pw-eye:hover { color: rgba(148, 163, 184, 0.7); }
+  .pw-eye { position: absolute; right: 1px; top: 1px; bottom: 1px; width: 42px; cursor: pointer; background: transparent; border: none; color: var(--reg-text-muted); font-size: 15px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 0 11px 11px 0; }
+  .pw-eye:hover { color: var(--reg-text-secondary); }
 
   .pw-strength { margin-top: 8px; }
-  .strength-bar {
-    height: 3px;
-    background: rgba(148, 163, 184, 0.06);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .strength-fill {
-    height: 100%;
-    width: 0;
-    border-radius: 4px;
-    transition: all 0.4s ease;
-  }
-  .strength-label {
-    font-size: 11px;
-    color: rgba(148, 163, 184, 0.3);
-    margin-top: 5px;
-    display: block;
-  }
+  .strength-bar { height: 3px; background: var(--reg-input-border); border-radius: 4px; overflow: hidden; }
+  .strength-fill { height: 100%; width: 0; border-radius: 4px; transition: all 0.4s ease; }
+  .strength-label { font-size: 11px; color: var(--reg-text-muted); margin-top: 5px; display: block; }
 
-  /* --- Buttons --- */
   .btn-row { display: flex; gap: 10px; margin-top: 8px; }
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    transition: all 0.25s ease;
-    white-space: nowrap;
-  }
-  .btn-main {
-    flex: 1;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    box-shadow: 0 4px 16px rgba(34,197,94,0.25);
-  }
-  .btn-main:hover {
-    box-shadow: 0 6px 24px rgba(34,197,94,0.4);
-    transform: translateY(-1px);
-  }
-  .btn-main:active { transform: translateY(0); }
-  .btn-back {
-    padding: 12px 16px;
-    background: rgba(30, 41, 59, 0.8);
-    color: rgba(148, 163, 184, 0.6);
-    border: 1.5px solid rgba(148, 163, 184, 0.1);
-  }
-  .btn-back:hover {
-    background: rgba(30, 41, 59, 1);
-    color: rgba(148, 163, 184, 0.9);
-  }
-  .btn-submit {
-    flex: 1;
-    background: linear-gradient(135deg, #0ea5e9, #0284c7);
-    color: white;
-    box-shadow: 0 4px 16px rgba(14,165,233,0.25);
-  }
-  .btn-submit:hover {
-    box-shadow: 0 6px 24px rgba(14,165,233,0.4);
-    transform: translateY(-1px);
-  }
-  .btn-submit:active { transform: translateY(0); }
+  .reg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: all 0.25s ease; white-space: nowrap; }
+  .reg-btn-main { flex: 1; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; box-shadow: 0 4px 16px var(--reg-accent-glow); }
+  .reg-btn-main:hover { box-shadow: 0 6px 24px var(--reg-accent-glow); transform: translateY(-1px); }
+  .reg-btn-main:active { transform: translateY(0); }
+  .reg-btn-back { padding: 12px 16px; background: var(--reg-back-bg); color: var(--reg-back-color); border: 1.5px solid var(--reg-back-border); }
+  .reg-btn-back:hover { background: var(--reg-back-hover-bg); color: var(--reg-text); }
+  .reg-btn-submit { flex: 1; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 16px var(--reg-accent-glow); }
+  .reg-btn-submit:hover { box-shadow: 0 6px 24px var(--reg-accent-glow); transform: translateY(-1px); }
+  .reg-btn-submit:active { transform: translateY(0); }
 
-  /* --- Footer --- */
-  .reg-footer {
-    text-align: center;
-    margin-top: 22px;
-    font-size: 13px;
-    color: rgba(148, 163, 184, 0.4);
-  }
-  .reg-footer a {
-    color: #4ade80;
-    text-decoration: none;
-    font-weight: 600;
-    transition: color 0.2s;
-  }
-  .reg-footer a:hover { color: #86efac; }
+  .reg-footer { text-align: center; margin-top: 22px; font-size: 13px; color: var(--reg-text-muted); }
+  .reg-footer a { color: var(--reg-footer-link); text-decoration: none; font-weight: 600; transition: color 0.2s; }
+  .reg-footer a:hover { color: var(--reg-footer-link-hover); }
 
-  /* --- Terminal decoration --- */
-  .terminal-line {
-    font-family: 'Courier New', monospace;
-    font-size: 11px;
-    color: rgba(74, 222, 128, 0.2);
-    text-align: center;
-    margin-bottom: 16px;
-    letter-spacing: 1px;
-  }
+  .terminal-line { font-family: 'Courier New', monospace; font-size: 11px; color: var(--reg-text-muted); text-align: center; margin-bottom: 16px; letter-spacing: 1px; opacity: 0.6; }
 
-  /* ===== RESPONSIVE ===== */
   @media (max-width: 576px) {
     .reg-page { padding: 12px 8px; }
-    .reg-card {
-      padding: 24px 18px 22px;
-      border-radius: 20px;
-      max-width: 100%;
-    }
+    .reg-card { padding: 24px 18px 22px; border-radius: 20px; max-width: 100%; }
     .reg-header h2 { font-size: 20px; }
     .reg-header p { font-size: 12px; }
-    .reg-logo { width: 48px; height: 48px; font-size: 17px; border-radius: 12px; }
+    .reg-logo { width: 52px; height: 52px; border-radius: 14px; }
+    .reg-logo i { font-size: 20px; }
     .step-indicator { padding: 0 20px; margin-bottom: 22px; }
-    .step-dot { width: 32px; height: 32px; font-size: 12px; }
+    .step-dot { width: 34px; height: 34px; font-size: 12px; }
     .step-label { font-size: 9px; }
     .step-connector { max-width: 50px; }
-    .field-row {
-      grid-template-columns: 1fr;
-      gap: 0;
-      margin-bottom: 0;
-    }
+    .field-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 0; }
     .field-row .field { margin-bottom: 16px; }
     .step-panel input:not([type="submit"]):not([type="hidden"]),
-    .step-panel select {
-      padding: 11px 12px;
-      font-size: 15px;
-    }
+    .step-panel select { padding: 11px 12px; font-size: 15px; }
     .phone-prefix { padding: 11px 10px; font-size: 13px; }
-    .btn { padding: 11px 14px; font-size: 13px; }
+    .reg-btn { padding: 11px 14px; font-size: 13px; }
     .btn-row { gap: 8px; }
     .terminal-line { font-size: 9px; }
   }
-
-  @media (max-width: 360px) {
-    .reg-card { padding: 20px 14px 18px; }
-    .step-connector { max-width: 32px; }
-  }
+  @media (max-width: 360px) { .reg-card { padding: 20px 14px 18px; } .step-connector { max-width: 32px; } }
+  @media (min-width: 577px) and (max-width: 768px) { .reg-card { max-width: 440px; padding: 32px 28px 28px; } }
+  @media (min-width: 769px) and (max-width: 1024px) { .reg-page { padding: 32px 24px; } }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="reg-page">
-  <!-- Animated background -->
   <div class="code-bg" id="codeBg"></div>
-  <div class="spring-blob spring-blob-1"></div>
-  <div class="spring-blob spring-blob-2"></div>
-  <div class="spring-blob spring-blob-3"></div>
+  <div class="reg-blob reg-blob-1"></div>
+  <div class="reg-blob reg-blob-2"></div>
+  <div class="reg-blob reg-blob-3"></div>
 
   <div class="reg-card">
     <div class="reg-header">
-      <div class="reg-logo">&lt;/&gt;</div>
+      <div class="reg-logo"><i class="bi bi-code-slash"></i></div>
       <h2>Ro'yxatdan o'tish</h2>
       <p>IT Creative platformasiga xush kelibsiz</p>
     </div>
 
     <div class="terminal-line">// yangi hisob yarating</div>
 
-    <!-- Step Indicator -->
     <div class="step-indicator">
       <div class="step-item" id="stepItem1">
         <div class="step-dot" id="dot1">1</div>
@@ -521,7 +281,6 @@
       </div>
     </div>
 
-    <!-- Django Messages -->
     {% if messages %}
       {% for message in messages %}
         <div class="msg-box {% if 'error' in message.tags %}msg-error{% elif 'success' in message.tags %}msg-success{% else %}msg-info{% endif %}">
@@ -538,48 +297,36 @@
       </div>
     {% endif %}
 
-    <!-- Form -->
     <form method="POST" id="regForm" novalidate>
       {% csrf_token %}
       {{ form.role }}
 
-      <!-- ===== STEP 1 ===== -->
       <div class="step-panel" id="panel1">
-        <div class="step-heading">
-          <i class="bi bi-person"></i> Shaxsiy ma'lumotlar
-        </div>
+        <div class="step-heading"><i class="bi bi-person"></i> Shaxsiy ma'lumotlar</div>
 
         <div class="field-row">
           <div class="field">
             <label for="{{ form.first_name.id_for_label }}">Ism</label>
             {{ form.first_name }}
-            {% if form.first_name.errors %}
-              <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>
-            {% endif %}
+            {% if form.first_name.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
           </div>
           <div class="field">
             <label for="{{ form.last_name.id_for_label }}">Familiya</label>
             {{ form.last_name }}
-            {% if form.last_name.errors %}
-              <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>
-            {% endif %}
+            {% if form.last_name.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
           </div>
         </div>
 
         <div class="field">
           <label for="{{ form.username.id_for_label }}">Username</label>
           {{ form.username }}
-          {% if form.username.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>
-          {% endif %}
+          {% if form.username.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
         </div>
 
         <div class="field">
           <label for="{{ form.email.id_for_label }}">Email</label>
           {{ form.email }}
-          {% if form.email.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>
-          {% endif %}
+          {% if form.email.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
         </div>
 
         <div class="field">
@@ -588,45 +335,32 @@
             <div class="phone-prefix">+998</div>
             {{ form.phone }}
           </div>
-          {% if form.phone.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>
-          {% endif %}
+          {% if form.phone.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
         </div>
 
         <div class="field">
           <label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label>
           {{ form.birth_date }}
-          {% if form.birth_date.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>
-          {% endif %}
+          {% if form.birth_date.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
         </div>
 
-        <button type="button" class="btn btn-main" style="width:100%" onclick="moveStep(2)">
+        <button type="button" class="reg-btn reg-btn-main" style="width:100%" onclick="moveStep(2)">
           Davom etish <i class="bi bi-arrow-right"></i>
         </button>
       </div>
 
-      <!-- ===== STEP 2 ===== -->
       <div class="step-panel" id="panel2">
-        <div class="step-heading">
-          <i class="bi bi-shield-lock"></i> Parol yaratish
-        </div>
+        <div class="step-heading"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
 
         <div class="field">
           <label for="{{ form.password1.id_for_label }}">Parol</label>
           <div class="pw-wrap">
             {{ form.password1 }}
-            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password1.id_for_label }}', this)">
-              <i class="bi bi-eye"></i>
-            </button>
+            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password1.id_for_label }}', this)"><i class="bi bi-eye"></i></button>
           </div>
-          {% if form.password1.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>
-          {% endif %}
+          {% if form.password1.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
           <div class="pw-strength">
-            <div class="strength-bar">
-              <div class="strength-fill" id="strengthFill"></div>
-            </div>
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
             <span class="strength-label" id="strengthLabel">Parol kuchi: ---</span>
           </div>
         </div>
@@ -635,25 +369,16 @@
           <label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label>
           <div class="pw-wrap">
             {{ form.password2 }}
-            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password2.id_for_label }}', this)">
-              <i class="bi bi-eye"></i>
-            </button>
+            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password2.id_for_label }}', this)"><i class="bi bi-eye"></i></button>
           </div>
-          {% if form.password2.errors %}
-            <div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>
-          {% endif %}
+          {% if form.password2.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
         </div>
 
         <div class="btn-row">
-          <button type="button" class="btn btn-back" onclick="moveStep(1)">
-            <i class="bi bi-arrow-left"></i> Orqaga
-          </button>
-          <button type="submit" class="btn btn-submit">
-            Ro'yxatdan o'tish <i class="bi bi-check-lg"></i>
-          </button>
+          <button type="button" class="reg-btn reg-btn-back" onclick="moveStep(1)"><i class="bi bi-arrow-left"></i> Orqaga</button>
+          <button type="submit" class="reg-btn reg-btn-submit">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
         </div>
       </div>
-
     </form>
 
     <div class="reg-footer">
@@ -664,7 +389,6 @@
 </div>
 
 <script>
-  // --- Background: code rain ---
   (function() {
     var bg = document.getElementById('codeBg');
     var snippets = [
@@ -675,15 +399,10 @@
       'import django\nfrom views',
       'let x = 42;\nconst y = x;',
       'function init() {\n  return true;\n}',
-      '<div class="">\n  <p>text</p>\n</div>',
       'SELECT *\nFROM users\nWHERE id=1;',
-      'git commit -m\n"first commit"',
-      'npm install\nnode server.js',
       'while True:\n  learn()',
       'try:\n  code()\nexcept:\n  debug()',
       '.container {\n  display: flex;\n}',
-      'const app =\n  express();',
-      'arr.map(x =>\n  x * 2);',
       'model.fit(\n  X, y)',
     ];
     var colCount = Math.floor(window.innerWidth / 120);
@@ -698,23 +417,6 @@
     }
   })();
 
-  // --- Background: floating leaves ---
-  (function() {
-    var page = document.querySelector('.reg-page');
-    for (var i = 0; i < 12; i++) {
-      var leaf = document.createElement('div');
-      leaf.className = 'leaf';
-      leaf.style.left = Math.random() * 100 + '%';
-      leaf.style.animationDuration = (8 + Math.random() * 12) + 's';
-      leaf.style.animationDelay = (-Math.random() * 15) + 's';
-      leaf.style.width = (6 + Math.random() * 6) + 'px';
-      leaf.style.height = leaf.style.width;
-      leaf.style.opacity = (0.06 + Math.random() * 0.12);
-      page.appendChild(leaf);
-    }
-  })();
-
-  // --- Init step from server errors ---
   var INIT_STEP = 1;
   {% if form.password1.errors or form.password2.errors %}
     INIT_STEP = 2;
@@ -722,7 +424,6 @@
     INIT_STEP = 1;
   {% endif %}
 
-  // --- Mark error inputs ---
   document.querySelectorAll('.step-panel input:not([type="hidden"]), .step-panel select').forEach(function(el) {
     var fieldEl = el.closest('.field');
     if (fieldEl && fieldEl.querySelector('.field-err')) {
@@ -730,7 +431,6 @@
     }
   });
 
-  // --- Step navigation (2 steps) ---
   var TOTAL_STEPS = 2;
   var currentStep = 0;
 
@@ -767,19 +467,15 @@
 
   showStep(INIT_STEP);
 
-  // --- Password toggle ---
   function togglePw(inputId, btn) {
     var input = document.getElementById(inputId);
     if (!input) return;
     var isPassword = input.type === 'password';
     input.type = isPassword ? 'text' : 'password';
     var icon = btn.querySelector('i');
-    if (icon) {
-      icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
-    }
+    if (icon) { icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye'; }
   }
 
-  // --- Password strength ---
   var pwInput = document.getElementById('{{ form.password1.id_for_label }}');
   if (pwInput) {
     pwInput.addEventListener('input', function() {
