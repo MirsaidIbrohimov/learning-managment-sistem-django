@@ -1,510 +1,269 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
-{% block title %}Kirish | IT Creative Zomin - Zomin IT Park | Dasturlash Kurslari{% endblock %}
+{% block title %}Kirish | IT Creative Zomin - Dasturlash Kurslari{% endblock %}
 
 {% block extra_css %}
-    {% load static %}
-    <head>
-    <meta charset="utf-8">
-
-    </head>
-    <link rel="stylesheet" href="{% static 'css/login.css' %}">
-    <style>
-      /* ===== LOGIN TABS ===== */
-      .login-tabs {
-        display: flex;
-        gap: 0;
-        margin-bottom: 1.5rem;
-        background: rgba(99, 102, 241, 0.06);
-        border-radius: 16px;
-        padding: 4px;
-        position: relative;
-      }
-      [data-bs-theme="dark"] .login-tabs {
-        background: rgba(255, 255, 255, 0.06);
-      }
-      .login-tab {
-        flex: 1;
-        text-align: center;
-        padding: 11px 14px;
-        border-radius: 13px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        color: var(--text-secondary, #6c757d);
-        border: none;
-        background: transparent;
-        position: relative;
-        z-index: 1;
-      }
-      .login-tab.active {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff;
-        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-        transform: scale(1.02);
-      }
-      .login-tab:not(.active):hover {
-        color: #6366f1;
-        background: rgba(99, 102, 241, 0.08);
-      }
-
-      /* ===== PANEL TRANSITIONS ===== */
-      .login-panel {
-        display: none;
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      .login-panel.active {
-        display: block;
-        animation: panelFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-      @keyframes panelFadeIn {
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* ===== PHONE INPUT ===== */
-      .phone-field { margin-bottom: 1rem; }
-      .phone-field .field-label {
-        display: block;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--text-color, #334155);
-        letter-spacing: 0.02em;
-      }
-      .phone-input-group {
-        display: flex;
-        align-items: stretch;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1.5px solid var(--border-color, #e2e8f0);
-        background: var(--bg-color, #f8fafc);
-        transition: all 0.3s ease;
-      }
-      .phone-input-group:focus-within {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 4px 12px rgba(99, 102, 241, 0.08);
-      }
-      [data-bs-theme="dark"] .phone-input-group {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.12);
-      }
-      .phone-prefix {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 0 14px;
-        background: rgba(99, 102, 241, 0.06);
-        border-right: 1px solid var(--border-color, #e2e8f0);
-        font-weight: 700;
-        font-size: 0.9rem;
-        color: var(--text-color);
-        white-space: nowrap;
-        user-select: none;
-      }
-      [data-bs-theme="dark"] .phone-prefix {
-        background: rgba(255, 255, 255, 0.05);
-        border-right-color: rgba(255, 255, 255, 0.1);
-      }
-      .phone-prefix .flag { font-size: 1.2rem; }
-      .phone-input-group input[type="tel"] {
-        flex: 1;
-        border: none;
-        padding: 15px 14px;
-        font-size: 1rem;
-        font-weight: 500;
-        background: transparent;
-        color: var(--text-color);
-        outline: none;
-        letter-spacing: 1px;
-      }
-      .phone-input-group input[type="tel"]::placeholder {
-        color: #94a3b8;
-        font-weight: 400;
-        letter-spacing: 0.5px;
-      }
-
-      /* ===== TELEGRAM BOX ===== */
-      .telegram-info-box {
-        background: linear-gradient(135deg, rgba(0, 136, 204, 0.08), rgba(0, 136, 204, 0.04));
-        border: 1.5px solid rgba(0, 136, 204, 0.2);
-        border-radius: 16px;
-        padding: 1.2rem;
-        margin-bottom: 1.2rem;
-      }
-      [data-bs-theme="dark"] .telegram-info-box {
-        background: linear-gradient(135deg, rgba(0, 136, 204, 0.15), rgba(0, 136, 204, 0.08));
-        border-color: rgba(0, 136, 204, 0.3);
-      }
-      .telegram-steps {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .telegram-steps li {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 6px 0;
-        font-size: 0.85rem;
-        color: var(--text-color, #334155);
-      }
-      .telegram-steps li .step-num {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0088cc, #00aaff);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-        flex-shrink: 0;
-      }
-      .telegram-code-input {
-        border: 2px solid rgba(0, 136, 204, 0.3);
-        border-radius: 14px;
-        padding: 14px;
-        font-size: 1.3rem;
-        font-weight: 700;
-        text-align: center;
-        letter-spacing: 8px;
-        background: var(--bg-color, #f8fafc);
-        color: var(--text-color);
-        outline: none;
-        transition: all 0.3s;
-        width: 100%;
-      }
-      .telegram-code-input:focus {
-        border-color: #0088cc;
-        box-shadow: 0 0 0 3px rgba(0, 136, 204, 0.15);
-      }
-      [data-bs-theme="dark"] .telegram-code-input {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: rgba(0, 136, 204, 0.4);
-      }
-      .btn-telegram {
-        background: linear-gradient(135deg, #0088cc, #00aaff);
-        border: none;
-        color: #fff;
-      }
-      .btn-telegram:hover {
-        background: linear-gradient(135deg, #006699, #0088cc);
-        color: #fff;
-      }
-
-      /* ===== BOTTOM LINKS ===== */
-      .auth-links {
-        animation: textFadeUp 0.6s 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-      }
-    </style>
+<style>
+:root{--lg-bg:#f0f2f5;--lg-card-bg:rgba(255,255,255,0.82);--lg-card-border:rgba(99,102,241,0.1);--lg-card-shadow:0 32px 80px rgba(0,0,0,0.08);--lg-text:#0f172a;--lg-text-sub:#64748b;--lg-text-muted:#94a3b8;--lg-input-bg:#f8fafc;--lg-input-border:#e2e8f0;--lg-input-focus:rgba(99,102,241,0.5);--lg-input-focus-shadow:0 0 0 4px rgba(99,102,241,0.08);--lg-accent:#6366f1;--lg-accent2:#8b5cf6;--lg-brand-bg:linear-gradient(135deg,#312e81 0%,#4f46e5 40%,#7c3aed 100%);--lg-geo-color:rgba(255,255,255,0.06);--lg-tab-bg:rgba(99,102,241,0.06)}
+[data-bs-theme="dark"]{--lg-bg:#030712;--lg-card-bg:rgba(15,23,42,0.78);--lg-card-border:rgba(99,102,241,0.12);--lg-card-shadow:0 32px 80px rgba(0,0,0,0.5);--lg-text:#f1f5f9;--lg-text-sub:#94a3b8;--lg-text-muted:rgba(148,163,184,0.5);--lg-input-bg:rgba(30,41,59,0.7);--lg-input-border:rgba(148,163,184,0.12);--lg-input-focus:rgba(99,102,241,0.5);--lg-input-focus-shadow:0 0 0 4px rgba(99,102,241,0.12);--lg-accent:#818cf8;--lg-accent2:#a78bfa;--lg-brand-bg:linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#4c1d95 100%);--lg-geo-color:rgba(255,255,255,0.03);--lg-tab-bg:rgba(255,255,255,0.06)}
+*{box-sizing:border-box;margin:0;padding:0}
+nav,.navbar,footer,.footer,.bottom-nav,#bottomNav,.notification-bar,.snow-container,.weather-container{display:none!important}
+.lg-page{min-height:100vh;display:flex;background:var(--lg-bg);font-family:'Inter',-apple-system,sans-serif}
+.lg-brand{width:42%;background:var(--lg-brand-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:3rem}
+.lg-geo{position:absolute;border-radius:50%;border:1px solid var(--lg-geo-color);animation:lgGeo 20s ease-in-out infinite}
+.lg-geo:nth-child(1){width:300px;height:300px;top:-80px;left:-60px}.lg-geo:nth-child(2){width:200px;height:200px;bottom:-40px;right:-40px;animation-delay:-7s}.lg-geo:nth-child(3){width:150px;height:150px;top:40%;left:60%;animation-delay:-14s}.lg-geo:nth-child(4){width:400px;height:400px;bottom:-100px;left:-100px;border-style:dashed;border-color:rgba(255,255,255,0.04);animation-delay:-3s}.lg-geo:nth-child(5){width:80px;height:80px;top:20%;right:20%;background:rgba(255,255,255,0.03);animation-delay:-10s}
+@keyframes lgGeo{0%,100%{transform:translate(0,0) rotate(0deg)}33%{transform:translate(15px,-20px) rotate(5deg)}66%{transform:translate(-10px,15px) rotate(-3deg)}}
+.lg-brand-inner{position:relative;z-index:2;text-align:center;color:#fff;animation:lgBrandIn 1s ease both}
+@keyframes lgBrandIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.lg-brand-icon{width:90px;height:90px;background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2.2rem;box-shadow:0 20px 50px rgba(0,0,0,0.2);animation:lgIconPulse 4s ease-in-out infinite}
+@keyframes lgIconPulse{0%,100%{box-shadow:0 20px 50px rgba(0,0,0,0.2)}50%{box-shadow:0 20px 50px rgba(0,0,0,0.2),0 0 0 8px rgba(255,255,255,0.08)}}
+.lg-brand-inner h1{font-size:2rem;font-weight:800;margin-bottom:.5rem;letter-spacing:-.5px}.lg-brand-inner p{font-size:1rem;opacity:.7;max-width:320px;line-height:1.6}
+.lg-feats{margin-top:2.5rem;display:flex;flex-direction:column;gap:1rem}
+.lg-feat{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.06);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:12px 18px;font-size:.9rem;transition:all .3s;animation:lgFeatIn .6s ease both}
+.lg-feat:nth-child(1){animation-delay:.3s}.lg-feat:nth-child(2){animation-delay:.45s}.lg-feat:nth-child(3){animation-delay:.6s}
+@keyframes lgFeatIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.lg-feat:hover{background:rgba(255,255,255,0.1);transform:translateX(4px)}
+.lg-feat-ico{width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.lg-form-side{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden}
+.lg-blob{position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none}
+.lg-blob-1{width:400px;height:400px;background:rgba(99,102,241,0.06);top:-10%;right:-10%;animation:lgBlob 18s ease-in-out infinite}
+.lg-blob-2{width:300px;height:300px;background:rgba(139,92,246,0.05);bottom:-5%;left:-5%;animation:lgBlob 22s ease-in-out infinite reverse}
+@keyframes lgBlob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.1)}}
+.lg-card{width:100%;max-width:440px;background:var(--lg-card-bg);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid var(--lg-card-border);border-radius:28px;padding:2.5rem;box-shadow:var(--lg-card-shadow);position:relative;z-index:2;animation:lgCardIn .7s cubic-bezier(.16,1,.3,1) .15s both}
+@keyframes lgCardIn{from{opacity:0;transform:translateY(30px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+.lg-head{text-align:center;margin-bottom:1.5rem}
+.lg-head-logo{width:56px;height:56px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:16px;display:none;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;margin:0 auto 1rem;box-shadow:0 8px 24px rgba(99,102,241,0.3)}
+.lg-head h2{font-size:1.4rem;font-weight:800;color:var(--lg-text);margin:0 0 4px;letter-spacing:-.3px}.lg-head p{font-size:.85rem;color:var(--lg-text-muted);margin:0}
+.lg-tabs{display:flex;gap:0;margin-bottom:1.5rem;background:var(--lg-tab-bg);border-radius:16px;padding:4px}
+.lg-tab{flex:1;text-align:center;padding:11px 10px;border-radius:13px;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .35s cubic-bezier(.16,1,.3,1);color:var(--lg-text-sub);border:none;background:transparent;display:flex;align-items:center;justify-content:center;gap:5px}
+.lg-tab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;box-shadow:0 4px 15px rgba(99,102,241,0.35);transform:scale(1.02)}
+.lg-tab:not(.active):hover{color:#6366f1;background:rgba(99,102,241,0.08)}
+.lg-panel{display:none;opacity:0;transform:translateY(10px)}.lg-panel.active{display:block;animation:lgPanelIn .4s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes lgPanelIn{to{opacity:1;transform:translateY(0)}}
+.lg-field{margin-bottom:1rem;position:relative}
+.lg-field-label{display:block;font-size:.75rem;font-weight:700;margin-bottom:6px;color:var(--lg-text-sub);letter-spacing:.02em;text-transform:uppercase}
+.lg-input-wrap{position:relative}
+.lg-input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--lg-text-muted);z-index:4;transition:color .3s;font-size:1rem}
+.lg-input-wrap:focus-within .lg-input-icon{color:#6366f1}
+.lg-input-wrap input{width:100%;padding:14px 14px 14px 42px;background:var(--lg-input-bg);border:1.5px solid var(--lg-input-border);border-radius:14px;color:var(--lg-text);font-size:.95rem;font-family:inherit;outline:none;transition:all .25s ease}
+.lg-input-wrap input:focus{border-color:var(--lg-input-focus);box-shadow:var(--lg-input-focus-shadow)}
+.lg-input-wrap input::placeholder{color:var(--lg-text-muted)}
+.lg-input-wrap input.is-invalid{border-color:rgba(239,68,68,0.5)!important;box-shadow:0 0 0 3px rgba(239,68,68,0.1)!important;animation:lgShake .5s ease}
+@keyframes lgShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.lg-pw-eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--lg-text-muted);z-index:4;cursor:pointer;transition:all .2s;font-size:1rem}
+.lg-pw-eye:hover{color:#6366f1;transform:translateY(-50%) scale(1.1)}
+.lg-input-wrap input[type="password"],.lg-input-wrap input[type="text"]{padding-right:3rem}
+.lg-phone-group{display:flex;align-items:stretch;border-radius:14px;overflow:hidden;border:1.5px solid var(--lg-input-border);background:var(--lg-input-bg);transition:all .3s ease}
+.lg-phone-group:focus-within{border-color:#6366f1;box-shadow:var(--lg-input-focus-shadow)}
+[data-bs-theme="dark"] .lg-phone-group{background:var(--lg-input-bg);border-color:var(--lg-input-border)}
+.lg-phone-pre{display:flex;align-items:center;gap:6px;padding:0 14px;background:rgba(99,102,241,0.06);border-right:1px solid var(--lg-input-border);font-weight:700;font-size:.9rem;color:var(--lg-text);white-space:nowrap;user-select:none}
+[data-bs-theme="dark"] .lg-phone-pre{background:rgba(255,255,255,0.05);border-right-color:rgba(255,255,255,0.1)}
+.lg-phone-group input[type="tel"]{flex:1;border:none;padding:15px 14px;font-size:1rem;font-weight:500;background:transparent;color:var(--lg-text);outline:none;letter-spacing:1px}
+.lg-phone-group input[type="tel"]::placeholder{color:var(--lg-text-muted);font-weight:400;letter-spacing:.5px}
+.lg-tg-box{background:linear-gradient(135deg,rgba(0,136,204,0.08),rgba(0,136,204,0.04));border:1.5px solid rgba(0,136,204,0.2);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem}
+[data-bs-theme="dark"] .lg-tg-box{background:linear-gradient(135deg,rgba(0,136,204,0.15),rgba(0,136,204,0.08));border-color:rgba(0,136,204,0.3)}
+.lg-tg-steps{list-style:none;padding:0;margin:0}.lg-tg-steps li{display:flex;align-items:flex-start;gap:10px;padding:6px 0;font-size:.85rem;color:var(--lg-text)}
+.lg-tg-steps li .tg-num{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0}
+.lg-tg-code{border:2px solid rgba(0,136,204,0.3);border-radius:14px;padding:14px;font-size:1.3rem;font-weight:700;text-align:center;letter-spacing:8px;background:var(--lg-input-bg);color:var(--lg-text);outline:none;transition:all .3s;width:100%}
+.lg-tg-code:focus{border-color:#0088cc;box-shadow:0 0 0 3px rgba(0,136,204,0.15)}
+[data-bs-theme="dark"] .lg-tg-code{background:rgba(255,255,255,0.06);border-color:rgba(0,136,204,0.4)}
+.lg-btn{width:100%;padding:14px;border:none;border-radius:14px;font-weight:700;font-size:.95rem;font-family:inherit;cursor:pointer;transition:all .3s ease;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
+.lg-btn-primary{background:linear-gradient(135deg,#6366f1,#22d3ee);color:#fff;box-shadow:0 6px 20px rgba(99,102,241,0.3)}
+.lg-btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.4)}.lg-btn-primary:active{transform:translateY(0) scale(.98)}
+.lg-btn-telegram{background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;box-shadow:0 6px 20px rgba(0,136,204,0.3)}
+.lg-btn-telegram:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,136,204,0.4)}.lg-btn-telegram:active{transform:translateY(0) scale(.98)}
+.lg-btn.loading{pointer-events:none}.lg-btn.loading .lg-btn-text,.lg-btn.loading .lg-btn-icon{opacity:0}
+.lg-btn.loading::after{content:'';position:absolute;width:22px;height:22px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:lgSpin .7s linear infinite}
+@keyframes lgSpin{to{transform:rotate(360deg)}}
+.lg-links{margin-top:1.5rem;text-align:center}.lg-links a{text-decoration:none;transition:all .2s}.lg-links a:hover{filter:brightness(1.2)}
+.lg-link-reset{display:inline-flex;align-items:center;gap:4px;color:#f59e0b;font-weight:600;font-size:.85rem}
+.lg-link-reg{color:var(--lg-accent);font-weight:700;font-size:.85rem}
+.lg-link-parent{color:var(--lg-text-muted);font-size:.85rem}
+.lg-divider{border:none;border-top:1px solid var(--lg-input-border);margin:.75rem 0;opacity:.5}
+.lg-btn-ariza{display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:14px;font-weight:700;font-size:.92rem;text-decoration:none;box-shadow:0 6px 20px rgba(99,102,241,0.35);transition:all .3s}
+.lg-btn-ariza:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,0.45);color:#fff}
+.lg-toast-box{position:fixed;top:20px;right:20px;z-index:9999}
+.lg-toast{background:var(--lg-card-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:16px;padding:14px 18px;box-shadow:0 10px 40px rgba(0,0,0,0.15);margin-bottom:10px;font-size:.88rem;font-weight:500;color:var(--lg-text);animation:lgToastIn .5s cubic-bezier(.16,1,.3,1);transition:all .4s ease;border:1px solid var(--lg-card-border)}
+@keyframes lgToastIn{from{transform:translateX(80px) scale(.9);opacity:0}to{transform:translateX(0) scale(1);opacity:1}}
+@media(max-width:900px){.lg-brand{display:none}.lg-form-side{padding:1rem}.lg-head-logo{display:inline-flex}}
+@media(max-width:480px){.lg-card{padding:1.75rem 1.25rem;border-radius:22px}.lg-head h2{font-size:1.2rem}.lg-tab{padding:10px 8px;font-size:.78rem}}
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="page-center">
-
-<div class="blob one"></div>
-<div class="blob two"></div>
-<div class="blob three"></div>
-
-<!-- Floating particles -->
-<div class="particles" id="particles"></div>
-
-<div class="toast-box" id="toastBox"></div>
-
-<div class="auth-card">
-
-  <div class="text-center mb-4">
-    <div class="auth-logo mb-3 mx-auto">
-      <i class="bi bi-code-slash"></i>
+<div class="lg-page">
+  <div class="lg-brand">
+    <div class="lg-geo"></div><div class="lg-geo"></div><div class="lg-geo"></div><div class="lg-geo"></div><div class="lg-geo"></div>
+    <div class="lg-brand-inner">
+      <div class="lg-brand-icon"><i class="bi bi-code-slash"></i></div>
+      <h1>IT Creative</h1>
+      <p>Bilim olish va o'sish uchun eng yaxshi platforma</p>
+      <div class="lg-feats">
+        <div class="lg-feat"><div class="lg-feat-ico"><i class="bi bi-shield-check"></i></div><span>Xavfsiz tizimga kirish</span></div>
+        <div class="lg-feat"><div class="lg-feat-ico"><i class="bi bi-lightning-charge"></i></div><span>Tezkor va qulay interfeys</span></div>
+        <div class="lg-feat"><div class="lg-feat-ico"><i class="bi bi-phone"></i></div><span>Mobil qurilmalarga moslashgan</span></div>
+      </div>
     </div>
-    <h4 class="fw-bold mb-1">Tizimga kirish</h4>
-    <p class="text-secondary small mb-0">IT Ijorkorlari Academy</p>
   </div>
 
-  <!-- Login tabs -->
-  <div class="login-tabs">
-    <button type="button" class="login-tab {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}" data-target="usernamePanel">
-      <i class="bi bi-person me-1"></i>Username
-    </button>
-    <button type="button" class="login-tab {% if login_mode == 'phone' %}active{% endif %}" data-target="phonePanel">
-      <i class="bi bi-phone me-1"></i>Mobil
-    </button>
-    <button type="button" class="login-tab {% if login_mode == 'telegram' %}active{% endif %}" data-target="telegramPanel">
-      <i class="bi bi-telegram me-1"></i>Telegram
-    </button>
-  </div>
+  <div class="lg-form-side">
+    <div class="lg-blob lg-blob-1"></div>
+    <div class="lg-blob lg-blob-2"></div>
+    <div class="lg-toast-box" id="lgToastBox"></div>
 
-  <!-- Username login form -->
-  <div id="usernamePanel" class="login-panel {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}">
-    <form method="POST" id="loginForm">
-      {% csrf_token %}
-      <input type="hidden" name="login_mode" value="username">
-
-      <div class="form-floating mb-3 position-relative ios-input">
-        <span class="input-icon"><i class="bi bi-person"></i></span>
-        {{ form.username }}
-        <label for="{{ form.username.id_for_label }}">Username</label>
+    <div class="lg-card">
+      <div class="lg-head">
+        <div class="lg-head-logo"><i class="bi bi-code-slash"></i></div>
+        <h2>Tizimga kirish</h2>
+        <p>IT Creative Academy</p>
       </div>
 
-      <div class="form-floating mb-4 position-relative ios-input">
-        <span class="input-icon"><i class="bi bi-lock"></i></span>
-        {{ form.password }}
-        <button type="button" class="show-pass" onclick="togglePass('{{ form.password.id_for_label }}', 'eyeIcon1')">
-          <i id="eyeIcon1" class="bi bi-eye"></i>
-        </button>
-        <label for="{{ form.password.id_for_label }}">Parol</label>
+      <div class="lg-tabs">
+        <button type="button" class="lg-tab {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}" data-target="lgUsername"><i class="bi bi-person"></i> Username</button>
+        <button type="button" class="lg-tab {% if login_mode == 'phone' %}active{% endif %}" data-target="lgPhone"><i class="bi bi-phone"></i> Mobil</button>
+        <button type="button" class="lg-tab {% if login_mode == 'telegram' %}active{% endif %}" data-target="lgTelegram"><i class="bi bi-telegram"></i> Telegram</button>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
-        <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- Phone login form -->
-  <div id="phonePanel" class="login-panel {% if login_mode == 'phone' %}active{% endif %}">
-    <form method="POST" id="phoneLoginForm">
-      {% csrf_token %}
-      <input type="hidden" name="login_mode" value="phone">
-
-      <div class="phone-field">
-        <label class="field-label">
-          <i class="bi bi-phone me-1"></i>Telefon raqam
-        </label>
-        <div class="phone-input-group">
-          <div class="phone-prefix">
-            <img src="https://flagcdn.com/w40/uz.png" alt="UZ" class="flag" width="24" height="16" style="border-radius:3px;object-fit:cover;">
-            <span>+998</span>
+      <div id="lgUsername" class="lg-panel {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}">
+        <form method="POST" class="lg-form">
+          {% csrf_token %}
+          <input type="hidden" name="login_mode" value="username">
+          <div class="lg-field">
+            <label class="lg-field-label"><i class="bi bi-person me-1"></i>Username</label>
+            <div class="lg-input-wrap">
+              <span class="lg-input-icon"><i class="bi bi-person"></i></span>
+              {{ form.username }}
+            </div>
           </div>
-          <input type="tel" name="phone" id="phoneInput"
-                 placeholder="90 123 45 67"
-                 maxlength="12"
-                 autocomplete="tel"
-                 value="{{ request.POST.phone }}">
-        </div>
+          <div class="lg-field">
+            <label class="lg-field-label"><i class="bi bi-lock me-1"></i>Parol</label>
+            <div class="lg-input-wrap">
+              <span class="lg-input-icon"><i class="bi bi-lock"></i></span>
+              {{ form.password }}
+              <button type="button" class="lg-pw-eye" onclick="lgTogglePw('{{ form.password.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <button type="submit" class="lg-btn lg-btn-primary"><i class="bi bi-box-arrow-in-right lg-btn-icon"></i><span class="lg-btn-text">Kirish</span></button>
+        </form>
       </div>
 
-      <div class="form-floating mb-4 position-relative ios-input">
-        <span class="input-icon"><i class="bi bi-lock"></i></span>
-        <input type="password" name="password" id="phonePassword"
-               class="form-control ps-5 pe-5" placeholder="Parol">
-        <button type="button" class="show-pass" onclick="togglePass('phonePassword', 'eyeIcon2')">
-          <i id="eyeIcon2" class="bi bi-eye"></i>
-        </button>
-        <label for="phonePassword">Parol</label>
+      <div id="lgPhone" class="lg-panel {% if login_mode == 'phone' %}active{% endif %}">
+        <form method="POST" id="lgPhoneForm" class="lg-form">
+          {% csrf_token %}
+          <input type="hidden" name="login_mode" value="phone">
+          <div class="lg-field">
+            <label class="lg-field-label"><i class="bi bi-phone me-1"></i>Telefon raqam</label>
+            <div class="lg-phone-group">
+              <div class="lg-phone-pre">
+                <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="24" height="16" style="border-radius:3px;object-fit:cover;">
+                <span>+998</span>
+              </div>
+              <input type="tel" name="phone" id="lgPhoneInput" placeholder="90 123 45 67" maxlength="12" autocomplete="tel" value="{{ request.POST.phone }}">
+            </div>
+          </div>
+          <div class="lg-field">
+            <label class="lg-field-label"><i class="bi bi-lock me-1"></i>Parol</label>
+            <div class="lg-input-wrap">
+              <span class="lg-input-icon"><i class="bi bi-lock"></i></span>
+              <input type="password" name="password" id="lgPhonePw" placeholder="Parol">
+              <button type="button" class="lg-pw-eye" onclick="lgTogglePw('lgPhonePw',this)"><i class="bi bi-eye"></i></button>
+            </div>
+          </div>
+          <button type="submit" class="lg-btn lg-btn-primary"><i class="bi bi-box-arrow-in-right lg-btn-icon"></i><span class="lg-btn-text">Kirish</span></button>
+        </form>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100 py-3 fw-semibold">
-        <i class="bi bi-box-arrow-in-right me-2"></i><span>Kirish</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- Telegram login form -->
-  <div id="telegramPanel" class="login-panel {% if login_mode == 'telegram' %}active{% endif %}">
-    <form method="POST" id="telegramLoginForm">
-      {% csrf_token %}
-      <input type="hidden" name="login_mode" value="telegram">
-
-      <div class="telegram-info-box">
-        <ul class="telegram-steps">
-          <li>
-            <span class="step-num">1</span>
-            <span>Telegram botni oching va <b>/start</b> bosing</span>
-          </li>
-          <li>
-            <span class="step-num">2</span>
-            <span>Bot sizga <b>6 xonali kod</b> yuboradi</span>
-          </li>
-          <li>
-            <span class="step-num">3</span>
-            <span>Kodni pastga kiriting va <b>Kirish</b> bosing</span>
-          </li>
-        </ul>
+      <div id="lgTelegram" class="lg-panel {% if login_mode == 'telegram' %}active{% endif %}">
+        <form method="POST" class="lg-form">
+          {% csrf_token %}
+          <input type="hidden" name="login_mode" value="telegram">
+          <div class="lg-tg-box">
+            <ul class="lg-tg-steps">
+              <li><span class="tg-num">1</span><span>Telegram botni oching va <b>/start</b> bosing</span></li>
+              <li><span class="tg-num">2</span><span>Bot sizga <b>6 xonali kod</b> yuboradi</span></li>
+              <li><span class="tg-num">3</span><span>Kodni pastga kiriting va <b>Kirish</b> bosing</span></li>
+            </ul>
+          </div>
+          <div class="lg-field" style="margin-bottom:1.25rem">
+            <input type="text" name="telegram_code" class="lg-tg-code" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric" pattern="[0-9]{6}">
+          </div>
+          <button type="submit" class="lg-btn lg-btn-telegram"><i class="bi bi-telegram lg-btn-icon"></i><span class="lg-btn-text">Telegram orqali kirish</span></button>
+        </form>
       </div>
 
-      <div class="mb-4">
-        <input type="text" name="telegram_code" class="telegram-code-input"
-               placeholder="000000" maxlength="6"
-               autocomplete="off" inputmode="numeric"
-               pattern="[0-9]{6}">
+      <div class="lg-links">
+        <div class="mb-2"><a href="{% url 'password_reset_request' %}" class="lg-link-reset"><i class="bi bi-key"></i> Parolni unutdingizmi?</a></div>
+        <div class="mb-2"><span style="color:var(--lg-text-muted);font-size:.85rem">Akkauntingiz mavjud bo'lmasa </span><a href="{% url 'register' %}" class="lg-link-reg">Ro'yxatdan o'ting &rarr;</a></div>
+        <hr class="lg-divider">
+        <div class="mb-3"><a href="{% url 'parent_login' %}" class="lg-link-parent"><i class="bi bi-people me-1"></i>Ota-ona sifatida kirish</a></div>
+        <div><a href="{% url 'ariza' %}" class="lg-btn-ariza"><i class="bi bi-pencil-square"></i> Kursga yozilish</a></div>
       </div>
-
-      <button type="submit" class="btn btn-telegram w-100 py-3 fw-semibold">
-        <i class="bi bi-telegram me-2"></i><span>Telegram orqali kirish</span>
-      </button>
-    </form>
-  </div>
-
-  <div class="auth-links">
-    <div class="text-center small mt-3">
-      <a href="{% url 'password_reset_request' %}" class="text-warning fw-semibold text-decoration-none">
-        <i class="bi bi-key me-1"></i>Parolni unutdingizmi?
-      </a>
-    </div>
-
-    <div class="text-center small mt-2">
-      Akkauntingiz mavjud bo'lmasa
-      <a href="{% url 'register' %}" class="text-info fw-semibold text-decoration-none">
-        Ro'yxatdan o'ting &rarr;
-      </a>
-    </div>
-
-    <hr class="my-3">
-
-    <div class="text-center small">
-      <a href="{% url 'parent_login' %}" class="text-secondary text-decoration-none">
-        <i class="bi bi-people me-1"></i>Ota-ona sifatida kirish
-      </a>
-    </div>
-
-    <div class="text-center mt-3">
-      <a href="{% url 'ariza' %}" style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:14px;font-weight:700;font-size:.92rem;text-decoration:none;box-shadow:0 6px 20px rgba(99,102,241,.35);transition:all .3s;">
-        <i class="bi bi-pencil-square"></i> Kursga yozilish
-      </a>
     </div>
   </div>
-
 </div>
-</div>
+{% endblock %}
 
-<!-- ================= JS ================= -->
+{% block extra_js %}
 <script>
-
-/* ===== Particles ===== */
 (function(){
-  const container = document.getElementById('particles');
-  if (!container) return;
-  for (let i = 0; i < 20; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random() * 100 + '%';
-    p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
-    p.style.animationDuration = (8 + Math.random() * 14) + 's';
-    p.style.animationDelay = (Math.random() * 10) + 's';
-    p.style.opacity = (0.2 + Math.random() * 0.4).toString();
-    container.appendChild(p);
+  document.querySelectorAll('.lg-tab').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      document.querySelectorAll('.lg-tab').forEach(function(t){t.classList.remove('active')});
+      document.querySelectorAll('.lg-panel').forEach(function(p){p.classList.remove('active')});
+      tab.classList.add('active');
+      var panel=document.getElementById(tab.dataset.target);
+      panel.style.animation='none';panel.offsetHeight;panel.style.animation='';
+      panel.classList.add('active');
+      var fi=panel.querySelector('input:not([type="hidden"])');
+      if(fi)setTimeout(function(){fi.focus()},300);
+    });
+  });
+
+  window.lgTogglePw=function(id,btn){
+    var inp=document.getElementById(id);if(!inp)return;
+    var isPw=inp.type==='password';inp.type=isPw?'text':'password';
+    var ico=btn.querySelector('i');if(ico)ico.className=isPw?'bi bi-eye-slash':'bi bi-eye';
+  };
+
+  var phoneInp=document.getElementById('lgPhoneInput');
+  if(phoneInp){
+    phoneInp.addEventListener('input',function(){
+      var val=this.value.replace(/\D/g,'');if(val.length>9)val=val.slice(0,9);
+      var f='';if(val.length>0)f=val.slice(0,2);if(val.length>2)f+=' '+val.slice(2,5);if(val.length>5)f+=' '+val.slice(5,7);if(val.length>7)f+=' '+val.slice(7,9);
+      this.value=f;
+    });
   }
+
+  var phoneForm=document.getElementById('lgPhoneForm');
+  if(phoneForm){
+    phoneForm.addEventListener('submit',function(){
+      var inp=document.getElementById('lgPhoneInput');var raw=inp.value.replace(/\D/g,'');
+      var hidden=document.createElement('input');hidden.type='hidden';hidden.name='phone';hidden.value='+998'+raw;
+      this.appendChild(hidden);inp.removeAttribute('name');
+    });
+  }
+
+  var tgCode=document.querySelector('.lg-tg-code');
+  if(tgCode){tgCode.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6)});}
+
+  document.querySelectorAll('.lg-form').forEach(function(form){
+    form.addEventListener('submit',function(){var btn=this.querySelector('.lg-btn');if(btn)btn.classList.add('loading')});
+  });
+
+  function lgToast(text){
+    var box=document.getElementById('lgToastBox');var div=document.createElement('div');div.className='lg-toast';
+    div.innerHTML='<i class="bi bi-exclamation-triangle me-2" style="color:#ef4444"></i>'+text;
+    box.appendChild(div);
+    setTimeout(function(){div.style.opacity='0';div.style.transform='translateX(40px)'},4500);
+    setTimeout(function(){div.remove()},5000);
+  }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    {% if messages %}{% for message in messages %}lgToast("{{ message|escapejs }}");{% endfor %}{% endif %}
+    {% if form.username.errors %}lgToast("Username noto'g'ri yoki mavjud emas");var uel=document.getElementById('{{ form.username.id_for_label }}');if(uel)uel.classList.add('is-invalid');{% endif %}
+    {% if form.password.errors %}lgToast("Parol noto'g'ri kiritildi!");var pel=document.getElementById('{{ form.password.id_for_label }}');if(pel)pel.classList.add('is-invalid');{% endif %}
+  });
 })();
-
-/* ===== Toggle Password ===== */
-function togglePass(inputId, iconId){
-  const input = document.getElementById(inputId);
-  const icon = document.getElementById(iconId);
-  if(input.type === "password"){
-    input.type = "text";
-    icon.className = "bi bi-eye-slash";
-  }else{
-    input.type = "password";
-    icon.className = "bi bi-eye";
-  }
-}
-
-/* ===== Tab Switching ===== */
-document.querySelectorAll('.login-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
-    tab.classList.add('active');
-    const panel = document.getElementById(tab.dataset.target);
-    // Force re-trigger animations
-    panel.style.animation = 'none';
-    panel.offsetHeight;
-    panel.style.animation = '';
-    panel.classList.add('active');
-    // Focus first input
-    const firstInput = panel.querySelector('input:not([type="hidden"])');
-    if (firstInput) setTimeout(() => firstInput.focus(), 300);
-  });
-});
-
-/* ===== Phone Input Formatting ===== */
-const phoneInput = document.getElementById('phoneInput');
-if (phoneInput) {
-  phoneInput.addEventListener('input', function() {
-    let val = this.value.replace(/\D/g, '');
-    if (val.length > 9) val = val.slice(0, 9);
-    let formatted = '';
-    if (val.length > 0) formatted = val.slice(0, 2);
-    if (val.length > 2) formatted += ' ' + val.slice(2, 5);
-    if (val.length > 5) formatted += ' ' + val.slice(5, 7);
-    if (val.length > 7) formatted += ' ' + val.slice(7, 9);
-    this.value = formatted;
-  });
-}
-
-/* ===== Phone Form Submit ===== */
-const phoneForm = document.getElementById('phoneLoginForm');
-if (phoneForm) {
-  phoneForm.addEventListener('submit', function() {
-    const input = document.getElementById('phoneInput');
-    const raw = input.value.replace(/\D/g, '');
-    const hidden = document.createElement('input');
-    hidden.type = 'hidden';
-    hidden.name = 'phone';
-    hidden.value = '+998' + raw;
-    this.appendChild(hidden);
-    input.removeAttribute('name');
-  });
-}
-
-/* ===== Telegram code input - faqat raqam ===== */
-const tgCodeInput = document.querySelector('.telegram-code-input');
-if (tgCodeInput) {
-  tgCodeInput.addEventListener('input', function() {
-    this.value = this.value.replace(/\D/g, '').slice(0, 6);
-  });
-}
-
-/* ===== Button Loading on Submit ===== */
-document.querySelectorAll('.auth-card form').forEach(form => {
-  form.addEventListener('submit', function() {
-    const btn = this.querySelector('.btn-primary, .btn-telegram');
-    if (btn) {
-      btn.classList.add('loading');
-      const span = btn.querySelector('span');
-      const icon = btn.querySelector('i');
-      if (span) span.style.opacity = '0';
-      if (icon) icon.style.opacity = '0';
-    }
-  });
-});
-
-/* ===== Toast ===== */
-function showToast(text){
-  const box = document.getElementById("toastBox");
-  const div = document.createElement("div");
-  div.className = "toast-ios";
-  div.innerHTML = `<i class="bi bi-exclamation-triangle me-2 text-danger"></i> ${text}`;
-  box.appendChild(div);
-  setTimeout(()=>{ div.style.opacity="0"; div.style.transform="translateX(40px)"; },4500);
-  setTimeout(()=>{ div.remove(); },5000);
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-  {% if messages %}
-    {% for message in messages %}
-      showToast("{{ message|escapejs }}");
-    {% endfor %}
-  {% endif %}
-
-  {% if form.username.errors %}
-      showToast("Username noto'g'ri yoki mavjud emas");
-      const usernameEl = document.getElementById("{{ form.username.id_for_label }}");
-      if (usernameEl) usernameEl.classList.add("is-invalid");
-  {% endif %}
-
-  {% if form.password.errors %}
-      showToast("Parol noto'g'ri kiritildi!");
-      const passEl = document.getElementById("{{ form.password.id_for_label }}");
-      if (passEl) passEl.classList.add("is-invalid");
-  {% endif %}
-
-});
-
 </script>
 {% endblock %}

@@ -1,508 +1,526 @@
 ﻿{% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}Ro'yxatdan o'tish | LMS - IT Creative{% endblock %}
+{% block title %}Ro'yxatdan o'tish | IT Creative - Dasturlash Kurslari{% endblock %}
 
 {% block extra_css %}
 <style>
   :root {
-    --reg-bg: #f0f4f8;
-    --reg-card-border: rgba(99, 102, 241, 0.1);
-    --reg-card-shadow: 0 24px 64px rgba(0,0,0,0.08), 0 0 0 1px rgba(99,102,241,0.06) inset;
-    --reg-text: #1e293b;
-    --reg-text-secondary: #64748b;
-    --reg-text-muted: #94a3b8;
-    --reg-input-bg: #f1f5f9;
-    --reg-input-border: #e2e8f0;
-    --reg-input-focus-border: rgba(99, 102, 241, 0.5);
-    --reg-input-focus-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-    --reg-input-text: #1e293b;
-    --reg-input-placeholder: #94a3b8;
-    --reg-label-color: #64748b;
-    --reg-accent: #6366f1;
-    --reg-accent-glow: rgba(99, 102, 241, 0.25);
-    --reg-accent2: #8b5cf6;
-    --reg-error-bg: rgba(239, 68, 68, 0.06);
-    --reg-error-border: rgba(239, 68, 68, 0.15);
-    --reg-error-text: #dc2626;
-    --reg-success-bg: rgba(34, 197, 94, 0.06);
-    --reg-success-border: rgba(34, 197, 94, 0.15);
-    --reg-success-text: #16a34a;
-    --reg-info-bg: rgba(14, 165, 233, 0.06);
-    --reg-info-border: rgba(14, 165, 233, 0.15);
-    --reg-info-text: #0284c7;
-    --reg-blob1: rgba(99, 102, 241, 0.08);
-    --reg-blob2: rgba(139, 92, 246, 0.06);
-    --reg-blob3: rgba(236, 72, 153, 0.05);
-    --reg-code-color: rgba(99, 102, 241, 0.07);
-    --reg-footer-link: #6366f1;
-    --reg-footer-link-hover: #4f46e5;
-    --reg-back-bg: #f1f5f9;
-    --reg-back-border: #e2e8f0;
-    --reg-back-color: #64748b;
-    --reg-back-hover-bg: #e2e8f0;
+    --rg-bg: #f0f2f5;
+    --rg-card-bg: rgba(255,255,255,0.82);
+    --rg-card-border: rgba(99,102,241,0.1);
+    --rg-card-shadow: 0 32px 80px rgba(0,0,0,0.08);
+    --rg-text: #0f172a;
+    --rg-text-sub: #64748b;
+    --rg-text-muted: #94a3b8;
+    --rg-input-bg: #f8fafc;
+    --rg-input-border: #e2e8f0;
+    --rg-input-focus: rgba(99,102,241,0.5);
+    --rg-input-focus-shadow: 0 0 0 4px rgba(99,102,241,0.08);
+    --rg-accent: #6366f1;
+    --rg-accent2: #8b5cf6;
+    --rg-err-bg: rgba(239,68,68,0.06);
+    --rg-err-border: rgba(239,68,68,0.15);
+    --rg-err-text: #dc2626;
+    --rg-brand-bg: linear-gradient(135deg,#312e81 0%,#4f46e5 40%,#7c3aed 100%);
+    --rg-geo-color: rgba(255,255,255,0.06);
+    --rg-back-bg: #f1f5f9;
+    --rg-back-border: #e2e8f0;
   }
-
   [data-bs-theme="dark"] {
-    --reg-bg: #0b1120;
-    --reg-card-border: rgba(99, 102, 241, 0.12);
-    --reg-card-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.08) inset;
-    --reg-text: #f1f5f9;
-    --reg-text-secondary: #94a3b8;
-    --reg-text-muted: rgba(148, 163, 184, 0.5);
-    --reg-input-bg: rgba(30, 41, 59, 0.8);
-    --reg-input-border: rgba(148, 163, 184, 0.12);
-    --reg-input-focus-border: rgba(99, 102, 241, 0.5);
-    --reg-input-focus-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
-    --reg-input-text: #f1f5f9;
-    --reg-input-placeholder: rgba(148, 163, 184, 0.35);
-    --reg-label-color: rgba(148, 163, 184, 0.6);
-    --reg-accent: #818cf8;
-    --reg-accent-glow: rgba(99, 102, 241, 0.3);
-    --reg-accent2: #a78bfa;
-    --reg-error-bg: rgba(239, 68, 68, 0.08);
-    --reg-error-border: rgba(239, 68, 68, 0.18);
-    --reg-error-text: #fca5a5;
-    --reg-success-bg: rgba(34, 197, 94, 0.08);
-    --reg-success-border: rgba(34, 197, 94, 0.18);
-    --reg-success-text: #86efac;
-    --reg-info-bg: rgba(14, 165, 233, 0.08);
-    --reg-info-border: rgba(14, 165, 233, 0.18);
-    --reg-info-text: #7dd3fc;
-    --reg-blob1: rgba(99, 102, 241, 0.06);
-    --reg-blob2: rgba(139, 92, 246, 0.05);
-    --reg-blob3: rgba(236, 72, 153, 0.04);
-    --reg-code-color: rgba(99, 102, 241, 0.08);
-    --reg-footer-link: #818cf8;
-    --reg-footer-link-hover: #a5b4fc;
-    --reg-back-bg: rgba(30, 41, 59, 0.8);
-    --reg-back-border: rgba(148, 163, 184, 0.1);
-    --reg-back-color: rgba(148, 163, 184, 0.6);
-    --reg-back-hover-bg: rgba(30, 41, 59, 1);
+    --rg-bg: #0D1528;
+    --rg-card-bg: rgba(15,23,42,0.78);
+    --rg-card-border: rgba(99,102,241,0.12);
+    --rg-card-shadow: 0 32px 80px rgba(0,0,0,0.5);
+    --rg-text: #f1f5f9;
+    --rg-text-sub: #94a3b8;
+    --rg-text-muted: rgba(148,163,184,0.5);
+    --rg-input-bg: rgba(30,41,59,0.7);
+    --rg-input-border: rgba(148,163,184,0.12);
+    --rg-input-focus: rgba(99,102,241,0.5);
+    --rg-input-focus-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+    --rg-accent: #818cf8;
+    --rg-accent2: #a78bfa;
+    --rg-err-bg: rgba(239,68,68,0.1);
+    --rg-err-border: rgba(239,68,68,0.2);
+    --rg-err-text: #fca5a5;
+    --rg-brand-bg: linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#4c1d95 100%);
+    --rg-geo-color: rgba(255,255,255,0.03);
+    --rg-back-bg: rgba(30,41,59,0.8);
+    --rg-back-border: rgba(148,163,184,0.1);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  nav,.navbar,footer,.footer,.bottom-nav,#bottomNav,.notification-bar,.snow-container,.weather-container { display:none!important; }
 
-  .reg-page {
+  .rg-page {
     min-height: 100vh;
     display: flex;
+    background: var(--rg-bg);
+    font-family: 'Inter',-apple-system,sans-serif;
+  }
+
+  /* ===== Left Brand Panel ===== */
+  .rg-brand {
+    width: 42%;
+    background: var(--rg-brand-bg);
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 24px 16px;
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     position: relative;
     overflow: hidden;
+    padding: 3rem;
   }
-
-  .code-bg { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
-  .code-col {
-    position: absolute; top: -100%;
-    font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.6;
-    color: var(--reg-code-color); white-space: pre;
-    animation: codeRain linear infinite;
-    user-select: none; pointer-events: none;
+  .rg-geo {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--rg-geo-color);
+    animation: rgGeo 20s ease-in-out infinite;
   }
-  @keyframes codeRain {
-    0%   { transform: translateY(-100%); }
-    100% { transform: translateY(calc(100vh + 100%)); }
+  .rg-geo:nth-child(1) { width:300px;height:300px;top:-80px;left:-60px; }
+  .rg-geo:nth-child(2) { width:200px;height:200px;bottom:-40px;right:-40px;animation-delay:-7s; }
+  .rg-geo:nth-child(3) { width:150px;height:150px;top:40%;left:60%;animation-delay:-14s; }
+  .rg-geo:nth-child(4) { width:400px;height:400px;bottom:-100px;left:-100px;border-style:dashed;border-color:rgba(255,255,255,0.04);animation-delay:-3s; }
+  .rg-geo:nth-child(5) { width:80px;height:80px;top:20%;right:20%;background:rgba(255,255,255,0.03);animation-delay:-10s; }
+  @keyframes rgGeo {
+    0%,100% { transform:translate(0,0) rotate(0deg); }
+    33% { transform:translate(15px,-20px) rotate(5deg); }
+    66% { transform:translate(-10px,15px) rotate(-3deg); }
   }
-
-  .reg-blob { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; animation: blobFloat 20s ease-in-out infinite; }
-  .reg-blob-1 { width: 500px; height: 500px; background: var(--reg-blob1); top: -15%; left: -10%; }
-  .reg-blob-2 { width: 400px; height: 400px; background: var(--reg-blob2); bottom: -10%; right: -8%; animation-delay: -10s; }
-  .reg-blob-3 { width: 300px; height: 300px; background: var(--reg-blob3); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -5s; }
-  @keyframes blobFloat {
-    0%, 100% { transform: translate(0, 0) scale(1); }
-    33% { transform: translate(20px, -30px) scale(1.05); }
-    66% { transform: translate(-15px, 20px) scale(0.95); }
-  }
-
-  .reg-card {
-    width: 100%; max-width: 480px;
-    backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-    border: 1px solid var(--reg-card-border);
-    border-radius: 24px; padding: 36px 32px 30px;
-    box-shadow: var(--reg-card-shadow);
-    position: relative; z-index: 1;
-  }
-
-  .reg-header { text-align: center; margin-bottom: 28px; }
-  .reg-logo {
-    width: 60px; height: 60px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 16px;
-    display: inline-flex; align-items: center; justify-content: center;
-    margin-bottom: 14px;
-    box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+  .rg-brand-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
     color: #fff;
+    animation: rgBrandIn 1s ease both;
   }
-  .reg-logo i { font-size: 24px; }
-  .reg-header h2 { font-size: 22px; font-weight: 700; color: var(--reg-text); margin-bottom: 6px; letter-spacing: -0.3px; }
-  .reg-header p { font-size: 13px; color: var(--reg-text-muted); }
-
-  .step-indicator { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 26px; padding: 0 40px; }
-  .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; }
-  .step-dot {
-    width: 38px; height: 38px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 600;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid var(--reg-input-border);
-    color: var(--reg-text-muted); background: transparent;
+  @keyframes rgBrandIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  .rg-brand-icon {
+    width:90px;height:90px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:28px;
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 1.5rem;
+    font-size:2.2rem;
+    box-shadow:0 20px 50px rgba(0,0,0,0.2);
+    animation: rgIconPulse 4s ease-in-out infinite;
   }
-  .step-dot.is-active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-color: transparent; color: white;
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.15), 0 4px 16px rgba(99,102,241,0.25);
-    transform: scale(1.08);
+  @keyframes rgIconPulse {
+    0%,100% { box-shadow:0 20px 50px rgba(0,0,0,0.2); }
+    50% { box-shadow:0 20px 50px rgba(0,0,0,0.2),0 0 0 8px rgba(255,255,255,0.08); }
   }
-  .step-dot.is-done { background: linear-gradient(135deg, #6366f1, #4f46e5); border-color: transparent; color: white; }
-  .step-label { font-size: 10px; color: var(--reg-text-muted); font-weight: 500; letter-spacing: 0.3px; white-space: nowrap; transition: color 0.3s; }
-  .step-item.active .step-label { color: var(--reg-accent); }
-  .step-item.done .step-label { color: var(--reg-accent2); }
-  .step-connector { flex: 1; max-width: 80px; height: 2px; background: var(--reg-input-border); transition: background 0.4s ease; margin: 0 8px; margin-bottom: 20px; }
-  .step-connector.is-done { background: linear-gradient(90deg, #6366f1, #8b5cf6); }
-
-  .msg-box { padding: 10px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; animation: fadeUp 0.3s ease; }
-  .msg-box i { flex-shrink: 0; margin-top: 2px; }
-  .msg-box.msg-error { background: var(--reg-error-bg); border: 1px solid var(--reg-error-border); color: var(--reg-error-text); }
-  .msg-box.msg-success { background: var(--reg-success-bg); border: 1px solid var(--reg-success-border); color: var(--reg-success-text); }
-  .msg-box.msg-info { background: var(--reg-info-bg); border: 1px solid var(--reg-info-border); color: var(--reg-info-text); }
-
-  .step-panel { display: none; }
-  .step-panel.is-active { display: block; animation: fadeUp 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-
-  .step-heading { font-size: 12px; font-weight: 600; color: var(--reg-text-muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 1px; }
-  .step-heading i { color: var(--reg-accent); font-size: 14px; }
-
-  .field { margin-bottom: 16px; }
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-  .field label { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--reg-label-color); margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.6px; }
-
-  .step-panel input:not([type="submit"]):not([type="hidden"]),
-  .step-panel select {
-    width: 100%; padding: 12px 14px;
-    background: var(--reg-input-bg); border: 1.5px solid var(--reg-input-border);
-    border-radius: 12px; color: var(--reg-input-text);
-    font-size: 14px; font-family: inherit; outline: none;
-    transition: all 0.25s ease; appearance: none; -webkit-appearance: none;
+  .rg-brand-inner h1 { font-size:2rem;font-weight:800;margin-bottom:0.5rem;letter-spacing:-0.5px; }
+  .rg-brand-inner p { font-size:1rem;opacity:0.7;max-width:320px;line-height:1.6; }
+  .rg-feats { margin-top:2.5rem;display:flex;flex-direction:column;gap:1rem; }
+  .rg-feat {
+    display:flex;align-items:center;gap:12px;
+    background:rgba(255,255,255,0.06);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:14px;padding:12px 18px;
+    font-size:0.9rem;transition:all 0.3s;
+    animation: rgFeatIn 0.6s ease both;
   }
-  .step-panel input:not([type="submit"]):not([type="hidden"]):focus,
-  .step-panel select:focus { border-color: var(--reg-input-focus-border); box-shadow: var(--reg-input-focus-shadow); }
-  .step-panel input::placeholder { color: var(--reg-input-placeholder); }
-  .step-panel input.has-error, .step-panel select.has-error { border-color: rgba(239,68,68,0.4) !important; background: var(--reg-error-bg) !important; }
-
-  .field-err { font-size: 11px; color: var(--reg-error-text); margin-top: 5px; display: flex; align-items: center; gap: 5px; }
-  .field-err i { font-size: 12px; }
-
-  .phone-wrap { display: flex; gap: 8px; }
-  .phone-prefix { padding: 12px; background: var(--reg-input-bg); border: 1.5px solid var(--reg-input-border); border-radius: 12px; color: var(--reg-text-secondary); font-size: 14px; white-space: nowrap; display: flex; align-items: center; gap: 5px; flex-shrink: 0; font-weight: 500; }
-  .phone-wrap input { flex: 1; min-width: 0; }
-
-  .pw-wrap { position: relative; }
-  .pw-wrap input { padding-right: 44px; }
-  .pw-eye { position: absolute; right: 1px; top: 1px; bottom: 1px; width: 42px; cursor: pointer; background: transparent; border: none; color: var(--reg-text-muted); font-size: 15px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; border-radius: 0 11px 11px 0; }
-  .pw-eye:hover { color: var(--reg-text-secondary); }
-
-  .pw-strength { margin-top: 8px; }
-  .strength-bar { height: 3px; background: var(--reg-input-border); border-radius: 4px; overflow: hidden; }
-  .strength-fill { height: 100%; width: 0; border-radius: 4px; transition: all 0.4s ease; }
-  .strength-label { font-size: 11px; color: var(--reg-text-muted); margin-top: 5px; display: block; }
-
-  .btn-row { display: flex; gap: 10px; margin-top: 8px; }
-  .reg-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; border: none; transition: all 0.25s ease; white-space: nowrap; }
-  .reg-btn-main { flex: 1; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; box-shadow: 0 4px 16px var(--reg-accent-glow); }
-  .reg-btn-main:hover { box-shadow: 0 6px 24px var(--reg-accent-glow); transform: translateY(-1px); }
-  .reg-btn-main:active { transform: translateY(0); }
-  .reg-btn-back { padding: 12px 16px; background: var(--reg-back-bg); color: var(--reg-back-color); border: 1.5px solid var(--reg-back-border); }
-  .reg-btn-back:hover { background: var(--reg-back-hover-bg); color: var(--reg-text); }
-  .reg-btn-submit { flex: 1; background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; box-shadow: 0 4px 16px var(--reg-accent-glow); }
-  .reg-btn-submit:hover { box-shadow: 0 6px 24px var(--reg-accent-glow); transform: translateY(-1px); }
-  .reg-btn-submit:active { transform: translateY(0); }
-
-  .reg-footer { text-align: center; margin-top: 22px; font-size: 13px; color: var(--reg-text-muted); }
-  .reg-footer a { color: var(--reg-footer-link); text-decoration: none; font-weight: 600; transition: color 0.2s; }
-  .reg-footer a:hover { color: var(--reg-footer-link-hover); }
-
-  .terminal-line { font-family: 'Courier New', monospace; font-size: 11px; color: var(--reg-text-muted); text-align: center; margin-bottom: 16px; letter-spacing: 1px; opacity: 0.6; }
-
-  @media (max-width: 576px) {
-    .reg-page { padding: 12px 8px; }
-    .reg-card { padding: 24px 18px 22px; border-radius: 20px; max-width: 100%; }
-    .reg-header h2 { font-size: 20px; }
-    .reg-header p { font-size: 12px; }
-    .reg-logo { width: 52px; height: 52px; border-radius: 14px; }
-    .reg-logo i { font-size: 20px; }
-    .step-indicator { padding: 0 20px; margin-bottom: 22px; }
-    .step-dot { width: 34px; height: 34px; font-size: 12px; }
-    .step-label { font-size: 9px; }
-    .step-connector { max-width: 50px; }
-    .field-row { grid-template-columns: 1fr; gap: 0; margin-bottom: 0; }
-    .field-row .field { margin-bottom: 16px; }
-    .step-panel input:not([type="submit"]):not([type="hidden"]),
-    .step-panel select { padding: 11px 12px; font-size: 15px; }
-    .phone-prefix { padding: 11px 10px; font-size: 13px; }
-    .reg-btn { padding: 11px 14px; font-size: 13px; }
-    .btn-row { gap: 8px; }
-    .terminal-line { font-size: 9px; }
+  .rg-feat:nth-child(1){animation-delay:0.3s} .rg-feat:nth-child(2){animation-delay:0.45s} .rg-feat:nth-child(3){animation-delay:0.6s}
+  @keyframes rgFeatIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+  .rg-feat:hover { background:rgba(255,255,255,0.1);transform:translateX(4px); }
+  .rg-feat-ico {
+    width:36px;height:36px;border-radius:10px;
+    background:rgba(255,255,255,0.12);
+    display:flex;align-items:center;justify-content:center;
+    font-size:1rem;flex-shrink:0;
   }
-  @media (max-width: 360px) { .reg-card { padding: 20px 14px 18px; } .step-connector { max-width: 32px; } }
-  @media (min-width: 577px) and (max-width: 768px) { .reg-card { max-width: 440px; padding: 32px 28px 28px; } }
-  @media (min-width: 769px) and (max-width: 1024px) { .reg-page { padding: 32px 24px; } }
+
+  /* ===== Right Form Side ===== */
+  .rg-form-side {
+    flex:1;display:flex;align-items:center;justify-content:center;
+    padding:2rem;position:relative;overflow:hidden;
+  }
+  .rg-blob { position:absolute;border-radius:50%;filter:blur(100px);pointer-events:none; }
+  .rg-blob-1 { width:400px;height:400px;background:rgba(99,102,241,0.06);top:-10%;right:-10%;animation:rgBlob 18s ease-in-out infinite; }
+  .rg-blob-2 { width:300px;height:300px;background:rgba(139,92,246,0.05);bottom:-5%;left:-5%;animation:rgBlob 22s ease-in-out infinite reverse; }
+  @keyframes rgBlob { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-20px) scale(1.1)} }
+
+  .rg-card {
+    width:100%;max-width:480px;
+    background:var(--rg-card-bg);
+    backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);
+    border:1px solid var(--rg-card-border);
+    border-radius:28px;padding:2.5rem;
+    box-shadow:var(--rg-card-shadow);
+    position:relative;z-index:2;
+    animation:rgCardIn 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s both;
+  }
+  @keyframes rgCardIn { from{opacity:0;transform:translateY(30px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  /* Card header */
+  .rg-head { text-align:center;margin-bottom:1.75rem; }
+  .rg-head-logo {
+    width:56px;height:56px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    border-radius:16px;
+    display:none;align-items:center;justify-content:center;
+    color:#fff;font-size:1.3rem;margin:0 auto 1rem;
+    box-shadow:0 8px 24px rgba(99,102,241,0.3);
+  }
+  .rg-head h2 { font-size:1.4rem;font-weight:800;color:var(--rg-text);margin:0 0 4px;letter-spacing:-0.3px; }
+  .rg-head p { font-size:0.85rem;color:var(--rg-text-muted);margin:0; }
+
+  /* Step Indicator */
+  .rg-steps { display:flex;align-items:center;justify-content:center;margin-bottom:1.75rem;padding:0 2rem; }
+  .rg-step-item { display:flex;flex-direction:column;align-items:center;gap:6px; }
+  .rg-step-dot {
+    width:40px;height:40px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.85rem;font-weight:700;
+    border:2px solid var(--rg-input-border);
+    color:var(--rg-text-muted);background:transparent;
+    transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  }
+  .rg-step-dot.active {
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    border-color:transparent;color:#fff;
+    box-shadow:0 0 0 4px rgba(99,102,241,0.12),0 6px 20px rgba(99,102,241,0.25);
+    transform:scale(1.08);
+  }
+  .rg-step-dot.done { background:linear-gradient(135deg,#10b981,#059669);border-color:transparent;color:#fff; }
+  .rg-step-lbl { font-size:0.7rem;color:var(--rg-text-muted);font-weight:600;letter-spacing:0.3px;text-transform:uppercase;transition:color 0.3s; }
+  .rg-step-item.active .rg-step-lbl { color:var(--rg-accent); }
+  .rg-step-item.done .rg-step-lbl { color:#10b981; }
+  .rg-step-line {
+    flex:1;max-width:80px;height:2.5px;
+    background:var(--rg-input-border);
+    margin:0 12px;margin-bottom:20px;
+    border-radius:2px;transition:background 0.4s;
+  }
+  .rg-step-line.done { background:linear-gradient(90deg,#10b981,#059669); }
+
+  /* Messages */
+  .rg-msg {
+    padding:10px 14px;border-radius:12px;font-size:0.82rem;
+    margin-bottom:1rem;display:flex;align-items:flex-start;
+    gap:8px;line-height:1.5;animation:rgMsgIn 0.35s ease;
+  }
+  @keyframes rgMsgIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  .rg-msg i { flex-shrink:0;margin-top:2px;font-size:0.9rem; }
+  .rg-msg.rg-err { background:var(--rg-err-bg);border:1px solid var(--rg-err-border);color:var(--rg-err-text); }
+  .rg-msg.rg-ok { background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);color:#16a34a; }
+  [data-bs-theme="dark"] .rg-msg.rg-ok { color:#86efac; }
+  .rg-msg.rg-inf { background:rgba(14,165,233,0.06);border:1px solid rgba(14,165,233,0.15);color:#0284c7; }
+  [data-bs-theme="dark"] .rg-msg.rg-inf { color:#7dd3fc; }
+
+  /* Panels */
+  .rg-pnl { display:none; }
+  .rg-pnl.active { display:block;animation:rgPnlIn 0.4s cubic-bezier(0.16,1,0.3,1); }
+  @keyframes rgPnlIn { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .rg-pnl-head {
+    font-size:0.72rem;font-weight:700;color:var(--rg-text-muted);
+    text-transform:uppercase;letter-spacing:1px;
+    margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;
+  }
+  .rg-pnl-head i { color:var(--rg-accent);font-size:0.85rem; }
+
+  /* Fields */
+  .rg-fg { margin-bottom:1rem; }
+  .rg-fr { display:grid;grid-template-columns:1fr 1fr;gap:0.75rem; }
+  .rg-lbl {
+    display:flex;align-items:center;gap:5px;
+    font-size:0.72rem;font-weight:700;color:var(--rg-text-sub);
+    margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;
+  }
+  .rg-lbl i { font-size:0.8rem;color:var(--rg-accent); }
+  .rg-pnl input:not([type="submit"]):not([type="hidden"]):not([type="checkbox"]),
+  .rg-pnl select {
+    width:100%;padding:13px 14px;
+    background:var(--rg-input-bg);border:1.5px solid var(--rg-input-border);
+    border-radius:14px;color:var(--rg-text);
+    font-size:0.92rem;font-family:inherit;outline:none;
+    transition:all 0.25s ease;-webkit-appearance:none;appearance:none;
+  }
+  .rg-pnl input:not([type="submit"]):not([type="hidden"]):not([type="checkbox"]):focus,
+  .rg-pnl select:focus { border-color:var(--rg-input-focus);box-shadow:var(--rg-input-focus-shadow); }
+  .rg-pnl input::placeholder { color:var(--rg-text-muted); }
+  .rg-pnl input.has-err,.rg-pnl select.has-err { border-color:rgba(239,68,68,0.4)!important;background:var(--rg-err-bg)!important; }
+  .rg-ferr { font-size:0.72rem;color:var(--rg-err-text);margin-top:4px;display:flex;align-items:center;gap:4px; }
+  .rg-ferr i { font-size:0.75rem; }
+
+  /* Phone */
+  .rg-ph { display:flex;gap:8px; }
+  .rg-ph-pre {
+    padding:13px 12px;background:var(--rg-input-bg);
+    border:1.5px solid var(--rg-input-border);border-radius:14px;
+    color:var(--rg-text-sub);font-size:0.92rem;font-weight:600;
+    white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;
+  }
+  .rg-ph input { flex:1;min-width:0; }
+
+  /* Password */
+  .rg-pw { position:relative; }
+  .rg-pw input { padding-right:46px; }
+  .rg-pw-eye {
+    position:absolute;right:2px;top:2px;bottom:2px;width:42px;
+    background:none;border:none;color:var(--rg-text-muted);
+    font-size:1rem;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;border-radius:0 12px 12px 0;transition:color 0.2s;
+  }
+  .rg-pw-eye:hover { color:var(--rg-accent); }
+  .rg-str { margin-top:8px; }
+  .rg-str-bar { height:3px;background:var(--rg-input-border);border-radius:4px;overflow:hidden; }
+  .rg-str-fill { height:100%;width:0;border-radius:4px;transition:all 0.4s ease; }
+  .rg-str-txt { font-size:0.7rem;color:var(--rg-text-muted);margin-top:4px;display:block; }
+
+  /* Buttons */
+  .rg-btns { display:flex;gap:10px;margin-top:0.5rem; }
+  .rg-btn {
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    padding:13px 20px;border-radius:14px;font-size:0.92rem;
+    font-weight:700;font-family:inherit;cursor:pointer;border:none;
+    transition:all 0.25s ease;white-space:nowrap;
+  }
+  .rg-btn-next {
+    flex:1;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;
+    box-shadow:0 6px 20px rgba(99,102,241,0.25);
+  }
+  .rg-btn-next:hover { box-shadow:0 8px 28px rgba(99,102,241,0.35);transform:translateY(-2px); }
+  .rg-btn-next:active { transform:translateY(0); }
+  .rg-btn-back {
+    padding:13px 16px;background:var(--rg-back-bg);
+    color:var(--rg-text-sub);border:1.5px solid var(--rg-back-border);
+  }
+  .rg-btn-back:hover { background:var(--rg-input-border);color:var(--rg-text); }
+  .rg-btn-submit {
+    flex:1;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;
+    box-shadow:0 6px 20px rgba(99,102,241,0.25);
+  }
+  .rg-btn-submit:hover { box-shadow:0 8px 28px rgba(99,102,241,0.35);transform:translateY(-2px); }
+  .rg-btn-submit:active { transform:translateY(0); }
+
+  /* Footer */
+  .rg-foot { text-align:center;margin-top:1.5rem;font-size:0.85rem;color:var(--rg-text-muted); }
+  .rg-foot a { color:var(--rg-accent);text-decoration:none;font-weight:700;transition:color 0.2s; }
+  .rg-foot a:hover { color:var(--rg-accent2); }
+
+  /* ===== Responsive ===== */
+  @media (max-width:900px) {
+    .rg-brand { display:none; }
+    .rg-form-side { padding:1rem; }
+    .rg-head-logo { display:inline-flex; }
+  }
+  @media (max-width:576px) {
+    .rg-card { padding:1.75rem 1.25rem;border-radius:22px; }
+    .rg-head h2 { font-size:1.2rem; }
+    .rg-fr { grid-template-columns:1fr;gap:0; }
+    .rg-steps { padding:0 1rem; }
+    .rg-step-dot { width:36px;height:36px;font-size:0.8rem; }
+    .rg-step-line { max-width:50px; }
+    .rg-pnl input:not([type="submit"]):not([type="hidden"]):not([type="checkbox"]) { padding:12px;font-size:1rem; }
+    .rg-ph-pre { padding:12px 10px;font-size:0.85rem; }
+    .rg-btn { padding:12px 14px;font-size:0.88rem; }
+  }
+  @media (max-width:360px) { .rg-card { padding:1.5rem 1rem; } .rg-step-line { max-width:32px; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="reg-page">
-  <div class="code-bg" id="codeBg"></div>
-  <div class="reg-blob reg-blob-1"></div>
-  <div class="reg-blob reg-blob-2"></div>
-  <div class="reg-blob reg-blob-3"></div>
+<div class="rg-page">
 
-  <div class="reg-card">
-    <div class="reg-header">
-      <div class="reg-logo"><i class="bi bi-code-slash"></i></div>
-      <h2>Ro'yxatdan o'tish</h2>
-      <p>IT Creative platformasiga xush kelibsiz</p>
-    </div>
-
-    <div class="terminal-line">// yangi hisob yarating</div>
-
-    <div class="step-indicator">
-      <div class="step-item" id="stepItem1">
-        <div class="step-dot" id="dot1">1</div>
-        <span class="step-label">Ma'lumotlar</span>
-      </div>
-      <div class="step-connector" id="conn1"></div>
-      <div class="step-item" id="stepItem2">
-        <div class="step-dot" id="dot2">2</div>
-        <span class="step-label">Parol</span>
+  <!-- Left Brand Panel -->
+  <div class="rg-brand">
+    <div class="rg-geo"></div><div class="rg-geo"></div><div class="rg-geo"></div><div class="rg-geo"></div><div class="rg-geo"></div>
+    <div class="rg-brand-inner">
+      <div class="rg-brand-icon"><i class="bi bi-code-slash"></i></div>
+      <h1>IT Creative</h1>
+      <p>Professional dasturlash kurslari bilan kelajagingizni o'zgartiring</p>
+      <div class="rg-feats">
+        <div class="rg-feat"><div class="rg-feat-ico"><i class="bi bi-play-circle"></i></div><span>Interaktiv video darslar</span></div>
+        <div class="rg-feat"><div class="rg-feat-ico"><i class="bi bi-trophy"></i></div><span>Sertifikatlangan kurslar</span></div>
+        <div class="rg-feat"><div class="rg-feat-ico"><i class="bi bi-people"></i></div><span>Tajribali mentorlar</span></div>
       </div>
     </div>
+  </div>
 
-    {% if messages %}
-      {% for message in messages %}
-        <div class="msg-box {% if 'error' in message.tags %}msg-error{% elif 'success' in message.tags %}msg-success{% else %}msg-info{% endif %}">
-          <i class="bi {% if 'error' in message.tags %}bi-exclamation-circle{% elif 'success' in message.tags %}bi-check-circle{% else %}bi-info-circle{% endif %}"></i>
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    {% endif %}
+  <!-- Right Form Side -->
+  <div class="rg-form-side">
+    <div class="rg-blob rg-blob-1"></div>
+    <div class="rg-blob rg-blob-2"></div>
 
-    {% if form.non_field_errors %}
-      <div class="msg-box msg-error">
-        <i class="bi bi-exclamation-circle"></i>
-        <span>{{ form.non_field_errors.0 }}</span>
-      </div>
-    {% endif %}
-
-    <form method="POST" id="regForm" novalidate>
-      {% csrf_token %}
-      {{ form.role }}
-
-      <div class="step-panel" id="panel1">
-        <div class="step-heading"><i class="bi bi-person"></i> Shaxsiy ma'lumotlar</div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="{{ form.first_name.id_for_label }}">Ism</label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="field">
-            <label for="{{ form.last_name.id_for_label }}">Familiya</label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
-          </div>
-        </div>
-
-        <div class="field">
-          <label for="{{ form.username.id_for_label }}">Username</label>
-          {{ form.username }}
-          {% if form.username.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="field">
-          <label for="{{ form.email.id_for_label }}">Email</label>
-          {{ form.email }}
-          {% if form.email.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="field">
-          <label>Telefon raqam</label>
-          <div class="phone-wrap">
-            <div class="phone-prefix">+998</div>
-            {{ form.phone }}
-          </div>
-          {% if form.phone.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="field">
-          <label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label>
-          {{ form.birth_date }}
-          {% if form.birth_date.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
-        </div>
-
-        <button type="button" class="reg-btn reg-btn-main" style="width:100%" onclick="moveStep(2)">
-          Davom etish <i class="bi bi-arrow-right"></i>
-        </button>
+    <div class="rg-card">
+      <div class="rg-head">
+        <div class="rg-head-logo"><i class="bi bi-code-slash"></i></div>
+        <h2>Ro'yxatdan o'tish</h2>
+        <p>IT Creative platformasiga xush kelibsiz</p>
       </div>
 
-      <div class="step-panel" id="panel2">
-        <div class="step-heading"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
-
-        <div class="field">
-          <label for="{{ form.password1.id_for_label }}">Parol</label>
-          <div class="pw-wrap">
-            {{ form.password1 }}
-            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password1.id_for_label }}', this)"><i class="bi bi-eye"></i></button>
-          </div>
-          {% if form.password1.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
-          <div class="pw-strength">
-            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
-            <span class="strength-label" id="strengthLabel">Parol kuchi: ---</span>
-          </div>
+      <!-- Steps -->
+      <div class="rg-steps">
+        <div class="rg-step-item" id="rsItem1">
+          <div class="rg-step-dot" id="rsDot1">1</div>
+          <span class="rg-step-lbl">Ma'lumotlar</span>
         </div>
-
-        <div class="field">
-          <label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label>
-          <div class="pw-wrap">
-            {{ form.password2 }}
-            <button type="button" class="pw-eye" onclick="togglePw('{{ form.password2.id_for_label }}', this)"><i class="bi bi-eye"></i></button>
-          </div>
-          {% if form.password2.errors %}<div class="field-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
-        </div>
-
-        <div class="btn-row">
-          <button type="button" class="reg-btn reg-btn-back" onclick="moveStep(1)"><i class="bi bi-arrow-left"></i> Orqaga</button>
-          <button type="submit" class="reg-btn reg-btn-submit">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
+        <div class="rg-step-line" id="rsLine1"></div>
+        <div class="rg-step-item" id="rsItem2">
+          <div class="rg-step-dot" id="rsDot2">2</div>
+          <span class="rg-step-lbl">Parol</span>
         </div>
       </div>
-    </form>
 
-    <div class="reg-footer">
-      Akkauntingiz bormi?
-      <a href="{% url 'login' %}">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
+      {% if messages %}
+        {% for message in messages %}
+          <div class="rg-msg {% if 'error' in message.tags %}rg-err{% elif 'success' in message.tags %}rg-ok{% else %}rg-inf{% endif %}">
+            <i class="bi {% if 'error' in message.tags %}bi-exclamation-circle-fill{% elif 'success' in message.tags %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %}"></i>
+            <span>{{ message }}</span>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% if form.non_field_errors %}
+        <div class="rg-msg rg-err"><i class="bi bi-exclamation-circle-fill"></i><span>{{ form.non_field_errors.0 }}</span></div>
+      {% endif %}
+
+      <form method="POST" id="regForm" novalidate>
+        {% csrf_token %}
+        {{ form.role }}
+
+        <!-- Step 1 -->
+        <div class="rg-pnl" id="rgP1">
+          <div class="rg-pnl-head"><i class="bi bi-person-circle"></i> Shaxsiy ma'lumotlar</div>
+          <div class="rg-fr">
+            <div class="rg-fg">
+              <label class="rg-lbl" for="{{ form.first_name.id_for_label }}"><i class="bi bi-person"></i> Ism</label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="rg-fg">
+              <label class="rg-lbl" for="{{ form.last_name.id_for_label }}"><i class="bi bi-person"></i> Familiya</label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+          <div class="rg-fg">
+            <label class="rg-lbl" for="{{ form.username.id_for_label }}"><i class="bi bi-at"></i> Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="rg-fg">
+            <label class="rg-lbl" for="{{ form.email.id_for_label }}"><i class="bi bi-envelope"></i> Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="rg-fg">
+            <label class="rg-lbl"><i class="bi bi-phone"></i> Telefon raqam</label>
+            <div class="rg-ph">
+              <div class="rg-ph-pre">
+                <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14" style="border-radius:3px;object-fit:cover;">
+                +998
+              </div>
+              {{ form.phone }}
+            </div>
+            {% if form.phone.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="rg-fg">
+            <label class="rg-lbl" for="{{ form.birth_date.id_for_label }}"><i class="bi bi-calendar-event"></i> Tug'ilgan kun</label>
+            {{ form.birth_date }}
+            {% if form.birth_date.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
+          </div>
+          <button type="button" class="rg-btn rg-btn-next" style="width:100%" onclick="rgGo(2)">
+            Davom etish <i class="bi bi-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="rg-pnl" id="rgP2">
+          <div class="rg-pnl-head"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
+          <div class="rg-fg">
+            <label class="rg-lbl" for="{{ form.password1.id_for_label }}"><i class="bi bi-lock"></i> Parol</label>
+            <div class="rg-pw">
+              {{ form.password1 }}
+              <button type="button" class="rg-pw-eye" onclick="rgTogglePw('{{ form.password1.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if form.password1.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
+            <div class="rg-str">
+              <div class="rg-str-bar"><div class="rg-str-fill" id="rgStrFill"></div></div>
+              <span class="rg-str-txt" id="rgStrTxt">Parol kuchi: ---</span>
+            </div>
+          </div>
+          <div class="rg-fg">
+            <label class="rg-lbl" for="{{ form.password2.id_for_label }}"><i class="bi bi-lock-fill"></i> Parolni tasdiqlang</label>
+            <div class="rg-pw">
+              {{ form.password2 }}
+              <button type="button" class="rg-pw-eye" onclick="rgTogglePw('{{ form.password2.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
+            </div>
+            {% if form.password2.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="rg-btns">
+            <button type="button" class="rg-btn rg-btn-back" onclick="rgGo(1)"><i class="bi bi-arrow-left"></i></button>
+            <button type="submit" class="rg-btn rg-btn-submit">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
+          </div>
+        </div>
+      </form>
+
+      <div class="rg-foot">
+        Akkauntingiz bormi?
+        <a href="{% url 'login' %}">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
+      </div>
     </div>
   </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-  (function() {
-    var bg = document.getElementById('codeBg');
-    var snippets = [
-      'def hello():\n  print("salom")',
-      'for i in range(10):\n  sum += i',
-      'class User:\n  name = ""',
-      'if score >= 60:\n  pass_test()',
-      'import django\nfrom views',
-      'let x = 42;\nconst y = x;',
-      'function init() {\n  return true;\n}',
-      'SELECT *\nFROM users\nWHERE id=1;',
-      'while True:\n  learn()',
-      'try:\n  code()\nexcept:\n  debug()',
-      '.container {\n  display: flex;\n}',
-      'model.fit(\n  X, y)',
-    ];
-    var colCount = Math.floor(window.innerWidth / 120);
-    for (var i = 0; i < colCount; i++) {
-      var col = document.createElement('div');
-      col.className = 'code-col';
-      col.style.left = (i * (100 / colCount)) + '%';
-      col.style.animationDuration = (18 + Math.random() * 20) + 's';
-      col.style.animationDelay = (-Math.random() * 30) + 's';
-      col.textContent = snippets[Math.floor(Math.random() * snippets.length)];
-      bg.appendChild(col);
-    }
-  })();
+(function(){
+  var INIT=1;
+  {% if form.password1.errors or form.password2.errors %}INIT=2;{% endif %}
 
-  var INIT_STEP = 1;
-  {% if form.password1.errors or form.password2.errors %}
-    INIT_STEP = 2;
-  {% elif form.first_name.errors or form.last_name.errors or form.username.errors or form.email.errors or form.phone.errors or form.birth_date.errors %}
-    INIT_STEP = 1;
-  {% endif %}
-
-  document.querySelectorAll('.step-panel input:not([type="hidden"]), .step-panel select').forEach(function(el) {
-    var fieldEl = el.closest('.field');
-    if (fieldEl && fieldEl.querySelector('.field-err')) {
-      el.classList.add('has-error');
-    }
+  document.querySelectorAll('.rg-pnl input:not([type="hidden"]),.rg-pnl select').forEach(function(el){
+    var g=el.closest('.rg-fg');
+    if(g&&g.querySelector('.rg-ferr'))el.classList.add('has-err');
   });
 
-  var TOTAL_STEPS = 2;
-  var currentStep = 0;
-
-  function showStep(n) {
-    document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('is-active'); });
-    for (var i = 1; i <= TOTAL_STEPS; i++) {
-      var dot = document.getElementById('dot' + i);
-      var item = document.getElementById('stepItem' + i);
-      dot.classList.remove('is-active', 'is-done');
-      item.classList.remove('active', 'done');
-      dot.textContent = i;
-    }
-    document.getElementById('conn1').classList.remove('is-done');
-
-    for (var k = 1; k < n; k++) {
-      var d = document.getElementById('dot' + k);
-      var si = document.getElementById('stepItem' + k);
-      d.classList.add('is-done');
-      si.classList.add('done');
-      d.innerHTML = '<i class="bi bi-check-lg" style="font-size:13px"></i>';
-      if (k === 1) document.getElementById('conn1').classList.add('is-done');
-    }
-
-    document.getElementById('dot' + n).classList.add('is-active');
-    document.getElementById('stepItem' + n).classList.add('active');
-    document.getElementById('panel' + n).classList.add('is-active');
-    currentStep = n;
+  function showStep(n){
+    document.querySelectorAll('.rg-pnl').forEach(function(p){p.classList.remove('active')});
+    var d1=document.getElementById('rsDot1'),d2=document.getElementById('rsDot2');
+    var i1=document.getElementById('rsItem1'),i2=document.getElementById('rsItem2');
+    var ln=document.getElementById('rsLine1');
+    d1.classList.remove('active','done');d2.classList.remove('active','done');
+    i1.classList.remove('active','done');i2.classList.remove('active','done');
+    ln.classList.remove('done');
+    d1.textContent='1';d2.textContent='2';
+    if(n===1){d1.classList.add('active');i1.classList.add('active');}
+    else{d1.classList.add('done');i1.classList.add('done');d1.innerHTML='<i class="bi bi-check-lg" style="font-size:0.85rem"></i>';ln.classList.add('done');d2.classList.add('active');i2.classList.add('active');}
+    document.getElementById('rgP'+n).classList.add('active');
   }
 
-  function moveStep(n) {
-    showStep(n);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  window.rgGo=function(n){showStep(n);window.scrollTo({top:0,behavior:'smooth'})};
+  showStep(INIT);
 
-  showStep(INIT_STEP);
+  window.rgTogglePw=function(id,btn){
+    var inp=document.getElementById(id);if(!inp)return;
+    var isPw=inp.type==='password';inp.type=isPw?'text':'password';
+    var ico=btn.querySelector('i');if(ico)ico.className=isPw?'bi bi-eye-slash':'bi bi-eye';
+  };
 
-  function togglePw(inputId, btn) {
-    var input = document.getElementById(inputId);
-    if (!input) return;
-    var isPassword = input.type === 'password';
-    input.type = isPassword ? 'text' : 'password';
-    var icon = btn.querySelector('i');
-    if (icon) { icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye'; }
-  }
-
-  var pwInput = document.getElementById('{{ form.password1.id_for_label }}');
-  if (pwInput) {
-    pwInput.addEventListener('input', function() {
-      var v = this.value;
-      var score = 0;
-      if (v.length >= 8) score++;
-      if (v.length >= 12) score++;
-      if (/[A-Z]/.test(v)) score++;
-      if (/[0-9]/.test(v)) score++;
-      if (/[^A-Za-z0-9]/.test(v)) score++;
-
-      var levels = [
-        { label: '---',         color: 'rgba(148,163,184,0.15)', width: '0%'   },
-        { label: 'Juda zaif',   color: '#ef4444',                width: '20%'  },
-        { label: 'Zaif',        color: '#f97316',                width: '40%'  },
-        { label: "O'rtacha",    color: '#eab308',                width: '60%'  },
-        { label: 'Yaxshi',      color: '#22c55e',                width: '80%'  },
-        { label: "A'lo",        color: '#16a34a',                width: '100%' },
+  var pw=document.getElementById('{{ form.password1.id_for_label }}');
+  if(pw){
+    pw.addEventListener('input',function(){
+      var v=this.value,s=0;
+      if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+      var lvls=[
+        {t:'---',c:'rgba(148,163,184,0.15)',w:'0%'},
+        {t:'Juda zaif',c:'#ef4444',w:'20%'},
+        {t:'Zaif',c:'#f97316',w:'40%'},
+        {t:"O'rtacha",c:'#eab308',w:'60%'},
+        {t:'Yaxshi',c:'#22c55e',w:'80%'},
+        {t:"A'lo",c:'#16a34a',w:'100%'}
       ];
-      var l = levels[Math.min(score, 5)];
-      var fill  = document.getElementById('strengthFill');
-      var label = document.getElementById('strengthLabel');
-      fill.style.width      = l.width;
-      fill.style.background = l.color;
-      label.textContent     = 'Parol kuchi: ' + l.label;
-      label.style.color     = l.color;
+      var l=lvls[Math.min(s,5)];
+      var fill=document.getElementById('rgStrFill'),txt=document.getElementById('rgStrTxt');
+      fill.style.width=l.w;fill.style.background=l.c;
+      txt.textContent='Parol kuchi: '+l.t;txt.style.color=l.c;
     });
   }
+})();
 </script>
 {% endblock %}
