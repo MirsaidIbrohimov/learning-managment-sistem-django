@@ -1546,6 +1546,215 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) showW
 window.addEventListener('blur', () => { document.getElementById('watermark').classList.add('active'); showWarning("Oynadan chiqish!"); });
 window.addEventListener('focus', () => setTimeout(() => document.getElementById('watermark').classList.remove('active'), 1000));
 
+// ==================== ANTI-CHEAT: Console va DOM himoyasi ====================
+(function() {
+    // Asl DOM metodlarini saqlab olish (ichki kodda ishlatish uchun)
+    var _origQSA = Document.prototype.querySelectorAll.bind(document);
+    var _origQS = Document.prototype.querySelector.bind(document);
+    var _origElQSA = Element.prototype.querySelectorAll;
+    var _origElQS = Element.prototype.querySelector;
+
+    // 1. Console metodlarini bloklash - console.log orqali ma'lumot chiqarib bo'lmaydi
+    var _noop = function() { return undefined; };
+    var _consoleMethods = ['log','warn','error','info','debug','table','dir','dirxml',
+        'trace','group','groupCollapsed','groupEnd','clear','count','countReset',
+        'assert','profile','profileEnd','time','timeLog','timeEnd','timeStamp'];
+    _consoleMethods.forEach(function(method) {
+        try {
+            Object.defineProperty(console, method, {
+                value: _noop,
+                writable: false,
+                configurable: false
+            });
+        } catch(e) {}
+    });
+    try {
+        Object.defineProperty(window, 'console', {
+            value: console,
+            writable: false,
+            configurable: false
+        });
+    } catch(e) {}
+
+    // 2. getSelection bloklash - tanlangan matnni olish mumkin emas
+    try {
+        Document.prototype.getSelection = function() { return null; };
+        window.getSelection = function() {
+            return {
+                toString: function() { return ''; },
+                anchorNode: null, focusNode: null,
+                rangeCount: 0,
+                getRangeAt: function() { return null; },
+                removeAllRanges: function() {},
+                addRange: function() {},
+                collapse: function() {},
+                collapseToStart: function() {},
+                collapseToEnd: function() {},
+                extend: function() {},
+                selectAllChildren: function() {},
+                deleteFromDocument: function() {},
+                containsNode: function() { return false; },
+                type: 'None',
+                isCollapsed: true
+            };
+        };
+    } catch(e) {}
+
+    // 3. DOM matn olish metodlarini himoyalash (savol va javob elementlarida)
+    function _protectElements() {
+        var selectors = ['.q-text', '.option-text', '.question-card', '.question-options'];
+        selectors.forEach(function(sel) {
+            _origQSA(sel).forEach(function(el) {
+                try {
+                    Object.defineProperty(el, 'innerText', {
+                        get: function() { return ''; },
+                        configurable: false
+                    });
+                    Object.defineProperty(el, 'textContent', {
+                        get: function() { return ''; },
+                        configurable: false
+                    });
+                    Object.defineProperty(el, 'innerHTML', {
+                        get: function() { return ''; },
+                        set: function() {},
+                        configurable: false
+                    });
+                    Object.defineProperty(el, 'outerHTML', {
+                        get: function() { return '<div></div>'; },
+                        configurable: false
+                    });
+                    Object.defineProperty(el, 'outerText', {
+                        get: function() { return ''; },
+                        configurable: false
+                    });
+                } catch(e) {}
+            });
+        });
+    }
+    _protectElements();
+    setTimeout(_protectElements, 500);
+    setTimeout(_protectElements, 2000);
+
+    // 4. document.body.innerText / document.body.textContent himoyasi
+    try {
+        Object.defineProperty(document.body, 'innerText', {
+            get: function() { return ''; },
+            configurable: false
+        });
+        Object.defineProperty(document.body, 'textContent', {
+            get: function() { return ''; },
+            configurable: false
+        });
+    } catch(e) {}
+
+    // 5. querySelectorAll / querySelector himoyasi - savollarni tanlash imkonsiz
+    var _blockedSelectors = ['.q-text', '.option-text', '.question-card',
+        '.question-options', '.question-top', '.question-image-box'];
+
+    function _isSelectorBlocked(sel) {
+        if (!sel || typeof sel !== 'string') return false;
+        var s = sel.toLowerCase();
+        for (var i = 0; i < _blockedSelectors.length; i++) {
+            if (s.indexOf(_blockedSelectors[i]) !== -1) return true;
+        }
+        return false;
+    }
+
+    Document.prototype.querySelectorAll = function(sel) {
+        if (_isSelectorBlocked(sel)) {
+            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
+            return _origQSA('.__blocked_empty__');
+        }
+        return _origQSA(sel);
+    };
+    Document.prototype.querySelector = function(sel) {
+        if (_isSelectorBlocked(sel)) {
+            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
+            return null;
+        }
+        return _origQS(sel);
+    };
+    Element.prototype.querySelectorAll = function(sel) {
+        if (_isSelectorBlocked(sel)) {
+            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
+            return _origElQSA.call(this, '.__blocked_empty__');
+        }
+        return _origElQSA.call(this, sel);
+    };
+    Element.prototype.querySelector = function(sel) {
+        if (_isSelectorBlocked(sel)) {
+            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
+            return null;
+        }
+        return _origElQS.call(this, sel);
+    };
+
+    // 6. DevTools ochilishini aniqlash (o'lcham usuli)
+    var _devtoolsOpen = false;
+    var _dtCheck = setInterval(function() {
+        var widthThreshold = window.outerWidth - window.innerWidth > 160;
+        var heightThreshold = window.outerHeight - window.innerHeight > 160;
+        if (widthThreshold || heightThreshold) {
+            if (!_devtoolsOpen) {
+                _devtoolsOpen = true;
+                showWarning("DevTools aniqlandi! Test yakunlanadi!");
+                document.getElementById('testPage').style.filter = 'blur(20px)';
+            }
+        } else {
+            if (_devtoolsOpen) {
+                _devtoolsOpen = false;
+                document.getElementById('testPage').style.filter = 'none';
+            }
+        }
+    }, 1000);
+
+    // 7. Debugger trap - DevTools ochilganda to'xtash
+    (function _debuggerLoop() {
+        setTimeout(function() {
+            var start = performance.now();
+            debugger;
+            if (performance.now() - start > 100) {
+                document.getElementById('testPage').style.filter = 'blur(20px)';
+                showWarning("Debugger aniqlandi!");
+            }
+            _debuggerLoop();
+        }, 3000);
+    })();
+
+    // 8. fetch orqali sahifa kontentini tashqariga yuborishni bloklash
+    var _origFetch = window.fetch;
+    window.fetch = function(url) {
+        if (typeof url === 'string' && !url.startsWith(window.location.origin) && url.indexOf('/') !== 0) {
+            showWarning("Tashqi so'rov taqiqlangan!");
+            return Promise.reject(new Error('Blocked'));
+        }
+        return _origFetch.apply(this, arguments);
+    };
+    try {
+        Object.defineProperty(window, 'fetch', {
+            value: window.fetch,
+            writable: false,
+            configurable: false
+        });
+    } catch(e) {}
+
+    // 9. document.createElement bilan textarea/input orqali nusxa olishni bloklash
+    var _origCreateElement = document.createElement.bind(document);
+    document.createElement = function(tag) {
+        var t = tag.toLowerCase();
+        if (t === 'textarea' || t === 'input') {
+            var el = _origCreateElement(t);
+            Object.defineProperty(el, 'value', {
+                get: function() { return ''; },
+                set: function() {},
+                configurable: false
+            });
+            return el;
+        }
+        return _origCreateElement(tag);
+    };
+})();
+
 // setInterval/setTimeout ni qayta yozishga qarshi himoya
 (function() {
     var _origSetTimeout = window.setTimeout;

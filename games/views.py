@@ -1372,6 +1372,29 @@ def word_game_check(request, slug):
     word_round = get_object_or_404(WordRound, pk=round_id, game=game)
 
     if elapsed > word_round.time_limit + 5:
+        # Sessiyani avtomatik tugatish
+        if not game_session.get('used'):
+            game_session['used'] = True
+            request.session[session_key] = game_session
+            request.session.modified = True
+            found_words = game_session.get('found_words', [])
+            total_score = sum(len(w) ** 2 for w in found_words)
+            competition = None
+            comp_id = game_session.get('competition_id')
+            if comp_id:
+                try:
+                    competition = Competition.objects.get(pk=comp_id, game=game)
+                except Competition.DoesNotExist:
+                    pass
+            WordGameAttempt.objects.create(
+                user=request.user,
+                game=game,
+                word_round=word_round,
+                competition=competition,
+                found_words=found_words,
+                total_score=total_score,
+                time_spent=round(min(elapsed, word_round.time_limit + 5), 2),
+            )
         return JsonResponse({'error': "Vaqt tugadi!", 'time_up': True}, status=400)
 
     if not word or len(word) < 3:

@@ -1100,31 +1100,84 @@
     'use strict';
 
     // ===== Config =====
-    const letters = JSON.parse('{{ letters|escapejs }}');
-    const gameToken = '{{ game_token }}';
-    const timeLimit = {{ time_limit }};
-    const totalWords = {{ total_words }};
-    const isCompetition = {{ competition|yesno:"true,false" }};
-    const checkUrl = '{% url "games:word_game_check" game.slug %}';
-    const submitUrl = '{% url "games:word_game_submit" game.slug %}';
-    const suggestUrl = '{% url "games:word_game_suggest" game.slug %}';
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var _letters = JSON.parse('{{ letters|escapejs }}');
+    var _gameToken = '{{ game_token }}';
+    var _timeLimit = {{ time_limit }};
+    var _totalWords = {{ total_words }};
+    var _isCompetition = {{ competition|yesno:"true,false" }};
+    var _checkUrl = '{% url "games:word_game_check" game.slug %}';
+    var _submitUrl = '{% url "games:word_game_submit" game.slug %}';
+    var _suggestUrl = '{% url "games:word_game_suggest" game.slug %}';
+    var _csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
-    // ===== State =====
-    let selectedIndices = [];
-    let foundWords = [];
-    let totalScore = 0;
-    let timeLeft = timeLimit;
-    let timerInterval = null;
-    let gameEnded = false;
-    let tabSwitchCount = 0;
-    let checking = false;
+    // ===== Server-side time authority =====
+    // Asl funksiyalarni himoyalash (console orqali o'zgartirib bo'lmaydi)
+    var _origDateNow = Date.now;
+    var _origPerfNow = (window.performance && window.performance.now) ? window.performance.now.bind(window.performance) : null;
+    var _serverStartTime = _origDateNow.call(Date);
+    var _perfStartTime = _origPerfNow ? _origPerfNow() : null;
+    var _frozenTimeLimit = _timeLimit;
+
+    // Xavfsiz vaqt hisoblash - performance.now yoki Date.now dan foydalanadi
+    function getServerElapsed() {
+        if (_origPerfNow && _perfStartTime !== null) {
+            return (_origPerfNow() - _perfStartTime) / 1000;
+        }
+        return (_origDateNow.call(Date) - _serverStartTime) / 1000;
+    }
+    function getTimeLeft() {
+        return Math.max(0, _frozenTimeLimit - Math.floor(getServerElapsed()));
+    }
+
+    // ===== Tamper Detection =====
+    // setInterval/clearInterval himoyasi
+    var _originalSetInterval = window.setInterval.bind(window);
+    var _originalClearInterval = window.clearInterval.bind(window);
+
+    // ===== State (closure ichida himoyalangan) =====
+    var _state = {
+        selectedIndices: [],
+        foundWords: [],
+        totalScore: 0,
+        timerInterval: null,
+        gameEnded: false,
+        tabSwitchCount: 0,
+        checking: false,
+        lastKeyTime: 0,
+        suspiciousCount: 0
+    };
+
+    // Tashqi kod uchun o'qish mumkin bo'lgan alias
+    var letters = _letters;
+    var gameToken = _gameToken;
+    var timeLimit = _frozenTimeLimit;
+    var totalWords = _totalWords;
+    var isCompetition = _isCompetition;
+    var checkUrl = _checkUrl;
+    var submitUrl = _submitUrl;
+    var suggestUrl = _suggestUrl;
+    var csrfToken = _csrfToken;
+    var selectedIndices = _state.selectedIndices;
+    var foundWords = _state.foundWords;
+    var totalScore = _state.totalScore;
+    var timerInterval = _state.timerInterval;
+    var gameEnded = _state.gameEnded;
+    var tabSwitchCount = _state.tabSwitchCount;
+    var checking = _state.checking;
 
     // ===== Anti-Cheat: Keystroke Validation =====
-    let lastKeyTime = 0;
-    let suspiciousCount = 0;
-    const MIN_KEY_INTERVAL = 25; // ms - minimum humanly possible interval
-    const MAX_SUSPICIOUS = 15; // max suspicious actions before penalty
+    var lastKeyTime = 0;
+    var suspiciousCount = 0;
+    var MIN_KEY_INTERVAL = 25; // ms - minimum humanly possible interval
+    var MAX_SUSPICIOUS = 15; // max suspicious actions before penalty
+
+    // ===== Anti-Cheat: Timer tamper detection =====
+    var _integrityCheckInterval = _originalSetInterval.call(window, function() {
+        var elapsed = getServerElapsed();
+        if (elapsed >= _frozenTimeLimit + 3 && !gameEnded) {
+            endGame();
+        }
+    }, 2000);
 
     function isHumanInput(e) {
         if (!e.isTrusted) {
@@ -1248,6 +1301,12 @@
     // ===== Check Word =====
     function checkWord() {
         if (gameEnded || checking || selectedIndices.length < 3) return;
+
+        // Vaqt tugaganligini tekshirish (server vaqti bo'yicha)
+        if (getTimeLeft() <= 0) {
+            endGame();
+            return;
+        }
 
         var word = selectedIndices.map(function(i) { return letters[i]; }).join('');
         var submittedWord = word;
@@ -1415,20 +1474,20 @@
         foundWordsList.scrollTop = foundWordsList.scrollHeight;
     }
 
-    // ===== Timer =====
+    // ===== Timer (server vaqtiga asoslangan - buzilmaydigan) =====
     function startTimer() {
-        timerInterval = setInterval(function() {
-            timeLeft--;
-            var min = Math.floor(timeLeft / 60);
-            var sec = timeLeft % 60;
+        timerInterval = _originalSetInterval.call(window, function() {
+            var tl = getTimeLeft();
+            var min = Math.floor(tl / 60);
+            var sec = tl % 60;
             timerEl.textContent = (min > 0 ? min + ':' : '') + (min > 0 && sec < 10 ? '0' : '') + sec + 's';
 
-            if (timeLeft <= 10) {
+            if (tl <= 10) {
                 timerEl.classList.add('timer-danger');
             }
 
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
+            if (tl <= 0) {
+                _originalClearInterval.call(window, timerInterval);
                 endGame();
             }
         }, 1000);
@@ -1438,7 +1497,8 @@
     function endGame() {
         if (gameEnded) return;
         gameEnded = true;
-        clearInterval(timerInterval);
+        _originalClearInterval.call(window, timerInterval);
+        _originalClearInterval.call(window, _integrityCheckInterval);
 
         checkBtn.disabled = true;
         clearBtn.style.pointerEvents = 'none';
@@ -1472,7 +1532,7 @@
                 total_score: totalScore,
                 found_count: foundWords.length,
                 total_words: totalWords,
-                time_spent: timeLimit - timeLeft,
+                time_spent: Math.floor(getServerElapsed()),
                 max_score: 0
             });
         });
@@ -1531,6 +1591,12 @@
         }
         if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) { e.preventDefault(); return; }
     });
+
+    // ===== Anti-Cheat: Protect timer functions from console override =====
+    try {
+        Object.defineProperty(window, 'setInterval', { value: _originalSetInterval, writable: false, configurable: false });
+        Object.defineProperty(window, 'clearInterval', { value: _originalClearInterval, writable: false, configurable: false });
+    } catch(e) {}
 
     // ===== Anti-Cheat: Block programmatic dispatchEvent =====
     (function() {
