@@ -14,6 +14,7 @@ class Profession(models.Model):
     is_mandatory = models.BooleanField(default=False, verbose_name="Majburiy kurs")
     is_blocked = models.BooleanField(default=False, verbose_name="Vaqtincha bloklangan")
     blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
+    closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

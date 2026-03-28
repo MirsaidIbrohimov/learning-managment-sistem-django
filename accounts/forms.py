@@ -133,10 +133,15 @@ class ProfessionForm(forms.ModelForm):
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label="Majburiy kurs (barcha o'quvchilar uchun)"
     )
+    closed_group_link = forms.URLField(
+        required=False,
+        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://t.me/+... yoki boshqa havola'}),
+        label="Yopiq guruh havolasi"
+    )
 
     class Meta:
         model = Profession
-        fields = ['name', 'photo', 'description', 'is_paid', 'is_mandatory']
+        fields = ['name', 'photo', 'description', 'is_paid', 'is_mandatory', 'closed_group_link']
 
 
 class UserProfileForm(forms.ModelForm):
