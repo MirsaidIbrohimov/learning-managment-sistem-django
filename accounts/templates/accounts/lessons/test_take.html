@@ -5,7 +5,7 @@
 
 {% block extra_css %}
 <style>
-/* ==================== ANTI-CHEAT ==================== */
+/* ==================== ANTI-CHEAT: Asosiy ko'rinish ==================== */
 * {
     -webkit-user-select: none !important;
     -moz-user-select: none !important;
@@ -142,9 +142,7 @@
     font-size: 1.1rem;
 }
 
-.timer-box .timer-text {
-    text-align: center;
-}
+.timer-box .timer-text { text-align: center; }
 
 .timer-box .timer-label {
     font-size: 0.65rem;
@@ -221,9 +219,7 @@
     color: var(--test-text);
 }
 
-.fixed-timer-bar.warning .fixed-timer-value {
-    color: var(--test-danger);
-}
+.fixed-timer-bar.warning .fixed-timer-value { color: var(--test-danger); }
 
 .fixed-timer-label {
     font-size: 0.65rem;
@@ -281,9 +277,7 @@
     margin-top: 0.375rem;
 }
 
-.progress-info strong {
-    color: var(--test-text);
-}
+.progress-info strong { color: var(--test-text); }
 
 /* ==================== QUESTION NAV ==================== */
 .question-nav-strip {
@@ -307,7 +301,7 @@
     gap: 0.5rem;
 }
 
-.nav-pills {
+.nav-pills-wrap {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -357,13 +351,8 @@
     transition: all 0.3s ease;
 }
 
-.question-card:hover {
-    box-shadow: 0 8px 24px var(--test-shadow);
-}
-
-.question-card.answered {
-    border-color: var(--test-success);
-}
+.question-card:hover { box-shadow: 0 8px 24px var(--test-shadow); }
+.question-card.answered { border-color: var(--test-success); }
 
 .question-top {
     display: flex;
@@ -415,9 +404,7 @@
     box-shadow: 0 4px 16px var(--test-shadow);
 }
 
-.question-options {
-    padding: 1.25rem;
-}
+.question-options { padding: 1.25rem; }
 
 /* ==================== ANSWER OPTION ==================== */
 .option-item {
@@ -431,11 +418,10 @@
     margin-bottom: 0.625rem;
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
-.option-item:last-child {
-    margin-bottom: 0;
-}
+.option-item:last-child { margin-bottom: 0; }
 
 .option-item:hover {
     border-color: var(--test-primary-light);
@@ -443,16 +429,18 @@
     transform: translateX(4px);
 }
 
-[data-bs-theme="dark"] .option-item {
-    background: rgba(0,0,0,0.2);
-}
+[data-bs-theme="dark"] .option-item { background: rgba(0,0,0,0.2); }
+[data-bs-theme="dark"] .option-item:hover { background: rgba(129,140,248,0.12); }
 
-[data-bs-theme="dark"] .option-item:hover {
-    background: rgba(129,140,248,0.12);
-}
-
-.option-item input {
-    display: none;
+/* Radio input - ko'rinmaydi lekin ishlaydi */
+.option-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
 }
 
 .option-check {
@@ -478,9 +466,7 @@
     border-color: var(--test-primary);
 }
 
-.option-item.selected .option-check i {
-    color: #fff;
-}
+.option-item.selected .option-check i { color: #fff; }
 
 .option-letter {
     width: 34px;
@@ -503,9 +489,7 @@
     background: rgba(99,102,241,0.1);
 }
 
-[data-bs-theme="dark"] .option-item.selected {
-    background: rgba(129,140,248,0.15);
-}
+[data-bs-theme="dark"] .option-item.selected { background: rgba(129,140,248,0.15); }
 
 .option-item.selected .option-letter {
     background: var(--test-primary);
@@ -576,89 +560,6 @@
     box-shadow: 0 10px 28px rgba(34,197,94,0.4);
 }
 
-/* ==================== MOBILE TIMER ==================== */
-.mobile-timer {
-    display: none;
-}
-
-.mobile-timer-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.mobile-timer-left {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.mobile-timer-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.25rem;
-}
-
-.mobile-timer.warning .mobile-timer-icon {
-    background: linear-gradient(135deg, var(--test-danger) 0%, #dc2626 100%);
-    animation: shake 0.5s infinite;
-}
-
-@keyframes shake {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-3deg); }
-    75% { transform: rotate(3deg); }
-}
-
-.mobile-timer-value {
-    font-size: 1.75rem;
-    font-weight: 800;
-    font-family: 'SF Mono', monospace;
-    color: var(--test-text);
-}
-
-.mobile-timer.warning .mobile-timer-value {
-    color: var(--test-danger);
-}
-
-.mobile-timer-label {
-    font-size: 0.7rem;
-    color: var(--test-text-muted);
-}
-
-.mobile-progress {
-    flex: 1;
-    max-width: 120px;
-}
-
-.mobile-progress-bar {
-    height: 8px;
-    background: var(--test-border);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.mobile-progress-fill {
-    height: 100%;
-    background: var(--test-success);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.mobile-progress-text {
-    font-size: 0.7rem;
-    color: var(--test-text-muted);
-    text-align: center;
-    margin-top: 0.25rem;
-}
-
 /* ==================== WARNING MODAL ==================== */
 .warning-overlay {
     position: fixed;
@@ -687,6 +588,7 @@
     position: relative;
     overflow: hidden;
 }
+
 .warning-modal::before {
     content: '';
     position: absolute;
@@ -709,7 +611,7 @@
 }
 @keyframes warnIconPulse {
     0%, 100% { transform: scale(1); }
-    50%      { transform: scale(1.1); }
+    50%       { transform: scale(1.1); }
 }
 @keyframes warnRing {
     0%   { transform: scale(1); opacity: .3; }
@@ -719,6 +621,15 @@
     0%   { transform: scale(0); }
     60%  { transform: scale(1.3); }
     100% { transform: scale(1); }
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+}
+@keyframes pulse-danger {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
 }
 
 .warning-modal-icon {
@@ -732,6 +643,7 @@
     margin: 0 auto 1.25rem;
     position: relative;
 }
+
 .warning-modal-icon::after {
     content: '';
     position: absolute;
@@ -740,6 +652,7 @@
     border: 2px solid rgba(239,68,68,.15);
     animation: warnRing 2s ease-out infinite;
 }
+
 .warning-modal-icon i {
     font-size: 2.25rem;
     color: var(--test-danger);
@@ -760,7 +673,6 @@
     font-size: .95rem;
 }
 
-/* Warning counter */
 .warn-counter {
     display: flex;
     align-items: center;
@@ -768,6 +680,7 @@
     gap: .5rem;
     margin-bottom: 1.5rem;
 }
+
 .warn-dot {
     width: 14px;
     height: 14px;
@@ -776,23 +689,23 @@
     background: transparent;
     transition: all .3s;
 }
+
 .warn-dot.used {
     background: var(--test-danger);
     border-color: var(--test-danger);
     box-shadow: 0 0 8px rgba(239,68,68,.4);
     animation: warnCountPop .4s ease;
 }
+
 .warn-counter-text {
     font-size: .82rem;
     font-weight: 700;
     color: var(--test-text-muted);
     margin-left: .4rem;
 }
-.warn-counter-text strong {
-    color: var(--test-danger);
-}
 
-/* Warning danger zone */
+.warn-counter-text strong { color: var(--test-danger); }
+
 .warn-danger-box {
     display: none;
     align-items: center;
@@ -805,8 +718,8 @@
     font-size: .82rem;
     font-weight: 600;
     color: var(--test-danger);
-    animation: warnCountPop .3s ease;
 }
+
 .warn-danger-box.show { display: flex; }
 .warn-danger-box i { font-size: 1.1rem; }
 
@@ -822,12 +735,10 @@
     transition: all .3s;
     box-shadow: 0 6px 20px rgba(239,68,68,.25);
 }
+
 .warning-modal button:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 28px rgba(239,68,68,.35);
-}
-.warning-modal button:active {
-    transform: translateY(0);
 }
 
 /* ==================== WATERMARK ==================== */
@@ -838,11 +749,10 @@
     z-index: 9998;
     opacity: 0;
     transition: opacity 0.3s ease;
+    overflow: hidden;
 }
 
-.watermark.active {
-    opacity: 1;
-}
+.watermark.active { opacity: 1; }
 
 .watermark-text {
     position: absolute;
@@ -855,311 +765,71 @@
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 991px) {
-    .header-content {
-        flex-wrap: nowrap;
-    }
-    
-    .test-info h1 {
-        max-width: 200px;
-        font-size: 1rem;
-    }
-    
-    .timer-box {
-        padding: 0.5rem 1rem;
-    }
-    
-    .timer-box .timer-icon {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .timer-box .timer-value {
-        font-size: 1.25rem;
-    }
-    
-    .timer-box .timer-label {
-        display: none;
-    }
+    .test-info h1 { max-width: 200px; font-size: 1rem; }
+    .timer-box { padding: 0.5rem 1rem; }
+    .timer-box .timer-icon { width: 32px; height: 32px; }
+    .timer-box .timer-value { font-size: 1.25rem; }
+    .timer-box .timer-label { display: none; }
 }
 
 @media (max-width: 767px) {
-    .test-container {
-        padding-bottom: 100px;
-    }
-    
-    .test-sticky-header .timer-box {
-        display: none;
-    }
-    
-    .mobile-timer {
-        display: block;
-    }
-    
-    .test-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        font-size: 1rem;
-    }
-    
-    .test-info h1 {
-        font-size: 0.95rem;
-        max-width: 180px;
-    }
-    
-    .test-info p {
-        display: none;
-    }
-    
-    .question-nav-strip {
-        padding: 0.75rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
-    }
-    
-    .nav-pills {
-        gap: 0.375rem;
-    }
-    
-    .nav-pill {
-        width: 34px;
-        height: 34px;
-        font-size: 0.8rem;
-        border-radius: 10px;
-    }
-    
-    .question-card {
-        border-radius: 14px;
-        margin-bottom: 1rem;
-        border-width: 1.5px;
-    }
-    
-    .question-top {
-        padding: 0.875rem;
-        gap: 0.625rem;
-    }
-    
-    .q-number {
-        width: 36px;
-        height: 36px;
-        font-size: 0.9rem;
-        border-radius: 10px;
-    }
-    
-    .q-text {
-        font-size: 0.95rem;
-        line-height: 1.55;
-    }
-    
-    .question-image-box {
-        padding: 0.75rem;
-    }
-    
-    .question-image-box img {
-        max-height: 200px;
-        border-radius: 10px;
-    }
-    
-    .question-options {
-        padding: 0.75rem;
-    }
-    
-    .option-item {
-        padding: 0.75rem;
-        gap: 0.625rem;
-        border-radius: 12px;
-        margin-bottom: 0.5rem;
-    }
-    
-    .option-check {
-        width: 22px;
-        height: 22px;
-    }
-    
-    .option-letter {
-        width: 28px;
-        height: 28px;
-        font-size: 0.78rem;
-        border-radius: 8px;
-    }
-    
-    .option-text {
-        font-size: 0.9rem;
-        line-height: 1.45;
-        word-break: break-word;
-    }
-    
-    .submit-card {
-        padding: 1.25rem;
-        border-radius: 14px;
-        margin-top: 1rem;
-    }
-    
-    .submit-icon {
-        width: 56px;
-        height: 56px;
-        font-size: 1.5rem;
-    }
-    
-    .submit-card h4 {
-        font-size: 1.1rem;
-    }
-    
-    .submit-card p {
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-    
-    .submit-btn {
-        width: 100%;
-        justify-content: center;
-        padding: 0.875rem 1.5rem;
-        font-size: 1rem;
-        border-radius: 12px;
-    }
-    
-    .warning-modal {
-        padding: 2rem 1.25rem 1.5rem;
-        border-radius: 22px;
-        margin: 0 0.5rem;
-    }
-    
-    .warning-modal-icon {
-        width: 64px;
-        height: 64px;
-    }
-    
-    .warning-modal-icon i {
-        font-size: 1.75rem;
-    }
-    
-    .warning-modal h3 {
-        font-size: 1.15rem;
-    }
-    
-    .warning-modal p {
-        font-size: 0.88rem;
-    }
-    
-    .warning-modal button {
-        padding: .75rem 2rem;
-        font-size: .9rem;
-    }
+    .test-container { padding-bottom: 100px; }
+    .test-sticky-header .timer-box { display: none; }
+    .test-icon { width: 40px; height: 40px; border-radius: 10px; font-size: 1rem; }
+    .test-info h1 { font-size: 0.95rem; max-width: 180px; }
+    .test-info p { display: none; }
+    .question-nav-strip { padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; }
+    .nav-pills-wrap { gap: 0.375rem; }
+    .nav-pill { width: 34px; height: 34px; font-size: 0.8rem; border-radius: 10px; }
+    .question-card { border-radius: 14px; margin-bottom: 1rem; border-width: 1.5px; }
+    .question-top { padding: 0.875rem; gap: 0.625rem; }
+    .q-number { width: 36px; height: 36px; font-size: 0.9rem; border-radius: 10px; }
+    .q-text { font-size: 0.95rem; line-height: 1.55; }
+    .question-image-box { padding: 0.75rem; }
+    .question-image-box img { max-height: 200px; border-radius: 10px; }
+    .question-options { padding: 0.75rem; }
+    .option-item { padding: 0.75rem; gap: 0.625rem; border-radius: 12px; margin-bottom: 0.5rem; }
+    .option-check { width: 22px; height: 22px; }
+    .option-letter { width: 28px; height: 28px; font-size: 0.78rem; border-radius: 8px; }
+    .option-text { font-size: 0.9rem; line-height: 1.45; word-break: break-word; }
+    .submit-card { padding: 1.25rem; border-radius: 14px; margin-top: 1rem; }
+    .submit-icon { width: 56px; height: 56px; font-size: 1.5rem; }
+    .submit-card h4 { font-size: 1.1rem; }
+    .submit-card p { font-size: 0.9rem; margin-bottom: 1rem; }
+    .submit-btn { width: 100%; justify-content: center; padding: 0.875rem 1.5rem; font-size: 1rem; border-radius: 12px; }
+    .warning-modal { padding: 2rem 1.25rem 1.5rem; border-radius: 22px; margin: 0 0.5rem; }
+    .warning-modal-icon { width: 64px; height: 64px; }
+    .warning-modal-icon i { font-size: 1.75rem; }
+    .warning-modal h3 { font-size: 1.15rem; }
+    .warning-modal p { font-size: 0.88rem; }
+    .warning-modal button { padding: .75rem 2rem; font-size: .9rem; }
 }
 
 @media (max-width: 480px) {
-    .question-top {
-        flex-direction: column;
-        gap: 0.5rem;
-        padding: 0.75rem;
-    }
-    
-    .q-number {
-        width: 32px;
-        height: 32px;
-        font-size: 0.85rem;
-        border-radius: 8px;
-    }
-    
-    .q-text {
-        font-size: 0.9rem;
-    }
-    
-    .question-options {
-        padding: 0.625rem;
-    }
-    
-    .option-item {
-        padding: 0.625rem 0.5rem;
-        gap: 0.5rem;
-        border-radius: 10px;
-        margin-bottom: 0.375rem;
-    }
-    
-    .option-item:hover {
-        transform: none;
-    }
-    
-    .option-check {
-        width: 20px;
-        height: 20px;
-    }
-    
-    .option-check i {
-        font-size: 0.65rem;
-    }
-    
-    .option-letter {
-        width: 26px;
-        height: 26px;
-        font-size: 0.72rem;
-        border-radius: 7px;
-    }
-    
-    .option-text {
-        font-size: 0.85rem;
-        line-height: 1.4;
-    }
-    
-    .nav-pills {
-        gap: 0.25rem;
-    }
-    
-    .nav-pill {
-        width: 30px;
-        height: 30px;
-        font-size: 0.72rem;
-        border-radius: 8px;
-        border-width: 1.5px;
-    }
-    
-    .submit-card {
-        padding: 1rem;
-    }
-    
-    .submit-icon {
-        width: 48px;
-        height: 48px;
-        font-size: 1.25rem;
-        margin-bottom: 0.75rem;
-    }
-    
-    .submit-card h4 {
-        font-size: 1rem;
-    }
-    
-    .submit-card p {
-        font-size: 0.85rem;
-    }
+    .question-top { flex-direction: column; gap: 0.5rem; padding: 0.75rem; }
+    .q-number { width: 32px; height: 32px; font-size: 0.85rem; border-radius: 8px; }
+    .q-text { font-size: 0.9rem; }
+    .question-options { padding: 0.625rem; }
+    .option-item { padding: 0.625rem 0.5rem; gap: 0.5rem; border-radius: 10px; margin-bottom: 0.375rem; }
+    .option-item:hover { transform: none; }
+    .option-check { width: 20px; height: 20px; }
+    .option-check i { font-size: 0.65rem; }
+    .option-letter { width: 26px; height: 26px; font-size: 0.72rem; border-radius: 7px; }
+    .option-text { font-size: 0.85rem; line-height: 1.4; }
+    .nav-pills-wrap { gap: 0.25rem; }
+    .nav-pill { width: 30px; height: 30px; font-size: 0.72rem; border-radius: 8px; border-width: 1.5px; }
+    .submit-card { padding: 1rem; }
+    .submit-icon { width: 48px; height: 48px; font-size: 1.25rem; margin-bottom: 0.75rem; }
+    .submit-card h4 { font-size: 1rem; }
+    .submit-card p { font-size: 0.85rem; }
 }
 
 @media (max-width: 360px) {
-    .option-item {
-        padding: 0.5rem;
-        gap: 0.375rem;
-    }
-    
-    .option-check {
-        display: none;
-    }
-    
-    .option-letter {
-        width: 24px;
-        height: 24px;
-        font-size: 0.7rem;
-        border-radius: 6px;
-    }
-    
-    .option-text {
-        font-size: 0.82rem;
-    }
-    
-    .nav-pill {
-        width: 28px;
-        height: 28px;
-        font-size: 0.7rem;
-        border-radius: 6px;
-    }
+    .option-item { padding: 0.5rem; gap: 0.375rem; }
+    .option-check { display: none; }
+    .option-letter { width: 24px; height: 24px; font-size: 0.7rem; border-radius: 6px; }
+    .option-text { font-size: 0.82rem; }
+    .nav-pill { width: 28px; height: 28px; font-size: 0.7rem; border-radius: 6px; }
 }
 </style>
 {% endblock %}
@@ -1183,7 +853,6 @@
         <h3>Ogohlantirish!</h3>
         <p id="warningMessage">Test vaqtida bu amal taqiqlangan!</p>
 
-        <!-- Warning counter dots -->
         <div class="warn-counter">
             <div class="warn-dot" id="warnDot1"></div>
             <div class="warn-dot" id="warnDot2"></div>
@@ -1191,13 +860,12 @@
             <span class="warn-counter-text"><strong id="warnCount">0</strong> / 3 ogohlantirish</span>
         </div>
 
-        <!-- Danger box (shows at 2+) -->
         <div class="warn-danger-box" id="warnDangerBox">
             <i class="bi bi-exclamation-octagon-fill"></i>
-            <span>Yana 1 marta qoidani buzsangiz test yakunlanadi!</span>
+            <span id="warnDangerText">Yana 1 marta qoidani buzsangiz test yakunlanadi!</span>
         </div>
 
-        <button onclick="closeWarning()">Tushundim</button>
+        <button id="warnCloseBtn">Tushundim</button>
     </div>
 </div>
 
@@ -1215,7 +883,6 @@
                         <p>{{ questions|length }} ta savol • {{ test.passing_score }}% o'tish bali</p>
                     </div>
                 </div>
-                
                 <div class="timer-box" id="timerBox">
                     <div class="timer-icon">
                         <i class="bi bi-stopwatch"></i>
@@ -1226,7 +893,6 @@
                     </div>
                 </div>
             </div>
-            
             <div class="progress-strip">
                 <div class="progress-strip-fill" id="progressBar" style="width: 0%;"></div>
             </div>
@@ -1244,9 +910,10 @@
                 <i class="bi bi-grid-3x3-gap-fill"></i>
                 Savollar
             </div>
-            <div class="nav-pills">
+            <!-- NOTE: class "nav-pills-wrap" ishlatiladi — Bootstrap "nav-pills" bilan to'qnashuv yo'q -->
+            <div class="nav-pills-wrap" id="navPillsContainer">
                 {% for question in questions %}
-                <div class="nav-pill" data-q="{{ forloop.counter }}" onclick="scrollToQ({{ forloop.counter }})">
+                <div class="nav-pill" data-q="{{ forloop.counter }}" id="pill-{{ forloop.counter }}">
                     {{ forloop.counter }}
                 </div>
                 {% endfor %}
@@ -1256,47 +923,62 @@
         <!-- Test Form -->
         <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
             {% csrf_token %}
-            
+
             {% for question in questions %}
-            <div class="question-card" id="q-{{ forloop.counter }}" data-qid="{{ question.pk }}">
+            <div class="question-card" id="q-{{ forloop.counter }}" data-qid="{{ question.pk }}" data-qnum="{{ forloop.counter }}">
                 <div class="question-top">
                     <div class="q-number">{{ forloop.counter }}</div>
                     <div class="q-text">{{ question.question_text|render_code }}</div>
                 </div>
-                
+
                 {% if question.question_image %}
                 <div class="question-image-box">
-                    <img src="{{ question.question_image.url }}" alt="Savol rasmi">
+                    <img src="{{ question.question_image.url }}" alt="Savol rasmi" draggable="false">
                 </div>
                 {% endif %}
-                
-                <div class="question-options">
+
+                <div class="question-options" data-qid="{{ question.pk }}">
                     {% for answer in question.answers.all %}
-                    <label class="option-item" data-q="{{ question.pk }}">
-                        <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}" onchange="updateProgress()">
-                        <div class="option-check"><i class="bi bi-check2"></i></div>
-                        <div class="option-letter">{% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% elif forloop.counter == 5 %}E{% else %}{{ forloop.counter }}{% endif %}</div>
+                    <label class="option-item"
+                           data-q="{{ question.pk }}"
+                           data-val="{{ answer.pk }}">
+                        {# Radio input - ko'rinmaydi lekin forma uchun ishlaydi #}
+                        <input type="radio"
+                               name="question_{{ question.pk }}"
+                               value="{{ answer.pk }}">
+                        <div class="option-check">
+                            <i class="bi bi-check2"></i>
+                        </div>
+                        <div class="option-letter">
+                            {% if forloop.counter == 1 %}A
+                            {% elif forloop.counter == 2 %}B
+                            {% elif forloop.counter == 3 %}C
+                            {% elif forloop.counter == 4 %}D
+                            {% elif forloop.counter == 5 %}E
+                            {% else %}{{ forloop.counter }}
+                            {% endif %}
+                        </div>
                         <div class="option-text">{{ answer.answer_text|render_code }}</div>
                     </label>
                     {% endfor %}
                 </div>
             </div>
             {% endfor %}
-            
+
             <div class="submit-card">
                 <div class="submit-icon">
                     <i class="bi bi-send-check-fill"></i>
                 </div>
                 <h4>Testni yakunlash</h4>
                 <p>Javoblaringizni tekshiring va yakunlang</p>
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" id="submitBtn">
                     <i class="bi bi-check-circle-fill"></i>
                     Yakunlash
                 </button>
             </div>
         </form>
     </div>
-    
+
     <!-- Fixed Bottom Timer Bar -->
     <div class="fixed-timer-bar" id="fixedTimerBar">
         <div class="container">
@@ -1313,480 +995,464 @@
                 <div class="fixed-timer-progress-bar">
                     <div class="fixed-timer-progress-fill" id="fixedProgressBar" style="width: 0%;"></div>
                 </div>
-                <div class="fixed-timer-progress-text"><span id="fixedAnswered">0</span>/{{ questions|length }}</div>
+                <div class="fixed-timer-progress-text">
+                    <span id="fixedAnswered">0</span>/{{ questions|length }}
+                </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script>
-document.body.classList.add('test-mode');
+(function () {
+    'use strict';
 
-const total = {{ questions|length }};
-let warnings = 0;
-const testForm = document.getElementById('testForm');
-var formSubmitted = false;
+    /* ============================================================
+       0. ASOS: DOM elementlarini IIFE ichida bir marta saqlaymiz
+          Shunday qilib querySelectorAll override kerak emas
+       ============================================================ */
+    var TOTAL = {{ questions|length }};
+    var TIME_LIMIT_SEC = {{ test.time_limit }} * 60;
+    var SERVER_END_TIME = Date.now() + {{ remaining_time }} * 1000;
 
-function autoSubmitTest() {
-    if (formSubmitted) return;
-    formSubmitted = true;
-    var btn = testForm.querySelector('.submit-btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Tekshirilmoqda...';
+    var elTimerDisplay   = document.getElementById('timerDisplay');
+    var elTimerBox       = document.getElementById('timerBox');
+    var elFixedBar       = document.getElementById('fixedTimerBar');
+    var elFixedValue     = document.getElementById('fixedTimerValue');
+    var elProgressBar    = document.getElementById('progressBar');
+    var elFixedProgress  = document.getElementById('fixedProgressBar');
+    var elAnsweredCount  = document.getElementById('answeredCount');
+    var elProgressPct    = document.getElementById('progressPercent');
+    var elFixedAnswered  = document.getElementById('fixedAnswered');
+    var elTestPage       = document.getElementById('testPage');
+    var elWatermark      = document.getElementById('watermark');
+    var elOverlay        = document.getElementById('warningOverlay');
+    var elWarnMsg        = document.getElementById('warningMessage');
+    var elWarnCount      = document.getElementById('warnCount');
+    var elWarnDots       = [
+        document.getElementById('warnDot1'),
+        document.getElementById('warnDot2'),
+        document.getElementById('warnDot3')
+    ];
+    var elDangerBox      = document.getElementById('warnDangerBox');
+    var elDangerText     = document.getElementById('warnDangerText');
+    var elCloseBtn       = document.getElementById('warnCloseBtn');
+    var elSubmitBtn      = document.getElementById('submitBtn');
+    var elForm           = document.getElementById('testForm');
+
+    /* Barcha option-item lar (label) */
+    var allOptions = Array.prototype.slice.call(
+        document.querySelectorAll('.option-item')
+    );
+
+    /* Barcha nav pill lar */
+    var allPills = Array.prototype.slice.call(
+        document.querySelectorAll('.nav-pill')
+    );
+
+    /* Barcha question-card lar */
+    var allCards = Array.prototype.slice.call(
+        document.querySelectorAll('.question-card')
+    );
+
+    /* ============================================================
+       1. FORM SUBMIT
+       ============================================================ */
+    var formSubmitted = false;
+
+    function autoSubmitTest() {
+        if (formSubmitted) return;
+        formSubmitted = true;
+        if (elSubmitBtn) {
+            elSubmitBtn.disabled = true;
+            elSubmitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Tekshirilmoqda...';
+        }
+        elForm.submit();
     }
-    testForm.submit();
-}
 
-// ==================== TAMPER-PROOF TIMER ====================
-(function() {
-    var _serverEndTime = Date.now() + {{ remaining_time }} * 1000;
-    var _totalTime = {{ test.time_limit }} * 60;
-    var _submitted = false;
+    /* ============================================================
+       2. TAMPER-PROOF TIMER
+       ============================================================ */
+    var timerSubmitted = false;
+    var perfStart = (typeof performance !== 'undefined' && performance.now)
+        ? performance.now() : null;
+    var realStart = Date.now();
 
-    var _timerDisplay = document.getElementById('timerDisplay');
-    var _timerBox = document.getElementById('timerBox');
-    var _fixedTimerBar = document.getElementById('fixedTimerBar');
-    var _fixedTimerValue = document.getElementById('fixedTimerValue');
-
-    function _getRemaining() {
-        return Math.max(0, Math.ceil((_serverEndTime - Date.now()) / 1000));
+    function getRemaining() {
+        return Math.max(0, Math.ceil((SERVER_END_TIME - Date.now()) / 1000));
     }
 
-    function _formatTime(sec) {
+    function formatTime(sec) {
         var m = Math.floor(sec / 60);
         var s = sec % 60;
         return m + ':' + (s < 10 ? '0' : '') + s;
     }
 
-    function _tick() {
-        var rem = _getRemaining();
-        var display = _formatTime(rem);
+    function tick() {
+        var rem = getRemaining();
+        var display = formatTime(rem);
 
-        if (_timerDisplay) _timerDisplay.textContent = display;
-        if (_fixedTimerValue) _fixedTimerValue.textContent = display;
+        if (elTimerDisplay) elTimerDisplay.textContent = display;
+        if (elFixedValue) elFixedValue.textContent = display;
 
         if (rem <= 120) {
-            if (_timerBox) _timerBox.classList.add('warning');
-            if (_fixedTimerBar) _fixedTimerBar.classList.add('warning');
+            if (elTimerBox) elTimerBox.classList.add('warning');
+            if (elFixedBar) elFixedBar.classList.add('warning');
         }
 
-        if (rem <= 0 && !_submitted) {
-            _submitted = true;
+        if (rem <= 0 && !timerSubmitted) {
+            timerSubmitted = true;
             autoSubmitTest();
             return;
         }
 
-        setTimeout(_tick, 1000);
+        setTimeout(tick, 1000);
     }
 
-    // DevTools orqali o'zgartirishga qarshi himoya
-    var _integrityCheck = setInterval(function() {
-        var rem = _getRemaining();
-        if (rem <= 0 && !_submitted) {
-            _submitted = true;
-            clearInterval(_integrityCheck);
+    tick();
+
+    /* Integrity check: performance.now vs Date.now farqi 5s dan oshsa - manipulyatsiya */
+    if (perfStart !== null) {
+        setInterval(function () {
+            var perfElapsed = performance.now() - perfStart;
+            var dateElapsed = Date.now() - realStart;
+            if (Math.abs(perfElapsed - dateElapsed) > 5000) {
+                if (!timerSubmitted) {
+                    timerSubmitted = true;
+                    autoSubmitTest();
+                }
+            }
+        }, 5000);
+    }
+
+    /* Zaxira tekshiruv */
+    setInterval(function () {
+        if (getRemaining() <= 0 && !timerSubmitted) {
+            timerSubmitted = true;
             autoSubmitTest();
         }
     }, 3000);
 
-    // Date.now() va Date constructor'ni himoya qilish
-    var _origDateNow = Date.now;
-    var _origDate = Date;
-    var _startReal = _origDateNow.call(Date);
+    /* ============================================================
+       3. PROGRESS UPDATE
+       ============================================================ */
+    function updateProgress() {
+        var answered = 0;
 
-    // performance.now() yordamida vaqtni tekshirish
-    var _perfStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : null;
+        allCards.forEach(function (card) {
+            var qid = card.getAttribute('data-qid');
+            var qnum = parseInt(card.getAttribute('data-qnum'), 10);
+            var radio = card.querySelector('input[name="question_' + qid + '"]:checked');
+            var pill = document.getElementById('pill-' + qnum);
 
-    setInterval(function() {
-        // Date.now() manipulyatsiya qilinganligini tekshirish
-        if (_perfStart !== null && typeof performance !== 'undefined' && performance.now) {
-            var perfElapsed = performance.now() - _perfStart;
-            var dateElapsed = _origDateNow.call(Date) - _startReal;
-            // 5 sekunddan katta farq bo'lsa - manipulation
-            if (Math.abs(perfElapsed - dateElapsed) > 5000) {
-                if (!_submitted) {
-                    _submitted = true;
-                    autoSubmitTest();
+            if (radio) {
+                answered++;
+                card.classList.add('answered');
+                if (pill) pill.classList.add('answered');
+            } else {
+                card.classList.remove('answered');
+                if (pill) pill.classList.remove('answered');
+            }
+        });
+
+        var pct = TOTAL > 0 ? Math.round((answered / TOTAL) * 100) : 0;
+
+        if (elAnsweredCount) elAnsweredCount.textContent = answered;
+        if (elProgressPct)   elProgressPct.textContent = pct + '%';
+        if (elProgressBar)   elProgressBar.style.width = pct + '%';
+        if (elFixedProgress) elFixedProgress.style.width = pct + '%';
+        if (elFixedAnswered) elFixedAnswered.textContent = answered;
+
+        if (answered === TOTAL && TOTAL > 0) {
+            setTimeout(autoSubmitTest, 500);
+        }
+    }
+
+    /* ============================================================
+       4. OPTION CLICK HANDLER
+          Faqat click event — input[type=radio] ni dasturiy checked qilamiz
+       ============================================================ */
+    allOptions.forEach(function (opt) {
+        opt.addEventListener('click', function (e) {
+            /* Label ichidagi input click ikki marta ishlamasligi uchun */
+            e.preventDefault();
+
+            var qid = opt.getAttribute('data-q');
+
+            /* Shu savoldagi barcha optionlarni deselect qilamiz */
+            allOptions.forEach(function (o) {
+                if (o.getAttribute('data-q') === qid) {
+                    o.classList.remove('selected');
                 }
+            });
+
+            /* Tanlangan optionni select qilamiz */
+            opt.classList.add('selected');
+
+            /* Radio inputni checked qilamiz */
+            var radio = opt.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+            }
+
+            updateProgress();
+        });
+    });
+
+    /* ============================================================
+       5. SCROLL TO QUESTION
+       ============================================================ */
+    allPills.forEach(function (pill) {
+        pill.addEventListener('click', function () {
+            var n = pill.getAttribute('data-q');
+            var el = document.getElementById('q-' + n);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                allPills.forEach(function (p) { p.classList.remove('current'); });
+                pill.classList.add('current');
+            }
+        });
+    });
+
+    /* ============================================================
+       6. WARNING SYSTEM
+       ============================================================ */
+    var warnings = 0;
+    var warnCooldown = false; /* Bir vaqtda ko'p ogohlantirish chiqmasligi uchun */
+
+    function showWarning(msg) {
+        if (warnCooldown) return;
+        warnCooldown = true;
+        setTimeout(function () { warnCooldown = false; }, 1500);
+
+        warnings++;
+        if (elWarnMsg)   elWarnMsg.textContent = msg;
+        if (elWarnCount) elWarnCount.textContent = warnings;
+
+        elWarnDots.forEach(function (dot, i) {
+            if (i < warnings) dot.classList.add('used');
+        });
+
+        if (warnings >= 2 && elDangerBox) {
+            elDangerBox.classList.add('show');
+        }
+
+        if (elOverlay) elOverlay.style.display = 'flex';
+        if (elWatermark) elWatermark.classList.add('active');
+
+        if (warnings >= 3) {
+            if (elWarnMsg) elWarnMsg.textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
+            if (elDangerText) elDangerText.textContent = "Test yakunlanmoqda...";
+            if (elDangerBox) elDangerBox.classList.add('show');
+            if (elCloseBtn) elCloseBtn.disabled = true;
+            setTimeout(autoSubmitTest, 1500);
+        }
+    }
+
+    function closeWarning() {
+        if (elOverlay) elOverlay.style.display = 'none';
+        setTimeout(function () {
+            if (elWatermark) elWatermark.classList.remove('active');
+        }, 2000);
+    }
+
+    if (elCloseBtn) {
+        elCloseBtn.addEventListener('click', closeWarning);
+    }
+
+    /* ============================================================
+       7. ANTI-CHEAT EVENTS
+          Faqat kerakli eventlar — DOM metodlarini OVERRIDE QILMAYMIZ
+          chunki bu o'zimizning kodimizni ham buzadi
+       ============================================================ */
+
+    /* Context menu */
+    document.addEventListener('contextmenu', function (e) {
+        e.preventDefault();
+        showWarning("O'ng tugma taqiqlangan!");
+    });
+
+    /* Copy/Cut/Paste */
+    document.addEventListener('copy', function (e) {
+        e.preventDefault();
+        showWarning("Nusxa olish taqiqlangan!");
+    });
+    document.addEventListener('cut', function (e) {
+        e.preventDefault();
+        showWarning("Kesish taqiqlangan!");
+    });
+    document.addEventListener('paste', function (e) {
+        e.preventDefault();
+        /* paste uchun warning bermay qo'yamiz - foydalanuvchi parolini paste qilishi mumkin edi */
+    });
+
+    /* Keyboard shortcuts */
+    document.addEventListener('keydown', function (e) {
+        /* DevTools */
+        if (e.key === 'F12') {
+            e.preventDefault();
+            showWarning("DevTools taqiqlangan!");
+            return false;
+        }
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+            e.preventDefault();
+            showWarning("DevTools taqiqlangan!");
+            return false;
+        }
+        /* View source */
+        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+            showWarning("Manba kodi ko'rish taqiqlangan!");
+            return false;
+        }
+        /* Copy/Cut/Select All */
+        if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
+            e.preventDefault();
+            showWarning("Nusxa olish taqiqlangan!");
+            return false;
+        }
+        if (e.ctrlKey && (e.key === 'x' || e.key === 'X')) {
+            e.preventDefault();
+            showWarning("Kesish taqiqlangan!");
+            return false;
+        }
+        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
+            e.preventDefault();
+            return false;
+        }
+        /* PrintScreen */
+        if (e.key === 'PrintScreen') {
+            e.preventDefault();
+            showWarning("Skrinshot taqiqlangan!");
+        }
+    });
+
+    document.addEventListener('keyup', function (e) {
+        if (e.key === 'PrintScreen') {
+            showWarning("Skrinshot taqiqlangan!");
+            if (elTestPage) {
+                elTestPage.style.filter = 'blur(10px)';
+                setTimeout(function () {
+                    if (elTestPage) elTestPage.style.filter = 'none';
+                }, 1000);
             }
         }
-    }, 5000);
+    });
 
-    _tick();
+    /* Drag */
+    document.addEventListener('dragstart', function (e) { e.preventDefault(); });
 
-    // Global o'zgaruvchilarni bloklash - console orqali o'zgartirish imkonsiz
-    try {
-        Object.defineProperty(window, 'timeLeft', {
-            get: function() { return _getRemaining(); },
-            set: function() { autoSubmitTest(); },
-            configurable: false
-        });
-        Object.defineProperty(window, 'remaining_time', {
-            get: function() { return _getRemaining(); },
-            set: function() { autoSubmitTest(); },
-            configurable: false
-        });
-        Object.defineProperty(window, '_serverEndTime', {
-            get: function() { return undefined; },
-            set: function() { autoSubmitTest(); },
-            configurable: false
-        });
-    } catch(e) {}
-})();
-
-function updateProgress() {
-    const answered = document.querySelectorAll('input[type="radio"]:checked').length;
-    const pct = Math.round((answered / total) * 100);
-    
-    document.getElementById('answeredCount').textContent = answered;
-    document.getElementById('progressPercent').textContent = pct + '%';
-    document.getElementById('progressBar').style.width = pct + '%';
-
-    var fixedBar = document.getElementById('fixedProgressBar');
-    var fixedAns = document.getElementById('fixedAnswered');
-    if (fixedBar) fixedBar.style.width = pct + '%';
-    if (fixedAns) fixedAns.textContent = answered;
-    
-    if (answered === total) {
-        setTimeout(autoSubmitTest, 500);
-        return;
-    }
-    
-    document.querySelectorAll('.question-card').forEach((card, i) => {
-        const qid = card.dataset.qid;
-        const isAns = document.querySelector(`input[name="question_${qid}"]:checked`);
-        const pill = document.querySelector(`.nav-pill[data-q="${i + 1}"]`);
-        
-        if (isAns) {
-            pill.classList.add('answered');
-            card.classList.add('answered');
-        } else {
-            pill.classList.remove('answered');
-            card.classList.remove('answered');
+    /* Tab visibility change */
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+            showWarning("Sahifadan chiqish aniqlandi!");
         }
     });
-}
 
-document.querySelectorAll('.option-item').forEach(opt => {
-    opt.addEventListener('click', function() {
-        const qid = this.dataset.q;
-        document.querySelectorAll(`.option-item[data-q="${qid}"]`).forEach(o => o.classList.remove('selected'));
-        this.classList.add('selected');
-        this.querySelector('input').checked = true;
-        updateProgress();
+    /* Window blur — faqat sahifa bir marta to'liq yuklangandan keyin */
+    var pageReady = false;
+    window.addEventListener('load', function () {
+        /* 1 soniya kutamiz, shunda birinchi focus blur bermasin */
+        setTimeout(function () { pageReady = true; }, 1000);
     });
-});
 
-function scrollToQ(n) {
-    const el = document.getElementById('q-' + n);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('current'));
-        document.querySelector(`.nav-pill[data-q="${n}"]`).classList.add('current');
-    }
-}
-
-function showWarning(msg) {
-    warnings++;
-    document.getElementById('warningMessage').textContent = msg;
-    document.getElementById('warnCount').textContent = warnings;
-    
-    for (let i = 1; i <= 3; i++) {
-        const dot = document.getElementById('warnDot' + i);
-        if (i <= warnings) dot.classList.add('used');
-    }
-    
-    if (warnings >= 2) {
-        document.getElementById('warnDangerBox').classList.add('show');
-    }
-    
-    document.getElementById('warningOverlay').style.display = 'flex';
-    document.getElementById('watermark').classList.add('active');
-    
-    if (warnings >= 3) {
-        document.getElementById('warningMessage').textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
-        document.getElementById('warnDangerBox').innerHTML = '<i class="bi bi-x-octagon-fill"></i><span>Test yakunlanmoqda...</span>';
-        document.getElementById('warnDangerBox').classList.add('show');
-        setTimeout(() => autoSubmitTest(), 1500);
-    }
-}
-
-function closeWarning() {
-    document.getElementById('warningOverlay').style.display = 'none';
-    setTimeout(() => document.getElementById('watermark').classList.remove('active'), 2000);
-}
-
-// Anti-cheat
-document.addEventListener('contextmenu', e => { e.preventDefault(); showWarning("O'ng tugma taqiqlangan!"); });
-document.addEventListener('copy', e => { e.preventDefault(); showWarning("Nusxa olish taqiqlangan!"); });
-document.addEventListener('cut', e => { e.preventDefault(); showWarning("Kesish taqiqlangan!"); });
-document.addEventListener('paste', e => { e.preventDefault(); showWarning("Qo'yish taqiqlangan!"); });
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','i','J','j'].includes(e.key)) || (e.ctrlKey && ['U','u'].includes(e.key))) {
-        e.preventDefault(); showWarning("DevTools taqiqlangan!"); return false;
-    }
-    if (e.ctrlKey && ['c','C','x','X','v','V','a','A'].includes(e.key)) {
-        e.preventDefault(); showWarning("Bu kombinatsiya taqiqlangan!"); return false;
-    }
-    if (e.key === 'PrintScreen') {
-        e.preventDefault(); showWarning("Skrinshot taqiqlangan!");
-    }
-});
-document.addEventListener('keyup', e => {
-    if (e.key === 'PrintScreen') {
-        showWarning("Skrinshot taqiqlangan!");
-        document.getElementById('testPage').style.filter = 'blur(10px)';
-        setTimeout(() => document.getElementById('testPage').style.filter = 'none', 1000);
-    }
-});
-document.addEventListener('dragstart', e => e.preventDefault());
-document.addEventListener('visibilitychange', () => { if (document.hidden) showWarning("Sahifadan chiqish aniqlandi!"); });
-window.addEventListener('blur', () => { document.getElementById('watermark').classList.add('active'); showWarning("Oynadan chiqish!"); });
-window.addEventListener('focus', () => setTimeout(() => document.getElementById('watermark').classList.remove('active'), 1000));
-
-// ==================== ANTI-CHEAT: Console va DOM himoyasi ====================
-(function() {
-    // Asl DOM metodlarini saqlab olish (ichki kodda ishlatish uchun)
-    var _origQSA = Document.prototype.querySelectorAll.bind(document);
-    var _origQS = Document.prototype.querySelector.bind(document);
-    var _origElQSA = Element.prototype.querySelectorAll;
-    var _origElQS = Element.prototype.querySelector;
-
-    // 1. Console metodlarini bloklash - console.log orqali ma'lumot chiqarib bo'lmaydi
-    var _noop = function() { return undefined; };
-    var _consoleMethods = ['log','warn','error','info','debug','table','dir','dirxml',
-        'trace','group','groupCollapsed','groupEnd','clear','count','countReset',
-        'assert','profile','profileEnd','time','timeLog','timeEnd','timeStamp'];
-    _consoleMethods.forEach(function(method) {
-        try {
-            Object.defineProperty(console, method, {
-                value: _noop,
-                writable: false,
-                configurable: false
-            });
-        } catch(e) {}
+    window.addEventListener('blur', function () {
+        if (!pageReady) return;
+        if (elWatermark) elWatermark.classList.add('active');
+        showWarning("Oynadan chiqish aniqlandi!");
     });
-    try {
-        Object.defineProperty(window, 'console', {
-            value: console,
-            writable: false,
-            configurable: false
-        });
-    } catch(e) {}
 
-    // 2. getSelection bloklash - tanlangan matnni olish mumkin emas
-    try {
-        Document.prototype.getSelection = function() { return null; };
-        window.getSelection = function() {
-            return {
-                toString: function() { return ''; },
-                anchorNode: null, focusNode: null,
-                rangeCount: 0,
-                getRangeAt: function() { return null; },
-                removeAllRanges: function() {},
-                addRange: function() {},
-                collapse: function() {},
-                collapseToStart: function() {},
-                collapseToEnd: function() {},
-                extend: function() {},
-                selectAllChildren: function() {},
-                deleteFromDocument: function() {},
-                containsNode: function() { return false; },
-                type: 'None',
-                isCollapsed: true
-            };
-        };
-    } catch(e) {}
+    window.addEventListener('focus', function () {
+        setTimeout(function () {
+            if (elWatermark) elWatermark.classList.remove('active');
+        }, 1000);
+    });
 
-    // 3. DOM matn olish metodlarini himoyalash (savol va javob elementlarida)
-    function _protectElements() {
-        var selectors = ['.q-text', '.option-text', '.question-card', '.question-options'];
-        selectors.forEach(function(sel) {
-            _origQSA(sel).forEach(function(el) {
-                try {
-                    Object.defineProperty(el, 'innerText', {
-                        get: function() { return ''; },
-                        configurable: false
-                    });
-                    Object.defineProperty(el, 'textContent', {
-                        get: function() { return ''; },
-                        configurable: false
-                    });
-                    Object.defineProperty(el, 'innerHTML', {
-                        get: function() { return ''; },
-                        set: function() {},
-                        configurable: false
-                    });
-                    Object.defineProperty(el, 'outerHTML', {
-                        get: function() { return '<div></div>'; },
-                        configurable: false
-                    });
-                    Object.defineProperty(el, 'outerText', {
-                        get: function() { return ''; },
-                        configurable: false
-                    });
-                } catch(e) {}
-            });
-        });
-    }
-    _protectElements();
-    setTimeout(_protectElements, 500);
-    setTimeout(_protectElements, 2000);
+    /* ============================================================
+       8. DevTools aniqlash (oyna o'lchami usuli)
+          Ichki kodga ta'sir qilmaydigan usul
+       ============================================================ */
+    var devtoolsOpen = false;
+    setInterval(function () {
+        var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
+        var heightDiff = window.outerHeight - window.innerHeight > 160;
 
-    // 4. document.body.innerText / document.body.textContent himoyasi
-    try {
-        Object.defineProperty(document.body, 'innerText', {
-            get: function() { return ''; },
-            configurable: false
-        });
-        Object.defineProperty(document.body, 'textContent', {
-            get: function() { return ''; },
-            configurable: false
-        });
-    } catch(e) {}
-
-    // 5. querySelectorAll / querySelector himoyasi - savollarni tanlash imkonsiz
-    var _blockedSelectors = ['.q-text', '.option-text', '.question-card',
-        '.question-options', '.question-top', '.question-image-box'];
-
-    function _isSelectorBlocked(sel) {
-        if (!sel || typeof sel !== 'string') return false;
-        var s = sel.toLowerCase();
-        for (var i = 0; i < _blockedSelectors.length; i++) {
-            if (s.indexOf(_blockedSelectors[i]) !== -1) return true;
-        }
-        return false;
-    }
-
-    Document.prototype.querySelectorAll = function(sel) {
-        if (_isSelectorBlocked(sel)) {
-            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
-            return _origQSA('.__blocked_empty__');
-        }
-        return _origQSA(sel);
-    };
-    Document.prototype.querySelector = function(sel) {
-        if (_isSelectorBlocked(sel)) {
-            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
-            return null;
-        }
-        return _origQS(sel);
-    };
-    Element.prototype.querySelectorAll = function(sel) {
-        if (_isSelectorBlocked(sel)) {
-            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
-            return _origElQSA.call(this, '.__blocked_empty__');
-        }
-        return _origElQSA.call(this, sel);
-    };
-    Element.prototype.querySelector = function(sel) {
-        if (_isSelectorBlocked(sel)) {
-            showWarning("Ma'lumot o'g'irlash urinishi aniqlandi!");
-            return null;
-        }
-        return _origElQS.call(this, sel);
-    };
-
-    // 6. DevTools ochilishini aniqlash (o'lcham usuli)
-    var _devtoolsOpen = false;
-    var _dtCheck = setInterval(function() {
-        var widthThreshold = window.outerWidth - window.innerWidth > 160;
-        var heightThreshold = window.outerHeight - window.innerHeight > 160;
-        if (widthThreshold || heightThreshold) {
-            if (!_devtoolsOpen) {
-                _devtoolsOpen = true;
-                showWarning("DevTools aniqlandi! Test yakunlanadi!");
-                document.getElementById('testPage').style.filter = 'blur(20px)';
+        if (widthDiff || heightDiff) {
+            if (!devtoolsOpen) {
+                devtoolsOpen = true;
+                showWarning("DevTools aniqlandi!");
+                if (elTestPage) elTestPage.style.filter = 'blur(20px)';
             }
         } else {
-            if (_devtoolsOpen) {
-                _devtoolsOpen = false;
-                document.getElementById('testPage').style.filter = 'none';
+            if (devtoolsOpen) {
+                devtoolsOpen = false;
+                if (elTestPage) elTestPage.style.filter = 'none';
             }
         }
     }, 1000);
 
-    // 7. Debugger trap - DevTools ochilganda to'xtash
-    (function _debuggerLoop() {
-        setTimeout(function() {
-            var start = performance.now();
+    /* ============================================================
+       9. Console bloklash — faqat console chiqishini o'chirish
+          DOM metodlarini OVERRIDE QILMAYMIZ
+       ============================================================ */
+    var noop = function () { return undefined; };
+    var consoleMethods = [
+        'log','warn','error','info','debug','table','dir','dirxml',
+        'trace','group','groupCollapsed','groupEnd','clear','count',
+        'assert','time','timeLog','timeEnd','timeStamp','profile','profileEnd'
+    ];
+    consoleMethods.forEach(function (method) {
+        try {
+            if (typeof console[method] === 'function') {
+                console[method] = noop;
+            }
+        } catch (e) { /* ignore */ }
+    });
+
+    /* ============================================================
+       10. Fetch bloklash — faqat tashqi domenlar
+       ============================================================ */
+    var origFetch = window.fetch;
+    if (origFetch) {
+        window.fetch = function (url) {
+            if (typeof url === 'string') {
+                var isExternal = url.indexOf('http') === 0
+                    && url.indexOf(window.location.origin) !== 0;
+                if (isExternal) {
+                    showWarning("Tashqi so'rov taqiqlangan!");
+                    return Promise.reject(new Error('Blocked by anti-cheat'));
+                }
+            }
+            return origFetch.apply(this, arguments);
+        };
+    }
+
+    /* ============================================================
+       11. Debugger trap — performance.now farqi 100ms dan oshsa
+       ============================================================ */
+    (function debuggerTrap() {
+        setTimeout(function () {
+            var t = performance.now();
             debugger;
-            if (performance.now() - start > 100) {
-                document.getElementById('testPage').style.filter = 'blur(20px)';
+            if (performance.now() - t > 100) {
+                if (elTestPage) elTestPage.style.filter = 'blur(20px)';
                 showWarning("Debugger aniqlandi!");
             }
-            _debuggerLoop();
-        }, 3000);
+            debuggerTrap();
+        }, 4000);
     })();
 
-    // 8. fetch orqali sahifa kontentini tashqariga yuborishni bloklash
-    var _origFetch = window.fetch;
-    window.fetch = function(url) {
-        if (typeof url === 'string' && !url.startsWith(window.location.origin) && url.indexOf('/') !== 0) {
-            showWarning("Tashqi so'rov taqiqlangan!");
-            return Promise.reject(new Error('Blocked'));
-        }
-        return _origFetch.apply(this, arguments);
-    };
-    try {
-        Object.defineProperty(window, 'fetch', {
-            value: window.fetch,
-            writable: false,
-            configurable: false
-        });
-    } catch(e) {}
+    /* ============================================================
+       12. DOMContentLoaded — boshlang'ich progress
+       ============================================================ */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', updateProgress);
+    } else {
+        updateProgress();
+    }
 
-    // 9. document.createElement bilan textarea/input orqali nusxa olishni bloklash
-    var _origCreateElement = document.createElement.bind(document);
-    document.createElement = function(tag) {
-        var t = tag.toLowerCase();
-        if (t === 'textarea' || t === 'input') {
-            var el = _origCreateElement(t);
-            Object.defineProperty(el, 'value', {
-                get: function() { return ''; },
-                set: function() {},
-                configurable: false
-            });
-            return el;
-        }
-        return _origCreateElement(tag);
-    };
 })();
-
-// setInterval/setTimeout ni qayta yozishga qarshi himoya
-(function() {
-    var _origSetTimeout = window.setTimeout;
-    var _origSetInterval = window.setInterval;
-    var _origClearTimeout = window.clearTimeout;
-    var _origClearInterval = window.clearInterval;
-
-    try {
-        Object.defineProperty(window, 'setTimeout', {
-            value: _origSetTimeout,
-            writable: false,
-            configurable: false
-        });
-        Object.defineProperty(window, 'setInterval', {
-            value: _origSetInterval,
-            writable: false,
-            configurable: false
-        });
-        Object.defineProperty(window, 'clearTimeout', {
-            value: _origClearTimeout,
-            writable: false,
-            configurable: false
-        });
-        Object.defineProperty(window, 'clearInterval', {
-            value: _origClearInterval,
-            writable: false,
-            configurable: false
-        });
-    } catch(e) {}
-})();
-
-document.addEventListener('DOMContentLoaded', updateProgress);
 </script>
-{% endblock %}
 {% endblock %}
