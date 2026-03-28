@@ -2217,6 +2217,13 @@ def submit_test(request, pk):
     if start_time:
         from datetime import datetime
         started_at = datetime.fromisoformat(start_time)
+        
+        # Server-side vaqt tekshiruvi — vaqt tugagan bo'lsa ham natijani qabul qilish
+        # lekin vaqt limitidan 60 sekund ko'p o'tgan bo'lsa ogohlantirish
+        elapsed_seconds = (timezone.now() - started_at).total_seconds()
+        allowed_seconds = test.time_limit * 60 + 60  # 60 sekund tolerantlik (network delay)
+        if elapsed_seconds > allowed_seconds:
+            messages.warning(request, "Vaqt chegarasi o'tgan! Natijalar server vaqti bilan tekshirildi.")
     
     # Sessiyadan tanlangan savollarni olish
     shown_question_ids = request.session.get(f'test_{test.pk}_questions')

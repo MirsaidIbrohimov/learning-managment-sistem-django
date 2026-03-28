@@ -58,7 +58,7 @@
 .test-container {
     min-height: 100vh;
     background: var(--test-bg);
-    padding-bottom: 120px;
+    padding-bottom: 100px;
 }
 
 /* ==================== STICKY HEADER ==================== */
@@ -168,6 +168,93 @@
 @keyframes pulse-danger {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.03); }
+}
+
+/* ==================== FIXED BOTTOM TIMER BAR ==================== */
+.fixed-timer-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--test-card);
+    border-top: 2px solid var(--test-border);
+    padding: 0.625rem 0;
+    z-index: 1040;
+    box-shadow: 0 -4px 24px var(--test-shadow);
+}
+
+.fixed-timer-bar .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.fixed-timer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fixed-timer-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.fixed-timer-bar.warning .fixed-timer-icon {
+    background: linear-gradient(135deg, var(--test-danger) 0%, #dc2626 100%);
+    animation: shake 0.5s infinite;
+}
+
+.fixed-timer-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--test-text);
+}
+
+.fixed-timer-bar.warning .fixed-timer-value {
+    color: var(--test-danger);
+}
+
+.fixed-timer-label {
+    font-size: 0.65rem;
+    color: var(--test-text-muted);
+    text-transform: uppercase;
+}
+
+.fixed-timer-progress {
+    flex: 1;
+    max-width: 200px;
+}
+
+.fixed-timer-progress-bar {
+    height: 8px;
+    background: var(--test-border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.fixed-timer-progress-fill {
+    height: 100%;
+    background: var(--test-success);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.fixed-timer-progress-text {
+    font-size: 0.7rem;
+    color: var(--test-text-muted);
+    text-align: center;
+    margin-top: 0.25rem;
 }
 
 /* ==================== PROGRESS BAR ==================== */
@@ -492,15 +579,6 @@
 /* ==================== MOBILE TIMER ==================== */
 .mobile-timer {
     display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--test-card);
-    border-top: 1px solid var(--test-border);
-    padding: 0.75rem 1rem;
-    z-index: 1030;
-    box-shadow: 0 -4px 20px var(--test-shadow);
 }
 
 .mobile-timer-content {
@@ -1219,25 +1297,23 @@
         </form>
     </div>
     
-    <!-- Mobile Timer -->
-    <div class="mobile-timer" id="mobileTimer">
+    <!-- Fixed Bottom Timer Bar -->
+    <div class="fixed-timer-bar" id="fixedTimerBar">
         <div class="container">
-            <div class="mobile-timer-content">
-                <div class="mobile-timer-left">
-                    <div class="mobile-timer-icon">
-                        <i class="bi bi-stopwatch"></i>
-                    </div>
-                    <div>
-                        <div class="mobile-timer-value" id="mobileTimerValue">{{ test.time_limit }}:00</div>
-                        <div class="mobile-timer-label">Qolgan vaqt</div>
-                    </div>
+            <div class="fixed-timer-info">
+                <div class="fixed-timer-icon">
+                    <i class="bi bi-stopwatch"></i>
                 </div>
-                <div class="mobile-progress">
-                    <div class="mobile-progress-bar">
-                        <div class="mobile-progress-fill" id="mobileProgressBar" style="width: 0%;"></div>
-                    </div>
-                    <div class="mobile-progress-text"><span id="mobileAnswered">0</span>/{{ questions|length }}</div>
+                <div>
+                    <div class="fixed-timer-value" id="fixedTimerValue">{{ test.time_limit }}:00</div>
+                    <div class="fixed-timer-label">Qolgan vaqt</div>
                 </div>
+            </div>
+            <div class="fixed-timer-progress">
+                <div class="fixed-timer-progress-bar">
+                    <div class="fixed-timer-progress-fill" id="fixedProgressBar" style="width: 0%;"></div>
+                </div>
+                <div class="fixed-timer-progress-text"><span id="fixedAnswered">0</span>/{{ questions|length }}</div>
             </div>
         </div>
     </div>
@@ -1249,35 +1325,7 @@ document.body.classList.add('test-mode');
 
 const total = {{ questions|length }};
 let warnings = 0;
-let timeLeft = {{ remaining_time }};
-
-const timerDisplay = document.getElementById('timerDisplay');
-const mobileTimerValue = document.getElementById('mobileTimerValue');
-const timerBox = document.getElementById('timerBox');
-const mobileTimer = document.getElementById('mobileTimer');
 const testForm = document.getElementById('testForm');
-
-function updateTimer() {
-    const m = Math.floor(timeLeft / 60);
-    const s = timeLeft % 60;
-    const display = `${m}:${s.toString().padStart(2, '0')}`;
-    timerDisplay.textContent = display;
-    mobileTimerValue.textContent = display;
-    
-    if (timeLeft <= 120) {
-        timerBox.classList.add('warning');
-        mobileTimer.classList.add('warning');
-    }
-    
-    if (timeLeft <= 0) {
-        autoSubmitTest();
-    } else {
-        timeLeft--;
-        setTimeout(updateTimer, 1000);
-    }
-}
-updateTimer();
-
 var formSubmitted = false;
 
 function autoSubmitTest() {
@@ -1291,6 +1339,103 @@ function autoSubmitTest() {
     testForm.submit();
 }
 
+// ==================== TAMPER-PROOF TIMER ====================
+(function() {
+    var _serverEndTime = Date.now() + {{ remaining_time }} * 1000;
+    var _totalTime = {{ test.time_limit }} * 60;
+    var _submitted = false;
+
+    var _timerDisplay = document.getElementById('timerDisplay');
+    var _timerBox = document.getElementById('timerBox');
+    var _fixedTimerBar = document.getElementById('fixedTimerBar');
+    var _fixedTimerValue = document.getElementById('fixedTimerValue');
+
+    function _getRemaining() {
+        return Math.max(0, Math.ceil((_serverEndTime - Date.now()) / 1000));
+    }
+
+    function _formatTime(sec) {
+        var m = Math.floor(sec / 60);
+        var s = sec % 60;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    function _tick() {
+        var rem = _getRemaining();
+        var display = _formatTime(rem);
+
+        if (_timerDisplay) _timerDisplay.textContent = display;
+        if (_fixedTimerValue) _fixedTimerValue.textContent = display;
+
+        if (rem <= 120) {
+            if (_timerBox) _timerBox.classList.add('warning');
+            if (_fixedTimerBar) _fixedTimerBar.classList.add('warning');
+        }
+
+        if (rem <= 0 && !_submitted) {
+            _submitted = true;
+            autoSubmitTest();
+            return;
+        }
+
+        setTimeout(_tick, 1000);
+    }
+
+    // DevTools orqali o'zgartirishga qarshi himoya
+    var _integrityCheck = setInterval(function() {
+        var rem = _getRemaining();
+        if (rem <= 0 && !_submitted) {
+            _submitted = true;
+            clearInterval(_integrityCheck);
+            autoSubmitTest();
+        }
+    }, 3000);
+
+    // Date.now() va Date constructor'ni himoya qilish
+    var _origDateNow = Date.now;
+    var _origDate = Date;
+    var _startReal = _origDateNow.call(Date);
+
+    // performance.now() yordamida vaqtni tekshirish
+    var _perfStart = (typeof performance !== 'undefined' && performance.now) ? performance.now() : null;
+
+    setInterval(function() {
+        // Date.now() manipulyatsiya qilinganligini tekshirish
+        if (_perfStart !== null && typeof performance !== 'undefined' && performance.now) {
+            var perfElapsed = performance.now() - _perfStart;
+            var dateElapsed = _origDateNow.call(Date) - _startReal;
+            // 5 sekunddan katta farq bo'lsa - manipulation
+            if (Math.abs(perfElapsed - dateElapsed) > 5000) {
+                if (!_submitted) {
+                    _submitted = true;
+                    autoSubmitTest();
+                }
+            }
+        }
+    }, 5000);
+
+    _tick();
+
+    // Global o'zgaruvchilarni bloklash - console orqali o'zgartirish imkonsiz
+    try {
+        Object.defineProperty(window, 'timeLeft', {
+            get: function() { return _getRemaining(); },
+            set: function() { autoSubmitTest(); },
+            configurable: false
+        });
+        Object.defineProperty(window, 'remaining_time', {
+            get: function() { return _getRemaining(); },
+            set: function() { autoSubmitTest(); },
+            configurable: false
+        });
+        Object.defineProperty(window, '_serverEndTime', {
+            get: function() { return undefined; },
+            set: function() { autoSubmitTest(); },
+            configurable: false
+        });
+    } catch(e) {}
+})();
+
 function updateProgress() {
     const answered = document.querySelectorAll('input[type="radio"]:checked').length;
     const pct = Math.round((answered / total) * 100);
@@ -1298,10 +1443,12 @@ function updateProgress() {
     document.getElementById('answeredCount').textContent = answered;
     document.getElementById('progressPercent').textContent = pct + '%';
     document.getElementById('progressBar').style.width = pct + '%';
-    document.getElementById('mobileProgressBar').style.width = pct + '%';
-    document.getElementById('mobileAnswered').textContent = answered;
+
+    var fixedBar = document.getElementById('fixedProgressBar');
+    var fixedAns = document.getElementById('fixedAnswered');
+    if (fixedBar) fixedBar.style.width = pct + '%';
+    if (fixedAns) fixedAns.textContent = answered;
     
-    // Hamma savollarga javob berilsa avtomatik yakunlash
     if (answered === total) {
         setTimeout(autoSubmitTest, 500);
         return;
@@ -1346,13 +1493,11 @@ function showWarning(msg) {
     document.getElementById('warningMessage').textContent = msg;
     document.getElementById('warnCount').textContent = warnings;
     
-    // Update dots
     for (let i = 1; i <= 3; i++) {
         const dot = document.getElementById('warnDot' + i);
         if (i <= warnings) dot.classList.add('used');
     }
     
-    // Show danger box at 2 warnings
     if (warnings >= 2) {
         document.getElementById('warnDangerBox').classList.add('show');
     }
@@ -1400,6 +1545,37 @@ document.addEventListener('dragstart', e => e.preventDefault());
 document.addEventListener('visibilitychange', () => { if (document.hidden) showWarning("Sahifadan chiqish aniqlandi!"); });
 window.addEventListener('blur', () => { document.getElementById('watermark').classList.add('active'); showWarning("Oynadan chiqish!"); });
 window.addEventListener('focus', () => setTimeout(() => document.getElementById('watermark').classList.remove('active'), 1000));
+
+// setInterval/setTimeout ni qayta yozishga qarshi himoya
+(function() {
+    var _origSetTimeout = window.setTimeout;
+    var _origSetInterval = window.setInterval;
+    var _origClearTimeout = window.clearTimeout;
+    var _origClearInterval = window.clearInterval;
+
+    try {
+        Object.defineProperty(window, 'setTimeout', {
+            value: _origSetTimeout,
+            writable: false,
+            configurable: false
+        });
+        Object.defineProperty(window, 'setInterval', {
+            value: _origSetInterval,
+            writable: false,
+            configurable: false
+        });
+        Object.defineProperty(window, 'clearTimeout', {
+            value: _origClearTimeout,
+            writable: false,
+            configurable: false
+        });
+        Object.defineProperty(window, 'clearInterval', {
+            value: _origClearInterval,
+            writable: false,
+            configurable: false
+        });
+    } catch(e) {}
+})();
 
 document.addEventListener('DOMContentLoaded', updateProgress);
 </script>
