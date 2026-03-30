@@ -1373,13 +1373,19 @@
     /* ============================================================
        8. DevTools aniqlash (oyna o'lchami usuli)
           Ichki kodga ta'sir qilmaydigan usul
+          Boshlang'ich farqni eslab qolamiz — toolbar/taskbar
+          tufayli yolg'on ogohlantirish chiqmasligi uchun
        ============================================================ */
     var devtoolsOpen = false;
-    setInterval(function () {
-        var widthDiff  = window.outerWidth  - window.innerWidth  > 160;
-        var heightDiff = window.outerHeight - window.innerHeight > 160;
+    var baseWidthDiff  = window.outerWidth  - window.innerWidth;
+    var baseHeightDiff = window.outerHeight - window.innerHeight;
+    var devtoolsThreshold = 160;
 
-        if (widthDiff || heightDiff) {
+    setInterval(function () {
+        var currentWidthDiff  = (window.outerWidth  - window.innerWidth)  - baseWidthDiff;
+        var currentHeightDiff = (window.outerHeight - window.innerHeight) - baseHeightDiff;
+
+        if (currentWidthDiff > devtoolsThreshold || currentHeightDiff > devtoolsThreshold) {
             if (!devtoolsOpen) {
                 devtoolsOpen = true;
                 showWarning("DevTools aniqlandi!");
