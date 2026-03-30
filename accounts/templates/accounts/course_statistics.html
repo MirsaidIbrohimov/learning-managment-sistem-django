@@ -390,6 +390,7 @@
                 <tr>
                     <th>#</th>
                     <th>O'quvchi</th>
+                    <th>Umumiy ball</th>
                     <th>Test bali</th>
                     <th class="d-none d-md-table-cell">Testlar</th>
                     <th>Vazifa</th>
@@ -415,6 +416,9 @@
                             {% endif %}
                             <span class="student-name">{{ s.student.first_name }} {{ s.student.last_name }}</span>
                         </div>
+                    </td>
+                    <td>
+                        <span class="fw-bold fs-6" style="color: #6366f1;">{{ s.total_score }}</span>
                     </td>
                     <td>
                         <span class="score-badge {% if s.test_avg >= 80 %}score-high{% elif s.test_avg >= 50 %}score-medium{% else %}score-low{% endif %}">
@@ -447,7 +451,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8" class="text-center py-4 text-muted">
+                    <td colspan="9" class="text-center py-4 text-muted">
                         <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
                         Hali o'quvchilar yozilmagan
                     </td>

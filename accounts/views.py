@@ -1099,6 +1099,10 @@ def course_statistics(request, pk):
         completed = s_passed + s_hw.filter(status__in=['accepted', 'graded']).count() + s_videos
         progress = round(completed / total_possible * 100) if total_possible else 0
 
+        s_test_total = s_tests.aggregate(total=Sum('score'))['total'] or 0
+        s_hw_total = s_hw.filter(status='graded').aggregate(total=Sum('grade'))['total'] or 0
+        s_total_score = s_test_total + s_hw_total
+
         student_stats.append({
             'student': student,
             'test_count': s_test_count,
@@ -1109,9 +1113,10 @@ def course_statistics(request, pk):
             'videos_watched': s_videos,
             'progress': min(progress, 100),
             'coins': student.coins,
+            'total_score': s_total_score,
         })
 
-    student_stats.sort(key=lambda x: x['test_avg'], reverse=True)
+    student_stats.sort(key=lambda x: x['total_score'], reverse=True)
 
     for i, s in enumerate(student_stats):
         s['rank'] = i + 1
