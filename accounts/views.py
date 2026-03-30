@@ -8,6 +8,7 @@ from django.db.models import Count, Q, Sum, Avg
 from django.db import models, transaction
 from django.utils import timezone
 from datetime import timedelta
+import json
 import random
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
@@ -4385,9 +4386,9 @@ def import_dictionary_words(request, pk):
                     example_col = None
 
                     for i, h in enumerate(headers):
-                        if h in ("so'z", 'soz', 'term', 'atama', 'word', "so'z / atama"):
+                        if h in ("so'z", 'soz', 'term', 'atama', 'word', "so'z / atama", 'yozilishi'):
                             term_col = i
-                        elif h in ('tarjima', 'translation', "ma'no", "ma'nosi", "tarjima / ma'nosi"):
+                        elif h in ('tarjima', 'translation', "ma'no", "ma'nosi", "tarjima / ma'nosi", 'tarjimasi'):
                             translation_col = i
                         elif h in ('misol', 'example', 'namuna', 'gap'):
                             example_col = i
@@ -4454,6 +4455,93 @@ def import_dictionary_words(request, pk):
         'errors': errors,
         'success_count': success_count,
     })
+
+
+@login_required
+def ai_generate_dictionary(request, pk):
+    if not (request.user.is_admin or request.user.is_teacher):
+        return redirect('home')
+
+    dictionary = get_object_or_404(Dictionary, pk=pk)
+
+    if request.method != 'POST':
+        messages.error(request, "Noto'g'ri so'rov turi.")
+        return redirect('manage_dictionary', pk=dictionary.pk)
+
+    language = request.POST.get('language', '').strip()
+    level = request.POST.get('level', '').strip()
+    try:
+        count = int(request.POST.get('count', 10))
+    except (ValueError, TypeError):
+        count = 10
+    count = min(count, 50)
+
+    if not language or not level:
+        messages.error(request, "Til va daraja ko'rsatilishi shart.")
+        return redirect('manage_dictionary', pk=dictionary.pk)
+
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        messages.error(request, "AI xizmati sozlanmagan (OPENAI_API_KEY topilmadi)")
+        return redirect('manage_dictionary', pk=dictionary.pk)
+
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=120)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz tajribali til o'qituvchisisiz. "
+                        "Faqat JSON array formatida javob bering, boshqa hech qanday matn qo'shmang. "
+                        "Har bir element quyidagi formatda bo'lsin:\n"
+                        '{"term": "maqsad tildagi so\'z", '
+                        '"translation": "O\'zbek tilidagi tarjimasi", '
+                        '"example": "Maqsad tildagi misol gap | O\'zbek tilidagi tarjimasi"}'
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": f"{language} tilidan {level} darajada {count} ta so'z yarat.",
+                },
+            ],
+            max_tokens=4000,
+            temperature=0.7,
+        )
+        ai_text = response.choices[0].message.content.strip()
+
+        if ai_text.startswith('```'):
+            lines = ai_text.split('\n')
+            lines = [l for l in lines if not l.strip().startswith('```')]
+            ai_text = '\n'.join(lines)
+
+        words_data = json.loads(ai_text)
+
+        if not isinstance(words_data, list):
+            messages.error(request, "AI noto'g'ri formatda javob qaytardi.")
+            return redirect('manage_dictionary', pk=dictionary.pk)
+
+        with transaction.atomic():
+            existing_count = dictionary.words.count()
+            for i, wd in enumerate(words_data):
+                DictionaryWord.objects.create(
+                    dictionary=dictionary,
+                    term=wd.get('term', ''),
+                    translation=wd.get('translation', ''),
+                    example=wd.get('example', '') or None,
+                    order=existing_count + i + 1,
+                )
+
+        messages.success(request, f"AI yordamida {len(words_data)} ta so'z muvaffaqiyatli yaratildi!")
+    except json.JSONDecodeError:
+        messages.error(request, "AI javobini o'qishda xatolik yuz berdi. Qaytadan urinib ko'ring.")
+    except Exception as e:
+        messages.error(request, f"AI so'z yaratishda xatolik: {str(e)}")
+
+    return redirect('manage_dictionary', pk=dictionary.pk)
 
 
 # Homework submissions for teachers

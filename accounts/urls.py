@@ -46,6 +46,7 @@ urlpatterns = [
     path('dictionary/<int:pk>/add-word/', views.add_dictionary_word, name='add_dictionary_word'),
     path('dictionary-word/<int:pk>/delete/', views.delete_dictionary_word, name='delete_dictionary_word'),
     path('dictionary/<int:pk>/import/', views.import_dictionary_words, name='import_dictionary_words'),
+    path('dictionary/<int:pk>/ai-generate/', views.ai_generate_dictionary, name='ai_generate_dictionary'),
     
     # Profile
     path('profile/', views.profile_view, name='profile'),
