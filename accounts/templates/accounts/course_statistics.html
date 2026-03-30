@@ -1,0 +1,504 @@
+﻿{% extends 'accounts/base.html' %}
+
+{% block title %}{{ profession.name }} - Statistika{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --stat-bg: rgba(255,255,255,.85);
+    --stat-border: rgba(0,0,0,.08);
+    --stat-text: #111;
+    --stat-muted: #6b7280;
+    --stat-card-hover: rgba(99,102,241,0.04);
+}
+[data-bs-theme="dark"] {
+    --stat-bg: rgba(25,25,30,.85);
+    --stat-border: rgba(255,255,255,.08);
+    --stat-text: #f1f1f1;
+    --stat-muted: #9ca3af;
+    --stat-card-hover: rgba(99,102,241,0.08);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.85); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-40px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes progressGrow {
+    from { width: 0; }
+}
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.stat-hero {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    background-size: 200% 200%;
+    animation: gradientShift 6s ease infinite;
+    border-radius: 24px;
+    padding: 2rem 2.5rem;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease forwards, gradientShift 6s ease infinite;
+}
+.stat-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.08);
+}
+.stat-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -30%; left: -10%;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+}
+.stat-hero h2 {
+    font-weight: 800; font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+    position: relative; z-index: 1;
+}
+.stat-hero p {
+    opacity: 0.85; font-size: 0.95rem;
+    position: relative; z-index: 1; margin: 0;
+}
+
+.stat-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px; margin-bottom: 2rem;
+}
+.stat-card {
+    background: var(--stat-bg);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--stat-border);
+    border-radius: 20px; padding: 1.5rem;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity: 0;
+    animation: fadeInScale 0.6s ease forwards;
+}
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
+.stat-card:nth-child(5) { animation-delay: 0.5s; }
+.stat-card:nth-child(6) { animation-delay: 0.6s; }
+.stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(99,102,241,0.15);
+}
+.stat-card .stat-icon {
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; margin: 0 auto 0.8rem;
+    transition: transform 0.3s;
+}
+.stat-card:hover .stat-icon { transform: scale(1.1) rotate(-3deg); }
+.stat-card .stat-value {
+    font-size: 2rem; font-weight: 800;
+    color: var(--stat-text); line-height: 1; margin-bottom: 0.3rem;
+}
+.stat-card .stat-label {
+    font-size: 0.82rem; color: var(--stat-muted);
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+.icon-students { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.icon-lessons  { background: rgba(16,185,129,0.12); color: #10b981; }
+.icon-tests    { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.icon-homework { background: rgba(239,68,68,0.12);  color: #ef4444; }
+.icon-score    { background: rgba(99,102,241,0.12);  color: #6366f1; }
+.icon-pass     { background: rgba(34,197,94,0.12);   color: #22c55e; }
+
+.score-section {
+    background: var(--stat-bg); backdrop-filter: blur(16px);
+    border: 1px solid var(--stat-border);
+    border-radius: 20px; padding: 1.75rem; margin-bottom: 2rem;
+    opacity: 0; animation: fadeInUp 0.7s ease 0.4s forwards;
+}
+.score-section h5 { font-weight: 700; margin-bottom: 1.25rem; color: var(--stat-text); }
+.score-bar-item { margin-bottom: 1.25rem; }
+.score-bar-label {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.4rem; font-size: 0.88rem; font-weight: 600; color: var(--stat-text);
+}
+.score-bar-track {
+    height: 10px; background: var(--stat-border);
+    border-radius: 10px; overflow: hidden;
+}
+.score-bar-fill {
+    height: 100%; border-radius: 10px;
+    animation: progressGrow 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    position: relative;
+}
+.score-bar-fill::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    background-size: 200% 100%; animation: shimmer 2s infinite;
+}
+
+.student-table-wrap {
+    background: var(--stat-bg); backdrop-filter: blur(16px);
+    border: 1px solid var(--stat-border);
+    border-radius: 20px; overflow: hidden;
+    opacity: 0; animation: fadeInUp 0.7s ease 0.6s forwards;
+}
+.student-table-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--stat-border);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.student-table-header h5 { font-weight: 700; margin: 0; color: var(--stat-text); }
+.student-search {
+    padding: 0.5rem 1rem; border: 1px solid var(--stat-border);
+    border-radius: 12px; background: transparent;
+    color: var(--stat-text); font-size: 0.88rem; width: 220px;
+    transition: all 0.3s;
+}
+.student-search:focus {
+    outline: none; border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.student-search::placeholder { color: var(--stat-muted); }
+
+.student-table { width: 100%; border-collapse: collapse; }
+.student-table thead th {
+    padding: 0.85rem 1rem; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--stat-muted); font-weight: 700;
+    border-bottom: 1px solid var(--stat-border);
+    text-align: left; white-space: nowrap;
+}
+.student-table tbody tr {
+    transition: all 0.3s ease;
+    opacity: 0; animation: slideInLeft 0.5s ease forwards;
+}
+.student-table tbody tr:nth-child(1) { animation-delay: 0.7s; }
+.student-table tbody tr:nth-child(2) { animation-delay: 0.75s; }
+.student-table tbody tr:nth-child(3) { animation-delay: 0.8s; }
+.student-table tbody tr:nth-child(4) { animation-delay: 0.85s; }
+.student-table tbody tr:nth-child(5) { animation-delay: 0.9s; }
+.student-table tbody tr:nth-child(6) { animation-delay: 0.95s; }
+.student-table tbody tr:nth-child(7) { animation-delay: 1s; }
+.student-table tbody tr:nth-child(8) { animation-delay: 1.05s; }
+.student-table tbody tr:nth-child(9) { animation-delay: 1.1s; }
+.student-table tbody tr:nth-child(10) { animation-delay: 1.15s; }
+.student-table tbody tr:nth-child(n+11) { animation-delay: 1.2s; }
+.student-table tbody tr:hover {
+    background: var(--stat-card-hover); transform: scale(1.005);
+}
+.student-table td {
+    padding: 0.85rem 1rem; font-size: 0.9rem;
+    color: var(--stat-text);
+    border-bottom: 1px solid var(--stat-border);
+    vertical-align: middle;
+}
+
+.rank-badge {
+    width: 32px; height: 32px; border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.85rem;
+}
+.rank-1 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; box-shadow: 0 3px 10px rgba(245,158,11,0.3); }
+.rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+.rank-3 { background: linear-gradient(135deg, #d97706, #b45309); color: #fff; }
+.rank-other { background: var(--stat-border); color: var(--stat-muted); }
+
+.student-name-cell { display: flex; align-items: center; gap: 10px; }
+.student-avatar {
+    width: 36px; height: 36px; border-radius: 12px;
+    object-fit: cover; border: 2px solid var(--stat-border);
+}
+.student-avatar-placeholder {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+}
+.student-name { font-weight: 600; font-size: 0.9rem; }
+
+.mini-progress {
+    width: 80px; height: 6px;
+    background: var(--stat-border); border-radius: 6px;
+    overflow: hidden; display: inline-block;
+    vertical-align: middle; margin-right: 6px;
+}
+.mini-progress-fill {
+    height: 100%; border-radius: 6px;
+    animation: progressGrow 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.score-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 0.25rem 0.6rem; border-radius: 8px;
+    font-weight: 700; font-size: 0.82rem;
+}
+.score-high   { background: rgba(34,197,94,0.12); color: #16a34a; }
+.score-medium { background: rgba(245,158,11,0.12); color: #d97706; }
+.score-low    { background: rgba(239,68,68,0.12); color: #ef4444; }
+
+.coin-display {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-weight: 700; color: #f59e0b;
+}
+
+.current-user-row {
+    background: rgba(99,102,241,0.06) !important;
+    border-left: 3px solid #6366f1;
+}
+
+@media (max-width: 768px) {
+    .stat-hero { padding: 1.5rem; border-radius: 18px; }
+    .stat-hero h2 { font-size: 1.3rem; }
+    .stat-overview { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat-card { padding: 1.1rem; }
+    .stat-card .stat-value { font-size: 1.5rem; }
+    .stat-card .stat-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+    .student-table-header { flex-direction: column; gap: 10px; padding: 1rem; }
+    .student-search { width: 100%; }
+    .student-table { font-size: 0.82rem; }
+    .student-table td, .student-table th { padding: 0.6rem 0.5rem; }
+    .mini-progress { width: 50px; }
+    .student-avatar, .student-avatar-placeholder { width: 30px; height: 30px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5">
+
+<a href="{% url 'profession_detail' profession.pk %}" class="btn btn-outline-secondary mb-4" style="border-radius:14px; font-weight:600;">
+    <i class="bi bi-arrow-left me-2"></i>Kursga qaytish
+</a>
+
+<div class="stat-hero">
+    <h2><i class="bi bi-bar-chart-line me-2"></i>{{ profession.name }}</h2>
+    <p>Kurs statistikasi — {{ total_students }} o'quvchi yozilgan</p>
+</div>
+
+<div class="stat-overview">
+    <div class="stat-card">
+        <div class="stat-icon icon-students"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-value" data-count="{{ total_students }}">{{ total_students }}</div>
+        <div class="stat-label">O'quvchilar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-lessons"><i class="bi bi-collection-fill"></i></div>
+        <div class="stat-value" data-count="{{ total_lessons }}">{{ total_lessons }}</div>
+        <div class="stat-label">Jami darslar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-tests"><i class="bi bi-journal-check"></i></div>
+        <div class="stat-value" data-count="{{ total_tests }}">{{ total_tests }}</div>
+        <div class="stat-label">Testlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-homework"><i class="bi bi-pencil-square"></i></div>
+        <div class="stat-value" data-count="{{ total_homeworks }}">{{ total_homeworks }}</div>
+        <div class="stat-label">Vazifalar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-score"><i class="bi bi-graph-up-arrow"></i></div>
+        <div class="stat-value">{{ avg_test_score }}%</div>
+        <div class="stat-label">O'rtacha test ball</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-pass"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="stat-value">{{ pass_rate }}%</div>
+        <div class="stat-label">O'tish darajasi</div>
+    </div>
+</div>
+
+<div class="score-section">
+    <h5><i class="bi bi-activity me-2 text-primary"></i>Umumiy ko'rsatkichlar</h5>
+
+    <div class="score-bar-item">
+        <div class="score-bar-label">
+            <span><i class="bi bi-journal-check me-1 text-warning"></i> Test o'rtacha bali</span>
+            <span class="fw-bold">{{ avg_test_score }}%</span>
+        </div>
+        <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:{{ avg_test_score }}%; background: linear-gradient(90deg, #f59e0b, #eab308);"></div>
+        </div>
+    </div>
+
+    <div class="score-bar-item">
+        <div class="score-bar-label">
+            <span><i class="bi bi-check2-circle me-1 text-success"></i> Testdan o'tish darajasi</span>
+            <span class="fw-bold">{{ pass_rate }}%</span>
+        </div>
+        <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:{{ pass_rate }}%; background: linear-gradient(90deg, #22c55e, #16a34a);"></div>
+        </div>
+    </div>
+
+    <div class="score-bar-item">
+        <div class="score-bar-label">
+            <span><i class="bi bi-pencil-square me-1 text-danger"></i> Vazifa o'rtacha bahosi</span>
+            <span class="fw-bold">{{ avg_hw_grade }}/10</span>
+        </div>
+        <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:{% widthratio avg_hw_grade 10 100 %}%; background: linear-gradient(90deg, #ef4444, #dc2626);"></div>
+        </div>
+    </div>
+
+    <div class="row mt-3 text-center g-3">
+        <div class="col-4">
+            <div class="small text-muted">Test urinishlar</div>
+            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_test_attempts }}</div>
+        </div>
+        <div class="col-4">
+            <div class="small text-muted">Vazifalar topshirilgan</div>
+            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_hw_submitted }}</div>
+        </div>
+        <div class="col-4">
+            <div class="small text-muted">Video darslar</div>
+            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_videos }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="student-table-wrap">
+    <div class="student-table-header">
+        <h5><i class="bi bi-trophy me-2 text-warning"></i>O'quvchilar reytingi</h5>
+        <input type="text" class="student-search" placeholder="🔍 Qidirish..." id="studentSearch" autocomplete="off">
+    </div>
+    <div class="table-responsive">
+        <table class="student-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>O'quvchi</th>
+                    <th>Test bali</th>
+                    <th class="d-none d-md-table-cell">Testlar</th>
+                    <th>Vazifa</th>
+                    <th class="d-none d-md-table-cell">Video</th>
+                    <th>Progress</th>
+                    <th class="d-none d-sm-table-cell">Coin</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                {% for s in student_stats %}
+                <tr class="student-row {% if s.student.pk == request.user.pk %}current-user-row{% endif %}" data-name="{{ s.student.first_name }} {{ s.student.last_name }}">
+                    <td>
+                        <span class="rank-badge {% if s.rank == 1 %}rank-1{% elif s.rank == 2 %}rank-2{% elif s.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+                            {% if s.rank == 1 %}🥇{% elif s.rank == 2 %}🥈{% elif s.rank == 3 %}🥉{% else %}{{ s.rank }}{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="student-name-cell">
+                            {% if s.student.photo %}
+                            <img src="{{ s.student.photo.url }}" class="student-avatar" alt="">
+                            {% else %}
+                            <div class="student-avatar-placeholder">{{ s.student.first_name|first }}</div>
+                            {% endif %}
+                            <span class="student-name">{{ s.student.first_name }} {{ s.student.last_name }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="score-badge {% if s.test_avg >= 80 %}score-high{% elif s.test_avg >= 50 %}score-medium{% else %}score-low{% endif %}">
+                            {{ s.test_avg }}%
+                        </span>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        <span class="text-success fw-bold">{{ s.passed_tests }}</span>
+                        <span class="text-muted">/{{ s.test_count }}</span>
+                    </td>
+                    <td>
+                        <span class="score-badge {% if s.hw_avg >= 8 %}score-high{% elif s.hw_avg >= 5 %}score-medium{% else %}score-low{% endif %}">
+                            {{ s.hw_avg }}/10
+                        </span>
+                    </td>
+                    <td class="d-none d-md-table-cell">
+                        <i class="bi bi-play-circle-fill text-primary me-1"></i>{{ s.videos_watched }}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <div class="mini-progress">
+                                <div class="mini-progress-fill" style="width:{{ s.progress }}%; background: linear-gradient(90deg, {% if s.progress >= 70 %}#22c55e, #16a34a{% elif s.progress >= 40 %}#f59e0b, #eab308{% else %}#ef4444, #dc2626{% endif %});"></div>
+                            </div>
+                            <span class="small fw-bold">{{ s.progress }}%</span>
+                        </div>
+                    </td>
+                    <td class="d-none d-sm-table-cell">
+                        <span class="coin-display"><i class="bi bi-coin"></i> {{ s.coins }}</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+                        Hali o'quvchilar yozilmagan
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var searchInput = document.getElementById('studentSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var query = this.value.toLowerCase().trim();
+            var rows = document.querySelectorAll('.student-row');
+            rows.forEach(function(row) {
+                var name = (row.getAttribute('data-name') || '').toLowerCase();
+                row.style.display = name.indexOf(query) !== -1 ? '' : 'none';
+            });
+        });
+    }
+
+    document.querySelectorAll('.stat-value[data-count]').forEach(function(el) {
+        var target = parseInt(el.getAttribute('data-count')) || 0;
+        if (target === 0) return;
+        var duration = 1200;
+        var startTime = null;
+        el.textContent = '0';
+        function animate(ts) {
+            if (!startTime) startTime = ts;
+            var progress = Math.min((ts - startTime) / duration, 1);
+            var eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(eased * target);
+            if (progress < 1) requestAnimationFrame(animate);
+        }
+        var observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting) {
+                    requestAnimationFrame(animate);
+                    observer.disconnect();
+                }
+            });
+        }, { threshold: 0.3 });
+        observer.observe(el);
+    });
+})();
+</script>
+{% endblock %}

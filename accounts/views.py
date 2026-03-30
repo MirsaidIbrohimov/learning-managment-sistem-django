@@ -1052,6 +1052,87 @@ def profession_detail(request, pk):
 
 
 @login_required
+def course_statistics(request, pk):
+    profession = get_object_or_404(Profession, pk=pk)
+    is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
+    if not (is_enrolled or request.user.is_admin or request.user.is_teacher):
+        messages.error(request, "Bu kursga yozilmagansiz!")
+        return redirect('profession_detail', pk=pk)
+
+    enrolled_students = CustomUser.objects.filter(
+        enrollments__profession=profession, role='student'
+    ).order_by('-coins')
+
+    total_students = enrolled_students.count()
+
+    lessons = Lesson.objects.filter(profession=profession)
+    total_lessons = lessons.count()
+    total_tests = lessons.filter(lesson_type='test').count()
+    total_homeworks = lessons.filter(lesson_type='homework').count()
+    total_videos = lessons.filter(lesson_type='video').count()
+
+    test_results = TestResult.objects.filter(test__lesson__profession=profession)
+    avg_test_score = test_results.aggregate(avg=Avg('score'))['avg'] or 0
+    total_test_attempts = test_results.count()
+    passed_tests = test_results.filter(passed=True).count()
+    pass_rate = round(passed_tests / total_test_attempts * 100, 1) if total_test_attempts else 0
+
+    hw_submissions = HomeworkSubmission.objects.filter(homework__lesson__profession=profession)
+    total_hw_submitted = hw_submissions.count()
+    graded_hw = hw_submissions.filter(status='graded')
+    avg_hw_grade = graded_hw.aggregate(avg=Avg('grade'))['avg'] or 0
+
+    student_stats = []
+    for student in enrolled_students:
+        s_tests = TestResult.objects.filter(student=student, test__lesson__profession=profession)
+        s_test_count = s_tests.count()
+        s_test_avg = s_tests.aggregate(avg=Avg('score'))['avg'] or 0
+        s_passed = s_tests.filter(passed=True).count()
+
+        s_hw = HomeworkSubmission.objects.filter(student=student, homework__lesson__profession=profession)
+        s_hw_count = s_hw.count()
+        s_hw_avg = s_hw.filter(status='graded').aggregate(avg=Avg('grade'))['avg'] or 0
+
+        s_videos = VideoProgress.objects.filter(user=student, watched=True, video__lesson__profession=profession).count()
+
+        total_possible = total_tests + total_homeworks + total_videos
+        completed = s_passed + s_hw.filter(status__in=['accepted', 'graded']).count() + s_videos
+        progress = round(completed / total_possible * 100) if total_possible else 0
+
+        student_stats.append({
+            'student': student,
+            'test_count': s_test_count,
+            'test_avg': round(s_test_avg, 1),
+            'passed_tests': s_passed,
+            'hw_count': s_hw_count,
+            'hw_avg': round(s_hw_avg, 1),
+            'videos_watched': s_videos,
+            'progress': min(progress, 100),
+            'coins': student.coins,
+        })
+
+    student_stats.sort(key=lambda x: x['test_avg'], reverse=True)
+
+    for i, s in enumerate(student_stats):
+        s['rank'] = i + 1
+
+    return render(request, 'accounts/course_statistics.html', {
+        'profession': profession,
+        'total_students': total_students,
+        'total_lessons': total_lessons,
+        'total_tests': total_tests,
+        'total_homeworks': total_homeworks,
+        'total_videos': total_videos,
+        'avg_test_score': round(avg_test_score, 1),
+        'pass_rate': pass_rate,
+        'total_test_attempts': total_test_attempts,
+        'total_hw_submitted': total_hw_submitted,
+        'avg_hw_grade': round(avg_hw_grade, 1),
+        'student_stats': student_stats,
+    })
+
+
+@login_required
 def enroll_course(request, pk):
     if not request.user.is_student:
         messages.error(request, "Faqat o'quvchilar kursga yozilishi mumkin!")

@@ -12,6 +12,7 @@ urlpatterns = [
     # Professions & Courses
     path('professions/', views.professions_view, name='professions'),
     path('professions/<int:pk>/', views.profession_detail, name='profession_detail'),
+    path('professions/<int:pk>/statistics/', views.course_statistics, name='course_statistics'),
     path('professions/<int:pk>/enroll/', views.enroll_course, name='enroll_course'),
     path('professions/<int:pk>/unenroll/', views.unenroll_course, name='unenroll_course'),
     path('professions/<int:pk>/manage/', views.manage_lessons, name='manage_lessons'),
