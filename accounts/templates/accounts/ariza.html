@@ -534,7 +534,7 @@ h1.h1 .gr{
         <label for="f_ph">Telefon Raqam <span class="req">*</span></label>
         <div class="ph-row">
           <span class="ph-pre">+998</span>
-          <input type="tel" id="f_ph" name="phone" class="inp" placeholder="90 123 45 67" maxlength="12" autocomplete="tel-national" required>
+          <input type="tel" id="f_ph" name="phone" class="inp" placeholder="(XX) XXX XX XX" maxlength="15" autocomplete="tel-national" required>
         </div>
       </div>
       <div class="field">
@@ -589,7 +589,39 @@ document.querySelectorAll('.rev').forEach(el => io.observe(el));
 const form = document.getElementById('arizaForm');
 if(form){
   const ph = document.getElementById('f_ph');
-  if(ph) ph.addEventListener('input', () => { ph.value = ph.value.replace(/\D/g,''); });
+  if(ph){
+    ph.addEventListener('input', function(){
+      var v=this.value.replace(/\D/g,'');
+      if(v.length>9)v=v.substring(0,9);
+      var f='';
+      if(v.length>0)f='('+v.substring(0,2);
+      if(v.length>=2)f+=') ';
+      if(v.length>2)f+=v.substring(2,5);
+      if(v.length>5)f+=' '+v.substring(5,7);
+      if(v.length>7)f+=' '+v.substring(7,9);
+      this.value=f;
+    });
+    ph.addEventListener('keydown', function(e){
+      if(e.key==='Backspace'||e.key==='Delete'||e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key==='Tab')return;
+      var digits=this.value.replace(/\D/g,'');
+      if(digits.length>=9&&!e.ctrlKey&&!e.metaKey)e.preventDefault();
+    });
+    ph.addEventListener('paste', function(e){
+      e.preventDefault();
+      var paste=(e.clipboardData||window.clipboardData).getData('text');
+      var digits=paste.replace(/\D/g,'');
+      if(digits.startsWith('998')&&digits.length>=12)digits=digits.substring(3);
+      if(digits.startsWith('8')&&digits.length===10)digits=digits.substring(1);
+      digits=digits.substring(0,9);
+      var f='';
+      if(digits.length>0)f='('+digits.substring(0,2);
+      if(digits.length>=2)f+=') ';
+      if(digits.length>2)f+=digits.substring(2,5);
+      if(digits.length>5)f+=' '+digits.substring(5,7);
+      if(digits.length>7)f+=' '+digits.substring(7,9);
+      this.value=f;
+    });
+  }
   form.addEventListener('submit', () => {
     const sb = document.getElementById('submitBtn');
     sb.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Yuborilmoqda...';

@@ -10025,7 +10025,11 @@ def ariza_view(request):
     if request.method == 'POST':
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        phone = request.POST.get('phone', '').strip()
+        raw_phone = request.POST.get('phone', '').strip()
+        phone_digits = ''.join(c for c in raw_phone if c.isdigit())
+        if phone_digits.startswith('998') and len(phone_digits) == 12:
+            phone_digits = phone_digits[3:]
+        phone = '+998' + phone_digits if phone_digits else raw_phone
         course_interest = request.POST.get('course_interest', '').strip()
         
         if first_name and last_name and phone:

@@ -40,12 +40,11 @@ class RegisterForm(UserCreationForm):
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'})
     )
     phone = forms.CharField(
-        max_length=20,
+        max_length=15,
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
-            'placeholder': '+998 90 123 45 67',
-            'pattern': r'\+998[0-9]{9}',
-            'title': "O'zbek telefon raqami: +998XXXXXXXXX"
+            'placeholder': '(XX) XXX XX XX',
+            'id': 'id_phone',
         })
     )
     birth_date = forms.DateField(
@@ -76,23 +75,19 @@ class RegisterForm(UserCreationForm):
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
-        # Formatni tozalash
-        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        # Formatni tozalash - faqat raqamlarni qoldirish
+        digits = ''.join(c for c in phone if c.isdigit())
         
-        # +998 bilan boshlanmaslikni tekshirish
-        if not phone.startswith('+998'):
-            if phone.startswith('998'):
-                phone = '+' + phone
-            elif phone.startswith('8') or phone.startswith('9'):
-                phone = '+998' + phone.lstrip('8')
-            else:
-                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
+        # Agar +998 bilan kiritgan bo'lsa, uni olib tashlash
+        if digits.startswith('998') and len(digits) == 12:
+            digits = digits[3:]
         
-        # Uzunlikni tekshirish (+998 + 9 raqam = 13)
-        if len(phone) != 13:
-            raise forms.ValidationError("Telefon raqami noto'g'ri formatda. Masalan: +998901234567")
+        # 9 ta raqam bo'lishi kerak
+        if len(digits) != 9:
+            raise forms.ValidationError("Telefon raqami 9 ta raqamdan iborat bo'lishi kerak. Masalan: (97) 521 66 86")
         
-        return phone
+        # +998 qo'shib saqlash
+        return '+998' + digits
 
 
 class LoginForm(forms.Form):

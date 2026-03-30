@@ -502,6 +502,43 @@
     var ico=btn.querySelector('i');if(ico)ico.className=isPw?'bi bi-eye-slash':'bi bi-eye';
   };
 
+  // Phone number auto-format: (XX) XXX XX XX
+  var phoneInp=document.getElementById('id_phone');
+  if(phoneInp){
+    phoneInp.addEventListener('input',function(e){
+      var v=this.value.replace(/\D/g,'');
+      if(v.length>9)v=v.substring(0,9);
+      var f='';
+      if(v.length>0)f='('+v.substring(0,2);
+      if(v.length>=2)f+=') ';
+      if(v.length>2)f+=v.substring(2,5);
+      if(v.length>5)f+=' '+v.substring(5,7);
+      if(v.length>7)f+=' '+v.substring(7,9);
+      this.value=f;
+    });
+    phoneInp.addEventListener('keydown',function(e){
+      if(e.key==='Backspace'||e.key==='Delete'||e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key==='Tab')return;
+      var digits=this.value.replace(/\D/g,'');
+      if(digits.length>=9&&!e.ctrlKey&&!e.metaKey)e.preventDefault();
+    });
+    phoneInp.addEventListener('paste',function(e){
+      e.preventDefault();
+      var paste=(e.clipboardData||window.clipboardData).getData('text');
+      var digits=paste.replace(/\D/g,'');
+      if(digits.startsWith('998')&&digits.length>=12)digits=digits.substring(3);
+      if(digits.startsWith('8')&&digits.length===10)digits=digits.substring(1);
+      digits=digits.substring(0,9);
+      var f='';
+      if(digits.length>0)f='('+digits.substring(0,2);
+      if(digits.length>=2)f+=') ';
+      if(digits.length>2)f+=digits.substring(2,5);
+      if(digits.length>5)f+=' '+digits.substring(5,7);
+      if(digits.length>7)f+=' '+digits.substring(7,9);
+      this.value=f;
+      this.dispatchEvent(new Event('input'));
+    });
+  }
+
   var pw=document.getElementById('{{ form.password1.id_for_label }}');
   if(pw){
     pw.addEventListener('input',function(){
