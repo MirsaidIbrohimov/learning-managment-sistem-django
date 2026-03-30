@@ -104,6 +104,8 @@
 .stat-card:nth-child(4) { animation-delay: 0.4s; }
 .stat-card:nth-child(5) { animation-delay: 0.5s; }
 .stat-card:nth-child(6) { animation-delay: 0.6s; }
+.stat-card:nth-child(7) { animation-delay: 0.7s; }
+.stat-card:nth-child(8) { animation-delay: 0.8s; }
 .stat-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 12px 40px rgba(99,102,241,0.15);
@@ -124,12 +126,14 @@
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-.icon-students { background: rgba(59,130,246,0.12); color: #3b82f6; }
-.icon-lessons  { background: rgba(16,185,129,0.12); color: #10b981; }
-.icon-tests    { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.icon-homework { background: rgba(239,68,68,0.12);  color: #ef4444; }
-.icon-score    { background: rgba(99,102,241,0.12);  color: #6366f1; }
-.icon-pass     { background: rgba(34,197,94,0.12);   color: #22c55e; }
+.icon-students  { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.icon-lessons   { background: rgba(16,185,129,0.12); color: #10b981; }
+.icon-tests     { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.icon-homework  { background: rgba(239,68,68,0.12);  color: #ef4444; }
+.icon-score     { background: rgba(99,102,241,0.12);  color: #6366f1; }
+.icon-pass      { background: rgba(34,197,94,0.12);   color: #22c55e; }
+.icon-attempts  { background: rgba(139,92,246,0.12);  color: #8b5cf6; }
+.icon-hw-submit { background: rgba(236,72,153,0.12);  color: #ec4899; }
 
 .score-section {
     background: var(--stat-bg); backdrop-filter: blur(16px);
@@ -171,10 +175,15 @@
 }
 .student-table-header h5 { font-weight: 700; margin: 0; color: var(--stat-text); }
 .student-search {
-    padding: 0.5rem 1rem; border: 1px solid var(--stat-border);
+    padding: 0.5rem 1rem 0.5rem 2.2rem;
+    border: 1px solid var(--stat-border);
     border-radius: 12px; background: transparent;
     color: var(--stat-text); font-size: 0.88rem; width: 220px;
     transition: all 0.3s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.7rem center;
+    background-size: 14px;
 }
 .student-search:focus {
     outline: none; border-color: #6366f1;
@@ -268,20 +277,98 @@
     border-left: 3px solid #6366f1;
 }
 
-@media (max-width: 768px) {
+/* Mobile card layout */
+.mobile-student-cards { display: none; }
+
+@media (max-width: 991px) {
     .stat-hero { padding: 1.5rem; border-radius: 18px; }
     .stat-hero h2 { font-size: 1.3rem; }
     .stat-overview { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .stat-card { padding: 1.1rem; }
-    .stat-card .stat-value { font-size: 1.5rem; }
-    .stat-card .stat-icon { width: 42px; height: 42px; font-size: 1.1rem; }
+    .stat-card { padding: 1rem; border-radius: 16px; }
+    .stat-card .stat-value { font-size: 1.4rem; }
+    .stat-card .stat-icon { width: 40px; height: 40px; font-size: 1.1rem; border-radius: 12px; }
+    .score-section { padding: 1.25rem; border-radius: 16px; }
+}
+
+@media (max-width: 767px) {
+    .stat-hero { padding: 1.2rem; border-radius: 16px; }
+    .stat-hero h2 { font-size: 1.15rem; }
+    .stat-hero p { font-size: 0.85rem; }
+    .stat-overview { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card { padding: 0.85rem; border-radius: 14px; }
+    .stat-card .stat-value { font-size: 1.25rem; }
+    .stat-card .stat-icon { width: 36px; height: 36px; font-size: 1rem; margin-bottom: 0.5rem; }
+    .stat-card .stat-label { font-size: 0.68rem; }
+
+    .desktop-table { display: none !important; }
+    .mobile-student-cards { display: block !important; }
+
     .student-table-header { flex-direction: column; gap: 10px; padding: 1rem; }
     .student-search { width: 100%; }
-    .student-table { font-size: 0.82rem; }
-    .student-table td, .student-table th { padding: 0.6rem 0.5rem; }
-    .mini-progress { width: 50px; }
-    .student-avatar, .student-avatar-placeholder { width: 30px; height: 30px; }
 }
+
+@media (max-width: 400px) {
+    .stat-overview { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .stat-card { padding: 0.7rem; }
+    .stat-card .stat-value { font-size: 1.1rem; }
+    .stat-card .stat-icon { width: 32px; height: 32px; font-size: 0.9rem; }
+}
+
+.m-student-card {
+    background: var(--stat-bg);
+    border: 1px solid var(--stat-border);
+    border-radius: 16px; padding: 1rem;
+    margin-bottom: 10px;
+    transition: all 0.3s;
+    opacity: 0; animation: fadeInUp 0.5s ease forwards;
+}
+.m-student-card:nth-child(1) { animation-delay: 0.1s; }
+.m-student-card:nth-child(2) { animation-delay: 0.15s; }
+.m-student-card:nth-child(3) { animation-delay: 0.2s; }
+.m-student-card:nth-child(4) { animation-delay: 0.25s; }
+.m-student-card:nth-child(5) { animation-delay: 0.3s; }
+.m-student-card:nth-child(n+6) { animation-delay: 0.35s; }
+
+.m-student-card.current-user-card {
+    border-left: 3px solid #6366f1;
+    background: rgba(99,102,241,0.06);
+}
+.m-card-top {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 0.75rem;
+}
+.m-card-rank {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.75rem; flex-shrink: 0;
+}
+.m-card-avatar {
+    width: 34px; height: 34px; border-radius: 10px;
+    object-fit: cover; border: 2px solid var(--stat-border); flex-shrink: 0;
+}
+.m-card-avatar-ph {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+}
+.m-card-name { font-weight: 700; font-size: 0.9rem; color: var(--stat-text); }
+.m-card-total { margin-left: auto; font-weight: 800; font-size: 1.1rem; color: #6366f1; }
+
+.m-card-stats {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px;
+}
+.m-card-stat {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.78rem; color: var(--stat-muted);
+    padding: 4px 8px;
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+}
+[data-bs-theme="dark"] .m-card-stat {
+    background: rgba(255,255,255,0.03);
+}
+.m-card-stat i { font-size: 0.85rem; }
+.m-card-stat .m-stat-val { font-weight: 700; color: var(--stat-text); }
 </style>
 {% endblock %}
 
@@ -317,6 +404,16 @@
         <div class="stat-icon icon-homework"><i class="bi bi-pencil-square"></i></div>
         <div class="stat-value" data-count="{{ total_homeworks }}">{{ total_homeworks }}</div>
         <div class="stat-label">Vazifalar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-attempts"><i class="bi bi-arrow-repeat"></i></div>
+        <div class="stat-value" data-count="{{ total_test_attempts }}">{{ total_test_attempts }}</div>
+        <div class="stat-label">Test urinishlar</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon icon-hw-submit"><i class="bi bi-send-check-fill"></i></div>
+        <div class="stat-value" data-count="{{ total_hw_submitted }}">{{ total_hw_submitted }}</div>
+        <div class="stat-label">Vazifa topshirilgan</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon icon-score"><i class="bi bi-graph-up-arrow"></i></div>
@@ -363,28 +460,15 @@
         </div>
     </div>
 
-    <div class="row mt-3 text-center g-3">
-        <div class="col-4">
-            <div class="small text-muted">Test urinishlar</div>
-            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_test_attempts }}</div>
-        </div>
-        <div class="col-4">
-            <div class="small text-muted">Vazifalar topshirilgan</div>
-            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_hw_submitted }}</div>
-        </div>
-        <div class="col-4">
-            <div class="small text-muted">Video darslar</div>
-            <div class="fw-bold fs-5" style="color: var(--stat-text);">{{ total_videos }}</div>
-        </div>
-    </div>
 </div>
 
 <div class="student-table-wrap">
     <div class="student-table-header">
         <h5><i class="bi bi-trophy me-2 text-warning"></i>O'quvchilar reytingi</h5>
-        <input type="text" class="student-search" placeholder="🔍 Qidirish..." id="studentSearch" autocomplete="off">
+        <input type="text" class="student-search" placeholder="Qidirish..." id="studentSearch" autocomplete="off">
     </div>
-    <div class="table-responsive">
+    <!-- Desktop table -->
+    <div class="table-responsive desktop-table">
         <table class="student-table">
             <thead>
                 <tr>
@@ -392,8 +476,9 @@
                     <th>O'quvchi</th>
                     <th>Umumiy ball</th>
                     <th>Test bali</th>
-                    <th class="d-none d-md-table-cell">Testlar</th>
-                    <th>Vazifa</th>
+                    <th>Test urinish</th>
+                    <th>Vazifa baho</th>
+                    <th>Vazifa topsh.</th>
                     <th class="d-none d-md-table-cell">Video</th>
                     <th>Progress</th>
                     <th class="d-none d-sm-table-cell">Coin</th>
@@ -404,7 +489,7 @@
                 <tr class="student-row {% if s.student.pk == request.user.pk %}current-user-row{% endif %}" data-name="{{ s.student.first_name }} {{ s.student.last_name }}">
                     <td>
                         <span class="rank-badge {% if s.rank == 1 %}rank-1{% elif s.rank == 2 %}rank-2{% elif s.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
-                            {% if s.rank == 1 %}🥇{% elif s.rank == 2 %}🥈{% elif s.rank == 3 %}🥉{% else %}{{ s.rank }}{% endif %}
+                            {% if s.rank == 1 %}<i class="bi bi-trophy-fill"></i>{% elif s.rank == 2 %}<i class="bi bi-award-fill"></i>{% elif s.rank == 3 %}<i class="bi bi-star-fill"></i>{% else %}{{ s.rank }}{% endif %}
                         </span>
                     </td>
                     <td>
@@ -425,14 +510,18 @@
                             {{ s.test_avg }}%
                         </span>
                     </td>
-                    <td class="d-none d-md-table-cell">
-                        <span class="text-success fw-bold">{{ s.passed_tests }}</span>
-                        <span class="text-muted">/{{ s.test_count }}</span>
+                    <td>
+                        <span class="text-primary fw-bold">{{ s.test_count }}</span>
+                        <span class="text-muted small">marta</span>
                     </td>
                     <td>
                         <span class="score-badge {% if s.hw_avg >= 8 %}score-high{% elif s.hw_avg >= 5 %}score-medium{% else %}score-low{% endif %}">
                             {{ s.hw_avg }}/10
                         </span>
+                    </td>
+                    <td>
+                        <span class="text-danger fw-bold">{{ s.hw_count }}</span>
+                        <span class="text-muted small">ta</span>
                     </td>
                     <td class="d-none d-md-table-cell">
                         <i class="bi bi-play-circle-fill text-primary me-1"></i>{{ s.videos_watched }}
@@ -451,7 +540,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center py-4 text-muted">
+                    <td colspan="10" class="text-center py-4 text-muted">
                         <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
                         Hali o'quvchilar yozilmagan
                     </td>
@@ -459,6 +548,71 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Mobile card layout -->
+    <div class="mobile-student-cards p-3">
+        {% for s in student_stats %}
+        <div class="m-student-card student-row {% if s.student.pk == request.user.pk %}current-user-card{% endif %}" data-name="{{ s.student.first_name }} {{ s.student.last_name }}">
+            <div class="m-card-top">
+                <div class="m-card-rank {% if s.rank == 1 %}rank-1{% elif s.rank == 2 %}rank-2{% elif s.rank == 3 %}rank-3{% else %}rank-other{% endif %}">
+                    {% if s.rank == 1 %}<i class="bi bi-trophy-fill"></i>{% elif s.rank == 2 %}<i class="bi bi-award-fill"></i>{% elif s.rank == 3 %}<i class="bi bi-star-fill"></i>{% else %}{{ s.rank }}{% endif %}
+                </div>
+                {% if s.student.photo %}
+                <img src="{{ s.student.photo.url }}" class="m-card-avatar" alt="">
+                {% else %}
+                <div class="m-card-avatar-ph">{{ s.student.first_name|first }}</div>
+                {% endif %}
+                <div class="m-card-name">{{ s.student.first_name }} {{ s.student.last_name }}</div>
+                <div class="m-card-total">{{ s.total_score }}</div>
+            </div>
+            <div class="m-card-stats">
+                <div class="m-card-stat">
+                    <i class="bi bi-journal-check text-warning"></i>
+                    <span>Test:</span>
+                    <span class="m-stat-val">{{ s.test_avg }}%</span>
+                </div>
+                <div class="m-card-stat">
+                    <i class="bi bi-arrow-repeat text-primary"></i>
+                    <span>Urinish:</span>
+                    <span class="m-stat-val">{{ s.test_count }}</span>
+                </div>
+                <div class="m-card-stat">
+                    <i class="bi bi-pencil-square text-danger"></i>
+                    <span>Vazifa:</span>
+                    <span class="m-stat-val">{{ s.hw_avg }}/10</span>
+                </div>
+                <div class="m-card-stat">
+                    <i class="bi bi-send-check text-danger"></i>
+                    <span>Topsh:</span>
+                    <span class="m-stat-val">{{ s.hw_count }} ta</span>
+                </div>
+                <div class="m-card-stat">
+                    <i class="bi bi-play-circle text-primary"></i>
+                    <span>Video:</span>
+                    <span class="m-stat-val">{{ s.videos_watched }}</span>
+                </div>
+                <div class="m-card-stat">
+                    <i class="bi bi-coin text-warning"></i>
+                    <span>Coin:</span>
+                    <span class="m-stat-val">{{ s.coins }}</span>
+                </div>
+            </div>
+            <div class="mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-progress" style="flex:1; width:auto;">
+                        <div class="mini-progress-fill" style="width:{{ s.progress }}%; background: linear-gradient(90deg, {% if s.progress >= 70 %}#22c55e, #16a34a{% elif s.progress >= 40 %}#f59e0b, #eab308{% else %}#ef4444, #dc2626{% endif %});"></div>
+                    </div>
+                    <span class="small fw-bold" style="color: var(--stat-text);">{{ s.progress }}%</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>
+            Hali o'quvchilar yozilmagan
+        </div>
+        {% endfor %}
     </div>
 </div>
 
