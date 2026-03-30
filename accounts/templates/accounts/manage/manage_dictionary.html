@@ -1,4 +1,4 @@
-﻿{% extends 'accounts/base.html' %}
+{% extends 'accounts/base.html' %}
 
 {% block title %}{{ dictionary.lesson.title }} - So'zlar boshqaruvi{% endblock %}
 
@@ -26,7 +26,7 @@
     --md-shadow: 0 8px 30px rgba(0,0,0,0.3);
 }
 
-.md-page { max-width: 900px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.md-page { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
 
 .md-back {
     display: inline-flex; align-items: center; gap: 0.5rem;
@@ -79,14 +79,14 @@
 
 .md-add-form {
     background: var(--md-accent-light); border-radius: 18px;
-    padding: 1.25rem; margin-bottom: 1.5rem;
+    padding: 1.25rem; margin-bottom: 1rem;
 }
-.md-add-form .form-control {
+.md-add-form .form-control, .md-add-form .form-select {
     border-radius: 12px !important; border: 1.5px solid var(--md-border) !important;
     background: var(--md-card) !important; padding: 0.65rem 1rem !important;
     color: var(--md-text) !important; font-size: 0.9rem;
 }
-.md-add-form .form-control:focus {
+.md-add-form .form-control:focus, .md-add-form .form-select:focus {
     border-color: var(--md-accent) !important;
     box-shadow: 0 0 0 3px var(--md-accent-light) !important;
 }
@@ -96,31 +96,85 @@
 }
 .md-add-full { margin-bottom: 0.75rem; }
 .md-add-label { font-size: 0.8rem; font-weight: 600; color: var(--md-text); margin-bottom: 0.3rem; }
+.md-section-title {
+    font-size: 0.9rem; font-weight: 700; color: var(--md-text);
+    margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;
+}
 
-.md-word-row {
-    display: flex; align-items: center; gap: 1rem;
-    padding: 1rem 1.25rem; border-bottom: 1px solid var(--md-border);
+/* AI Generation Section */
+.md-ai-form {
+    background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.08));
+    border: 1.5px solid rgba(139,92,246,0.2);
+    border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem;
+}
+.md-ai-form .md-ai-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.md-ai-form .form-control, .md-ai-form .form-select {
+    border-radius: 12px !important; border: 1.5px solid var(--md-border) !important;
+    background: var(--md-card) !important; padding: 0.65rem 1rem !important;
+    color: var(--md-text) !important; font-size: 0.9rem;
+}
+.md-ai-form .form-control:focus, .md-ai-form .form-select:focus {
+    border-color: var(--md-accent) !important;
+    box-shadow: 0 0 0 3px var(--md-accent-light) !important;
+}
+.md-ai-loading {
+    display: none; align-items: center; justify-content: center;
+    gap: 0.75rem; padding: 1.5rem; color: var(--md-accent);
+    font-weight: 600; font-size: 0.9rem;
+}
+.md-ai-loading.active { display: flex; }
+.md-ai-spinner {
+    width: 24px; height: 24px; border: 3px solid var(--md-accent-light);
+    border-top-color: var(--md-accent); border-radius: 50%;
+    animation: mdSpin 0.8s linear infinite;
+}
+@keyframes mdSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Word Table */
+.md-table-wrap {
+    overflow-x: auto; border-radius: 16px;
+    border: 1px solid var(--md-border);
+}
+.md-table {
+    width: 100%; border-collapse: collapse; min-width: 500px;
+}
+.md-table thead th {
+    padding: 0.85rem 1rem; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--md-secondary); font-weight: 700;
+    border-bottom: 2px solid var(--md-border);
+    text-align: left; white-space: nowrap;
+    background: var(--md-accent-light);
+}
+.md-table tbody tr {
     transition: background 0.2s;
 }
-.md-word-row:hover { background: var(--md-accent-light); }
-.md-word-row:last-child { border-bottom: none; }
-
-.md-word-num {
-    width: 32px; height: 32px; border-radius: 10px;
-    background: var(--md-accent-light); color: var(--md-accent);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.8rem; flex-shrink: 0;
+.md-table tbody tr:hover { background: var(--md-accent-light); }
+.md-table tbody td {
+    padding: 0.75rem 1rem; font-size: 0.9rem;
+    color: var(--md-text);
+    border-bottom: 1px solid var(--md-border);
+    vertical-align: middle;
 }
-.md-word-info { flex: 1; min-width: 0; }
-.md-word-term { font-weight: 700; font-size: 0.95rem; color: var(--md-text); }
-.md-word-translation { font-size: 0.88rem; color: var(--md-accent); margin-top: 0.1rem; }
-.md-word-example { font-size: 0.78rem; color: var(--md-secondary); margin-top: 0.2rem; font-style: italic; }
+.md-table .td-num {
+    width: 45px; text-align: center; font-weight: 700;
+    color: var(--md-accent); font-size: 0.85rem;
+}
+.md-table .td-term { font-weight: 700; }
+.md-table .td-translation { color: var(--md-accent); font-weight: 500; }
+.md-table .td-example { font-size: 0.82rem; color: var(--md-secondary); font-style: italic; }
+.md-table .td-action { width: 50px; text-align: center; }
 
 .md-word-delete {
     width: 34px; height: 34px; border-radius: 10px;
     background: rgba(255,59,48,0.08); color: var(--md-danger);
-    border: none; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+    border: none; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
 }
 .md-word-delete:hover { background: var(--md-danger); color: #fff; }
 
@@ -135,6 +189,11 @@
     padding: 0.3rem 0.85rem; border-radius: 20px;
     background: rgba(255,255,255,0.2); color: #fff;
     font-size: 0.78rem; font-weight: 600; margin-top: 0.5rem;
+}
+
+@media (max-width: 767px) {
+    .md-add-grid { grid-template-columns: 1fr; }
+    .md-ai-form .md-ai-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
@@ -160,16 +219,20 @@
                 </a>
             </div>
 
+            <!-- Manual word add form -->
             <div class="md-add-form">
+                <div class="md-section-title">
+                    <i class="bi bi-plus-circle-fill" style="color: var(--md-accent);"></i> So'z qo'shish
+                </div>
                 <form method="POST" action="{% url 'add_dictionary_word' dictionary.pk %}">
                     {% csrf_token %}
                     <div class="md-add-grid">
                         <div>
-                            <div class="md-add-label">So'z / Atama *</div>
+                            <div class="md-add-label">Yozilishi *</div>
                             <input type="text" name="term" class="form-control" placeholder="Masalan: variable" required>
                         </div>
                         <div>
-                            <div class="md-add-label">Tarjima / Ma'nosi *</div>
+                            <div class="md-add-label">Tarjimasi *</div>
                             <input type="text" name="translation" class="form-control" placeholder="Masalan: o'zgaruvchi" required>
                         </div>
                     </div>
@@ -183,31 +246,106 @@
                 </form>
             </div>
 
-            {% if words %}
-                {% for word in words %}
-                <div class="md-word-row">
-                    <div class="md-word-num">{{ forloop.counter }}</div>
-                    <div class="md-word-info">
-                        <div class="md-word-term">{{ word.term }}</div>
-                        <div class="md-word-translation">{{ word.translation }}</div>
-                        {% if word.example %}<div class="md-word-example">💡 {{ word.example }}</div>{% endif %}
-                    </div>
-                    <form method="POST" action="{% url 'delete_dictionary_word' word.pk %}" onsubmit="return confirm('Bu so\'zni o\'chirmoqchimisiz?')">
-                        {% csrf_token %}
-                        <button type="submit" class="md-word-delete" title="O'chirish">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </form>
+            <!-- AI Generation form -->
+            <div class="md-ai-form">
+                <div class="md-section-title">
+                    <i class="bi bi-robot" style="color: var(--md-accent);"></i> AI orqali lug'at yaratish
                 </div>
-                {% endfor %}
+                <form method="POST" action="{% url 'ai_generate_dictionary' dictionary.pk %}" id="aiGenForm">
+                    {% csrf_token %}
+                    <div class="md-ai-grid">
+                        <div>
+                            <div class="md-add-label">Til *</div>
+                            <input type="text" name="language" class="form-control" placeholder="Masalan: Ingliz tili" required>
+                        </div>
+                        <div>
+                            <div class="md-add-label">So'zlar soni *</div>
+                            <input type="number" name="count" class="form-control" min="1" max="50" value="10" required>
+                        </div>
+                        <div>
+                            <div class="md-add-label">Daraja *</div>
+                            <select name="level" class="form-control form-select" required>
+                                <option value="Boshlang'ich">Boshlang'ich</option>
+                                <option value="O'rta" selected>O'rta</option>
+                                <option value="Yuqori">Yuqori</option>
+                                <option value="Professional">Professional</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="md-btn md-btn-primary" style="width:100%;" id="aiGenBtn">
+                        <i class="bi bi-stars"></i> AI bilan yaratish
+                    </button>
+                </form>
+                <div class="md-ai-loading" id="aiLoading">
+                    <div class="md-ai-spinner"></div>
+                    <span>AI so'zlar yaratmoqda...</span>
+                </div>
+            </div>
+
+            <!-- Words Table -->
+            {% if words %}
+            <div class="md-table-wrap">
+                <table class="md-table">
+                    <thead>
+                        <tr>
+                            <th style="width:45px;">#</th>
+                            <th>Yozilishi</th>
+                            <th>Tarjimasi</th>
+                            <th>Misol</th>
+                            <th style="width:50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for word in words %}
+                        <tr>
+                            <td class="td-num">{{ forloop.counter }}</td>
+                            <td class="td-term">{{ word.term }}</td>
+                            <td class="td-translation">{{ word.translation }}</td>
+                            <td class="td-example">
+                                {% if word.example %}
+                                <i class="bi bi-lightbulb text-warning me-1"></i>{{ word.example }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="td-action">
+                                <form method="POST" action="{% url 'delete_dictionary_word' word.pk %}" onsubmit="return confirm('Bu so\'zni o\'chirmoqchimisiz?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="md-word-delete" title="O'chirish">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
             {% else %}
                 <div class="md-empty">
                     <i class="bi bi-book"></i>
                     <p>Hali so'zlar qo'shilmagan</p>
-                    <p style="font-size:0.8rem; margin-top:0.5rem;">Yuqoridagi formadan yoki Excel import orqali qo'shing</p>
+                    <p style="font-size:0.8rem; margin-top:0.5rem;">Yuqoridagi formadan, Excel import yoki AI orqali qo'shing</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var form = document.getElementById('aiGenForm');
+    var btn = document.getElementById('aiGenBtn');
+    var loading = document.getElementById('aiLoading');
+    if (form) {
+        form.addEventListener('submit', function() {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            loading.classList.add('active');
+        });
+    }
+})();
+</script>
 {% endblock %}

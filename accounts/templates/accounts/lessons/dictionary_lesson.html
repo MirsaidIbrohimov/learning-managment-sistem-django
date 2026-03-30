@@ -88,16 +88,45 @@
 }
 .dict-search-btn:hover { opacity: 0.9; }
 
-.dict-word-card {
+.dict-table-wrap {
     background: var(--dl-card); border-radius: 16px;
-    border: 1px solid var(--dl-border); padding: 1.25rem 1.5rem;
-    margin-bottom: 0.75rem; box-shadow: 0 2px 8px var(--dl-shadow);
-    transition: all 0.25s; display: flex; align-items: flex-start; gap: 1rem;
+    border: 1px solid var(--dl-border);
+    box-shadow: 0 2px 8px var(--dl-shadow);
+    overflow: hidden; margin-bottom: 1.5rem;
+}
+.dict-table {
+    width: 100%; border-collapse: collapse;
+}
+.dict-table thead th {
+    padding: 0.85rem 1rem; font-size: 0.78rem;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--dl-text-muted); font-weight: 700;
+    border-bottom: 2px solid var(--dl-border);
+    text-align: left; white-space: nowrap;
+    background: rgba(139,92,246,0.05);
+}
+.dict-table tbody tr {
+    transition: background 0.2s;
     animation: dictFadeIn 0.4s ease backwards;
 }
-.dict-word-card:hover {
-    transform: translateY(-2px); box-shadow: 0 8px 24px var(--dl-shadow);
-    border-color: var(--dl-primary);
+.dict-table tbody tr:hover {
+    background: rgba(139,92,246,0.04);
+}
+.dict-table tbody td {
+    padding: 0.75rem 1rem; font-size: 0.9rem;
+    color: var(--dl-text);
+    border-bottom: 1px solid var(--dl-border);
+    vertical-align: middle;
+}
+.dict-table .td-num {
+    width: 50px; text-align: center; font-weight: 800;
+    color: var(--dl-primary); font-size: 0.85rem;
+}
+.dict-table .td-term { font-weight: 700; font-size: 1rem; }
+.dict-table .td-translation { color: var(--dl-primary); font-weight: 500; }
+.dict-table .td-example {
+    font-size: 0.82rem; color: var(--dl-text-muted); font-style: italic;
+    max-width: 300px;
 }
 
 @keyframes dictFadeIn {
@@ -105,24 +134,9 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-.dict-word-num {
-    width: 36px; height: 36px; border-radius: 12px;
-    background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(109,40,217,0.1));
-    color: var(--dl-primary); display: flex; align-items: center;
-    justify-content: center; font-weight: 800; font-size: 0.8rem; flex-shrink: 0;
-}
-.dict-word-content { flex: 1; min-width: 0; }
-.dict-word-term {
-    font-size: 1.1rem; font-weight: 700; color: var(--dl-text);
-    margin-bottom: 0.2rem;
-}
-.dict-word-translation {
-    font-size: 0.95rem; color: var(--dl-primary); font-weight: 500;
-}
-.dict-word-example {
-    font-size: 0.82rem; color: var(--dl-text-muted); margin-top: 0.4rem;
-    padding: 0.5rem 0.75rem; background: rgba(139,92,246,0.04);
-    border-radius: 8px; border-left: 3px solid var(--dl-primary);
+@media (max-width: 767px) {
+    .dict-table { min-width: 500px; }
+    .dict-table-wrap { overflow-x: auto; }
 }
 
 .dict-empty {
@@ -180,18 +194,34 @@
         </form>
 
         {% if words %}
-            {% for word in words %}
-            <div class="dict-word-card" style="animation-delay: {{ forloop.counter0 }}50ms;">
-                <div class="dict-word-num">{{ forloop.counter }}</div>
-                <div class="dict-word-content">
-                    <div class="dict-word-term">{{ word.term }}</div>
-                    <div class="dict-word-translation">{{ word.translation }}</div>
-                    {% if word.example %}
-                    <div class="dict-word-example">💡 {{ word.example }}</div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
+        <div class="dict-table-wrap">
+            <table class="dict-table">
+                <thead>
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th>Yozilishi</th>
+                        <th>Tarjimasi</th>
+                        <th>Misol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for word in words %}
+                    <tr style="animation-delay: {{ forloop.counter0 }}50ms;">
+                        <td class="td-num">{{ forloop.counter }}</td>
+                        <td class="td-term">{{ word.term }}</td>
+                        <td class="td-translation">{{ word.translation }}</td>
+                        <td class="td-example">
+                            {% if word.example %}
+                            <i class="bi bi-lightbulb text-warning me-1"></i>{{ word.example }}
+                            {% else %}
+                            <span style="color: var(--dl-text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% else %}
             <div class="dict-empty">
                 <i class="bi bi-search"></i>
