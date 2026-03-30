@@ -2,7 +2,7 @@ from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, Max, Q, Sum
 from datetime import timedelta
 
 from accounts.models import (
@@ -614,21 +614,32 @@ def parent_tests(request):
     
     aggregates = test_results.aggregate(
         avg_score=Avg('score'),
+        best_score=Max('score'),
         total_correct=Sum('correct_answers'),
         total_questions=Sum('total_questions')
     )
     
     avg_score = aggregates['avg_score'] or 0
+    best_score = aggregates['best_score'] or 0
     pass_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
+    
+    score_excellent = test_results.filter(score__gte=80).count()
+    score_good = test_results.filter(score__gte=60, score__lt=80).count()
+    score_poor = test_results.filter(score__lt=60).count()
     
     stats = {
         'total_tests': total_tests,
         'passed_tests': passed_tests,
         'failed_tests': failed_tests,
         'avg_score': round(avg_score, 1),
+        'average_score': round(avg_score, 1),
+        'best_score': best_score,
         'pass_rate': round(pass_rate, 1),
         'total_correct': aggregates['total_correct'] or 0,
         'total_questions': aggregates['total_questions'] or 0,
+        'score_excellent': score_excellent,
+        'score_good': score_good,
+        'score_poor': score_poor,
     }
     
     return render(request, 'parents/portal/tests.html', {
@@ -657,17 +668,102 @@ def parent_achievements(request):
             'children': children,
             'selected_child': None,
             'certificates': [],
+            'badges': [],
             'stats': {},
+            'ranking': {},
         })
     
     certificates = Certificate.objects.filter(
         student=selected_child
     ).select_related('profession', 'issued_by').order_by('-issued_at')
     
+    # Badges (nishonlar) - dinamik ravishda hisoblash
+    badges = []
+    
+    test_results = TestResult.objects.filter(student=selected_child)
+    total_tests_passed = test_results.filter(passed=True).count()
+    total_tests_taken = test_results.count()
+    perfect_scores = test_results.filter(score__gte=100).count()
+    
+    from coin.models import CoinTransaction
+    total_coins_earned = CoinTransaction.objects.filter(
+        user=selected_child, action='add'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    now = timezone.now()
+    
+    if total_tests_taken >= 1:
+        badges.append({
+            'title': 'Birinchi test',
+            'description': "Birinchi testni muvaffaqiyatli topshirdi",
+            'icon': 'pencil-square',
+            'color': '#6366f1',
+            'earned_date': test_results.order_by('completed_at').first().completed_at,
+        })
+    
+    if total_tests_passed >= 5:
+        badges.append({
+            'title': '5 ta test o\'tdi',
+            'description': "5 ta testdan muvaffaqiyatli o'tdi",
+            'icon': 'check2-all',
+            'color': '#10b981',
+            'earned_date': test_results.filter(passed=True).order_by('completed_at')[4].completed_at if total_tests_passed >= 5 else now,
+        })
+    
+    if total_tests_passed >= 10:
+        badges.append({
+            'title': '10 ta test o\'tdi',
+            'description': "10 ta testdan muvaffaqiyatli o'tdi",
+            'icon': 'trophy-fill',
+            'color': '#f59e0b',
+            'earned_date': test_results.filter(passed=True).order_by('completed_at')[9].completed_at if total_tests_passed >= 10 else now,
+        })
+    
+    if perfect_scores >= 1:
+        badges.append({
+            'title': 'Mukammal natija',
+            'description': "Testda 100% natija oldi",
+            'icon': 'star-fill',
+            'color': '#ef4444',
+            'earned_date': test_results.filter(score__gte=100).order_by('completed_at').first().completed_at,
+        })
+    
+    if certificates.exists():
+        badges.append({
+            'title': 'Sertifikat egasi',
+            'description': "Birinchi sertifikatni qo'lga kiritdi",
+            'icon': 'file-earmark-check-fill',
+            'color': '#0ea5e9',
+            'earned_date': certificates.order_by('issued_at').first().issued_at,
+        })
+    
+    if total_coins_earned >= 100:
+        badges.append({
+            'title': '100 coin yig\'di',
+            'description': "Jami 100 ta coin yig'di",
+            'icon': 'coin',
+            'color': '#f59e0b',
+            'earned_date': now,
+        })
+    
+    # Ranking - barcha o'quvchilar orasida
+    all_students = CustomUser.objects.filter(role='student', coins__gt=0).order_by('-coins')
+    student_ids = list(all_students.values_list('id', flat=True))
+    position = (student_ids.index(selected_child.id) + 1) if selected_child.id in student_ids else len(student_ids) + 1
+    avg_coins = all_students.aggregate(avg=Avg('coins'))['avg'] or 0
+    
+    ranking = {
+        'position': position,
+        'total_coins': selected_child.coins,
+        'average_coins': round(avg_coins),
+        'difference': abs(selected_child.coins - round(avg_coins)),
+    }
+    
     stats = {
         'total_certificates': certificates.count(),
-        'total_coins': selected_child.coins,
-        'courses_completed': certificates.values('profession').distinct().count(),
+        'total_badges': len(badges),
+        'coins_balance': selected_child.coins,
+        'streak_days': 0,
     }
     
     return render(request, 'parents/portal/achievements.html', {
@@ -675,7 +771,9 @@ def parent_achievements(request):
         'children': children,
         'selected_child': selected_child,
         'certificates': certificates,
+        'badges': badges,
         'stats': stats,
+        'ranking': ranking,
     })
 
 

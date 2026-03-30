@@ -1,6 +1,6 @@
 {% extends 'parents/portal/base_parent.html' %}
 
-{% block title %}Yutuqlar va sertifikatlar - {{ child.get_full_name }} - Ota-ona paneli{% endblock %}
+{% block title %}Yutuqlar va sertifikatlar - {{ selected_child.get_full_name }} - Ota-ona paneli{% endblock %}
 
 {% block parent_content %}
 <div class="container-fluid px-0">
@@ -11,10 +11,10 @@
                 <i class="bi bi-trophy-fill me-2 text-warning"></i>Yutuqlar va sertifikatlar
             </h3>
             <p class="text-muted mb-0">
-                <i class="bi bi-person me-1"></i>{{ child.get_full_name }}
-            </p>
-        </div>
-        <a href="{% url 'parent_dashboard' %}?child_id={{ child.id }}" class="btn-back">
+                <i class="bi bi-person me-1"></i>{{ selected_child.get_full_name }}
+                </p>
+                </div>
+                <a href="{% url 'parent_dashboard' %}{% if selected_child %}?child_id={{ selected_child.id }}{% endif %}" class="btn-back">
             <i class="bi bi-arrow-left"></i>
         </a>
     </div>
@@ -183,24 +183,26 @@
                                 </span>
                             </td>
                             <td>
-                                <strong>{{ cert.title }}</strong>
+                                <strong>{{ cert.certificate_id }}</strong>
                             </td>
-                            <td>{{ cert.course_name }}</td>
+                            <td>{{ cert.profession.name }}</td>
                             <td>
                                 <i class="bi bi-calendar3 me-1 text-primary"></i>
-                                {{ cert.issue_date|date:"d.m.Y" }}
+                                {{ cert.valid_from|date:"d.m.Y" }}
                             </td>
                             <td>
                                 <i class="bi bi-person-badge me-1 text-muted"></i>
-                                {{ cert.issued_by }}
+                                {{ cert.issued_by.full_name|default:cert.issued_by }}
                             </td>
                             <td class="text-end">
-                                <a href="{{ cert.pdf_url }}" target="_blank" class="btn-action primary me-2">
+                                {% if cert.file %}
+                                <a href="{{ cert.file.url }}" target="_blank" class="btn-action primary me-2">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{{ cert.pdf_url }}" download class="btn-action success">
+                                <a href="{{ cert.file.url }}" download class="btn-action success">
                                     <i class="bi bi-download"></i>
                                 </a>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
