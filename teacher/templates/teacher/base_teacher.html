@@ -152,10 +152,28 @@
         themeIcon.classList.toggle('bi-sun-fill', t === 'dark');
     }
 
-    // Nav section toggle
+    // Nav section toggle with localStorage
     function toggleNavSection(id) {
-        document.getElementById(id).classList.toggle('open');
+        const el = document.getElementById(id);
+        el.classList.toggle('open');
+        const state = {};
+        document.querySelectorAll('.t-nav-section').forEach(s => {
+            state[s.id] = s.classList.contains('open');
+        });
+        localStorage.setItem('navState', JSON.stringify(state));
     }
+    // Restore nav state
+    (function() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('navState'));
+            if (saved) {
+                document.querySelectorAll('.t-nav-section').forEach(s => {
+                    if (saved[s.id] === false) s.classList.remove('open');
+                    else s.classList.add('open');
+                });
+            }
+        } catch(e) {}
+    })();
 
     // Sidebar
     const sidebar = document.getElementById('teacherSidebar');

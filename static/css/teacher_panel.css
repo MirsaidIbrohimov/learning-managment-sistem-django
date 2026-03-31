@@ -68,32 +68,43 @@
 }
 
 /* Collapsible nav sections */
+.t-nav-section {
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
 .t-nav-section-links {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease;
+    opacity: 0;
 }
+
 .t-nav-section.open .t-nav-section-links {
-    max-height: 300px;
+    max-height: 500px;
+    opacity: 1;
 }
+
 .t-nav-chevron {
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     margin-left: auto;
     transition: transform 0.3s ease;
-    opacity: 0.5;
+    opacity: 0.4;
 }
+
 .t-nav-section.open .t-nav-chevron {
     transform: rotate(180deg);
+    opacity: 0.7;
 }
 
 .t-nav-group {
-    color: rgba(255,255,255,0.35);
+    color: rgba(255,255,255,0.4);
     font-size: 0.68rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.2px;
-    padding: 16px 15px 6px;
-    margin-top: 6px;
+    padding: 14px 18px 6px;
+    margin-top: 2px;
 }
 
 .t-nav-group-toggle {
@@ -101,10 +112,15 @@
     display: flex;
     align-items: center;
     user-select: none;
-    transition: color 0.2s;
+    transition: all 0.2s;
+    border-radius: 8px;
+    margin: 0 8px;
+    padding: 10px 10px 6px;
 }
+
 .t-nav-group-toggle:hover {
-    color: rgba(255,255,255,0.6);
+    color: rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.04);
 }
 
 .t-nav-link {
