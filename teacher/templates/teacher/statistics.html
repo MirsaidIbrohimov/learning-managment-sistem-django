@@ -1,0 +1,705 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Statistika - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Statistika{% endblock %}
+
+{% block extra_css %}
+<style>
+.ts-page { animation: fadeInUp .4s ease; }
+
+/* Quick nav */
+.ts-quick-nav {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 1.5rem;
+    position: sticky; top: 65px; z-index: 10;
+    background: var(--bs-body-bg); padding: 12px 0;
+}
+.ts-quick-link {
+    padding: 6px 16px; border-radius: 10px; font-size: .8rem; font-weight: 700;
+    background: var(--bs-tertiary-bg); color: var(--bs-body-color);
+    text-decoration: none; border: 1px solid var(--bs-border-color);
+    transition: all .2s; white-space: nowrap;
+}
+.ts-quick-link:hover { background: var(--t-primary-light); color: var(--t-primary); border-color: var(--t-primary); }
+.ts-quick-link i { margin-right: 4px; }
+
+/* Section headers */
+.ts-section { margin-bottom: 2.5rem; scroll-margin-top: 120px; }
+.ts-section-title {
+    font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 10px;
+}
+.ts-section-title i {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+}
+
+/* Top stat cards */
+.ts-top-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px; margin-bottom: 2rem;
+}
+.ts-top-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 16px; padding: 18px; text-align: center;
+    transition: all .3s; position: relative; overflow: hidden;
+}
+.ts-top-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.08); }
+.ts-top-card .ts-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin: 0 auto 10px;
+}
+.ts-top-card .ts-val { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+.ts-top-card .ts-lbl { font-size: .78rem; color: var(--bs-secondary-color); font-weight: 500; margin-top: 4px; }
+
+/* Filters */
+.ts-filters {
+    display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 1.5rem;
+    align-items: flex-end;
+}
+.ts-filter-group { display: flex; flex-direction: column; gap: 4px; }
+.ts-filter-group label {
+    font-size: .7rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: var(--bs-secondary-color);
+}
+.ts-filter-group select {
+    padding: 8px 14px; border-radius: 10px; font-size: .85rem; font-weight: 600;
+    border: 2px solid var(--bs-border-color); background: var(--bs-body-bg);
+    color: var(--bs-body-color); min-width: 160px; cursor: pointer;
+}
+.ts-filter-group select:focus { outline: none; border-color: var(--t-primary); }
+
+/* Table container */
+.ts-table-wrap {
+    overflow-x: auto; border-radius: 16px;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+}
+.ts-table-wrap table { margin: 0; }
+.ts-table-wrap th {
+    position: sticky; top: 0; background: var(--bs-body-bg);
+    z-index: 2; white-space: nowrap;
+}
+
+/* Status badges */
+.ts-status {
+    padding: 4px 10px; border-radius: 8px; font-size: .72rem;
+    font-weight: 700; display: inline-block; white-space: nowrap;
+}
+.ts-status-faol { background: rgba(16,185,129,.12); color: #059669; }
+.ts-status-top { background: rgba(59,130,246,.12); color: #2563eb; }
+.ts-status-ortacha { background: rgba(245,158,11,.12); color: #d97706; }
+.ts-status-sust { background: rgba(249,115,22,.12); color: #ea580c; }
+.ts-status-xavfli { background: rgba(239,68,68,.12); color: #dc2626; }
+
+[data-bs-theme="dark"] .ts-status-faol { background: rgba(16,185,129,.2); color: #34d399; }
+[data-bs-theme="dark"] .ts-status-top { background: rgba(59,130,246,.2); color: #60a5fa; }
+[data-bs-theme="dark"] .ts-status-ortacha { background: rgba(245,158,11,.2); color: #fbbf24; }
+[data-bs-theme="dark"] .ts-status-sust { background: rgba(249,115,22,.2); color: #fb923c; }
+[data-bs-theme="dark"] .ts-status-xavfli { background: rgba(239,68,68,.2); color: #f87171; }
+
+/* Alert cards */
+.ts-alert {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; border-radius: 14px;
+    margin-bottom: 10px; font-weight: 600; font-size: .88rem;
+    border: 1px solid;
+}
+.ts-alert-danger { background: rgba(239,68,68,.06); border-color: rgba(239,68,68,.2); color: #dc2626; }
+.ts-alert-warning { background: rgba(245,158,11,.06); border-color: rgba(245,158,11,.2); color: #d97706; }
+.ts-alert-info { background: rgba(59,130,246,.06); border-color: rgba(59,130,246,.2); color: #2563eb; }
+[data-bs-theme="dark"] .ts-alert-danger { background: rgba(239,68,68,.1); color: #f87171; }
+[data-bs-theme="dark"] .ts-alert-warning { background: rgba(245,158,11,.1); color: #fbbf24; }
+[data-bs-theme="dark"] .ts-alert-info { background: rgba(59,130,246,.1); color: #60a5fa; }
+.ts-alert i { font-size: 1.2rem; flex-shrink: 0; }
+
+/* Chart container */
+.ts-chart-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 16px; padding: 20px; margin-bottom: 1rem;
+}
+.ts-chart-title { font-weight: 700; font-size: .9rem; margin-bottom: 14px; }
+
+/* Charts grid */
+.ts-charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 992px) { .ts-charts-grid { grid-template-columns: 1fr; } }
+
+/* Attendance cards */
+.ts-attend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.ts-attend-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 14px; padding: 16px; text-align: center;
+}
+.ts-attend-val { font-size: 1.5rem; font-weight: 800; }
+.ts-attend-lbl { font-size: .78rem; color: var(--bs-secondary-color); }
+
+/* Lesson progress */
+.ts-progress-bar {
+    height: 8px; border-radius: 4px; background: var(--bs-tertiary-bg);
+    overflow: hidden; margin-top: 4px;
+}
+.ts-progress-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+
+/* Responsive */
+@media (max-width: 576px) {
+    .ts-top-grid { grid-template-columns: 1fr 1fr; }
+    .ts-top-card .ts-val { font-size: 1.3rem; }
+    .ts-quick-nav { position: static; }
+    .ts-attend-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Hardest questions */
+.ts-hard-q { padding: 8px 12px; border-radius: 10px; background: var(--bs-tertiary-bg); margin-bottom: 6px; font-size: .82rem; }
+.ts-hard-q-text { font-weight: 600; }
+.ts-hard-q-pct { color: #dc2626; font-weight: 700; float: right; }
+</style>
+{% endblock %}
+
+{% block teacher_content %}
+<div class="ts-page">
+
+<!-- Quick Navigation -->
+<div class="ts-quick-nav">
+    <a href="#alerts" class="ts-quick-link"><i class="bi bi-bell-fill"></i>Ogohlantirishlar</a>
+    <a href="#overview" class="ts-quick-link"><i class="bi bi-speedometer2"></i>Ko'rsatkichlar</a>
+    <a href="#students" class="ts-quick-link"><i class="bi bi-people-fill"></i>O'quvchilar</a>
+    <a href="#homeworks" class="ts-quick-link"><i class="bi bi-journal-check"></i>Vazifalar</a>
+    <a href="#tests" class="ts-quick-link"><i class="bi bi-patch-question-fill"></i>Testlar</a>
+    <a href="#attendance" class="ts-quick-link"><i class="bi bi-calendar-check-fill"></i>Davomat</a>
+    <a href="#lessons" class="ts-quick-link"><i class="bi bi-play-circle-fill"></i>Darslar</a>
+    <a href="#charts" class="ts-quick-link"><i class="bi bi-graph-up"></i>Grafiklar</a>
+</div>
+
+<!-- ===== ALERTS ===== -->
+{% if alerts %}
+<div class="ts-section" id="alerts">
+    <div class="ts-section-title">
+        <i style="background:rgba(239,68,68,.12);color:#ef4444;"><i class="bi bi-bell-fill"></i></i>
+        Ogohlantirishlar
+    </div>
+    {% for alert in alerts %}
+    <div class="ts-alert ts-alert-{{ alert.type }}">
+        <i class="{{ alert.icon }}"></i>
+        {{ alert.text }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ===== 1. UMUMIY KO'RSATKICHLAR ===== -->
+<div class="ts-section" id="overview">
+    <div class="ts-section-title">
+        <i style="background:rgba(59,130,246,.12);color:#3b82f6;"><i class="bi bi-speedometer2"></i></i>
+        Umumiy ko'rsatkichlar
+    </div>
+    <div class="ts-top-grid">
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
+            <div class="ts-val">{{ total_students }}</div>
+            <div class="ts-lbl">Jami o'quvchi</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(16,185,129,.12);color:#10b981;"><i class="bi bi-person-check-fill"></i></div>
+            <div class="ts-val">{{ active_students }}</div>
+            <div class="ts-lbl">Faol o'quvchilar</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;"><i class="bi bi-check2-circle"></i></div>
+            <div class="ts-val">{{ students_with_submissions }}</div>
+            <div class="ts-lbl">Vazifa topshirgan</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(239,68,68,.12);color:#ef4444;"><i class="bi bi-x-circle-fill"></i></div>
+            <div class="ts-val">{{ students_without_submissions }}</div>
+            <div class="ts-lbl">Topshirmagan</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;"><i class="bi bi-star-fill"></i></div>
+            <div class="ts-val">{{ avg_grade_percent }}%</div>
+            <div class="ts-lbl">O'rtacha ball</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9;"><i class="bi bi-clipboard-data-fill"></i></div>
+            <div class="ts-val">{{ test_avg }}%</div>
+            <div class="ts-lbl">O'rtacha test</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(168,85,247,.12);color:#a855f7;"><i class="bi bi-mortarboard-fill"></i></div>
+            <div class="ts-val">{{ test_pass_percent }}%</div>
+            <div class="ts-lbl">Test o'tish %</div>
+        </div>
+        <div class="ts-top-card">
+            <div class="ts-icon" style="background:rgba(34,197,94,.12);color:#22c55e;"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div class="ts-val">{{ today_active }}</div>
+            <div class="ts-lbl">Bugungi faollik</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FILTERS ===== -->
+<div class="ts-section">
+    <form method="get" class="ts-filters">
+        <div class="ts-filter-group">
+            <label>Kurs / Guruh</label>
+            <select name="profession" onchange="this.form.submit()">
+                <option value="">Barcha kurslar</option>
+                {% for p in professions %}
+                <option value="{{ p.id }}" {% if filter_profession == p.id|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="ts-filter-group">
+            <label>Holat</label>
+            <select name="status" onchange="this.form.submit()">
+                <option value="">Barchasi</option>
+                <option value="faol" {% if filter_status == 'faol' %}selected{% endif %}>✅ Faol</option>
+                <option value="top" {% if filter_status == 'top' %}selected{% endif %}>🌟 Top</option>
+                <option value="ortacha" {% if filter_status == 'ortacha' %}selected{% endif %}>📊 O'rtacha</option>
+                <option value="sust" {% if filter_status == 'sust' %}selected{% endif %}>⚠️ Sust</option>
+                <option value="xavfli" {% if filter_status == 'xavfli' %}selected{% endif %}>🔴 Xavfli</option>
+            </select>
+        </div>
+        <div class="ts-filter-group">
+            <label>Vazifa</label>
+            <select name="homework" onchange="this.form.submit()">
+                <option value="">Barchasi</option>
+                <option value="topshirgan" {% if filter_homework == 'topshirgan' %}selected{% endif %}>Topshirganlar</option>
+                <option value="topshirmagan" {% if filter_homework == 'topshirmagan' %}selected{% endif %}>Topshirmaganlar</option>
+            </select>
+        </div>
+        {% if filter_profession or filter_status or filter_homework %}
+        <a href="{% url 'teacher:statistics' %}" class="t-btn t-btn-outline" style="height:40px;padding:8px 16px;font-size:.82rem;">
+            <i class="bi bi-x-lg"></i> Tozalash
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- ===== 2. O'QUVCHILAR JADVALI ===== -->
+<div class="ts-section" id="students">
+    <div class="ts-section-title">
+        <i style="background:rgba(139,92,246,.12);color:#8b5cf6;"><i class="bi bi-people-fill"></i></i>
+        O'quvchilar bo'yicha jadval
+        <span class="t-badge t-badge-info" style="margin-left:auto;">{{ students_data|length }} ta</span>
+    </div>
+    <div class="ts-table-wrap">
+        <table class="t-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>F.I.Sh</th>
+                    <th>Guruh</th>
+                    <th>Oxirgi kirish</th>
+                    <th>Darslar</th>
+                    <th>Vazifalar</th>
+                    <th>Topshirmagan</th>
+                    <th>Testlar</th>
+                    <th>Test natijasi</th>
+                    <th>Umumiy ball</th>
+                    <th>Faollik</th>
+                    <th>Holat</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students_data %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td style="font-weight:600;white-space:nowrap;">{{ s.student.full_name }}</td>
+                    <td style="font-size:.8rem;">{{ s.profession }}</td>
+                    <td style="font-size:.8rem;white-space:nowrap;">
+                        {% if s.last_activity %}
+                            {{ s.last_activity|timesince }} oldin
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.watched_lessons }}/{{ s.total_lessons }}</td>
+                    <td>{{ s.done_homeworks }}/{{ s.total_homeworks }}</td>
+                    <td>
+                        {% if s.not_done_homeworks > 0 %}
+                        <span style="color:#ef4444;font-weight:700;">{{ s.not_done_homeworks }}</span>
+                        {% else %}
+                        <span style="color:#10b981;">0</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.tests_count }}</td>
+                    <td>
+                        {% if s.tests_count > 0 %}
+                        <span class="{% if s.avg_test >= 70 %}text-success{% elif s.avg_test >= 50 %}text-warning{% else %}text-danger{% endif %}" style="font-weight:700;">{{ s.avg_test }}%</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:700;">{{ s.overall_score }}%</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="ts-progress-bar" style="width:60px;">
+                                <div class="ts-progress-fill" style="width:{{ s.activity }}%;background:{% if s.activity >= 70 %}#10b981{% elif s.activity >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                            </div>
+                            <span style="font-size:.8rem;font-weight:600;">{{ s.activity }}%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="ts-status ts-status-{{ s.status }}">
+                            {% if s.status == 'faol' %}✅ Faol
+                            {% elif s.status == 'top' %}🌟 Top
+                            {% elif s.status == 'ortacha' %}📊 O'rtacha
+                            {% elif s.status == 'sust' %}⚠️ Sust
+                            {% elif s.status == 'xavfli' %}🔴 Xavfli
+                            {% endif %}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="12" class="text-center text-muted" style="padding:2rem;">Ma'lumot topilmadi</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== 3. VAZIFALAR TAHLILI ===== -->
+<div class="ts-section" id="homeworks">
+    <div class="ts-section-title">
+        <i style="background:rgba(245,158,11,.12);color:#f59e0b;"><i class="bi bi-journal-check"></i></i>
+        Vazifalar tahlili
+    </div>
+    {% if homeworks_data %}
+    <div class="ts-table-wrap">
+        <table class="t-table">
+            <thead>
+                <tr>
+                    <th>Vazifa</th>
+                    <th>Kurs</th>
+                    <th>Topshirgan</th>
+                    <th>Topshirmagan</th>
+                    <th>O'rtacha ball</th>
+                    <th>Eng yuqori</th>
+                    <th>Eng past</th>
+                    <th>Tekshirilgan</th>
+                    <th>Tekshirilmagan</th>
+                    <th>Deadline</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for h in homeworks_data %}
+                <tr>
+                    <td style="font-weight:600;">{{ h.homework.lesson.title }}</td>
+                    <td style="font-size:.8rem;">{{ h.homework.lesson.profession.name }}</td>
+                    <td><span style="color:#10b981;font-weight:700;">{{ h.submitted }}</span></td>
+                    <td><span style="color:#ef4444;font-weight:700;">{{ h.not_submitted }}</span></td>
+                    <td>
+                        <span class="{% if h.avg_score >= 70 %}text-success{% elif h.avg_score >= 50 %}text-warning{% else %}text-danger{% endif %}" style="font-weight:700;">{{ h.avg_score }}%</span>
+                    </td>
+                    <td style="color:#10b981;font-weight:600;">{{ h.best_score }}%</td>
+                    <td style="color:#ef4444;font-weight:600;">{{ h.worst_score }}%</td>
+                    <td><span class="t-badge t-badge-success">{{ h.checked }}</span></td>
+                    <td>
+                        {% if h.unchecked > 0 %}
+                        <span class="t-badge t-badge-warning">{{ h.unchecked }}</span>
+                        {% else %}
+                        <span class="t-badge t-badge-secondary">0</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:.8rem;white-space:nowrap;">
+                        {% if h.deadline %}
+                            {{ h.deadline|date:"d.m.Y" }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="t-empty" style="padding:2rem;"><p>Vazifalar topilmadi</p></div>
+    {% endif %}
+</div>
+
+<!-- ===== 4. TEST STATISTIKASI ===== -->
+<div class="ts-section" id="tests">
+    <div class="ts-section-title">
+        <i style="background:rgba(168,85,247,.12);color:#a855f7;"><i class="bi bi-patch-question-fill"></i></i>
+        Test statistikasi
+    </div>
+    {% if tests_data %}
+    {% for t in tests_data %}
+    <div class="ts-chart-card" style="margin-bottom:16px;">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;">
+            <div>
+                <div style="font-weight:700;font-size:1rem;">{{ t.test.lesson.title }}</div>
+                <div style="font-size:.8rem;color:var(--bs-secondary-color);">{{ t.test.lesson.profession.name }}</div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                <div class="ts-attend-card" style="padding:10px 16px;margin:0;">
+                    <div class="ts-attend-val" style="font-size:1.2rem;">{{ t.attempts }}</div>
+                    <div class="ts-attend-lbl">Urinishlar</div>
+                </div>
+                <div class="ts-attend-card" style="padding:10px 16px;margin:0;">
+                    <div class="ts-attend-val" style="font-size:1.2rem;color:{% if t.avg_score >= 70 %}#10b981{% elif t.avg_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.avg_score }}%</div>
+                    <div class="ts-attend-lbl">O'rtacha</div>
+                </div>
+                <div class="ts-attend-card" style="padding:10px 16px;margin:0;">
+                    <div class="ts-attend-val" style="font-size:1.2rem;color:{% if t.pass_rate >= 70 %}#10b981{% elif t.pass_rate >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.pass_rate }}%</div>
+                    <div class="ts-attend-lbl">O'tish %</div>
+                </div>
+            </div>
+        </div>
+
+        {% if t.best_result or t.worst_result %}
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+            {% if t.best_result %}
+            <div style="font-size:.82rem;"><span style="color:#10b981;">🏆 Eng yaxshi:</span> <strong>{{ t.best_result.student.full_name }}</strong> — {{ t.best_result.score }}%</div>
+            {% endif %}
+            {% if t.worst_result %}
+            <div style="font-size:.82rem;"><span style="color:#ef4444;">📉 Eng past:</span> <strong>{{ t.worst_result.student.full_name }}</strong> — {{ t.worst_result.score }}%</div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if t.hardest_questions %}
+        <div style="margin-top:10px;">
+            <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);margin-bottom:6px;">Eng ko'p xato qilingan savollar:</div>
+            {% for q in t.hardest_questions %}
+            <div class="ts-hard-q">
+                <span class="ts-hard-q-text">{{ q.text }}</span>
+                <span class="ts-hard-q-pct">{{ q.wrong_percent }}% xato</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="t-empty" style="padding:2rem;"><p>Testlar topilmadi</p></div>
+    {% endif %}
+</div>
+
+<!-- ===== 5. DAVOMAT VA KIRISH FAOLLIGI ===== -->
+<div class="ts-section" id="attendance">
+    <div class="ts-section-title">
+        <i style="background:rgba(14,165,233,.12);color:#0ea5e9;"><i class="bi bi-calendar-check-fill"></i></i>
+        Davomat va kirish faolligi
+    </div>
+    <div class="ts-attend-grid">
+        <div class="ts-attend-card">
+            <div class="ts-attend-val" style="color:#10b981;">{{ today_login }}</div>
+            <div class="ts-attend-lbl">Bugun kirganlar</div>
+        </div>
+        <div class="ts-attend-card">
+            <div class="ts-attend-val" style="color:#f59e0b;">{{ not_logged_3days }}</div>
+            <div class="ts-attend-lbl">3 kundan beri kirmagan</div>
+        </div>
+        <div class="ts-attend-card">
+            <div class="ts-attend-val" style="color:#ef4444;">{{ not_logged_week }}</div>
+            <div class="ts-attend-lbl">1 haftadan beri kirmagan</div>
+        </div>
+        <div class="ts-attend-card">
+            <div class="ts-attend-val" style="color:#dc2626;">{{ not_logged_month }}</div>
+            <div class="ts-attend-lbl">1 oydan beri kirmagan</div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 6. DARS KO'RISH STATISTIKASI ===== -->
+<div class="ts-section" id="lessons">
+    <div class="ts-section-title">
+        <i style="background:rgba(34,197,94,.12);color:#22c55e;"><i class="bi bi-play-circle-fill"></i></i>
+        Dars ko'rish statistikasi
+    </div>
+    {% if lessons_data %}
+    <div class="ts-table-wrap">
+        <table class="t-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Dars nomi</th>
+                    <th>Kurs</th>
+                    <th>Ko'rganlar</th>
+                    <th>Ko'rish %</th>
+                    <th>Progress</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for l in lessons_data %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td style="font-weight:600;">{{ l.lesson.title }}</td>
+                    <td style="font-size:.8rem;">{{ l.lesson.profession.name }}</td>
+                    <td>{{ l.watched_count }} / {{ l.total_students }}</td>
+                    <td style="font-weight:700;">{{ l.watch_percent }}%</td>
+                    <td style="width:120px;">
+                        <div class="ts-progress-bar">
+                            <div class="ts-progress-fill" style="width:{{ l.watch_percent }}%;background:{% if l.watch_percent >= 70 %}#10b981{% elif l.watch_percent >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="t-empty" style="padding:2rem;"><p>Video darslar topilmadi</p></div>
+    {% endif %}
+</div>
+
+<!-- ===== 7. GRAFIKLAR ===== -->
+<div class="ts-section" id="charts">
+    <div class="ts-section-title">
+        <i style="background:rgba(99,102,241,.12);color:#6366f1;"><i class="bi bi-graph-up"></i></i>
+        Grafiklar
+    </div>
+    <div class="ts-charts-grid">
+        <!-- Kunlik aktivlik -->
+        <div class="ts-chart-card">
+            <div class="ts-chart-title"><i class="bi bi-graph-up-arrow me-2" style="color:#3b82f6;"></i>Oxirgi 7 kun faolligi</div>
+            <canvas id="dailyChart" height="200"></canvas>
+        </div>
+
+        <!-- O'quvchi holatlari -->
+        <div class="ts-chart-card">
+            <div class="ts-chart-title"><i class="bi bi-pie-chart-fill me-2" style="color:#a855f7;"></i>O'quvchilar holati</div>
+            <canvas id="statusChart" height="200"></canvas>
+        </div>
+
+        <!-- Vazifa topshirish -->
+        <div class="ts-chart-card">
+            <div class="ts-chart-title"><i class="bi bi-bar-chart-fill me-2" style="color:#f59e0b;"></i>Vazifa topshirish foizi</div>
+            <canvas id="hwChart" height="200"></canvas>
+        </div>
+
+        <!-- Test natijalari -->
+        <div class="ts-chart-card">
+            <div class="ts-chart-title"><i class="bi bi-bar-chart-line-fill me-2" style="color:#10b981;"></i>Test o'rtacha natijalari</div>
+            <canvas id="testChart" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    const gridColor = isDark ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)';
+    const textColor = isDark ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.5)';
+
+    Chart.defaults.font.family = 'Inter';
+    Chart.defaults.color = textColor;
+
+    // 1. Daily Activity Line Chart
+    const dailyData = JSON.parse('{{ daily_activity_json|escapejs }}');
+    new Chart(document.getElementById('dailyChart'), {
+        type: 'line',
+        data: {
+            labels: dailyData.map(d => d.date),
+            datasets: [{
+                label: 'Faol o\'quvchilar',
+                data: dailyData.map(d => d.count),
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59,130,246,.12)',
+                fill: true,
+                tension: .4,
+                borderWidth: 2.5,
+                pointRadius: 4,
+                pointBackgroundColor: '#3b82f6',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 2. Status Pie Chart
+    const statusData = JSON.parse('{{ status_counts|escapejs }}');
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Faol', 'Top', 'O\'rtacha', 'Sust', 'Xavfli'],
+            datasets: [{
+                data: [statusData.faol, statusData.top, statusData.ortacha, statusData.sust, statusData.xavfli],
+                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } }
+            },
+            cutout: '65%',
+        }
+    });
+
+    // 3. Homework Bar Chart
+    const hwLabels = JSON.parse('{{ hw_chart_labels|escapejs }}');
+    const hwSubmitted = JSON.parse('{{ hw_chart_submitted|escapejs }}');
+    const hwNot = JSON.parse('{{ hw_chart_not|escapejs }}');
+    if (hwLabels.length > 0) {
+        new Chart(document.getElementById('hwChart'), {
+            type: 'bar',
+            data: {
+                labels: hwLabels,
+                datasets: [
+                    { label: 'Topshirgan', data: hwSubmitted, backgroundColor: '#10b981', borderRadius: 6, barPercentage: .7 },
+                    { label: 'Topshirmagan', data: hwNot, backgroundColor: '#ef4444', borderRadius: 6, barPercentage: .7 },
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } }
+                }
+            }
+        });
+    }
+
+    // 4. Test Results Bar Chart
+    const testLabels = JSON.parse('{{ test_chart_labels|escapejs }}');
+    const testScores = JSON.parse('{{ test_chart_scores|escapejs }}');
+    if (testLabels.length > 0) {
+        new Chart(document.getElementById('testChart'), {
+            type: 'bar',
+            data: {
+                labels: testLabels,
+                datasets: [{
+                    label: 'O\'rtacha natija %',
+                    data: testScores,
+                    backgroundColor: testScores.map(s => s >= 70 ? '#10b981' : s >= 50 ? '#f59e0b' : '#ef4444'),
+                    borderRadius: 6,
+                    barPercentage: .6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, max: 100, grid: { color: gridColor } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45, minRotation: 0, font: { size: 10 } } }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

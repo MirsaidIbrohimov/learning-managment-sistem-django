@@ -6,6 +6,7 @@ app_name = 'teacher'
 urlpatterns = [
     # Dashboard
     path('', views.teacher_dashboard, name='dashboard'),
+    path('statistics/', views.teacher_statistics, name='statistics'),
 
     # Kurslarim
     path('courses/', views.teacher_courses, name='courses'),

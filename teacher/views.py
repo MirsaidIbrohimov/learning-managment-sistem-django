@@ -76,6 +76,445 @@ def teacher_dashboard(request):
 
 
 @teacher_required
+def teacher_statistics(request):
+    """Kengaytirilgan statistika sahifasi"""
+    from datetime import timedelta, date
+    from django.db.models import F, Max, Min, Subquery, OuterRef, Value, CharField
+    from django.db.models.functions import Coalesce
+    from accounts.models import (
+        CustomUser, CourseEnrollment, VideoProgress, VideoLesson
+    )
+    
+    user = request.user
+    now = timezone.now()
+    today = now.date()
+    professions = user.teaching_professions.all()
+    
+    # ===== FILTERS =====
+    filter_profession = request.GET.get('profession', '')
+    filter_status = request.GET.get('status', '')  # faol, sust, xavfli
+    filter_homework = request.GET.get('homework', '')  # topshirgan, topshirmagan
+    
+    filtered_professions = professions
+    if filter_profession:
+        try:
+            filtered_professions = professions.filter(pk=int(filter_profession))
+        except (ValueError, TypeError):
+            pass
+    
+    # Get all students enrolled in teacher's courses
+    student_ids = CourseEnrollment.objects.filter(
+        profession__in=filtered_professions,
+        user__role='student'
+    ).values_list('user_id', flat=True).distinct()
+    
+    students = CustomUser.objects.filter(id__in=student_ids).select_related('profession')
+    
+    # ===== 1. UMUMIY KO'RSATKICHLAR =====
+    total_students = students.count()
+    
+    # Faol o'quvchilar (oxirgi 7 kunda kirgan)
+    week_ago = now - timedelta(days=7)
+    active_students = students.filter(last_activity__gte=week_ago).count()
+    
+    # Barcha vazifalar
+    all_homeworks = Homework.objects.filter(lesson__profession__in=filtered_professions)
+    total_homeworks_count = all_homeworks.count()
+    
+    # Vazifa topshirganlar (kamida 1 ta vazifa topshirgan)
+    students_with_submissions = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__in=filtered_professions,
+        student__in=students
+    ).values('student').distinct().count()
+    
+    students_without_submissions = total_students - students_with_submissions
+    
+    # O'rtacha ball (graded submissions)
+    avg_grade_data = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__in=filtered_professions,
+        status='graded',
+        grade__isnull=False
+    ).aggregate(
+        avg_grade=Avg('grade'),
+        max_possible=Avg('homework__max_score')
+    )
+    avg_grade = avg_grade_data['avg_grade'] or 0
+    max_possible = avg_grade_data['max_possible'] or 10
+    avg_grade_percent = round((avg_grade / max_possible * 100) if max_possible > 0 else 0)
+    
+    # Test o'rtacha natija
+    test_avg = TestResult.objects.filter(
+        test__lesson__profession__in=filtered_professions
+    ).aggregate(avg=Avg('score'))['avg'] or 0
+    
+    # Test o'tish foizi
+    total_test_results = TestResult.objects.filter(
+        test__lesson__profession__in=filtered_professions
+    )
+    test_total = total_test_results.count()
+    test_passed = total_test_results.filter(passed=True).count()
+    test_pass_percent = round((test_passed / test_total * 100) if test_total > 0 else 0)
+    
+    # Bugungi faollik
+    today_active = students.filter(last_activity__date=today).count()
+    today_percent = round((today_active / total_students * 100) if total_students > 0 else 0)
+    
+    # Faollik foizi (oxirgi 7 kun)
+    activity_percent = round((active_students / total_students * 100) if total_students > 0 else 0)
+    
+    # ===== 2. O'QUVCHI BO'YICHA JADVAL =====
+    students_data = []
+    for student in students:
+        # Enrolled professions
+        enrolled_profs = filtered_professions.filter(
+            enrollments__user=student
+        )
+        prof_names = ', '.join([p.name for p in enrolled_profs])
+        
+        # Ko'rilgan darslar
+        watched_lessons = VideoProgress.objects.filter(
+            user=student,
+            video__lesson__profession__in=filtered_professions,
+            watched=True
+        ).count()
+        
+        total_lessons = VideoLesson.objects.filter(
+            lesson__profession__in=filtered_professions
+        ).count()
+        
+        # Bajargan vazifalari
+        student_submissions = HomeworkSubmission.objects.filter(
+            student=student,
+            homework__lesson__profession__in=filtered_professions
+        )
+        done_homeworks = student_submissions.count()
+        
+        # Topshirmagan vazifalari
+        submitted_hw_ids = student_submissions.values_list('homework_id', flat=True)
+        not_done = all_homeworks.exclude(id__in=submitted_hw_ids).count()
+        
+        # Test natijalari
+        student_tests = TestResult.objects.filter(
+            student=student,
+            test__lesson__profession__in=filtered_professions
+        )
+        tests_count = student_tests.count()
+        avg_test = student_tests.aggregate(avg=Avg('score'))['avg'] or 0
+        
+        # Umumiy ball
+        graded = student_submissions.filter(status='graded', grade__isnull=False)
+        hw_avg = 0
+        if graded.exists():
+            hw_data = graded.aggregate(avg_g=Avg('grade'), avg_max=Avg('homework__max_score'))
+            hw_avg_grade = hw_data['avg_g'] or 0
+            hw_max = hw_data['avg_max'] or 10
+            hw_avg = round((hw_avg_grade / hw_max * 100) if hw_max > 0 else 0)
+        
+        overall_score = round((hw_avg + avg_test) / 2) if tests_count > 0 else hw_avg
+        
+        # Faollik foizi
+        components = 0
+        total_comp = 0
+        if total_lessons > 0:
+            components += (watched_lessons / total_lessons * 100)
+            total_comp += 1
+        if total_homeworks_count > 0:
+            components += (done_homeworks / total_homeworks_count * 100)
+            total_comp += 1
+        if tests_count > 0:
+            components += avg_test
+            total_comp += 1
+        
+        activity = round(components / total_comp) if total_comp > 0 else 0
+        
+        # Holat
+        days_inactive = 999
+        if student.last_activity:
+            days_inactive = (now - student.last_activity).days
+        
+        if activity >= 80 and (done_homeworks / total_homeworks_count * 100 if total_homeworks_count > 0 else 0) >= 90:
+            status = 'faol'
+        elif days_inactive >= 7 and (done_homeworks / total_homeworks_count * 100 if total_homeworks_count > 0 else 0) < 50:
+            status = 'xavfli'
+        elif activity < 50:
+            status = 'sust'
+        elif activity >= 80:
+            status = 'top'
+        else:
+            status = 'ortacha'
+        
+        students_data.append({
+            'student': student,
+            'profession': prof_names,
+            'last_activity': student.last_activity,
+            'watched_lessons': watched_lessons,
+            'total_lessons': total_lessons,
+            'done_homeworks': done_homeworks,
+            'total_homeworks': total_homeworks_count,
+            'not_done_homeworks': not_done,
+            'tests_count': tests_count,
+            'avg_test': round(avg_test),
+            'overall_score': overall_score,
+            'activity': activity,
+            'status': status,
+            'days_inactive': days_inactive,
+        })
+    
+    # Apply status filter
+    if filter_status:
+        students_data = [s for s in students_data if s['status'] == filter_status]
+    
+    # Apply homework filter
+    if filter_homework == 'topshirgan':
+        students_data = [s for s in students_data if s['done_homeworks'] > 0]
+    elif filter_homework == 'topshirmagan':
+        students_data = [s for s in students_data if s['not_done_homeworks'] > 0]
+    
+    # ===== 3. VAZIFALAR TAHLILI =====
+    homeworks_data = []
+    for hw in all_homeworks.select_related('lesson', 'lesson__profession'):
+        submissions = hw.submissions.all()
+        submitted_count = submissions.count()
+        not_submitted = total_students - submitted_count
+        graded_subs = submissions.filter(status='graded', grade__isnull=False)
+        
+        hw_stats = graded_subs.aggregate(
+            avg=Avg('grade'),
+            best=Max('grade'),
+            worst=Min('grade'),
+        )
+        
+        checked = submissions.filter(status='graded').count()
+        unchecked = submissions.filter(status='pending').count()
+        
+        max_s = hw.max_score
+        avg_p = round((hw_stats['avg'] or 0) / max_s * 100) if max_s > 0 else 0
+        best_p = round((hw_stats['best'] or 0) / max_s * 100) if max_s > 0 else 0
+        worst_p = round((hw_stats['worst'] or 0) / max_s * 100) if max_s > 0 else 0
+        
+        homeworks_data.append({
+            'homework': hw,
+            'submitted': submitted_count,
+            'not_submitted': not_submitted if not_submitted > 0 else 0,
+            'avg_score': avg_p,
+            'best_score': best_p,
+            'worst_score': worst_p,
+            'checked': checked,
+            'unchecked': unchecked,
+            'deadline': hw.due_date,
+        })
+    
+    # ===== 4. TEST STATISTIKASI =====
+    tests = Test.objects.filter(lesson__profession__in=filtered_professions).select_related('lesson', 'lesson__profession')
+    tests_data = []
+    for test in tests:
+        results = test.results.all()
+        r_count = results.count()
+        r_avg = results.aggregate(avg=Avg('score'))['avg'] or 0
+        r_passed = results.filter(passed=True).count()
+        pass_rate = round((r_passed / r_count * 100) if r_count > 0 else 0)
+        
+        # Eng qiyin savollar
+        from accounts.models import TestUserAnswer
+        question_stats = TestUserAnswer.objects.filter(
+            result__test=test
+        ).values('question__question_text').annotate(
+            total=Count('id'),
+            wrong=Count('id', filter=Q(is_correct=False))
+        ).order_by('-wrong')[:3]
+        
+        hardest_questions = []
+        for qs in question_stats:
+            wrong_pct = round((qs['wrong'] / qs['total'] * 100) if qs['total'] > 0 else 0)
+            hardest_questions.append({
+                'text': qs['question__question_text'][:80],
+                'wrong_percent': wrong_pct,
+            })
+        
+        # Eng yaxshi / past natijalar
+        best_result = results.order_by('-score').first()
+        worst_result = results.order_by('score').first()
+        
+        tests_data.append({
+            'test': test,
+            'attempts': r_count,
+            'avg_score': round(r_avg),
+            'pass_rate': pass_rate,
+            'hardest_questions': hardest_questions,
+            'best_result': best_result,
+            'worst_result': worst_result,
+        })
+    
+    # ===== 5. DAVOMAT VA KIRISH FAOLLIGI =====
+    today_login = students.filter(last_activity__date=today).count()
+    three_days_ago = today - timedelta(days=3)
+    week_ago_date = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    
+    not_logged_3days = students.filter(
+        Q(last_activity__date__lt=three_days_ago) | Q(last_activity__isnull=True)
+    ).exclude(last_activity__date__gte=three_days_ago).count()
+    
+    not_logged_week = students.filter(
+        Q(last_activity__date__lt=week_ago_date) | Q(last_activity__isnull=True)
+    ).exclude(last_activity__date__gte=week_ago_date).count()
+    
+    not_logged_month = students.filter(
+        Q(last_activity__date__lt=month_ago) | Q(last_activity__isnull=True)
+    ).exclude(last_activity__date__gte=month_ago).count()
+    
+    # Oxirgi 7 kunlik aktivlik (chart data)
+    daily_activity = []
+    for i in range(6, -1, -1):
+        d = today - timedelta(days=i)
+        count = students.filter(last_activity__date=d).count()
+        daily_activity.append({
+            'date': d.strftime('%d.%m'),
+            'count': count,
+        })
+    
+    # ===== 6. DARS KO'RISH STATISTIKASI =====
+    video_lessons = VideoLesson.objects.filter(
+        lesson__profession__in=filtered_professions
+    ).select_related('lesson', 'lesson__profession')
+    
+    lessons_data = []
+    for vl in video_lessons:
+        watched_count = VideoProgress.objects.filter(video=vl, watched=True).count()
+        watch_percent = round((watched_count / total_students * 100) if total_students > 0 else 0)
+        lessons_data.append({
+            'lesson': vl.lesson,
+            'watched_count': watched_count,
+            'total_students': total_students,
+            'watch_percent': watch_percent,
+        })
+    
+    # Sort by watch_percent to find most/least watched
+    lessons_data.sort(key=lambda x: x['watch_percent'], reverse=True)
+    
+    # ===== 7. OGOHLANTIRISHLAR =====
+    alerts = []
+    
+    # Uzoq vaqtdan beri kirmaganlar
+    inactive_students = students.filter(
+        Q(last_activity__date__lt=week_ago_date) | Q(last_activity__isnull=True)
+    )
+    inactive_count = inactive_students.count()
+    if inactive_count > 0:
+        alerts.append({
+            'type': 'danger',
+            'icon': 'bi-exclamation-triangle-fill',
+            'text': f"{inactive_count} ta o'quvchi 7 kundan beri kirmagan",
+        })
+    
+    # Vazifa topshirmaganlar
+    pending_hw_students = total_students - students_with_submissions
+    if pending_hw_students > 0 and total_homeworks_count > 0:
+        alerts.append({
+            'type': 'warning',
+            'icon': 'bi-journal-x',
+            'text': f"{pending_hw_students} ta o'quvchi hech qanday vazifa topshirmagan",
+        })
+    
+    # Tekshirilmagan vazifalar
+    unchecked_total = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__in=filtered_professions,
+        status='pending'
+    ).count()
+    if unchecked_total > 0:
+        alerts.append({
+            'type': 'info',
+            'icon': 'bi-hourglass-split',
+            'text': f"{unchecked_total} ta vazifa hali tekshirilmagan",
+        })
+    
+    # Past test natijalar
+    low_test_students = TestResult.objects.filter(
+        test__lesson__profession__in=filtered_professions,
+        score__lt=40
+    ).values('student').distinct().count()
+    if low_test_students > 0:
+        alerts.append({
+            'type': 'danger',
+            'icon': 'bi-graph-down-arrow',
+            'text': f"{low_test_students} ta o'quvchining test natijasi 40% dan past",
+        })
+    
+    # Xavfli o'quvchilar soni
+    xavfli_count = len([s for s in students_data if s['status'] == 'xavfli'])
+    if xavfli_count > 0:
+        alerts.append({
+            'type': 'danger',
+            'icon': 'bi-person-exclamation',
+            'text': f"{xavfli_count} ta o'quvchi xavfli holatda",
+        })
+    
+    # ===== CHART DATA =====
+    import json
+    
+    # Vazifa topshirish chart
+    hw_chart_labels = [h['homework'].lesson.title[:25] for h in homeworks_data[:10]]
+    hw_chart_submitted = [h['submitted'] for h in homeworks_data[:10]]
+    hw_chart_not = [h['not_submitted'] for h in homeworks_data[:10]]
+    
+    # Test natijalari chart
+    test_chart_labels = [t['test'].lesson.title[:25] for t in tests_data[:10]]
+    test_chart_scores = [t['avg_score'] for t in tests_data[:10]]
+    
+    # Status pie chart
+    status_counts = {
+        'faol': len([s for s in students_data if s['status'] == 'faol']),
+        'top': len([s for s in students_data if s['status'] == 'top']),
+        'ortacha': len([s for s in students_data if s['status'] == 'ortacha']),
+        'sust': len([s for s in students_data if s['status'] == 'sust']),
+        'xavfli': len([s for s in students_data if s['status'] == 'xavfli']),
+    }
+    
+    context = {
+        'professions': professions,
+        'filter_profession': filter_profession,
+        'filter_status': filter_status,
+        'filter_homework': filter_homework,
+        # Top cards
+        'total_students': total_students,
+        'active_students': active_students,
+        'students_with_submissions': students_with_submissions,
+        'students_without_submissions': students_without_submissions,
+        'avg_grade_percent': avg_grade_percent,
+        'test_avg': round(test_avg),
+        'test_pass_percent': test_pass_percent,
+        'today_active': today_active,
+        'today_percent': today_percent,
+        'activity_percent': activity_percent,
+        # Students table
+        'students_data': students_data,
+        # Homeworks
+        'homeworks_data': homeworks_data,
+        # Tests
+        'tests_data': tests_data,
+        # Attendance
+        'today_login': today_login,
+        'not_logged_3days': not_logged_3days,
+        'not_logged_week': not_logged_week,
+        'not_logged_month': not_logged_month,
+        'daily_activity': daily_activity,
+        # Lessons
+        'lessons_data': lessons_data,
+        # Alerts
+        'alerts': alerts,
+        # Chart data
+        'daily_activity_json': json.dumps(daily_activity),
+        'hw_chart_labels': json.dumps(hw_chart_labels),
+        'hw_chart_submitted': json.dumps(hw_chart_submitted),
+        'hw_chart_not': json.dumps(hw_chart_not),
+        'test_chart_labels': json.dumps(test_chart_labels),
+        'test_chart_scores': json.dumps(test_chart_scores),
+        'status_counts': json.dumps(status_counts),
+    }
+    return render(request, 'teacher/statistics.html', context)
+
+
+@teacher_required
 def teacher_courses(request):
     professions = request.user.teaching_professions.all()
     courses_data = []
