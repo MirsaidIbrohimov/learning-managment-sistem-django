@@ -35,13 +35,13 @@
                     Asosiy <i class="bi bi-chevron-down t-nav-chevron"></i>
                 </div>
                 <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-title="Bosh sahifa">
                         <i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span>
                     </a>
-                    <a href="{% url 'teacher:statistics' %}" class="t-nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                    <a href="{% url 'teacher:statistics' %}" class="t-nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" data-title="Statistika">
                         <i class="bi bi-bar-chart-line-fill"></i><span>Statistika</span>
                     </a>
-                    <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}">
+                    <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}" data-title="Kurslarim">
                         <i class="bi bi-book-fill"></i><span>Kurslarim</span>
                     </a>
                 </div>
@@ -52,10 +52,10 @@
                     O'quv jarayoni <i class="bi bi-chevron-down t-nav-chevron"></i>
                 </div>
                 <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}" data-title="Uyga vazifalar">
                         <i class="bi bi-journal-check"></i><span>Uyga vazifalar</span>
                     </a>
-                    <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}" data-title="Test natijalari">
                         <i class="bi bi-clipboard-data-fill"></i><span>Test natijalari</span>
                     </a>
                 </div>
@@ -66,20 +66,20 @@
                     Boshqa <i class="bi bi-chevron-down t-nav-chevron"></i>
                 </div>
                 <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:balance' %}" class="t-nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}">
+                    <a href="{% url 'teacher:balance' %}" class="t-nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}" data-title="Balans">
                         <i class="bi bi-wallet2"></i><span>Balans</span>
                     </a>
-                    <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlarim">
                         <i class="bi bi-award-fill"></i><span>Sertifikatlarim</span>
                     </a>
                 </div>
             </div>
 
             <div style="margin-top:8px;">
-                <a href="{% url 'home' %}" class="t-nav-link">
+                <a href="{% url 'home' %}" class="t-nav-link" data-title="Saytga qaytish">
                     <i class="bi bi-house-fill"></i><span>Saytga qaytish</span>
                 </a>
-                <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger">
+                <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger" data-title="Chiqish">
                     <i class="bi bi-box-arrow-right"></i><span>Chiqish</span>
                 </a>
             </div>
@@ -162,7 +162,6 @@
         });
         localStorage.setItem('navState', JSON.stringify(state));
     }
-    // Restore nav state
     (function() {
         try {
             const saved = JSON.parse(localStorage.getItem('navState'));
@@ -175,14 +174,35 @@
         } catch(e) {}
     })();
 
-    // Sidebar
+    // Sidebar collapse/expand
     const sidebar = document.getElementById('teacherSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     const toggleBtn = document.getElementById('sidebarToggle');
     const closeBtn = document.getElementById('sidebarClose');
-    function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); document.body.style.overflow='hidden'; }
-    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); document.body.style.overflow=''; }
-    toggleBtn.addEventListener('click', openSidebar);
+
+    // Restore collapsed state on desktop
+    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
+        document.body.classList.add('t-sidebar-collapsed');
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        if (window.innerWidth <= 992) {
+            // Mobile: overlay
+            sidebar.classList.add('open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Desktop: collapse/expand
+            document.body.classList.toggle('t-sidebar-collapsed');
+            localStorage.setItem('sidebarCollapsed', document.body.classList.contains('t-sidebar-collapsed'));
+        }
+    });
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
     closeBtn.addEventListener('click', closeSidebar);
     overlay.addEventListener('click', closeSidebar);
     sidebar.querySelectorAll('.t-nav-link').forEach(l => l.addEventListener('click', () => { if(window.innerWidth<=992) closeSidebar(); }));

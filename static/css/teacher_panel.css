@@ -4,6 +4,7 @@
     --t-primary-dark: #059669;
     --t-primary-light: rgba(16, 185, 129, 0.1);
     --t-sidebar-width: 270px;
+    --t-sidebar-collapsed: 72px;
     --t-topbar-height: 64px;
 }
 
@@ -19,7 +20,86 @@
     background: linear-gradient(180deg, #064e3b 0%, #065f46 50%, #047857 100%);
     z-index: 1050;
     overflow-y: auto;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-x: hidden;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Collapsed sidebar ===== */
+body.t-sidebar-collapsed .t-sidebar {
+    width: var(--t-sidebar-collapsed);
+}
+body.t-sidebar-collapsed .t-topbar {
+    left: var(--t-sidebar-collapsed);
+}
+body.t-sidebar-collapsed .t-main-content {
+    margin-left: var(--t-sidebar-collapsed);
+}
+body.t-sidebar-collapsed .t-sidebar-brand span,
+body.t-sidebar-collapsed .t-nav-link span,
+body.t-sidebar-collapsed .t-nav-group,
+body.t-sidebar-collapsed .t-nav-chevron,
+body.t-sidebar-collapsed .t-nav-section {
+    border-bottom: none;
+}
+body.t-sidebar-collapsed .t-sidebar-brand span,
+body.t-sidebar-collapsed .t-nav-link span,
+body.t-sidebar-collapsed .t-nav-group {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+body.t-sidebar-collapsed .t-nav-section-links {
+    max-height: 500px !important;
+    opacity: 1 !important;
+}
+body.t-sidebar-collapsed .t-nav-chevron {
+    display: none;
+}
+body.t-sidebar-collapsed .t-nav-link {
+    justify-content: center;
+    padding: 12px 0;
+    margin: 2px 8px;
+}
+body.t-sidebar-collapsed .t-nav-link i {
+    margin: 0;
+    font-size: 1.25rem;
+}
+body.t-sidebar-collapsed .t-sidebar-brand a {
+    justify-content: center;
+}
+body.t-sidebar-collapsed .t-sidebar-brand .t-brand-icon {
+    margin: 0;
+}
+body.t-sidebar-collapsed .t-nav-group-toggle {
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+/* Tooltip on hover for collapsed sidebar */
+body.t-sidebar-collapsed .t-nav-link {
+    position: relative;
+}
+body.t-sidebar-collapsed .t-nav-link:hover::after {
+    content: attr(data-title);
+    position: absolute;
+    left: calc(var(--t-sidebar-collapsed) - 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1f2937;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    z-index: 9999;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .t-sidebar::-webkit-scrollbar { width: 4px; }
@@ -192,7 +272,6 @@
 }
 
 .t-sidebar-toggle {
-    display: none;
     width: 42px;
     height: 42px;
     border: none;
@@ -202,8 +281,6 @@
     font-size: 1.3rem;
     cursor: pointer;
     transition: all 0.2s;
-    align-items: center;
-    justify-content: center;
 }
 
 .t-theme-btn {
@@ -547,25 +624,53 @@
     font-size: 0.9rem;
 }
 
+/* Toggle button always visible on desktop */
+.t-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
+    /* On mobile: override collapsed, use slide overlay */
+    body.t-sidebar-collapsed .t-sidebar,
     .t-sidebar {
+        width: var(--t-sidebar-width) !important;
         transform: translateX(-100%);
     }
     .t-sidebar.open {
         transform: translateX(0);
     }
+    body.t-sidebar-collapsed .t-sidebar.open {
+        transform: translateX(0);
+        width: var(--t-sidebar-width) !important;
+    }
+    /* Restore text on mobile overlay */
+    body.t-sidebar-collapsed .t-sidebar-brand span,
+    body.t-sidebar-collapsed .t-nav-link span,
+    body.t-sidebar-collapsed .t-nav-group {
+        opacity: 1; width: auto; overflow: visible;
+    }
+    body.t-sidebar-collapsed .t-nav-link {
+        justify-content: flex-start; padding: 11px 18px; margin: 2px 10px;
+    }
+    body.t-sidebar-collapsed .t-nav-link i { font-size: 1.1rem; }
+    body.t-sidebar-collapsed .t-sidebar-brand a { justify-content: flex-start; }
+    body.t-sidebar-collapsed .t-nav-chevron { display: inline; }
+    body.t-sidebar-collapsed .t-nav-group-toggle {
+        height: auto; padding: 10px 10px 6px; margin: 0 8px; overflow: visible;
+    }
     .t-sidebar-close {
         display: flex;
     }
-    .t-sidebar-toggle {
-        display: flex;
-    }
+    body.t-sidebar-collapsed .t-topbar,
     .t-topbar {
-        left: 0;
+        left: 0 !important;
     }
+    body.t-sidebar-collapsed .t-main-content,
     .t-main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
     }
 }
 
