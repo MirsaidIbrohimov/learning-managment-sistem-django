@@ -421,7 +421,11 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
             <a href="{% url 'profession_detail' cd.profession.pk %}" class="tc-btn tc-btn-outline">
                 <i class="bi bi-eye"></i> Darslar
             </a>
-            <button type="button" class="tc-btn tc-btn-edit" onclick="openEditModal({{ cd.profession.pk }}, '{{ cd.profession.name|escapejs }}', '{{ cd.profession.description|escapejs }}', '{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}')">
+            <button type="button" class="tc-btn tc-btn-edit tc-edit-btn"
+                    data-pk="{{ cd.profession.pk }}"
+                    data-name="{{ cd.profession.name }}"
+                    data-description="{{ cd.profession.description|default_if_none:'' }}"
+                    data-photo="{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}">
                 <i class="bi bi-pencil-square"></i> Tahrirlash
             </button>
         </div>
@@ -485,29 +489,36 @@ textarea.tc-input { resize: vertical; min-height: 90px; }
 </div>
 
 <script>
-function openEditModal(pk, name, description, photoUrl) {
-    const modal = document.getElementById('editCourseModal');
-    const form = document.getElementById('editCourseForm');
-    const nameInput = document.getElementById('editCourseName');
-    const descInput = document.getElementById('editCourseDesc');
-    const preview = document.getElementById('editCoursePreview');
-    const fileInput = document.getElementById('editCourseFile');
+document.querySelectorAll('.tc-edit-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var pk = this.dataset.pk;
+        var name = this.dataset.name;
+        var description = this.dataset.description || '';
+        var photoUrl = this.dataset.photo;
 
-    form.action = "{% url 'teacher:courses' %}" + pk + "/edit/";
-    nameInput.value = name;
-    descInput.value = description;
-    fileInput.value = '';
+        var modal = document.getElementById('editCourseModal');
+        var form = document.getElementById('editCourseForm');
+        var nameInput = document.getElementById('editCourseName');
+        var descInput = document.getElementById('editCourseDesc');
+        var preview = document.getElementById('editCoursePreview');
+        var fileInput = document.getElementById('editCourseFile');
 
-    if (photoUrl) {
-        preview.innerHTML = '<img src="' + photoUrl + '" alt="Kurs rasmi">';
-    } else {
-        preview.innerHTML = '<div class="tc-preview-empty"><i class="bi bi-image"></i><span>Rasm mavjud emas</span></div>';
-    }
+        form.action = "{% url 'teacher:courses' %}" + pk + "/edit/";
+        nameInput.value = name;
+        descInput.value = description;
+        fileInput.value = '';
 
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    setTimeout(() => nameInput.focus(), 200);
-}
+        if (photoUrl) {
+            preview.innerHTML = '<img src="' + photoUrl + '" alt="Kurs rasmi">';
+        } else {
+            preview.innerHTML = '<div class="tc-preview-empty"><i class="bi bi-image"></i><span>Rasm mavjud emas</span></div>';
+        }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        setTimeout(function() { nameInput.focus(); }, 200);
+    });
+});
 
 function closeEditModal() {
     document.getElementById('editCourseModal').classList.remove('active');
@@ -515,9 +526,9 @@ function closeEditModal() {
 }
 
 function previewFile(input) {
-    const preview = document.getElementById('editCoursePreview');
+    var preview = document.getElementById('editCoursePreview');
     if (input.files && input.files[0]) {
-        const reader = new FileReader();
+        var reader = new FileReader();
         reader.onload = function(e) {
             preview.innerHTML = '<img src="' + e.target.result + '" alt="Yangi rasm">';
         };
