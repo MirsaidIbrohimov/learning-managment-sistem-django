@@ -534,6 +534,34 @@ def teacher_courses(request):
 
 
 @teacher_required
+def teacher_edit_course(request, pk):
+    from accounts.models import Profession
+    professions = request.user.teaching_professions.all()
+    profession = get_object_or_404(Profession, pk=pk)
+    if profession not in professions:
+        messages.error(request, "Sizda bu kursni tahrirlash huquqi yo'q.")
+        return redirect('teacher:courses')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        photo = request.FILES.get('photo')
+
+        if not name:
+            messages.error(request, "Kurs nomi bo'sh bo'lishi mumkin emas.")
+            return redirect('teacher:courses')
+
+        profession.name = name
+        profession.description = description
+        if photo:
+            profession.photo = photo
+        profession.save()
+        messages.success(request, "Kurs muvaffaqiyatli yangilandi!")
+
+    return redirect('teacher:courses')
+
+
+@teacher_required
 def teacher_balance(request):
     user = request.user
     now = timezone.now()

@@ -10,6 +10,7 @@ urlpatterns = [
 
     # Kurslarim
     path('courses/', views.teacher_courses, name='courses'),
+    path('courses/<int:pk>/edit/', views.teacher_edit_course, name='edit_course'),
 
     # Balans
     path('balance/', views.teacher_balance, name='balance'),
