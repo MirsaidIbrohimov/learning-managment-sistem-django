@@ -67,6 +67,25 @@
     justify-content: center;
 }
 
+/* Collapsible nav sections */
+.t-nav-section-links {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+.t-nav-section.open .t-nav-section-links {
+    max-height: 300px;
+}
+.t-nav-chevron {
+    font-size: 0.55rem;
+    margin-left: auto;
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+}
+.t-nav-section.open .t-nav-chevron {
+    transform: rotate(180deg);
+}
+
 .t-nav-group {
     color: rgba(255,255,255,0.35);
     font-size: 0.68rem;
@@ -75,6 +94,17 @@
     letter-spacing: 1.2px;
     padding: 16px 15px 6px;
     margin-top: 6px;
+}
+
+.t-nav-group-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    transition: color 0.2s;
+}
+.t-nav-group-toggle:hover {
+    color: rgba(255,255,255,0.6);
 }
 
 .t-nav-link {

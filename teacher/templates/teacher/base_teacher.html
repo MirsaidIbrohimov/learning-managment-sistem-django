@@ -30,40 +30,59 @@
         </div>
 
         <nav class="t-sidebar-nav">
-            <div class="t-nav-group">Asosiy</div>
-            <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                <i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span>
-            </a>
-            <a href="{% url 'teacher:statistics' %}" class="t-nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
-                <i class="bi bi-bar-chart-line-fill"></i><span>Statistika</span>
-            </a>
-            <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}">
-                <i class="bi bi-book-fill"></i><span>Kurslarim</span>
-            </a>
+            <div class="t-nav-section open" id="navAsosiy">
+                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navAsosiy')">
+                    Asosiy <i class="bi bi-chevron-down t-nav-chevron"></i>
+                </div>
+                <div class="t-nav-section-links">
+                    <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span>
+                    </a>
+                    <a href="{% url 'teacher:statistics' %}" class="t-nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}">
+                        <i class="bi bi-bar-chart-line-fill"></i><span>Statistika</span>
+                    </a>
+                    <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}">
+                        <i class="bi bi-book-fill"></i><span>Kurslarim</span>
+                    </a>
+                </div>
+            </div>
 
-            <div class="t-nav-group">O'quv jarayoni</div>
-            <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-journal-check"></i><span>Uyga vazifalar</span>
-            </a>
-            <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-clipboard-data-fill"></i><span>Test natijalari</span>
-            </a>
+            <div class="t-nav-section open" id="navOquv">
+                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navOquv')">
+                    O'quv jarayoni <i class="bi bi-chevron-down t-nav-chevron"></i>
+                </div>
+                <div class="t-nav-section-links">
+                    <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-journal-check"></i><span>Uyga vazifalar</span>
+                    </a>
+                    <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-clipboard-data-fill"></i><span>Test natijalari</span>
+                    </a>
+                </div>
+            </div>
 
-            <div class="t-nav-group">Boshqa</div>
-            <a href="{% url 'teacher:balance' %}" class="t-nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}">
-                <i class="bi bi-wallet2"></i><span>Balans</span>
-            </a>
-            <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
-                <i class="bi bi-award-fill"></i><span>Sertifikatlarim</span>
-            </a>
+            <div class="t-nav-section open" id="navBoshqa">
+                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navBoshqa')">
+                    Boshqa <i class="bi bi-chevron-down t-nav-chevron"></i>
+                </div>
+                <div class="t-nav-section-links">
+                    <a href="{% url 'teacher:balance' %}" class="t-nav-link {% if request.resolver_match.url_name == 'balance' %}active{% endif %}">
+                        <i class="bi bi-wallet2"></i><span>Balans</span>
+                    </a>
+                    <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="bi bi-award-fill"></i><span>Sertifikatlarim</span>
+                    </a>
+                </div>
+            </div>
 
-            <div class="t-nav-group"></div>
-            <a href="{% url 'home' %}" class="t-nav-link">
-                <i class="bi bi-house-fill"></i><span>Saytga qaytish</span>
-            </a>
-            <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger">
-                <i class="bi bi-box-arrow-right"></i><span>Chiqish</span>
-            </a>
+            <div style="margin-top:8px;">
+                <a href="{% url 'home' %}" class="t-nav-link">
+                    <i class="bi bi-house-fill"></i><span>Saytga qaytish</span>
+                </a>
+                <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger">
+                    <i class="bi bi-box-arrow-right"></i><span>Chiqish</span>
+                </a>
+            </div>
         </nav>
     </div>
 
@@ -131,6 +150,11 @@
     function updateIcon(t) {
         themeIcon.classList.toggle('bi-moon-fill', t === 'light');
         themeIcon.classList.toggle('bi-sun-fill', t === 'dark');
+    }
+
+    // Nav section toggle
+    function toggleNavSection(id) {
+        document.getElementById(id).classList.toggle('open');
     }
 
     // Sidebar
