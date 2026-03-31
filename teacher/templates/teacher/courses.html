@@ -5,127 +5,423 @@
 
 {% block teacher_content %}
 <style>
-.t-courses-header {
+/* ===== Header ===== */
+.tc-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
-    animation: fadeInUp 0.4s ease;
+    margin-bottom: 2rem;
+    animation: tcFadeUp .4s ease;
 }
-.t-courses-header h1 {
-    font-size: 1.5rem;
+.tc-header h1 {
+    font-size: 1.6rem;
     font-weight: 800;
     display: flex;
     align-items: center;
-    gap: .5rem;
+    gap: .6rem;
+    margin: 0;
 }
-.t-courses-grid {
+.tc-header .tc-badge {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* ===== Grid ===== */
+.tc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
     gap: 1.5rem;
 }
-.t-course-card {
+
+/* ===== Card ===== */
+.tc-card {
     background: var(--bs-body-bg);
     border: 1px solid var(--bs-border-color);
-    border-radius: 18px;
+    border-radius: 20px;
     overflow: hidden;
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease forwards;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    animation: tcFadeUp .5s ease forwards;
     opacity: 0;
 }
-.t-course-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+.tc-card:nth-child(1) { animation-delay: .05s; }
+.tc-card:nth-child(2) { animation-delay: .12s; }
+.tc-card:nth-child(3) { animation-delay: .19s; }
+.tc-card:nth-child(4) { animation-delay: .26s; }
+.tc-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,.1);
+    border-color: #10b981;
 }
-.t-course-img {
-    height: 160px;
-    background: linear-gradient(135deg, #064e3b, #047857);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+
+/* ===== Image ===== */
+.tc-img {
+    height: 180px;
+    background: linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%);
     position: relative;
     overflow: hidden;
 }
-.t-course-img img {
+.tc-img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform .4s ease;
 }
-.t-course-img .t-course-icon {
-    font-size: 3rem;
-    color: rgba(255,255,255,0.3);
+.tc-card:hover .tc-img img { transform: scale(1.05); }
+.tc-img .tc-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255,255,255,.25);
+    font-size: 3.5rem;
 }
-.t-course-body { padding: 20px; }
-.t-course-name { font-size: 1.1rem; font-weight: 700; margin-bottom: .75rem; }
-.t-course-stats {
+.tc-img-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    background: linear-gradient(transparent, rgba(0,0,0,.6));
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+.tc-img-tag {
+    font-size: .7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    background: rgba(255,255,255,.2);
+    color: #fff;
+}
+
+/* ===== Body ===== */
+.tc-body { padding: 20px 22px; }
+.tc-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+.tc-desc {
+    font-size: .83rem;
+    color: var(--bs-secondary-color);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ===== Stats ===== */
+.tc-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: .75rem;
+    gap: 10px;
+    margin-bottom: 4px;
 }
-.t-course-stat {
+.tc-stat {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: .85rem;
-    color: var(--bs-secondary-color);
+    padding: 8px 12px;
+    background: var(--bs-tertiary-bg);
+    border-radius: 12px;
+    font-size: .82rem;
+    font-weight: 500;
+    transition: background .2s;
 }
-.t-course-stat i { font-size: 1rem; }
-.t-course-actions {
-    padding: 16px 20px;
-    border-top: 1px solid var(--bs-border-color);
+.tc-stat:hover { background: var(--bs-secondary-bg); }
+.tc-stat-icon {
+    width: 30px;
+    height: 30px;
     display: flex;
-    gap: .5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: .9rem;
+    flex-shrink: 0;
 }
-.t-course-actions .t-btn { font-size: .82rem; padding: .5rem 1rem; }
+.tc-stat-icon.purple { background: rgba(139,92,246,.12); color: #8b5cf6; }
+.tc-stat-icon.blue   { background: rgba(59,130,246,.12);  color: #3b82f6; }
+.tc-stat-icon.amber  { background: rgba(245,158,11,.12);  color: #f59e0b; }
+.tc-stat-icon.green  { background: rgba(16,185,129,.12);  color: #10b981; }
+
+/* ===== Actions ===== */
+.tc-actions {
+    padding: 14px 22px 18px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.tc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: .8rem;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s;
+}
+.tc-btn-primary {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #fff;
+}
+.tc-btn-primary:hover { background: linear-gradient(135deg, #047857, #059669); color: #fff; transform: translateY(-1px); }
+.tc-btn-outline {
+    background: transparent;
+    color: var(--bs-body-color);
+    border: 1px solid var(--bs-border-color);
+}
+.tc-btn-outline:hover { background: var(--bs-tertiary-bg); color: var(--bs-body-color); border-color: var(--bs-secondary-color); }
+.tc-btn-edit {
+    background: rgba(59,130,246,.1);
+    color: #3b82f6;
+    border: 1px solid rgba(59,130,246,.2);
+}
+.tc-btn-edit:hover { background: rgba(59,130,246,.18); color: #2563eb; }
+
+/* ===== Empty ===== */
+.tc-empty {
+    text-align: center;
+    padding: 4rem 2rem;
+    animation: tcFadeUp .5s ease;
+}
+.tc-empty-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    background: linear-gradient(135deg, #064e3b, #059669);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #fff;
+}
+.tc-empty h3 { font-weight: 700; margin-bottom: .5rem; }
+.tc-empty p { color: var(--bs-secondary-color); }
+
+/* ===== Modal ===== */
+.tc-modal-bg {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,.5);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: tcFadeIn .2s ease;
+}
+.tc-modal-bg.active { display: flex; }
+.tc-modal {
+    background: var(--bs-body-bg);
+    border-radius: 22px;
+    max-width: 520px;
+    width: 92%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,.25);
+    animation: tcSlideUp .3s cubic-bezier(.4,0,.2,1);
+}
+.tc-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 26px 0;
+}
+.tc-modal-header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.tc-modal-close {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: none;
+    background: var(--bs-tertiary-bg);
+    color: var(--bs-secondary-color);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .2s;
+}
+.tc-modal-close:hover { background: var(--bs-secondary-bg); color: var(--bs-body-color); }
+.tc-modal-body { padding: 22px 26px 26px; }
+
+.tc-form-group { margin-bottom: 1.2rem; }
+.tc-form-group label {
+    font-size: .85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--bs-body-color);
+}
+.tc-form-group label i { color: var(--bs-secondary-color); font-size: .9rem; }
+.tc-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--bs-border-color);
+    border-radius: 12px;
+    font-size: .92rem;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+    transition: border-color .2s, box-shadow .2s;
+    font-family: inherit;
+}
+.tc-input:focus {
+    outline: none;
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16,185,129,.12);
+}
+textarea.tc-input { resize: vertical; min-height: 90px; }
+.tc-preview-box {
+    border: 2px dashed var(--bs-border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    transition: border-color .2s;
+    background: var(--bs-tertiary-bg);
+}
+.tc-preview-box:hover { border-color: var(--bs-secondary-color); }
+.tc-preview-box img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+}
+.tc-preview-empty {
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--bs-secondary-color);
+    gap: 4px;
+}
+.tc-preview-empty i { font-size: 1.8rem; opacity: .5; }
+.tc-preview-empty span { font-size: .78rem; }
+.tc-file-input {
+    width: 100%;
+    padding: 8px;
+    border: 1.5px solid var(--bs-border-color);
+    border-radius: 12px;
+    font-size: .83rem;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+.tc-form-hint {
+    font-size: .75rem;
+    color: var(--bs-secondary-color);
+    margin-top: 4px;
+}
+.tc-modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 6px;
+}
+
+/* ===== Animations ===== */
+@keyframes tcFadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes tcFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes tcSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 576px) {
-    .t-courses-grid { grid-template-columns: 1fr; }
+    .tc-grid { grid-template-columns: 1fr; }
+    .tc-actions { flex-direction: column; }
+    .tc-actions .tc-btn { justify-content: center; }
+    .tc-stats { grid-template-columns: 1fr; }
+    .tc-modal { width: 96%; border-radius: 18px; }
 }
 </style>
 
-<div class="t-courses-header">
-    <h1><i class="bi bi-book-fill" style="color: var(--t-primary);"></i> Kurslarim</h1>
+<div class="tc-header">
+    <h1>
+        <i class="bi bi-book-fill" style="color: #10b981;"></i>
+        Kurslarim
+        {% if courses_data %}
+        <span class="tc-badge">{{ courses_data|length }} ta kurs</span>
+        {% endif %}
+    </h1>
 </div>
 
 {% if courses_data %}
-<div class="t-courses-grid">
+<div class="tc-grid">
     {% for cd in courses_data %}
-    <div class="t-course-card delay-{{ forloop.counter }}">
-        <div class="t-course-img">
+    <div class="tc-card">
+        <div class="tc-img">
             {% if cd.profession.photo %}
             <img src="{{ cd.profession.photo.url }}" alt="{{ cd.profession.name }}">
             {% else %}
-            <i class="bi bi-mortarboard-fill t-course-icon"></i>
+            <div class="tc-placeholder"><i class="bi bi-mortarboard-fill"></i></div>
             {% endif %}
+            <div class="tc-img-overlay">
+                <span class="tc-img-tag"><i class="bi bi-people-fill"></i> {{ cd.student_count }} o'quvchi</span>
+                <span class="tc-img-tag"><i class="bi bi-play-circle-fill"></i> {{ cd.lesson_count }} dars</span>
+            </div>
         </div>
-        <div class="t-course-body">
-            <div class="t-course-name">{{ cd.profession.name }}</div>
-            <div class="t-course-stats">
-                <div class="t-course-stat">
-                    <i class="bi bi-people-fill" style="color:#8b5cf6;"></i>
-                    {{ cd.student_count }} o'quvchi
+        <div class="tc-body">
+            <div class="tc-name">{{ cd.profession.name }}</div>
+            {% if cd.profession.description %}
+            <div class="tc-desc">{{ cd.profession.description }}</div>
+            {% endif %}
+            <div class="tc-stats">
+                <div class="tc-stat">
+                    <div class="tc-stat-icon purple"><i class="bi bi-people-fill"></i></div>
+                    <span>{{ cd.student_count }} o'quvchi</span>
                 </div>
-                <div class="t-course-stat">
-                    <i class="bi bi-play-circle-fill" style="color:#3b82f6;"></i>
-                    {{ cd.lesson_count }} dars
+                <div class="tc-stat">
+                    <div class="tc-stat-icon blue"><i class="bi bi-play-circle-fill"></i></div>
+                    <span>{{ cd.lesson_count }} dars</span>
                 </div>
-                <div class="t-course-stat">
-                    <i class="bi bi-brain" style="color:#f59e0b;"></i>
-                    {{ cd.test_count }} test
+                <div class="tc-stat">
+                    <div class="tc-stat-icon amber"><i class="bi bi-brain"></i></div>
+                    <span>{{ cd.test_count }} test</span>
                 </div>
-                <div class="t-course-stat">
-                    <i class="bi bi-journal-check" style="color:#10b981;"></i>
-                    {{ cd.homework_count }} vazifa
+                <div class="tc-stat">
+                    <div class="tc-stat-icon green"><i class="bi bi-journal-check"></i></div>
+                    <span>{{ cd.homework_count }} vazifa</span>
                 </div>
             </div>
         </div>
-        <div class="t-course-actions">
-            <a href="{% url 'teacher:add_test' cd.profession.pk %}" class="t-btn t-btn-primary">
+        <div class="tc-actions">
+            <a href="{% url 'teacher:add_test' cd.profession.pk %}" class="tc-btn tc-btn-primary">
                 <i class="bi bi-plus-lg"></i> Test yuklash
             </a>
-            <a href="{% url 'profession_detail' cd.profession.pk %}" class="t-btn t-btn-outline">
+            <a href="{% url 'profession_detail' cd.profession.pk %}" class="tc-btn tc-btn-outline">
                 <i class="bi bi-eye"></i> Darslar
             </a>
-            <button type="button" class="t-btn t-btn-outline" onclick="openEditModal({{ cd.profession.pk }}, '{{ cd.profession.name|escapejs }}', '{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}')">
+            <button type="button" class="tc-btn tc-btn-edit" onclick="openEditModal({{ cd.profession.pk }}, '{{ cd.profession.name|escapejs }}', '{{ cd.profession.description|escapejs }}', '{% if cd.profession.photo %}{{ cd.profession.photo.url }}{% endif %}')">
                 <i class="bi bi-pencil-square"></i> Tahrirlash
             </button>
         </div>
@@ -133,71 +429,108 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="t-card">
-    <div class="t-card-body">
-        <div class="t-empty">
-            <div class="t-empty-icon"><i class="bi bi-book"></i></div>
-            <h3>Kurslar topilmadi</h3>
-            <p>Sizga hali kurs tayinlanmagan. Admin bilan bog'laning.</p>
-        </div>
+<div class="tc-card" style="opacity:1;">
+    <div class="tc-empty">
+        <div class="tc-empty-icon"><i class="bi bi-book"></i></div>
+        <h3>Kurslar topilmadi</h3>
+        <p>Sizga hali kurs tayinlanmagan. Admin bilan bog'laning.</p>
     </div>
 </div>
 {% endif %}
 
 <!-- Kursni tahrirlash modali -->
-<div id="editCourseModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:var(--bs-body-bg); border-radius:18px; max-width:480px; width:90%; margin:auto; padding:30px; position:relative; top:50%; transform:translateY(-50%); box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-            <h3 style="font-size:1.2rem; font-weight:700; margin:0;"><i class="bi bi-pencil-square" style="color:var(--t-primary);"></i> Kursni tahrirlash</h3>
-            <button type="button" onclick="closeEditModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--bs-secondary-color);">&times;</button>
+<div class="tc-modal-bg" id="editCourseModal">
+    <div class="tc-modal">
+        <div class="tc-modal-header">
+            <h3><i class="bi bi-pencil-square" style="color:#3b82f6;"></i> Kursni tahrirlash</h3>
+            <button type="button" class="tc-modal-close" onclick="closeEditModal()"><i class="bi bi-x-lg"></i></button>
         </div>
-        <form id="editCourseForm" method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div style="margin-bottom:1.2rem;">
-                <label style="font-size:.9rem; font-weight:600; margin-bottom:.4rem; display:block;">Kurs nomi</label>
-                <input type="text" name="name" id="editCourseName" required
-                       style="width:100%; padding:.6rem 1rem; border:1px solid var(--bs-border-color); border-radius:10px; font-size:.95rem; background:var(--bs-body-bg); color:var(--bs-body-color);">
-            </div>
-            <div style="margin-bottom:1.2rem;">
-                <label style="font-size:.9rem; font-weight:600; margin-bottom:.4rem; display:block;">Kurs rasmi</label>
-                <div id="editCoursePreview" style="margin-bottom:.5rem;"></div>
-                <input type="file" name="photo" accept="image/*"
-                       style="width:100%; padding:.5rem; border:1px solid var(--bs-border-color); border-radius:10px; font-size:.85rem;">
-                <small style="color:var(--bs-secondary-color);">Yangi rasm tanlamasangiz, eski rasm saqlanadi.</small>
-            </div>
-            <div style="display:flex; gap:.75rem; justify-content:flex-end;">
-                <button type="button" onclick="closeEditModal()" class="t-btn t-btn-outline">Bekor qilish</button>
-                <button type="submit" class="t-btn t-btn-primary"><i class="bi bi-check-lg"></i> Saqlash</button>
-            </div>
-        </form>
+        <div class="tc-modal-body">
+            <form id="editCourseForm" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="tc-form-group">
+                    <label><i class="bi bi-type"></i> Kurs nomi</label>
+                    <input type="text" name="name" id="editCourseName" class="tc-input" required placeholder="Kurs nomini kiriting...">
+                </div>
+
+                <div class="tc-form-group">
+                    <label><i class="bi bi-card-text"></i> Kurs haqida</label>
+                    <textarea name="description" id="editCourseDesc" class="tc-input" rows="3" placeholder="Kurs haqida qisqacha ma'lumot..."></textarea>
+                </div>
+
+                <div class="tc-form-group">
+                    <label><i class="bi bi-image"></i> Kurs rasmi</label>
+                    <div class="tc-preview-box" id="editCoursePreview">
+                        <div class="tc-preview-empty">
+                            <i class="bi bi-image"></i>
+                            <span>Rasm mavjud emas</span>
+                        </div>
+                    </div>
+                    <input type="file" name="photo" id="editCourseFile" accept="image/*" class="tc-file-input" onchange="previewFile(this)">
+                    <div class="tc-form-hint"><i class="bi bi-info-circle"></i> Yangi rasm tanlamasangiz, eski rasm saqlanadi.</div>
+                </div>
+
+                <div class="tc-modal-footer">
+                    <button type="button" onclick="closeEditModal()" class="tc-btn tc-btn-outline">
+                        <i class="bi bi-x"></i> Bekor qilish
+                    </button>
+                    <button type="submit" class="tc-btn tc-btn-primary">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <script>
-function openEditModal(pk, name, photoUrl) {
+function openEditModal(pk, name, description, photoUrl) {
     const modal = document.getElementById('editCourseModal');
     const form = document.getElementById('editCourseForm');
     const nameInput = document.getElementById('editCourseName');
+    const descInput = document.getElementById('editCourseDesc');
     const preview = document.getElementById('editCoursePreview');
+    const fileInput = document.getElementById('editCourseFile');
 
     form.action = "{% url 'teacher:courses' %}" + pk + "/edit/";
     nameInput.value = name;
+    descInput.value = description;
+    fileInput.value = '';
 
     if (photoUrl) {
-        preview.innerHTML = '<img src="' + photoUrl + '" style="width:100%; max-height:140px; object-fit:cover; border-radius:10px;">';
+        preview.innerHTML = '<img src="' + photoUrl + '" alt="Kurs rasmi">';
     } else {
-        preview.innerHTML = '<div style="padding:1rem; text-align:center; color:var(--bs-secondary-color);"><i class="bi bi-image" style="font-size:2rem;"></i><br>Rasm mavjud emas</div>';
+        preview.innerHTML = '<div class="tc-preview-empty"><i class="bi bi-image"></i><span>Rasm mavjud emas</span></div>';
     }
 
-    modal.style.display = 'flex';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => nameInput.focus(), 200);
 }
 
 function closeEditModal() {
-    document.getElementById('editCourseModal').style.display = 'none';
+    document.getElementById('editCourseModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function previewFile(input) {
+    const preview = document.getElementById('editCoursePreview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = '<img src="' + e.target.result + '" alt="Yangi rasm">';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 document.getElementById('editCourseModal').addEventListener('click', function(e) {
     if (e.target === this) closeEditModal();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeEditModal();
 });
 </script>
 {% endblock %}
