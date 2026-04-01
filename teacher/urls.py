@@ -8,6 +8,9 @@ urlpatterns = [
     path('', views.teacher_dashboard, name='dashboard'),
     path('statistics/', views.teacher_statistics, name='statistics'),
 
+    # O'quvchilarim
+    path('students/', views.teacher_my_students, name='my_students'),
+
     # Kurslarim
     path('courses/', views.teacher_courses, name='courses'),
     path('courses/<int:pk>/edit/', views.teacher_edit_course, name='edit_course'),
