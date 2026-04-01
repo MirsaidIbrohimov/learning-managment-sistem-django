@@ -179,8 +179,8 @@ class MaintenanceMiddleware:
         if not maintenance.is_active:
             return self.get_response(request)
         
-        # Admin har doim kirishga ruxsat
-        if request.user.is_authenticated and request.user.is_admin:
+        # Admin va teacher har doim kirishga ruxsat
+        if request.user.is_authenticated and (request.user.is_admin or request.user.role == 'teacher'):
             return self.get_response(request)
         
         # Login/logout sahifalariga ruxsat
