@@ -863,6 +863,11 @@
                         <div class="description-content">
                             {{ homework.description|safe }}
                         </div>
+                        {% if homework.ai_check %}
+                        <div class="mt-3" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 1rem;border-radius:50px;background:rgba(16,185,129,0.1);color:#059669;font-size:0.85rem;font-weight:600;">
+                            <i class="bi bi-robot"></i> AI tekshiradi
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -1045,6 +1050,13 @@
                                 {% csrf_token %}
                                 
                                 <!-- Submission Type Toggle -->
+                                {% if homework.handwritten_only %}
+                                <div class="alert" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 14px; padding: 1rem; margin-bottom: 1.5rem;">
+                                    <i class="bi bi-pencil-square" style="color: #8b5cf6;"></i>
+                                    <strong>Yozma topshirish</strong> — Daftaringizga yozib, rasm (foto) ko'rinishida yuboring. Faqat rasm formatida qabul qilinadi (.jpg, .jpeg, .png).
+                                </div>
+                                <input type="hidden" name="submission_type" value="file">
+                                {% else %}
                                 <div class="submission-type-toggle">
                                     <div class="type-option">
                                         <input type="radio" name="submission_type" id="type_file" value="file" checked onchange="toggleSubmissionType()">
@@ -1061,6 +1073,7 @@
                                         </label>
                                     </div>
                                 </div>
+                                {% endif %}
 
                                 <!-- File Upload Section -->
                                 <div id="file-section">
@@ -1070,7 +1083,7 @@
                                         <p class="small text-muted mb-0">yoki faylni bu yerga tashlang</p>
                                         <div class="file-name" id="file-name-display" style="display: none;"></div>
                                     </div>
-                                    <input type="file" id="file-input" name="file" class="d-none" onchange="showFileName(this)">
+                                    <input type="file" id="file-input" name="file" class="d-none" onchange="showFileName(this)" {% if homework.handwritten_only %}accept=".jpg,.jpeg,.png"{% endif %}>
                                     
                                     {% if homework.allowed_formats %}
                                     <div class="formats-info">
@@ -1085,7 +1098,7 @@
                                 </div>
 
                                 <!-- Text Editor Section -->
-                                <div id="text-section" style="display: none;">
+                                <div id="text-section" style="display: none;" {% if homework.handwritten_only %}class="d-none"{% endif %}>
                                     <div class="editor-container">
                                         <div class="editor-toolbar">
                                             <div class="toolbar-group">

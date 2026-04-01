@@ -585,6 +585,10 @@
                             <div class="ls-type-icon dictionary" style="background:rgba(139,92,246,0.1);color:#8b5cf6;"><i class="bi bi-book-fill"></i></div>
                             Lug'at
                         </a>
+                        <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=speaking">
+                            <div class="ls-type-icon speaking" style="background:rgba(239,68,68,0.1);color:#ef4444;"><i class="bi bi-mic-fill"></i></div>
+                            Speaking
+                        </a>
                     </div>
                 </div>
             </div>
@@ -634,6 +638,8 @@
                                 <i class="bi bi-file-earmark-text-fill"></i>
                             {% elif lesson.lesson_type == 'dictionary' %}
                                 <i class="bi bi-book-fill"></i>
+                            {% elif lesson.lesson_type == 'speaking' %}
+                                <i class="bi bi-mic-fill"></i>
                             {% else %}
                                 <i class="bi bi-question-circle-fill"></i>
                             {% endif %}
@@ -690,6 +696,8 @@
                             <i class="bi bi-file-earmark-text-fill"></i>
                         {% elif lesson.lesson_type == 'dictionary' %}
                             <i class="bi bi-book-fill"></i>
+                        {% elif lesson.lesson_type == 'speaking' %}
+                            <i class="bi bi-mic-fill"></i>
                         {% else %}
                             <i class="bi bi-question-circle-fill"></i>
                         {% endif %}

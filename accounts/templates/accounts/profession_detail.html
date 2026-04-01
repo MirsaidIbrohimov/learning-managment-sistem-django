@@ -794,6 +794,8 @@
                                 <i class="bi bi-pencil"></i>
                             {% elif lesson.lesson_type == 'dictionary' %}
                                 <i class="bi bi-translate"></i>
+                            {% elif lesson.lesson_type == 'speaking' %}
+                                <i class="bi bi-mic-fill"></i>
                             {% else %}
                                 <i class="bi bi-patch-question"></i>
                             {% endif %}
@@ -804,6 +806,7 @@
                                 {% if lesson.lesson_type == 'video' %}Video darslik
                                 {% elif lesson.lesson_type == 'homework' %}Uy vazifasi
                                 {% elif lesson.lesson_type == 'dictionary' %}Lug'at
+                                {% elif lesson.lesson_type == 'speaking' %}Speaking
                                 {% else %}Test{% endif %}
                             </div>
                         </div>
@@ -825,7 +828,7 @@
                                         <i class="bi bi-x-circle-fill"></i>Muvaffaqiyatsiz
                                     </span>
                                     {% endif %}
-                                {% elif progress.type == 'homework' %}
+                                {% elif progress.type == 'homework' or progress.type == 'speaking' %}
                                     {% if progress.status == 'graded' %}
                                     <span class="status-badge graded">
                                         <i class="bi bi-star-fill"></i>Baholangan
@@ -884,6 +887,9 @@
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=dictionary" class="btn btn-sm btn-outline-info">
                             <i class="bi bi-translate me-1"></i>Lug'at
                         </a>
+                        <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=speaking" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-mic me-1"></i>Speaking
+                        </a>
                     </div>
                 </div>
                 {% endif %}
@@ -928,6 +934,8 @@
                             <i class="bi bi-pencil"></i>
                         {% elif lesson.lesson_type == 'dictionary' %}
                             <i class="bi bi-translate"></i>
+                        {% elif lesson.lesson_type == 'speaking' %}
+                            <i class="bi bi-mic-fill"></i>
                         {% else %}
                             <i class="bi bi-patch-question"></i>
                         {% endif %}

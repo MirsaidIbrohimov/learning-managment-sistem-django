@@ -22,7 +22,7 @@ from .models import (
     TestUserAnswer, Dictionary, DictionaryWord, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
-    CourseApplication
+    CourseApplication, SpeakingTask, SpeakingSubmission
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -986,6 +986,27 @@ def profession_detail(request, pk):
                     'status': hw.status,
                     'attempted': True,
                 }
+            
+            # Speaking submissions
+            speaking_submissions = SpeakingSubmission.objects.filter(
+                student=request.user,
+                speaking_task__lesson__profession=profession
+            ).order_by('speaking_task__lesson_id', '-submitted_at')
+            
+            latest_speaking = {}
+            for sp in speaking_submissions:
+                if sp.speaking_task.lesson_id not in latest_speaking:
+                    latest_speaking[sp.speaking_task.lesson_id] = sp
+            
+            for lesson_id, sp in latest_speaking.items():
+                is_completed = sp.status in ('graded',)
+                lesson_progress[lesson_id] = {
+                    'completed': is_completed,
+                    'type': 'speaking',
+                    'graded': sp.grade is not None,
+                    'status': sp.status,
+                    'attempted': True,
+                }
         
         # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
         # Lug'at darslari shart emas - ular progress hisoblashda e'tiborga olinmaydi
@@ -1323,7 +1344,11 @@ def lesson_view(request, pk):
                 student=request.user, homework__lesson__profession=profession,
                 status__in=['accepted', 'graded']
             ).values_list('homework__lesson_id', flat=True))
-            completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks
+            graded_speakings = set(SpeakingSubmission.objects.filter(
+                student=request.user, speaking_task__lesson__profession=profession,
+                status='graded'
+            ).values_list('speaking_task__lesson_id', flat=True))
+            completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks | graded_speakings
             all_sections_done = all(
                 l.pk in completed_lesson_ids
                 for s in sections for l in s.lessons.all()
@@ -1403,7 +1428,42 @@ def lesson_view(request, pk):
         context['search'] = search
         return render(request, 'accounts/lessons/dictionary_lesson.html', context)
     
+    elif lesson.lesson_type == 'speaking':
+        speaking_task = lesson.speaking_task
+        submission = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
+        context['speaking_task'] = speaking_task
+        context['submission'] = submission
+        return render(request, 'accounts/lessons/speaking_lesson.html', context)
+    
     return redirect('profession_detail', pk=profession.pk)
+
+
+@login_required
+def submit_speaking(request, pk):
+    """Speaking vazifani topshirish"""
+    speaking_task = get_object_or_404(SpeakingTask, pk=pk)
+    
+    if request.method != 'POST':
+        return redirect('lesson_view', pk=speaking_task.lesson.pk)
+    
+    existing = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
+    if existing:
+        messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+        return redirect('lesson_view', pk=speaking_task.lesson.pk)
+    
+    audio_file = request.FILES.get('audio_file')
+    if not audio_file:
+        messages.error(request, "Audio faylni yuklang!")
+        return redirect('lesson_view', pk=speaking_task.lesson.pk)
+    
+    submission = SpeakingSubmission.objects.create(
+        speaking_task=speaking_task,
+        student=request.user,
+        audio_file=audio_file,
+    )
+    
+    messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+    return redirect('lesson_view', pk=speaking_task.lesson.pk)
 
 
 @login_required
@@ -1914,6 +1974,17 @@ def submit_homework(request, pk):
         submission_type = request.POST.get('submission_type', 'file')
         submission = None
         
+        # Yozma topshirish rejimida faqat rasm fayl qabul qilinadi
+        if homework.handwritten_only:
+            submission_type = 'file'
+            uploaded_file = request.FILES.get('file')
+            if uploaded_file:
+                import os
+                ext = os.path.splitext(uploaded_file.name)[1].lower()
+                if ext not in ('.jpg', '.jpeg', '.png'):
+                    messages.error(request, "Faqat rasm formatida (.jpg, .jpeg, .png) qabul qilinadi!")
+                    return redirect('lesson_view', pk=homework.lesson.pk)
+        
         if submission_type == 'file':
             form = HomeworkSubmissionForm(request.POST, request.FILES)
             if form.is_valid():
@@ -1939,7 +2010,7 @@ def submit_homework(request, pk):
                 messages.error(request, "Matn kiritishingiz kerak!")
         
         # AI avtomatik tekshiruv va baholash
-        if submission:
+        if submission and homework.ai_check:
             try:
                 sub = HomeworkSubmission.objects.select_related(
                     'homework__lesson__profession', 'student'
@@ -3894,7 +3965,9 @@ def add_lesson(request, pk):
                 )
                 Homework.objects.create(
                     lesson=lesson,
-                    description=form.cleaned_data['description']
+                    description=form.cleaned_data['description'],
+                    ai_check=form.cleaned_data.get('ai_check', False),
+                    handwritten_only=form.cleaned_data.get('handwritten_only', False),
                 )
                 # Xabar yuborish
                 send_course_notification(
@@ -3958,6 +4031,59 @@ def add_lesson(request, pk):
                 )
                 messages.success(request, "Lug'at qo'shildi! Endi so'zlarni qo'shing.")
                 return redirect('manage_dictionary', pk=lesson.dictionary.pk)
+        
+        elif lesson_type == 'speaking':
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            target_level = request.POST.get('target_level', 'beginner')
+            max_duration = request.POST.get('max_duration', 120)
+            max_score = request.POST.get('max_score', 10)
+            ai_check = request.POST.get('ai_check') == 'on'
+            criteria = request.POST.get('criteria', '').strip()
+            due_date = request.POST.get('due_date')
+            
+            if not title:
+                messages.error(request, "Vazifa nomini kiriting.")
+                return redirect(request.get_full_path())
+            if not description:
+                messages.error(request, "Vazifa tavsifini kiriting.")
+                return redirect(request.get_full_path())
+            
+            try:
+                max_duration = int(max_duration)
+                max_score = int(max_score)
+            except (ValueError, TypeError):
+                max_duration = 120
+                max_score = 10
+            
+            lesson = Lesson.objects.create(
+                profession=profession,
+                section=section,
+                title=title,
+                lesson_type='speaking',
+                created_by=request.user,
+            )
+            
+            from accounts.models import SpeakingTask
+            SpeakingTask.objects.create(
+                lesson=lesson,
+                description=description,
+                target_level=target_level,
+                max_duration=max_duration,
+                max_score=max_score,
+                ai_check=ai_check,
+                criteria=criteria if criteria else None,
+                due_date=due_date if due_date else None,
+            )
+            
+            send_course_notification(
+                profession=profession,
+                title=f"🎤 Yangi Speaking vazifa: {title}",
+                content=f"'{profession.name}' kursiga yangi Speaking vazifa qo'shildi:\n\n🎤 {title}\n\nVazifani bajarish uchun kursga kiring!",
+                sender=request.user
+            )
+            messages.success(request, f"'{title}' speaking vazifasi yaratildi!")
+            return redirect('profession_detail', pk=pk)
     else:
         if lesson_type == 'video':
             form = VideoLessonForm()
@@ -3965,6 +4091,8 @@ def add_lesson(request, pk):
             form = HomeworkForm()
         elif lesson_type == 'dictionary':
             form = DictionaryForm()
+        elif lesson_type == 'speaking':
+            form = None
         else:
             form = TestForm()
     

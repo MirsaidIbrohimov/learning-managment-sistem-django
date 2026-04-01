@@ -296,6 +296,18 @@ class HomeworkForm(forms.Form):
     description = forms.CharField(
         widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Vazifa tavsifi', 'rows': 4})
     )
+    ai_check = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="AI tekshirsin"
+    )
+    handwritten_only = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Faqat yozma topshirish (rasm)"
+    )
 
 
 class DictionaryForm(forms.Form):

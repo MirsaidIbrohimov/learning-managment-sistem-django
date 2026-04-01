@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 
 {% block title %}
-{% if lesson_type == 'video' %}Video darslik{% elif lesson_type == 'homework' %}Uyga vazifa{% elif lesson_type == 'dictionary' %}Lug'at{% else %}Test{% endif %} qo'shish - LMS
+{% if lesson_type == 'video' %}Video darslik{% elif lesson_type == 'homework' %}Uyga vazifa{% elif lesson_type == 'dictionary' %}Lug'at{% elif lesson_type == 'speaking' %}Speaking{% else %}Test{% endif %} qo'shish - LMS
 {% endblock %}
 
 {% block extra_css %}
@@ -19,8 +19,8 @@
     --al-border: rgba(0,0,0,0.06);
     --al-text: #1d1d1f;
     --al-secondary: #86868b;
-    --al-accent: {% if lesson_type == 'video' %}#007aff{% elif lesson_type == 'homework' %}#ff9f0a{% elif lesson_type == 'dictionary' %}#8b5cf6{% else %}#34c759{% endif %};
-    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.08){% elif lesson_type == 'homework' %}rgba(255,159,10,0.08){% elif lesson_type == 'dictionary' %}rgba(139,92,246,0.08){% else %}rgba(52,199,89,0.08){% endif %};
+    --al-accent: {% if lesson_type == 'video' %}#007aff{% elif lesson_type == 'homework' %}#ff9f0a{% elif lesson_type == 'dictionary' %}#8b5cf6{% elif lesson_type == 'speaking' %}#ef4444{% else %}#34c759{% endif %};
+    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.08){% elif lesson_type == 'homework' %}rgba(255,159,10,0.08){% elif lesson_type == 'dictionary' %}rgba(139,92,246,0.08){% elif lesson_type == 'speaking' %}rgba(239,68,68,0.08){% else %}rgba(52,199,89,0.08){% endif %};
     --al-bg: #f2f2f7;
     --al-input-bg: #f2f2f7;
     --al-shadow: 0 8px 30px rgba(0,0,0,0.08);
@@ -30,7 +30,7 @@
     --al-border: rgba(255,255,255,0.08);
     --al-text: #f5f5f7;
     --al-secondary: #98989d;
-    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.18){% elif lesson_type == 'homework' %}rgba(255,159,10,0.18){% elif lesson_type == 'dictionary' %}rgba(139,92,246,0.18){% else %}rgba(52,199,89,0.18){% endif %};
+    --al-accent-light: {% if lesson_type == 'video' %}rgba(0,122,255,0.18){% elif lesson_type == 'homework' %}rgba(255,159,10,0.18){% elif lesson_type == 'dictionary' %}rgba(139,92,246,0.18){% elif lesson_type == 'speaking' %}rgba(239,68,68,0.18){% else %}rgba(52,199,89,0.18){% endif %};
     --al-bg: rgba(0,0,0,0.3);
     --al-input-bg: rgba(255,255,255,0.06);
     --al-shadow: 0 8px 30px rgba(0,0,0,0.3);
@@ -60,7 +60,7 @@
 }
 
 .al-header {
-    background: linear-gradient(135deg, var(--al-accent), {% if lesson_type == 'video' %}#5856d6{% elif lesson_type == 'homework' %}#ff6b35{% elif lesson_type == 'dictionary' %}#6d28d9{% else %}#00b341{% endif %});
+    background: linear-gradient(135deg, var(--al-accent), {% if lesson_type == 'video' %}#5856d6{% elif lesson_type == 'homework' %}#ff6b35{% elif lesson_type == 'dictionary' %}#6d28d9{% elif lesson_type == 'speaking' %}#dc2626{% else %}#00b341{% endif %});
     padding: 2rem 1.75rem; text-align: center; position: relative; overflow: hidden;
 }
 .al-header::before {
@@ -311,6 +311,8 @@
                 <i class="bi bi-file-earmark-text-fill"></i>
                 {% elif lesson_type == 'dictionary' %}
                 <i class="bi bi-book-fill"></i>
+                {% elif lesson_type == 'speaking' %}
+                <i class="bi bi-mic-fill"></i>
                 {% else %}
                 <i class="bi bi-journal-check"></i>
                 {% endif %}
@@ -319,6 +321,7 @@
                 {% if lesson_type == 'video' %}Video darslik
                 {% elif lesson_type == 'homework' %}Uyga vazifa
                 {% elif lesson_type == 'dictionary' %}Lug'at
+                {% elif lesson_type == 'speaking' %}Speaking
                 {% else %}Test{% endif %} qo'shish
             </h3>
             <p>{{ profession.name }}</p>
@@ -328,7 +331,7 @@
             <form method="POST" id="lessonForm">
                 {% csrf_token %}
 
-                {% if form.errors %}
+                {% if form and form.errors %}
                 <div class="al-info-card" style="background: rgba(255,59,48,0.08); color: #ff3b30;">
                     <i class="bi bi-exclamation-triangle-fill"></i>
                     <div>
@@ -376,9 +379,13 @@
 
                 <div class="al-group">
                     <label class="al-label">
-                        {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% elif lesson_type == 'dictionary' %}Lug'at nomi{% else %}Test nomi{% endif %}
+                        {% if lesson_type == 'video' %}Dars nomi{% elif lesson_type == 'homework' %}Vazifa nomi{% elif lesson_type == 'dictionary' %}Lug'at nomi{% elif lesson_type == 'speaking' %}Vazifa nomi{% else %}Test nomi{% endif %}
                     </label>
+                    {% if lesson_type == 'speaking' %}
+                    <input type="text" name="title" class="form-control" placeholder="Masalan: O'zingiz haqingizda gapiring" required>
+                    {% else %}
                     {{ form.title }}
+                    {% endif %}
                 </div>
 
                 {% if lesson_type == 'video' %}
@@ -433,6 +440,28 @@
                     <i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish
                 </button>
 
+                <!-- AI tekshirish -->
+                <div class="al-group">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check" style="cursor:pointer;">
+                        <label class="form-check-label al-label" for="id_ai_check" style="cursor:pointer;">
+                            <i class="bi bi-robot me-1"></i> AI orqali tekshirish
+                        </label>
+                    </div>
+                    <div class="al-hint">Yoqilsa, vazifalar avtomatik AI tomonidan tekshiriladi va baholanadi</div>
+                </div>
+
+                <!-- Yozma topshirish -->
+                <div class="al-group">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="handwritten_only" id="id_handwritten_only" style="cursor:pointer;">
+                        <label class="form-check-label al-label" for="id_handwritten_only" style="cursor:pointer;">
+                            <i class="bi bi-pencil-square me-1"></i> Faqat yozma topshirish (rasm)
+                        </label>
+                    </div>
+                    <div class="al-hint">Til kurslari uchun: o'quvchilar daftarda yozib, rasm ko'rinishida yuboradi. Matn yozish imkoniyati o'chiriladi.</div>
+                </div>
+
                 {% elif lesson_type == 'dictionary' %}
                 <div class="al-section" style="margin-top: 1.5rem;">
                     <i class="bi bi-book-fill"></i> Lug'at tavsifi
@@ -447,6 +476,61 @@
                 <div class="al-info-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.08)); border-color: rgba(139,92,246,0.2); margin-top: 0.5rem;">
                     <i class="bi bi-file-earmark-excel" style="color: #8b5cf6;"></i>
                     <span>Lug'at saqlangandan so'ng so'zlarni qo'lda yoki Excel fayldan import qilish mumkin</span>
+                </div>
+
+                {% elif lesson_type == 'speaking' %}
+                <div class="al-section" style="margin-top: 1.5rem;">
+                    <i class="bi bi-mic-fill"></i> Speaking vazifa sozlamalari
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">Vazifa tavsifi *</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="al-group">
+                        <label class="al-label">Maqsad daraja</label>
+                        <select name="target_level" class="form-select">
+                            <option value="beginner">Boshlang'ich</option>
+                            <option value="elementary">Elementar</option>
+                            <option value="intermediate" selected>O'rta</option>
+                            <option value="upper_intermediate">O'rta-yuqori</option>
+                            <option value="advanced">Yuqori</option>
+                        </select>
+                    </div>
+                    <div class="al-group">
+                        <label class="al-label">Maks. davomiylik (soniya)</label>
+                        <input type="number" name="max_duration" class="form-control" value="120" min="10" max="600">
+                        <div class="al-hint">Masalan: 120 = 2 daqiqa</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="al-group">
+                        <label class="al-label">Maksimal ball</label>
+                        <input type="number" name="max_score" class="form-control" value="10" min="1" max="100">
+                    </div>
+                    <div class="al-group">
+                        <label class="al-label">Topshirish muddati</label>
+                        <input type="datetime-local" name="due_date" class="form-control">
+                    </div>
+                </div>
+
+                <div class="al-group">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check_speaking" style="cursor:pointer;">
+                        <label class="form-check-label al-label" for="id_ai_check_speaking" style="cursor:pointer;">
+                            🤖 AI avtomatik tekshirsin
+                        </label>
+                    </div>
+                    <div class="al-hint">Yoqilsa, o'quvchi topshirganda AI avtomatik tekshiradi va baho beradi</div>
+                </div>
+
+                <div class="al-group">
+                    <label class="al-label">Baholash mezonlari</label>
+                    <textarea name="criteria" class="form-control" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berishi kerak..."></textarea>
+                    <div class="al-hint">Masalan: Talaffuzga, grammatikaga, ravonlikka e'tibor berilsin</div>
                 </div>
 
                 {% else %}

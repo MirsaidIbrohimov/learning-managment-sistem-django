@@ -28,6 +28,7 @@ urlpatterns = [
     path('video/<int:pk>/watched/', views.mark_video_watched, name='mark_video_watched'),
     path('lessons/<int:pk>/generate-article/', views.generate_ai_article_view, name='generate_ai_article'),
     path('homework/<int:pk>/submit/', views.submit_homework, name='submit_homework'),
+    path('speaking/<int:pk>/submit/', views.submit_speaking, name='submit_speaking'),
     path('homework/<int:pk>/edit/', views.edit_homework, name='edit_homework'),
     path('homework/generate-ai/', views.generate_ai_homework, name='generate_ai_homework'),
     path('test/generate-ai/', views.generate_ai_test, name='generate_ai_test'),
