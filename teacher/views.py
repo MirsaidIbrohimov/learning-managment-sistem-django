@@ -6,7 +6,8 @@ from django.http import JsonResponse
 from django.db.models import Avg, Count, Q, Sum
 from accounts.models import (
     Profession, Lesson, Homework, HomeworkSubmission,
-    Test, TestQuestion, TestAnswer, TestResult
+    Test, TestQuestion, TestAnswer, TestResult,
+    SpeakingTask, SpeakingSubmission
 )
 from .models import TeacherCertificate, TeacherSalary
 from accounts.views import send_course_notification
@@ -53,6 +54,17 @@ def teacher_dashboard(request):
         test__lesson__profession__in=professions
     ).select_related('student', 'test__lesson')[:5]
     
+    # Pending speaking tasks
+    pending_speakings = SpeakingSubmission.objects.filter(
+        speaking_task__lesson__profession__in=professions,
+        status='pending'
+    ).count()
+    
+    # Recent speaking submissions
+    recent_speakings = SpeakingSubmission.objects.filter(
+        speaking_task__lesson__profession__in=professions
+    ).select_related('student', 'speaking_task__lesson__profession')[:5]
+    
     # Certificates count
     certificates_count = TeacherCertificate.objects.filter(teacher=user).count()
     
@@ -66,8 +78,10 @@ def teacher_dashboard(request):
         'professions': professions,
         'total_students': total_students,
         'pending_homeworks': pending_homeworks,
+        'pending_speakings': pending_speakings,
         'total_test_results': total_test_results,
         'recent_submissions': recent_submissions,
+        'recent_speakings': recent_speakings,
         'recent_tests': recent_tests,
         'certificates_count': certificates_count,
         'current_salary': current_salary,
@@ -523,12 +537,14 @@ def teacher_courses(request):
         lesson_count = p.lessons.count()
         test_count = p.lessons.filter(lesson_type='test').count()
         homework_count = p.lessons.filter(lesson_type='homework').count()
+        speaking_count = p.lessons.filter(lesson_type='speaking').count()
         courses_data.append({
             'profession': p,
             'student_count': student_count,
             'lesson_count': lesson_count,
             'test_count': test_count,
             'homework_count': homework_count,
+            'speaking_count': speaking_count,
         })
     return render(request, 'teacher/courses.html', {'courses_data': courses_data})
 
@@ -1185,3 +1201,284 @@ def teacher_generate_ai_test(request, pk):
         return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
     except Exception as e:
         return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
+
+
+@teacher_required
+def teacher_speaking_tasks(request):
+    """Speaking vazifalar ro'yxati"""
+    professions = request.user.teaching_professions.all()
+    
+    status_filter = request.GET.get('status', '')
+    profession_id = request.GET.get('course')
+    
+    submissions = SpeakingSubmission.objects.filter(
+        speaking_task__lesson__profession__in=professions
+    ).select_related('student', 'speaking_task__lesson__profession')
+    
+    if status_filter:
+        submissions = submissions.filter(status=status_filter)
+    
+    if profession_id:
+        try:
+            submissions = submissions.filter(speaking_task__lesson__profession_id=int(profession_id))
+        except (ValueError, TypeError):
+            pass
+    
+    submissions = submissions.order_by('-submitted_at')
+    
+    total = submissions.count()
+    pending = submissions.filter(status='pending').count()
+    graded_count = submissions.filter(status='graded').count()
+    
+    all_professions = request.user.teaching_professions.all()
+    
+    context = {
+        'submissions': submissions[:100],
+        'total': total,
+        'pending': pending,
+        'graded': graded_count,
+        'status_filter': status_filter,
+        'all_professions': all_professions,
+        'selected_course': profession_id,
+    }
+    return render(request, 'teacher/speaking_tasks.html', context)
+
+
+@teacher_required
+def teacher_grade_speaking(request, pk):
+    """Speaking vazifani baholash"""
+    professions = request.user.teaching_professions.all()
+    submission = get_object_or_404(
+        SpeakingSubmission,
+        pk=pk,
+        speaking_task__lesson__profession__in=professions
+    )
+    
+    if request.method == 'POST':
+        action = request.POST.get('action', 'grade')
+        
+        if action == 'ai_grade':
+            ai_result = _ai_grade_speaking(submission)
+            if not ai_result:
+                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi.")
+                return redirect('teacher:grade_speaking', pk=pk)
+            
+            submission.grade = ai_result['grade']
+            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+            submission.ai_feedback = ai_result['feedback']
+            submission.pronunciation_score = ai_result.get('pronunciation', 0)
+            submission.fluency_score = ai_result.get('fluency', 0)
+            submission.grammar_score = ai_result.get('grammar', 0)
+            submission.vocabulary_score = ai_result.get('vocabulary', 0)
+            submission.status = ai_result['status']
+            submission.graded_by = request.user
+            submission.graded_at = timezone.now()
+            submission.save()
+            
+            messages.success(request, f"AI baholadi: {submission.grade} ball")
+            return redirect('teacher:speaking_tasks')
+        
+        grade = request.POST.get('grade')
+        feedback = request.POST.get('feedback', '')
+        status = request.POST.get('status', 'graded')
+        pronunciation = request.POST.get('pronunciation_score')
+        fluency = request.POST.get('fluency_score')
+        grammar = request.POST.get('grammar_score')
+        vocabulary = request.POST.get('vocabulary_score')
+        
+        try:
+            grade_val = int(grade) if grade else None
+        except (ValueError, TypeError):
+            grade_val = None
+        
+        if status == 'graded' and grade_val is None:
+            messages.error(request, "Iltimos, baho kiriting.")
+            return redirect('teacher:grade_speaking', pk=pk)
+        
+        submission.grade = grade_val
+        submission.feedback = feedback
+        submission.status = status
+        submission.graded_by = request.user
+        submission.graded_at = timezone.now()
+        
+        for field, val in [('pronunciation_score', pronunciation), ('fluency_score', fluency), 
+                           ('grammar_score', grammar), ('vocabulary_score', vocabulary)]:
+            if val:
+                try:
+                    setattr(submission, field, int(val))
+                except (ValueError, TypeError):
+                    pass
+        
+        submission.save()
+        messages.success(request, "Speaking vazifa baholandi!")
+        return redirect('teacher:speaking_tasks')
+    
+    context = {
+        'submission': submission,
+    }
+    return render(request, 'teacher/grade_speaking.html', context)
+
+
+@teacher_required
+def teacher_add_speaking(request, pk):
+    """Kursga yangi speaking vazifa qo'shish"""
+    professions = request.user.teaching_professions.all()
+    profession = get_object_or_404(Profession, pk=pk, pk__in=professions.values_list('pk', flat=True))
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        target_level = request.POST.get('target_level', 'beginner')
+        max_duration = request.POST.get('max_duration', 120)
+        max_score = request.POST.get('max_score', 10)
+        ai_check = request.POST.get('ai_check') == 'on'
+        criteria = request.POST.get('criteria', '').strip()
+        due_date = request.POST.get('due_date')
+        
+        if not title:
+            messages.error(request, "Vazifa nomini kiriting.")
+            return redirect('teacher:add_speaking', pk=pk)
+        
+        if not description:
+            messages.error(request, "Vazifa tavsifini kiriting.")
+            return redirect('teacher:add_speaking', pk=pk)
+        
+        try:
+            max_duration = int(max_duration)
+            max_score = int(max_score)
+        except (ValueError, TypeError):
+            max_duration = 120
+            max_score = 10
+        
+        lesson = Lesson.objects.create(
+            profession=profession,
+            title=title,
+            lesson_type='speaking',
+            created_by=request.user,
+        )
+        
+        speaking_task = SpeakingTask.objects.create(
+            lesson=lesson,
+            description=description,
+            target_level=target_level,
+            max_duration=max_duration,
+            max_score=max_score,
+            ai_check=ai_check,
+            criteria=criteria if criteria else None,
+            due_date=due_date if due_date else None,
+        )
+        
+        from accounts.views import send_course_notification
+        send_course_notification(
+            profession=profession,
+            title=f"🎤 Yangi Speaking vazifa: {title}",
+            content=f"'{profession.name}' kursiga yangi Speaking vazifa qo'shildi:\n\n🎤 {title}\n\nVazifani bajarish uchun kursga kiring!",
+            sender=request.user
+        )
+        
+        messages.success(request, f"'{title}' speaking vazifasi yaratildi!")
+        return redirect('teacher:speaking_tasks')
+    
+    return render(request, 'teacher/add_speaking.html', {'profession': profession})
+
+
+def _ai_grade_speaking(submission):
+    """AI yordamida speaking vazifani baholash"""
+    import json
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    
+    transcript = submission.text_transcript or ''
+    if not transcript and submission.audio_file:
+        transcript = _transcribe_audio(submission.audio_file)
+        if transcript:
+            submission.text_transcript = transcript
+            submission.save(update_fields=['text_transcript'])
+    
+    if not transcript:
+        return None
+    
+    task_desc = submission.speaking_task.description
+    criteria = submission.speaking_task.criteria or ''
+    target_level = submission.speaking_task.get_target_level_display()
+    
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=60)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Siz til o'rganish platformasining Speaking baholovchisisiz. O'quvchining gapirishini tekshiring.\n\n"
+                        "Faqat JSON formatda javob bering:\n"
+                        '{"grade": <1-10>, "status": "<graded yoki revision>", "feedback": "<izoh>", '
+                        '"pronunciation": <1-10>, "fluency": <1-10>, "grammar": <1-10>, "vocabulary": <1-10>}\n\n'
+                        "Qoidalar:\n"
+                        "- grade: Umumiy baho 1-10\n"
+                        "- pronunciation: Talaffuz sifati 1-10\n"
+                        "- fluency: Ravonlik va tezlik 1-10\n"
+                        "- grammar: Grammatik to'g'rilik 1-10\n"
+                        "- vocabulary: Lug'at boyligi 1-10\n"
+                        "- feedback: O'zbek tilida 3-5 gap bilan batafsil izoh\n"
+                        "- status: Agar juda yomon bo'lsa 'revision', aks holda 'graded'"
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        f"Vazifa tavsifi: {task_desc}\n"
+                        f"Maqsad daraja: {target_level}\n"
+                        f"Baholash mezonlari: {criteria}\n\n"
+                        f"O'quvchining gapirgani (transkripsiya):\n{transcript}"
+                    )
+                }
+            ],
+            max_tokens=800,
+            temperature=0.2,
+        )
+        result_text = response.choices[0].message.content.strip()
+        if result_text.startswith('```'):
+            result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
+        result = json.loads(result_text)
+        
+        grade = max(1, min(10, int(result.get('grade', 5))))
+        status = result.get('status', 'graded')
+        if status not in ('graded', 'revision'):
+            status = 'graded'
+        
+        return {
+            'grade': grade,
+            'status': status,
+            'feedback': result.get('feedback', ''),
+            'pronunciation': max(1, min(10, int(result.get('pronunciation', 5)))),
+            'fluency': max(1, min(10, int(result.get('fluency', 5)))),
+            'grammar': max(1, min(10, int(result.get('grammar', 5)))),
+            'vocabulary': max(1, min(10, int(result.get('vocabulary', 5)))),
+        }
+    except Exception as e:
+        print(f"AI speaking grade error: {e}")
+        return None
+
+
+def _transcribe_audio(file_field):
+    """Audio faylni matn (transkripsiya) ga o'girish"""
+    from django.conf import settings
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return None
+    try:
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key.strip(), timeout=60)
+        file_field.seek(0)
+        response = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=file_field,
+        )
+        return response.text
+    except Exception as e:
+        print(f"Transcribe error: {e}")
+        return None

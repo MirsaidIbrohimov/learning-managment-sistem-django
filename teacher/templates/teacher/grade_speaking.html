@@ -1,0 +1,250 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Speaking vazifani baholash - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Speaking vazifani baholash{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-grade-page { max-width: 800px; margin: 0 auto; }
+.t-grade-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-grade-back:hover { color: #8b5cf6; }
+.t-grade-info {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; padding: 24px; margin-bottom: 1.5rem;
+    animation: fadeInUp 0.5s ease;
+}
+.t-grade-info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}
+.t-grade-info-item label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--bs-secondary-color); margin-bottom: .2rem; display: block; }
+.t-grade-info-item div { font-weight: 600; font-size: .95rem; }
+.t-speaking-section {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden;
+    animation: fadeInUp 0.55s ease;
+}
+.t-speaking-section-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color);
+    font-weight: 700; display: flex; align-items: center; gap: .5rem;
+}
+.t-speaking-section-body { padding: 24px; }
+.t-audio-player {
+    width: 100%; border-radius: 12px; margin-bottom: 1rem;
+}
+.t-transcript-box {
+    background: var(--bs-tertiary-bg); border-radius: 12px; padding: 16px;
+    font-size: .9rem; white-space: pre-wrap; word-wrap: break-word;
+    max-height: 200px; overflow-y: auto;
+}
+.t-score-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+}
+.t-score-item { text-align: center; }
+.t-score-label { font-size: .75rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; margin-bottom: .3rem; }
+.t-score-bar { height: 8px; border-radius: 4px; background: var(--bs-tertiary-bg); overflow: hidden; margin-bottom: .2rem; }
+.t-score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+.t-score-val { font-size: .85rem; font-weight: 800; }
+.t-grade-form {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; overflow: hidden; animation: fadeInUp 0.6s ease;
+}
+.t-grade-form-head {
+    padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color);
+    font-weight: 700; display: flex; align-items: center; gap: .5rem;
+}
+.t-grade-form-body { padding: 24px; }
+.t-grade-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+.t-grade-field { margin-bottom: 1rem; }
+.t-grade-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+@media (max-width: 768px) {
+    .t-grade-info-grid, .t-grade-row, .t-score-grid { grid-template-columns: 1fr; }
+    .t-grade-actions { flex-direction: column; }
+    .t-grade-actions .t-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="t-grade-page">
+    <a href="{% url 'teacher:speaking_tasks' %}" class="t-grade-back">
+        <i class="bi bi-arrow-left"></i> Speaking vazifalar ro'yxatiga qaytish
+    </a>
+
+    <!-- Student & Task info -->
+    <div class="t-grade-info">
+        <div class="t-grade-info-grid">
+            <div class="t-grade-info-item">
+                <label>O'quvchi</label>
+                <div>{{ submission.student.full_name }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Vazifa</label>
+                <div>{{ submission.speaking_task.lesson.title }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Kurs</label>
+                <div>{{ submission.speaking_task.lesson.profession.name }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Maqsad daraja</label>
+                <div>{{ submission.speaking_task.get_target_level_display }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Topshirilgan sana</label>
+                <div>{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
+            </div>
+            <div class="t-grade-info-item">
+                <label>Joriy holat</label>
+                <div>
+                    <span class="t-badge {% if submission.status == 'pending' %}t-badge-warning{% elif submission.status == 'graded' %}t-badge-success{% else %}t-badge-info{% endif %}">
+                        {{ submission.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio player -->
+    <div class="t-speaking-section">
+        <div class="t-speaking-section-head">
+            <i class="bi bi-soundwave" style="color: #8b5cf6;"></i> Audio yozuv
+        </div>
+        <div class="t-speaking-section-body">
+            {% if submission.audio_file %}
+            <audio controls class="t-audio-player">
+                <source src="{{ submission.audio_file.url }}">
+                Brauzeringiz audio elementini qo'llab-quvvatlamaydi.
+            </audio>
+            <a href="{{ submission.audio_file.url }}" target="_blank" class="t-btn t-btn-outline" style="font-size: .85rem;">
+                <i class="bi bi-download"></i> Yuklab olish
+            </a>
+            {% else %}
+            <p style="color: var(--bs-secondary-color);">Audio fayl mavjud emas.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Transcript -->
+    {% if submission.text_transcript %}
+    <div class="t-speaking-section">
+        <div class="t-speaking-section-head">
+            <i class="bi bi-file-text" style="color: #3b82f6;"></i> Transkripsiya
+        </div>
+        <div class="t-speaking-section-body">
+            <div class="t-transcript-box">{{ submission.text_transcript }}</div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Existing scores -->
+    {% if submission.pronunciation_score or submission.fluency_score or submission.grammar_score or submission.vocabulary_score %}
+    <div class="t-speaking-section">
+        <div class="t-speaking-section-head">
+            <i class="bi bi-bar-chart-fill" style="color: #10b981;"></i> Batafsil ballar
+        </div>
+        <div class="t-speaking-section-body">
+            <div class="t-score-grid">
+                <div class="t-score-item">
+                    <div class="t-score-label">Talaffuz</div>
+                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.pronunciation_score|default:0 }}0%; background: #8b5cf6;"></div></div>
+                    <div class="t-score-val" style="color: #8b5cf6;">{{ submission.pronunciation_score|default:"—" }}/10</div>
+                </div>
+                <div class="t-score-item">
+                    <div class="t-score-label">Ravonlik</div>
+                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.fluency_score|default:0 }}0%; background: #3b82f6;"></div></div>
+                    <div class="t-score-val" style="color: #3b82f6;">{{ submission.fluency_score|default:"—" }}/10</div>
+                </div>
+                <div class="t-score-item">
+                    <div class="t-score-label">Grammatika</div>
+                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.grammar_score|default:0 }}0%; background: #10b981;"></div></div>
+                    <div class="t-score-val" style="color: #10b981;">{{ submission.grammar_score|default:"—" }}/10</div>
+                </div>
+                <div class="t-score-item">
+                    <div class="t-score-label">Lug'at boyligi</div>
+                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.vocabulary_score|default:0 }}0%; background: #f59e0b;"></div></div>
+                    <div class="t-score-val" style="color: #f59e0b;">{{ submission.vocabulary_score|default:"—" }}/10</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- AI bilan baholash -->
+    <div style="background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden; animation: fadeInUp 0.58s ease;">
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color); font-weight: 700; display: flex; align-items: center; gap: .5rem;">
+            <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholash
+        </div>
+        <div style="padding: 24px;">
+            <p style="font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 1rem;">
+                AI o'quvchining speaking vazifasini tekshirib, talaffuz, ravonlik, grammatika va lug'at boyligini baholaydi.
+            </p>
+            <form method="POST" id="aiGradeForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="ai_grade">
+                <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
+                    <i class="bi bi-robot"></i> 🤖 AI bilan baholash
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manual Grade form -->
+    <div class="t-grade-form">
+        <div class="t-grade-form-head">
+            <i class="bi bi-pencil-square" style="color: #8b5cf6;"></i> Baholash
+        </div>
+        <div class="t-grade-form-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="t-grade-row">
+                    <div class="t-grade-field">
+                        <label class="t-label">Umumiy baho (1-10) *</label>
+                        <input type="number" name="grade" class="t-input" min="1" max="10" value="{{ submission.grade|default:'' }}" required>
+                    </div>
+                    <div class="t-grade-field">
+                        <label class="t-label">Holat *</label>
+                        <select name="status" class="t-input">
+                            <option value="graded" {% if submission.status == 'graded' %}selected{% endif %}>Baholangan</option>
+                            <option value="revision" {% if submission.status == 'revision' %}selected{% endif %}>Qayta ishlash kerak</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="t-grade-row">
+                    <div class="t-grade-field">
+                        <label class="t-label">Talaffuz (1-10)</label>
+                        <input type="number" name="pronunciation_score" class="t-input" min="1" max="10" value="{{ submission.pronunciation_score|default:'' }}">
+                    </div>
+                    <div class="t-grade-field">
+                        <label class="t-label">Ravonlik (1-10)</label>
+                        <input type="number" name="fluency_score" class="t-input" min="1" max="10" value="{{ submission.fluency_score|default:'' }}">
+                    </div>
+                </div>
+                <div class="t-grade-row">
+                    <div class="t-grade-field">
+                        <label class="t-label">Grammatika (1-10)</label>
+                        <input type="number" name="grammar_score" class="t-input" min="1" max="10" value="{{ submission.grammar_score|default:'' }}">
+                    </div>
+                    <div class="t-grade-field">
+                        <label class="t-label">Lug'at boyligi (1-10)</label>
+                        <input type="number" name="vocabulary_score" class="t-input" min="1" max="10" value="{{ submission.vocabulary_score|default:'' }}">
+                    </div>
+                </div>
+                <div class="t-grade-field">
+                    <label class="t-label">Izoh</label>
+                    <textarea name="feedback" class="t-input" rows="4" placeholder="O'quvchiga izoh yozing...">{{ submission.feedback|default:'' }}</textarea>
+                </div>
+                <div class="t-grade-actions">
+                    <a href="{% url 'teacher:speaking_tasks' %}" class="t-btn t-btn-outline">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

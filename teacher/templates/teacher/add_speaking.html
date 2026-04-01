@@ -1,0 +1,115 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Speaking vazifa qo'shish - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Speaking vazifa qo'shish{% endblock %}
+
+{% block teacher_content %}
+<style>
+.t-add-page { max-width: 700px; margin: 0 auto; }
+.t-add-back {
+    display: inline-flex; align-items: center; gap: .5rem;
+    color: var(--bs-body-color); text-decoration: none; font-weight: 600;
+    font-size: .9rem; margin-bottom: 1.5rem; transition: all 0.2s;
+}
+.t-add-back:hover { color: #8b5cf6; }
+.t-add-card {
+    background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    border-radius: 18px; overflow: hidden; animation: fadeInUp 0.5s ease;
+}
+.t-add-card-head {
+    padding: 20px 24px; border-bottom: 1px solid var(--bs-border-color);
+    font-weight: 700; font-size: 1.1rem;
+    display: flex; align-items: center; gap: .5rem;
+    background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.04));
+}
+.t-add-card-body { padding: 24px; }
+.t-add-field { margin-bottom: 1.2rem; }
+.t-add-field label { font-size: .82rem; font-weight: 700; margin-bottom: .4rem; display: block; color: var(--bs-body-color); }
+.t-add-field .t-help { font-size: .75rem; color: var(--bs-secondary-color); margin-top: .3rem; }
+.t-add-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.t-add-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--bs-border-color); }
+.t-switch { display: flex; align-items: center; gap: .75rem; }
+.t-switch input[type="checkbox"] { width: 44px; height: 24px; appearance: none; background: var(--bs-tertiary-bg); border-radius: 12px; position: relative; cursor: pointer; transition: all 0.3s; border: 2px solid var(--bs-border-color); }
+.t-switch input[type="checkbox"]::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: var(--bs-secondary-color); top: 1px; left: 1px; transition: all 0.3s; }
+.t-switch input[type="checkbox"]:checked { background: #8b5cf6; border-color: #8b5cf6; }
+.t-switch input[type="checkbox"]:checked::before { left: 21px; background: #fff; }
+.t-switch-label { font-weight: 600; font-size: .9rem; }
+@media (max-width: 768px) {
+    .t-add-row { grid-template-columns: 1fr; }
+    .t-add-actions { flex-direction: column; }
+    .t-add-actions .t-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="t-add-page">
+    <a href="{% url 'teacher:courses' %}" class="t-add-back">
+        <i class="bi bi-arrow-left"></i> Kurslarimga qaytish
+    </a>
+
+    <div class="t-add-card">
+        <div class="t-add-card-head">
+            <i class="bi bi-mic-fill" style="color: #8b5cf6;"></i> {{ profession.name }} — Yangi Speaking vazifa
+        </div>
+        <div class="t-add-card-body">
+            <form method="POST">
+                {% csrf_token %}
+                <div class="t-add-field">
+                    <label>Vazifa nomi *</label>
+                    <input type="text" name="title" class="t-input" placeholder="Masalan: O'zingiz haqingizda gapiring" required>
+                </div>
+                <div class="t-add-field">
+                    <label>Vazifa tavsifi *</label>
+                    <textarea name="description" class="t-input" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
+                </div>
+                <div class="t-add-row">
+                    <div class="t-add-field">
+                        <label>Maqsad daraja</label>
+                        <select name="target_level" class="t-input">
+                            <option value="beginner">Boshlang'ich</option>
+                            <option value="elementary">Elementar</option>
+                            <option value="intermediate" selected>O'rta</option>
+                            <option value="upper_intermediate">O'rta-yuqori</option>
+                            <option value="advanced">Yuqori</option>
+                        </select>
+                    </div>
+                    <div class="t-add-field">
+                        <label>Maks. davomiylik (soniya)</label>
+                        <input type="number" name="max_duration" class="t-input" value="120" min="10" max="600">
+                        <div class="t-help">Masalan: 120 = 2 daqiqa</div>
+                    </div>
+                </div>
+                <div class="t-add-row">
+                    <div class="t-add-field">
+                        <label>Maksimal ball</label>
+                        <input type="number" name="max_score" class="t-input" value="10" min="1" max="100">
+                    </div>
+                    <div class="t-add-field">
+                        <label>Topshirish muddati</label>
+                        <input type="datetime-local" name="due_date" class="t-input">
+                    </div>
+                </div>
+                <div class="t-add-field">
+                    <div class="t-switch">
+                        <input type="checkbox" name="ai_check" id="aiCheck">
+                        <label for="aiCheck" class="t-switch-label">🤖 AI avtomatik tekshirsin</label>
+                    </div>
+                    <div class="t-help">Yoqilsa, o'quvchi topshirganda AI avtomatik tekshiradi va baho beradi</div>
+                </div>
+                <div class="t-add-field">
+                    <label>Baholash mezonlari</label>
+                    <textarea name="criteria" class="t-input" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berishi kerak..."></textarea>
+                    <div class="t-help">Masalan: Talaffuzga, grammatikaga, ravonlikka e'tibor berilsin</div>
+                </div>
+                <div class="t-add-actions">
+                    <a href="{% url 'teacher:courses' %}" class="t-btn t-btn-outline">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </a>
+                    <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                        <i class="bi bi-plus-lg"></i> Yaratish
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -299,6 +299,7 @@ class Lesson(models.Model):
         ('homework', 'Uyga vazifa'),
         ('test', 'Test'),
         ('dictionary', "Lug'at"),
+        ('speaking', 'Speaking'),
     )
     
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='lessons')
@@ -472,6 +473,7 @@ class Homework(models.Model):
     max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
+    ai_check = models.BooleanField(default=False, verbose_name="AI tekshirsin")
     
     def get_allowed_formats_list(self):
         """Ruxsat etilgan formatlar ro'yxatini qaytaradi"""
@@ -701,6 +703,68 @@ class DictionaryWord(models.Model):
     
     def __str__(self):
         return f"{self.term} — {self.translation}"
+
+
+class SpeakingTask(models.Model):
+    """Speaking vazifasi - til bo'yicha gapirish qobiliyatini baholash"""
+    LEVEL_CHOICES = (
+        ('beginner', 'Boshlang\'ich'),
+        ('elementary', 'Elementar'),
+        ('intermediate', 'O\'rta'),
+        ('upper_intermediate', 'O\'rta-yuqori'),
+        ('advanced', 'Yuqori'),
+    )
+    
+    lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='speaking_task')
+    description = models.TextField(verbose_name="Vazifa tavsifi")
+    target_level = models.CharField(max_length=30, choices=LEVEL_CHOICES, default='beginner', verbose_name="Maqsad daraja")
+    max_duration = models.IntegerField(default=120, verbose_name="Maksimal davomiylik (soniya)")
+    max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
+    ai_check = models.BooleanField(default=False, verbose_name="AI tekshirsin")
+    due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
+    criteria = models.TextField(blank=True, null=True, verbose_name="Baholash mezonlari", help_text="AI yoki ustoz nimaga e'tibor berishi kerak")
+    
+    class Meta:
+        verbose_name = "Speaking vazifa"
+        verbose_name_plural = "Speaking vazifalar"
+    
+    def __str__(self):
+        return f"{self.lesson.title} - Speaking"
+
+
+class SpeakingSubmission(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('reviewing', 'Ko\'rib chiqilmoqda'),
+        ('graded', 'Baholangan'),
+        ('revision', 'Qayta ishlash kerak'),
+    )
+    
+    speaking_task = models.ForeignKey(SpeakingTask, on_delete=models.CASCADE, related_name='submissions')
+    student = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='speaking_submissions')
+    audio_file = models.FileField(upload_to='speaking_submissions/', verbose_name="Audio fayl")
+    text_transcript = models.TextField(blank=True, null=True, verbose_name="Matn transkripsiyasi")
+    duration = models.IntegerField(default=0, verbose_name="Davomiylik (soniya)")
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    grade = models.IntegerField(null=True, blank=True, verbose_name="Baho")
+    feedback = models.TextField(blank=True, null=True, verbose_name="Izoh")
+    ai_feedback = models.TextField(blank=True, null=True, verbose_name="AI xulosasi")
+    pronunciation_score = models.IntegerField(null=True, blank=True, verbose_name="Talaffuz bali")
+    fluency_score = models.IntegerField(null=True, blank=True, verbose_name="Ravonlik bali")
+    grammar_score = models.IntegerField(null=True, blank=True, verbose_name="Grammatika bali")
+    vocabulary_score = models.IntegerField(null=True, blank=True, verbose_name="Lug'at bali")
+    graded_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='graded_speakings')
+    graded_at = models.DateTimeField(null=True, blank=True)
+    coin_awarded = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-submitted_at']
+        verbose_name = "Speaking topshiriq"
+        verbose_name_plural = "Speaking topshiriqlar"
+    
+    def __str__(self):
+        return f"{self.student.full_name} - {self.speaking_task.lesson.title}"
 
 
 class Certificate(models.Model):

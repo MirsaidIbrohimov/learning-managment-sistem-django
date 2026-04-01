@@ -35,4 +35,9 @@ urlpatterns = [
     path('certificates/<int:pk>/edit/', views.teacher_certificate_edit, name='certificate_edit'),
     path('certificates/<int:pk>/toggle/', views.teacher_certificate_toggle, name='certificate_toggle'),
     path('certificates/<int:pk>/delete/', views.teacher_certificate_delete, name='certificate_delete'),
+
+    # Speaking vazifalar
+    path('speaking/', views.teacher_speaking_tasks, name='speaking_tasks'),
+    path('speaking/<int:pk>/grade/', views.teacher_grade_speaking, name='grade_speaking'),
+    path('courses/<int:pk>/add-speaking/', views.teacher_add_speaking, name='add_speaking'),
 ]

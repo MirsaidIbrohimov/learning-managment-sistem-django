@@ -266,10 +266,14 @@ def game_submit(request, slug):
     if len(typed_words) > session_word_count * 2:
         return JsonResponse({'error': "Noto'g'ri matn yuborildi."}, status=403)
 
+    import re
+    def _normalize_apostrophes(s):
+        return re.sub(r"['\u2018\u2019\u02BC\u0027`]", '`', s)
+
     correct = 0
     total = len(original_words)
     for i, word in enumerate(original_words):
-        if i < len(typed_words) and typed_words[i] == word:
+        if i < len(typed_words) and _normalize_apostrophes(typed_words[i]) == _normalize_apostrophes(word):
             correct += 1
 
     accuracy = (correct / total * 100) if total > 0 else 0
