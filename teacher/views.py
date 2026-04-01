@@ -90,6 +90,145 @@ def teacher_dashboard(request):
 
 
 @teacher_required
+def teacher_my_students(request):
+    """O'qituvchining o'quvchilari ro'yxati va natijalari"""
+    from accounts.models import (
+        CustomUser, CourseEnrollment, VideoProgress, VideoLesson
+    )
+
+    user = request.user
+    professions = user.teaching_professions.all()
+
+    # Filtrlar
+    filter_profession = request.GET.get('profession', '')
+    filter_search = request.GET.get('q', '').strip()
+    filter_sort = request.GET.get('sort', 'name')
+
+    filtered_professions = professions
+    if filter_profession:
+        try:
+            filtered_professions = professions.filter(pk=int(filter_profession))
+        except (ValueError, TypeError):
+            pass
+
+    # Barcha o'quvchilar
+    enrollments = CourseEnrollment.objects.filter(
+        profession__in=filtered_professions,
+        user__role='student'
+    ).select_related('user', 'profession')
+
+    student_ids = enrollments.values_list('user_id', flat=True).distinct()
+    students_qs = CustomUser.objects.filter(id__in=student_ids).select_related('profession')
+
+    if filter_search:
+        students_qs = students_qs.filter(
+            Q(first_name__icontains=filter_search) |
+            Q(last_name__icontains=filter_search) |
+            Q(phone__icontains=filter_search) |
+            Q(username__icontains=filter_search)
+        )
+
+    students_data = []
+    for student in students_qs:
+        # Kurslar
+        student_enrollments = enrollments.filter(user=student)
+        student_professions = [e.profession for e in student_enrollments]
+
+        # Vazifalar
+        hw_submissions = HomeworkSubmission.objects.filter(
+            student=student,
+            homework__lesson__profession__in=filtered_professions
+        )
+        hw_total = Homework.objects.filter(lesson__profession__in=filtered_professions).count()
+        hw_done = hw_submissions.count()
+        hw_graded = hw_submissions.filter(status='graded').count()
+        hw_avg = hw_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
+
+        # Testlar
+        test_results = TestResult.objects.filter(
+            student=student,
+            test__lesson__profession__in=filtered_professions
+        )
+        test_total = Test.objects.filter(lesson__profession__in=filtered_professions).count()
+        test_done = test_results.count()
+        test_passed = test_results.filter(passed=True).count()
+        test_avg = test_results.aggregate(avg=Avg('score'))['avg'] or 0
+
+        # Speaking
+        speaking_subs = SpeakingSubmission.objects.filter(
+            student=student,
+            speaking_task__lesson__profession__in=filtered_professions
+        )
+        speaking_done = speaking_subs.count()
+        speaking_avg = speaking_subs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
+
+        # Video progress
+        total_videos = VideoLesson.objects.filter(lesson__profession__in=filtered_professions).count()
+        watched_videos = VideoProgress.objects.filter(
+            user=student,
+            video__lesson__profession__in=filtered_professions,
+            watched=True
+        ).count()
+
+        # Umumiy progress
+        total_tasks = hw_total + test_total + total_videos
+        done_tasks = hw_done + test_done + watched_videos
+        progress_pct = round((done_tasks / total_tasks * 100) if total_tasks > 0 else 0)
+
+        # Status aniqlash
+        now = timezone.now()
+        if student.last_activity and (now - student.last_activity).days <= 3:
+            status = 'faol'
+        elif student.last_activity and (now - student.last_activity).days <= 14:
+            status = 'ortacha'
+        else:
+            status = 'sust'
+
+        students_data.append({
+            'student': student,
+            'professions': student_professions,
+            'hw_done': hw_done,
+            'hw_total': hw_total,
+            'hw_graded': hw_graded,
+            'hw_avg': round(hw_avg, 1),
+            'test_done': test_done,
+            'test_total': test_total,
+            'test_passed': test_passed,
+            'test_avg': round(test_avg, 1),
+            'speaking_done': speaking_done,
+            'speaking_avg': round(speaking_avg, 1),
+            'watched_videos': watched_videos,
+            'total_videos': total_videos,
+            'progress_pct': progress_pct,
+            'status': status,
+            'coins': student.coins,
+            'is_premium': student.is_premium,
+        })
+
+    # Sortlash
+    if filter_sort == 'progress':
+        students_data.sort(key=lambda x: x['progress_pct'], reverse=True)
+    elif filter_sort == 'hw_avg':
+        students_data.sort(key=lambda x: x['hw_avg'], reverse=True)
+    elif filter_sort == 'test_avg':
+        students_data.sort(key=lambda x: x['test_avg'], reverse=True)
+    elif filter_sort == 'coins':
+        students_data.sort(key=lambda x: x['coins'], reverse=True)
+    else:
+        students_data.sort(key=lambda x: x['student'].full_name.lower())
+
+    context = {
+        'students_data': students_data,
+        'professions': professions,
+        'total_students': len(students_data),
+        'filter_profession': filter_profession,
+        'filter_search': filter_search,
+        'filter_sort': filter_sort,
+    }
+    return render(request, 'teacher/my_students.html', context)
+
+
+@teacher_required
 def teacher_statistics(request):
     """Kengaytirilgan statistika sahifasi"""
     from datetime import timedelta, date
@@ -1466,6 +1605,7 @@ def _ai_grade_speaking(submission):
 
 def _transcribe_audio(file_field):
     """Audio faylni matn (transkripsiya) ga o'girish"""
+    import os
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
@@ -1474,9 +1614,11 @@ def _transcribe_audio(file_field):
         from openai import OpenAI
         client = OpenAI(api_key=api_key.strip(), timeout=60)
         file_field.seek(0)
+        file_name = os.path.basename(file_field.name)
+        audio_data = file_field.read()
         response = client.audio.transcriptions.create(
             model="whisper-1",
-            file=file_field,
+            file=(file_name, audio_data),
         )
         return response.text
     except Exception as e:

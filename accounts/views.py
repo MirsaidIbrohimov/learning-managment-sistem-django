@@ -1462,7 +1462,51 @@ def submit_speaking(request, pk):
         audio_file=audio_file,
     )
     
-    messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+    # AI avtomatik tekshiruv
+    if speaking_task.ai_check:
+        try:
+            from teacher.views import _ai_grade_speaking
+            ai_result = _ai_grade_speaking(submission)
+            if ai_result:
+                submission.grade = ai_result['grade']
+                submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                submission.ai_feedback = ai_result['feedback']
+                submission.pronunciation_score = ai_result.get('pronunciation', 0)
+                submission.fluency_score = ai_result.get('fluency', 0)
+                submission.grammar_score = ai_result.get('grammar', 0)
+                submission.vocabulary_score = ai_result.get('vocabulary', 0)
+                submission.status = ai_result['status']
+                submission.graded_at = timezone.now()
+                submission.save()
+                
+                if ai_result['status'] == 'graded' and not submission.coin_awarded:
+                    coin_amount = 10
+                    if ai_result['grade'] >= 9:
+                        coin_amount += 5
+                    elif ai_result['grade'] >= 8:
+                        coin_amount += 3
+                    if request.user.is_premium:
+                        coin_amount *= 2
+                    request.user.add_coins(coin_amount, f"Speaking vazifa baholandi: {speaking_task.lesson.title}")
+                    submission.coin_awarded = True
+                    submission.save(update_fields=['coin_awarded'])
+                    ActivityLog.objects.create(
+                        user=request.user, action_type='homework_graded',
+                        description=f"Speaking AI baholadi: {speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                    )
+                
+                messages.success(request, f"Speaking vazifa topshirildi va AI baholadi: {ai_result['grade']} ball!")
+                return redirect('lesson_view', pk=speaking_task.lesson.pk)
+            else:
+                messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+        except Exception as e:
+            import traceback
+            print(f"Speaking AI tekshiruv xatolik: {e}")
+            traceback.print_exc()
+            messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+    else:
+        messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+    
     return redirect('lesson_view', pk=speaking_task.lesson.pk)
 
 
@@ -2178,11 +2222,13 @@ def submit_homework(request, pk):
                                     _notify_ai_graded(sub, ai_result)
                                 else:
                                     _notify_ai_revision(sub, ai_result)
-                            elif request.user.is_premium:
-                                ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
-                                if ai_feedback:
-                                    sub.ai_feedback = ai_feedback
-                                    sub.save(update_fields=['ai_feedback'])
+                            else:
+                                if request.user.is_premium:
+                                    ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
+                                    if ai_feedback:
+                                        sub.ai_feedback = ai_feedback
+                                        sub.save(update_fields=['ai_feedback'])
+                                messages.warning(request, "AI baholashda xatolik yuz berdi. Ustoz tekshiradi.")
 
                 elif sub.submission_type == 'file' and sub.file:
                     import os
@@ -2194,6 +2240,7 @@ def submit_homework(request, pk):
                 import traceback
                 print(f"AI tekshiruv xatolik: {e}")
                 traceback.print_exc()
+                messages.warning(request, "Vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 
