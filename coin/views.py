@@ -30,7 +30,14 @@ PREMIUM_PLANS = {
 
 @login_required
 def market_list(request):
-    products = Product.objects.filter(is_active=True)
+    products = Product.objects.filter(is_active=True).order_by(
+        models.Case(
+            models.When(stock__gt=0, then=0),
+            default=1,
+            output_field=models.IntegerField(),
+        ),
+        '-created_at',
+    )
     
     if request.user.is_premium:
         for p in products:
