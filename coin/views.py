@@ -1,4 +1,5 @@
 import math
+from django.db import models as db_models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -31,10 +32,10 @@ PREMIUM_PLANS = {
 @login_required
 def market_list(request):
     products = Product.objects.filter(is_active=True).order_by(
-        models.Case(
-            models.When(stock__gt=0, then=0),
+        db_models.Case(
+            db_models.When(stock__gt=0, then=0),
             default=1,
-            output_field=models.IntegerField(),
+            output_field=db_models.IntegerField(),
         ),
         '-created_at',
     )
