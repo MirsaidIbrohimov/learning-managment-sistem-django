@@ -809,7 +809,6 @@ def home_view(request):
             prof_ids = [e.profession_id for e in my_enrollments]
             
             # Bulk: barcha kurslar uchun total countlar
-            from django.db.models import Count
             video_counts = dict(VideoLesson.objects.filter(
                 lesson__profession_id__in=prof_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
