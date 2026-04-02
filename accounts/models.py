@@ -834,6 +834,32 @@ class Certificate(models.Model):
         return f"{self.certificate_id} - {self.student.full_name} - {self.profession.name}"
 
 
+class CertificateRequest(models.Model):
+    """O'quvchi kursni tugatgandan so'ng sertifikat olish uchun so'rov"""
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlandi'),
+        ('rejected', 'Rad etildi'),
+    )
+    
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='certificate_requests')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='certificate_requests')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    admin_message = models.TextField(blank=True, verbose_name="Admin javobi")
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_certificate_requests')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['student', 'profession']
+        ordering = ['-created_at']
+        verbose_name = "Sertifikat so'rovi"
+        verbose_name_plural = "Sertifikat so'rovlari"
+    
+    def __str__(self):
+        return f"{self.student.full_name} - {self.profession.name} ({self.get_status_display()})"
+
+
 class Message(models.Model):
     MESSAGE_TYPES = (
         ('all', 'Barchaga'),

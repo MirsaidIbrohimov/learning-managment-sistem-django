@@ -312,9 +312,14 @@
                 <span>Bo'limlar</span>
             </a>
             <a href="{% url 'admin_certificates' %}"
-                class="nav-link {% if 'certificate' in request.resolver_match.url_name and 'teacher' not in request.resolver_match.url_name %}active{% endif %}">
+                class="nav-link {% if request.resolver_match.url_name == 'admin_certificates' or request.resolver_match.url_name == 'admin_certificate_issue' or request.resolver_match.url_name == 'admin_certificate_status' %}active{% endif %}">
                 <i class="bi bi-award-fill"></i>
                 <span>Sertifikatlar</span>
+            </a>
+            <a href="{% url 'admin_certificate_requests' %}"
+                class="nav-link {% if 'certificate_request' in request.resolver_match.url_name %}active{% endif %}">
+                <i class="bi bi-mortarboard-fill"></i>
+                <span>Sertifikat so'rovlari</span>
             </a>
 
             <div class="sidebar-group-label">Foydalanuvchilar</div>

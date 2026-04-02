@@ -19,7 +19,7 @@ from .forms import (
 from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    TestUserAnswer, Dictionary, DictionaryWord, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
+    TestUserAnswer, Dictionary, DictionaryWord, Certificate, CertificateRequest, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission
@@ -1073,6 +1073,25 @@ def profession_detail(request, pk):
     
     course_teachers = profession.teachers.all()
 
+    # Kurs tugatilganligini tekshirish va sertifikat so'rovi
+    course_completed = False
+    certificate = None
+    certificate_request = None
+    if is_enrolled and request.user.is_student:
+        # Barcha bo'limlardagi barcha darslar (lug'at bundan mustasno) tugatilganmi
+        all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
+        if all_lessons.exists():
+            completed_ids = set(
+                lid for lid, prog in lesson_progress.items() if prog.get('completed')
+            )
+            all_done = all(lesson.pk in completed_ids for lesson in all_lessons)
+            course_completed = all_done
+        
+        # Sertifikat mavjudmi
+        certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
+        # Sertifikat so'rovi mavjudmi
+        certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession).first()
+
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
@@ -1085,6 +1104,9 @@ def profession_detail(request, pk):
         'section_is_locked': section_is_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
         'classmates': classmates,
         'course_teachers': course_teachers,
+        'course_completed': course_completed,
+        'certificate': certificate,
+        'certificate_request': certificate_request,
     })
 
 
@@ -1333,6 +1355,156 @@ def unenroll_course(request, pk):
         return redirect('profession_detail', pk=pk)
     
     return redirect('profession_detail', pk=pk)
+
+
+@login_required
+def request_certificate(request, pk):
+    """O'quvchi: Kursni tugatdim - sertifikat so'rovi yuborish"""
+    if not request.user.is_student:
+        messages.error(request, "Faqat o'quvchilar sertifikat so'rovi yuborishi mumkin!")
+        return redirect('profession_detail', pk=pk)
+    
+    profession = get_object_or_404(Profession, pk=pk)
+    enrollment = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
+    if not enrollment and request.user.profession != profession:
+        messages.warning(request, "Siz bu kursga yozilmagansiz!")
+        return redirect('profession_detail', pk=pk)
+    
+    # Allaqachon sertifikat berilganmi
+    if Certificate.objects.filter(student=request.user, profession=profession).exists():
+        messages.info(request, "Sizga bu kurs uchun allaqachon sertifikat berilgan!")
+        return redirect('profession_detail', pk=pk)
+    
+    # Allaqachon so'rov bormi
+    existing = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
+    if existing:
+        messages.info(request, "Sizning sertifikat so'rovingiz allaqachon yuborilgan. Admin tasdiqlashini kuting.")
+        return redirect('profession_detail', pk=pk)
+    
+    # Kurs tugatilganligini tekshirish
+    all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
+    if all_lessons.exists():
+        watched_videos = set(VideoProgress.objects.filter(
+            user=request.user, watched=True, video__lesson__profession=profession
+        ).values_list('video__lesson_id', flat=True))
+        passed_tests = set(TestResult.objects.filter(
+            student=request.user, test__lesson__profession=profession, passed=True
+        ).values_list('test__lesson_id', flat=True))
+        accepted_homeworks = set(HomeworkSubmission.objects.filter(
+            student=request.user, homework__lesson__profession=profession,
+            status__in=['accepted', 'graded']
+        ).values_list('homework__lesson_id', flat=True))
+        graded_speakings = set(SpeakingSubmission.objects.filter(
+            student=request.user, speaking_task__lesson__profession=profession,
+            status='graded'
+        ).values_list('speaking_task__lesson_id', flat=True))
+        completed_ids = watched_videos | passed_tests | accepted_homeworks | graded_speakings
+        
+        for lesson in all_lessons:
+            if lesson.pk not in completed_ids:
+                messages.error(request, "Kursni tugatish uchun barcha darslarni (video, test, vazifa) bajarishingiz kerak!")
+                return redirect('profession_detail', pk=pk)
+    
+    if request.method == 'POST':
+        # Eski rad etilgan so'rovlarni o'chirish
+        CertificateRequest.objects.filter(
+            student=request.user, profession=profession
+        ).exclude(status='pending').delete()
+        
+        CertificateRequest.objects.create(
+            student=request.user,
+            profession=profession,
+        )
+        
+        from telegram_bot.utils import notify_admins
+        notify_admins(
+            f"🎓 <b>Sertifikat so'rovi!</b>\n\n"
+            f"👤 {request.user.full_name}\n"
+            f"📖 {profession.name}\n"
+            f"📋 O'quvchi kursni tugatdi va sertifikat so'rovi yubordi."
+        )
+        
+        messages.success(request, "Sertifikat so'rovingiz yuborildi! Admin ko'rib chiqishini kuting. 🎓")
+        return redirect('profession_detail', pk=pk)
+    
+    return redirect('profession_detail', pk=pk)
+
+
+@login_required
+def admin_certificate_requests(request):
+    """Admin: Sertifikat so'rovlarini ko'rish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    cert_requests = CertificateRequest.objects.select_related('student', 'profession', 'reviewed_by').all()
+    
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        cert_requests = cert_requests.filter(status=status_filter)
+    
+    return render(request, 'accounts/admin/certificate_requests.html', {
+        'cert_requests': cert_requests,
+        'status_filter': status_filter,
+        'pending_count': CertificateRequest.objects.filter(status='pending').count(),
+    })
+
+
+@login_required
+def approve_certificate_request(request, pk):
+    """Admin: Sertifikat so'rovini tasdiqlash - sertifikat berish sahifasiga yo'naltirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    cert_req = get_object_or_404(CertificateRequest, pk=pk)
+    
+    if request.method == 'POST':
+        cert_req.status = 'approved'
+        cert_req.reviewed_by = request.user
+        cert_req.reviewed_at = timezone.now()
+        cert_req.save()
+        
+        messages.success(request, f"{cert_req.student.full_name} ning sertifikat so'rovi tasdiqlandi! Endi sertifikat bering.")
+        return redirect(f"{reverse('admin_certificate_issue')}?student={cert_req.student.pk}&profession={cert_req.profession.pk}")
+    
+    return redirect('admin_certificate_requests')
+
+
+@login_required
+def reject_certificate_request(request, pk):
+    """Admin: Sertifikat so'rovini rad etish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    cert_req = get_object_or_404(CertificateRequest, pk=pk)
+    
+    if request.method == 'POST':
+        admin_message = request.POST.get('admin_message', "Sertifikat so'rovi rad etildi.")
+        cert_req.status = 'rejected'
+        cert_req.admin_message = admin_message
+        cert_req.reviewed_by = request.user
+        cert_req.reviewed_at = timezone.now()
+        cert_req.save()
+        
+        Message.objects.create(
+            title="Sertifikat so'rovi rad etildi",
+            content=f"Sizning '{cert_req.profession.name}' kursi uchun sertifikat so'rovingiz rad etildi.\n\nSabab: {admin_message}",
+            message_type='personal',
+            recipient=cert_req.student,
+            sender=request.user
+        )
+        
+        if cert_req.student.telegram_id:
+            from telegram_bot.utils import notify_user
+            notify_user(
+                cert_req.student.telegram_id,
+                f"❌ <b>Sertifikat so'rovi rad etildi</b>\n\n"
+                f"📖 <b>{cert_req.profession.name}</b>\n"
+                f"📝 Sabab: {admin_message}"
+            )
+        
+        messages.success(request, f"{cert_req.student.full_name} ning sertifikat so'rovi rad etildi.")
+    
+    return redirect('admin_certificate_requests')
 
 
 # Lesson views

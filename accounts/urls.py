@@ -15,6 +15,7 @@ urlpatterns = [
     path('professions/<int:pk>/statistics/', views.course_statistics, name='course_statistics'),
     path('professions/<int:pk>/enroll/', views.enroll_course, name='enroll_course'),
     path('professions/<int:pk>/unenroll/', views.unenroll_course, name='unenroll_course'),
+    path('professions/<int:pk>/request-certificate/', views.request_certificate, name='request_certificate'),
     path('professions/<int:pk>/manage/', views.manage_lessons, name='manage_lessons'),
     path('professions/<int:pk>/add-lesson/', views.add_lesson, name='add_lesson'),
     path('professions/<int:pk>/add-section/', views.add_section, name='add_section'),
@@ -238,6 +239,11 @@ urlpatterns = [
     path('dashboard/certificates/issue/', views.admin_certificate_issue, name='admin_certificate_issue'),
     path('dashboard/certificates/<int:pk>/status/', views.admin_certificate_status, name='admin_certificate_status'),
     path('dashboard/certificates/<int:pk>/delete/', views.admin_certificate_delete, name='admin_certificate_delete'),
+    
+    # Admin: Sertifikat so'rovlari
+    path('dashboard/certificate-requests/', views.admin_certificate_requests, name='admin_certificate_requests'),
+    path('dashboard/certificate-requests/<int:pk>/approve/', views.approve_certificate_request, name='approve_certificate_request'),
+    path('dashboard/certificate-requests/<int:pk>/reject/', views.reject_certificate_request, name='reject_certificate_request'),
     
     # Sertifikat tekshirish (login talab qilinmaydi)
     path('verify-certificate/', views.verify_certificate, name='verify_certificate'),
