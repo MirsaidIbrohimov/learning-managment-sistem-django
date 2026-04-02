@@ -473,7 +473,7 @@ class Homework(models.Model):
     max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
-    ai_check = models.BooleanField(default=False, verbose_name="AI tekshirsin")
+    ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
     handwritten_only = models.BooleanField(default=False, verbose_name="Faqat yozma (rasm)")
     
     def get_allowed_formats_list(self):
@@ -721,7 +721,7 @@ class SpeakingTask(models.Model):
     target_level = models.CharField(max_length=30, choices=LEVEL_CHOICES, default='beginner', verbose_name="Maqsad daraja")
     max_duration = models.IntegerField(default=120, verbose_name="Maksimal davomiylik (soniya)")
     max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
-    ai_check = models.BooleanField(default=False, verbose_name="AI tekshirsin")
+    ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
     criteria = models.TextField(blank=True, null=True, verbose_name="Baholash mezonlari", help_text="AI yoki ustoz nimaga e'tibor berishi kerak")
     

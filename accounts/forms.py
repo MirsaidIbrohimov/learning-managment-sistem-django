@@ -298,7 +298,7 @@ class HomeworkForm(forms.Form):
     )
     ai_check = forms.BooleanField(
         required=False,
-        initial=False,
+        initial=True,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label="AI tekshirsin"
     )
