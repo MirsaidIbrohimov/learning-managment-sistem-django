@@ -547,11 +547,18 @@ def admin_mark_delivered(request, pk):
     if purchase.user.telegram_id:
         notify_user(
             purchase.user.telegram_id,
-            f"📦 <b>Buyurtmangiz yetkazildi!</b>\n\n"
+            f"📦 <b>Mahsulotingiz yetib keldi!</b>\n\n"
             f"📦 <b>{purchase.product.name}</b>\n"
             f"📋 Buyurtma #{purchase.pk}\n\n"
-            f"✅ Mahsulotingiz tayyor! Olib ketishingiz mumkin."
+            f"✅ Mahsulotingiz IT Shaharda sizni kutmoqda! Olib ketishingiz mumkin."
         )
+    
+    # Guruhga telegram xabar
+    notify_group(
+        f"📦 <b>Mahsulot yetib keldi!</b>\n\n"
+        f"Hurmatli <b>{purchase.user.full_name}</b> o'quvchi,\n"
+        f"🛍 <b>{purchase.product.name}</b> mahsulotingiz IT Shaharda sizni kutmoqda! ✅"
+    )
     
     # Foydalanuvchiga xabar (Message)
     Message.objects.create(
