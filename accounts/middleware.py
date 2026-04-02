@@ -334,29 +334,32 @@ class DeviceLimitMiddleware:
 
 class PremiumExpiryMiddleware:
     """
-    Premium muddati tugagan foydalanuvchilarni avtomatik tekshiradi.
-    Har request da emas, har 5 daqiqada bir marta tekshiradi (performance uchun).
+    Premium muddati tugagan BARCHA foydalanuvchilarni avtomatik tekshiradi.
+    Har 10 daqiqada bir marta global tekshiruv o'tkazadi (istalgan request triggerda).
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.user.is_authenticated and request.user.is_premium:
-            cache_key = f'premium_check_{request.user.id}'
+        if request.user.is_authenticated:
+            cache_key = 'global_premium_expiry_check'
             if not cache.get(cache_key):
                 now = timezone.now()
-                if request.user.premium_expires_at and request.user.premium_expires_at <= now:
-                    request.user.is_premium = False
-                    request.user.save(update_fields=['is_premium'])
-
+                expired_users = CustomUser.objects.filter(
+                    is_premium=True,
+                    premium_expires_at__lte=now
+                )
+                for user in expired_users:
+                    user.is_premium = False
+                    user.save(update_fields=['is_premium'])
                     Message.objects.create(
-                        recipient=request.user,
+                        recipient=user,
                         title="Premium muddati tugadi",
                         content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
                         message_type='system'
                     )
-                cache.set(cache_key, True, 300)  # 5 daqiqa cache
+                cache.set(cache_key, True, 600)  # 10 daqiqa
 
         return self.get_response(request)
 
