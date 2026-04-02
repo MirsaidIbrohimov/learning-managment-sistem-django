@@ -263,6 +263,40 @@
 
 @media (max-width: 500px) { .al-type-cards { grid-template-columns: 1fr; } }
 
+/* Level picker cards */
+.al-level-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
+}
+.al-level-card {
+    position: relative; padding: 0.85rem 0.75rem; border-radius: 14px;
+    border: 2px solid var(--al-border); background: var(--al-bg);
+    cursor: pointer; transition: all 0.3s ease; text-align: center;
+    overflow: hidden;
+}
+.al-level-card:hover { border-color: var(--al-accent); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+.al-level-card.active {
+    border-color: var(--al-accent); background: var(--al-accent-light);
+    box-shadow: 0 4px 16px var(--al-accent-light);
+    animation: alTypePop 0.3s ease;
+}
+.al-level-card input[type="radio"] { display: none; }
+.al-level-icon {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; margin-bottom: 0.5rem; transition: transform 0.3s;
+}
+.al-level-card.active .al-level-icon { transform: scale(1.1); }
+.al-level-name { font-size: 0.85rem; font-weight: 700; color: var(--al-text); margin-bottom: 0.1rem; }
+.al-level-desc { font-size: 0.7rem; color: var(--al-secondary); }
+.al-level-check {
+    position: absolute; top: 0.5rem; right: 0.5rem;
+    color: var(--al-accent); font-size: 1rem;
+    opacity: 0; transform: scale(0); transition: all 0.3s;
+}
+.al-level-card.active .al-level-check { opacity: 1; transform: scale(1); }
+@media (max-width: 600px) { .al-level-cards { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 400px) { .al-level-cards { grid-template-columns: 1fr; } }
+
 .al-actions {
     display: flex; gap: 0.75rem; flex-wrap: wrap;
     padding-top: 1.25rem; border-top: 1px solid var(--al-border); margin-top: 1.5rem;
@@ -488,33 +522,61 @@
                     <textarea name="description" class="form-control" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="al-group">
-                        <label class="al-label">Maqsad daraja</label>
-                        <select name="target_level" class="form-select">
-                            <option value="beginner">Boshlang'ich</option>
-                            <option value="elementary">Elementar</option>
-                            <option value="intermediate" selected>O'rta</option>
-                            <option value="upper_intermediate">O'rta-yuqori</option>
-                            <option value="advanced">Yuqori</option>
-                        </select>
-                    </div>
-                    <div class="al-group">
-                        <label class="al-label">Maks. davomiylik (soniya)</label>
-                        <input type="number" name="max_duration" class="form-control" value="120" min="10" max="600">
-                        <div class="al-hint">Masalan: 120 = 2 daqiqa</div>
+                <div class="al-group">
+                    <label class="al-label">Maqsad daraja</label>
+                    <input type="hidden" name="target_level" id="targetLevelInput" value="intermediate">
+                    <div class="al-level-cards">
+                        <div class="al-level-card" data-value="beginner" onclick="selectSpeakingLevel(this)">
+                            <div class="al-level-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">🌱</div>
+                            <div class="al-level-name">Boshlang'ich</div>
+                            <div class="al-level-desc">A1 — Beginner</div>
+                            <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-level-card" data-value="elementary" onclick="selectSpeakingLevel(this)">
+                            <div class="al-level-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">📘</div>
+                            <div class="al-level-name">Elementar</div>
+                            <div class="al-level-desc">A2 — Elementary</div>
+                            <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-level-card active" data-value="intermediate" onclick="selectSpeakingLevel(this)">
+                            <div class="al-level-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">📗</div>
+                            <div class="al-level-name">O'rta</div>
+                            <div class="al-level-desc">B1 — Intermediate</div>
+                            <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-level-card" data-value="upper_intermediate" onclick="selectSpeakingLevel(this)">
+                            <div class="al-level-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">🔥</div>
+                            <div class="al-level-name">O'rta-yuqori</div>
+                            <div class="al-level-desc">B2 — Upper Inter.</div>
+                            <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
+                        <div class="al-level-card" data-value="advanced" onclick="selectSpeakingLevel(this)">
+                            <div class="al-level-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">🏆</div>
+                            <div class="al-level-name">Yuqori</div>
+                            <div class="al-level-desc">C1 — Advanced</div>
+                            <div class="al-level-check"><i class="bi bi-check-circle-fill"></i></div>
+                        </div>
                     </div>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="al-group">
+                        <label class="al-label">Maks. davomiylik (soniya)</label>
+                        <input type="number" name="max_duration" class="form-control" value="120" min="10" max="600">
+                        <div class="al-hint">Masalan: 120 = 2 daqiqa</div>
+                    </div>
+                    <div class="al-group">
                         <label class="al-label">Maksimal ball</label>
                         <input type="number" name="max_score" class="form-control" value="10" min="1" max="100">
                     </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="al-group">
                         <label class="al-label">Topshirish muddati</label>
                         <input type="datetime-local" name="due_date" class="form-control">
                     </div>
+                    <div class="al-group"></div>
                 </div>
 
                 <div class="al-group">
@@ -665,6 +727,16 @@ function selectSection(el, pk) {
     });
 })();
 </script>
+
+{% if lesson_type == 'speaking' %}
+<script>
+function selectSpeakingLevel(card) {
+    document.querySelectorAll('.al-level-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    document.getElementById('targetLevelInput').value = card.dataset.value;
+}
+</script>
+{% endif %}
 
 {% if lesson_type == 'test' %}
 <script>
