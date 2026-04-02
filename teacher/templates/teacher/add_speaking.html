@@ -34,10 +34,60 @@
 .t-switch input[type="checkbox"]:checked { background: #8b5cf6; border-color: #8b5cf6; }
 .t-switch input[type="checkbox"]:checked::before { left: 21px; background: #fff; }
 .t-switch-label { font-weight: 600; font-size: .9rem; }
+
+/* Level picker cards */
+.t-level-picker { display: flex; flex-wrap: wrap; gap: .5rem; }
+.t-level-card {
+    flex: 1 1 calc(50% - .5rem);
+    position: relative;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 2px solid var(--bs-border-color);
+    background: var(--bs-body-bg);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+}
+.t-level-card:hover {
+    border-color: rgba(139,92,246,0.4);
+    background: rgba(139,92,246,0.04);
+    transform: translateY(-1px);
+}
+.t-level-card.active {
+    border-color: #8b5cf6;
+    background: rgba(139,92,246,0.1);
+    box-shadow: 0 0 0 3px rgba(139,92,246,0.15);
+}
+.t-level-card input[type="radio"] { display: none; }
+.t-level-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.t-level-info { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.t-level-name { font-weight: 700; font-size: .85rem; color: var(--bs-body-color); }
+.t-level-desc { font-size: .7rem; color: var(--bs-secondary-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-level-check {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #8b5cf6;
+    display: none;
+    align-items: center; justify-content: center;
+    color: #fff; font-size: .65rem;
+}
+.t-level-card.active .t-level-check { display: flex; }
+
 @media (max-width: 768px) {
     .t-add-row { grid-template-columns: 1fr; }
     .t-add-actions { flex-direction: column; }
     .t-add-actions .t-btn { width: 100%; justify-content: center; }
+    .t-level-card { flex: 1 1 100%; }
 }
 </style>
 
@@ -61,32 +111,73 @@
                     <label>Vazifa tavsifi *</label>
                     <textarea name="description" class="t-input" rows="4" placeholder="O'quvchi nima haqida gapirishligi kerak, qanday sharoitda..." required></textarea>
                 </div>
-                <div class="t-add-row">
-                    <div class="t-add-field">
-                        <label>Maqsad daraja</label>
-                        <select name="target_level" class="t-input">
-                            <option value="beginner">Boshlang'ich</option>
-                            <option value="elementary">Elementar</option>
-                            <option value="intermediate" selected>O'rta</option>
-                            <option value="upper_intermediate">O'rta-yuqori</option>
-                            <option value="advanced">Yuqori</option>
-                        </select>
+                <div class="t-add-field">
+                    <label>Maqsad daraja</label>
+                    <div class="t-level-picker">
+                        <label class="t-level-card" onclick="selectLevel(this)">
+                            <input type="radio" name="target_level" value="beginner">
+                            <div class="t-level-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">🌱</div>
+                            <div class="t-level-info">
+                                <span class="t-level-name">Boshlang'ich</span>
+                                <span class="t-level-desc">A1 — Beginner</span>
+                            </div>
+                            <div class="t-level-check"><i class="bi bi-check2"></i></div>
+                        </label>
+                        <label class="t-level-card" onclick="selectLevel(this)">
+                            <input type="radio" name="target_level" value="elementary">
+                            <div class="t-level-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">📘</div>
+                            <div class="t-level-info">
+                                <span class="t-level-name">Elementar</span>
+                                <span class="t-level-desc">A2 — Elementary</span>
+                            </div>
+                            <div class="t-level-check"><i class="bi bi-check2"></i></div>
+                        </label>
+                        <label class="t-level-card active" onclick="selectLevel(this)">
+                            <input type="radio" name="target_level" value="intermediate" checked>
+                            <div class="t-level-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">📗</div>
+                            <div class="t-level-info">
+                                <span class="t-level-name">O'rta</span>
+                                <span class="t-level-desc">B1 — Intermediate</span>
+                            </div>
+                            <div class="t-level-check"><i class="bi bi-check2"></i></div>
+                        </label>
+                        <label class="t-level-card" onclick="selectLevel(this)">
+                            <input type="radio" name="target_level" value="upper_intermediate">
+                            <div class="t-level-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">🔥</div>
+                            <div class="t-level-info">
+                                <span class="t-level-name">O'rta-yuqori</span>
+                                <span class="t-level-desc">B2 — Upper Intermediate</span>
+                            </div>
+                            <div class="t-level-check"><i class="bi bi-check2"></i></div>
+                        </label>
+                        <label class="t-level-card" onclick="selectLevel(this)">
+                            <input type="radio" name="target_level" value="advanced">
+                            <div class="t-level-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">🏆</div>
+                            <div class="t-level-info">
+                                <span class="t-level-name">Yuqori</span>
+                                <span class="t-level-desc">C1 — Advanced</span>
+                            </div>
+                            <div class="t-level-check"><i class="bi bi-check2"></i></div>
+                        </label>
                     </div>
+                </div>
+                <div class="t-add-row">
                     <div class="t-add-field">
                         <label>Maks. davomiylik (soniya)</label>
                         <input type="number" name="max_duration" class="t-input" value="120" min="10" max="600">
                         <div class="t-help">Masalan: 120 = 2 daqiqa</div>
                     </div>
-                </div>
-                <div class="t-add-row">
                     <div class="t-add-field">
                         <label>Maksimal ball</label>
                         <input type="number" name="max_score" class="t-input" value="10" min="1" max="100">
                     </div>
+                </div>
+                <div class="t-add-row">
                     <div class="t-add-field">
                         <label>Topshirish muddati</label>
                         <input type="datetime-local" name="due_date" class="t-input">
                     </div>
+                    <div class="t-add-field"></div>
                 </div>
                 <div class="t-add-field">
                     <div class="t-switch">
@@ -112,4 +203,12 @@
         </div>
     </div>
 </div>
+
+<script>
+function selectLevel(card) {
+    document.querySelectorAll('.t-level-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    card.querySelector('input[type="radio"]').checked = true;
+}
+</script>
 {% endblock %}
