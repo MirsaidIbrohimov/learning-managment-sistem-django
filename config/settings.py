@@ -221,6 +221,7 @@ MIDDLEWARE = [
     'accounts.middleware.PaymentCheckMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
     'accounts.middleware.DeviceLimitMiddleware',
+    'accounts.middleware.PremiumExpiryMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

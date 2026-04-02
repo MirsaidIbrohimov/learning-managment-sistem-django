@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.db import models
 from datetime import timedelta
-from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode
+from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message
 
 
 class BirthdayCheckMiddleware:
@@ -329,6 +329,35 @@ class DeviceLimitMiddleware:
             auth_logout(request)
             return redirect('login')
         
+        return self.get_response(request)
+
+
+class PremiumExpiryMiddleware:
+    """
+    Premium muddati tugagan foydalanuvchilarni avtomatik tekshiradi.
+    Har request da emas, har 5 daqiqada bir marta tekshiradi (performance uchun).
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if request.user.is_authenticated and request.user.is_premium:
+            cache_key = f'premium_check_{request.user.id}'
+            if not cache.get(cache_key):
+                now = timezone.now()
+                if request.user.premium_expires_at and request.user.premium_expires_at <= now:
+                    request.user.is_premium = False
+                    request.user.save(update_fields=['is_premium'])
+
+                    Message.objects.create(
+                        recipient=request.user,
+                        title="Premium muddati tugadi",
+                        content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
+                        message_type='system'
+                    )
+                cache.set(cache_key, True, 300)  # 5 daqiqa cache
+
         return self.get_response(request)
 
 
