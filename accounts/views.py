@@ -2003,7 +2003,7 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
 
 
 def _check_ai_generated(homework_description, student_answer):
-    """Javob suniy intellekt yordamida yozilganligini tekshirish"""
+    """Javob suniy intellekt yordamida yozilganligini tekshirish — QATTIQ REJIM"""
     import json
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
@@ -2011,44 +2011,55 @@ def _check_ai_generated(homework_description, student_answer):
         return None
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=api_key.strip(), timeout=30)
+        client = OpenAI(api_key=api_key.strip(), timeout=45)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
                     "content": (
-                        "Siz o'quv platformasining AI plagiat detektorisiz. "
+                        "Siz o'quv platformasining PROFESSIONAL AI plagiat detektorisiz. "
                         "Bu platforma BOSHLANG'ICH dasturlash o'quvchilari uchun. "
                         "O'quvchilar odatda 1-6 oylik tajribaga ega.\n\n"
-                        "⚠️ MUHIM: ADOLATLI baho bering! Haqiqiy o'quvchini noto'g'ri AI deb belgilash — KATTA XATO.\n"
-                        "O'quvchi yaxshi o'rgangan bo'lishi mumkin. Yaxshi javob = AI degani EMAS!\n\n"
-                        "🔍 AI deb belgilash uchun kamida 3 ta belgi BIRGA bo'lishi kerak:\n"
-                        "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'of course', 'step by step' kabi iboralar\n"
-                        "2. CHATGPT FORMATI: Qadam-baqadam tushuntirish, markdown sarlavhalar, professional format\n"
-                        "3. HADDAN TASHQARI TUSHUNTIRISH: Oddiy savol — lekin javob juda uzun, har qadamda izoh\n"
-                        "4. ORTIQCHA KOD: Vazifada so'ralmagan error handling, docstring, decorator qo'shilgan\n"
-                        "5. TO'LIQ INGLIZCHA IZOHLAR: Barcha commentlar inglizcha, professional darajada yozilgan\n\n"
+                        "🚨 SIZNING VAZIFANGIZ JUDA MUHIM! AI dan ko'chirib olish — bu ALDASH!\n"
+                        "O'quvchilar ChatGPT, Gemini, Claude kabi AI toollardan foydalanib javob yozmoqda.\n"
+                        "Buni aniqlab, adolatli muhit yaratishingiz kerak.\n\n"
+                        "🔍 AI BELGILARI — quyidagilardan KAMIDA 2 TASI bo'lsa AI deb belgilang:\n"
+                        "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'of course', 'step by step', "
+                        "'I'd be happy to', 'As you can see', 'Let's break this down', 'Here's a', "
+                        "'Note that', 'Keep in mind', 'Feel free' kabi iboralar\n"
+                        "2. CHATGPT FORMATI: Qadam-baqadam tushuntirish, markdown formatlashtirish (###, **bold**), "
+                        "raqamlangan ro'yxatlar bilan professional tushuntirish\n"
+                        "3. HADDAN TASHQARI TUSHUNTIRISH: Oddiy vazifa — lekin javob juda uzun, "
+                        "har bir qator uchun batafsil izoh yozilgan, o'quvchi darajasiga mos kelmaydi\n"
+                        "4. ORTIQCHA KOD: Vazifada so'ralmagan try/except, error handling, type hints, "
+                        "docstring, decorator, class ishlatilgan. Boshlang'ich o'quvchi bularni bilmaydi!\n"
+                        "5. PROFESSIONAL INGLIZCHA IZOHLAR: Barcha commentlar professional ingliz tilida, "
+                        "grammatik xatosiz, mukammal tushuntirishlar\n"
+                        "6. MUKAMMAL STRUKTURA: Kod haddan tashqari tartibli, PEP8 standartiga to'liq mos, "
+                        "boshlang'ich o'quvchi kodidan ko'ra ancha professional\n"
+                        "7. NOODATIY BILIM: O'quvchi darajasiga mos bo'lmagan murakkab konseptlar "
+                        "(lambda, generators, comprehension ichida comprehension, OOP patterns)\n"
+                        "8. COPY-PASTE BELGILARI: Javobda foydalanilmagan import, "
+                        "vazifaga aloqasi yo'q qo'shimcha funksiyalar mavjud\n\n"
                         "✅ Bu AI EMAS — haqiqiy o'quvchi belgilari:\n"
-                        "- Javob qisqa va sodda — bu NORMAL\n"
-                        "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh) — bu YAXSHI\n"
-                        "- Kod ishlaydi va xatosiz — bu O'RGANGAN o'quvchi, AI emas!\n"
-                        "- Kichik typo yoki xatolar bor — bu haqiqiy o'quvchi\n"
-                        "- Oddiy print, input, if/else, for ishlatgan — darsda o'rganilgan\n"
-                        "- f-string, list, dict ishlatgan — bu oddiy Python, AI belgisi emas\n"
-                        "- Javob vazifaga mos va to'g'ri — bu yaxshi o'quvchi\n"
-                        "- Inglizcha o'zgaruvchi nomlari (name, age, sum) — bu NORMAL, darsda shunday o'rgatiladi\n\n"
-                        "QOIDALAR:\n"
-                        "- Faqat 3+ ANIQ AI belgisi BIRGA bo'lganda is_ai: true\n"
-                        "- 1-2 belgi yetarli EMAS — is_ai: false\n"
-                        "- Yaxshi kod yozgan = yaxshi o'rgangan, AI emas!\n"
-                        "- Xatosiz kod = AI emas, balki o'quvchi tekshirgan\n"
-                        "- confidence 80 dan past bo'lsa is_ai ALBATTA false\n\n"
+                        "- Javob qisqa va sodda, faqat kerakli kodni yozgan\n"
+                        "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh)\n"
+                        "- Kichik typo, stilistik xatolar, indentatsiya muammolari bor\n"
+                        "- Oddiy print, input, if/else, for ishlatgan — izohsiz\n"
+                        "- Javobda izoh (comment) UMUMAN yo'q yoki juda kam\n"
+                        "- Kod ishlaydi lekin optimal emas (bu normal, o'rganmoqda)\n\n"
+                        "⚠️ QOIDALAR:\n"
+                        "- 2 ta yoki undan ko'p AI belgisi bo'lsa → is_ai: true\n"
+                        "- Boshlang'ich o'quvchi professional darajada javob yoza OLMAYDI\n"
+                        "- Haddan tashqari uzun izohlar va tushuntirishlar = AI\n"
+                        "- confidence 60 dan past bo'lsa is_ai: false\n"
+                        "- SHUBHALI bo'lsa — AI deb belgilang, chunki aldash oqibati og'ir!\n\n"
                         "Faqat JSON formatda javob bering:\n"
-                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida qisqa sabab>"}\n\n'
-                        "- is_ai: Faqat ANIQ dalil bo'lganda true\n"
-                        "- confidence: 80 dan past = is_ai: false\n"
-                        "- reason: O'zbek tilida 1-2 gapda aniq sabab yozing"
+                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida aniq sabab, qaysi belgilar topilgani>"}\n\n'
+                        "- is_ai: 2+ belgi bo'lganda true\n"
+                        "- confidence: Ishonch darajasi (60+ bo'lsa is_ai: true bo'lishi mumkin)\n"
+                        "- reason: O'zbek tilida 2-3 gapda ANIQ sabablarni ko'rsating"
                     )
                 },
                 {
@@ -2059,8 +2070,8 @@ def _check_ai_generated(homework_description, student_answer):
                     )
                 }
             ],
-            max_tokens=300,
-            temperature=0.1,
+            max_tokens=400,
+            temperature=0.05,
         )
         result_text = response.choices[0].message.content.strip()
         if result_text.startswith('```'):
@@ -2299,26 +2310,30 @@ def submit_homework(request, pk):
                 if student_answer:
                     # 1. AI plagiat tekshiruvi
                     ai_check = _check_ai_generated(hw.description, student_answer)
-                    if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 70:
+                    if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 60:
                         sub.status = 'revision'
                         confidence = ai_check['confidence']
                         if confidence >= 95:
-                            penalty = 50
+                            penalty = 150
                         elif confidence >= 90:
-                            penalty = 40
+                            penalty = 120
                         elif confidence >= 85:
-                            penalty = 30
+                            penalty = 100
                         elif confidence >= 80:
-                            penalty = 20
+                            penalty = 80
+                        elif confidence >= 70:
+                            penalty = 60
                         else:
-                            penalty = 10
+                            penalty = 40
 
                         sub.ai_feedback = (
-                            f"🚫 Suniy intellekt yordamida yozilgan deb topildi! "
-                            f"(ishonch: {confidence}%)\n\n"
+                            f"🚫 OGOHLANTIRISH! Javobingiz suniy intellekt (ChatGPT/Gemini/Claude) "
+                            f"yordamida yozilgan deb topildi! (ishonch: {confidence}%)\n\n"
                             f"📋 Sabab: {ai_check['reason']}\n\n"
-                            f"💰 Jarima: -{penalty} coin\n\n"
-                            f"⚠️ Iltimos, vazifani o'zingiz mustaqil bajaring va qayta yuboring."
+                            f"💰 JARIMA: -{penalty} coin\n\n"
+                            f"⚠️ AI dan foydalanish — bu ALDASH! Vazifalarni o'zingiz mustaqil bajaring.\n"
+                            f"🔄 Vazifani qayta yozing va o'zingiz bajaring. Takroriy AI foydalanish "
+                            f"yanada kattaroq jarimaga olib keladi!"
                         )
                         sub.save(update_fields=['status', 'ai_feedback'])
 
@@ -2327,38 +2342,45 @@ def submit_homework(request, pk):
                         student.save(update_fields=['coins'])
                         CoinTransaction.objects.create(
                             user=student, amount=penalty, action='remove',
-                            reason=f"AI plagiat jarimasi: {hw.lesson.title} (ishonch: {confidence}%)"
+                            reason=f"🚫 AI plagiat jarimasi: {hw.lesson.title} (ishonch: {confidence}%)"
                         )
                         ActivityLog.objects.create(
                             user=student, action_type='earn_coins',
-                            description=f"AI plagiat jarimasi: -{penalty} coin ({hw.lesson.title}, ishonch: {confidence}%)"
+                            description=f"🚫 AI plagiat JARIMA: -{penalty} coin ({hw.lesson.title}, ishonch: {confidence}%)"
                         )
                         Message.objects.create(
-                            title="🚫 AI plagiat jarimasi",
+                            title="🚫⚠️ AI PLAGIAT JARIMASI",
                             content=(
-                                f"Sizning '{hw.lesson.title}' vazifangiz suniy intellekt yordamida yozilgan deb topildi.\n\n"
+                                f"⚠️ OGOHLANTIRISH!\n\n"
+                                f"Sizning '{hw.lesson.title}' vazifangiz suniy intellekt (ChatGPT/Gemini/Claude) "
+                                f"yordamida yozilgan deb topildi.\n\n"
                                 f"📋 Sabab: {ai_check['reason']}\n"
                                 f"🔢 Ishonch darajasi: {confidence}%\n"
-                                f"💰 Jarima: -{penalty} coin\n"
+                                f"💰 JARIMA: -{penalty} coin\n"
                                 f"💳 Joriy balansingiz: {student.coins} coin\n\n"
-                                f"⚠️ Iltimos, vazifalarni mustaqil bajaring!"
+                                f"🚨 AI dan foydalanish — bu ALDASH va platformamizda qat'iyan taqiqlanadi!\n"
+                                f"Vazifalarni o'zingiz mustaqil bajaring. Takroriy qoidabuzarlik yanada "
+                                f"kattaroq jarimaga olib keladi!\n\n"
+                                f"🔄 Vazifani qayta yozing va o'zingiz bajaring."
                             ),
                             message_type='warning', recipient=student
                         )
                         notify_user(
                             student.telegram_id,
-                            f"🚫 <b>Vazifangiz AI yordamida yozilgan deb topildi!</b>\n\n"
-                            f"📚 {hw.lesson.profession.name}\n📖 {hw.lesson.title}\n"
+                            f"🚫⚠️ <b>AI PLAGIAT JARIMASI!</b>\n\n"
+                            f"📚 {hw.lesson.profession.name}\n📖 {hw.lesson.title}\n\n"
                             f"📋 Sabab: {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
-                            f"💰 Jarima: <b>-{penalty} coin</b>\n💳 Balansingiz: {student.coins} coin\n\n"
-                            f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!"
+                            f"💰 JARIMA: <b>-{penalty} coin</b>\n💳 Balansingiz: {student.coins} coin\n\n"
+                            f"🚨 AI dan foydalanish qat'iyan TAQIQLANADI!\n"
+                            f"⚠️ Vazifani o'zingiz mustaqil bajaring va qayta yuboring!\n"
+                            f"Takroriy qoidabuzarlik yanada kattaroq jarimaga olib keladi!"
                         )
                         notify_admins(
-                            f"🚫 <b>AI plagiat jarimasi!</b>\n\n"
+                            f"🚫⚠️ <b>AI PLAGIAT JARIMASI!</b>\n\n"
                             f"👤 {student.first_name} {student.last_name}\n"
                             f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
                             f"📋 {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n"
-                            f"💰 Jarima: -{penalty} coin\n💳 Balans: {student.coins} coin"
+                            f"💰 JARIMA: <b>-{penalty} coin</b>\n💳 Balans: {student.coins} coin"
                         )
                     else:
                         # 2. O'xshashlik (plagiat) tekshirish
