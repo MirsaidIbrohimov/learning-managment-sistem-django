@@ -87,6 +87,28 @@
                             <div id="editor"></div>
                             <textarea name="description" id="descriptionField" style="display:none;">{{ form.description.value|default:'' }}</textarea>
                         </div>
+                        
+                        <!-- AI tekshirish -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="ai_check" id="id_ai_check" style="cursor:pointer;" {% if form.ai_check.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_ai_check" style="cursor:pointer;">
+                                    <i class="bi bi-robot me-1"></i> AI orqali tekshirish
+                                </label>
+                            </div>
+                            <small class="text-muted">Yoqilsa, vazifalar avtomatik AI tomonidan tekshiriladi va baholanadi</small>
+                        </div>
+
+                        <!-- Yozma topshirish -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" name="handwritten_only" id="id_handwritten_only" style="cursor:pointer;" {% if form.handwritten_only.value %}checked{% endif %}>
+                                <label class="form-check-label" for="id_handwritten_only" style="cursor:pointer;">
+                                    <i class="bi bi-pencil-square me-1"></i> Faqat yozma topshirish (rasm)
+                                </label>
+                            </div>
+                            <small class="text-muted">Til kurslari uchun: o'quvchilar daftarda yozib, rasm ko'rinishida yuboradi</small>
+                        </div>
                         {% endif %}
                         
                         <div class="d-flex gap-2">

@@ -4312,6 +4312,8 @@ def edit_lesson(request, pk):
                 lesson.title = form.cleaned_data['title']
                 lesson.save()
                 lesson.homework.description = form.cleaned_data['description']
+                lesson.homework.ai_check = form.cleaned_data.get('ai_check', False)
+                lesson.homework.handwritten_only = form.cleaned_data.get('handwritten_only', False)
                 lesson.homework.save()
                 # Xabar yuborish
                 send_course_notification(
@@ -4334,6 +4336,8 @@ def edit_lesson(request, pk):
             form = HomeworkForm(initial={
                 'title': lesson.title,
                 'description': lesson.homework.description,
+                'ai_check': lesson.homework.ai_check,
+                'handwritten_only': lesson.homework.handwritten_only,
             })
         elif lesson.lesson_type == 'dictionary':
             if hasattr(lesson, 'dictionary') and lesson.dictionary:
