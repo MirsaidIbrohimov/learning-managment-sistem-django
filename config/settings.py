@@ -229,7 +229,6 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,                  # MUHIM
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
@@ -237,6 +236,12 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.unread_messages',
                 'accounts.context_processors.admin_badges',
+            ],
+            'loaders': [
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
             ],
         },
     },
@@ -315,7 +320,7 @@ LOGIN_REDIRECT_URL = 'home'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ============ XAVFSIZLIK SOZLAMALARI ============
 
@@ -332,6 +337,7 @@ CSRF_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
 CSRF_USE_SESSIONS = True
 
 # Session xavfsizligi
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
 SESSION_COOKIE_SAMESITE = 'Lax'

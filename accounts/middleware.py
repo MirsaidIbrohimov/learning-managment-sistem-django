@@ -67,8 +67,6 @@ class UpdateLastActivityMiddleware:
                     request.session['_accumulated_seconds'] = remaining
                 else:
                     request.session['_accumulated_seconds'] = accumulated
-                    # last_activity ni har doim yangilaymiz (online statusni to'g'ri ko'rsatish uchun)
-                    CustomUser.objects.filter(id=request.user.id).update(last_activity=now)
         return response
 
 

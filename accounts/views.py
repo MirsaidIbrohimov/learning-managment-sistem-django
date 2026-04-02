@@ -805,36 +805,52 @@ def home_view(request):
         quick_courses = list(Profession.objects.all()[:3])
     if request.user.is_student or request.user.is_admin:
         my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
-        for enrollment in my_enrollments:
-            profession = enrollment.profession
-            total_videos = VideoLesson.objects.filter(lesson__profession=profession).count()
-            total_tests = Test.objects.filter(lesson__profession=profession).count()
-            total_homeworks = Homework.objects.filter(lesson__profession=profession).count()
-            total_items = total_videos + total_tests + total_homeworks
-            if total_items == 0:
-                progress = 0
-            else:
-                watched = VideoProgress.objects.filter(
-                    user=request.user,
-                    video__lesson__profession=profession,
-                    watched=True
-                ).count()
-                passed_tests = TestResult.objects.filter(
-                    student=request.user,
-                    test__lesson__profession=profession,
-                    passed=True
-                ).values('test__lesson_id').distinct().count()
-                done_hw = HomeworkSubmission.objects.filter(
-                    student=request.user,
-                    homework__lesson__profession=profession,
-                    status__in=['accepted', 'graded']
-                ).values('homework__lesson_id').distinct().count()
-                completed = watched + passed_tests + done_hw
-                progress = min(100, round((completed / total_items) * 100))
-            dashboard_courses.append({
-                'name': profession.name,
-                'progress': progress,
-            })
+        if my_enrollments:
+            prof_ids = [e.profession_id for e in my_enrollments]
+            
+            # Bulk: barcha kurslar uchun total countlar
+            from django.db.models import Count
+            video_counts = dict(VideoLesson.objects.filter(
+                lesson__profession_id__in=prof_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            test_counts = dict(Test.objects.filter(
+                lesson__profession_id__in=prof_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            hw_counts = dict(Homework.objects.filter(
+                lesson__profession_id__in=prof_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            
+            # Bulk: foydalanuvchi progressi
+            watched_counts = dict(VideoProgress.objects.filter(
+                user=request.user, watched=True,
+                video__lesson__profession_id__in=prof_ids
+            ).values_list('video__lesson__profession_id').annotate(c=Count('id')).values_list('video__lesson__profession_id', 'c'))
+            passed_counts = dict(TestResult.objects.filter(
+                student=request.user, passed=True,
+                test__lesson__profession_id__in=prof_ids
+            ).values('test__lesson__profession_id', 'test__lesson_id').distinct().values_list(
+                'test__lesson__profession_id'
+            ).annotate(c=Count('test__lesson_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
+            done_hw_counts = dict(HomeworkSubmission.objects.filter(
+                student=request.user,
+                homework__lesson__profession_id__in=prof_ids,
+                status__in=['accepted', 'graded']
+            ).values('homework__lesson__profession_id', 'homework__lesson_id').distinct().values_list(
+                'homework__lesson__profession_id'
+            ).annotate(c=Count('homework__lesson_id', distinct=True)).values_list('homework__lesson__profession_id', 'c'))
+            
+            for enrollment in my_enrollments:
+                pid = enrollment.profession_id
+                total_items = video_counts.get(pid, 0) + test_counts.get(pid, 0) + hw_counts.get(pid, 0)
+                if total_items == 0:
+                    progress = 0
+                else:
+                    completed = watched_counts.get(pid, 0) + passed_counts.get(pid, 0) + done_hw_counts.get(pid, 0)
+                    progress = min(100, round((completed / total_items) * 100))
+                dashboard_courses.append({
+                    'name': enrollment.profession.name,
+                    'progress': progress,
+                })
 
     # ⚠️ MUHIM:
     # unread_messages_count BU YERDA HISOBLANMAYDI!
@@ -1104,35 +1120,73 @@ def course_statistics(request, pk):
     graded_hw = hw_submissions.filter(status='graded')
     avg_hw_grade = graded_hw.aggregate(avg=Avg('grade'))['avg'] or 0
 
+    student_ids = list(enrolled_students.values_list('id', flat=True))
+
+    # Bulk test statistikasi
+    from collections import defaultdict
+    test_stats = defaultdict(lambda: {'count': 0, 'passed': 0, 'total_score': 0, 'avg_score': 0})
+    for row in TestResult.objects.filter(
+        student_id__in=student_ids, test__lesson__profession=profession
+    ).values('student_id').annotate(
+        count=Count('id'),
+        passed=Count('id', filter=Q(passed=True)),
+        total_score=Sum('score'),
+        avg_score=Avg('score'),
+    ):
+        test_stats[row['student_id']] = {
+            'count': row['count'],
+            'passed': row['passed'],
+            'total_score': row['total_score'] or 0,
+            'avg_score': row['avg_score'] or 0,
+        }
+
+    # Bulk homework statistikasi
+    hw_stats = defaultdict(lambda: {'count': 0, 'graded_avg': 0, 'graded_total': 0, 'accepted_count': 0})
+    for row in HomeworkSubmission.objects.filter(
+        student_id__in=student_ids, homework__lesson__profession=profession
+    ).values('student_id').annotate(
+        count=Count('id'),
+        graded_avg=Avg('grade', filter=Q(status='graded')),
+        graded_total=Sum('grade', filter=Q(status='graded')),
+        accepted_count=Count('id', filter=Q(status__in=['accepted', 'graded'])),
+    ):
+        hw_stats[row['student_id']] = {
+            'count': row['count'],
+            'graded_avg': row['graded_avg'] or 0,
+            'graded_total': row['graded_total'] or 0,
+            'accepted_count': row['accepted_count'],
+        }
+
+    # Bulk video progress
+    video_stats = dict(
+        VideoProgress.objects.filter(
+            user_id__in=student_ids, watched=True,
+            video__lesson__profession=profession
+        ).values('user_id').annotate(c=Count('id')).values_list('user_id', 'c')
+    )
+
+    total_possible = total_tests + total_homeworks + total_videos
+
     student_stats = []
     for student in enrolled_students:
-        s_tests = TestResult.objects.filter(student=student, test__lesson__profession=profession)
-        s_test_count = s_tests.count()
-        s_test_avg = s_tests.aggregate(avg=Avg('score'))['avg'] or 0
-        s_passed = s_tests.filter(passed=True).count()
+        sid = student.id
+        ts = test_stats[sid]
+        hs = hw_stats[sid]
+        vw = video_stats.get(sid, 0)
 
-        s_hw = HomeworkSubmission.objects.filter(student=student, homework__lesson__profession=profession)
-        s_hw_count = s_hw.count()
-        s_hw_avg = s_hw.filter(status='graded').aggregate(avg=Avg('grade'))['avg'] or 0
-
-        s_videos = VideoProgress.objects.filter(user=student, watched=True, video__lesson__profession=profession).count()
-
-        total_possible = total_tests + total_homeworks + total_videos
-        completed = s_passed + s_hw.filter(status__in=['accepted', 'graded']).count() + s_videos
+        completed = ts.get('passed', 0) + hs.get('accepted_count', 0) + vw
         progress = round(completed / total_possible * 100) if total_possible else 0
 
-        s_test_total = s_tests.aggregate(total=Sum('score'))['total'] or 0
-        s_hw_total = s_hw.filter(status='graded').aggregate(total=Sum('grade'))['total'] or 0
-        s_total_score = s_test_total + s_hw_total
+        s_total_score = ts.get('total_score', 0) + hs.get('graded_total', 0)
 
         student_stats.append({
             'student': student,
-            'test_count': s_test_count,
-            'test_avg': round(s_test_avg, 1),
-            'passed_tests': s_passed,
-            'hw_count': s_hw_count,
-            'hw_avg': round(s_hw_avg, 1),
-            'videos_watched': s_videos,
+            'test_count': ts.get('count', 0),
+            'test_avg': round(ts.get('avg_score', 0), 1),
+            'passed_tests': ts.get('passed', 0),
+            'hw_count': hs.get('count', 0),
+            'hw_avg': round(hs.get('graded_avg', 0), 1),
+            'videos_watched': vw,
             'progress': min(progress, 100),
             'coins': student.coins,
             'total_score': s_total_score,
@@ -1390,12 +1444,21 @@ def lesson_view(request, pk):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-        # AI maqola yaratish (birinchi marta)
+        # AI maqola yaratish (birinchi marta) — faqat threadda, requestni bloklamaymiz
         if not lesson.ai_article:
-            ai_article = _generate_ai_article(lesson.title, profession.name)
-            if ai_article:
-                lesson.ai_article = ai_article
-                lesson.save(update_fields=['ai_article'])
+            import threading
+            _lesson_id = lesson.pk
+            _title = lesson.title
+            _prof_name = profession.name
+            def _bg_generate():
+                try:
+                    from accounts.models import Lesson as _Lesson
+                    art = _generate_ai_article(_title, _prof_name)
+                    if art:
+                        _Lesson.objects.filter(pk=_lesson_id, ai_article__isnull=True).update(ai_article=art)
+                except Exception:
+                    pass
+            threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
         return render(request, 'accounts/lessons/video_lesson.html', context)
@@ -3068,10 +3131,26 @@ def leaderboard(request):
     professions = Profession.objects.all()
 
     if tab == 'score':
-        # Ball reytingi: har bir tugatilgan bo'lim = 1 ball
-        from accounts.models import Section, Lesson, VideoLesson, VideoProgress, HomeworkSubmission, TestResult
-        from django.db.models import Count, Subquery, OuterRef, IntegerField, Value
-        from django.db.models.functions import Coalesce
+        from accounts.models import Section, Lesson, VideoProgress, HomeworkSubmission, TestResult
+        from collections import defaultdict
+
+        cache_key = f'leaderboard_score_{profession_id or "all"}_{search_query}'
+        cached = cache.get(cache_key)
+        if cached:
+            cached['professions'] = professions
+            # user rank hisoblash
+            user_rank = None
+            user_score = 0
+            if request.user.role == 'student':
+                for i, s in enumerate(cached.get('_scored_data', [])):
+                    if s['id'] == request.user.pk:
+                        user_rank = i + 1
+                        user_score = s['score']
+                        break
+            cached['user_rank'] = user_rank
+            cached['user_in_list'] = user_rank is not None
+            cached['user_score'] = user_score
+            return render(request, 'accounts/leaderboard.html', cached)
 
         students_qs = CustomUser.objects.filter(role='student')
         if profession_id:
@@ -3083,42 +3162,75 @@ def leaderboard(request):
                 Q(username__icontains=search_query)
             )
 
-        # Har bir student uchun tugatgan bo'limlar sonini hisoblash
-        scored_students = []
-        for student in students_qs:
+        student_ids = list(students_qs.values_list('id', flat=True))
+
+        # Bo'limlar va darslarni bir marta yuklash
+        if profession_id:
+            sections = Section.objects.filter(profession_id=profession_id, is_active=True).prefetch_related('lessons')
+        else:
+            enrolled_prof_ids = set(
+                CourseEnrollment.objects.filter(user_id__in=student_ids)
+                .values_list('profession_id', flat=True)
+            )
+            sections = Section.objects.filter(
+                profession_id__in=enrolled_prof_ids, is_active=True
+            ).prefetch_related('lessons')
+
+        # Section -> lessons mapping
+        section_lessons = {}
+        for section in sections:
+            lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
+            if lessons:
+                section_lessons[section.pk] = {
+                    'profession_id': section.profession_id,
+                    'lessons': [(l.pk, l.lesson_type) for l in lessons],
+                }
+
+        # Bulk fetch: barcha completion ma'lumotlari
+        watched_set = set(
+            VideoProgress.objects.filter(
+                user_id__in=student_ids, watched=True
+            ).values_list('user_id', 'video__lesson_id')
+        )
+        passed_test_set = set(
+            TestResult.objects.filter(
+                student_id__in=student_ids, passed=True
+            ).values_list('student_id', 'test__lesson_id')
+        )
+        accepted_hw_set = set(
+            HomeworkSubmission.objects.filter(
+                student_id__in=student_ids,
+                status__in=['accepted', 'graded']
+            ).values_list('student_id', 'homework__lesson_id')
+        )
+
+        # Student enrollment mapping
+        student_enrollments = defaultdict(set)
+        for uid, pid in CourseEnrollment.objects.filter(
+            user_id__in=student_ids
+        ).values_list('user_id', 'profession_id'):
+            student_enrollments[uid].add(pid)
+
+        # Har bir student uchun score hisoblash (DB siz)
+        scored_data = []
+        for sid in student_ids:
             completed_sections = 0
+            enrolled_pids = student_enrollments.get(sid, set())
 
-            if profession_id:
-                sections = Section.objects.filter(profession_id=profession_id, is_active=True)
-            else:
-                enrolled_ids = student.enrollments.values_list('profession_id', flat=True)
-                sections = Section.objects.filter(profession_id__in=enrolled_ids, is_active=True)
-
-            for section in sections:
-                lessons = Lesson.objects.filter(section=section)
-                if not lessons.exists():
+            for sec_id, sec_info in section_lessons.items():
+                if not profession_id and sec_info['profession_id'] not in enrolled_pids:
                     continue
 
                 all_done = True
-                for lesson in lessons:
-                    if lesson.lesson_type == 'video':
-                        try:
-                            vl = lesson.video
-                            done = VideoProgress.objects.filter(user=student, video=vl, watched=True).exists()
-                        except VideoLesson.DoesNotExist:
-                            done = True
-                    elif lesson.lesson_type == 'homework':
-                        done = HomeworkSubmission.objects.filter(
-                            student=student, homework__lesson=lesson,
-                            status__in=['accepted', 'graded']
-                        ).exists()
-                    elif lesson.lesson_type == 'test':
-                        done = TestResult.objects.filter(
-                            student=student, test__lesson=lesson, passed=True
-                        ).exists()
+                for lesson_id, lesson_type in sec_info['lessons']:
+                    if lesson_type == 'video':
+                        done = (sid, lesson_id) in watched_set
+                    elif lesson_type == 'homework':
+                        done = (sid, lesson_id) in accepted_hw_set
+                    elif lesson_type == 'test':
+                        done = (sid, lesson_id) in passed_test_set
                     else:
                         done = True
-
                     if not done:
                         all_done = False
                         break
@@ -3126,23 +3238,30 @@ def leaderboard(request):
                 if all_done:
                     completed_sections += 1
 
-            student.score = completed_sections
             if completed_sections > 0 or not search_query:
-                scored_students.append(student)
+                scored_data.append({'id': sid, 'score': completed_sections})
 
-        scored_students.sort(key=lambda s: s.score, reverse=True)
-        students_list = scored_students[:100]
+        scored_data.sort(key=lambda s: s['score'], reverse=True)
+
+        top_ids = [s['id'] for s in scored_data[:100]]
+        students_map = {s.pk: s for s in CustomUser.objects.filter(pk__in=top_ids)}
+        students_list = []
+        for s in scored_data[:100]:
+            student = students_map.get(s['id'])
+            if student:
+                student.score = s['score']
+                students_list.append(student)
 
         user_rank = None
         user_score = 0
         if request.user.role == 'student':
-            for i, s in enumerate(scored_students):
-                if s.pk == request.user.pk:
+            for i, s in enumerate(scored_data):
+                if s['id'] == request.user.pk:
                     user_rank = i + 1
-                    user_score = s.score
+                    user_score = s['score']
                     break
 
-        return render(request, 'accounts/leaderboard.html', {
+        result = {
             'students': students_list,
             'professions': professions,
             'selected_profession': profession_id,
@@ -3151,7 +3270,10 @@ def leaderboard(request):
             'user_in_list': user_rank is not None,
             'tab': tab,
             'user_score': user_score,
-        })
+            '_scored_data': scored_data,
+        }
+        cache.set(cache_key, result, 120)
+        return render(request, 'accounts/leaderboard.html', result)
 
     # Coins tab (default)
     students = CustomUser.objects.filter(role='student').order_by('-coins')
@@ -5599,7 +5721,9 @@ def admin_dashboard(request):
     total_students = CustomUser.objects.filter(role='student').count()
     total_professions = Profession.objects.count()
     blocked_users = CustomUser.objects.filter(is_blocked=True).count()
-    online_users = sum(1 for u in CustomUser.objects.all() if u.is_online)
+    online_users = CustomUser.objects.filter(
+        last_activity__gte=timezone.now() - timedelta(seconds=300)
+    ).count()
     
     # Qo'shimcha statistika
     total_lessons = Lesson.objects.count()
@@ -5610,10 +5734,19 @@ def admin_dashboard(request):
     total_certificates = Certificate.objects.count()
     total_coins = CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0
     
-    # Test natijalari
-    total_test_results = TestResult.first_attempts().count()
-    passed_tests = TestResult.first_attempts().filter(passed=True).count()
-    avg_test_score = TestResult.first_attempts().aggregate(avg=Avg('score'))['avg'] or 0
+    # Test natijalari (cached)
+    test_cache = cache.get('admin_test_stats')
+    if test_cache is None:
+        fa = TestResult.first_attempts()
+        test_cache = {
+            'total': fa.count(),
+            'passed': fa.filter(passed=True).count(),
+            'avg': fa.aggregate(avg=Avg('score'))['avg'] or 0,
+        }
+        cache.set('admin_test_stats', test_cache, 300)
+    total_test_results = test_cache['total']
+    passed_tests = test_cache['passed']
+    avg_test_score = test_cache['avg']
     
     # Uyga vazifalar
     pending_homeworks = HomeworkSubmission.objects.filter(status='pending').count()
@@ -5648,13 +5781,28 @@ def admin_dashboard(request):
     
     # Oxirgi 7 kun statistikasi
     today = timezone.now().date()
+    week_ago = today - timedelta(days=6)
+    
+    user_counts = dict(
+        CustomUser.objects.filter(date_joined__date__gte=week_ago)
+        .values_list('date_joined__date')
+        .annotate(c=Count('id'))
+        .values_list('date_joined__date', 'c')
+    )
+    enrollment_counts = dict(
+        CourseEnrollment.objects.filter(enrolled_at__date__gte=week_ago)
+        .values_list('enrolled_at__date')
+        .annotate(c=Count('id'))
+        .values_list('enrolled_at__date', 'c')
+    )
+    
     daily_stats = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
         daily_stats.append({
             'date': day,
-            'users': CustomUser.objects.filter(date_joined__date=day).count(),
-            'enrollments': CourseEnrollment.objects.filter(enrolled_at__date=day).count(),
+            'users': user_counts.get(day, 0),
+            'enrollments': enrollment_counts.get(day, 0),
         })
     
     # Texnik xizmat rejimi

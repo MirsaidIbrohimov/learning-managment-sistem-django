@@ -90,7 +90,7 @@ class CustomUser(AbstractUser):
     )
 
     is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
-    last_activity = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi faollik")
+    last_activity = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi faollik", db_index=True)
 
     bio = models.TextField(blank=True, null=True, verbose_name="O'zi haqida")
     obektivka = models.TextField(blank=True, null=True, verbose_name="Obektivka")
@@ -425,14 +425,17 @@ class VideoLesson(models.Model):
 
 
 class VideoProgress(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    video = models.ForeignKey(VideoLesson, on_delete=models.CASCADE)
-    watched = models.BooleanField(default=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_index=True)
+    video = models.ForeignKey(VideoLesson, on_delete=models.CASCADE, db_index=True)
+    watched = models.BooleanField(default=False, db_index=True)
     watched_at = models.DateTimeField(null=True, blank=True)
     coin_awarded = models.BooleanField(default=False)
     
     class Meta:
         unique_together = ['user', 'video']
+        indexes = [
+            models.Index(fields=['user', 'watched']),
+        ]
 
 
 class Homework(models.Model):
@@ -536,6 +539,9 @@ class HomeworkSubmission(models.Model):
     
     class Meta:
         ordering = ['-submitted_at']
+        indexes = [
+            models.Index(fields=['student', 'status']),
+        ]
     
     def __str__(self):
         return f"{self.student.full_name} - {self.homework.lesson.title}"
@@ -654,6 +660,9 @@ class TestResult(models.Model):
     
     class Meta:
         ordering = ['-completed_at']
+        indexes = [
+            models.Index(fields=['student', 'passed']),
+        ]
     
     def __str__(self):
         return f"{self.student.full_name} - {self.test.lesson.title}: {self.score}%"
