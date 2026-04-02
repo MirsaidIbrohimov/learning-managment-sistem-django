@@ -8851,29 +8851,78 @@ def approve_unenroll_request(request, pk):
         unenroll_req.reviewed_by = request.user
         unenroll_req.save()
 
+        # Kurs darslaridan olingan coinlarni hisoblash
+        course_lessons = Lesson.objects.filter(profession=unenroll_req.profession)
+        lesson_titles = list(course_lessons.values_list('title', flat=True))
+        
+        total_coins_earned = 0
+        if lesson_titles:
+            q_filter = Q()
+            for title in lesson_titles:
+                q_filter |= Q(reason__icontains=title)
+            
+            coin_sum = CoinTransaction.objects.filter(
+                user=unenroll_req.user,
+                action='add',
+            ).filter(q_filter).aggregate(total=Sum('amount'))
+            total_coins_earned = coin_sum['total'] or 0
+        
+        # Kurs bo'yicha ball (baho) larni hisoblash
+        hw_grades_count = HomeworkSubmission.objects.filter(
+            student=unenroll_req.user,
+            homework__lesson__profession=unenroll_req.profession,
+            status='graded'
+        ).count()
+        
+        test_results_count = TestResult.objects.filter(
+            student=unenroll_req.user,
+            test__lesson__profession=unenroll_req.profession,
+        ).count()
+        
+        # Coinlarni ayirish
+        if total_coins_earned > 0:
+            unenroll_req.user.remove_coins(
+                total_coins_earned,
+                f"Kursdan chiqish ({unenroll_req.profession.name}) - olingan coinlar qaytarildi"
+            )
+
         # Kursdan chiqarish
         CourseEnrollment.objects.filter(user=unenroll_req.user, profession=unenroll_req.profession).delete()
         if unenroll_req.user.profession == unenroll_req.profession:
             unenroll_req.user.profession = None
             unenroll_req.user.save(update_fields=['profession'])
 
+        # Xabar tarkibi
+        coin_info = ""
+        if total_coins_earned > 0:
+            coin_info += f"\n\n🪙 Kursdan olingan {total_coins_earned} coin ayirildi."
+        if hw_grades_count > 0 or test_results_count > 0:
+            coin_info += f"\n📊 {hw_grades_count} ta vazifa bahosi va {test_results_count} ta test natijasi bekor qilindi."
+
         Message.objects.create(
             title="Kursdan chiqish tasdiqlandi",
-            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz tasdiqlandi.",
+            content=f"Sizning '{unenroll_req.profession.name}' kursidan chiqish so'rovingiz tasdiqlandi.{coin_info}",
             message_type='personal',
             recipient=unenroll_req.user,
             sender=request.user
         )
 
         if unenroll_req.user.telegram_id:
+            tg_coin_info = ""
+            if total_coins_earned > 0:
+                tg_coin_info += f"\n🪙 Kursdan olingan <b>{total_coins_earned}</b> coin ayirildi."
+            if hw_grades_count > 0 or test_results_count > 0:
+                tg_coin_info += f"\n📊 {hw_grades_count} ta vazifa bahosi va {test_results_count} ta test natijasi bekor qilindi."
+            
             notify_user(
                 unenroll_req.user.telegram_id,
                 f"✅ <b>Kursdan chiqish tasdiqlandi</b>\n\n"
                 f"📖 <b>{unenroll_req.profession.name}</b>\n\n"
-                f"📋 So'rovingiz tasdiqlandi. Siz ushbu kursdan chiqarildingiz."
+                f"📋 So'rovingiz tasdiqlandi. Siz ushbu kursdan chiqarildingiz.{tg_coin_info}"
             )
 
-        messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!")
+        coin_msg = f" ({total_coins_earned} coin ayirildi)" if total_coins_earned > 0 else ""
+        messages.success(request, f"{unenroll_req.user.full_name} - {unenroll_req.profession.name} kursidan chiqarildi!{coin_msg}")
 
     return redirect('admin_unenroll_requests')
 

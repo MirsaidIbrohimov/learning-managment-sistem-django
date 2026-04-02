@@ -31,6 +31,8 @@ PREMIUM_PLANS = {
 
 @login_required
 def market_list(request):
+    from django.core.paginator import Paginator
+    
     products = Product.objects.filter(is_active=True).order_by(
         db_models.Case(
             db_models.When(stock__gt=0, then=0),
@@ -44,6 +46,10 @@ def market_list(request):
         for p in products:
             p.discounted_price = get_discounted_price(p, request.user)
     
+    paginator = Paginator(products, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     pending_request = None
     if request.user.is_authenticated:
         pending_request = PremiumRequest.objects.filter(
@@ -51,7 +57,8 @@ def market_list(request):
         ).first()
     
     return render(request, 'coin/market/list.html', {
-        'products': products,
+        'products': page_obj,
+        'page_obj': page_obj,
         'premium_plans': PREMIUM_PLANS,
         'pending_request': pending_request,
     })
