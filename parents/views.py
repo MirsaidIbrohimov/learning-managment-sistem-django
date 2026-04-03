@@ -166,7 +166,7 @@ def admin_parent_view(request, pk):
                 student=child,
                 test__lesson__profession=profession
             )
-            tests_taken = test_results.count()
+            tests_taken = test_results.values('test_id').distinct().count()
             avg_test_score = test_results.aggregate(avg=Avg('score'))['avg'] or 0
 
             homework_submissions = HomeworkSubmission.objects.filter(
@@ -174,7 +174,7 @@ def admin_parent_view(request, pk):
                 homework__lesson__profession=profession
             )
             total_homeworks = Homework.objects.filter(lesson__profession=profession).count()
-            submitted_homeworks = homework_submissions.count()
+            submitted_homeworks = homework_submissions.values('homework_id').distinct().count()
             avg_homework_grade = homework_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
 
             total_items = total_videos + Test.objects.filter(lesson__profession=profession).count() + total_homeworks

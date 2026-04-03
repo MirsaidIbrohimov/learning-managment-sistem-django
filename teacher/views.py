@@ -172,7 +172,9 @@ def teacher_my_students(request):
 
         # Umumiy progress
         total_tasks = hw_total + test_total + total_videos
-        done_tasks = hw_done + test_done + watched_videos
+        unique_hw_done = hw_submissions.values('homework_id').distinct().count()
+        unique_test_done = test_results.values('test_id').distinct().count()
+        done_tasks = unique_hw_done + unique_test_done + watched_videos
         progress_pct = round((done_tasks / total_tasks * 100) if total_tasks > 0 else 0)
 
         # Status aniqlash

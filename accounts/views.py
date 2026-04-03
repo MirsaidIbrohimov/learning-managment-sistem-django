@@ -827,16 +827,12 @@ def home_view(request):
             passed_counts = dict(TestResult.objects.filter(
                 student=request.user, passed=True,
                 test__lesson__profession_id__in=prof_ids
-            ).values('test__lesson__profession_id', 'test__lesson_id').distinct().values_list(
-                'test__lesson__profession_id'
-            ).annotate(c=Count('test__lesson_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
+            ).values_list('test__lesson__profession_id').annotate(c=Count('test_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
             done_hw_counts = dict(HomeworkSubmission.objects.filter(
                 student=request.user,
                 homework__lesson__profession_id__in=prof_ids,
                 status__in=['accepted', 'graded']
-            ).values('homework__lesson__profession_id', 'homework__lesson_id').distinct().values_list(
-                'homework__lesson__profession_id'
-            ).annotate(c=Count('homework__lesson_id', distinct=True)).values_list('homework__lesson__profession_id', 'c'))
+            ).values_list('homework__lesson__profession_id').annotate(c=Count('homework_id', distinct=True)).values_list('homework__lesson__profession_id', 'c'))
             
             for enrollment in my_enrollments:
                 pid = enrollment.profession_id
@@ -897,11 +893,11 @@ def professions_view(request):
                 ).count()
                 passed_tests = TestResult.objects.filter(
                     student=request.user, test__lesson__profession_id=p.pk, passed=True
-                ).values('test__lesson_id').distinct().count()
+                ).values('test_id').distinct().count()
                 done_hw = HomeworkSubmission.objects.filter(
                     student=request.user, homework__lesson__profession_id=p.pk,
                     status__in=['accepted', 'graded']
-                ).values('homework__lesson_id').distinct().count()
+                ).values('homework_id').distinct().count()
 
                 completed = watched + passed_tests + done_hw
                 p.progress = min(round((completed / total_items) * 100), 100)

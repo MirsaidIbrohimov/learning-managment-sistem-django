@@ -108,13 +108,13 @@ def check_course_progress_milestones(user, profession):
         student=user,
         test__lesson__profession=profession,
         passed=True
-    ).values('test__lesson_id').distinct().count()
+    ).values('test_id').distinct().count()
     
     completed_homeworks = HomeworkSubmission.objects.filter(
         student=user,
         homework__lesson__profession=profession,
         status__in=['accepted', 'graded']
-    ).values('homework__lesson_id').distinct().count()
+    ).values('homework_id').distinct().count()
     
     completed = watched_videos + completed_tests + completed_homeworks
     
