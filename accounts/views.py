@@ -1076,7 +1076,12 @@ def profession_detail(request, pk):
     if is_enrolled and request.user.is_student:
         # Barcha bo'limlardagi barcha darslar (lug'at bundan mustasno) tugatilganmi
         all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
-        if all_lessons.exists():
+        # Bo'limlar mavjud lekin ichida dars yo'q bo'lsa — kurs tugallanmagan
+        course_sections = profession.sections.filter(is_active=True)
+        has_empty_section = any(
+            not s.lessons.exists() for s in course_sections
+        ) if course_sections.exists() else False
+        if all_lessons.exists() and not has_empty_section:
             completed_ids = set(
                 lid for lid, prog in lesson_progress.items() if prog.get('completed')
             )
@@ -1101,6 +1106,7 @@ def profession_detail(request, pk):
         'classmates': classmates,
         'course_teachers': course_teachers,
         'course_completed': course_completed,
+        'has_empty_section': has_empty_section if is_enrolled and request.user.is_student else False,
         'certificate': certificate,
         'certificate_request': certificate_request,
     })
@@ -1375,6 +1381,12 @@ def request_certificate(request, pk):
     existing = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
     if existing:
         messages.info(request, "Sizning sertifikat so'rovingiz allaqachon yuborilgan. Admin tasdiqlashini kuting.")
+        return redirect('profession_detail', pk=pk)
+    
+    # Bo'limlar ichida dars yo'q bo'lsa — so'rov yuborish mumkin emas
+    course_sections = profession.sections.filter(is_active=True)
+    if course_sections.exists() and any(not s.lessons.exists() for s in course_sections):
+        messages.error(request, "Kurs hali to'liq yuklanmagan. Ustoz barcha bo'limlarga dars qo'shishi kerak!")
         return redirect('profession_detail', pk=pk)
     
     # Kurs tugatilganligini tekshirish
