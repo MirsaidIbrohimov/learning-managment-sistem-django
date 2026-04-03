@@ -2010,16 +2010,68 @@ def _check_similarity_with_others(homework, current_submission, student_answer):
     }
 
 
-def _check_ai_generated(homework_description, student_answer):
-    """Javob suniy intellekt yordamida yozilganligini tekshirish — QATTIQ REJIM"""
+def _get_student_writing_profile(student, current_submission_pk=None):
+    """O'quvchining oldingi qabul qilingan javoblaridan yozish uslubini yig'ish"""
+    previous_subs = HomeworkSubmission.objects.filter(
+        student=student,
+        status__in=['accepted', 'graded'],
+    ).exclude(
+        pk=current_submission_pk
+    ).order_by('-submitted_at')[:10]
+
+    previous_answers = []
+    for sub in previous_subs:
+        content = _read_submission_content(sub)
+        if content and len(content.strip()) > 20:
+            snippet = content[:800] if len(content) > 800 else content
+            previous_answers.append(snippet)
+        if len(previous_answers) >= 5:
+            break
+
+    return previous_answers
+
+
+def _check_ai_generated(homework_description, student_answer, student=None, current_submission_pk=None):
+    """Javob suniy intellekt yordamida yozilganligini tekshirish — QATTIQ REJIM + o'quvchi profili"""
     import json
     from django.conf import settings
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
     if not api_key or not api_key.strip():
         return None
+
+    # O'quvchining oldingi javoblarini yig'ish
+    previous_answers = []
+    if student:
+        previous_answers = _get_student_writing_profile(student, current_submission_pk)
+
+    # Oldingi javoblar bo'limini tayyorlash
+    profile_section = ""
+    if previous_answers:
+        profile_section = (
+            "\n\n📊 O'QUVCHINING OLDINGI QABUL QILINGAN JAVOBLARI (uslub namunasi):\n"
+            "Bu javoblar o'qituvchi tomonidan tekshirilgan va qabul qilingan — bu o'quvchining HAQIQIY yozish uslubi.\n"
+            "Hozirgi javobni SHU uslub bilan solishtiring!\n\n"
+        )
+        for i, ans in enumerate(previous_answers, 1):
+            profile_section += f"--- Oldingi javob #{i} ---\n{ans}\n\n"
+        profile_section += (
+            "🔑 MUHIM TAHLIL QOIDALARI:\n"
+            "- Agar hozirgi javob oldingi javoblardan KESKIN FARQ QILSA (uslub, murakkablik, til, sifat) → bu AI belgisi!\n"
+            "- Agar o'quvchi oldin oddiy kod yozgan, endi birdan professional darajada yozsa → AI!\n"
+            "- Agar o'quvchi oldin o'zbekcha o'zgaruvchi ishlatgan, endi professional inglizcha → AI!\n"
+            "- Agar o'quvchi oldin izohsiz yozgan, endi har qatorga izoh yozgan → AI!\n"
+            "- Agar o'quvchi oldin xatolar qilgan, endi mukammal kod yozgan → AI!\n"
+            "- Agar uslub o'xshash bo'lsa va tabiiy rivojlanish ko'rinsa → bu AI EMAS\n"
+        )
+    else:
+        profile_section = (
+            "\n\n⚠️ Bu o'quvchining BIRINCHI topshirig'i — oldingi javoblar mavjud emas.\n"
+            "Shuning uchun faqat AI belgilariga qarab tekshiring.\n"
+        )
+
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=api_key.strip(), timeout=45)
+        client = OpenAI(api_key=api_key.strip(), timeout=60)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -2032,63 +2084,83 @@ def _check_ai_generated(homework_description, student_answer):
                         "🚨 SIZNING VAZIFANGIZ JUDA MUHIM! AI dan ko'chirib olish — bu ALDASH!\n"
                         "O'quvchilar ChatGPT, Gemini, Claude kabi AI toollardan foydalanib javob yozmoqda.\n"
                         "Buni aniqlab, adolatli muhit yaratishingiz kerak.\n\n"
+                        "📋 TEKSHIRUV TARTIBI:\n"
+                        "1-QADAM: Avval o'quvchining OLDINGI javoblarini o'qing (agar mavjud bo'lsa)\n"
+                        "2-QADAM: Hozirgi javobni oldingi javoblar USLUBI bilan solishtiring\n"
+                        "3-QADAM: Uslubdagi KESKIN farqlarni aniqlang\n"
+                        "4-QADAM: Umumiy AI belgilarini tekshiring\n\n"
                         "🔍 AI BELGILARI — quyidagilardan KAMIDA 2 TASI bo'lsa AI deb belgilang:\n"
-                        "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'of course', 'step by step', "
+                        "1. USLUB FARQI: O'quvchining oldingi javoblaridagi uslubdan KESKIN farq qiladi "
+                        "(masalan: oldin oddiy kod yozgan, endi birdan professional)\n"
+                        "2. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'of course', 'step by step', "
                         "'I'd be happy to', 'As you can see', 'Let's break this down', 'Here's a', "
                         "'Note that', 'Keep in mind', 'Feel free' kabi iboralar\n"
-                        "2. CHATGPT FORMATI: Qadam-baqadam tushuntirish, markdown formatlashtirish (###, **bold**), "
+                        "3. CHATGPT FORMATI: Qadam-baqadam tushuntirish, markdown formatlashtirish (###, **bold**), "
                         "raqamlangan ro'yxatlar bilan professional tushuntirish\n"
-                        "3. HADDAN TASHQARI TUSHUNTIRISH: Oddiy vazifa — lekin javob juda uzun, "
+                        "4. HADDAN TASHQARI TUSHUNTIRISH: Oddiy vazifa — lekin javob juda uzun, "
                         "har bir qator uchun batafsil izoh yozilgan, o'quvchi darajasiga mos kelmaydi\n"
-                        "4. ORTIQCHA KOD: Vazifada so'ralmagan try/except, error handling, type hints, "
+                        "5. ORTIQCHA KOD: Vazifada so'ralmagan try/except, error handling, type hints, "
                         "docstring, decorator, class ishlatilgan. Boshlang'ich o'quvchi bularni bilmaydi!\n"
-                        "5. PROFESSIONAL INGLIZCHA IZOHLAR: Barcha commentlar professional ingliz tilida, "
+                        "6. PROFESSIONAL INGLIZCHA IZOHLAR: Barcha commentlar professional ingliz tilida, "
                         "grammatik xatosiz, mukammal tushuntirishlar\n"
-                        "6. MUKAMMAL STRUKTURA: Kod haddan tashqari tartibli, PEP8 standartiga to'liq mos, "
+                        "7. MUKAMMAL STRUKTURA: Kod haddan tashqari tartibli, PEP8 standartiga to'liq mos, "
                         "boshlang'ich o'quvchi kodidan ko'ra ancha professional\n"
-                        "7. NOODATIY BILIM: O'quvchi darajasiga mos bo'lmagan murakkab konseptlar "
+                        "8. NOODATIY BILIM: O'quvchi darajasiga mos bo'lmagan murakkab konseptlar "
                         "(lambda, generators, comprehension ichida comprehension, OOP patterns)\n"
-                        "8. COPY-PASTE BELGILARI: Javobda foydalanilmagan import, "
-                        "vazifaga aloqasi yo'q qo'shimcha funksiyalar mavjud\n\n"
+                        "9. COPY-PASTE BELGILARI: Javobda foydalanilmagan import, "
+                        "vazifaga aloqasi yo'q qo'shimcha funksiyalar mavjud\n"
+                        "10. KOD SIFATI SAKRASHI: Oldingi javoblarda xatolar qilgan o'quvchi "
+                        "birdan mukammal, xatosiz, professional kod yozgan\n\n"
                         "✅ Bu AI EMAS — haqiqiy o'quvchi belgilari:\n"
                         "- Javob qisqa va sodda, faqat kerakli kodni yozgan\n"
                         "- O'zbekcha o'zgaruvchi nomlari (son, natija, yosh)\n"
                         "- Kichik typo, stilistik xatolar, indentatsiya muammolari bor\n"
                         "- Oddiy print, input, if/else, for ishlatgan — izohsiz\n"
                         "- Javobda izoh (comment) UMUMAN yo'q yoki juda kam\n"
-                        "- Kod ishlaydi lekin optimal emas (bu normal, o'rganmoqda)\n\n"
+                        "- Kod ishlaydi lekin optimal emas (bu normal, o'rganmoqda)\n"
+                        "- Oldingi javoblarga O'XSHASH uslubda yozilgan\n"
+                        "- Tabiiy rivojlanish ko'rinadi (asta-sekin yaxshilanmoqda)\n\n"
                         "⚠️ QOIDALAR:\n"
                         "- 2 ta yoki undan ko'p AI belgisi bo'lsa → is_ai: true\n"
+                        "- Oldingi javoblar bilan KESKIN uslub farqi bo'lsa → confidence +20 qo'shing\n"
+                        "- Oldingi javoblar bilan uslub O'XSHASH bo'lsa → confidence -15 ayiring\n"
                         "- Boshlang'ich o'quvchi professional darajada javob yoza OLMAYDI\n"
                         "- Haddan tashqari uzun izohlar va tushuntirishlar = AI\n"
                         "- confidence 60 dan past bo'lsa is_ai: false\n"
                         "- SHUBHALI bo'lsa — AI deb belgilang, chunki aldash oqibati og'ir!\n\n"
                         "Faqat JSON formatda javob bering:\n"
-                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida aniq sabab, qaysi belgilar topilgani>"}\n\n'
+                        '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida aniq sabab>", '
+                        '"style_match": "<oldingi javoblar bilan uslub mos keladi yoki yo\'q — qisqa izoh>"}\n\n'
                         "- is_ai: 2+ belgi bo'lganda true\n"
                         "- confidence: Ishonch darajasi (60+ bo'lsa is_ai: true bo'lishi mumkin)\n"
-                        "- reason: O'zbek tilida 2-3 gapda ANIQ sabablarni ko'rsating"
+                        "- reason: O'zbek tilida 2-3 gapda ANIQ sabablarni ko'rsating\n"
+                        "- style_match: Oldingi javoblar bilan solishtirish natijasi"
                     )
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Vazifa tavsifi:\n{homework_description}\n\n"
-                        f"O'quvchining javobi:\n{student_answer}"
+                        f"O'quvchining hozirgi javobi:\n{student_answer}"
+                        f"{profile_section}"
                     )
                 }
             ],
-            max_tokens=400,
+            max_tokens=500,
             temperature=0.05,
         )
         result_text = response.choices[0].message.content.strip()
         if result_text.startswith('```'):
             result_text = result_text.split('\n', 1)[1].rsplit('```', 1)[0].strip()
         result = json.loads(result_text)
+        reason = result.get('reason', '')
+        style_match = result.get('style_match', '')
+        if style_match:
+            reason = f"{reason}\n📊 Uslub tahlili: {style_match}"
         return {
             'is_ai': bool(result.get('is_ai', False)),
             'confidence': min(100, max(0, int(result.get('confidence', 0)))),
-            'reason': result.get('reason', ''),
+            'reason': reason,
         }
     except Exception as e:
         print(f"AI check error: {e}")
@@ -2317,7 +2389,7 @@ def submit_homework(request, pk):
 
                 if student_answer:
                     # 1. AI plagiat tekshiruvi
-                    ai_check = _check_ai_generated(hw.description, student_answer)
+                    ai_check = _check_ai_generated(hw.description, student_answer, student=sub.student, current_submission_pk=sub.pk)
                     if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 60:
                         sub.status = 'revision'
                         confidence = ai_check['confidence']
