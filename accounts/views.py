@@ -3332,8 +3332,7 @@ def leaderboard(request):
     professions = Profession.objects.all()
 
     if tab == 'score':
-        from accounts.models import Section, Lesson, VideoProgress, HomeworkSubmission, TestResult
-        from collections import defaultdict
+        from accounts.models import HomeworkSubmission
 
         cache_key = f'leaderboard_score_{profession_id or "all"}_{search_query}'
         cached = cache.get(cache_key)
@@ -3365,82 +3364,23 @@ def leaderboard(request):
 
         student_ids = list(students_qs.values_list('id', flat=True))
 
-        # Bo'limlar va darslarni bir marta yuklash
+        # Uy vazifasi ballari bo'yicha score hisoblash
+        hw_filter = Q(student_id__in=student_ids, status='graded', grade__isnull=False)
         if profession_id:
-            sections = Section.objects.filter(profession_id=profession_id, is_active=True).prefetch_related('lessons')
-        else:
-            enrolled_prof_ids = set(
-                CourseEnrollment.objects.filter(user_id__in=student_ids)
-                .values_list('profession_id', flat=True)
-            )
-            sections = Section.objects.filter(
-                profession_id__in=enrolled_prof_ids, is_active=True
-            ).prefetch_related('lessons')
+            hw_filter &= Q(homework__lesson__profession_id=profession_id)
 
-        # Section -> lessons mapping
-        section_lessons = {}
-        for section in sections:
-            lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
-            if lessons:
-                section_lessons[section.pk] = {
-                    'profession_id': section.profession_id,
-                    'lessons': [(l.pk, l.lesson_type) for l in lessons],
-                }
-
-        # Bulk fetch: barcha completion ma'lumotlari
-        watched_set = set(
-            VideoProgress.objects.filter(
-                user_id__in=student_ids, watched=True
-            ).values_list('user_id', 'video__lesson_id')
-        )
-        passed_test_set = set(
-            TestResult.objects.filter(
-                student_id__in=student_ids, passed=True
-            ).values_list('student_id', 'test__lesson_id')
-        )
-        accepted_hw_set = set(
-            HomeworkSubmission.objects.filter(
-                student_id__in=student_ids,
-                status__in=['accepted', 'graded']
-            ).values_list('student_id', 'homework__lesson_id')
+        hw_scores = dict(
+            HomeworkSubmission.objects.filter(hw_filter)
+            .values('student_id')
+            .annotate(total_grade=Sum('grade'))
+            .values_list('student_id', 'total_grade')
         )
 
-        # Student enrollment mapping
-        student_enrollments = defaultdict(set)
-        for uid, pid in CourseEnrollment.objects.filter(
-            user_id__in=student_ids
-        ).values_list('user_id', 'profession_id'):
-            student_enrollments[uid].add(pid)
-
-        # Har bir student uchun score hisoblash (DB siz)
         scored_data = []
         for sid in student_ids:
-            completed_sections = 0
-            enrolled_pids = student_enrollments.get(sid, set())
-
-            for sec_id, sec_info in section_lessons.items():
-                if not profession_id and sec_info['profession_id'] not in enrolled_pids:
-                    continue
-
-                all_done = True
-                for lesson_id, lesson_type in sec_info['lessons']:
-                    if lesson_type == 'video':
-                        done = (sid, lesson_id) in watched_set
-                    elif lesson_type == 'homework':
-                        done = (sid, lesson_id) in accepted_hw_set
-                    elif lesson_type == 'test':
-                        done = (sid, lesson_id) in passed_test_set
-                    else:
-                        done = True
-                    if not done:
-                        all_done = False
-                        break
-
-                if all_done:
-                    completed_sections += 1
-
-            if completed_sections > 0 or not search_query:
-                scored_data.append({'id': sid, 'score': completed_sections})
+            total_hw_score = hw_scores.get(sid, 0) or 0
+            if total_hw_score > 0 or not search_query:
+                scored_data.append({'id': sid, 'score': total_hw_score})
 
         scored_data.sort(key=lambda s: s['score'], reverse=True)
 
