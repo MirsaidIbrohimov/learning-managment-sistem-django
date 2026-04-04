@@ -1289,16 +1289,11 @@ def enroll_course(request, pk):
         messages.info(request, f"Siz allaqachon '{profession.name}' kursiga yozilgansiz!")
         return redirect('profession_detail', pk=pk)
     
-    # Maksimum 3 ta kursda o'qiy oladi (enrollment + pending so'rovlar)
-    enrolled_count = CourseEnrollment.objects.filter(user=request.user).count()
-    pending_count = CourseEnrollmentRequest.objects.filter(user=request.user, status='pending').count()
-    total_active = enrolled_count + pending_count
-    if total_active >= 3:
-        messages.warning(request, f"Siz allaqachon {enrolled_count} ta kursda o'qiyapsiz va {pending_count} ta so'rovingiz kutilmoqda. Maksimum 3 ta kurs. Yangi kursga yozilish uchun avval biror kursdan chiqing.")
-        return redirect('professions')
-    
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
     if not profession.is_paid:
+        # Eski so'rovlarni tozalash (qayta yozilishga to'sqinlik qilmasligi uchun)
+        CourseUnenrollRequest.objects.filter(user=request.user, profession=profession).delete()
+        CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).delete()
         _, created = CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
         if created:
             # Qayta yozilish bo'lsa — eski progressni tozalash
@@ -1319,11 +1314,8 @@ def enroll_course(request, pk):
         if existing_request.status == 'pending':
             messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz admin tomonidan ko'rib chiqilmoqda.")
             return redirect('profession_detail', pk=pk)
-        elif existing_request.status == 'approved':
-            messages.info(request, f"Sizning '{profession.name}' kursiga so'rovingiz allaqachon tasdiqlangan.")
-            return redirect('profession_detail', pk=pk)
-        elif existing_request.status == 'rejected':
-            # Rad etilgan so'rovni o'chirib, qayta so'rov yuborishga ruxsat berish
+        elif existing_request.status in ('approved', 'rejected'):
+            # Eski so'rovni o'chirib, qayta so'rov yuborishga ruxsat berish
             existing_request.delete()
     
     if request.method == 'POST':
@@ -6307,8 +6299,11 @@ def admin_add_student_to_course(request, profession_pk):
                 messages.info(request, f"{student.full_name} allaqachon '{profession.name}' kursiga yozilgan!")
             else:
                 CourseEnrollment.objects.create(user=student, profession=profession)
-                # Remove any pending enrollment request
+                # Eski so'rovlarni tozalash (qayta yozilishga to'sqinlik qilmasligi uchun)
                 CourseEnrollmentRequest.objects.filter(user=student, profession=profession).delete()
+                CourseUnenrollRequest.objects.filter(user=student, profession=profession).delete()
+                # Qayta yozilish bo'lsa — eski progressni tozalash
+                _reset_course_progress(student, profession)
                 messages.success(request, f"{student.full_name} '{profession.name}' kursiga muvaffaqiyatli qo'shildi!")
     
     return redirect('admin_professions')
@@ -8998,6 +8993,11 @@ def approve_enrollment_request(request, pk):
         enrollment_request.status = 'approved'
         enrollment_request.reviewed_by = request.user
         enrollment_request.save()
+        
+        # Eski chiqish so'rovlarini tozalash
+        CourseUnenrollRequest.objects.filter(
+            user=enrollment_request.user, profession=enrollment_request.profession
+        ).delete()
         
         # Kursga yozish
         _, created = CourseEnrollment.objects.get_or_create(
