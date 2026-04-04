@@ -49,6 +49,11 @@ def unlink_telegram(request):
     return redirect('profile')
 
 
+def bot_health(request):
+    """Health check — serverni uyg'oq tutish uchun"""
+    return JsonResponse({'status': 'ok', 'bot': 'alive'})
+
+
 @csrf_exempt
 @require_POST
 def bot_webhook(request):

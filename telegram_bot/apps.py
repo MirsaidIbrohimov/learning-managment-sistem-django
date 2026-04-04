@@ -40,43 +40,62 @@ class TelegramBotConfig(AppConfig):
             t.start()
 
     def _setup_webhook(self):
-        """Production serverda webhook o'rnatish"""
+        """Production serverda webhook o'rnatish (retry bilan)"""
+        import time
         import requests
         from django.conf import settings
-        
+
         bot_token = settings.TELEGRAM_BOT_TOKEN
         site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
         if not site_url:
             print("SITE_URL sozlanmagan, webhook o'rnatilmadi!")
             return
-        
+
         webhook_url = f"{site_url}/telegram/webhook/"
-        try:
-            # Avval mavjud webhookni tekshirish
-            resp = requests.get(
-                f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
-                timeout=10
-            )
-            info = resp.json().get('result', {})
-            current_url = info.get('url', '')
-            
-            if current_url == webhook_url:
-                print(f"Telegram webhook allaqachon o'rnatilgan: {webhook_url}")
-                return
-            
-            # Webhook o'rnatish
-            resp = requests.post(
-                f"https://api.telegram.org/bot{bot_token}/setWebhook",
-                json={'url': webhook_url},
-                timeout=10
-            )
-            result = resp.json()
-            if result.get('ok'):
-                print(f"Telegram webhook o'rnatildi: {webhook_url}")
-            else:
-                print(f"Webhook o'rnatishda xatolik: {result}")
-        except Exception as e:
-            print(f"Webhook setup xatolik: {e}")
+
+        for attempt in range(3):
+            try:
+                # Avval mavjud webhookni tekshirish
+                resp = requests.get(
+                    f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
+                    timeout=10
+                )
+                info = resp.json().get('result', {})
+                current_url = info.get('url', '')
+                last_error = info.get('last_error_message', '')
+
+                if current_url == webhook_url and not last_error:
+                    print(f"Telegram webhook allaqachon o'rnatilgan: {webhook_url}")
+                    return
+
+                if last_error:
+                    print(f"Webhook xatolik bor, qayta o'rnatilmoqda: {last_error}")
+                    # Xatolik bo'lsa avval o'chirish
+                    requests.post(
+                        f"https://api.telegram.org/bot{bot_token}/deleteWebhook",
+                        timeout=10
+                    )
+                    time.sleep(1)
+
+                # Webhook o'rnatish
+                resp = requests.post(
+                    f"https://api.telegram.org/bot{bot_token}/setWebhook",
+                    json={
+                        'url': webhook_url,
+                        'max_connections': 40,
+                    },
+                    timeout=10
+                )
+                result = resp.json()
+                if result.get('ok'):
+                    print(f"Telegram webhook o'rnatildi: {webhook_url}")
+                    return
+                else:
+                    print(f"Webhook o'rnatishda xatolik: {result}")
+            except Exception as e:
+                print(f"Webhook setup xatolik (urinish {attempt + 1}): {e}")
+
+            time.sleep(3)
 
     def _run_bot(self):
         import time
