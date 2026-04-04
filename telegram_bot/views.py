@@ -395,7 +395,12 @@ def bot_webhook(request):
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
         if chat_state:
-            _handle_ai_chat_image(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state)
+            import threading
+            threading.Thread(
+                target=_handle_ai_chat_image,
+                args=(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state),
+                daemon=True,
+            ).start()
             return JsonResponse({'ok': True})
 
     # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
@@ -403,7 +408,12 @@ def bot_webhook(request):
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
         if chat_state:
-            _handle_ai_chat_message(bot_token, chat['id'], telegram_id, text, chat_state)
+            import threading
+            threading.Thread(
+                target=_handle_ai_chat_message,
+                args=(bot_token, chat['id'], telegram_id, text, chat_state),
+                daemon=True,
+            ).start()
             return JsonResponse({'ok': True})
 
     # Xabar yozish rejimida bo'lsa — aloqa xabari sifatida saqlash
@@ -546,23 +556,29 @@ def _send_message(bot_token, chat_id, text):
     """Telegram API orqali xabar yuborish"""
     import requests
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    requests.post(url, json={
-        'chat_id': chat_id,
-        'text': text,
-        'parse_mode': 'HTML'
-    })
+    try:
+        requests.post(url, json={
+            'chat_id': chat_id,
+            'text': text,
+            'parse_mode': 'HTML'
+        }, timeout=10)
+    except Exception:
+        pass
 
 
 def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
     """Telegram API orqali keyboard bilan xabar yuborish"""
     import requests
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    requests.post(url, json={
-        'chat_id': chat_id,
-        'text': text,
-        'parse_mode': 'HTML',
-        'reply_markup': reply_markup,
-    })
+    try:
+        requests.post(url, json={
+            'chat_id': chat_id,
+            'text': text,
+            'parse_mode': 'HTML',
+            'reply_markup': reply_markup,
+        }, timeout=10)
+    except Exception:
+        pass
 
 
 def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
