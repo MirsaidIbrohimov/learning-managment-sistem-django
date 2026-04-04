@@ -17,6 +17,17 @@ class Command(BaseCommand):
             self.stderr.write("❌ TELEGRAM_BOT_TOKEN sozlanmagan!")
             return
 
+        # ⚠️ Serverda webhook ishlayotgan bo'lsa, polling ishga tushirmaslik
+        site_url = getattr(settings, 'SITE_URL', '')
+        if site_url and 'localhost' not in site_url and '127.0.0.1' not in site_url:
+            self.stderr.write(self.style.WARNING(
+                "⚠️ DIQQAT: SITE_URL o'rnatilgan — serverda webhook rejimi ishlaydi!\n"
+                "   Polling ishga tushirish serverdagi webhookni buzadi.\n"
+                "   Davom ettirish uchun --force flagini qo'shing."
+            ))
+            if '--force' not in options and not any(a == '--force' for a in (options.get('args', []) or [])):
+                return
+
         self.stdout.write(self.style.SUCCESS("🤖 Telegram bot ishga tushdi (polling)..."))
         self.stdout.write(f"   Bot: @{settings.TELEGRAM_BOT_USERNAME}")
 

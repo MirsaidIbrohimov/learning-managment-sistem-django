@@ -103,15 +103,25 @@ class TelegramBotConfig(AppConfig):
         from django.conf import settings
 
         bot_token = settings.TELEGRAM_BOT_TOKEN
+
+        # ⚠️ MUHIM: Agar SITE_URL o'rnatilgan bo'lsa, serverda webhook ishlaydi
+        # Lokalda polling ishga tushirish serverdagi webhookni buzadi!
+        site_url = getattr(settings, 'SITE_URL', '')
+        if site_url and 'localhost' not in site_url and '127.0.0.1' not in site_url:
+            print(f"\n⚠️ DIQQAT: Serverda webhook rejimi ishlamoqda!")
+            print(f"   Lokalda polling ishga tushirilsa, serverdagi webhook buziladi!")
+            print(f"   Polling bekor qilindi. Serverda webhook ishlaydi.\n")
+            return
+
         try:
-            print(f"\n Telegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
+            print(f"\n Telegram bot ishga tushdi (polling): @{settings.TELEGRAM_BOT_USERNAME}\n")
         except UnicodeEncodeError:
-            print(f"\nTelegram bot ishga tushdi: @{settings.TELEGRAM_BOT_USERNAME}\n")
+            print(f"\nTelegram bot ishga tushdi (polling): @{settings.TELEGRAM_BOT_USERNAME}\n")
 
         # Session yaratish — TCP connectionlarni qayta ishlatish
         self._session = requests.Session()
 
-        # Webhookni o'chirish
+        # Webhookni o'chirish (faqat lokal uchun)
         try:
             self._session.get(f"https://api.telegram.org/bot{bot_token}/deleteWebhook", timeout=10)
         except Exception:

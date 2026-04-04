@@ -1,4 +1,5 @@
 import json
+import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -12,6 +13,8 @@ from django.db.models import Q
 
 from accounts.models import CustomUser
 from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage, TelegramBroadcastMessage
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -64,6 +67,10 @@ def bot_webhook(request):
         return JsonResponse({'ok': False})
 
     message = data.get('message', {})
+    if not message:
+        # callback_query yoki boshqa update turlarini ham tekshirish
+        return JsonResponse({'ok': True})
+
     text = message.get('text', '')
     caption = message.get('caption', '')
     photo = message.get('photo')
@@ -77,6 +84,10 @@ def bot_webhook(request):
 
     from django.conf import settings
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+
+    if not bot_token:
+        logger.error("TELEGRAM_BOT_TOKEN sozlanmagan!")
+        return JsonResponse({'ok': True})
 
     if text.startswith('/start'):
         parts = text.split()
@@ -562,13 +573,15 @@ def _send_message(bot_token, chat_id, text):
     import requests
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     try:
-        requests.post(url, json={
+        resp = requests.post(url, json={
             'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML'
         }, timeout=10)
-    except Exception:
-        pass
+        if not resp.json().get('ok'):
+            logger.error(f"sendMessage xatolik: {resp.text}")
+    except Exception as e:
+        logger.error(f"sendMessage exception: {e}")
 
 
 def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
@@ -576,14 +589,16 @@ def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
     import requests
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     try:
-        requests.post(url, json={
+        resp = requests.post(url, json={
             'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML',
             'reply_markup': reply_markup,
         }, timeout=10)
-    except Exception:
-        pass
+        if not resp.json().get('ok'):
+            logger.error(f"sendMessage xatolik: {resp.text}")
+    except Exception as e:
+        logger.error(f"sendMessage exception: {e}")
 
 
 def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
