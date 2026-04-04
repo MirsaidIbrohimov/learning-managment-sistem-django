@@ -885,52 +885,44 @@ def teacher_grade_homework(request, pk):
                 student=submission.student,
                 current_submission_pk=submission.pk
             )
-            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 60:
-                submission.status = 'revision'
-                submission.feedback = (
-                    f"🚫 AI PLAGIAT ANIQLANDI! (ishonch: {ai_check['confidence']}%)\n\n"
-                    f"📋 Sabab: {ai_check['reason']}\n\n"
-                    f"⚠️ O'quvchi vazifani qayta mustaqil bajarishi kerak."
+            ai_warning = ""
+            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 75:
+                ai_warning = (
+                    f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
+                    f"(ishonch: {ai_check['confidence']}%).\n"
+                    f"📋 Sabab: {ai_check['reason']}"
                 )
-                submission.ai_feedback = submission.feedback
-                submission.graded_by = request.user
-                submission.graded_at = timezone.now()
-                submission.save()
-                messages.warning(request, f"🚫 AI plagiat aniqlandi! (ishonch: {ai_check['confidence']}%)")
-                return redirect('teacher:homeworks')
             
-            # 2. O'xshashlik (plagiat) tekshirish
+            # 2. O'xshashlik tekshirish
             similarity_result = _check_similarity_with_others(hw, submission, student_answer)
             if similarity_result and similarity_result['is_plagiat']:
-                submission.status = 'revision'
-                submission.feedback = (
-                    f"🔄 Kod ko'chirish aniqlandi! "
-                    f"{similarity_result['similar_to']} bilan {similarity_result['similarity']}% o'xshash.\n\n"
-                    f"📋 Sabab: {similarity_result['reason']}\n\n"
-                    f"⚠️ O'quvchi vazifani mustaqil bajarishi kerak."
+                ai_warning += (
+                    f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
+                    f"{similarity_result['similarity']}% o'xshash.\n"
+                    f"📋 {similarity_result['reason']}"
                 )
-                submission.ai_feedback = submission.feedback
-                submission.graded_by = request.user
-                submission.graded_at = timezone.now()
-                submission.save()
-                messages.warning(request, f"🔄 Kod ko'chirish aniqlandi! ({similarity_result['similarity']}% o'xshashlik)")
-                return redirect('teacher:homeworks')
             
-            # 3. Avtomatik baholash
+            # 3. Baholash
             ai_result = _get_ai_grade(hw.description, student_answer)
             if not ai_result:
                 messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
                 return redirect('teacher:grade_homework', pk=pk)
             
             submission.grade = ai_result['grade']
-            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-            submission.ai_feedback = submission.feedback
+            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+            if ai_warning:
+                feedback_text += ai_warning
+            submission.feedback = feedback_text
+            submission.ai_feedback = feedback_text
             submission.status = ai_result['status']
             submission.graded_by = request.user
             submission.graded_at = timezone.now()
             submission.save()
             
-            messages.success(request, f"AI baholadi: {submission.grade} ball ({submission.get_status_display()})")
+            if ai_warning:
+                messages.warning(request, f"AI baholadi: {submission.grade} ball. ⚠️ Shubhali belgilar aniqlandi — tekshirib ko'ring.")
+            else:
+                messages.success(request, f"AI baholadi: {submission.grade} ball ({submission.get_status_display()})")
             return redirect('teacher:homeworks')
         
         grade = request.POST.get('grade')

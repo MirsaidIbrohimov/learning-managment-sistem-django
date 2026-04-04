@@ -2391,123 +2391,96 @@ def submit_homework(request, pk):
                 student_answer = _read_submission_content(sub)
 
                 if student_answer:
-                    # 1. AI plagiat tekshiruvi (faqat teacher/adminga xabar — jarima yo'q)
+                    # 1. AI plagiat va o'xshashlik tekshiruvi
+                    ai_warning = ""
+                    has_suspicion = False
+
                     ai_check = _check_ai_generated(hw.description, student_answer, student=sub.student, current_submission_pk=sub.pk)
                     if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 75:
+                        has_suspicion = True
                         confidence = ai_check['confidence']
-                        sub.ai_feedback = (
-                            f"🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
-                            f"(ishonch: {confidence}%).\n\n"
-                            f"📋 Sabab: {ai_check['reason']}\n\n"
-                            f"📌 Vazifa ustoz/admin ko'rib chiqishi uchun yuborildi."
-                        )
-                        sub.save(update_fields=['ai_feedback'])
-
-                        # Teacher va adminga xabar
-                        teachers = hw.lesson.profession.teachers.all()
-                        for teacher in teachers:
-                            Message.objects.create(
-                                title="🔍 AI shubhasi — tekshirish kerak",
-                                content=(
-                                    f"👤 O'quvchi: {sub.student.full_name}\n"
-                                    f"📚 Kurs: {hw.lesson.profession.name}\n"
-                                    f"📖 Vazifa: {hw.lesson.title}\n\n"
-                                    f"🔢 AI ishonch darajasi: {confidence}%\n"
-                                    f"📋 Sabab: {ai_check['reason']}\n\n"
-                                    f"Iltimos, vazifani tekshirib, o'zingiz baho bering."
-                                ),
-                                message_type='personal', recipient=teacher,
-                                sender=sub.student
-                            )
-                        notify_admins(
-                            f"🔍 <b>AI shubhasi</b>\n\n"
-                            f"👤 {sub.student.first_name} {sub.student.last_name}\n"
-                            f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
-                            f"📋 {ai_check['reason']}\n🔢 Ishonch: {confidence}%\n\n"
-                            f"⚠️ Vazifani tekshirib, baho bering."
+                        ai_warning += (
+                            f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
+                            f"(ishonch: {confidence}%).\n"
+                            f"📋 Sabab: {ai_check['reason']}"
                         )
 
-                    # 2. O'xshashlik (plagiat) tekshirish (faqat xabar — jarima yo'q)
                     similarity_result = _check_similarity_with_others(hw, sub, student_answer)
                     if similarity_result and similarity_result['is_plagiat']:
-                        similar_user = similarity_result['similar_to']
-                        similarity_pct = similarity_result['similarity']
-                        existing_feedback = sub.ai_feedback or ''
-                        sub.ai_feedback = (
-                            f"{existing_feedback}\n\n"
-                            f"🔄 O'xshashlik: Javobingiz {similar_user} ning javobiga "
-                            f"{similarity_pct}% o'xshash.\n"
-                            f"📋 {similarity_result['reason']}\n\n"
-                            f"📌 Vazifa ustoz/admin ko'rib chiqishi uchun yuborildi."
-                        ).strip()
-                        sub.save(update_fields=['ai_feedback'])
-
-                        teachers = hw.lesson.profession.teachers.all()
-                        for teacher in teachers:
-                            Message.objects.create(
-                                title="🔄 Kod o'xshashligi aniqlandi — tekshirish kerak",
-                                content=(
-                                    f"👤 O'quvchi: {sub.student.full_name}\n"
-                                    f"📚 Kurs: {hw.lesson.profession.name}\n"
-                                    f"📖 Vazifa: {hw.lesson.title}\n\n"
-                                    f"👤 O'xshash: {similar_user}\n"
-                                    f"🔢 O'xshashlik: {similarity_pct}%\n"
-                                    f"📋 {similarity_result['reason']}\n\n"
-                                    f"Iltimos, vazifani tekshirib, o'zingiz baho bering."
-                                ),
-                                message_type='personal', recipient=teacher,
-                                sender=sub.student
-                            )
-                        notify_admins(
-                            f"🔄 <b>Kod o'xshashligi</b>\n\n"
-                            f"👤 {sub.student.first_name} {sub.student.last_name}\n"
-                            f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
-                            f"👤 O'xshash: {similar_user}\n🔢 {similarity_pct}%\n\n"
-                            f"⚠️ Vazifani tekshirib, baho bering."
+                        has_suspicion = True
+                        ai_warning += (
+                            f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
+                            f"{similarity_result['similarity']}% o'xshash.\n"
+                            f"📋 {similarity_result['reason']}"
                         )
 
-                    # 3. Agar shubha yo'q bo'lsa — avtomatik baholash
-                    no_ai_issue = not (ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 75)
-                    no_similarity_issue = not (similarity_result and similarity_result['is_plagiat'])
-                    if no_ai_issue and no_similarity_issue:
-                        ai_result = _get_ai_grade(hw.description, student_answer)
-                        if ai_result:
-                            sub.grade = ai_result['grade']
-                            sub.status = ai_result['status']
-                            sub.graded_at = timezone.now()
-                            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                            sub.ai_feedback = feedback_text
-                            sub.feedback = feedback_text
-                            sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                    # 2. Har doim baholash — shubha bo'lsa teacherga xabar
+                    ai_result = _get_ai_grade(hw.description, student_answer)
+                    if ai_result:
+                        sub.grade = ai_result['grade']
+                        sub.status = ai_result['status']
+                        sub.graded_at = timezone.now()
+                        feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                        if ai_warning:
+                            feedback_text += ai_warning
+                        sub.ai_feedback = feedback_text
+                        sub.feedback = feedback_text
+                        sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
 
-                            if ai_result['status'] == 'graded':
-                                if not sub.coin_awarded:
-                                    coin_amount = 5
-                                    if not sub.is_late:
-                                        coin_amount = 10
-                                    if ai_result['grade'] >= 9:
-                                        coin_amount += 5
-                                    elif ai_result['grade'] >= 8:
-                                        coin_amount += 3
-                                    if sub.student.is_premium:
-                                        coin_amount *= 2
-                                    sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
-                                    sub.coin_awarded = True
-                                    sub.save(update_fields=['coin_awarded'])
-                                    ActivityLog.objects.create(
-                                        user=sub.student, action_type='homework_graded',
-                                        description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                                    )
-                                _notify_ai_graded(sub, ai_result)
-                            else:
-                                _notify_ai_revision(sub, ai_result)
+                        if ai_result['status'] == 'graded':
+                            if not sub.coin_awarded:
+                                coin_amount = 5
+                                if not sub.is_late:
+                                    coin_amount = 10
+                                if ai_result['grade'] >= 9:
+                                    coin_amount += 5
+                                elif ai_result['grade'] >= 8:
+                                    coin_amount += 3
+                                if sub.student.is_premium:
+                                    coin_amount *= 2
+                                sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
+                                sub.coin_awarded = True
+                                sub.save(update_fields=['coin_awarded'])
+                                ActivityLog.objects.create(
+                                    user=sub.student, action_type='homework_graded',
+                                    description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                                )
+                            _notify_ai_graded(sub, ai_result)
                         else:
-                            if request.user.is_premium:
-                                ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
-                                if ai_feedback:
-                                    sub.ai_feedback = ai_feedback
-                                    sub.save(update_fields=['ai_feedback'])
-                            messages.warning(request, "AI baholashda xatolik yuz berdi. Ustoz tekshiradi.")
+                            _notify_ai_revision(sub, ai_result)
+
+                        # Shubha bo'lsa — teacher va adminga xabar
+                        if has_suspicion:
+                            teachers = hw.lesson.profession.teachers.all()
+                            for teacher in teachers:
+                                Message.objects.create(
+                                    title="🔍 Shubhali vazifa — tekshirish kerak",
+                                    content=(
+                                        f"👤 O'quvchi: {sub.student.full_name}\n"
+                                        f"📚 Kurs: {hw.lesson.profession.name}\n"
+                                        f"📖 Vazifa: {hw.lesson.title}\n"
+                                        f"🤖 AI baho: {ai_result['grade']}/10\n"
+                                        f"{ai_warning}\n\n"
+                                        f"Vazifa AI tomonidan baholandi, lekin shubhali belgilar bor. "
+                                        f"Iltimos, tekshirib, kerak bo'lsa bahoni o'zgartiring."
+                                    ),
+                                    message_type='personal', recipient=teacher,
+                                    sender=sub.student
+                                )
+                            notify_admins(
+                                f"🔍 <b>Shubhali vazifa</b>\n\n"
+                                f"👤 {sub.student.first_name} {sub.student.last_name}\n"
+                                f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
+                                f"🤖 AI baho: {ai_result['grade']}/10"
+                                f"{ai_warning}"
+                            )
+                    else:
+                        if request.user.is_premium:
+                            ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
+                            if ai_feedback:
+                                sub.ai_feedback = ai_feedback
+                                sub.save(update_fields=['ai_feedback'])
+                        messages.warning(request, "AI baholashda xatolik yuz berdi. Ustoz tekshiradi.")
 
                 elif sub.submission_type == 'file' and sub.file:
                     import os
