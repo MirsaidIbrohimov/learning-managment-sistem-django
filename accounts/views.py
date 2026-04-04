@@ -32,6 +32,40 @@ from django.core.cache import cache
 from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
+def _reset_course_progress(user, profession):
+    """O'quvchi kursdan chiqib qayta yozilganda barcha progressni tozalash.
+    Video progress, homework submissions, test results, speaking submissions va sertifikatlarni o'chiradi."""
+    # Video progress
+    VideoProgress.objects.filter(
+        user=user,
+        video__lesson__profession=profession
+    ).delete()
+
+    # Homework submissions (va ularga bog'liq messages, revisions cascade bilan o'chadi)
+    HomeworkSubmission.objects.filter(
+        student=user,
+        homework__lesson__profession=profession
+    ).delete()
+
+    # Test results (va ularga bog'liq user_answers cascade bilan o'chadi)
+    TestResult.objects.filter(
+        student=user,
+        test__lesson__profession=profession
+    ).delete()
+
+    # Speaking submissions
+    SpeakingSubmission.objects.filter(
+        student=user,
+        speaking_task__lesson__profession=profession
+    ).delete()
+
+    # Sertifikatlarni bekor qilish
+    Certificate.objects.filter(
+        student=user,
+        profession=profession
+    ).delete()
+
+
 def _generate_ai_article(lesson_title, profession_name):
     """Video mavzusiga qarab AI maqola yaratish (background da ishlamaydi, sync)"""
     from django.conf import settings
@@ -1265,7 +1299,10 @@ def enroll_course(request, pk):
     
     # Bepul kurs - to'g'ridan-to'g'ri yozish (GET yoki POST)
     if not profession.is_paid:
-        CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
+        _, created = CourseEnrollment.objects.get_or_create(user=request.user, profession=profession)
+        if created:
+            # Qayta yozilish bo'lsa — eski progressni tozalash
+            _reset_course_progress(request.user, profession)
         notify_admins(
             f"📚 <b>Kursga yozildi!</b>\n\n"
             f"👤 {request.user.first_name} {request.user.last_name}\n"
@@ -8963,10 +9000,13 @@ def approve_enrollment_request(request, pk):
         enrollment_request.save()
         
         # Kursga yozish
-        CourseEnrollment.objects.get_or_create(
+        _, created = CourseEnrollment.objects.get_or_create(
             user=enrollment_request.user,
             profession=enrollment_request.profession
         )
+        if created:
+            # Qayta yozilish bo'lsa — eski progressni tozalash
+            _reset_course_progress(enrollment_request.user, enrollment_request.profession)
         
         # Foydalanuvchiga xabar yuborish
         Message.objects.create(
