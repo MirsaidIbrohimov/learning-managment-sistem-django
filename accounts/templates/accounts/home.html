@@ -475,41 +475,100 @@ main.main-container {
 
 .hero-empty-state {
     text-align: center;
-    padding: 1.5rem 0 .5rem;
+    padding: 1rem 0 .25rem;
+}
+
+.hero-empty-illustration {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1rem;
+    border-radius: 22px;
+    background: linear-gradient(135deg, rgba(99,102,241,.12) 0%, rgba(139,92,246,.12) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.hero-empty-illustration i {
+    font-size: 1.75rem;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-empty-illustration::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 24px;
+    border: 2px dashed rgba(99,102,241,.2);
+    animation: emptyRotate 12s linear infinite;
+}
+
+@keyframes emptyRotate {
+    to { transform: rotate(360deg); }
+}
+
+.hero-empty-title {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: .35rem;
+}
+
+.hero-empty-desc {
+    font-size: .8rem;
     color: var(--text-muted);
-}
-
-.hero-empty-state i {
-    font-size: 2rem;
-    margin-bottom: .5rem;
-    display: block;
-    opacity: .5;
-}
-
-.hero-empty-state p {
-    font-size: .85rem;
-    margin: 0 0 1rem;
+    margin: 0 0 1.25rem;
+    line-height: 1.5;
 }
 
 .hero-empty-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 20px;
-    border-radius: var(--radius);
-    background: var(--primary);
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: #fff;
-    font-size: .85rem;
+    font-size: .875rem;
     font-weight: 600;
     text-decoration: none;
-    transition: all .2s;
+    transition: all .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 4px 16px rgba(99,102,241,.3);
+    letter-spacing: .01em;
 }
 
 .hero-empty-btn:hover {
     color: #fff;
-    opacity: .9;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(99,102,241,.3);
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 28px rgba(99,102,241,.4);
+}
+
+.hero-empty-btn:active {
+    transform: translateY(0) scale(.98);
+}
+
+.hero-empty-features {
+    display: flex;
+    justify-content: center;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+}
+
+.hero-empty-feat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .7rem;
+    color: var(--text-muted);
+}
+
+.hero-empty-feat i {
+    font-size: .7rem;
+    color: var(--success);
 }
 
 /* --- Mobile dashboard card (below hero, shown only < 1199px) --- */
@@ -2028,14 +2087,19 @@ main.main-container {
                                     {% endfor %}
                                 {% else %}
                                     <div class="hero-empty-state">
-                                        <div class="hero-empty-terminal">
-                                            <div class="line"><span class="prompt">$</span> <span class="cmd">enroll --course</span></div>
-                                            <div class="line"><span class="output">⚠ Hali kursga yozilmagansiz</span></div>
-                                            <div class="line"><span class="prompt">$</span> <span class="cursor"></span></div>
+                                        <div class="hero-empty-illustration">
+                                            <i class="bi bi-mortarboard-fill"></i>
                                         </div>
+                                        <div class="hero-empty-title">Hali kursga yozilmagansiz</div>
+                                        <p class="hero-empty-desc">O'zingizga mos yo'nalishni tanlang va<br>bugun o'qishni boshlang!</p>
                                         <a href="{% url 'professions' %}" class="hero-empty-btn">
-                                            <i class="bi bi-plus-lg"></i> Kursga yozilish
+                                            <i class="bi bi-plus-circle-fill"></i> Kursga yozilish
                                         </a>
+                                        <div class="hero-empty-features">
+                                            <span class="hero-empty-feat"><i class="bi bi-check-circle-fill"></i> Bepul</span>
+                                            <span class="hero-empty-feat"><i class="bi bi-check-circle-fill"></i> Sertifikat</span>
+                                            <span class="hero-empty-feat"><i class="bi bi-check-circle-fill"></i> AI yordam</span>
+                                        </div>
                                     </div>
                                 {% endif %}
                             </div>
