@@ -2229,12 +2229,16 @@ def _get_ai_grade(homework_description, student_answer):
                         '{"grade": <1-10 orasida son>, "status": "<graded yoki revision>", "feedback": "<o\'zbek tilida izoh>"}\n\n'
                         "Qoidalar:\n"
                         "- grade: 1 dan 10 gacha son. Vazifa sifatiga qarab adolatli baho qo'ying\n"
-                        "- status: agar javob juda yomon yoki noto'g'ri bo'lsa 'revision' (qayta ishlash kerak), aks holda 'graded'\n"
+                        "- status: FAQAT javob bo'sh, umuman noto'g'ri yoki vazifaga UMUMAN aloqasi bo'lmasa 'revision' qo'ying\n"
+                        "- status: agar javob qisman bo'lsa ham, to'g'ri yo'nalishda bo'lsa 'graded' qo'ying\n"
                         "- feedback: O'zbek tilida 2-4 gapda izoh yozing. Nimasi yaxshi, nimasi yomon, qanday yaxshilash mumkinligini ayting\n"
                         "- Agar javob bo'sh yoki umuman bog'liq bo'lmasa: grade=1, status=revision\n"
                         "- Agar javob qisman to'g'ri bo'lsa: grade=4-6, status=graded\n"
                         "- Agar javob yaxshi bo'lsa: grade=7-9, status=graded\n"
-                        "- Agar javob mukammal bo'lsa: grade=10, status=graded"
+                        "- Agar javob mukammal bo'lsa: grade=10, status=graded\n\n"
+                        "⚠️ MUHIM: 'revision' statusini JUDA KAM ishlating! Faqat javob BUTUNLAY noto'g'ri bo'lganda.\n"
+                        "Agar o'quvchi harakat qilgan va biror narsa yozgan bo'lsa — 'graded' qo'ying, past baho bering.\n"
+                        "Har safar bir xil javobga BIR XIL baho bering — izchil bo'ling!"
                     )
                 },
                 {
@@ -2246,7 +2250,7 @@ def _get_ai_grade(homework_description, student_answer):
                 }
             ],
             max_tokens=500,
-            temperature=0.2,
+            temperature=0.1,
         )
         result_text = response.choices[0].message.content.strip()
         # JSON ni parse qilish

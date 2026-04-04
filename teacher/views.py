@@ -868,19 +868,63 @@ def teacher_grade_homework(request, pk):
         action = request.POST.get('action', 'grade')
         
         if action == 'ai_grade':
-            from accounts.views import _read_submission_content, _get_ai_grade
+            from accounts.views import (
+                _read_submission_content, _get_ai_grade,
+                _check_ai_generated, _check_similarity_with_others
+            )
             student_answer = _read_submission_content(submission)
             if not student_answer:
                 messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
                 return redirect('teacher:grade_homework', pk=pk)
             
-            ai_result = _get_ai_grade(submission.homework.description, student_answer)
+            hw = submission.homework
+            
+            # 1. AI plagiat tekshiruvi
+            ai_check = _check_ai_generated(
+                hw.description, student_answer,
+                student=submission.student,
+                current_submission_pk=submission.pk
+            )
+            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 60:
+                submission.status = 'revision'
+                submission.feedback = (
+                    f"🚫 AI PLAGIAT ANIQLANDI! (ishonch: {ai_check['confidence']}%)\n\n"
+                    f"📋 Sabab: {ai_check['reason']}\n\n"
+                    f"⚠️ O'quvchi vazifani qayta mustaqil bajarishi kerak."
+                )
+                submission.ai_feedback = submission.feedback
+                submission.graded_by = request.user
+                submission.graded_at = timezone.now()
+                submission.save()
+                messages.warning(request, f"🚫 AI plagiat aniqlandi! (ishonch: {ai_check['confidence']}%)")
+                return redirect('teacher:homeworks')
+            
+            # 2. O'xshashlik (plagiat) tekshirish
+            similarity_result = _check_similarity_with_others(hw, submission, student_answer)
+            if similarity_result and similarity_result['is_plagiat']:
+                submission.status = 'revision'
+                submission.feedback = (
+                    f"🔄 Kod ko'chirish aniqlandi! "
+                    f"{similarity_result['similar_to']} bilan {similarity_result['similarity']}% o'xshash.\n\n"
+                    f"📋 Sabab: {similarity_result['reason']}\n\n"
+                    f"⚠️ O'quvchi vazifani mustaqil bajarishi kerak."
+                )
+                submission.ai_feedback = submission.feedback
+                submission.graded_by = request.user
+                submission.graded_at = timezone.now()
+                submission.save()
+                messages.warning(request, f"🔄 Kod ko'chirish aniqlandi! ({similarity_result['similarity']}% o'xshashlik)")
+                return redirect('teacher:homeworks')
+            
+            # 3. Avtomatik baholash
+            ai_result = _get_ai_grade(hw.description, student_answer)
             if not ai_result:
                 messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
                 return redirect('teacher:grade_homework', pk=pk)
             
             submission.grade = ai_result['grade']
             submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+            submission.ai_feedback = submission.feedback
             submission.status = ai_result['status']
             submission.graded_by = request.user
             submission.graded_at = timezone.now()
