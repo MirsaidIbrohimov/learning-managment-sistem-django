@@ -69,6 +69,7 @@ class Competition(models.Model):
     coin_2nd = models.PositiveIntegerField(default=0, verbose_name="2-o'rin uchun coin")
     coin_3rd = models.PositiveIntegerField(default=0, verbose_name="3-o'rin uchun coin")
     coins_awarded = models.BooleanField(default=False, verbose_name="Coinlar berilgan")
+    last_reminder_at = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi eslatma vaqti")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

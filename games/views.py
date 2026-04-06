@@ -576,7 +576,7 @@ def admin_competition_add(request):
 
         if game_id and title and start_time and end_time:
             game = get_object_or_404(Game, pk=game_id)
-            Competition.objects.create(
+            comp = Competition.objects.create(
                 game=game, title=title, start_time=start_time,
                 end_time=end_time, max_attempts=int(max_attempts),
                 allow_retry=allow_retry, is_active=is_active,
@@ -584,6 +584,10 @@ def admin_competition_add(request):
                 coin_2nd=int(request.POST.get('coin_2nd', 0)),
                 coin_3rd=int(request.POST.get('coin_3rd', 0)),
             )
+            # Telegram guruhga xabar yuborish
+            if is_active:
+                from telegram_bot.utils import notify_competition_started
+                notify_competition_started(comp)
             messages.success(request, "Musobaqa qo'shildi!")
             return redirect('games:admin_competitions')
         else:

@@ -26,7 +26,7 @@ def notify_admins(text):
     threading.Thread(target=_send, daemon=True).start()
 
 
-def notify_group(text):
+def notify_group(text, inline_keyboard=None):
     """Guruhga Telegram orqali xabar yuborish (background thread)"""
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
     group_chat_id = getattr(settings, 'TELEGRAM_GROUP_CHAT_ID', '')
@@ -36,11 +36,14 @@ def notify_group(text):
     def _send():
         try:
             url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            requests.post(url, json={
+            payload = {
                 'chat_id': group_chat_id,
                 'text': text,
                 'parse_mode': 'HTML',
-            }, timeout=10)
+            }
+            if inline_keyboard:
+                payload['reply_markup'] = {'inline_keyboard': inline_keyboard}
+            requests.post(url, json=payload, timeout=10)
         except Exception:
             pass
 
@@ -65,6 +68,90 @@ def notify_user(telegram_id, text):
             pass
 
     threading.Thread(target=_send, daemon=True).start()
+
+
+def notify_competition_started(competition):
+    """Yangi musobaqa boshlanganda guruhga xabar yuborish"""
+    from django.conf import settings as django_settings
+
+    site_url = getattr(django_settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+    game = competition.game
+    game_url = f"{site_url}/games/{game.slug}/"
+
+    coins_text = ""
+    if competition.coin_1st or competition.coin_2nd or competition.coin_3rd:
+        coins_text = "\n\n🏅 <b>Mukofotlar:</b>\n"
+        if competition.coin_1st:
+            coins_text += f"   🥇 1-o'rin: {competition.coin_1st} coin\n"
+        if competition.coin_2nd:
+            coins_text += f"   🥈 2-o'rin: {competition.coin_2nd} coin\n"
+        if competition.coin_3rd:
+            coins_text += f"   🥉 3-o'rin: {competition.coin_3rd} coin"
+
+    text = (
+        f"🎉🎮 <b>YANGI MUSOBAQA BOSHLANDI!</b> 🎮🎉\n\n"
+        f"🏆 <b>{competition.title}</b>\n"
+        f"🎯 O'yin: {game.title}\n\n"
+        f"📅 Boshlanish: {competition.start_time.strftime('%d.%m.%Y %H:%M')}\n"
+        f"⏰ Tugash: {competition.end_time.strftime('%d.%m.%Y %H:%M')}\n"
+        f"🔄 Urinishlar: {competition.max_attempts} ta"
+        f"{coins_text}\n\n"
+        f"💪 Hoziroq ishtirok eting va g'olib bo'ling!"
+    )
+
+    button = [[{'text': '🎮 Musobaqaga kirish', 'url': game_url}]]
+    notify_group(text, inline_keyboard=button)
+
+
+def notify_competition_reminder():
+    """Davom etayotgan musobaqalar uchun har 4 soatda eslatma yuborish"""
+    from django.utils import timezone
+    from django.conf import settings as django_settings
+    from games.models import Competition
+
+    now = timezone.now()
+    site_url = getattr(django_settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+
+    active_competitions = Competition.objects.filter(
+        is_active=True,
+        start_time__lte=now,
+        end_time__gte=now,
+    )
+
+    count = 0
+    for comp in active_competitions:
+        # 4 soat ichida eslatma yuborilganmi tekshirish
+        if comp.last_reminder_at and (now - comp.last_reminder_at).total_seconds() < 14400:
+            continue
+
+        game = comp.game
+        game_url = f"{site_url}/games/{game.slug}/"
+        time_left = comp.end_time - now
+        hours_left = int(time_left.total_seconds() // 3600)
+        minutes_left = int((time_left.total_seconds() % 3600) // 60)
+
+        if hours_left > 0:
+            time_text = f"{hours_left} soat {minutes_left} daqiqa"
+        else:
+            time_text = f"{minutes_left} daqiqa"
+
+        text = (
+            f"⏳🔥 <b>MUSOBAQA DAVOM ETMOQDA!</b> 🔥⏳\n\n"
+            f"🏆 <b>{comp.title}</b>\n"
+            f"🎯 O'yin: {game.title}\n\n"
+            f"⏰ Tugashiga: <b>{time_text}</b> qoldi\n\n"
+            f"🚀 Hali ishtirok etmaganmisiz?\n"
+            f"Tashrif buyuring va o'z kuchingizni sinab ko'ring! 💪"
+        )
+
+        button = [[{'text': '🎮 Hozir o\'ynash', 'url': game_url}]]
+        notify_group(text, inline_keyboard=button)
+
+        comp.last_reminder_at = now
+        comp.save(update_fields=['last_reminder_at'])
+        count += 1
+
+    return count
 
 
 def check_birthdays():

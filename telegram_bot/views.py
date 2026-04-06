@@ -53,7 +53,12 @@ def unlink_telegram(request):
 
 
 def bot_health(request):
-    """Health check — serverni uyg'oq tutish uchun"""
+    """Health check — serverni uyg'oq tutish uchun + musobaqa eslatmalari"""
+    try:
+        from telegram_bot.utils import notify_competition_reminder
+        notify_competition_reminder()
+    except Exception:
+        pass
     return JsonResponse({'status': 'ok', 'bot': 'alive'})
 
 
