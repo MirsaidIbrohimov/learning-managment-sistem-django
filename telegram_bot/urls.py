@@ -12,4 +12,5 @@ urlpatterns = [
     path('admin/broadcast/', views.admin_send_broadcast, name='admin_send_broadcast'),
     path('admin/', views.admin_telegram_users, name='admin_telegram'),
     path('contact/', views.send_contact_message, name='send_contact'),
+    path('phone-link/', views.phone_link, name='phone_link'),
 ]

