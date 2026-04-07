@@ -154,6 +154,115 @@ def notify_competition_reminder():
     return count
 
 
+def notify_unchecked_homework():
+    """Tekshirilmagan uyga vazifalar haqida ustozlarga va adminlarga eslatma yuborish (kuniga 1 marta)"""
+    import os
+    from datetime import date
+    from django.conf import settings as django_settings
+    from django.utils import timezone
+    from django.db.models import Count
+    from accounts.models import CustomUser, HomeworkSubmission, SpeakingSubmission
+
+    # Kuniga faqat 1 marta yuborish
+    marker_dir = os.path.join(getattr(django_settings, 'BASE_DIR', ''), 'media')
+    marker_file = os.path.join(marker_dir, '.homework_reminder_marker')
+    today = date.today().isoformat()
+    try:
+        if os.path.exists(marker_file):
+            with open(marker_file, 'r') as f:
+                if f.read().strip() == today:
+                    return 0
+    except Exception:
+        pass
+
+    now = timezone.now()
+
+    # Tekshirilmagan homework submission'lar (pending yoki reviewing)
+    unchecked_hw = HomeworkSubmission.objects.filter(
+        status__in=['pending', 'reviewing']
+    ).select_related('homework__lesson__profession', 'student')
+
+    # Tekshirilmagan speaking submission'lar
+    unchecked_sp = SpeakingSubmission.objects.filter(
+        status__in=['pending', 'reviewing']
+    ).select_related('speaking_task__lesson__profession', 'student')
+
+    hw_count = unchecked_hw.count()
+    sp_count = unchecked_sp.count()
+
+    if hw_count == 0 and sp_count == 0:
+        return 0
+
+    # Har bir ustoz uchun uning kurslariga tegishli tekshirilmagan vazifalarni yig'ish
+    teachers = CustomUser.objects.filter(
+        role='teacher',
+        telegram_id__isnull=False,
+        is_blocked=False,
+    )
+
+    notified = 0
+
+    for teacher in teachers:
+        # Ustoz dars beradigan kurslar
+        teacher_professions = teacher.teaching_professions.all()
+        if not teacher_professions.exists():
+            continue
+
+        prof_ids = list(teacher_professions.values_list('id', flat=True))
+
+        # Shu ustozning kurslariga tegishli tekshirilmagan vazifalar
+        t_hw = unchecked_hw.filter(homework__lesson__profession_id__in=prof_ids).count()
+        t_sp = unchecked_sp.filter(speaking_task__lesson__profession_id__in=prof_ids).count()
+
+        total = t_hw + t_sp
+        if total == 0:
+            continue
+
+        details = []
+        if t_hw > 0:
+            details.append(f"📝 Uyga vazifa: <b>{t_hw}</b> ta")
+        if t_sp > 0:
+            details.append(f"🎤 Speaking: <b>{t_sp}</b> ta")
+
+        text = (
+            f"📋 <b>Tekshirilmagan vazifa bor, tekshiring!</b>\n\n"
+            f"Hurmatli <b>{teacher.full_name}</b> ustoz,\n\n"
+            f"Sizda tekshirilmagan vazifalar mavjud:\n"
+            + "\n".join(details) +
+            f"\n\n📊 Jami: <b>{total}</b> ta vazifa kutmoqda\n\n"
+            f"✅ Iltimos, vazifalarni tekshiring!"
+        )
+
+        notify_user(teacher.telegram_id, text)
+        notified += 1
+
+    # Adminlarga umumiy hisobot
+    if hw_count > 0 or sp_count > 0:
+        details = []
+        if hw_count > 0:
+            details.append(f"📝 Uyga vazifa: <b>{hw_count}</b> ta")
+        if sp_count > 0:
+            details.append(f"🎤 Speaking: <b>{sp_count}</b> ta")
+
+        admin_text = (
+            f"📋 <b>Tekshirilmagan vazifalar hisoboti</b>\n\n"
+            + "\n".join(details) +
+            f"\n\n📊 Jami: <b>{hw_count + sp_count}</b> ta vazifa tekshirilmagan\n"
+            f"👨‍🏫 {notified} ta ustozga eslatma yuborildi"
+        )
+        notify_admins(admin_text)
+
+    # Marker yozish — bugun yuborildi
+    try:
+        os.makedirs(marker_dir, exist_ok=True)
+        with open(marker_file, 'w') as f:
+            f.write(today)
+    except Exception:
+        pass
+
+    return notified
+
+
 def check_birthdays():
     """Bugun tug'ilgan kunni nishonlayotgan foydalanuvchilarni tekshirish va tabrik yuborish"""
     import random
