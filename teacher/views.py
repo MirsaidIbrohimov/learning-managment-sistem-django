@@ -1219,9 +1219,23 @@ def teacher_import_questions(request, pk):
                             errors.append("Excelda hech qanday savol topilmadi.")
 
                         if not errors:
+                            existing_texts = set(
+                                test.questions.values_list('question_text', flat=True)
+                            )
+                            seen_texts = set()
+                            unique_data = []
+                            skipped = 0
+                            for qd in questions_data:
+                                qt = qd['question_text']
+                                if qt in existing_texts or qt in seen_texts:
+                                    skipped += 1
+                                    continue
+                                seen_texts.add(qt)
+                                unique_data.append(qd)
+
                             with transaction.atomic():
                                 existing_count = test.questions.count()
-                                for i, qd in enumerate(questions_data):
+                                for i, qd in enumerate(unique_data):
                                     question = TestQuestion.objects.create(
                                         test=test, question_text=qd['question_text'],
                                         explanation=qd.get('explanation', ''),
@@ -1232,8 +1246,11 @@ def teacher_import_questions(request, pk):
                                             question=question, answer_text=text,
                                             is_correct=(letter == qd['correct']),
                                         )
-                            success_count = len(questions_data)
-                            messages.success(request, f"{success_count} ta savol muvaffaqiyatli import qilindi!")
+                            success_count = len(unique_data)
+                            msg = f"{success_count} ta savol muvaffaqiyatli import qilindi!"
+                            if skipped:
+                                msg += f" ({skipped} ta takroriy savol o'tkazib yuborildi)"
+                            messages.success(request, msg)
                             return redirect('teacher:manage_questions', pk=test.pk)
 
                     wb.close()
