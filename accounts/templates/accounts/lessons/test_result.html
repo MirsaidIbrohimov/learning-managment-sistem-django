@@ -1250,7 +1250,7 @@ function showCelebrationModal() {
     
     let coinHtml = '';
     {% if result.coin_awarded %}
-    coinHtml = '<div class="cel-coin"><i class="bi bi-coin"></i> +1 coin qo\'lga kiritdingiz!</div>';
+    coinHtml = '<div class="cel-coin"><i class="bi bi-coin"></i> +{{ result.correct_answers }} coin qo\'lga kiritdingiz!</div>';
     {% endif %}
 
     let actionsHtml = '';
@@ -1352,7 +1352,7 @@ function showCelebrationModal() {
                                 <i class="bi bi-coin"></i>
                             </div>
                             <div class="stat-info">
-                                <div class="stat-value">{% if result.coin_awarded %}+1{% else %}0{% endif %}</div>
+                                <div class="stat-value">{% if result.coin_awarded %}+{{ result.correct_answers }}{% else %}0{% endif %}</div>
                                 <div class="stat-label">Coin</div>
                             </div>
                         </div>
@@ -1361,7 +1361,7 @@ function showCelebrationModal() {
                     {% if result.coin_awarded %}
                     <div class="coin-banner">
                         <i class="bi bi-coin"></i>
-                        <span>Siz yangi coinlarni qo'lga kiritdingiz!</span>
+                        <span>+{{ result.correct_answers }} coin qo'lga kiritdingiz!</span>
                     </div>
                     {% endif %}
                 </div>
