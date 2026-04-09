@@ -1789,22 +1789,30 @@ def mark_video_watched(request, pk):
     video = get_object_or_404(VideoLesson, pk=pk)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
     
+    coin_amount = 2 if request.user.is_premium else 1
+    awarded = False
+    
     if not progress.watched:
         progress.watched = True
         progress.watched_at = timezone.now()
         progress.save()
         
         if not progress.coin_awarded:
-            coin_amount = 2 if request.user.is_premium else 1
             request.user.add_coins(coin_amount, f"Video darslik ko'rildi: {video.lesson.title}")
             progress.coin_awarded = True
             progress.save()
+            awarded = True
         
         # Avtomatik xabar yuborish
         from .notifications import on_video_watched
         on_video_watched(request.user, progress)
     
-    return JsonResponse({'success': True, 'coins': request.user.coins})
+    return JsonResponse({
+        'success': True,
+        'coins': request.user.coins,
+        'coin_amount': coin_amount if awarded else 0,
+        'is_premium': request.user.is_premium,
+    })
 
 
 def _notify_ai_graded(submission, ai_result):
