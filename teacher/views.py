@@ -1318,7 +1318,8 @@ def teacher_generate_ai_test(request, pk):
                         "Har bir savol uchun 3 ta variant (A, B, C) bo'lsin.\n"
                         "To'g'ri javob faqat A, B yoki C bo'lsin.\n"
                         "Savollar real amaliy bo'lsin, kodli misollar ham bo'lishi mumkin.\n"
-                        "Javoblar bir-biriga yaqin va chalg'ituvchi bo'lsin.\n"
+                        "Javoblar bir-biriga yaqin va chalg'ituvchi bo'lsin, LEKIN har bir savolda A, B, C variantlari bir-biridan FARQLI bo'lishi SHART. "
+                        "Hech qachon ikki yoki uch variant bir xil matnli bo'lmasin!\n"
                         "Izoh 1-2 gap bilan tushuntirsin.\n\n"
                         "JSON formati:\n"
                         "[\n"
@@ -1370,6 +1371,12 @@ def teacher_generate_ai_test(request, pk):
                 explanation = qd.get('explanation', '').strip()
                 
                 if not q_text or not opt_a or not opt_b or not opt_c or correct not in ('A', 'B', 'C'):
+                    continue
+                
+                # Dublikat variantlarni tekshirish
+                options = [opt_a.lower(), opt_b.lower(), opt_c.lower()]
+                if len(set(options)) < 3:
+                    # Agar variantlar ichida bir xili bo'lsa, bu savolni o'tkazib yuboramiz
                     continue
                 
                 question = TestQuestion.objects.create(
