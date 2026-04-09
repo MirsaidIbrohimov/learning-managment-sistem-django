@@ -483,6 +483,7 @@
                 class="nav-link {% if 'suggestion' in request.resolver_match.url_name %}active{% endif %}" data-title="So'z takliflari">
                 <i class="bi bi-lightbulb"></i>
                 <span>So'z takliflari</span>
+                {% if admin_pending_suggestions %}<span class="sidebar-badge" style="background:#f59e0b;">{{ admin_pending_suggestions }}</span>{% endif %}
             </a>
 
             <div class="sidebar-group-label">Kontent</div>
@@ -520,10 +521,12 @@
             <a href="{% url 'telegram_bot:admin_telegram' %}" class="nav-link {% if 'telegram' in request.path %}active{% endif %}" data-title="Telegram">
                 <i class="bi bi-telegram"></i>
                 <span>Telegram</span>
+                {% if admin_pending_telegram %}<span class="sidebar-badge" style="background:#0088cc;">{{ admin_pending_telegram }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_applications' %}" class="nav-link {% if 'applications' in request.path %}active{% endif %}" data-title="Arizalar">
                 <i class="bi bi-clipboard-check"></i>
                 <span>Arizalar</span>
+                {% if admin_pending_applications %}<span class="sidebar-badge">{{ admin_pending_applications }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_help_requests' %}" class="nav-link {% if 'help_requests' in request.path %}active{% endif %}" data-title="Yordam xatlari">
                 <i class="bi bi-question-circle"></i>

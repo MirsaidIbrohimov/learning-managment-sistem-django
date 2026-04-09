@@ -69,11 +69,14 @@ def admin_badges(request):
     from .models import (
         CourseEnrollmentRequest,
         CourseUnenrollRequest,
+        CourseApplication,
         HomeworkSubmission,
         HelpRequest,
         PasswordResetRequest,
         PremiumRequest,
     )
+    from telegram_bot.models import ContactMessage
+    from games.models import WordSuggestion
 
     unenroll_pending = CourseUnenrollRequest.objects.filter(status="pending").count()
     badges = {
@@ -83,6 +86,9 @@ def admin_badges(request):
         "admin_pending_help": HelpRequest.objects.filter(status="pending").count(),
         "admin_pending_passwords": PasswordResetRequest.objects.filter(status="pending").count(),
         "admin_pending_premium": PremiumRequest.objects.filter(status="pending").count(),
+        "admin_pending_applications": CourseApplication.objects.filter(status="new").count(),
+        "admin_pending_telegram": ContactMessage.objects.filter(status="new").count(),
+        "admin_pending_suggestions": WordSuggestion.objects.filter(status="pending").count(),
     }
     cache.set(cache_key, badges, 30)
     return badges
