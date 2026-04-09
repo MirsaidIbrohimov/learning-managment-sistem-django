@@ -358,6 +358,8 @@ class HomeworkSubmissionForm(forms.ModelForm):
         
         if submission_type == 'file' and not file:
             raise forms.ValidationError("Fayl yuklashingiz kerak!")
+        if submission_type == 'file' and file and file.size > 5 * 1024 * 1024:
+            raise forms.ValidationError("Fayl hajmi 5 MB dan oshmasligi kerak!")
         if submission_type == 'text' and not text_content:
             raise forms.ValidationError("Matn kiritishingiz kerak!")
         

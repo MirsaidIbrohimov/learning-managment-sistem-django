@@ -1081,6 +1081,8 @@
                                         <i class="bi bi-cloud-arrow-up"></i>
                                         <p class="mb-1"><strong>Fayl tanlash uchun bosing</strong></p>
                                         <p class="small text-muted mb-0">yoki faylni bu yerga tashlang</p>
+                                        <p class="small text-muted mb-0">Eng yuqori fayl hajmi 5 mb</p>
+
                                         <div class="file-name" id="file-name-display" style="display: none;"></div>
                                     </div>
                                     <input type="file" id="file-input" name="file" class="d-none" onchange="showFileName(this)" {% if homework.handwritten_only %}accept=".jpg,.jpeg,.png"{% endif %}>
@@ -1174,11 +1176,20 @@ function toggleSubmissionType() {
     document.getElementById('text-section').style.display = isFile ? 'none' : 'block';
 }
 
-// Show selected file name
+// Show selected file name + 5MB check
 function showFileName(input) {
     const display = document.getElementById('file-name-display');
+    const maxSize = 5 * 1024 * 1024; // 5 MB
     if (input.files && input.files[0]) {
-        display.textContent = input.files[0].name;
+        const file = input.files[0];
+        if (file.size > maxSize) {
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            alert('⚠️ Fayl hajmi ' + sizeMB + ' MB. Eng yuqori ruxsat etilgan hajm 5 MB. Iltimos, kichikroq fayl tanlang.');
+            input.value = '';
+            display.style.display = 'none';
+            return;
+        }
+        display.textContent = file.name;
         display.style.display = 'block';
     }
 }
@@ -1246,6 +1257,12 @@ if (uploadArea) {
     uploadArea.addEventListener('drop', function(e) {
         const files = e.dataTransfer.files;
         if (files.length) {
+            const maxSize = 5 * 1024 * 1024;
+            if (files[0].size > maxSize) {
+                const sizeMB = (files[0].size / (1024 * 1024)).toFixed(2);
+                alert('⚠️ Fayl hajmi ' + sizeMB + ' MB. Eng yuqori ruxsat etilgan hajm 5 MB. Iltimos, kichikroq fayl tanlang.');
+                return;
+            }
             document.getElementById('file-input').files = files;
             showFileName(document.getElementById('file-input'));
         }
