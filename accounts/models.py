@@ -1,5 +1,6 @@
 import unicodedata
 import uuid
+from datetime import timedelta
 
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -1502,4 +1503,55 @@ class CourseApplication(models.Model):
     
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.phone}"
+
+
+class LoginAttempt(models.Model):
+    """Brute-force himoya uchun login urinishlarini kuzatish"""
+    ip_address = models.GenericIPAddressField(verbose_name="IP manzil", db_index=True)
+    username = models.CharField(max_length=150, blank=True, verbose_name="Username")
+    attempted_at = models.DateTimeField(auto_now_add=True, verbose_name="Urinish vaqti")
+    was_successful = models.BooleanField(default=False, verbose_name="Muvaffaqiyatli")
+    user_agent = models.TextField(blank=True, verbose_name="User Agent")
+    
+    class Meta:
+        ordering = ['-attempted_at']
+        verbose_name = "Login urinishi"
+        verbose_name_plural = "Login urinishlari"
+    
+    def __str__(self):
+        status = "✅" if self.was_successful else "❌"
+        return f"{status} {self.ip_address} - {self.username} ({self.attempted_at})"
+    
+    @staticmethod
+    def is_ip_blocked(ip_address, max_attempts=5, block_duration_minutes=15):
+        """IP bloklangan yoki yo'qligini tekshirish"""
+        cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
+        recent_failures = LoginAttempt.objects.filter(
+            ip_address=ip_address,
+            was_successful=False,
+            attempted_at__gte=cutoff
+        ).count()
+        return recent_failures >= max_attempts
+    
+    @staticmethod
+    def get_remaining_lockout_time(ip_address, max_attempts=5, block_duration_minutes=15):
+        """Qolgan bloklash vaqtini qaytarish (sekundlarda)"""
+        cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
+        recent_failures = LoginAttempt.objects.filter(
+            ip_address=ip_address,
+            was_successful=False,
+            attempted_at__gte=cutoff
+        ).order_by('-attempted_at')
+        
+        if recent_failures.count() >= max_attempts:
+            oldest_relevant = recent_failures[max_attempts - 1]
+            unlock_time = oldest_relevant.attempted_at + timedelta(minutes=block_duration_minutes)
+            remaining = (unlock_time - timezone.now()).total_seconds()
+            return max(0, int(remaining))
+        return 0
+    
+    @staticmethod
+    def clear_attempts(ip_address):
+        """Muvaffaqiyatli logindan keyin urinishlarni tozalash"""
+        LoginAttempt.objects.filter(ip_address=ip_address, was_successful=False).delete()
 

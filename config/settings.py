@@ -24,12 +24,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'itcreative.uz,www.itcreative.uz,localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -376,3 +376,9 @@ TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
 TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")
 SITE_URL = os.getenv("SITE_URL", "https://itcreative.uz")
+
+# ============ LOGIN XAVFSIZLIGI ============
+
+# Brute-force himoya
+LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
+LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)

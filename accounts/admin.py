@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from .models import (
     CustomUser, Profession, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    Certificate, Message, PaymentStatus
+    Certificate, Message, PaymentStatus, LoginAttempt
 )
 
 
@@ -195,6 +195,23 @@ class PaymentStatusAdmin(admin.ModelAdmin):
     list_filter = ['is_paid', 'auto_blocked']
     search_fields = ['user__username', 'user__first_name']
     list_editable = ['is_paid']
+
+
+@admin.register(LoginAttempt)
+class LoginAttemptAdmin(admin.ModelAdmin):
+    list_display = ['ip_address', 'username', 'was_successful', 'attempted_at', 'user_agent_short']
+    list_filter = ['was_successful', 'attempted_at']
+    search_fields = ['ip_address', 'username']
+    date_hierarchy = 'attempted_at'
+    list_per_page = 50
+    readonly_fields = ['ip_address', 'username', 'was_successful', 'attempted_at', 'user_agent']
+
+    def user_agent_short(self, obj):
+        return obj.user_agent[:80] + '...' if len(obj.user_agent) > 80 else obj.user_agent
+    user_agent_short.short_description = 'User Agent'
+
+    def has_add_permission(self, request):
+        return False
 
 
 # Admin site customization

@@ -22,7 +22,7 @@ from .models import (
     TestUserAnswer, Dictionary, DictionaryWord, Certificate, CertificateRequest, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
-    CourseApplication, SpeakingTask, SpeakingSubmission
+    CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -582,14 +582,68 @@ def _register_device_and_session(request, user):
     return True
 
 
+def _record_failed_login(ip_address, username='', user_agent=''):
+    """Muvaffaqiyatsiz login urinishini yozish"""
+    LoginAttempt.objects.create(
+        ip_address=ip_address,
+        username=username[:150],
+        was_successful=False,
+        user_agent=user_agent[:500],
+    )
+
+
+def _record_successful_login(ip_address, username='', user_agent=''):
+    """Muvaffaqiyatli loginni yozish va eski urinishlarni tozalash"""
+    LoginAttempt.objects.create(
+        ip_address=ip_address,
+        username=username[:150],
+        was_successful=True,
+        user_agent=user_agent[:500],
+    )
+    LoginAttempt.clear_attempts(ip_address)
+
+
 def login_view(request):
+    from django.conf import settings as django_settings
+
     if request.user.is_authenticated:
         return redirect('home')
+
+    ip_address = request.META.get('REMOTE_ADDR', '')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
+    max_attempts = getattr(django_settings, 'LOGIN_MAX_ATTEMPTS', 5)
+    lockout_minutes = getattr(django_settings, 'LOGIN_LOCKOUT_DURATION', 15)
 
     login_mode = request.POST.get('login_mode', 'username') if request.method == 'POST' else 'username'
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
+
+        # 🤖 Honeypot — botlar uchun tuzoq (yashirin maydon to'ldirilsa, bu bot)
+        honeypot = request.POST.get('website_url', '')
+        if honeypot:
+            import time
+            time.sleep(2)
+            messages.error(request, "Username yoki parol noto'g'ri ❌")
+            return _login_render(request, form, login_mode)
+
+        # 🔒 Brute-force himoya — IP bloklangan bo'lsa, kirishga ruxsat bermaslik
+        if LoginAttempt.is_ip_blocked(ip_address, max_attempts, lockout_minutes):
+            remaining = LoginAttempt.get_remaining_lockout_time(ip_address, max_attempts, lockout_minutes)
+            remaining_min = remaining // 60 + 1
+            messages.error(request, f"Juda ko'p noto'g'ri urinish! {remaining_min} daqiqadan keyin qayta urinib ko'ring. 🔒")
+            # Admin'ga xabar berish
+            try:
+                notify_admins(
+                    f"🚨 <b>Brute-force hujumi aniqlandi!</b>\n\n"
+                    f"🌐 IP: {ip_address}\n"
+                    f"🕐 {timezone.now().strftime('%d.%m.%Y %H:%M')}\n"
+                    f"📱 UA: {user_agent[:100]}\n"
+                    f"⚠️ {max_attempts} marta noto'g'ri urinish — IP bloklandi"
+                )
+            except Exception:
+                pass
+            return _login_render(request, form, login_mode)
 
         # Telegram kod orqali login
         if login_mode == 'telegram':
@@ -602,6 +656,7 @@ def login_view(request):
             try:
                 login_code = TelegramLoginCode.objects.get(code=telegram_code, is_used=False)
             except TelegramLoginCode.DoesNotExist:
+                _record_failed_login(ip_address, f'telegram_code:{telegram_code[:6]}', user_agent)
                 messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
                 return _login_render(request, form, 'telegram')
 
@@ -633,6 +688,7 @@ def login_view(request):
                 user = None
 
             if user is None:
+                _record_failed_login(ip_address, f'phone:{phone[:20]}', user_agent)
                 messages.error(request, "Telefon raqam yoki parol noto'g'ri ❌")
                 return _login_render(request, form, 'phone')
 
@@ -643,6 +699,7 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is None:
+                _record_failed_login(ip_address, username, user_agent)
                 messages.error(request, "Username yoki parol noto'g'ri ❌")
                 return _login_render(request, form, login_mode)
         else:
@@ -654,7 +711,8 @@ def login_view(request):
             messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
             return _login_render(request, form, login_mode)
 
-        # ✅ Login successful
+        # ✅ Login successful — urinishlarni tozalash
+        _record_successful_login(ip_address, user.username, user_agent)
         login(request, user)
 
         user.last_activity = timezone.now()
