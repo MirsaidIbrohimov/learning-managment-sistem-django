@@ -1148,9 +1148,10 @@ function showCelebration(coinAmount, isPremium) {
 }
 
 markWatchedBtn.addEventListener('click', function() {
-    if (this.disabled) return;
-    this.disabled = true;
-    this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> <span>Yuklanmoqda...</span>';
+    const btn = this;
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> <span>Yuklanmoqda...</span>';
 
     fetch('{% url "mark_video_watched" video.pk %}', {
         method: 'POST',
@@ -1159,15 +1160,22 @@ markWatchedBtn.addEventListener('click', function() {
             'Content-Type': 'application/json'
         }
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(r) {
+        if (!r.ok) throw new Error('Server xatosi: ' + r.status);
+        return r.json();
+    })
+    .then(function(data) {
         if (data.success) {
             showCelebration(data.coin_amount || {% if request.user.is_premium %}2{% else %}1{% endif %}, data.is_premium);
+        } else {
+            throw new Error(data.error || 'Noma\'lum xato');
         }
     })
-    .catch(() => {
-        this.disabled = false;
-        this.innerHTML = '<i class="bi bi-checkmark-circle"></i> <span>Ko\'rdim</span>';
+    .catch(function(err) {
+        console.error('Ko\'rdim xatosi:', err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> <span>Ko\'rdim</span>';
+        alert('Xatolik yuz berdi: ' + err.message + '. Qayta urinib ko\'ring.');
     });
 });
 
