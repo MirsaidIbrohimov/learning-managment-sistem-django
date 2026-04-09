@@ -1925,25 +1925,43 @@ def _notify_ai_revision(submission, ai_result):
 
 
 def _notify_homework_submitted(student, homework):
-    """Yangi vazifa yuborilganda admin, guruh va saytga xabar"""
+    """Yangi vazifa yuborilganda faqat kurs o'qituvchilariga xabar"""
     hw_text = homework.description[:50] if homework.description else ""
-    profession = homework.lesson.profession.name
+    profession = homework.lesson.profession
     lesson = homework.lesson.title
 
-    notify_admins(
-        f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
-        f"👤 {student.first_name} {student.last_name}\n"
-        f"📚 Kurs: {profession}\n"
-        f"📖 Dars: {lesson}\n"
-        f"📋 {hw_text}\n\n"
-        f"👨‍🏫 O'qituvchilar, tekshirishni unutmang!"
-    )
-    Message.objects.create(
-        recipient=None,
-        title=f"📝 Yangi uy vazifasi: {lesson}",
-        content=f"{student.first_name} {student.last_name} '{profession}' kursining '{lesson}' darsiga uy vazifasini yubordi. Tekshirishni kutmoqda.",
-        message_type='all'
-    )
+    # Faqat shu kursga biriktirilgan o'qituvchilarga xabar yuborish
+    teachers = profession.teachers.all()
+    for teacher in teachers:
+        # Saytda shaxsiy xabar
+        Message.objects.create(
+            recipient=teacher,
+            title=f"📝 Yangi uy vazifasi: {lesson}",
+            content=f"{student.first_name} {student.last_name} '{profession.name}' kursining '{lesson}' darsiga uy vazifasini yubordi. Tekshirishni kutmoqda.",
+            message_type='personal'
+        )
+        # Telegram xabar
+        if teacher.telegram_id:
+            notify_user(
+                teacher.telegram_id,
+                f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
+                f"👤 {student.first_name} {student.last_name}\n"
+                f"📚 Kurs: {profession.name}\n"
+                f"📖 Dars: {lesson}\n"
+                f"📋 {hw_text}\n\n"
+                f"👨‍🏫 Tekshirishni unutmang!"
+            )
+
+    # Agar kursga o'qituvchi biriktirilmagan bo'lsa, adminlarga xabar
+    if not teachers.exists():
+        notify_admins(
+            f"📝 <b>Yangi uy vazifasi yuborildi!</b>\n\n"
+            f"👤 {student.first_name} {student.last_name}\n"
+            f"📚 Kurs: {profession.name}\n"
+            f"📖 Dars: {lesson}\n"
+            f"📋 {hw_text}\n\n"
+            f"⚠️ Bu kursga o'qituvchi biriktirilmagan!"
+        )
 
 
 def _notify_homework_graded(grader, submission, grade):
