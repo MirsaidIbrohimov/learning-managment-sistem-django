@@ -1044,7 +1044,6 @@ def profession_detail(request, pk):
     section_daily_locked = {}
     lesson_is_locked = {}
     daily_lesson_today = None
-    daily_lesson_today_title = None
     
     if is_enrolled or is_teaching or request.user.is_admin:
         sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
@@ -1155,8 +1154,8 @@ def profession_detail(request, pk):
             section_is_locked['no_section'] = False
             section_daily_locked = {s.id: False for s in sections}
     
-    # Dars darajasida ketma-ket qulflash + kunlik cheklash
-    # Bo'limlar ham dars holatiga qarab ochiq/yopiq bo'ladi
+    # Bo'lim darajasida kunlik cheklash + dars ketma-ket qulflash
+    # Bir kunda bitta bo'lim ochiladi, bo'lim ichidagi barcha darslar (video, test, uy vazifa) bir kunda mavjud
     if request.user.is_student and not request.user.is_admin and (is_enrolled):
         from datetime import date
         today = date.today()
@@ -1164,85 +1163,79 @@ def profession_detail(request, pk):
         completed_lesson_ids = set(
             lid for lid, prog in lesson_progress.items() if prog.get('completed')
         )
-        # Bugun qaysi darsga kirilgan
-        today_lesson_access = DailyLessonAccess.objects.filter(
-            user=request.user, profession=profession, accessed_date=today
-        ).select_related('lesson').first()
-        if today_lesson_access:
-            daily_lesson_today = today_lesson_access.lesson_id
-            daily_lesson_today_title = today_lesson_access.lesson.title
 
-        # Barcha darslarni tartib bo'yicha chiqarish (bo'lim tartib + dars tartib)
-        all_ordered_lessons = []
-        for section in sections:
-            for lesson in section.lessons.all():
-                if lesson.lesson_type == 'dictionary':
-                    continue
-                all_ordered_lessons.append(lesson)
-        for lesson in lessons_without_section:
-            if lesson.lesson_type == 'dictionary':
-                continue
-            all_ordered_lessons.append(lesson)
+        # Bo'limlar ro'yxati tartibda
+        ordered_sections = list(sections)
 
-        for idx, lesson in enumerate(all_ordered_lessons):
-            if lesson.pk in completed_lesson_ids:
-                # Bajarilgan dars — ochiq (takrorlash uchun)
-                lesson_is_locked[lesson.pk] = False
-            elif idx == 0:
-                # Birinchi dars — har doim ochiq
-                if today_lesson_access and today_lesson_access.lesson_id != lesson.pk:
-                    lesson_is_locked[lesson.pk] = 'daily'
-                else:
-                    lesson_is_locked[lesson.pk] = False
-            else:
-                # Oldingi dars bajarilganmi?
-                prev_lesson = all_ordered_lessons[idx - 1]
-                if prev_lesson.pk in completed_lesson_ids:
-                    # Oldingi dars bajarilgan — bu navbatdagi dars
-                    if today_lesson_access and today_lesson_access.lesson_id != lesson.pk:
-                        lesson_is_locked[lesson.pk] = 'daily'
-                    else:
-                        lesson_is_locked[lesson.pk] = False
-                else:
-                    # Oldingi dars bajarilmagan — qulflangan
-                    lesson_is_locked[lesson.pk] = 'sequential'
-
-        # Bo'limlarni dars holatiga qarab ochiq/yopiq qilish
-        # Bo'lim ochiq = ichidagi kamida bitta dars ochiq (False) yoki bugungi dars shu bo'limda
-        # Bo'lim yopiq = barcha darslari 'sequential' yoki 'daily'
-        section_is_locked = {}
-        section_daily_locked = {}
-        for section in sections:
+        # Har bir bo'limning barcha darslari (lug'atdan tashqari) bajarilganmi
+        section_completed = {}
+        for section in ordered_sections:
             section_lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
             if not section_lessons:
-                section_is_locked[section.id] = False
-                section_daily_locked[section.id] = False
-                continue
-
-            has_open_lesson = False
-            all_sequential = True
-            has_daily_only = False
-            for sl in section_lessons:
-                status = lesson_is_locked.get(sl.pk)
-                if status is False or status is None:
-                    has_open_lesson = True
-                    all_sequential = False
-                elif status == 'daily':
-                    all_sequential = False
-                    has_daily_only = True
-
-            if has_open_lesson:
-                # Bo'limda ochiq dars bor — bo'lim ochiq
-                section_is_locked[section.id] = False
-                section_daily_locked[section.id] = False
-            elif has_daily_only and not all_sequential:
-                # Bo'limda faqat daily darslar bor
-                section_is_locked[section.id] = False
-                section_daily_locked[section.id] = True
+                section_completed[section.id] = True
             else:
-                # Barcha darslar sequential — bo'lim qulflangan
-                section_is_locked[section.id] = True
+                section_completed[section.id] = all(l.pk in completed_lesson_ids for l in section_lessons)
+
+        # Bugun qaysi bo'limga kirilgan
+        today_section_access = DailySectionAccess.objects.filter(
+            user=request.user, profession=profession, accessed_date=today
+        ).select_related('section').first()
+
+        # Har bir bo'lim uchun: ochiq, daily_locked, yoki sequential_locked
+        section_is_locked = {}
+        section_daily_locked = {}
+        for idx, section in enumerate(ordered_sections):
+            if section_completed[section.id]:
+                # Bo'lim bajarilgan — ochiq (takrorlash uchun)
+                section_is_locked[section.id] = False
                 section_daily_locked[section.id] = False
+            elif idx == 0:
+                # Birinchi bo'lim — har doim ochiq (agar bugun boshqa bo'limga kirilmagan bo'lsa)
+                if today_section_access and today_section_access.section_id != section.id:
+                    section_is_locked[section.id] = False
+                    section_daily_locked[section.id] = True
+                else:
+                    section_is_locked[section.id] = False
+                    section_daily_locked[section.id] = False
+            else:
+                # Oldingi bo'lim bajarilganmi?
+                prev_section = ordered_sections[idx - 1]
+                if section_completed[prev_section.id]:
+                    # Oldingi bo'lim bajarilgan — bu navbatdagi bo'lim
+                    if today_section_access and today_section_access.section_id != section.id:
+                        section_is_locked[section.id] = False
+                        section_daily_locked[section.id] = True
+                    else:
+                        section_is_locked[section.id] = False
+                        section_daily_locked[section.id] = False
+                else:
+                    # Oldingi bo'lim bajarilmagan — qulflangan
+                    section_is_locked[section.id] = True
+                    section_daily_locked[section.id] = False
+
+        # Bo'lim ichidagi darslarni ketma-ket qulflash
+        for section in ordered_sections:
+            s_locked = section_is_locked.get(section.id)
+            s_daily = section_daily_locked.get(section.id)
+            section_lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
+            
+            if s_locked:
+                # Bo'lim qulflangan — barcha darslar ham qulflangan
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = 'sequential'
+            elif s_daily:
+                # Bo'lim kunlik qulflangan — barcha darslar ham daily
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = 'daily'
+            else:
+                # Bo'lim ochiq — barcha darslar ochiq
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = False
+
+        # Daily limit banner uchun
+        if today_section_access:
+            daily_section_today = today_section_access.section_id
+            daily_limit_section_name = today_section_access.section.title
 
         # Bo'limsiz darslar
         if lessons_without_section:
@@ -1306,7 +1299,6 @@ def profession_detail(request, pk):
         'certificate': certificate,
         'certificate_request': certificate_request,
         'lesson_is_locked': lesson_is_locked,
-        'daily_lesson_today_title': daily_lesson_today_title,
     })
 
 
@@ -1778,74 +1770,46 @@ def lesson_view(request, pk):
 
             # Agar bu dars allaqachon bajarilgan bo'lsa — erkin kirish
             if lesson.pk not in completed_lesson_ids:
-                # Barcha darslarni ketma-ket tartibda olish
-                all_sections_qs = profession.sections.filter(is_active=True).prefetch_related('lessons')
-                all_ordered_lessons = []
-                for s in all_sections_qs:
-                    for l in s.lessons.all():
-                        if l.lesson_type == 'dictionary':
-                            continue
-                        all_ordered_lessons.append(l)
-                for l in profession.lessons.filter(section__isnull=True):
-                    if l.lesson_type == 'dictionary':
-                        continue
-                    all_ordered_lessons.append(l)
-
-                # Bu darsning indeksini topish
-                lesson_idx = None
-                for idx, l in enumerate(all_ordered_lessons):
-                    if l.pk == lesson.pk:
-                        lesson_idx = idx
-                        break
-
-                if lesson_idx is not None:
-                    # Ketma-ket tekshirish: oldingi dars bajarilganmi?
-                    if lesson_idx > 0:
-                        prev_lesson = all_ordered_lessons[lesson_idx - 1]
-                        if prev_lesson.pk not in completed_lesson_ids:
-                            messages.warning(request, "Avval oldingi darsni bajaring! 🔒")
-                            return redirect('profession_detail', pk=profession.pk)
-
-                    # Kunlik cheklash: bugun boshqa yangi darsga kirilganmi?
-                    today_access = DailyLessonAccess.objects.filter(
-                        user=request.user, profession=profession, accessed_date=today
-                    ).first()
-                    if today_access and today_access.lesson_id != lesson.pk:
-                        messages.warning(request, f"Bugun siz faqat \"{today_access.lesson.title}\" darsini o'qiyolasiz. Yangi darsga ertaga kirishingiz mumkin! 📚")
-                        return redirect('profession_detail', pk=profession.pk)
-                    if not today_access:
-                        # Yangi darsga kirish — yozib qo'yish
-                        DailyLessonAccess.objects.create(
-                            user=request.user, profession=profession,
-                            lesson=lesson, accessed_date=today
-                        )
-
-        # Bo'lim uchun DailySectionAccess ni ham saqlash (eski mantiq uchun)
-        if lesson.section:
-            from datetime import date
-            today = date.today()
-            ever_accessed = DailySectionAccess.objects.filter(
-                user=request.user, profession=profession, section=lesson.section
-            ).exists()
-            if not ever_accessed:
-                today_section_access = DailySectionAccess.objects.filter(
-                    user=request.user, profession=profession, accessed_date=today
-                ).first()
-                if not today_section_access:
-                    all_sections = list(profession.sections.filter(is_active=True).order_by('order'))
-                    already_accessed = set(
-                        DailySectionAccess.objects.filter(
-                            user=request.user, profession=profession
-                        ).values_list('section_id', flat=True)
+                # Bo'lim darajasida kunlik cheklash
+                current_section = lesson.section
+                if current_section:
+                    # Shu bo'limdagi barcha darslar bajarilganmi tekshirish
+                    section_lessons_ids = set(
+                        current_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
                     )
-                    for s in all_sections:
-                        if s.id not in already_accessed:
+                    section_completed = section_lessons_ids.issubset(completed_lesson_ids)
+                    
+                    if not section_completed:
+                        # Oldingi bo'lim bajarilganmi tekshirish (ketma-ket bo'lim tartibi)
+                        all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
+                        section_idx = None
+                        for idx, s in enumerate(all_sections):
+                            if s.id == current_section.id:
+                                section_idx = idx
+                                break
+                        
+                        if section_idx is not None and section_idx > 0:
+                            prev_section = all_sections[section_idx - 1]
+                            prev_section_lessons = set(
+                                prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
+                            )
+                            if not prev_section_lessons.issubset(completed_lesson_ids):
+                                messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒")
+                                return redirect('profession_detail', pk=profession.pk)
+                        
+                        # Kunlik bo'lim cheklashi: bugun boshqa bo'limga kirilganmi?
+                        today_section_access = DailySectionAccess.objects.filter(
+                            user=request.user, profession=profession, accessed_date=today
+                        ).select_related('section').first()
+                        if today_section_access and today_section_access.section_id != current_section.id:
+                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                            return redirect('profession_detail', pk=profession.pk)
+                        if not today_section_access:
+                            # Yangi bo'limga kirish — yozib qo'yish
                             DailySectionAccess.objects.create(
                                 user=request.user, profession=profession,
-                                section=s, accessed_date=today
+                                section=current_section, accessed_date=today
                             )
-                        if s.id == lesson.section.id:
-                            break
     
     context = {'lesson': lesson, 'profession': profession}
     
