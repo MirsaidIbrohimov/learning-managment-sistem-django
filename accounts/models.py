@@ -1571,3 +1571,20 @@ class LoginAttempt(models.Model):
         """Muvaffaqiyatli logindan keyin urinishlarni tozalash"""
         LoginAttempt.objects.filter(ip_address=ip_address, was_successful=False).delete()
 
+
+class DailyLessonAccess(models.Model):
+    """O'quvchi bir kunda faqat bitta yangi darsga kirishi mumkin.
+    Oldin bajarilgan darslarga erkin kirish bor."""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_lesson_accesses')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    accessed_date = models.DateField(verbose_name="Kirish sanasi")
+
+    class Meta:
+        unique_together = ['user', 'profession', 'accessed_date']
+        verbose_name = "Kunlik dars kirish"
+        verbose_name_plural = "Kunlik dars kirishlar"
+
+    def __str__(self):
+        return f"{self.user.first_name} - {self.lesson.title} ({self.accessed_date})"
+

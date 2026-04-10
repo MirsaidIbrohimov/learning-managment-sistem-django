@@ -790,7 +790,14 @@
     <div class="p-3">
         {% if sections or lessons_without_section %}
 
-        {% if daily_limit_section_name %}
+        {% if daily_lesson_today_title %}
+        <div class="daily-limit-banner">
+            <i class="bi bi-calendar-check"></i>
+            <div class="daily-limit-text">
+                📚 Bugun siz faqat <strong>"{{ daily_lesson_today_title }}"</strong> darsini o'qiyolasiz. Yangi darsga ertaga kirishingiz mumkin!
+            </div>
+        </div>
+        {% elif daily_limit_section_name %}
         <div class="daily-limit-banner">
             <i class="bi bi-calendar-check"></i>
             <div class="daily-limit-text">
@@ -850,6 +857,38 @@
                 </div>
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
+                    {% with lock_status=lesson_is_locked|get_item:lesson.pk %}
+                    {% if lock_status == 'sequential' %}
+                    <div class="lesson-item" style="opacity:0.5;cursor:not-allowed;pointer-events:none;">
+                        <div class="lesson-icon {{ lesson.lesson_type }}" style="opacity:0.5;">
+                            <i class="bi bi-lock-fill text-warning"></i>
+                        </div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">{{ lesson.title }}</div>
+                            <div class="lesson-type text-warning">🔒 Avval oldingi darsni bajaring</div>
+                        </div>
+                        <div class="lesson-status">
+                            <span class="status-badge" style="background:rgba(255,193,7,0.1);color:#ffc107;">
+                                <i class="bi bi-lock-fill"></i>Qulflangan
+                            </span>
+                        </div>
+                    </div>
+                    {% elif lock_status == 'daily' %}
+                    <div class="lesson-item" style="opacity:0.6;cursor:not-allowed;pointer-events:none;">
+                        <div class="lesson-icon {{ lesson.lesson_type }}" style="opacity:0.5;">
+                            <i class="bi bi-clock-fill text-primary"></i>
+                        </div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">{{ lesson.title }}</div>
+                            <div class="lesson-type text-primary">📅 Ertaga ochiladi</div>
+                        </div>
+                        <div class="lesson-status">
+                            <span class="status-badge" style="background:rgba(13,110,253,0.1);color:#0d6efd;">
+                                <i class="bi bi-clock"></i>Ertaga
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
                     <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
                         <div class="lesson-icon {{ lesson.lesson_type }}">
                             {% if lesson.lesson_type == 'video' %}
@@ -928,6 +967,8 @@
                             {% endif %}
                         </div>
                     </a>
+                    {% endif %}
+                    {% endwith %}
                     {% endfor %}
                 {% else %}
                     <div class="empty-section">
