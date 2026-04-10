@@ -1167,14 +1167,17 @@ def profession_detail(request, pk):
         # Bo'limlar ro'yxati tartibda
         ordered_sections = list(sections)
 
-        # Har bir bo'limning barcha darslari (lug'atdan tashqari) bajarilganmi
+        # Har bir bo'limning darslari holati
         section_completed = {}
+        section_started = {}
         for section in ordered_sections:
             section_lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
             if not section_lessons:
                 section_completed[section.id] = True
+                section_started[section.id] = True
             else:
                 section_completed[section.id] = all(l.pk in completed_lesson_ids for l in section_lessons)
+                section_started[section.id] = any(l.pk in completed_lesson_ids for l in section_lessons)
 
         # Bugun qaysi bo'limga kirilgan
         today_section_access = DailySectionAccess.objects.filter(
@@ -1187,6 +1190,10 @@ def profession_detail(request, pk):
         for idx, section in enumerate(ordered_sections):
             if section_completed[section.id]:
                 # Bo'lim bajarilgan — ochiq (takrorlash uchun)
+                section_is_locked[section.id] = False
+                section_daily_locked[section.id] = False
+            elif section_started[section.id]:
+                # Bo'lim boshlangan (ba'zi darslar bajarilgan) — har doim ochiq
                 section_is_locked[section.id] = False
                 section_daily_locked[section.id] = False
             elif idx == 0:
@@ -1773,13 +1780,15 @@ def lesson_view(request, pk):
                 # Bo'lim darajasida kunlik cheklash
                 current_section = lesson.section
                 if current_section:
-                    # Shu bo'limdagi barcha darslar bajarilganmi tekshirish
+                    # Shu bo'limda allaqachon boshlangan darslar bormi
                     section_lessons_ids = set(
                         current_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
                     )
+                    section_started = bool(section_lessons_ids & completed_lesson_ids)
                     section_completed = section_lessons_ids.issubset(completed_lesson_ids)
                     
-                    if not section_completed:
+                    if not section_completed and not section_started:
+                        # Bo'lim hali boshlanmagan — cheklovlar qo'llanadi
                         # Oldingi bo'lim bajarilganmi tekshirish (ketma-ket bo'lim tartibi)
                         all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
                         section_idx = None
