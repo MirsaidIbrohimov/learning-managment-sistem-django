@@ -809,14 +809,12 @@
         <!-- Sections -->
         {% for section in sections %}
         {% with section_locked=section_is_locked|get_item:section.id daily_locked=section_daily_locked|get_item:section.id %}
-        <div class="section-card {% if section_locked %}section-locked{% elif daily_locked %}section-daily-locked{% endif %}">
-            <div class="section-header {% if forloop.first and not section_locked and not daily_locked %}active{% endif %}" onclick="{% if not section_locked and not daily_locked %}toggleSection(this){% endif %}">
+        <div class="section-card {% if section_locked %}section-locked{% endif %}">
+            <div class="section-header {% if forloop.first and not section_locked %}active{% endif %}" onclick="{% if not section_locked %}toggleSection(this){% endif %}">
                 <h6 class="section-title">
-                    <div class="section-icon {% if section_locked or daily_locked %}opacity-50{% endif %}">
+                    <div class="section-icon {% if section_locked %}opacity-50{% endif %}">
                         {% if section_locked %}
                         <i class="bi bi-lock-fill text-warning"></i>
-                        {% elif daily_locked %}
-                        <i class="bi bi-clock-fill text-primary"></i>
                         {% else %}
                         <i class="bi bi-folder2"></i>
                         {% endif %}
@@ -825,9 +823,7 @@
                         <span class="badge bg-primary bg-opacity-10 text-primary me-1" style="font-size:0.7rem;border-radius:6px;padding:0.2rem 0.5rem;font-weight:700;">{{ section.order }}</span>
                         {{ section.title }}
                         {% if section_locked %}
-                        <small class="d-block text-warning fw-normal" style="font-size: 0.8rem;">Avval yuqoridagi bo'limlarni o'qib tugating</small>
-                        {% elif daily_locked %}
-                        <small class="d-block text-primary fw-normal" style="font-size: 0.8rem;">Ertaga ochiladi — bugun boshqa bo'lim o'qilmoqda</small>
+                        <small class="d-block text-warning fw-normal" style="font-size: 0.8rem;">Avval oldingi darslarni bajaring</small>
                         {% elif section.description %}
                         <small class="d-block text-muted fw-normal" style="font-size: 0.8rem;">{{ section.description|truncatechars:50 }}</small>
                         {% endif %}
@@ -836,24 +832,17 @@
                 <div class="section-meta">
                     {% if section_locked %}
                     <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>Qulflangan</span>
-                    {% elif daily_locked %}
-                    <span class="badge bg-primary bg-opacity-25 text-primary"><i class="bi bi-clock me-1"></i>Ertaga</span>
                     {% else %}
                     <span class="section-count">{{ section.lessons.count }} dars</span>
                     {% endif %}
                     <i class="bi bi-chevron-down section-arrow"></i>
                 </div>
             </div>
-            <div class="section-body {% if forloop.first and not section_locked and not daily_locked %}show{% endif %}">
+            <div class="section-body {% if forloop.first and not section_locked %}show{% endif %}">
                 {% if section_locked %}
                 <div class="p-4 text-center text-muted">
                     <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
                     <p class="mt-2 mb-0">Bu bo'lim ochilishi uchun avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) bajarishingiz kerak</p>
-                </div>
-                {% elif daily_locked %}
-                <div class="p-4 text-center text-muted">
-                    <i class="bi bi-clock-fill text-primary" style="font-size: 2rem;"></i>
-                    <p class="mt-2 mb-0">Bir kunda faqat bitta bo'lim o'qish mumkin. Bu bo'limga ertaga kirishingiz mumkin! 📅</p>
                 </div>
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
