@@ -1168,14 +1168,21 @@ def profession_detail(request, pk):
                     if lesson.lesson_type != 'dictionary'
                 )
                 section_is_locked['no_section'] = not all_sections_completed
-            # Kunlik cheklash: agar bugun bitta bo'limga kirilgan bo'lsa, boshqa bo'limlarni qulflash
+            # Kunlik cheklash: agar bugun bitta bo'limga kirilgan bo'lsa, boshqa TUGATILMAGAN bo'limlarni qulflash
+            # Tugatilgan bo'limlarga erkin kirish mumkin
             section_daily_locked = {}
             if daily_section_today:
                 for section in sections:
-                    if not section_is_locked[section.id] and section.id != daily_section_today:
-                        section_daily_locked[section.id] = True
-                    else:
+                    if section_is_locked[section.id] or section.id == daily_section_today:
                         section_daily_locked[section.id] = False
+                    else:
+                        # Bo'lim tugatilganmi tekshirish
+                        section_all_done = all(
+                            l.pk in completed_lesson_ids
+                            for l in section.lessons.all()
+                            if l.lesson_type != 'dictionary'
+                        )
+                        section_daily_locked[section.id] = not section_all_done
             else:
                 for section in sections:
                     section_daily_locked[section.id] = False
@@ -1688,21 +1695,41 @@ def lesson_view(request, pk):
         if lesson.section and _is_section_locked_for_student(request.user, lesson.section, profession):
             messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) tugating!")
             return redirect('profession_detail', pk=profession.pk)
-        # Kunlik bo'lim cheklovi: bir kunda faqat bitta bo'lim
+        # Kunlik bo'lim cheklovi: bir kunda faqat bitta YANGI bo'lim (tugatilgan bo'limlarga erkin kirish mumkin)
         if lesson.section:
             from datetime import date
             today = date.today()
-            today_access = DailySectionAccess.objects.filter(
-                user=request.user, profession=profession, accessed_date=today
-            ).first()
-            if today_access and today_access.section_id != lesson.section.id:
-                messages.warning(request, f"Bugun siz faqat \"{today_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
-                return redirect('profession_detail', pk=profession.pk)
-            if not today_access:
-                DailySectionAccess.objects.create(
-                    user=request.user, profession=profession,
-                    section=lesson.section, accessed_date=today
-                )
+            # Bu bo'lim allaqachon tugatilganmi tekshirish
+            section_lessons = lesson.section.lessons.exclude(lesson_type='dictionary')
+            watched = set(VideoProgress.objects.filter(
+                user=request.user, watched=True, video__lesson__section=lesson.section
+            ).values_list('video__lesson_id', flat=True))
+            passed = set(TestResult.objects.filter(
+                student=request.user, test__lesson__section=lesson.section, passed=True
+            ).values_list('test__lesson_id', flat=True))
+            accepted = set(HomeworkSubmission.objects.filter(
+                student=request.user, homework__lesson__section=lesson.section,
+                status__in=['accepted', 'graded']
+            ).values_list('homework__lesson_id', flat=True))
+            graded_sp = set(SpeakingSubmission.objects.filter(
+                student=request.user, speaking_task__lesson__section=lesson.section,
+                status='graded'
+            ).values_list('speaking_task__lesson_id', flat=True))
+            done_ids = watched | passed | accepted | graded_sp
+            section_completed = all(l.pk in done_ids for l in section_lessons)
+
+            if not section_completed:
+                today_access = DailySectionAccess.objects.filter(
+                    user=request.user, profession=profession, accessed_date=today
+                ).first()
+                if today_access and today_access.section_id != lesson.section.id:
+                    messages.warning(request, f"Bugun siz faqat \"{today_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                    return redirect('profession_detail', pk=profession.pk)
+                if not today_access:
+                    DailySectionAccess.objects.create(
+                        user=request.user, profession=profession,
+                        section=lesson.section, accessed_date=today
+                    )
         # Bo'limsiz darslar - barcha bo'limlar tugatilgandan keyin
         if not lesson.section:
             sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
