@@ -1124,9 +1124,16 @@ def profession_detail(request, pk):
         # Kunlik bo'lim cheklovi ma'lumotlarini olish
         daily_section_today = None
         daily_limit_section_name = None
+        accessed_section_ids = set()
         if request.user.is_student and not request.user.is_admin:
             from datetime import date
             today = date.today()
+            # Oldin kirilgan barcha bo'limlar (har qanday kunda)
+            accessed_section_ids = set(
+                DailySectionAccess.objects.filter(
+                    user=request.user, profession=profession
+                ).values_list('section_id', flat=True)
+            )
             today_access = DailySectionAccess.objects.filter(
                 user=request.user, profession=profession, accessed_date=today
             ).select_related('section').first()
@@ -1168,21 +1175,16 @@ def profession_detail(request, pk):
                     if lesson.lesson_type != 'dictionary'
                 )
                 section_is_locked['no_section'] = not all_sections_completed
-            # Kunlik cheklash: agar bugun bitta bo'limga kirilgan bo'lsa, boshqa TUGATILMAGAN bo'limlarni qulflash
-            # Tugatilgan bo'limlarga erkin kirish mumkin
+            # Kunlik cheklash: oldin kirilgan bo'limlar ochiq, hech kirilmagan bo'limlar qulflanadi
             section_daily_locked = {}
             if daily_section_today:
                 for section in sections:
-                    if section_is_locked[section.id] or section.id == daily_section_today:
+                    if section_is_locked[section.id] or section.id in accessed_section_ids:
+                        # Ketma-ket qulflangan yoki oldin kirilgan — daily lock emas
                         section_daily_locked[section.id] = False
                     else:
-                        # Bo'lim tugatilganmi tekshirish
-                        section_all_done = all(
-                            l.pk in completed_lesson_ids
-                            for l in section.lessons.all()
-                            if l.lesson_type != 'dictionary'
-                        )
-                        section_daily_locked[section.id] = not section_all_done
+                        # Hech qachon kirilmagan bo'lim — bugun boshqa bo'lim o'qilmoqda
+                        section_daily_locked[section.id] = True
             else:
                 for section in sections:
                     section_daily_locked[section.id] = False
@@ -1695,30 +1697,17 @@ def lesson_view(request, pk):
         if lesson.section and _is_section_locked_for_student(request.user, lesson.section, profession):
             messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) tugating!")
             return redirect('profession_detail', pk=profession.pk)
-        # Kunlik bo'lim cheklovi: bir kunda faqat bitta YANGI bo'lim (tugatilgan bo'limlarga erkin kirish mumkin)
+        # Kunlik bo'lim cheklovi: oldin kirilgan bo'limlarga erkin, faqat yangi bo'limga kunlik cheklov
         if lesson.section:
             from datetime import date
             today = date.today()
-            # Bu bo'lim allaqachon tugatilganmi tekshirish
-            section_lessons = lesson.section.lessons.exclude(lesson_type='dictionary')
-            watched = set(VideoProgress.objects.filter(
-                user=request.user, watched=True, video__lesson__section=lesson.section
-            ).values_list('video__lesson_id', flat=True))
-            passed = set(TestResult.objects.filter(
-                student=request.user, test__lesson__section=lesson.section, passed=True
-            ).values_list('test__lesson_id', flat=True))
-            accepted = set(HomeworkSubmission.objects.filter(
-                student=request.user, homework__lesson__section=lesson.section,
-                status__in=['accepted', 'graded']
-            ).values_list('homework__lesson_id', flat=True))
-            graded_sp = set(SpeakingSubmission.objects.filter(
-                student=request.user, speaking_task__lesson__section=lesson.section,
-                status='graded'
-            ).values_list('speaking_task__lesson_id', flat=True))
-            done_ids = watched | passed | accepted | graded_sp
-            section_completed = all(l.pk in done_ids for l in section_lessons)
+            # Bu bo'limga oldin kirilganmi (har qanday kunda)
+            ever_accessed = DailySectionAccess.objects.filter(
+                user=request.user, profession=profession, section=lesson.section
+            ).exists()
 
-            if not section_completed:
+            if not ever_accessed:
+                # Yangi bo'lim — bugun boshqa bo'lim o'qilganmi tekshirish
                 today_access = DailySectionAccess.objects.filter(
                     user=request.user, profession=profession, accessed_date=today
                 ).first()
