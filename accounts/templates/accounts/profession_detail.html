@@ -50,12 +50,47 @@
     cursor: default;
 }
 
+.section-card.section-daily-locked {
+    opacity: 0.85;
+    border-color: rgba(13, 110, 253, 0.3);
+}
+
+.section-card.section-daily-locked .section-header {
+    cursor: default;
+}
+
+.daily-limit-banner {
+    background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(102, 16, 242, 0.08));
+    border: 1px solid rgba(13, 110, 253, 0.25);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.daily-limit-banner i {
+    font-size: 1.5rem;
+    color: #0d6efd;
+}
+
+.daily-limit-banner .daily-limit-text {
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+.daily-limit-banner .daily-limit-text strong {
+    color: #0d6efd;
+}
+
 .section-header {
     padding: 16px 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     transition: all 0.2s;
 }
 
@@ -75,6 +110,13 @@
     gap: 10px;
     margin: 0;
     color: var(--text-main);
+    min-width: 0;
+    flex: 1;
+}
+
+.section-title > div {
+    min-width: 0;
+    word-break: break-word;
 }
 
 .section-icon {
@@ -87,12 +129,14 @@
     justify-content: center;
     color: white;
     font-size: 1.1rem;
+    flex-shrink: 0;
 }
 
 .section-meta {
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .section-count {
@@ -745,16 +789,27 @@
 
     <div class="p-3">
         {% if sections or lessons_without_section %}
+
+        {% if daily_limit_section_name %}
+        <div class="daily-limit-banner">
+            <i class="bi bi-calendar-check"></i>
+            <div class="daily-limit-text">
+                📚 Bugun siz faqat <strong>"{{ daily_limit_section_name }}"</strong> bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin!
+            </div>
+        </div>
+        {% endif %}
         
         <!-- Sections -->
         {% for section in sections %}
-        {% with section_locked=section_is_locked|get_item:section.id %}
-        <div class="section-card {% if section_locked %}section-locked{% endif %}">
-            <div class="section-header {% if forloop.first and not section_locked %}active{% endif %}" onclick="{% if not section_locked %}toggleSection(this){% endif %}">
+        {% with section_locked=section_is_locked|get_item:section.id daily_locked=section_daily_locked|get_item:section.id %}
+        <div class="section-card {% if section_locked %}section-locked{% elif daily_locked %}section-daily-locked{% endif %}">
+            <div class="section-header {% if forloop.first and not section_locked and not daily_locked %}active{% endif %}" onclick="{% if not section_locked and not daily_locked %}toggleSection(this){% endif %}">
                 <h6 class="section-title">
-                    <div class="section-icon {% if section_locked %}opacity-50{% endif %}">
+                    <div class="section-icon {% if section_locked or daily_locked %}opacity-50{% endif %}">
                         {% if section_locked %}
                         <i class="bi bi-lock-fill text-warning"></i>
+                        {% elif daily_locked %}
+                        <i class="bi bi-clock-fill text-primary"></i>
                         {% else %}
                         <i class="bi bi-folder2"></i>
                         {% endif %}
@@ -764,6 +819,8 @@
                         {{ section.title }}
                         {% if section_locked %}
                         <small class="d-block text-warning fw-normal" style="font-size: 0.8rem;">Avval yuqoridagi bo'limlarni o'qib tugating</small>
+                        {% elif daily_locked %}
+                        <small class="d-block text-primary fw-normal" style="font-size: 0.8rem;">Ertaga ochiladi — bugun boshqa bo'lim o'qilmoqda</small>
                         {% elif section.description %}
                         <small class="d-block text-muted fw-normal" style="font-size: 0.8rem;">{{ section.description|truncatechars:50 }}</small>
                         {% endif %}
@@ -772,17 +829,24 @@
                 <div class="section-meta">
                     {% if section_locked %}
                     <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>Qulflangan</span>
+                    {% elif daily_locked %}
+                    <span class="badge bg-primary bg-opacity-25 text-primary"><i class="bi bi-clock me-1"></i>Ertaga</span>
                     {% else %}
                     <span class="section-count">{{ section.lessons.count }} dars</span>
                     {% endif %}
                     <i class="bi bi-chevron-down section-arrow"></i>
                 </div>
             </div>
-            <div class="section-body {% if forloop.first and not section_locked %}show{% endif %}">
+            <div class="section-body {% if forloop.first and not section_locked and not daily_locked %}show{% endif %}">
                 {% if section_locked %}
                 <div class="p-4 text-center text-muted">
                     <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
                     <p class="mt-2 mb-0">Bu bo'lim ochilishi uchun avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) bajarishingiz kerak</p>
+                </div>
+                {% elif daily_locked %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-clock-fill text-primary" style="font-size: 2rem;"></i>
+                    <p class="mt-2 mb-0">Bir kunda faqat bitta bo'lim o'qish mumkin. Bu bo'limga ertaga kirishingiz mumkin! 📅</p>
                 </div>
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}

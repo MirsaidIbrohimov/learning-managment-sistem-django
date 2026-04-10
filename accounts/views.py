@@ -22,7 +22,7 @@ from .models import (
     TestUserAnswer, Dictionary, DictionaryWord, Certificate, CertificateRequest, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
-    CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt
+    CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -1038,6 +1038,9 @@ def profession_detail(request, pk):
     sections = []
     lessons_without_section = []
     lesson_progress = {}
+    daily_section_today = None
+    daily_limit_section_name = None
+    section_daily_locked = {}
     
     if is_enrolled or is_teaching or request.user.is_admin:
         sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
@@ -1118,6 +1121,19 @@ def profession_detail(request, pk):
                     'attempted': True,
                 }
         
+        # Kunlik bo'lim cheklovi ma'lumotlarini olish
+        daily_section_today = None
+        daily_limit_section_name = None
+        if request.user.is_student and not request.user.is_admin:
+            from datetime import date
+            today = date.today()
+            today_access = DailySectionAccess.objects.filter(
+                user=request.user, profession=profession, accessed_date=today
+            ).select_related('section').first()
+            if today_access:
+                daily_section_today = today_access.section_id
+                daily_limit_section_name = today_access.section.title
+
         # Bo'limlarni qulflash: keyingi bo'lim faqat oldingi bo'limdagi barcha darslar bajarilgandan so'ng ochiladi
         # Lug'at darslari shart emas - ular progress hisoblashda e'tiborga olinmaydi
         section_is_locked = {}
@@ -1152,11 +1168,23 @@ def profession_detail(request, pk):
                     if lesson.lesson_type != 'dictionary'
                 )
                 section_is_locked['no_section'] = not all_sections_completed
+            # Kunlik cheklash: agar bugun bitta bo'limga kirilgan bo'lsa, boshqa bo'limlarni qulflash
+            section_daily_locked = {}
+            if daily_section_today:
+                for section in sections:
+                    if not section_is_locked[section.id] and section.id != daily_section_today:
+                        section_daily_locked[section.id] = True
+                    else:
+                        section_daily_locked[section.id] = False
+            else:
+                for section in sections:
+                    section_daily_locked[section.id] = False
         else:
             # Admin va o'qituvchi uchun barcha bo'limlar ochiq
             for section in sections:
                 section_is_locked[section.id] = False
             section_is_locked['no_section'] = False
+            section_daily_locked = {s.id: False for s in sections}
     
     # Kursdoshlar - shu kursga yozilgan o'quvchilar
     classmates = []
@@ -1202,6 +1230,9 @@ def profession_detail(request, pk):
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
         'section_is_locked': section_is_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
+        'section_daily_locked': section_daily_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
+        'daily_section_today': daily_section_today if (is_enrolled and request.user.is_student) else None,
+        'daily_limit_section_name': daily_limit_section_name if (is_enrolled and request.user.is_student) else None,
         'classmates': classmates,
         'course_teachers': course_teachers,
         'course_completed': course_completed,
@@ -1657,6 +1688,21 @@ def lesson_view(request, pk):
         if lesson.section and _is_section_locked_for_student(request.user, lesson.section, profession):
             messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) tugating!")
             return redirect('profession_detail', pk=profession.pk)
+        # Kunlik bo'lim cheklovi: bir kunda faqat bitta bo'lim
+        if lesson.section:
+            from datetime import date
+            today = date.today()
+            today_access = DailySectionAccess.objects.filter(
+                user=request.user, profession=profession, accessed_date=today
+            ).first()
+            if today_access and today_access.section_id != lesson.section.id:
+                messages.warning(request, f"Bugun siz faqat \"{today_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                return redirect('profession_detail', pk=profession.pk)
+            if not today_access:
+                DailySectionAccess.objects.create(
+                    user=request.user, profession=profession,
+                    section=lesson.section, accessed_date=today
+                )
         # Bo'limsiz darslar - barcha bo'limlar tugatilgandan keyin
         if not lesson.section:
             sections = profession.sections.filter(is_active=True).prefetch_related('lessons')

@@ -294,6 +294,22 @@ class CourseUnenrollRequest(models.Model):
         return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
 
 
+class DailySectionAccess(models.Model):
+    """O'quvchi bir kunda faqat bitta bo'limga kirishi mumkin"""
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_section_accesses')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE)
+    section = models.ForeignKey(Section, on_delete=models.CASCADE)
+    accessed_date = models.DateField(verbose_name="Kirish sanasi")
+
+    class Meta:
+        unique_together = ['user', 'profession', 'accessed_date']
+        verbose_name = "Kunlik bo'lim kirish"
+        verbose_name_plural = "Kunlik bo'lim kirishlar"
+
+    def __str__(self):
+        return f"{self.user.full_name} - {self.section.title} ({self.accessed_date})"
+
+
 class Lesson(models.Model):
     LESSON_TYPES = (
         ('video', 'Video darslik'),
