@@ -1715,10 +1715,21 @@ def lesson_view(request, pk):
                     messages.warning(request, f"Bugun siz faqat \"{today_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
                     return redirect('profession_detail', pk=profession.pk)
                 if not today_access:
-                    DailySectionAccess.objects.create(
-                        user=request.user, profession=profession,
-                        section=lesson.section, accessed_date=today
+                    # Shu bo'lim va undan oldingi barcha bo'limlarni ochiq deb belgilash
+                    all_sections = list(profession.sections.filter(is_active=True).order_by('order'))
+                    already_accessed = set(
+                        DailySectionAccess.objects.filter(
+                            user=request.user, profession=profession
+                        ).values_list('section_id', flat=True)
                     )
+                    for s in all_sections:
+                        if s.id not in already_accessed:
+                            DailySectionAccess.objects.create(
+                                user=request.user, profession=profession,
+                                section=s, accessed_date=today
+                            )
+                        if s.id == lesson.section.id:
+                            break
         # Bo'limsiz darslar - barcha bo'limlar tugatilgandan keyin
         if not lesson.section:
             sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
