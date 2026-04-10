@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)fxm1vrhjd!nfp46v$6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'itcreative.uz,www.itcreative.uz,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -375,7 +375,7 @@ GAME_MAX_SCORE_MULTIPLIER = 2.0
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
 TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")
-SITE_URL = os.getenv("SITE_URL", "https://itcreative.uz")
+SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
 
 # ============ LOGIN XAVFSIZLIGI ============
 
