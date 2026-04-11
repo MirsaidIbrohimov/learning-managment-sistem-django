@@ -701,7 +701,7 @@
             </span>
         </div>
 
-        {% if profession.closed_group_link and is_enrolled %}
+        {% if profession.closed_group_link and is_enrolled or profession.closed_group_link and user.is_admin or profession.closed_group_link and is_teaching %}
         <a href="{{ profession.closed_group_link }}" target="_blank" rel="noopener noreferrer" class="btn w-100 ios-btn mb-3" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; border: none; box-shadow: 0 4px 14px rgba(139,92,246,0.3); transition: all 0.3s ease;">
             <i class="bi bi-lock-fill me-2"></i>Yopiq guruhga qo'shilish
         </a>
@@ -760,6 +760,9 @@
         {% endif %}
 
         {% if user.is_admin or is_teaching %}
+        <a href="{% url 'course_statistics' profession.pk %}" class="btn w-100 ios-btn mb-2" style="background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; box-shadow: 0 4px 14px rgba(99,102,241,0.3);">
+            <i class="bi bi-bar-chart-line me-2"></i>Kurs statistikasi
+        </a>
         <a href="{% url 'manage_lessons' profession.pk %}" class="btn btn-outline-primary w-100 ios-btn">
             <i class="bi bi-gear me-2"></i>Boshqarish
         </a>
