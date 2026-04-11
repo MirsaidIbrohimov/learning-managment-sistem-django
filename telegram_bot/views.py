@@ -76,10 +76,20 @@ def bot_webhook(request):
     except json.JSONDecodeError:
         return JsonResponse({'ok': False})
 
+    # Darhol javob qaytarish — Telegram kutmasin
+    import threading
+    threading.Thread(target=_process_webhook, args=(data,), daemon=True).start()
+    return JsonResponse({'ok': True})
+
+
+def _process_webhook(data):
+    """Webhook update ni background threadda qayta ishlash"""
+    import django
+    django.db.connections.close_all()
+
     message = data.get('message', {})
     if not message:
-        # callback_query yoki boshqa update turlarini ham tekshirish
-        return JsonResponse({'ok': True})
+        return
 
     text = message.get('text', '')
     caption = message.get('caption', '')
@@ -90,31 +100,30 @@ def bot_webhook(request):
     tg_username = user_data.get('username', '')
 
     if not telegram_id:
-        return JsonResponse({'ok': True})
+        return
 
     from django.conf import settings
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
 
     if not bot_token:
         logger.error("TELEGRAM_BOT_TOKEN sozlanmagan!")
-        return JsonResponse({'ok': True})
+        return
 
     if text.startswith('/start'):
         parts = text.split()
         if len(parts) > 1 and parts[1].startswith('link_'):
-            # Telegramni ulash
-            token_value = parts[1][5:]  # "link_" ni olib tashlash
-            return _handle_link(chat['id'], telegram_id, tg_username, token_value, bot_token)
+            token_value = parts[1][5:]
+            _handle_link(chat['id'], telegram_id, tg_username, token_value, bot_token)
         else:
-            # Oddiy /start — login kodi yaratish
-            return _handle_start(chat['id'], telegram_id, tg_username, bot_token)
+            _handle_start(chat['id'], telegram_id, tg_username, bot_token)
+        return
 
     if text == '🤖 AI Chat':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ AI Chat ishlatish uchun avval Telegram akkauntingizni tizimga ulang!")
-            return JsonResponse({'ok': True})
+            return
 
         from .models import TelegramChatState
         from ai_yordamchi.models import ChatSession
@@ -142,14 +151,14 @@ def bot_webhook(request):
             "Orqaga qaytish uchun 🔙 Orqaga tugmasini bosing.",
             keyboard,
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '🔄 Yangi suhbat':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt topilmadi!")
-            return JsonResponse({'ok': True})
+            return
 
         from .models import TelegramChatState
         from ai_yordamchi.models import ChatSession
@@ -172,14 +181,14 @@ def bot_webhook(request):
             "🔄 <b>Yangi suhbat boshlandi!</b>\n\nXabaringizni yozing.",
             keyboard,
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '📊 Limitlarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt topilmadi!")
-            return JsonResponse({'ok': True})
+            return
 
         from ai_yordamchi.views import get_user_limits
         limits = get_user_limits(user)
@@ -208,7 +217,7 @@ def bot_webhook(request):
             'resize_keyboard': True,
         }
         _send_message_with_reply_markup(bot_token, chat['id'], msg, keyboard)
-        return JsonResponse({'ok': True})
+        return
 
     if text == '✉️ Xabar yozish':
         from .models import TelegramChatState
@@ -228,7 +237,7 @@ def bot_webhook(request):
             "✍️ Xabaringizni yozing:",
             keyboard,
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '🔙 Orqaga':
         from .models import TelegramChatState
@@ -246,7 +255,7 @@ def bot_webhook(request):
                 "👋 Asosiy menyu",
                 _unlinked_keyboard(),
             )
-        return JsonResponse({'ok': True})
+        return
 
     # ===== KITOBLAR, XABARLAR, UZISH =====
     if text == '📬 Xabarlarim':
@@ -254,25 +263,25 @@ def bot_webhook(request):
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
         _send_user_messages(bot_token, chat['id'], user)
-        return JsonResponse({'ok': True})
+        return
 
     if text == '📚 Kitoblarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
         _send_user_books(bot_token, chat['id'], user)
-        return JsonResponse({'ok': True})
+        return
 
     if text == '🔓 Uzish':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Telegram akkauntingiz tizimga ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
         keyboard = {
             'keyboard': [
                 [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qilish'}],
@@ -287,14 +296,14 @@ def bot_webhook(request):
             f"Uzilgandan so'ng bot orqali login qila olmaysiz.",
             keyboard,
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '✅ Ha, uzilsin':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
         user.telegram_id = None
         user.telegram_username = None
         user.save(update_fields=['telegram_id', 'telegram_username'])
@@ -303,7 +312,7 @@ def bot_webhook(request):
             "✅ Telegram muvaffaqiyatli uzildi!",
             {'remove_keyboard': True},
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '❌ Bekor qilish':
         _send_message_with_reply_markup(
@@ -311,7 +320,7 @@ def bot_webhook(request):
             "👌 Bekor qilindi. Telegram ulangan holda qoldi.",
             _linked_keyboard(),
         )
-        return JsonResponse({'ok': True})
+        return
 
     # ===== COIN STATISTIKA =====
     # Eski keyboard dan kelgan matnlar ham qo'llab-quvvatlanadi
@@ -325,9 +334,8 @@ def bot_webhook(request):
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
-        # Kurslar ro'yxatini ko'rsatish
         from accounts.models import CourseEnrollment
         enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
         keyboard_buttons = [[{'text': '💰 Barcha coinlar'}]]
@@ -340,24 +348,24 @@ def bot_webhook(request):
             "💰 <b>Coin statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
             {'keyboard': keyboard_buttons, 'resize_keyboard': True},
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '💰 Barcha coinlar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
         _send_coin_stats(bot_token, chat['id'], user, profession=None)
-        return JsonResponse({'ok': True})
+        return
 
     if text.startswith('💰 ') and text != '💰 Coin statistika' and text != '💰 Barcha coinlar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
         from accounts.models import Profession
         profession_name = text[2:].strip()
@@ -366,7 +374,7 @@ def bot_webhook(request):
             _send_coin_stats(bot_token, chat['id'], user, profession=profession)
         else:
             _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
-        return JsonResponse({'ok': True})
+        return
 
     # ===== BALL STATISTIKA =====
     if text == '📊 Ball statistika':
@@ -374,7 +382,7 @@ def bot_webhook(request):
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
         from accounts.models import CourseEnrollment
         enrollments = CourseEnrollment.objects.filter(user=user).select_related('profession')
@@ -388,24 +396,24 @@ def bot_webhook(request):
             "📊 <b>Ball statistika</b>\n\nQaysi kurs bo'yicha ko'rmoqchisiz?",
             {'keyboard': keyboard_buttons, 'resize_keyboard': True},
         )
-        return JsonResponse({'ok': True})
+        return
 
     if text == '📊 Barcha ballar':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
         _send_ball_stats(bot_token, chat['id'], user, profession=None)
-        return JsonResponse({'ok': True})
+        return
 
     if text.startswith('📊 ') and text != '📊 Ball statistika' and text != '📊 Barcha ballar' and text != '📊 Limitlarim':
         try:
             user = CustomUser.objects.get(telegram_id=telegram_id)
         except CustomUser.DoesNotExist:
             _send_message(bot_token, chat['id'], "❌ Akkaunt ulanmagan!")
-            return JsonResponse({'ok': True})
+            return
 
         from accounts.models import Profession
         profession_name = text[2:].strip()
@@ -414,33 +422,23 @@ def bot_webhook(request):
             _send_ball_stats(bot_token, chat['id'], user, profession=profession)
         else:
             _send_message(bot_token, chat['id'], "❌ Kurs topilmadi!")
-        return JsonResponse({'ok': True})
+        return
 
     # AI Chat rejimida rasm yuborilsa
     if photo:
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
         if chat_state:
-            import threading
-            threading.Thread(
-                target=_handle_ai_chat_image,
-                args=(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state),
-                daemon=True,
-            ).start()
-            return JsonResponse({'ok': True})
+            _handle_ai_chat_image(bot_token, chat['id'], telegram_id, caption or '', photo, chat_state)
+            return
 
     # AI Chat rejimida bo'lsa — xabarni AI ga yuborish
     if text and not text.startswith('/'):
         from .models import TelegramChatState
         chat_state = TelegramChatState.objects.filter(telegram_id=telegram_id, is_ai_chat=True).first()
         if chat_state:
-            import threading
-            threading.Thread(
-                target=_handle_ai_chat_message,
-                args=(bot_token, chat['id'], telegram_id, text, chat_state),
-                daemon=True,
-            ).start()
-            return JsonResponse({'ok': True})
+            _handle_ai_chat_message(bot_token, chat['id'], telegram_id, text, chat_state)
+            return
 
     # Xabar yozish rejimida bo'lsa — aloqa xabari sifatida saqlash
     if text and not text.startswith('/'):
@@ -461,10 +459,8 @@ def bot_webhook(request):
                 user=linked_user,
             )
 
-            # Adminlarga xabar yuborish
             _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id, text)
 
-            # Rejimni o'chirish — har bir xabar alohida yuboriladi
             chat_state.is_contact_mode = False
             chat_state.save(update_fields=['is_contact_mode'])
 
@@ -472,8 +468,6 @@ def bot_webhook(request):
                 bot_token, chat['id'],
                 "✅ Xabaringiz adminga yuborildi! Tez orada javob olasiz."
             )
-
-    return JsonResponse({'ok': True})
 
 
 def _handle_start(chat_id, telegram_id, tg_username, bot_token):
@@ -492,7 +486,7 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
             "✉️ Adminga xabar yozish uchun quyidagi tugmani bosing:",
             _unlinked_keyboard(),
         )
-        return JsonResponse({'ok': True})
+        return
 
     # Eski kodlarni o'chirish
     TelegramLoginCode.objects.filter(telegram_id=telegram_id, is_used=False).delete()
@@ -510,7 +504,6 @@ def _handle_start(chat_id, telegram_id, tg_username, bot_token):
         f"💡 Bu kodni saytdagi login sahifasiga kiriting.",
         _linked_keyboard(),
     )
-    return JsonResponse({'ok': True})
 
 
 def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
@@ -521,7 +514,7 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
             bot_token, chat_id,
             "⚠️ Bu Telegram akkaunt allaqachon boshqa foydalanuvchiga ulangan!"
         )
-        return JsonResponse({'ok': True})
+        return
 
     # Tokenni tekshirish
     try:
@@ -531,14 +524,14 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
             bot_token, chat_id,
             "❌ Havola eskirgan yoki noto'g'ri. Iltimos, qaytadan urinib ko'ring."
         )
-        return JsonResponse({'ok': True})
+        return
 
     if link_token.is_expired:
         _send_message(
             bot_token, chat_id,
             "⏰ Havola muddati tugagan. Iltimos, saytdan qayta ulang."
         )
-        return JsonResponse({'ok': True})
+        return
 
     # Ulash
     user = link_token.user
@@ -555,7 +548,6 @@ def _handle_link(chat_id, telegram_id, tg_username, token_value, bot_token):
         f"👤 {user.full_name} (@{user.username})\n\n"
         f"Endi login qilish uchun /start bosing va kodni oling."
     )
-    return JsonResponse({'ok': True})
 
 
 def _unlinked_keyboard():
