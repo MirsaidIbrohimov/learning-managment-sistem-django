@@ -52,6 +52,27 @@ def unlink_telegram(request):
     return redirect('profile')
 
 
+def set_webhook(request):
+    """Telegram webhook ni o'rnatish"""
+    import requests as http_requests
+    from django.conf import settings
+
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        return JsonResponse({'ok': False, 'error': 'TELEGRAM_BOT_TOKEN sozlanmagan'})
+
+    webhook_url = request.build_absolute_uri('/telegram/webhook/')
+    url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
+
+    try:
+        resp = http_requests.post(url, json={'url': webhook_url}, timeout=15)
+        result = resp.json()
+    except Exception as e:
+        return JsonResponse({'ok': False, 'error': str(e)})
+
+    return JsonResponse(result)
+
+
 def bot_health(request):
     """Health check — serverni uyg'oq tutish uchun + musobaqa eslatmalari + vazifa eslatmalari"""
     try:
