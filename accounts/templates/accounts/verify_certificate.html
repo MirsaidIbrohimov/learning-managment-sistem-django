@@ -87,6 +87,41 @@
     .vc-footer a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
     .vc-footer a:hover{color:#a855f7}
 
+    /* Student Results Section */
+    .vc-results-section{width:100%;margin-top:1.5rem;animation:fadeUp .6s ease .3s both}
+    .vc-results-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;overflow:hidden}
+    .vc-results-title{padding:1.5rem 2rem 1rem;font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:.6rem}
+    .vc-results-title i{font-size:1.3rem;color:#ffd60a}
+
+    .vc-overall{padding:0 2rem 1.5rem;text-align:center}
+    .vc-overall-score{position:relative;width:120px;height:120px;margin:0 auto 1rem}
+    .vc-overall-circle{transform:rotate(-90deg)}
+    .vc-overall-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:8}
+    .vc-overall-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+    .vc-overall-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .vc-overall-num{font-size:1.8rem;font-weight:900;line-height:1}
+    .vc-overall-label{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:.2rem}
+
+    .vc-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 2rem 1.5rem}
+    .vc-stat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1rem;text-align:center;transition:all .3s}
+    .vc-stat-card:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
+    .vc-stat-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;font-size:1.1rem}
+    .vc-stat-num{font-size:1.4rem;font-weight:800;line-height:1}
+    .vc-stat-label{font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.3rem;font-weight:500}
+    .vc-stat-sub{font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem}
+
+    .vc-test-list{padding:0 2rem 1.5rem}
+    .vc-test-list-title{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+    .vc-test-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .75rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-bottom:.5rem;transition:all .3s}
+    .vc-test-item:hover{background:rgba(255,255,255,.08)}
+    .vc-test-badge{min-width:44px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0}
+    .vc-test-badge.passed{background:rgba(52,199,89,.15);color:#34c759;border:1px solid rgba(52,199,89,.2)}
+    .vc-test-badge.failed{background:rgba(255,59,48,.15);color:#ff3b30;border:1px solid rgba(255,59,48,.2)}
+    .vc-test-name{font-size:.82rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .vc-test-status{font-size:.7rem;font-weight:600;padding:.2rem .5rem;border-radius:6px}
+    .vc-test-status.pass{background:rgba(52,199,89,.15);color:#34c759}
+    .vc-test-status.fail{background:rgba(255,59,48,.15);color:#ff3b30}
+
     @keyframes fadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
     @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 
@@ -96,6 +131,9 @@
         .vc-result-header{padding:1.25rem}
         .vc-logo h1{font-size:1.25rem}
         .vc-cert-id{font-size:1rem}
+        .vc-stats-grid{grid-template-columns:repeat(2,1fr)}
+        .vc-results-title,.vc-overall,.vc-test-list{padding-left:1.25rem;padding-right:1.25rem}
+        .vc-stats-grid{padding:0 1.25rem 1.25rem}
     }
     </style>
 </head>
@@ -247,6 +285,105 @@
             {% endif %}
         </div>
     </div>
+
+    {% if student_results %}
+    <div class="vc-results-section">
+        <div class="vc-results-card">
+            <div class="vc-results-title">
+                <i class="bi bi-bar-chart-fill"></i> O'quvchi natijalari
+            </div>
+
+            <!-- Overall Score Circle -->
+            <div class="vc-overall">
+                {% with score=student_results.overall_avg %}
+                <div class="vc-overall-score">
+                    <svg class="vc-overall-circle" width="120" height="120" viewBox="0 0 120 120">
+                        <circle class="vc-overall-bg" cx="60" cy="60" r="52"/>
+                        <circle class="vc-overall-fill" cx="60" cy="60" r="52"
+                            stroke="{% if score >= 80 %}#34c759{% elif score >= 60 %}#ffd60a{% elif score >= 40 %}#ff9500{% else %}#ff3b30{% endif %}"
+                            stroke-dasharray="326.73"
+                            stroke-dashoffset="{{ score|floatformat:0 }}"
+                            style="stroke-dashoffset:calc(326.73 - 326.73 * {{ score }} / 100)"/>
+                    </svg>
+                    <div class="vc-overall-text">
+                        <div class="vc-overall-num" style="color:{% if score >= 80 %}#34c759{% elif score >= 60 %}#ffd60a{% elif score >= 40 %}#ff9500{% else %}#ff3b30{% endif %}">{{ score }}%</div>
+                        <div class="vc-overall-label">Umumiy ball</div>
+                    </div>
+                </div>
+                {% endwith %}
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="vc-stats-grid">
+                <div class="vc-stat-card">
+                    <div class="vc-stat-icon" style="background:rgba(99,102,241,.15);color:#818cf8">
+                        <i class="bi bi-journal-check"></i>
+                    </div>
+                    <div class="vc-stat-num" style="color:#818cf8">{{ student_results.tests_taken }}</div>
+                    <div class="vc-stat-label">Testlar topshirildi</div>
+                    <div class="vc-stat-sub">{{ student_results.tests_passed }} ta o'tdi</div>
+                </div>
+                <div class="vc-stat-card">
+                    <div class="vc-stat-icon" style="background:rgba(52,199,89,.15);color:#34c759">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <div class="vc-stat-num" style="color:#34c759">{{ student_results.hw_count }}</div>
+                    <div class="vc-stat-label">Vazifalar bajarildi</div>
+                    <div class="vc-stat-sub">O'rtacha: {{ student_results.avg_hw_grade }}/10</div>
+                </div>
+                <div class="vc-stat-card">
+                    <div class="vc-stat-icon" style="background:rgba(168,85,247,.15);color:#a855f7">
+                        <i class="bi bi-mic-fill"></i>
+                    </div>
+                    <div class="vc-stat-num" style="color:#a855f7">{{ student_results.speaking_count }}</div>
+                    <div class="vc-stat-label">Speaking topshirildi</div>
+                    <div class="vc-stat-sub">O'rtacha: {{ student_results.avg_speaking_grade }}/10</div>
+                </div>
+            </div>
+
+            <!-- Test Results List -->
+            {% if student_results.test_results %}
+            <div class="vc-test-list">
+                <div class="vc-test-list-title">
+                    <i class="bi bi-list-check"></i> Test natijalari
+                </div>
+                {% for result in student_results.test_results %}
+                <div class="vc-test-item">
+                    <div class="vc-test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
+                        {{ result.score }}%
+                    </div>
+                    <div class="vc-test-name">{{ result.test.lesson.title }}</div>
+                    <div class="vc-test-status {% if result.passed %}pass{% else %}fail{% endif %}">
+                        {% if result.passed %}O'tdi{% else %}O'tmadi{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Average Test Score -->
+            {% if student_results.tests_taken > 0 %}
+            <div style="padding:0 2rem 1.5rem">
+                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
+                    <div style="display:flex;align-items:center;gap:.6rem">
+                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,214,10,.15);display:flex;align-items:center;justify-content:center">
+                            <i class="bi bi-trophy-fill" style="color:#ffd60a;font-size:.95rem"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:.7rem;color:rgba(255,255,255,.4)">O'rtacha test bali</div>
+                            <div style="font-size:1rem;font-weight:800">{{ student_results.avg_test_score }}%</div>
+                        </div>
+                    </div>
+                    <div style="font-size:.75rem;font-weight:600;padding:.3rem .7rem;border-radius:8px;{% if student_results.avg_test_score >= 80 %}background:rgba(52,199,89,.15);color:#34c759{% elif student_results.avg_test_score >= 60 %}background:rgba(255,214,10,.15);color:#ffd60a{% else %}background:rgba(255,59,48,.15);color:#ff3b30{% endif %}">
+                        {% if student_results.avg_test_score >= 80 %}A'lo{% elif student_results.avg_test_score >= 60 %}Yaxshi{% elif student_results.avg_test_score >= 40 %}Qoniqarli{% else %}Qoniqarsiz{% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
     {% elif searched and error %}
     <div class="vc-error">
         <div class="vc-error-card">

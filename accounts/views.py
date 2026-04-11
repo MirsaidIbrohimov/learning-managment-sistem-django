@@ -6068,12 +6068,71 @@ def verify_certificate(request):
     certificate = None
     searched = False
     error = None
+    student_results = None
     
     cert_id = request.GET.get('id', '').strip()
     if cert_id:
         searched = True
         try:
             certificate = Certificate.objects.select_related('student', 'profession', 'issued_by').get(certificate_id=cert_id)
+            
+            student = certificate.student
+            profession = certificate.profession
+            
+            # Kurs darslari
+            lessons = Lesson.objects.filter(profession=profession)
+            total_lessons = lessons.count()
+            
+            # Test natijalari
+            test_results = TestResult.objects.filter(
+                student=student,
+                test__lesson__profession=profession
+            ).select_related('test__lesson')
+            tests_taken = test_results.count()
+            tests_passed = test_results.filter(passed=True).count()
+            avg_test_score = test_results.aggregate(avg=Avg('score'))['avg'] or 0
+            
+            # Uyga vazifa natijalari
+            hw_submissions = HomeworkSubmission.objects.filter(
+                student=student,
+                homework__lesson__profession=profession,
+                status__in=['accepted', 'graded']
+            ).select_related('homework__lesson')
+            hw_count = hw_submissions.count()
+            avg_hw_grade = hw_submissions.aggregate(avg=Avg('grade'))['avg'] or 0
+            
+            # Speaking natijalari
+            speaking_subs = SpeakingSubmission.objects.filter(
+                student=student,
+                speaking_task__lesson__profession=profession,
+                status='graded'
+            ).select_related('speaking_task__lesson')
+            speaking_count = speaking_subs.count()
+            avg_speaking_grade = speaking_subs.aggregate(avg=Avg('grade'))['avg'] or 0
+            
+            # Umumiy o'rtacha ball hisoblash
+            all_scores = []
+            if tests_taken > 0:
+                all_scores.append(avg_test_score)
+            if hw_count > 0:
+                all_scores.append(avg_hw_grade * 10)  # 10-ballik -> 100-ballik
+            if speaking_count > 0:
+                all_scores.append(avg_speaking_grade * 10)
+            overall_avg = sum(all_scores) / len(all_scores) if all_scores else 0
+            
+            student_results = {
+                'total_lessons': total_lessons,
+                'tests_taken': tests_taken,
+                'tests_passed': tests_passed,
+                'avg_test_score': round(avg_test_score, 1),
+                'hw_count': hw_count,
+                'avg_hw_grade': round(avg_hw_grade, 1),
+                'speaking_count': speaking_count,
+                'avg_speaking_grade': round(avg_speaking_grade, 1),
+                'overall_avg': round(overall_avg, 1),
+                'test_results': test_results[:10],
+            }
+            
         except Certificate.DoesNotExist:
             error = "Bu ID raqamga mos sertifikat topilmadi."
     
@@ -6082,6 +6141,7 @@ def verify_certificate(request):
         'searched': searched,
         'error': error,
         'cert_id': cert_id,
+        'student_results': student_results,
     })
 
 
