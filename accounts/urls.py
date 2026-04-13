@@ -102,10 +102,6 @@ urlpatterns = [
     # Admin: O'qituvchilar boshqaruvi
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),
     path('dashboard/teachers/<int:pk>/profile/', views.admin_teacher_profile, name='admin_teacher_profile'),
-    path('dashboard/teachers/salaries/', views.admin_teacher_salaries, name='admin_teacher_salaries'),
-    path('dashboard/teachers/salaries/add/', views.admin_teacher_salary_add, name='admin_teacher_salary_add'),
-    path('dashboard/teachers/salaries/<int:pk>/edit/', views.admin_teacher_salary_edit, name='admin_teacher_salary_edit'),
-    path('dashboard/teachers/salaries/<int:pk>/delete/', views.admin_teacher_salary_delete, name='admin_teacher_salary_delete'),
     path('dashboard/teachers/certificates/', views.admin_teacher_certificates, name='admin_teacher_certificates'),
     path('dashboard/teachers/certificates/add/', views.admin_teacher_certificate_add, name='admin_teacher_certificate_add'),
     path('dashboard/teachers/certificates/<int:pk>/delete/', views.admin_teacher_certificate_delete, name='admin_teacher_certificate_delete'),

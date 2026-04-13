@@ -10464,8 +10464,7 @@ def clear_ai_ad(request):
 def admin_teachers(request):
     if not request.user.is_admin:
         return redirect('home')
-    from teacher.models import TeacherSalary, TeacherCertificate
-    from django.db.models import Sum
+    from teacher.models import TeacherCertificate
     search_query = request.GET.get('q', '').strip()
     teachers = CustomUser.objects.filter(role='teacher').order_by('-date_joined')
     if search_query:
@@ -10474,17 +10473,13 @@ def admin_teachers(request):
             Q(username__icontains=search_query) | Q(phone__icontains=search_query)
         )
     teachers_data = []
-    now = timezone.now()
     for t in teachers:
         courses_count = t.teaching_professions.count()
         students_count = sum(p.enrollments.filter(user__role='student').count() for p in t.teaching_professions.all())
         certs_count = TeacherCertificate.objects.filter(teacher=t).count()
-        current_salary = TeacherSalary.objects.filter(
-            teacher=t, month=now.month, year=now.year
-        ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
         teachers_data.append({
             'user': t, 'courses_count': courses_count, 'students_count': students_count,
-            'certs_count': certs_count, 'current_salary': current_salary,
+            'certs_count': certs_count,
         })
     return render(request, 'accounts/admin/teachers.html', {
         'teachers_data': teachers_data, 'search_query': search_query, 'total_count': len(teachers_data),
@@ -10495,13 +10490,11 @@ def admin_teachers(request):
 def admin_teacher_profile(request, pk):
     if not request.user.is_admin:
         return redirect('home')
-    from teacher.models import TeacherSalary, TeacherCertificate
-    from django.db.models import Sum, Avg
+    from teacher.models import TeacherCertificate
 
     teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
     courses = teacher.teaching_professions.all()
     certificates = TeacherCertificate.objects.filter(teacher=teacher, is_visible=True)
-    now = timezone.now()
 
     total_students = 0
     courses_data = []
@@ -10510,168 +10503,16 @@ def admin_teacher_profile(request, pk):
         total_students += sc
         courses_data.append({'profession': p, 'student_count': sc})
 
-    current_salary = TeacherSalary.objects.filter(
-        teacher=teacher, month=now.month, year=now.year
-    ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-
-    total_salary = TeacherSalary.objects.filter(
-        teacher=teacher, year=now.year
-    ).exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-
     context = {
         'teacher': teacher,
         'courses': courses,
         'courses_data': courses_data,
         'certificates': certificates,
         'total_students': total_students,
-        'current_salary': current_salary,
-        'total_salary': total_salary,
         'certificates_count': certificates.count(),
         'courses_count': courses.count(),
     }
     return render(request, 'accounts/admin/teacher_profile.html', context)
-
-
-@login_required
-def admin_teacher_salaries(request):
-    if not request.user.is_admin:
-        return redirect('home')
-    from teacher.models import TeacherSalary
-    from django.db.models import Sum
-    teacher_id = request.GET.get('teacher', '')
-    month_filter = request.GET.get('month', '')
-    year_filter = request.GET.get('year', '')
-    type_filter = request.GET.get('type', '')
-    salaries = TeacherSalary.objects.all().select_related('teacher', 'created_by')
-    if teacher_id:
-        try: salaries = salaries.filter(teacher_id=int(teacher_id))
-        except (ValueError, TypeError): pass
-    if month_filter:
-        try: salaries = salaries.filter(month=int(month_filter))
-        except (ValueError, TypeError): pass
-    if year_filter:
-        try: salaries = salaries.filter(year=int(year_filter))
-        except (ValueError, TypeError): pass
-    if type_filter:
-        salaries = salaries.filter(salary_type=type_filter)
-    total_amount = salaries.exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-    total_jarima = salaries.filter(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
-    available_years = TeacherSalary.objects.values_list('year', flat=True).distinct().order_by('-year')
-    if not available_years:
-        available_years = [timezone.now().year]
-    paginator = Paginator(salaries, 30)
-    page = request.GET.get('page')
-    salaries = paginator.get_page(page)
-    return render(request, 'accounts/admin/teacher_salaries.html', {
-        'salaries': salaries, 'teachers': teachers, 'teacher_id': teacher_id,
-        'month_filter': month_filter, 'year_filter': year_filter, 'type_filter': type_filter,
-        'total_amount': total_amount - total_jarima, 'available_years': available_years,
-        'salary_types': TeacherSalary.SALARY_TYPES, 'month_choices': TeacherSalary.MONTH_CHOICES,
-    })
-
-
-@login_required
-def admin_teacher_salary_add(request):
-    if not request.user.is_admin:
-        return redirect('home')
-    from teacher.models import TeacherSalary
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
-    now = timezone.now()
-
-    if request.method == 'POST':
-        teacher_id = request.POST.get('teacher')
-        month = request.POST.get('month')
-        year = request.POST.get('year')
-        description = request.POST.get('description', '')
-        is_paid = request.POST.get('is_paid') == 'on'
-        paid_date = request.POST.get('paid_date') or None
-        receipt = request.FILES.get('receipt')
-
-        try:
-            month = int(month)
-            year = int(year)
-        except (ValueError, TypeError):
-            messages.error(request, "Oy va yilni to'g'ri kiriting.")
-            return redirect('admin_teacher_salary_add')
-
-        teacher = get_object_or_404(CustomUser, pk=teacher_id, role='teacher')
-        created_count = 0
-
-        for stype, slabel in TeacherSalary.SALARY_TYPES:
-            amount_str = request.POST.get(f'amount_{stype}', '').strip()
-            if amount_str:
-                try:
-                    amount = int(amount_str)
-                    if amount > 0:
-                        TeacherSalary.objects.create(
-                            teacher=teacher, salary_type=stype, amount=amount,
-                            month=month, year=year, description=description,
-                            is_paid=is_paid, paid_date=paid_date,
-                            receipt=receipt if stype == 'oylik' else None,
-                            created_by=request.user,
-                        )
-                        created_count += 1
-                except (ValueError, TypeError):
-                    pass
-
-        if created_count:
-            messages.success(request, f"{teacher.full_name}ga {created_count} ta oylik yozuvi qo'shildi!")
-        else:
-            messages.warning(request, "Hech qanday summa kiritilmadi.")
-        return redirect('admin_teacher_salaries')
-
-    return render(request, 'accounts/admin/teacher_salary_form.html', {
-        'teachers': teachers, 'salary_types': TeacherSalary.SALARY_TYPES,
-        'month_choices': TeacherSalary.MONTH_CHOICES, 'current_month': now.month, 'current_year': now.year,
-    })
-
-
-@login_required
-def admin_teacher_salary_edit(request, pk):
-    if not request.user.is_admin:
-        return redirect('home')
-    from teacher.models import TeacherSalary
-    salary = get_object_or_404(TeacherSalary, pk=pk)
-    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
-    if request.method == 'POST':
-        salary.teacher_id = request.POST.get('teacher', salary.teacher_id)
-        salary.salary_type = request.POST.get('salary_type', salary.salary_type)
-        salary.description = request.POST.get('description', '')
-        salary.is_paid = request.POST.get('is_paid') == 'on'
-        salary.paid_date = request.POST.get('paid_date') or None
-        try:
-            salary.amount = int(request.POST.get('amount', salary.amount))
-            salary.month = int(request.POST.get('month', salary.month))
-            salary.year = int(request.POST.get('year', salary.year))
-        except (ValueError, TypeError):
-            messages.error(request, "Summa, oy va yilni to'g'ri kiriting.")
-            return render(request, 'accounts/admin/teacher_salary_form.html', {
-                'teachers': teachers, 'salary': salary, 'salary_types': TeacherSalary.SALARY_TYPES,
-                'month_choices': TeacherSalary.MONTH_CHOICES, 'is_edit': True,
-            })
-        receipt = request.FILES.get('receipt')
-        if receipt:
-            salary.receipt = receipt
-        salary.save()
-        messages.success(request, "Oylik yangilandi!")
-        return redirect('admin_teacher_salaries')
-    return render(request, 'accounts/admin/teacher_salary_form.html', {
-        'teachers': teachers, 'salary': salary, 'salary_types': TeacherSalary.SALARY_TYPES,
-        'month_choices': TeacherSalary.MONTH_CHOICES, 'is_edit': True,
-    })
-
-
-@login_required
-def admin_teacher_salary_delete(request, pk):
-    if not request.user.is_admin:
-        return redirect('home')
-    from teacher.models import TeacherSalary
-    salary = get_object_or_404(TeacherSalary, pk=pk)
-    if request.method == 'POST':
-        salary.delete()
-        messages.success(request, "Oylik o'chirildi!")
-    return redirect('admin_teacher_salaries')
 
 
 @login_required

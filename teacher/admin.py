@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TeacherCertificate, TeacherSalary
+from .models import TeacherCertificate
 
 
 class TeacherCertificateInline(admin.TabularInline):
@@ -15,11 +15,3 @@ class TeacherCertificateAdmin(admin.ModelAdmin):
     search_fields = ['teacher__first_name', 'teacher__last_name', 'title']
     list_editable = ['is_visible']
 
-
-@admin.register(TeacherSalary)
-class TeacherSalaryAdmin(admin.ModelAdmin):
-    list_display = ['teacher', 'salary_type', 'amount', 'month', 'year', 'is_paid', 'paid_date']
-    list_filter = ['salary_type', 'is_paid', 'year', 'month']
-    search_fields = ['teacher__first_name', 'teacher__last_name']
-    list_editable = ['is_paid']
-    date_hierarchy = 'created_at'

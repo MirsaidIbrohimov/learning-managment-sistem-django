@@ -9,7 +9,7 @@ from accounts.models import (
     Test, TestQuestion, TestAnswer, TestResult,
     SpeakingTask, SpeakingSubmission, VideoLesson
 )
-from .models import TeacherCertificate, TeacherSalary
+from .models import TeacherCertificate
 from accounts.views import send_course_notification
 
 
@@ -68,12 +68,6 @@ def teacher_dashboard(request):
     # Certificates count
     certificates_count = TeacherCertificate.objects.filter(teacher=user).count()
     
-    # Current month salary
-    now = timezone.now()
-    current_salary = TeacherSalary.objects.filter(
-        teacher=user, month=now.month, year=now.year
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -84,7 +78,6 @@ def teacher_dashboard(request):
         'recent_speakings': recent_speakings,
         'recent_tests': recent_tests,
         'certificates_count': certificates_count,
-        'current_salary': current_salary,
     }
     return render(request, 'teacher/dashboard.html', context)
 
@@ -716,67 +709,6 @@ def teacher_edit_course(request, pk):
         messages.success(request, "Kurs muvaffaqiyatli yangilandi!")
 
     return redirect('teacher:courses')
-
-
-@teacher_required
-def teacher_balance(request):
-    user = request.user
-    now = timezone.now()
-    
-    # Get filter year (default current year)
-    filter_year = request.GET.get('year', now.year)
-    try:
-        filter_year = int(filter_year)
-    except (ValueError, TypeError):
-        filter_year = now.year
-    
-    salaries = TeacherSalary.objects.filter(teacher=user, year=filter_year)
-    
-    # Group by month
-    months_data = []
-    for m in range(1, 13):
-        month_salaries = salaries.filter(month=m)
-        oylik = month_salaries.filter(salary_type='oylik').aggregate(s=Sum('amount'))['s'] or 0
-        kpi = month_salaries.filter(salary_type='kpi').aggregate(s=Sum('amount'))['s'] or 0
-        bayram = month_salaries.filter(salary_type='bayram').aggregate(s=Sum('amount'))['s'] or 0
-        bonus = month_salaries.filter(salary_type='bonus').aggregate(s=Sum('amount'))['s'] or 0
-        jarima = month_salaries.filter(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-        boshqa = month_salaries.filter(salary_type='boshqa').aggregate(s=Sum('amount'))['s'] or 0
-        total = oylik + kpi + bayram + bonus + boshqa - jarima
-        
-        # Get receipt if exists
-        receipt = month_salaries.filter(receipt__isnull=False).exclude(receipt='').first()
-        
-        months_data.append({
-            'month': m,
-            'month_name': dict(TeacherSalary.MONTH_CHOICES).get(m, ''),
-            'oylik': oylik,
-            'kpi': kpi,
-            'bayram': bayram,
-            'bonus': bonus,
-            'jarima': jarima,
-            'boshqa': boshqa,
-            'total': total,
-            'receipt': receipt,
-            'has_data': total != 0,
-        })
-    
-    # Yearly totals
-    yearly_total = salaries.exclude(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-    yearly_jarima = salaries.filter(salary_type='jarima').aggregate(s=Sum('amount'))['s'] or 0
-    
-    # Available years
-    available_years = TeacherSalary.objects.filter(teacher=user).values_list('year', flat=True).distinct().order_by('-year')
-    if not available_years:
-        available_years = [now.year]
-    
-    context = {
-        'months_data': months_data,
-        'filter_year': filter_year,
-        'yearly_total': yearly_total - yearly_jarima,
-        'available_years': available_years,
-    }
-    return render(request, 'teacher/balance.html', context)
 
 
 @teacher_required

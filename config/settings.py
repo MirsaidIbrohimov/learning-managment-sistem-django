@@ -146,7 +146,6 @@ JAZZMIN_SETTINGS = {
         "games.GameAttempt": "fas fa-chart-bar",
 
         "teacher.TeacherCertificate": "fas fa-award",
-        "teacher.TeacherSalary": "fas fa-money-bill-wave",
     },
 
     "default_icon_parents": "fas fa-layer-group",
