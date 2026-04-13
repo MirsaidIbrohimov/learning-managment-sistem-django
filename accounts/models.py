@@ -553,6 +553,7 @@ class HomeworkSubmission(models.Model):
     revision_count = models.IntegerField(default=0, verbose_name="Qayta topshirish soni")
     version = models.IntegerField(default=1, verbose_name="Versiya")
     ai_feedback = models.TextField(null=True, blank=True, verbose_name="AI xulosasi")
+    ai_checked = models.BooleanField(default=False, verbose_name="AI tekshirdi")
     
     class Meta:
         ordering = ['-submitted_at']
