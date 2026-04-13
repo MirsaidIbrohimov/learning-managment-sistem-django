@@ -12,7 +12,6 @@
 }
 .e-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
 
-/* Narxlar kartasi */
 .e-price-cards {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
     margin-bottom: 1.5rem; animation: fadeInUp 0.45s ease;
@@ -29,7 +28,6 @@
 .e-price-label { font-size: .8rem; color: var(--bs-secondary-color); margin-bottom: .2rem; }
 .e-price-value { font-size: 1.3rem; font-weight: 800; }
 
-/* Umumiy daromad karta */
 .e-total-card {
     background: linear-gradient(135deg, #064e3b, #047857);
     border-radius: 18px; padding: 2rem; color: #fff;
@@ -57,7 +55,6 @@
 .e-change-down { background: rgba(239,68,68,0.2); color: #fca5a5; }
 .e-change-zero { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
 
-/* Oy qiyoslash */
 .e-compare-grid {
     display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
     margin-bottom: 2rem;
@@ -81,7 +78,6 @@
 .e-month-prev .e-month-header { background: var(--bs-tertiary-bg); }
 .e-month-prev .e-month-badge { background: rgba(107,114,128,0.15); color: #6b7280; }
 
-/* Statistika satrlari */
 .e-stat-rows { padding: 0; }
 .e-stat-row {
     display: flex; align-items: center; padding: 1rem 1.5rem;
@@ -104,7 +100,6 @@
 .e-stat-amount { text-align: right; min-width: 100px; }
 .e-stat-amount-val { font-weight: 800; font-size: 1rem; color: #10b981; }
 
-/* Jami qator */
 .e-stat-total {
     display: flex; align-items: center; justify-content: space-between;
     padding: 1.2rem 1.5rem; background: var(--bs-tertiary-bg);
@@ -113,7 +108,6 @@
 .e-stat-total-label { font-size: .95rem; }
 .e-stat-total-value { font-size: 1.2rem; color: #10b981; }
 
-/* Batafsil ro'yxat */
 .e-details { margin-bottom: 2rem; animation: fadeInUp 0.6s ease; }
 .e-details-title {
     font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;
@@ -159,7 +153,6 @@
     <h1><i class="bi bi-cash-coin" style="color: var(--t-primary);"></i> Daromadlarim</h1>
 </div>
 
-<!-- Narxlar -->
 <div class="e-price-cards">
     <div class="e-price-card">
         <div class="e-price-icon"><i class="bi bi-camera-video-fill" style="color: #8b5cf6;"></i></div>
@@ -178,11 +171,10 @@
     </div>
 </div>
 
-<!-- Umumiy daromad -->
 <div class="e-total-card">
     <div class="e-total-row">
         <div>
-            <div class="e-total-label">{{ current_month_name }} {{ current_year }} — joriy oy daromadi</div>
+            <div class="e-total-label">{{ current_month_name }} {{ current_year }} - joriy oy daromadi</div>
             <div class="e-total-value">{{ current_data.grand_total|floatformat:0 }} so'm</div>
         </div>
         <div>
@@ -198,9 +190,7 @@
     </div>
 </div>
 
-<!-- Oy qiyoslash -->
 <div class="e-compare-grid">
-    <!-- Joriy oy -->
     <div class="e-month-card e-month-current">
         <div class="e-month-header">
             <span><i class="bi bi-calendar-check me-1"></i> {{ current_month_name }} {{ current_year }}</span>
@@ -262,7 +252,6 @@
         </div>
     </div>
 
-    <!-- O'tgan oy -->
     <div class="e-month-card e-month-prev">
         <div class="e-month-header">
             <span><i class="bi bi-calendar3 me-1"></i> {{ prev_month_name }} {{ prev_year }}</span>
@@ -325,11 +314,10 @@
     </div>
 </div>
 
-<!-- Joriy oy batafsil ro'yxat -->
 <div class="e-details">
     <div class="e-details-title">
         <i class="bi bi-list-ul" style="color: var(--t-primary);"></i>
-        {{ current_month_name }} — batafsil ro'yxat
+        {{ current_month_name }} - batafsil ro'yxat
     </div>
     {% if current_data.video_list or current_data.test_list or current_data.hw_list %}
     <div style="overflow-x: auto;">
