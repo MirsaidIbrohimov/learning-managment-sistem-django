@@ -1172,6 +1172,69 @@
         }
     }
 
+    /* Photo Lightbox */
+    .lb-photo-lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(20px);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .lb-photo-lightbox.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    .lb-photo-lightbox-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        font-size: 1.3rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 2;
+    }
+    .lb-photo-lightbox-close:hover {
+        background: rgba(255,255,255,0.3);
+        transform: scale(1.1);
+    }
+    .lb-photo-lightbox-img {
+        max-width: 85vw;
+        max-height: 70vh;
+        border-radius: 20px;
+        object-fit: contain;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    .lb-photo-lightbox.active .lb-photo-lightbox-img {
+        transform: scale(1);
+    }
+    .lb-photo-lightbox-name {
+        margin-top: 1.25rem;
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
     /* Top 3 Podium Styles */
     .top-3-podium {
         display: flex;
@@ -1906,7 +1969,7 @@
             <div class="crown-badge">2</div>
             <div class="avatar-circle">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}">
+                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}" onclick="openLbPhoto('{{ student.photo.url }}', '{{ student.first_name }} {{ student.last_name }}', event)" style="cursor:pointer;">
                 {% else %}
                 <span>{{ student.get_initials }}</span>
                 {% endif %}
@@ -1930,7 +1993,7 @@
             <div class="crown-badge">1</div>
             <div class="avatar-circle">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}">
+                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}" onclick="openLbPhoto('{{ student.photo.url }}', '{{ student.first_name }} {{ student.last_name }}', event)" style="cursor:pointer;">
                 {% else %}
                 <span>{{ student.get_initials }}</span>
                 {% endif %}
@@ -1954,7 +2017,7 @@
             <div class="crown-badge">3</div>
             <div class="avatar-circle">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}">
+                <img src="{{ student.photo.url }}" alt="{{ student.first_name }}" onclick="openLbPhoto('{{ student.photo.url }}', '{{ student.first_name }} {{ student.last_name }}', event)" style="cursor:pointer;">
                 {% else %}
                 <span>{{ student.get_initials }}</span>
                 {% endif %}
@@ -1998,7 +2061,7 @@
 
             <div class="lb-user">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar {% if student.is_premium %}premium-avatar-border{% endif %}">
+                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar {% if student.is_premium %}premium-avatar-border{% endif %}" onclick="openLbPhoto('{{ student.photo.url }}', '{{ student.first_name }} {{ student.last_name }}', event)" style="cursor:pointer;">
                 {% else %}
                 <div class="lb-user-placeholder {% if student.is_premium %}premium-avatar-border{% endif %}">{{ student.get_initials }}</div>
                 {% endif %}
@@ -2040,7 +2103,7 @@
 
             <div class="lb-user">
                 {% if student.photo %}
-                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar">
+                <img src="{{ student.photo.url }}" alt="" class="lb-user-avatar" onclick="openLbPhoto('{{ student.photo.url }}', '{{ student.first_name }} {{ student.last_name }}', event)" style="cursor:pointer;">
                 {% else %}
                 <div class="lb-user-placeholder">{{ student.get_initials }}</div>
                 {% endif %}
@@ -2088,7 +2151,41 @@
     {% endif %}
 </div>
 
+<!-- Photo Lightbox -->
+<div class="lb-photo-lightbox" id="lbPhotoLightbox" onclick="closeLbPhoto(event)">
+    <button class="lb-photo-lightbox-close" onclick="closeLbPhoto(event)">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img src="" class="lb-photo-lightbox-img" id="lbPhotoImg" alt="">
+    <div class="lb-photo-lightbox-name" id="lbPhotoName"></div>
+</div>
+
 <script>
+    function openLbPhoto(url, name, e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var lb = document.getElementById('lbPhotoLightbox');
+        document.getElementById('lbPhotoImg').src = url;
+        document.getElementById('lbPhotoName').innerHTML = '<i class="bi bi-person-circle"></i> ' + name;
+        lb.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLbPhoto(e) {
+        if (e.target.closest('.lb-photo-lightbox-img')) return;
+        var lb = document.getElementById('lbPhotoLightbox');
+        lb.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            var lb = document.getElementById('lbPhotoLightbox');
+            if (lb && lb.classList.contains('active')) {
+                lb.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    });
+
     function closePremiumOverlay() {
         var overlay = document.getElementById('premiumOverlay');
         if (overlay) {
