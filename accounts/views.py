@@ -2640,66 +2640,72 @@ def submit_homework(request, pk):
                             f"📋 {similarity_result['reason']}"
                         )
 
-                    # 2. Har doim baholash — shubha bo'lsa teacherga xabar
-                    ai_result = _get_ai_grade(hw.description, student_answer)
-                    if ai_result:
-                        sub.grade = ai_result['grade']
-                        sub.status = ai_result['status']
-                        sub.graded_at = timezone.now()
-                        feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                        if ai_warning:
-                            feedback_text += ai_warning
-                        sub.ai_feedback = feedback_text
+                    # 2. Shubha bo'lsa — baho bermay teacherga yuborish
+                    if has_suspicion:
+                        feedback_text = (
+                            "⏳ Vazifangiz ustoz tekshiruviga yuborildi.\n"
+                            "Sabab: Javobda shubhali belgilar aniqlandi."
+                        )
+                        sub.status = 'pending'
+                        sub.ai_feedback = feedback_text + ai_warning
                         sub.feedback = feedback_text
-                        sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+                        sub.save(update_fields=['status', 'ai_feedback', 'feedback'])
 
-                        if ai_result['status'] == 'graded':
-                            if not sub.coin_awarded:
-                                coin_amount = 5
-                                if not sub.is_late:
-                                    coin_amount = 10
-                                if ai_result['grade'] >= 9:
-                                    coin_amount += 5
-                                elif ai_result['grade'] >= 8:
-                                    coin_amount += 3
-                                if sub.student.is_premium:
-                                    coin_amount *= 2
-                                sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
-                                sub.coin_awarded = True
-                                sub.save(update_fields=['coin_awarded'])
-                                ActivityLog.objects.create(
-                                    user=sub.student, action_type='homework_graded',
-                                    description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                                )
-                            _notify_ai_graded(sub, ai_result)
-                        else:
-                            _notify_ai_revision(sub, ai_result)
-
-                        # Shubha bo'lsa — teacher va adminga xabar
-                        if has_suspicion:
-                            teachers = hw.lesson.profession.teachers.all()
-                            for teacher in teachers:
-                                Message.objects.create(
-                                    title="🔍 Shubhali vazifa — tekshirish kerak",
-                                    content=(
-                                        f"👤 O'quvchi: {sub.student.full_name}\n"
-                                        f"📚 Kurs: {hw.lesson.profession.name}\n"
-                                        f"📖 Vazifa: {hw.lesson.title}\n"
-                                        f"🤖 AI baho: {ai_result['grade']}/10\n"
-                                        f"{ai_warning}\n\n"
-                                        f"Vazifa AI tomonidan baholandi, lekin shubhali belgilar bor. "
-                                        f"Iltimos, tekshirib, kerak bo'lsa bahoni o'zgartiring."
-                                    ),
-                                    message_type='personal', recipient=teacher,
-                                    sender=sub.student
-                                )
-                            notify_admins(
-                                f"🔍 <b>Shubhali vazifa</b>\n\n"
-                                f"👤 {sub.student.first_name} {sub.student.last_name}\n"
-                                f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
-                                f"🤖 AI baho: {ai_result['grade']}/10"
-                                f"{ai_warning}"
+                        teachers = hw.lesson.profession.teachers.all()
+                        for teacher in teachers:
+                            Message.objects.create(
+                                title="🔍 Shubhali vazifa — tekshirish kerak",
+                                content=(
+                                    f"👤 O'quvchi: {sub.student.full_name}\n"
+                                    f"📚 Kurs: {hw.lesson.profession.name}\n"
+                                    f"📖 Vazifa: {hw.lesson.title}\n"
+                                    f"{ai_warning}\n\n"
+                                    f"⚠️ AI shubhali belgilar topdi, shuning uchun baho qo'yilmadi. "
+                                    f"Iltimos, vazifani tekshirib, o'zingiz baholang."
+                                ),
+                                message_type='personal', recipient=teacher,
+                                sender=sub.student
                             )
+                        notify_admins(
+                            f"🔍 <b>Shubhali vazifa</b>\n\n"
+                            f"👤 {sub.student.first_name} {sub.student.last_name}\n"
+                            f"📚 {hw.lesson.profession.name} / {hw.lesson.title}\n"
+                            f"⚠️ Baho qo'yilmadi — ustoz tekshirishi kerak"
+                            f"{ai_warning}"
+                        )
+                    else:
+                        # Shubha yo'q — AI baholaydi
+                        ai_result = _get_ai_grade(hw.description, student_answer)
+                        if ai_result:
+                            sub.grade = ai_result['grade']
+                            sub.status = ai_result['status']
+                            sub.graded_at = timezone.now()
+                            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                            sub.ai_feedback = feedback_text
+                            sub.feedback = feedback_text
+                            sub.save(update_fields=['grade', 'status', 'graded_at', 'ai_feedback', 'feedback'])
+
+                            if ai_result['status'] == 'graded':
+                                if not sub.coin_awarded:
+                                    coin_amount = 5
+                                    if not sub.is_late:
+                                        coin_amount = 10
+                                    if ai_result['grade'] >= 9:
+                                        coin_amount += 5
+                                    elif ai_result['grade'] >= 8:
+                                        coin_amount += 3
+                                    if sub.student.is_premium:
+                                        coin_amount *= 2
+                                    sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
+                                    sub.coin_awarded = True
+                                    sub.save(update_fields=['coin_awarded'])
+                                    ActivityLog.objects.create(
+                                        user=sub.student, action_type='homework_graded',
+                                        description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                                    )
+                                _notify_ai_graded(sub, ai_result)
+                            else:
+                                _notify_ai_revision(sub, ai_result)
                     else:
                         if request.user.is_premium:
                             ai_feedback = _get_ai_homework_feedback(hw.description, student_answer)
