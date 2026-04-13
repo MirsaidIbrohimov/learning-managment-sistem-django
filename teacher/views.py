@@ -10,6 +10,7 @@ from accounts.models import (
     SpeakingTask, SpeakingSubmission, VideoLesson
 )
 from .models import TeacherCertificate
+from coin.models import ActivityLog
 from accounts.views import send_course_notification
 
 
@@ -851,6 +852,26 @@ def teacher_grade_homework(request, pk):
             submission.graded_at = timezone.now()
             submission.save()
             
+            # AI baholashda coin berish
+            if ai_result['status'] == 'graded' and not submission.coin_awarded:
+                coin_amount = 5
+                if not submission.is_late:
+                    coin_amount = 10
+                if submission.grade >= 9:
+                    coin_amount += 5
+                elif submission.grade >= 8:
+                    coin_amount += 3
+                if submission.student.is_premium:
+                    coin_amount *= 2
+                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+                submission.coin_awarded = True
+                submission.save()
+                ActivityLog.objects.create(
+                    user=submission.student,
+                    action_type='homework_graded',
+                    description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
+                )
+            
             if ai_warning:
                 messages.warning(request, f"AI baholadi: {submission.grade} ball. ⚠️ Shubhali belgilar aniqlandi — tekshirib ko'ring.")
             else:
@@ -879,6 +900,26 @@ def teacher_grade_homework(request, pk):
         if feedback_file:
             submission.feedback_file = feedback_file
         submission.save()
+        
+        # Coin berish
+        if status == 'graded' and not submission.coin_awarded:
+            coin_amount = 5
+            if not submission.is_late:
+                coin_amount = 10
+            if grade_val and grade_val >= 9:
+                coin_amount += 5
+            elif grade_val and grade_val >= 8:
+                coin_amount += 3
+            if submission.student.is_premium:
+                coin_amount *= 2
+            submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+            submission.coin_awarded = True
+            submission.save()
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Vazifa baholandi: {submission.homework.lesson.title} - Baho: {grade_val}, +{coin_amount} coin"
+            )
         
         messages.success(request, "Vazifa muvaffaqiyatli baholandi!")
         return redirect('teacher:homeworks')
@@ -1408,6 +1449,24 @@ def teacher_grade_speaking(request, pk):
             submission.graded_at = timezone.now()
             submission.save()
             
+            # Coin berish
+            if ai_result['status'] == 'graded' and not submission.coin_awarded:
+                coin_amount = 10
+                if ai_result['grade'] >= 9:
+                    coin_amount += 5
+                elif ai_result['grade'] >= 8:
+                    coin_amount += 3
+                if submission.student.is_premium:
+                    coin_amount *= 2
+                submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
+                submission.coin_awarded = True
+                submission.save(update_fields=['coin_awarded'])
+                ActivityLog.objects.create(
+                    user=submission.student,
+                    action_type='homework_graded',
+                    description=f"Speaking AI baholadi: {submission.speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                )
+            
             messages.success(request, f"AI baholadi: {submission.grade} ball")
             return redirect('teacher:speaking_tasks')
         
@@ -1443,6 +1502,25 @@ def teacher_grade_speaking(request, pk):
                     pass
         
         submission.save()
+        
+        # Coin berish
+        if status == 'graded' and not submission.coin_awarded:
+            coin_amount = 10
+            if grade_val and grade_val >= 9:
+                coin_amount += 5
+            elif grade_val and grade_val >= 8:
+                coin_amount += 3
+            if submission.student.is_premium:
+                coin_amount *= 2
+            submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
+            submission.coin_awarded = True
+            submission.save(update_fields=['coin_awarded'])
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Speaking baholandi: {submission.speaking_task.lesson.title} - Baho: {grade_val}, +{coin_amount} coin"
+            )
+        
         messages.success(request, "Speaking vazifa baholandi!")
         return redirect('teacher:speaking_tasks')
     
