@@ -18,6 +18,9 @@ urlpatterns = [
     # Balans
     path('balance/', views.teacher_balance, name='balance'),
 
+    # Daromadlarim
+    path('earnings/', views.teacher_earnings, name='earnings'),
+
     # Test natijalari
     path('test-results/', views.teacher_test_results, name='test_results'),
 

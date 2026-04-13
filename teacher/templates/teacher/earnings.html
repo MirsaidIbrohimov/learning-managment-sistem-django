@@ -1,0 +1,384 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}Daromadlarim - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}Daromadlarim{% endblock %}
+
+{% block teacher_content %}
+<style>
+.e-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+    animation: fadeInUp 0.4s ease;
+}
+.e-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+
+/* Narxlar kartasi */
+.e-price-cards {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    margin-bottom: 1.5rem; animation: fadeInUp 0.45s ease;
+}
+@media (max-width: 768px) { .e-price-cards { grid-template-columns: 1fr; } }
+.e-price-card {
+    border-radius: 16px; padding: 1.2rem 1.5rem;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg); text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.e-price-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+.e-price-icon { font-size: 2rem; margin-bottom: .5rem; }
+.e-price-label { font-size: .8rem; color: var(--bs-secondary-color); margin-bottom: .2rem; }
+.e-price-value { font-size: 1.3rem; font-weight: 800; }
+
+/* Umumiy daromad karta */
+.e-total-card {
+    background: linear-gradient(135deg, #064e3b, #047857);
+    border-radius: 18px; padding: 2rem; color: #fff;
+    margin-bottom: 2rem; position: relative; overflow: hidden;
+    animation: fadeInUp 0.5s ease;
+}
+.e-total-card::before {
+    content: ''; position: absolute; top: -60%; right: -15%;
+    width: 250px; height: 250px;
+    background: rgba(255,255,255,0.06); border-radius: 50%;
+}
+.e-total-card::after {
+    content: ''; position: absolute; bottom: -40%; left: -10%;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.04); border-radius: 50%;
+}
+.e-total-row { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1; }
+.e-total-label { font-size: .85rem; opacity: .8; margin-bottom: .3rem; }
+.e-total-value { font-size: 2.2rem; font-weight: 800; }
+.e-total-change {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700;
+}
+.e-change-up { background: rgba(16,185,129,0.2); color: #6ee7b7; }
+.e-change-down { background: rgba(239,68,68,0.2); color: #fca5a5; }
+.e-change-zero { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+/* Oy qiyoslash */
+.e-compare-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+@media (max-width: 768px) { .e-compare-grid { grid-template-columns: 1fr; } }
+.e-month-card {
+    border-radius: 18px; border: 1px solid var(--bs-border-color);
+    background: var(--bs-body-bg); overflow: hidden;
+    animation: fadeInUp 0.55s ease;
+}
+.e-month-header {
+    padding: 1.2rem 1.5rem; font-weight: 800; font-size: 1.05rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+.e-month-badge {
+    padding: 3px 10px; border-radius: 20px; font-size: .7rem; font-weight: 700;
+}
+.e-month-current .e-month-header { background: linear-gradient(135deg, rgba(6,78,59,0.08), rgba(4,120,87,0.08)); }
+.e-month-current .e-month-badge { background: rgba(16,185,129,0.15); color: #10b981; }
+.e-month-prev .e-month-header { background: var(--bs-tertiary-bg); }
+.e-month-prev .e-month-badge { background: rgba(107,114,128,0.15); color: #6b7280; }
+
+/* Statistika satrlari */
+.e-stat-rows { padding: 0; }
+.e-stat-row {
+    display: flex; align-items: center; padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    transition: background 0.2s;
+}
+.e-stat-row:last-child { border-bottom: none; }
+.e-stat-row:hover { background: var(--bs-tertiary-bg); }
+.e-stat-icon-box {
+    width: 42px; height: 42px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0; margin-right: 1rem;
+}
+.e-stat-info { flex: 1; }
+.e-stat-name { font-weight: 700; font-size: .9rem; }
+.e-stat-desc { font-size: .75rem; color: var(--bs-secondary-color); }
+.e-stat-count { text-align: right; margin-right: 1rem; }
+.e-stat-count-val { font-weight: 800; font-size: 1.1rem; }
+.e-stat-count-label { font-size: .7rem; color: var(--bs-secondary-color); }
+.e-stat-amount { text-align: right; min-width: 100px; }
+.e-stat-amount-val { font-weight: 800; font-size: 1rem; color: #10b981; }
+
+/* Jami qator */
+.e-stat-total {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 1.5rem; background: var(--bs-tertiary-bg);
+    font-weight: 800;
+}
+.e-stat-total-label { font-size: .95rem; }
+.e-stat-total-value { font-size: 1.2rem; color: #10b981; }
+
+/* Batafsil ro'yxat */
+.e-details { margin-bottom: 2rem; animation: fadeInUp 0.6s ease; }
+.e-details-title {
+    font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+}
+.e-detail-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: var(--bs-body-bg); border-radius: 16px;
+    border: 1px solid var(--bs-border-color); overflow: hidden;
+}
+.e-detail-table thead th {
+    padding: 12px 14px; font-size: .72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .5px;
+    color: var(--bs-secondary-color); background: var(--bs-tertiary-bg);
+    border-bottom: 2px solid var(--bs-border-color);
+}
+.e-detail-table tbody td {
+    padding: 12px 14px; font-size: .85rem;
+    border-bottom: 1px solid var(--bs-border-color);
+}
+.e-detail-table tbody tr:last-child td { border-bottom: none; }
+.e-detail-table tbody tr:hover { background: var(--bs-tertiary-bg); }
+.e-type-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 8px; font-size: .75rem; font-weight: 600;
+}
+.e-type-video { background: rgba(139,92,246,0.12); color: #8b5cf6; }
+.e-type-test { background: rgba(59,130,246,0.12); color: #3b82f6; }
+.e-type-hw { background: rgba(245,158,11,0.12); color: #f59e0b; }
+
+.e-empty {
+    text-align: center; padding: 2rem;
+    color: var(--bs-secondary-color); font-size: .9rem;
+}
+@media (max-width: 768px) {
+    .e-total-value { font-size: 1.6rem; }
+    .e-stat-row { flex-wrap: wrap; gap: .5rem; }
+    .e-stat-amount { min-width: auto; }
+}
+</style>
+
+<div class="e-header">
+    <h1><i class="bi bi-cash-coin" style="color: var(--t-primary);"></i> Daromadlarim</h1>
+</div>
+
+<!-- Narxlar -->
+<div class="e-price-cards">
+    <div class="e-price-card">
+        <div class="e-price-icon">🎬</div>
+        <div class="e-price-label">Har bir video dars uchun</div>
+        <div class="e-price-value" style="color: #8b5cf6;">{{ VIDEO_PRICE|floatformat:0 }} so'm</div>
+    </div>
+    <div class="e-price-card">
+        <div class="e-price-icon">📝</div>
+        <div class="e-price-label">Har bir test uchun</div>
+        <div class="e-price-value" style="color: #3b82f6;">{{ TEST_PRICE|floatformat:0 }} so'm</div>
+    </div>
+    <div class="e-price-card">
+        <div class="e-price-icon">📚</div>
+        <div class="e-price-label">Har bir uyga vazifa uchun</div>
+        <div class="e-price-value" style="color: #f59e0b;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
+    </div>
+</div>
+
+<!-- Umumiy daromad -->
+<div class="e-total-card">
+    <div class="e-total-row">
+        <div>
+            <div class="e-total-label">{{ current_month_name }} {{ current_year }} — joriy oy daromadi</div>
+            <div class="e-total-value">{{ current_data.grand_total|floatformat:0 }} so'm</div>
+        </div>
+        <div>
+            {% if change_pct > 0 %}
+            <span class="e-total-change e-change-up"><i class="bi bi-arrow-up-short"></i> +{{ change_pct }}%</span>
+            {% elif change_pct < 0 %}
+            <span class="e-total-change e-change-down"><i class="bi bi-arrow-down-short"></i> {{ change_pct }}%</span>
+            {% else %}
+            <span class="e-total-change e-change-zero"><i class="bi bi-dash"></i> 0%</span>
+            {% endif %}
+            <div style="font-size:.75rem; opacity:.7; text-align:right; margin-top:4px;">o'tgan oyga nisbatan</div>
+        </div>
+    </div>
+</div>
+
+<!-- Oy qiyoslash -->
+<div class="e-compare-grid">
+    <!-- Joriy oy -->
+    <div class="e-month-card e-month-current">
+        <div class="e-month-header">
+            <span>📅 {{ current_month_name }} {{ current_year }}</span>
+            <span class="e-month-badge">Joriy oy</span>
+        </div>
+        <div class="e-stat-rows">
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Video darslar</div>
+                    <div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ current_data.video_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ current_data.video_total|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Testlar</div>
+                    <div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ current_data.test_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ current_data.test_total|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Uyga vazifalar</div>
+                    <div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ current_data.hw_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="e-stat-total">
+            <span class="e-stat-total-label">Jami ({{ current_data.total_items }} ta)</span>
+            <span class="e-stat-total-value">{{ current_data.grand_total|floatformat:0 }} so'm</span>
+        </div>
+    </div>
+
+    <!-- O'tgan oy -->
+    <div class="e-month-card e-month-prev">
+        <div class="e-month-header">
+            <span>📅 {{ prev_month_name }} {{ prev_year }}</span>
+            <span class="e-month-badge">O'tgan oy</span>
+        </div>
+        <div class="e-stat-rows">
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                    <i class="bi bi-play-circle-fill"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Video darslar</div>
+                    <div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ prev_data.video_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ prev_data.video_total|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Testlar</div>
+                    <div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ prev_data.test_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ prev_data.test_total|floatformat:0 }}</div>
+                </div>
+            </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                    <i class="bi bi-journal-text"></i>
+                </div>
+                <div class="e-stat-info">
+                    <div class="e-stat-name">Uyga vazifalar</div>
+                    <div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
+                </div>
+                <div class="e-stat-count">
+                    <div class="e-stat-count-val">{{ prev_data.hw_count }}</div>
+                    <div class="e-stat-count-label">ta</div>
+                </div>
+                <div class="e-stat-amount">
+                    <div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="e-stat-total">
+            <span class="e-stat-total-label">Jami ({{ prev_data.total_items }} ta)</span>
+            <span class="e-stat-total-value">{{ prev_data.grand_total|floatformat:0 }} so'm</span>
+        </div>
+    </div>
+</div>
+
+<!-- Joriy oy batafsil ro'yxat -->
+<div class="e-details">
+    <div class="e-details-title">
+        <i class="bi bi-list-ul" style="color: var(--t-primary);"></i>
+        {{ current_month_name }} — batafsil ro'yxat
+    </div>
+    {% if current_data.video_list or current_data.test_list or current_data.hw_list %}
+    <div style="overflow-x: auto;">
+        <table class="e-detail-table">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Nomi</th>
+                    <th>Kurs</th>
+                    <th>Turi</th>
+                    <th>Sana</th>
+                    <th>Summa</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in current_data.video_list %}
+                <tr>
+                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td>{{ item.profession__name }}</td>
+                    <td><span class="e-type-badge e-type-video"><i class="bi bi-play-circle"></i> Video</span></td>
+                    <td>{{ item.created_at|date:"d.m.Y" }}</td>
+                    <td style="font-weight:700; color:#10b981;">{{ VIDEO_PRICE|floatformat:0 }} so'm</td>
+                </tr>
+                {% endfor %}
+                {% for item in current_data.test_list %}
+                <tr>
+                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td>{{ item.profession__name }}</td>
+                    <td><span class="e-type-badge e-type-test"><i class="bi bi-clipboard-check"></i> Test</span></td>
+                    <td>{{ item.created_at|date:"d.m.Y" }}</td>
+                    <td style="font-weight:700; color:#10b981;">{{ TEST_PRICE|floatformat:0 }} so'm</td>
+                </tr>
+                {% endfor %}
+                {% for item in current_data.hw_list %}
+                <tr>
+                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td>{{ item.profession__name }}</td>
+                    <td><span class="e-type-badge e-type-hw"><i class="bi bi-journal-text"></i> Vazifa</span></td>
+                    <td>{{ item.created_at|date:"d.m.Y" }}</td>
+                    <td style="font-weight:700; color:#10b981;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="e-empty" style="border: 1px solid var(--bs-border-color); border-radius: 16px;">
+        <i class="bi bi-inbox" style="font-size: 2rem; opacity: .4;"></i>
+        <p style="margin: .5rem 0 0;">Bu oy hali hech narsa qo'shilmagan</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

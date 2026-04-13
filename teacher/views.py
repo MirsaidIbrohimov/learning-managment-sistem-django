@@ -7,7 +7,7 @@ from django.db.models import Avg, Count, Q, Sum
 from accounts.models import (
     Profession, Lesson, Homework, HomeworkSubmission,
     Test, TestQuestion, TestAnswer, TestResult,
-    SpeakingTask, SpeakingSubmission
+    SpeakingTask, SpeakingSubmission, VideoLesson
 )
 from .models import TeacherCertificate, TeacherSalary
 from accounts.views import send_course_notification
@@ -1686,3 +1686,113 @@ def _transcribe_audio(file_field):
     except Exception as e:
         print(f"Transcribe error: {e}")
         return None
+
+
+@teacher_required
+def teacher_earnings(request):
+    """O'qituvchining video, test, vazifa bo'yicha daromadlari"""
+    from datetime import date
+    import calendar
+
+    user = request.user
+    professions = user.teaching_professions.all()
+    now = timezone.now()
+
+    # Narxlar
+    VIDEO_PRICE = 25000
+    TEST_PRICE = 10000
+    HOMEWORK_PRICE = 10000
+
+    # Joriy oy va o'tgan oy
+    current_month_start = date(now.year, now.month, 1)
+    if now.month == 1:
+        prev_month_start = date(now.year - 1, 12, 1)
+    else:
+        prev_month_start = date(now.year, now.month - 1, 1)
+    if now.month == 12:
+        next_month_start = date(now.year + 1, 1, 1)
+    else:
+        next_month_start = date(now.year, now.month + 1, 1)
+
+    def get_month_data(month_start, month_end):
+        """Berilgan oy uchun ma'lumotlarni hisoblash"""
+        # Video darslar
+        video_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='video',
+            created_by=user,
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        video_count = video_lessons.count()
+        video_list = list(video_lessons.values('id', 'title', 'profession__name', 'created_at'))
+
+        # Testlar
+        test_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='test',
+            created_by=user,
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        test_count = test_lessons.count()
+        test_list = list(test_lessons.values('id', 'title', 'profession__name', 'created_at'))
+
+        # Uyga vazifalar
+        hw_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='homework',
+            created_by=user,
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        hw_count = hw_lessons.count()
+        hw_list = list(hw_lessons.values('id', 'title', 'profession__name', 'created_at'))
+
+        video_total = video_count * VIDEO_PRICE
+        test_total = test_count * TEST_PRICE
+        hw_total = hw_count * HOMEWORK_PRICE
+        grand_total = video_total + test_total + hw_total
+
+        return {
+            'video_count': video_count,
+            'video_list': video_list,
+            'video_total': video_total,
+            'test_count': test_count,
+            'test_list': test_list,
+            'test_total': test_total,
+            'hw_count': hw_count,
+            'hw_list': hw_list,
+            'hw_total': hw_total,
+            'grand_total': grand_total,
+            'total_items': video_count + test_count + hw_count,
+        }
+
+    MONTH_NAMES = {
+        1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
+        5: 'May', 6: 'Iyun', 7: 'Iyul', 8: 'Avgust',
+        9: 'Sentyabr', 10: 'Oktyabr', 11: 'Noyabr', 12: 'Dekabr',
+    }
+
+    current_data = get_month_data(current_month_start, next_month_start)
+    prev_data = get_month_data(prev_month_start, current_month_start)
+
+    # Farq hisoblash
+    if prev_data['grand_total'] > 0:
+        change_pct = round((current_data['grand_total'] - prev_data['grand_total']) / prev_data['grand_total'] * 100)
+    else:
+        change_pct = 100 if current_data['grand_total'] > 0 else 0
+
+    context = {
+        'current_data': current_data,
+        'prev_data': prev_data,
+        'current_month_name': MONTH_NAMES[now.month],
+        'prev_month_name': MONTH_NAMES[prev_month_start.month],
+        'current_year': now.year,
+        'prev_year': prev_month_start.year,
+        'change_pct': change_pct,
+        'VIDEO_PRICE': VIDEO_PRICE,
+        'TEST_PRICE': TEST_PRICE,
+        'HOMEWORK_PRICE': HOMEWORK_PRICE,
+    }
+    return render(request, 'teacher/earnings.html', context)
