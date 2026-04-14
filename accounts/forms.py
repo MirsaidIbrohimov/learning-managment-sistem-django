@@ -11,14 +11,18 @@ from .models import (
 
 def _clean_name_field(name, field_label):
     """Remove emojis, stickers and special characters from name field."""
+    # Ko'rinmas va bo'sh belgilarni bloklash (Hangul Filler, braille blank, va h.k.)
+    INVISIBLE_CHARS = set('\u3164\u115f\u1160\u2800\u200b\u200c\u200d\u2060\ufeff\u00a0\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u205f\u3000\u180e\u034f\u17b4\u17b5\uffa0')
     cleaned = ''
     for char in name:
+        if char in INVISIBLE_CHARS:
+            continue
         cat = unicodedata.category(char)
         if cat.startswith('L') or cat.startswith('M') or char in " -'\u02bb\u02bc":
             cleaned += char
     cleaned = cleaned.strip()
-    if not cleaned:
-        raise forms.ValidationError(f"{field_label} faqat harflardan iborat bo'lishi kerak!")
+    if not cleaned or not any(c.isalpha() for c in cleaned):
+        raise forms.ValidationError(f"{field_label} faqat harflardan iborat bo'lishi kerak! Bo'sh yoki ko'rinmas belgilar qabul qilinmaydi.")
     return cleaned
 
 

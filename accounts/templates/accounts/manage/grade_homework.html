@@ -1327,7 +1327,7 @@
                         <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
                     </div>
                 </div>
-                <div class="gh-text-body">{{ submission.text_content|safe }}</div>
+                <div class="gh-text-body"><iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:200px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px';"></iframe></div>
                 {% endif %}
             </div>
 

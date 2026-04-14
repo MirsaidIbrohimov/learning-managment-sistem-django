@@ -736,7 +736,7 @@
                 {% elif submission.submission_type == 'text' and submission.text_content %}
                 <div class="hw-text-content">
                     <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--hw-text2);"><i class="bi bi-file-text me-1"></i> Yuborilgan matn</div>
-                    {{ submission.text_content|safe|truncatewords_html:50 }}
+                    <iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:80px;max-height:200px;" onload="this.style.height=Math.min(this.contentDocument.body.scrollHeight,200)+'px';"></iframe>
                 </div>
                 {% endif %}
 
