@@ -1137,14 +1137,24 @@
                                 </form>
                             </div>
                             {% else %}
-                                {% if submission.status == 'pending' %}
+                                {% if submission.status == 'pending' and not submission.ai_checked %}
+                                <div class="edit-timer-card expired">
+                                    <div class="edit-timer-icon">
+                                        <i class="bi bi-hourglass-split"></i>
+                                    </div>
+                                    <div class="edit-timer-info">
+                                        <div class="edit-timer-label">Tahrirlash muddati tugadi</div>
+                                        <div class="edit-timer-value">AI tekshirmoqda...</div>
+                                    </div>
+                                </div>
+                                {% elif submission.ai_checked %}
                                 <div class="edit-timer-card expired">
                                     <div class="edit-timer-icon">
                                         <i class="bi bi-lock-fill"></i>
                                     </div>
                                     <div class="edit-timer-info">
-                                        <div class="edit-timer-label">Tahrirlash muddati</div>
-                                        <div class="edit-timer-value">Tugagan</div>
+                                        <div class="edit-timer-label">Tahrirlash muddati tugadi</div>
+                                        <div class="edit-timer-value">Vazifa baholandi</div>
                                     </div>
                                 </div>
                                 {% endif %}
@@ -1448,10 +1458,10 @@ document.getElementById('text-editor')?.addEventListener('keydown', function(e) 
 
     function updateTimer() {
         if (secondsLeft <= 0) {
-            timerEl.textContent = 'Tugadi!';
+            timerEl.textContent = 'Tugadi! AI tekshirmoqda...';
             timerCard.classList.add('expired');
-            timerCard.querySelector('.edit-timer-icon').innerHTML = '<i class="bi bi-lock-fill"></i>';
-            timerCard.querySelector('.edit-timer-label').textContent = 'Tahrirlash muddati';
+            timerCard.querySelector('.edit-timer-icon').innerHTML = '<i class="bi bi-hourglass-split"></i>';
+            timerCard.querySelector('.edit-timer-label').textContent = 'Tahrirlash muddati tugadi';
             if (editFormWrap) editFormWrap.style.display = 'none';
             const editBtns = document.querySelectorAll('.edit-btn');
             editBtns.forEach(function(btn) {
@@ -1459,6 +1469,8 @@ document.getElementById('text-editor')?.addEventListener('keydown', function(e) 
                 btn.style.opacity = '0.5';
                 btn.style.cursor = 'not-allowed';
             });
+            // Sahifani yangilash — AI natijasi ko'rinishi uchun
+            setTimeout(function() { location.reload(); }, 10000);
             return;
         }
         const m = Math.floor(secondsLeft / 60);

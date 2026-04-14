@@ -2023,8 +2023,17 @@ def _notify_ai_graded(submission, ai_result):
     grade = ai_result['grade']
     feedback = ai_result['feedback']
 
+    # Saytda shaxsiy xabar
+    Message.objects.create(
+        recipient=student,
+        title=f"⏰ Tahrirlash muddati tugadi — vazifa baholandi",
+        content=f"'{lesson}' vazifangiz uchun 1 soatlik tahrirlash muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 AI izohi:\n{feedback}",
+        message_type='system'
+    )
+
     notify_user(
         student.telegram_id,
+        f"⏰ <b>Tahrirlash muddati tugadi!</b>\n"
         f"✅ <b>Vazifangiz AI tomonidan baholandi!</b>\n\n"
         f"📚 {profession}\n"
         f"📖 {lesson}\n"
@@ -2048,8 +2057,17 @@ def _notify_ai_revision(submission, ai_result):
     grade = ai_result['grade']
     feedback = ai_result['feedback']
 
+    # Saytda shaxsiy xabar
+    Message.objects.create(
+        recipient=student,
+        title=f"⏰ Tahrirlash muddati tugadi — vazifa qayta ishlash kerak",
+        content=f"'{lesson}' vazifangiz uchun 1 soatlik tahrirlash muddati tugadi.\n\n🏆 Baho: {grade}/10\n\n💬 Sabab:\n{feedback}\n\nIltimos, tuzatib qayta yuboring!",
+        message_type='warning'
+    )
+
     notify_user(
         student.telegram_id,
+        f"⏰ <b>Tahrirlash muddati tugadi!</b>\n"
         f"⚠️ <b>Vazifangiz qayta ishlash kerak!</b>\n\n"
         f"📚 {profession}\n"
         f"📖 {lesson}\n"
@@ -2064,6 +2082,87 @@ def _notify_ai_revision(submission, ai_result):
         f"🏆 Baho: <b>{grade}/10</b>\n"
         f"💬 {feedback[:200]}"
     )
+
+
+def _schedule_ai_check(submission_pk):
+    """O'quvchi vazifa yuborgandan 1 soat keyin AI tekshiruvini rejalashtirish"""
+    import threading
+
+    def _run_ai_check(sub_pk):
+        from django import db
+        from accounts.models import HomeworkSubmission
+        from coin.models import ActivityLog
+
+        try:
+            sub = HomeworkSubmission.objects.select_related(
+                'homework__lesson__profession', 'student'
+            ).get(pk=sub_pk)
+        except HomeworkSubmission.DoesNotExist:
+            return
+        finally:
+            db.close_old_connections()
+
+        if sub.ai_checked or sub.status != 'pending':
+            return
+
+        hw = sub.homework
+        student_answer = _read_submission_content(sub)
+
+        if not student_answer:
+            if sub.submission_type == 'file' and sub.file:
+                import os
+                if os.path.splitext(sub.file.name)[1].lower() == '.pdf':
+                    sub.ai_feedback = "📄 Suniy Intellekt PDF formatni qo'llab-quvvatlamaydi. Faqat matn yoki kod fayllarini tekshira oladi."
+            sub.ai_checked = True
+            sub.save(update_fields=['ai_checked', 'ai_feedback'])
+            return
+
+        try:
+            ai_result = _get_ai_grade(hw.description, student_answer)
+            if ai_result:
+                sub.grade = ai_result['grade']
+                sub.status = ai_result['status']
+                sub.graded_at = timezone.now()
+                feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                sub.ai_feedback = feedback_text
+                sub.feedback = feedback_text
+                sub.ai_checked = True
+                sub.save(update_fields=[
+                    'grade', 'status', 'graded_at',
+                    'ai_feedback', 'feedback', 'ai_checked'
+                ])
+
+                if ai_result['status'] == 'graded' and not sub.coin_awarded:
+                    coin_amount = 5
+                    if not sub.is_late:
+                        coin_amount = 10
+                    if ai_result['grade'] >= 9:
+                        coin_amount += 5
+                    elif ai_result['grade'] >= 8:
+                        coin_amount += 3
+                    if sub.student.is_premium:
+                        coin_amount *= 2
+                    sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
+                    sub.coin_awarded = True
+                    sub.save(update_fields=['coin_awarded'])
+                    ActivityLog.objects.create(
+                        user=sub.student, action_type='homework_graded',
+                        description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                    )
+                    _notify_ai_graded(sub, ai_result)
+                elif ai_result['status'] == 'revision':
+                    _notify_ai_revision(sub, ai_result)
+            else:
+                sub.ai_checked = True
+                sub.save(update_fields=['ai_checked'])
+        except Exception as e:
+            print(f"AI auto-check error (submission #{sub_pk}): {e}")
+        finally:
+            db.close_old_connections()
+
+    timer = threading.Timer(3600, _run_ai_check, args=[submission_pk])
+    timer.daemon = True
+    timer.start()
 
 
 def _notify_homework_submitted(student, homework):
@@ -2608,7 +2707,8 @@ def submit_homework(request, pk):
                 messages.error(request, "Matn kiritishingiz kerak!")
         
         # AI tekshiruv — 1 soat tahrirlash muddati tugagandan keyin avtomatik ishlaydi
-        # (check_ai_homework management command orqali)
+        if submission and homework.ai_check:
+            _schedule_ai_check(submission.pk)
     
     return redirect('lesson_view', pk=homework.lesson.pk)
 
