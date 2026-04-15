@@ -48,7 +48,8 @@ class CustomUserAdmin(UserAdmin):
 
 @admin.register(Profession)
 class ProfessionAdmin(admin.ModelAdmin):
-    list_display = ['name', 'student_count', 'teacher_count', 'lesson_count', 'created_at']
+    list_display = ['name', 'student_count', 'teacher_count', 'lesson_count', 'daily_section_limit', 'created_at']
+    list_editable = ['daily_section_limit']
     search_fields = ['name', 'description']
     list_per_page = 20
     

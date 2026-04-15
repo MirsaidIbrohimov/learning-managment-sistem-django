@@ -1128,7 +1128,7 @@ def profession_detail(request, pk):
         daily_section_today = None
         daily_limit_section_name = None
         accessed_section_ids = set()
-        if request.user.is_student and not request.user.is_admin:
+        if request.user.is_student and not request.user.is_admin and profession.daily_section_limit:
             from datetime import date
             today = date.today()
             # Oldin kirilgan barcha bo'limlar (har qanday kunda)
@@ -1184,9 +1184,11 @@ def profession_detail(request, pk):
                 section_started[section.id] = any(l.pk in completed_lesson_ids for l in section_lessons)
 
         # Bugungi DailySectionAccess
-        today_section_access = DailySectionAccess.objects.filter(
-            user=request.user, profession=profession, accessed_date=today
-        ).select_related('section').first()
+        today_section_access = None
+        if profession.daily_section_limit:
+            today_section_access = DailySectionAccess.objects.filter(
+                user=request.user, profession=profession, accessed_date=today
+            ).select_related('section').first()
 
         section_is_locked = {}
         section_daily_locked = {}
@@ -1209,7 +1211,7 @@ def profession_detail(request, pk):
                     section_daily_locked[section.id] = False
                 else:
                     # 3. Oldingi tugatilgan → kunlik cheklash
-                    if today_section_access and today_section_access.section_id != section.id:
+                    if profession.daily_section_limit and today_section_access and today_section_access.section_id != section.id:
                         # Bugun boshqa bo'limga kirilgan → ertaga
                         section_is_locked[section.id] = False
                         section_daily_locked[section.id] = True
@@ -1800,17 +1802,18 @@ def lesson_view(request, pk):
                                 return redirect('profession_detail', pk=profession.pk)
 
                         # Kunlik cheklash: bugun boshqa bo'limga kirilganmi?
-                        today_section_access = DailySectionAccess.objects.filter(
-                            user=request.user, profession=profession, accessed_date=today
-                        ).select_related('section').first()
-                        if today_section_access and today_section_access.section_id != current_section.id:
-                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
-                            return redirect('profession_detail', pk=profession.pk)
+                        if profession.daily_section_limit:
+                            today_section_access = DailySectionAccess.objects.filter(
+                                user=request.user, profession=profession, accessed_date=today
+                            ).select_related('section').first()
+                            if today_section_access and today_section_access.section_id != current_section.id:
+                                messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                                return redirect('profession_detail', pk=profession.pk)
 
                     # Tugatilmagan bo'limga kirganida DailySectionAccess yozish
                     # (boshlangan yoki yangi — farqi yo'q)
                     # Bu bo'limni bugun tugatsa, keyingi bo'lim ertaga ochiladi
-                    if not section_completed:
+                    if not section_completed and profession.daily_section_limit:
                         today_access = DailySectionAccess.objects.filter(
                             user=request.user, profession=profession, accessed_date=today
                         ).first()
@@ -6433,6 +6436,25 @@ def admin_profession_toggle_block(request, pk):
             profession.blocked_reason = None
             messages.success(request, f"'{profession.name}' kursi blokdan chiqarildi!")
         profession.save()
+    
+    return redirect('admin_professions')
+
+
+@login_required
+def admin_profession_toggle_daily_limit(request, pk):
+    """Kunlik bo'lim cheklovini yoqish/o'chirish"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    profession = get_object_or_404(Profession, pk=pk)
+    
+    if request.method == 'POST':
+        profession.daily_section_limit = not profession.daily_section_limit
+        profession.save()
+        if profession.daily_section_limit:
+            messages.success(request, f"'{profession.name}' uchun kunlik bo'lim cheklovi yoqildi! 🔒")
+        else:
+            messages.success(request, f"'{profession.name}' uchun kunlik bo'lim cheklovi o'chirildi! 🔓")
     
     return redirect('admin_professions')
 
