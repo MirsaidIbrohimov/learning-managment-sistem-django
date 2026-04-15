@@ -4,7 +4,7 @@ from django.utils.html import format_html
 from .models import (
     CustomUser, Profession, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    Certificate, Message, PaymentStatus, LoginAttempt
+    Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment
 )
 
 
@@ -213,6 +213,15 @@ class LoginAttemptAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(FinalTestPayment)
+class FinalTestPaymentAdmin(admin.ModelAdmin):
+    list_display = ['student', 'test', 'amount', 'status', 'reviewed_by', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['student__username', 'student__first_name', 'test__lesson__title']
+    list_editable = ['status']
+    date_hierarchy = 'created_at'
 
 
 # Admin site customization

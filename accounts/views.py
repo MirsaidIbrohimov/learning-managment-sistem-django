@@ -23,7 +23,7 @@ from .models import (
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
-    DailyLessonAccess
+    DailyLessonAccess, FinalTestPayment
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -1887,6 +1887,17 @@ def lesson_view(request, pk):
         result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
         context['test'] = test
         context['result'] = result
+        if test.test_type == 'final':
+            # Yakuniy test uchun qo'shimcha ma'lumotlar
+            pending_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='pending'
+            ).exists() if result else False
+            approved_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='approved'
+            ).exists() if result else False
+            context['pending_payment'] = pending_payment
+            context['approved_payment'] = approved_payment
+            return render(request, 'accounts/lessons/final_test_lesson.html', context)
         return render(request, 'accounts/lessons/test_lesson.html', context)
     
     elif lesson.lesson_type == 'dictionary':
@@ -2763,9 +2774,20 @@ def start_test(request, pk):
     
     # Check if already taken and retry not allowed
     existing_result = TestResult.objects.filter(test=test, student=request.user).first()
-    if existing_result and not test.allow_retry:
-        messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
-        return redirect('test_result', pk=existing_result.pk)
+    if existing_result:
+        if test.test_type == 'final':
+            # Yakuniy test: qayta ishlash uchun tasdiqlangan to'lov kerak
+            approved_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='approved'
+            ).first()
+            if not approved_payment:
+                messages.info(request, "Yakuniy testni qayta ishlash uchun to'lov qilishingiz kerak (65,000 so'm).")
+                return redirect('final_test_payment', pk=test.pk)
+            # To'lovni ishlatilgan deb belgilash
+            approved_payment.delete()
+        elif not test.allow_retry:
+            messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
+            return redirect('test_result', pk=existing_result.pk)
     
     # Sessiya kalitlari
     sq_key = f'test_{test.pk}_questions'
@@ -2813,7 +2835,8 @@ def start_test(request, pk):
             request.session.pop(sa_key, None)
             return redirect('lesson_view', pk=test.lesson.pk)
         
-        return render(request, 'accounts/lessons/test_take.html', {
+        template = 'accounts/lessons/final_test_take.html' if test.test_type == 'final' else 'accounts/lessons/test_take.html'
+        return render(request, template, {
             'test': test,
             'questions': questions,
             'remaining_time': remaining,
@@ -2822,7 +2845,7 @@ def start_test(request, pk):
     # ===== Yangi test boshlash =====
     
     # Qayta topshirish uchun coin yechish
-    if existing_result and test.allow_retry:
+    if existing_result and test.allow_retry and test.test_type != 'final':
         retry_cost = 3 if request.user.is_premium else 10
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
@@ -2862,7 +2885,8 @@ def start_test(request, pk):
     
     remaining = test.time_limit * 60
     
-    return render(request, 'accounts/lessons/test_take.html', {
+    template = 'accounts/lessons/final_test_take.html' if test.test_type == 'final' else 'accounts/lessons/test_take.html'
+    return render(request, template, {
         'test': test,
         'questions': questions,
         'remaining_time': remaining,
@@ -10982,4 +11006,122 @@ def admin_certificate_delete(request, pk):
         messages.success(request, "Sertifikat o'chirildi!")
     
     return redirect('admin_certificates')
+
+
+@login_required
+def final_test_payment(request, pk):
+    """Yakuniy test uchun to'lov cheki yuklash"""
+    test = get_object_or_404(Test, pk=pk, test_type='final')
+    
+    # Birinchi marta bo'lsa — bepul
+    existing_result = TestResult.objects.filter(test=test, student=request.user).exists()
+    if not existing_result:
+        return redirect('start_test', pk=test.pk)
+    
+    # Allaqachon kutilayotgan to'lov bormi
+    pending_payment = FinalTestPayment.objects.filter(
+        student=request.user, test=test, status='pending'
+    ).first()
+    
+    if request.method == 'POST' and not pending_payment:
+        receipt = request.FILES.get('receipt_image')
+        if receipt:
+            FinalTestPayment.objects.create(
+                student=request.user,
+                test=test,
+                receipt_image=receipt,
+            )
+            messages.success(request, "To'lov cheki yuklandi! Admin tasdiqlashini kuting.")
+            return redirect('lesson_view', pk=test.lesson.pk)
+        else:
+            messages.error(request, "Iltimos, to'lov chekini yuklang.")
+    
+    approved_payment = FinalTestPayment.objects.filter(
+        student=request.user, test=test, status='approved'
+    ).exists()
+    
+    context = {
+        'test': test,
+        'pending_payment': pending_payment,
+        'approved_payment': approved_payment,
+    }
+    return render(request, 'accounts/lessons/final_test_payment.html', context)
+
+
+@login_required
+def admin_final_test_payments(request):
+    """Admin panel: Yakuniy test to'lovlarini boshqarish"""
+    if request.user.role not in ('admin', 'teacher'):
+        return redirect('home')
+    
+    status_filter = request.GET.get('status', 'pending')
+    payments = FinalTestPayment.objects.select_related('student', 'test__lesson__profession', 'reviewed_by')
+    
+    if status_filter:
+        payments = payments.filter(status=status_filter)
+    
+    # O'qituvchi faqat o'z kurslaridagi testlarni ko'radi
+    if request.user.role == 'teacher':
+        professions = request.user.teaching_professions.all()
+        payments = payments.filter(test__lesson__profession__in=professions)
+    
+    context = {
+        'payments': payments[:100],
+        'status_filter': status_filter,
+        'pending_count': FinalTestPayment.objects.filter(status='pending').count() if request.user.role == 'admin' else FinalTestPayment.objects.filter(status='pending', test__lesson__profession__in=request.user.teaching_professions.all()).count(),
+    }
+    
+    if request.user.role == 'teacher':
+        return render(request, 'teacher/final_test_payments.html', context)
+    return render(request, 'accounts/admin/final_test_payments.html', context)
+
+
+@login_required
+def approve_final_test_payment(request, pk):
+    """Yakuniy test to'lovini tasdiqlash"""
+    if request.user.role not in ('admin', 'teacher'):
+        return redirect('home')
+    
+    payment = get_object_or_404(FinalTestPayment, pk=pk)
+    
+    # O'qituvchi faqat o'z kursi
+    if request.user.role == 'teacher':
+        professions = request.user.teaching_professions.all()
+        if payment.test.lesson.profession not in professions:
+            messages.error(request, "Sizda bu to'lovni tasdiqlash huquqi yo'q.")
+            return redirect('admin_final_test_payments')
+    
+    if request.method == 'POST':
+        payment.status = 'approved'
+        payment.reviewed_by = request.user
+        payment.reviewed_at = timezone.now()
+        payment.save()
+        messages.success(request, f"{payment.student.full_name}ning to'lovi tasdiqlandi!")
+    
+    return redirect('admin_final_test_payments')
+
+
+@login_required
+def reject_final_test_payment(request, pk):
+    """Yakuniy test to'lovini rad etish"""
+    if request.user.role not in ('admin', 'teacher'):
+        return redirect('home')
+    
+    payment = get_object_or_404(FinalTestPayment, pk=pk)
+    
+    if request.user.role == 'teacher':
+        professions = request.user.teaching_professions.all()
+        if payment.test.lesson.profession not in professions:
+            messages.error(request, "Sizda bu to'lovni rad etish huquqi yo'q.")
+            return redirect('admin_final_test_payments')
+    
+    if request.method == 'POST':
+        payment.status = 'rejected'
+        payment.reviewed_by = request.user
+        payment.reviewed_at = timezone.now()
+        payment.reject_reason = request.POST.get('reason', '')
+        payment.save()
+        messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
+    
+    return redirect('admin_final_test_payments')
 

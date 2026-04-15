@@ -628,6 +628,7 @@ class Test(models.Model):
         ('lesson', 'Dars yuzasidan'),
         ('midterm', 'Oraliq test'),
         ('practice', 'Tajriba oshirish'),
+        ('final', 'Yakuniy test'),
     )
     
     lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='test')
@@ -701,6 +702,32 @@ class TestUserAnswer(models.Model):
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
     selected_answer = models.ForeignKey(TestAnswer, on_delete=models.CASCADE, null=True, blank=True)
     is_correct = models.BooleanField(default=False)
+
+
+class FinalTestPayment(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('approved', 'Tasdiqlangan'),
+        ('rejected', 'Rad etilgan'),
+    )
+    
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='final_test_payments')
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='payments')
+    receipt_image = models.ImageField(upload_to='final_test_receipts/', verbose_name="To'lov cheki")
+    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="To'lov summasi")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_final_payments', verbose_name="Tekshiruvchi")
+    reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan sana")
+    reject_reason = models.CharField(max_length=500, blank=True, verbose_name="Rad etish sababi")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Yakuniy test to'lovi"
+        verbose_name_plural = "Yakuniy test to'lovlari"
+    
+    def __str__(self):
+        return f"{self.student.full_name} - {self.test.lesson.title} ({self.get_status_display()})"
 
 
 class Dictionary(models.Model):

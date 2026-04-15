@@ -43,6 +43,12 @@ urlpatterns = [
     path('question/<int:pk>/delete/', views.delete_test_question, name='delete_test_question'),
     path('test/<int:pk>/import/', views.import_test_questions, name='import_test_questions'),
     
+    # Yakuniy test to'lovlari
+    path('test/<int:pk>/final-payment/', views.final_test_payment, name='final_test_payment'),
+    path('dashboard/final-test-payments/', views.admin_final_test_payments, name='admin_final_test_payments'),
+    path('dashboard/final-test-payments/<int:pk>/approve/', views.approve_final_test_payment, name='approve_final_test_payment'),
+    path('dashboard/final-test-payments/<int:pk>/reject/', views.reject_final_test_payment, name='reject_final_test_payment'),
+    
     # Dictionary
     path('dictionary/<int:pk>/manage/', views.manage_dictionary, name='manage_dictionary'),
     path('dictionary/<int:pk>/add-word/', views.add_dictionary_word, name='add_dictionary_word'),

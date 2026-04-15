@@ -1,0 +1,196 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Yakuniy test to'lovlari - Admin{% endblock %}
+{% block page_title %}Yakuniy test to'lovlari{% endblock %}
+
+{% block admin_content %}
+<style>
+.ftp-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.ftp-title { font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; gap: 0.75rem; }
+.ftp-badge { background: #ef4444; color: #fff; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.8rem; font-weight: 700; }
+.ftp-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.ftp-filter-btn {
+    padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid var(--border-color);
+    background: var(--card-bg); color: var(--text-color); font-weight: 600;
+    text-decoration: none; font-size: 0.85rem; transition: all 0.2s;
+}
+.ftp-filter-btn.active, .ftp-filter-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+.ftp-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.ftp-table th {
+    padding: 0.75rem 1rem; font-size: 0.78rem; font-weight: 700;
+    text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid var(--border-color);
+    text-align: left;
+}
+.ftp-table td {
+    padding: 0.875rem 1rem; border-bottom: 1px solid var(--border-color);
+    vertical-align: middle; font-size: 0.9rem;
+}
+.ftp-table tr:hover td { background: rgba(239,68,68,0.03); }
+.ftp-student { display: flex; align-items: center; gap: 0.75rem; }
+.ftp-avatar {
+    width: 40px; height: 40px; border-radius: 12px; object-fit: cover;
+    background: rgba(239,68,68,0.1); display: flex; align-items: center;
+    justify-content: center; color: #ef4444; font-weight: 700; font-size: 0.85rem;
+}
+.ftp-avatar img { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; }
+.ftp-name { font-weight: 600; }
+.ftp-phone { font-size: 0.8rem; color: var(--text-muted); }
+.ftp-status {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.3rem 0.75rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700;
+}
+.ftp-status.pending { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.ftp-status.approved { background: rgba(34,197,94,0.12); color: #22c55e; }
+.ftp-status.rejected { background: rgba(239,68,68,0.12); color: #ef4444; }
+.ftp-receipt { max-width: 60px; max-height: 60px; border-radius: 8px; cursor: pointer; transition: transform 0.2s; }
+.ftp-receipt:hover { transform: scale(1.1); }
+.ftp-actions { display: flex; gap: 0.5rem; }
+.ftp-btn {
+    padding: 0.4rem 0.75rem; border-radius: 8px; border: none;
+    font-weight: 600; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+}
+.ftp-btn-approve { background: rgba(34,197,94,0.12); color: #22c55e; }
+.ftp-btn-approve:hover { background: #22c55e; color: #fff; }
+.ftp-btn-reject { background: rgba(239,68,68,0.12); color: #ef4444; }
+.ftp-btn-reject:hover { background: #ef4444; color: #fff; }
+.ftp-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+.ftp-empty i { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+/* Receipt modal */
+.receipt-modal { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); align-items: center; justify-content: center; }
+.receipt-modal.show { display: flex; }
+.receipt-modal img { max-width: 90vw; max-height: 90vh; border-radius: 16px; }
+.receipt-modal-close {
+    position: fixed; top: 1rem; right: 1rem; width: 44px; height: 44px;
+    border-radius: 50%; background: rgba(255,255,255,0.15); border: none;
+    color: #fff; font-size: 1.5rem; cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .ftp-table { display: block; overflow-x: auto; }
+}
+</style>
+
+<div class="ftp-header">
+    <div class="ftp-title">
+        <i class="bi bi-credit-card-2-front-fill" style="color: #ef4444;"></i>
+        Yakuniy test to'lovlari
+        {% if pending_count > 0 %}
+        <span class="ftp-badge">{{ pending_count }} ta yangi</span>
+        {% endif %}
+    </div>
+    <div class="ftp-filters">
+        <a href="?status=pending" class="ftp-filter-btn {% if status_filter == 'pending' %}active{% endif %}">
+            <i class="bi bi-hourglass-split me-1"></i> Kutilmoqda
+        </a>
+        <a href="?status=approved" class="ftp-filter-btn {% if status_filter == 'approved' %}active{% endif %}">
+            <i class="bi bi-check-circle me-1"></i> Tasdiqlangan
+        </a>
+        <a href="?status=rejected" class="ftp-filter-btn {% if status_filter == 'rejected' %}active{% endif %}">
+            <i class="bi bi-x-circle me-1"></i> Rad etilgan
+        </a>
+        <a href="?status=" class="ftp-filter-btn {% if not status_filter %}active{% endif %}">
+            <i class="bi bi-list me-1"></i> Barchasi
+        </a>
+    </div>
+</div>
+
+<div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden;">
+    {% if payments %}
+    <table class="ftp-table">
+        <thead>
+            <tr>
+                <th>O'quvchi</th>
+                <th>Test</th>
+                <th>Kurs</th>
+                <th>Chek</th>
+                <th>Summa</th>
+                <th>Holat</th>
+                <th>Sana</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+            <tr>
+                <td>
+                    <div class="ftp-student">
+                        <div class="ftp-avatar">
+                            {% if payment.student.photo %}
+                            <img src="{{ payment.student.photo.url }}" alt="">
+                            {% else %}
+                            {{ payment.student.get_initials }}
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="ftp-name">{{ payment.student.full_name }}</div>
+                            <div class="ftp-phone">{{ payment.student.phone }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ payment.test.lesson.title }}</td>
+                <td>{{ payment.test.lesson.profession.name }}</td>
+                <td>
+                    <img src="{{ payment.receipt_image.url }}" class="ftp-receipt" onclick="showReceipt('{{ payment.receipt_image.url }}')" alt="Chek">
+                </td>
+                <td><strong>{{ payment.amount|floatformat:0 }} so'm</strong></td>
+                <td>
+                    <span class="ftp-status {{ payment.status }}">
+                        {% if payment.status == 'pending' %}
+                        <i class="bi bi-hourglass-split"></i> Kutilmoqda
+                        {% elif payment.status == 'approved' %}
+                        <i class="bi bi-check-circle-fill"></i> Tasdiqlangan
+                        {% elif payment.status == 'rejected' %}
+                        <i class="bi bi-x-circle-fill"></i> Rad etilgan
+                        {% endif %}
+                    </span>
+                </td>
+                <td style="font-size: 0.8rem; color: var(--text-muted);">{{ payment.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if payment.status == 'pending' %}
+                    <div class="ftp-actions">
+                        <form method="POST" action="{% url 'approve_final_test_payment' payment.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="ftp-btn ftp-btn-approve" title="Tasdiqlash">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'reject_final_test_payment' payment.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="ftp-btn ftp-btn-reject" title="Rad etish">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </form>
+                    </div>
+                    {% elif payment.reviewed_by %}
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ payment.reviewed_by.full_name }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="ftp-empty">
+        <i class="bi bi-inbox"></i>
+        <p>To'lovlar topilmadi</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Receipt Modal -->
+<div class="receipt-modal" id="receiptModal" onclick="hideReceipt()">
+    <button class="receipt-modal-close" onclick="hideReceipt()"><i class="bi bi-x-lg"></i></button>
+    <img id="receiptImg" src="" alt="Chek">
+</div>
+
+<script>
+function showReceipt(url) {
+    document.getElementById('receiptImg').src = url;
+    document.getElementById('receiptModal').classList.add('show');
+}
+function hideReceipt() {
+    document.getElementById('receiptModal').classList.remove('show');
+}
+</script>
+{% endblock %}

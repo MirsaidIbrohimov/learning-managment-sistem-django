@@ -7,7 +7,8 @@ from django.db.models import Avg, Count, Q, Sum
 from accounts.models import (
     Profession, Lesson, Homework, HomeworkSubmission,
     Test, TestQuestion, TestAnswer, TestResult,
-    SpeakingTask, SpeakingSubmission, VideoLesson
+    SpeakingTask, SpeakingSubmission, VideoLesson,
+    FinalTestPayment
 )
 from .models import TeacherCertificate
 from coin.models import ActivityLog
@@ -1806,3 +1807,65 @@ def teacher_earnings(request):
         'HOMEWORK_PRICE': HOMEWORK_PRICE,
     }
     return render(request, 'teacher/earnings.html', context)
+
+
+@teacher_required
+def teacher_final_test_payments(request):
+    """O'qituvchi paneli: Yakuniy test to'lovlari"""
+    professions = request.user.teaching_professions.all()
+    
+    status_filter = request.GET.get('status', 'pending')
+    payments = FinalTestPayment.objects.filter(
+        test__lesson__profession__in=professions
+    ).select_related('student', 'test__lesson__profession', 'reviewed_by')
+    
+    if status_filter:
+        payments = payments.filter(status=status_filter)
+    
+    pending_count = FinalTestPayment.objects.filter(
+        status='pending', test__lesson__profession__in=professions
+    ).count()
+    
+    context = {
+        'payments': payments[:100],
+        'status_filter': status_filter,
+        'pending_count': pending_count,
+    }
+    return render(request, 'teacher/final_test_payments.html', context)
+
+
+@teacher_required
+def teacher_approve_final_payment(request, pk):
+    """Yakuniy test to'lovini tasdiqlash"""
+    professions = request.user.teaching_professions.all()
+    payment = get_object_or_404(
+        FinalTestPayment, pk=pk, test__lesson__profession__in=professions
+    )
+    
+    if request.method == 'POST':
+        payment.status = 'approved'
+        payment.reviewed_by = request.user
+        payment.reviewed_at = timezone.now()
+        payment.save()
+        messages.success(request, f"{payment.student.full_name}ning to'lovi tasdiqlandi!")
+    
+    return redirect('teacher:final_test_payments')
+
+
+@teacher_required
+def teacher_reject_final_payment(request, pk):
+    """Yakuniy test to'lovini rad etish"""
+    professions = request.user.teaching_professions.all()
+    payment = get_object_or_404(
+        FinalTestPayment, pk=pk, test__lesson__profession__in=professions
+    )
+    
+    if request.method == 'POST':
+        payment.status = 'rejected'
+        payment.reviewed_by = request.user
+        payment.reviewed_at = timezone.now()
+        payment.reject_reason = request.POST.get('reason', '')
+        payment.save()
+        messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
+    
+    return redirect('teacher:final_test_payments')

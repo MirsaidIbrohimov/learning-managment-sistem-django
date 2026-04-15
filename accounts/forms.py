@@ -386,6 +386,7 @@ class TestForm(forms.Form):
         ('lesson', 'Dars yuzasidan'),
         ('midterm', 'Oraliq test'),
         ('practice', 'Tajriba oshirish'),
+        ('final', 'Yakuniy test'),
     )
     
     title = forms.CharField(

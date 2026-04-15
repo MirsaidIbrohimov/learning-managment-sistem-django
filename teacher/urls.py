@@ -43,4 +43,9 @@ urlpatterns = [
     path('speaking/', views.teacher_speaking_tasks, name='speaking_tasks'),
     path('speaking/<int:pk>/grade/', views.teacher_grade_speaking, name='grade_speaking'),
     path('courses/<int:pk>/add-speaking/', views.teacher_add_speaking, name='add_speaking'),
+
+    # Yakuniy test to'lovlari
+    path('final-test-payments/', views.teacher_final_test_payments, name='final_test_payments'),
+    path('final-test-payments/<int:pk>/approve/', views.teacher_approve_final_payment, name='approve_final_payment'),
+    path('final-test-payments/<int:pk>/reject/', views.teacher_reject_final_payment, name='reject_final_payment'),
 ]
