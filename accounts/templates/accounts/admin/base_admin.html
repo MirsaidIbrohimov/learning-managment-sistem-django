@@ -376,12 +376,21 @@
                 <i class="bi bi-award-fill"></i>
                 <span>Sertifikatlar</span>
             </a>
-            <a href="{% url 'admin_certificate_requests' %}"
-                class="nav-link {% if 'certificate_request' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikat so'rovlari">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>Sertifikat so'rovlari</span>
-            </a>
+<a href="{% url 'admin_certificate_requests' %}"
+   class="nav-link {% if request.resolver_match.url_name == 'admin_certificate_requests' %}active{% endif %}"
+   data-title="Sertifikat so'rovlari">
+   
+   <i class="bi bi-mortarboard-fill"></i>
+   <span>Sertifikat so'rovlari</span>
+</a>
 
+<a href="{% url 'admin_final_test_payments' %}"
+   class="nav-link {% if request.resolver_match.url_name == 'admin_final_test_payments' %}active{% endif %}"
+   data-title="Yakuniy test to'lovlar">
+   
+   <i class="bi bi-credit-card"></i>
+   <span>Yakuniy test to'lovlar</span>
+</a>
             <div class="sidebar-group-label">Foydalanuvchilar</div>
 
             <a href="{% url 'admin_users' %}"
