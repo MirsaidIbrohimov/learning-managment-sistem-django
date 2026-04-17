@@ -10610,7 +10610,9 @@ def clear_ai_ad(request):
 def admin_teachers(request):
     if not request.user.is_admin:
         return redirect('home')
-    from teacher.models import TeacherCertificate
+    from teacher.models import TeacherCertificate, TeacherSalary
+    from datetime import datetime
+
     search_query = request.GET.get('q', '').strip()
     teachers = CustomUser.objects.filter(role='teacher').order_by('-date_joined')
     if search_query:
@@ -10618,18 +10620,220 @@ def admin_teachers(request):
             Q(first_name__icontains=search_query) | Q(last_name__icontains=search_query) |
             Q(username__icontains=search_query) | Q(phone__icontains=search_query)
         )
+
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    current_month = now.month
+    current_year = now.year
+
     teachers_data = []
     for t in teachers:
-        courses_count = t.teaching_professions.count()
-        students_count = sum(p.enrollments.filter(user__role='student').count() for p in t.teaching_professions.all())
+        professions = t.teaching_professions.all()
+        courses_count = professions.count()
+        students_count = sum(p.enrollments.filter(user__role='student').count() for p in professions)
         certs_count = TeacherCertificate.objects.filter(teacher=t).count()
+
+        # Lessons created by this teacher
+        lessons_created = Lesson.objects.filter(created_by=t).count()
+        lessons_this_month = Lesson.objects.filter(created_by=t, created_at__gte=month_ago).count()
+        lessons_this_week = Lesson.objects.filter(created_by=t, created_at__gte=week_ago).count()
+
+        # Homework graded
+        hw_graded_total = HomeworkSubmission.objects.filter(graded_by=t).count()
+        hw_graded_month = HomeworkSubmission.objects.filter(graded_by=t, graded_at__gte=month_ago).count()
+        hw_graded_week = HomeworkSubmission.objects.filter(graded_by=t, graded_at__gte=week_ago).count()
+        hw_pending = HomeworkSubmission.objects.filter(
+            homework__lesson__profession__in=professions, status='pending'
+        ).count()
+
+        # Speaking graded
+        sp_graded_total = SpeakingSubmission.objects.filter(graded_by=t).count()
+        sp_graded_month = SpeakingSubmission.objects.filter(graded_by=t, graded_at__gte=month_ago).count()
+
+        # Online activity
+        is_online = t.is_online
+        last_activity = t.last_activity
+        total_online_minutes = t.total_online_time or 0
+
+        # Activity log
+        activities_week = ActivityLog.objects.filter(user=t, created_at__gte=week_ago).count()
+        activities_month = ActivityLog.objects.filter(user=t, created_at__gte=month_ago).count()
+        login_count_week = ActivityLog.objects.filter(user=t, action_type='login', created_at__gte=week_ago).count()
+        login_count_month = ActivityLog.objects.filter(user=t, action_type='login', created_at__gte=month_ago).count()
+
+        # Dictionary words added
+        dict_words_total = DictionaryWord.objects.filter(
+            dictionary__lesson__profession__in=professions
+        ).count()
+
+        # Salary / income
+        salary_total = TeacherSalary.objects.filter(teacher=t, is_paid=True).aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+        salary_month = TeacherSalary.objects.filter(
+            teacher=t, is_paid=True, month=current_month, year=current_year
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        salary_unpaid = TeacherSalary.objects.filter(teacher=t, is_paid=False).aggregate(
+            total=Sum('amount')
+        )['total'] or 0
+
+        # Videos uploaded
+        videos_count = VideoLesson.objects.filter(lesson__created_by=t).count()
+
+        # Tests created
+        tests_count = Test.objects.filter(lesson__created_by=t).count()
+
         teachers_data.append({
-            'user': t, 'courses_count': courses_count, 'students_count': students_count,
+            'user': t,
+            'courses_count': courses_count,
+            'students_count': students_count,
             'certs_count': certs_count,
+            'lessons_created': lessons_created,
+            'lessons_this_month': lessons_this_month,
+            'lessons_this_week': lessons_this_week,
+            'hw_graded_total': hw_graded_total,
+            'hw_graded_month': hw_graded_month,
+            'hw_graded_week': hw_graded_week,
+            'hw_pending': hw_pending,
+            'sp_graded_total': sp_graded_total,
+            'sp_graded_month': sp_graded_month,
+            'is_online': is_online,
+            'last_activity': last_activity,
+            'total_online_minutes': total_online_minutes,
+            'activities_week': activities_week,
+            'activities_month': activities_month,
+            'login_count_week': login_count_week,
+            'login_count_month': login_count_month,
+            'dict_words_total': dict_words_total,
+            'salary_total': salary_total,
+            'salary_month': salary_month,
+            'salary_unpaid': salary_unpaid,
+            'videos_count': videos_count,
+            'tests_count': tests_count,
         })
     return render(request, 'accounts/admin/teachers.html', {
         'teachers_data': teachers_data, 'search_query': search_query, 'total_count': len(teachers_data),
     })
+
+
+@login_required
+def export_teachers_pdf(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from io import BytesIO
+
+    now = timezone.now()
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), topMargin=25, bottomMargin=25,
+                            leftMargin=20, rightMargin=20)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    heading_style = ParagraphStyle(
+        'CustomHeading', parent=styles['Heading2'],
+        spaceAfter=10, spaceBefore=15, textColor=colors.HexColor('#10b981')
+    )
+    small_style = ParagraphStyle(
+        'Small', parent=styles['Normal'], fontSize=7, leading=9,
+    )
+
+    elements.append(Paragraph("O'qituvchilar statistikasi - To'liq hisobot", styles['Title']))
+    elements.append(Paragraph(f"Sana: {now.strftime('%d.%m.%Y %H:%M')}", styles['Normal']))
+    elements.append(Spacer(1, 15))
+
+    # Summary table
+    header = [
+        Paragraph('O\'qituvchi', small_style),
+        Paragraph('Kurslar', small_style),
+        Paragraph('O\'quv.', small_style),
+        Paragraph('Darslar', small_style),
+        Paragraph('Hafta/Oy', small_style),
+        Paragraph('Vazifa teksh.', small_style),
+        Paragraph('Hafta/Oy', small_style),
+        Paragraph('Kutilmoqda', small_style),
+        Paragraph('Speaking', small_style),
+        Paragraph('Videolar', small_style),
+        Paragraph('Testlar', small_style),
+        Paragraph('Lug\'at', small_style),
+        Paragraph('Login H/O', small_style),
+        Paragraph('Online (daq)', small_style),
+        Paragraph('Daromad (so\'m)', small_style),
+    ]
+    data = [header]
+
+    for t in teachers:
+        professions = t.teaching_professions.all()
+        courses_count = professions.count()
+        students_count = sum(p.enrollments.filter(user__role='student').count() for p in professions)
+        lessons_total = Lesson.objects.filter(created_by=t).count()
+        lessons_week = Lesson.objects.filter(created_by=t, created_at__gte=week_ago).count()
+        lessons_month = Lesson.objects.filter(created_by=t, created_at__gte=month_ago).count()
+        hw_total = HomeworkSubmission.objects.filter(graded_by=t).count()
+        hw_week = HomeworkSubmission.objects.filter(graded_by=t, graded_at__gte=week_ago).count()
+        hw_month = HomeworkSubmission.objects.filter(graded_by=t, graded_at__gte=month_ago).count()
+        hw_pending = HomeworkSubmission.objects.filter(
+            homework__lesson__profession__in=professions, status='pending'
+        ).count()
+        sp_total = SpeakingSubmission.objects.filter(graded_by=t).count()
+        videos = VideoLesson.objects.filter(lesson__created_by=t).count()
+        tests = Test.objects.filter(lesson__created_by=t).count()
+        dict_words = DictionaryWord.objects.filter(dictionary__lesson__profession__in=professions).count()
+        login_w = ActivityLog.objects.filter(user=t, action_type='login', created_at__gte=week_ago).count()
+        login_m = ActivityLog.objects.filter(user=t, action_type='login', created_at__gte=month_ago).count()
+        online_min = t.total_online_time or 0
+        salary_total = TeacherSalary.objects.filter(teacher=t, is_paid=True).aggregate(
+            total=Sum('amount'))['total'] or 0
+
+        row = [
+            Paragraph(t.full_name, small_style),
+            Paragraph(str(courses_count), small_style),
+            Paragraph(str(students_count), small_style),
+            Paragraph(str(lessons_total), small_style),
+            Paragraph(f"{lessons_week}/{lessons_month}", small_style),
+            Paragraph(str(hw_total), small_style),
+            Paragraph(f"{hw_week}/{hw_month}", small_style),
+            Paragraph(str(hw_pending), small_style),
+            Paragraph(str(sp_total), small_style),
+            Paragraph(str(videos), small_style),
+            Paragraph(str(tests), small_style),
+            Paragraph(str(dict_words), small_style),
+            Paragraph(f"{login_w}/{login_m}", small_style),
+            Paragraph(str(online_min), small_style),
+            Paragraph(f"{salary_total:,.0f}", small_style),
+        ]
+        data.append(row)
+
+    col_widths = [85, 40, 40, 40, 45, 50, 45, 50, 45, 45, 40, 40, 50, 55, 70]
+    table = Table(data, colWidths=col_widths, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10b981')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dee2e6')),
+        ('PADDING', (0, 0), (-1, -1), 4),
+        ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f0fdf4')]),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7),
+    ]))
+    elements.append(table)
+
+    doc.build(elements)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="teachers_stats_{now.strftime("%Y%m%d")}.pdf"'
+    return response
 
 
 @login_required

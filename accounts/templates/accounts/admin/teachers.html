@@ -4,120 +4,272 @@
 
 {% block admin_content %}
 <style>
-.tl-page { max-width: 1200px; margin: 0 auto; }
-.tl-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; animation: tlFadeIn 0.4s ease; }
-@keyframes tlFadeIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
-.tl-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
-.tl-header h1 i { color: #10b981; }
-.tl-add-btn {
+.tp-page { max-width: 1400px; margin: 0 auto; }
+.tp-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; animation: tpFade 0.4s ease; }
+@keyframes tpFade { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+.tp-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+.tp-header h1 i { color: #10b981; }
+.tp-header-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.tp-btn {
     display: inline-flex; align-items: center; gap: .5rem;
-    padding: .65rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: .88rem;
-    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
-    text-decoration: none; transition: all 0.2s; box-shadow: 0 2px 8px rgba(16,185,129,.25);
+    padding: .6rem 1.2rem; border-radius: 12px; font-weight: 700; font-size: .85rem;
+    text-decoration: none; transition: all 0.2s; border: none; cursor: pointer;
 }
-.tl-add-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.35); color: #fff; }
-.tl-search { position: relative; margin-bottom: 1.5rem; max-width: 400px; animation: tlFadeIn 0.45s ease; }
-.tl-search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); pointer-events: none; }
-.tl-search-input {
+.tp-btn-add { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 2px 8px rgba(16,185,129,.25); }
+.tp-btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,.35); color: #fff; }
+.tp-btn-pdf { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 2px 8px rgba(239,68,68,.25); }
+.tp-btn-pdf:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239,68,68,.35); color: #fff; }
+.tp-search { position: relative; margin-bottom: 1.5rem; max-width: 400px; }
+.tp-search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); pointer-events: none; }
+.tp-search-input {
     width: 100%; padding: .7rem 1rem .7rem 2.75rem; border-radius: 14px;
     border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
     color: var(--text-color); font-size: .9rem; transition: all 0.2s;
 }
-.tl-search-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
-.tl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
-.tl-card {
+.tp-search-input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
+.tp-count { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: 1rem; }
+
+/* Teacher Cards */
+.tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 1.25rem; }
+.tp-card {
     background: var(--card-bg, #fff); border: 1px solid var(--border-color, #dee2e6);
-    border-radius: 18px; padding: 24px; transition: all 0.3s;
-    animation: tlFadeIn 0.5s ease forwards; opacity: 0;
+    border-radius: 18px; padding: 20px; transition: all 0.3s;
+    animation: tpFade 0.5s ease forwards; opacity: 0;
 }
-.tl-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.08); transform: translateY(-3px); }
-[data-bs-theme="dark"] .tl-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.25); }
-.tl-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-.tl-avatar { width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; object-fit: cover; }
-.tl-avatar-ph {
+.tp-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.08); transform: translateY(-3px); }
+[data-bs-theme="dark"] .tp-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,.25); }
+
+.tp-card-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.tp-avatar { width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0; object-fit: cover; }
+.tp-avatar-ph {
     width: 52px; height: 52px; border-radius: 14px; flex-shrink: 0;
     background: linear-gradient(135deg, #10b981, #059669);
     display: flex; align-items: center; justify-content: center;
     color: #fff; font-weight: 800; font-size: 1rem;
 }
-.tl-name { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
-.tl-online { width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; }
-.tl-username { font-size: .8rem; color: var(--bs-secondary-color); }
-.tl-stats { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 18px; }
-.tl-stat {
-    display: flex; align-items: center; gap: 8px;
-    padding: 8px 12px; border-radius: 10px;
-    background: var(--bg-color, #f8f9fa); font-size: .82rem;
+.tp-name { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
+.tp-online { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.tp-online-yes { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,.5); }
+.tp-online-no { background: #94a3b8; }
+.tp-username { font-size: .78rem; color: var(--bs-secondary-color); }
+.tp-last-seen { font-size: .72rem; color: var(--bs-secondary-color); margin-top: 2px; }
+
+/* Stats Grid */
+.tp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: 12px; }
+.tp-stat {
+    display: flex; align-items: center; gap: 7px;
+    padding: 7px 10px; border-radius: 10px;
+    background: var(--bg-color, #f8f9fa); font-size: .78rem;
 }
-[data-bs-theme="dark"] .tl-stat { background: rgba(255,255,255,.05); }
-.tl-stat-icon {
-    width: 30px; height: 30px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0;
+[data-bs-theme="dark"] .tp-stat { background: rgba(255,255,255,.05); }
+.tp-stat-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center; font-size: .8rem; flex-shrink: 0;
 }
-.tl-stat-val { font-weight: 700; }
-.tl-stat-lbl { font-size: .72rem; color: var(--bs-secondary-color); }
-.tl-actions { display: flex; gap: .5rem; }
-.tl-act {
-    flex: 1; padding: 8px; border-radius: 10px; text-align: center;
-    font-size: .78rem; font-weight: 600; text-decoration: none;
+.tp-stat-val { font-weight: 700; font-size: .85rem; }
+.tp-stat-lbl { font-size: .68rem; color: var(--bs-secondary-color); line-height: 1.2; }
+.tp-stat-sub { font-size: .65rem; color: var(--bs-secondary-color); }
+
+/* Activity & Finance section */
+.tp-detail-row { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-bottom: 12px; }
+.tp-detail-box {
+    padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border-color, #e5e7eb);
+}
+.tp-detail-title { font-size: .72rem; font-weight: 700; color: var(--bs-secondary-color); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
+.tp-detail-item { display: flex; justify-content: space-between; font-size: .78rem; padding: 2px 0; }
+.tp-detail-item span:last-child { font-weight: 700; }
+
+/* Finance colors */
+.tp-money-green { color: #10b981; }
+.tp-money-red { color: #ef4444; }
+.tp-money-blue { color: #3b82f6; }
+
+/* Badge */
+.tp-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 8px; border-radius: 6px; font-size: .68rem; font-weight: 700;
+}
+.tp-badge-warn { background: rgba(245,158,11,.12); color: #f59e0b; }
+.tp-badge-ok { background: rgba(16,185,129,.12); color: #10b981; }
+
+/* Actions */
+.tp-actions { display: flex; gap: .4rem; }
+.tp-act {
+    flex: 1; padding: 7px; border-radius: 10px; text-align: center;
+    font-size: .75rem; font-weight: 600; text-decoration: none;
     border: 1px solid var(--border-color, #dee2e6); color: var(--text-color);
     background: transparent; transition: all 0.2s; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center; gap: 4px;
 }
-.tl-act:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
-.tl-act-view { color: #0ea5e9; border-color: rgba(14,165,233,.3); }
-.tl-act-view:hover { background: rgba(14,165,233,.06); color: #0ea5e9; }
-.tl-act-edit { color: #6366f1; border-color: rgba(99,102,241,.3); }
-.tl-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
-.tl-act-block { color: #f59e0b; border-color: rgba(245,158,11,.3); }
-.tl-act-block:hover { background: rgba(245,158,11,.06); color: #f59e0b; }
-.tl-empty { text-align: center; padding: 3rem; }
-.tl-empty-icon { width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 1rem; background: rgba(16,185,129,.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #10b981; }
-.tl-count { font-size: .85rem; color: var(--bs-secondary-color); margin-bottom: 1rem; animation: tlFadeIn 0.45s ease; }
-@media (max-width: 576px) { .tl-grid { grid-template-columns: 1fr; } }
+.tp-act:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color); }
+.tp-act-view { color: #0ea5e9; border-color: rgba(14,165,233,.3); }
+.tp-act-view:hover { background: rgba(14,165,233,.06); color: #0ea5e9; }
+.tp-act-edit { color: #6366f1; border-color: rgba(99,102,241,.3); }
+.tp-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
+.tp-act-block { color: #f59e0b; border-color: rgba(245,158,11,.3); }
+.tp-act-block:hover { background: rgba(245,158,11,.06); color: #f59e0b; }
+
+/* Expand/Collapse */
+.tp-toggle-btn {
+    width: 100%; padding: 6px; border: none; background: transparent;
+    color: var(--bs-secondary-color); font-size: .75rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    border-top: 1px solid var(--border-color, #e5e7eb); margin-top: 8px;
+    transition: color 0.2s;
+}
+.tp-toggle-btn:hover { color: #10b981; }
+.tp-details { display: none; }
+.tp-details.show { display: block; }
+
+/* Empty */
+.tp-empty { text-align: center; padding: 3rem; }
+.tp-empty-icon { width: 80px; height: 80px; border-radius: 20px; margin: 0 auto 1rem; background: rgba(16,185,129,.1); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #10b981; }
+
+@media (max-width: 768px) {
+    .tp-grid { grid-template-columns: 1fr; }
+    .tp-stats { grid-template-columns: repeat(2, 1fr); }
+    .tp-detail-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 480px) {
+    .tp-stats { grid-template-columns: 1fr; }
+}
 </style>
 
-<div class="tl-page">
-    <div class="tl-header">
+<div class="tp-page">
+    <div class="tp-header">
         <h1><i class="bi bi-person-workspace"></i> O'qituvchilar</h1>
-        <a href="{% url 'admin_add_teacher' %}" class="tl-add-btn"><i class="bi bi-plus-lg"></i> O'qituvchi qo'shish</a>
+        <div class="tp-header-actions">
+            <a href="{% url 'export_teachers_pdf' %}" class="tp-btn tp-btn-pdf"><i class="bi bi-file-earmark-pdf"></i> PDF yuklash</a>
+            <a href="{% url 'admin_add_teacher' %}" class="tp-btn tp-btn-add"><i class="bi bi-plus-lg"></i> O'qituvchi qo'shish</a>
+        </div>
     </div>
-    <form method="GET" class="tl-search">
-        <i class="bi bi-search tl-search-icon"></i>
-        <input type="text" name="q" class="tl-search-input" placeholder="Ism, username yoki telefon..." value="{{ search_query }}">
+
+    <form method="GET" class="tp-search">
+        <i class="bi bi-search tp-search-icon"></i>
+        <input type="text" name="q" class="tp-search-input" placeholder="Ism, username yoki telefon..." value="{{ search_query }}">
     </form>
-    <div class="tl-count"><i class="bi bi-people-fill me-1"></i> {{ total_count }} ta o'qituvchi</div>
+    <div class="tp-count"><i class="bi bi-people-fill me-1"></i> {{ total_count }} ta o'qituvchi</div>
 
     {% if teachers_data %}
-    <div class="tl-grid">
+    <div class="tp-grid">
         {% for td in teachers_data %}
-        <div class="tl-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
-            <div class="tl-card-top">
-                {% if td.user.photo %}<img src="{{ td.user.photo.url }}" class="tl-avatar" alt="">
-                {% else %}<div class="tl-avatar-ph">{{ td.user.get_initials }}</div>{% endif %}
+        <div class="tp-card" style="animation-delay: {{ forloop.counter0 }}00ms;">
+            <!-- Header -->
+            <div class="tp-card-top">
+                {% if td.user.photo %}
+                    <img src="{{ td.user.photo.url }}" class="tp-avatar" alt="">
+                {% else %}
+                    <div class="tp-avatar-ph">{{ td.user.get_initials }}</div>
+                {% endif %}
                 <div style="min-width:0;">
-                    <div class="tl-name">{{ td.user.full_name }} {% if td.user.is_online %}<span class="tl-online"></span>{% endif %}</div>
-                    <div class="tl-username">@{{ td.user.username }} · {{ td.user.phone }}</div>
+                    <div class="tp-name">
+                        {{ td.user.full_name }}
+                        <span class="tp-online {% if td.is_online %}tp-online-yes{% else %}tp-online-no{% endif %}"></span>
+                        {% if td.is_online %}<span class="tp-badge tp-badge-ok">Online</span>{% endif %}
+                    </div>
+                    <div class="tp-username">@{{ td.user.username }} | {{ td.user.phone }}</div>
+                    <div class="tp-last-seen">
+                        {% if td.last_activity %}
+                            Oxirgi faollik: {{ td.last_activity|timesince }} oldin
+                        {% else %}
+                            Hali faollik yo'q
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-            <div class="tl-stats">
-                <div class="tl-stat">
-                    <div class="tl-stat-icon" style="background:rgba(59,130,246,.1);color:#3b82f6;"><i class="bi bi-book-fill"></i></div>
-                    <div><div class="tl-stat-val">{{ td.courses_count }}</div><div class="tl-stat-lbl">Kurslar</div></div>
+
+            <!-- Main Stats -->
+            <div class="tp-stats">
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(59,130,246,.1);color:#3b82f6;"><i class="bi bi-book-fill"></i></div>
+                    <div><div class="tp-stat-val">{{ td.courses_count }}</div><div class="tp-stat-lbl">Kurslar</div></div>
                 </div>
-                <div class="tl-stat">
-                    <div class="tl-stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
-                    <div><div class="tl-stat-val">{{ td.students_count }}</div><div class="tl-stat-lbl">O'quvchilar</div></div>
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(139,92,246,.1);color:#8b5cf6;"><i class="bi bi-people-fill"></i></div>
+                    <div><div class="tp-stat-val">{{ td.students_count }}</div><div class="tp-stat-lbl">O'quvchilar</div></div>
                 </div>
-                <div class="tl-stat">
-                    <div class="tl-stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="bi bi-award-fill"></i></div>
-                    <div><div class="tl-stat-val">{{ td.certs_count }}</div><div class="tl-stat-lbl">Sertifikatlar</div></div>
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="bi bi-award-fill"></i></div>
+                    <div><div class="tp-stat-val">{{ td.certs_count }}</div><div class="tp-stat-lbl">Sertifikatlar</div></div>
+                </div>
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="bi bi-journal-plus"></i></div>
+                    <div>
+                        <div class="tp-stat-val">{{ td.lessons_created }}</div>
+                        <div class="tp-stat-lbl">Darslar</div>
+                        <div class="tp-stat-sub">H:{{ td.lessons_this_week }} O:{{ td.lessons_this_month }}</div>
+                    </div>
+                </div>
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="bi bi-check2-square"></i></div>
+                    <div>
+                        <div class="tp-stat-val">{{ td.hw_graded_total }}</div>
+                        <div class="tp-stat-lbl">Vazifa teksh.</div>
+                        <div class="tp-stat-sub">H:{{ td.hw_graded_week }} O:{{ td.hw_graded_month }}</div>
+                    </div>
+                </div>
+                <div class="tp-stat">
+                    <div class="tp-stat-icon" style="background:rgba(236,72,153,.1);color:#ec4899;">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div>
+                        <div class="tp-stat-val">{{ td.hw_pending }}</div>
+                        <div class="tp-stat-lbl">Kutilmoqda</div>
+                        {% if td.hw_pending > 0 %}<span class="tp-badge tp-badge-warn">{{ td.hw_pending }}</span>{% endif %}
+                    </div>
                 </div>
             </div>
-            <div class="tl-actions">
-                <a href="{% url 'admin_user_view' td.user.pk %}" class="tl-act tl-act-view"><i class="bi bi-eye"></i> Ko'rish</a>
-                <a href="{% url 'admin_user_edit' td.user.pk %}" class="tl-act tl-act-edit"><i class="bi bi-pencil"></i> Tahrirlash</a>
-                <a href="{% url 'admin_user_block' td.user.pk %}" class="tl-act tl-act-block">
+
+            <!-- Expandable Details -->
+            <div class="tp-details" id="details-{{ td.user.pk }}">
+                <div class="tp-detail-row">
+                    <!-- Activity -->
+                    <div class="tp-detail-box">
+                        <div class="tp-detail-title"><i class="bi bi-activity me-1"></i> Faollik</div>
+                        <div class="tp-detail-item"><span>Login (hafta)</span><span>{{ td.login_count_week }}</span></div>
+                        <div class="tp-detail-item"><span>Login (oy)</span><span>{{ td.login_count_month }}</span></div>
+                        <div class="tp-detail-item"><span>Jami faolliklar (hafta)</span><span>{{ td.activities_week }}</span></div>
+                        <div class="tp-detail-item"><span>Jami faolliklar (oy)</span><span>{{ td.activities_month }}</span></div>
+                        <div class="tp-detail-item"><span>Online vaqt</span><span>{{ td.total_online_minutes }} daq</span></div>
+                    </div>
+                    <!-- Content -->
+                    <div class="tp-detail-box">
+                        <div class="tp-detail-title"><i class="bi bi-collection me-1"></i> Kontent</div>
+                        <div class="tp-detail-item"><span>Videolar</span><span>{{ td.videos_count }}</span></div>
+                        <div class="tp-detail-item"><span>Testlar</span><span>{{ td.tests_count }}</span></div>
+                        <div class="tp-detail-item"><span>Lug'at so'zlari</span><span>{{ td.dict_words_total }}</span></div>
+                        <div class="tp-detail-item"><span>Speaking teksh.</span><span>{{ td.sp_graded_total }}</span></div>
+                        <div class="tp-detail-item"><span>Speaking (oy)</span><span>{{ td.sp_graded_month }}</span></div>
+                    </div>
+                </div>
+                <div class="tp-detail-row">
+                    <!-- Finance -->
+                    <div class="tp-detail-box">
+                        <div class="tp-detail-title"><i class="bi bi-cash-stack me-1"></i> Moliyaviy</div>
+                        <div class="tp-detail-item"><span>Jami daromad</span><span class="tp-money-green">{{ td.salary_total|floatformat:0 }} so'm</span></div>
+                        <div class="tp-detail-item"><span>Shu oy</span><span class="tp-money-blue">{{ td.salary_month|floatformat:0 }} so'm</span></div>
+                        <div class="tp-detail-item"><span>To'lanmagan</span><span class="tp-money-red">{{ td.salary_unpaid|floatformat:0 }} so'm</span></div>
+                    </div>
+                    <!-- Summary -->
+                    <div class="tp-detail-box">
+                        <div class="tp-detail-title"><i class="bi bi-bar-chart me-1"></i> Umumiy</div>
+                        <div class="tp-detail-item"><span>Ro'yxatdan o'tgan</span><span>{{ td.user.date_joined|date:"d.m.Y" }}</span></div>
+                        <div class="tp-detail-item"><span>Kurslar soni</span><span>{{ td.courses_count }}</span></div>
+                        <div class="tp-detail-item"><span>Jami o'quvchilar</span><span>{{ td.students_count }}</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toggle Button -->
+            <button class="tp-toggle-btn" onclick="toggleDetails({{ td.user.pk }}, this)">
+                <i class="bi bi-chevron-down"></i> Batafsil ko'rish
+            </button>
+
+            <!-- Actions -->
+            <div class="tp-actions" style="margin-top: 8px;">
+                <a href="{% url 'admin_user_view' td.user.pk %}" class="tp-act tp-act-view"><i class="bi bi-eye"></i> Ko'rish</a>
+                <a href="{% url 'admin_user_edit' td.user.pk %}" class="tp-act tp-act-edit"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'admin_user_block' td.user.pk %}" class="tp-act tp-act-block">
                     <i class="bi bi-{% if td.user.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                     {% if td.user.is_blocked %}Ochish{% else %}Bloklash{% endif %}
                 </a>
@@ -126,11 +278,27 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="tl-empty">
-        <div class="tl-empty-icon"><i class="bi bi-person-workspace"></i></div>
+    <div class="tp-empty">
+        <div class="tp-empty-icon"><i class="bi bi-person-workspace"></i></div>
         <h5 style="font-weight:700;">O'qituvchilar topilmadi</h5>
         <p style="color:var(--bs-secondary-color);">{% if search_query %}"{{ search_query }}" bo'yicha natija yo'q{% else %}Hali o'qituvchi qo'shilmagan{% endif %}</p>
     </div>
     {% endif %}
 </div>
+
+<script>
+function toggleDetails(pk, btn) {
+    const el = document.getElementById('details-' + pk);
+    const icon = btn.querySelector('i');
+    if (el.classList.contains('show')) {
+        el.classList.remove('show');
+        icon.className = 'bi bi-chevron-down';
+        btn.innerHTML = '<i class="bi bi-chevron-down"></i> Batafsil ko\'rish';
+    } else {
+        el.classList.add('show');
+        icon.className = 'bi bi-chevron-up';
+        btn.innerHTML = '<i class="bi bi-chevron-up"></i> Yopish';
+    }
+}
+</script>
 {% endblock %}
