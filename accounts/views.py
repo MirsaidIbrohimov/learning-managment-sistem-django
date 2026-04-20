@@ -2685,6 +2685,10 @@ def submit_homework(request, pk):
         submission_type = request.POST.get('submission_type', 'file')
         submission = None
         
+        # Faqat fayl rejimida matn qabul qilinmaydi
+        if homework.file_only:
+            submission_type = 'file'
+        
         # Yozma topshirish rejimida faqat rasm fayl qabul qilinadi
         if homework.handwritten_only:
             submission_type = 'file'
@@ -11483,5 +11487,37 @@ def admin_ai_course_toggle(request):
         'success': True,
         'new_state': profession.ai_check_enabled,
         'message': f"'{profession.name}' kursi uchun AI tekshiruvchi {status_text}",
+    })
+
+
+@login_required
+def admin_file_only_toggle(request):
+    """Faqat fayl qabul qilishni yoqish/o'chirish (AJAX)"""
+    if not request.user.is_admin and request.user.role != 'teacher':
+        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=400)
+
+    hw_id = request.POST.get('id')
+    try:
+        hw_id = int(hw_id)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+
+    if request.user.is_admin:
+        hw = get_object_or_404(Homework, pk=hw_id)
+    else:
+        professions = request.user.teaching_professions.all()
+        hw = get_object_or_404(Homework, pk=hw_id, lesson__profession__in=professions)
+
+    hw.file_only = not hw.file_only
+    hw.save(update_fields=['file_only'])
+
+    status_text = "yoqildi" if hw.file_only else "o'chirildi"
+    return JsonResponse({
+        'success': True,
+        'new_state': hw.file_only,
+        'message': f"Faqat fayl rejimi {status_text}: {hw.lesson.title}",
     })
 

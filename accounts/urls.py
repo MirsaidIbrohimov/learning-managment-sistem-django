@@ -261,4 +261,5 @@ urlpatterns = [
     path('dashboard/ai-checker/', views.admin_ai_checker, name='admin_ai_checker'),
     path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
     path('dashboard/ai-checker/course-toggle/', views.admin_ai_course_toggle, name='admin_ai_course_toggle'),
+    path('dashboard/ai-checker/file-only-toggle/', views.admin_file_only_toggle, name='admin_file_only_toggle'),
 ]

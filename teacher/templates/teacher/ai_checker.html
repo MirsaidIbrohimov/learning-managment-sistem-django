@@ -125,6 +125,19 @@
     .aic-on { color: #10b981; }
     .aic-off { color: #ef4444; }
 
+    .aic-file-switch {
+        width: 36px; height: 20px; border-radius: 10px; border: none;
+        background: #d1d5db; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; padding: 0;
+    }
+    .aic-file-switch.active { background: #3b82f6; }
+    .aic-file-switch-dot {
+        width: 14px; height: 14px; border-radius: 50%; background: #fff;
+        position: absolute; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    }
+    .aic-file-switch.active .aic-file-switch-dot { transform: translateX(16px); }
+    .aic-file-label { font-size: 0.65rem; font-weight: 700; color: var(--bs-secondary-color); flex-shrink: 0; white-space: nowrap; }
+    .aic-divider { width: 1px; height: 18px; background: var(--bs-border-color); flex-shrink: 0; margin: 0 0.15rem; }
+
     .aic-empty { text-align: center; padding: 2.5rem 1rem; color: var(--bs-secondary-color); }
     .aic-empty i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; opacity: 0.3; }
 
@@ -205,6 +218,11 @@
                 <div class="aic-task-icon"><i class="bi bi-file-earmark-text"></i></div>
                 <div class="aic-task-name">{{ hw.lesson.title }}</div>
                 <span class="aic-type-badge aic-hw-badge">Vazifa</span>
+                <span class="aic-file-label"><i class="bi bi-file-earmark"></i></span>
+                <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qilish">
+                    <div class="aic-file-switch-dot"></div>
+                </button>
+                <div class="aic-divider"></div>
                 <span class="aic-status {% if hw.ai_check and data.ai_enabled %}aic-on{% else %}aic-off{% endif %}">
                     {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
                 </span>

@@ -496,6 +496,7 @@ class Homework(models.Model):
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
     ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
+    file_only = models.BooleanField(default=False, verbose_name="Faqat fayl qabul qilish")
     handwritten_only = models.BooleanField(default=False, verbose_name="Faqat yozma (rasm)")
     
     def get_allowed_formats_list(self):

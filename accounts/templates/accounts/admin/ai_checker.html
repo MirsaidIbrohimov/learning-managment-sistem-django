@@ -162,6 +162,20 @@
     .aic-status-on { color: #10b981; }
     .aic-status-off { color: #ef4444; }
 
+    /* File-only toggle */
+    .aic-file-switch {
+        width: 40px; height: 22px; border-radius: 11px; border: none;
+        background: #d1d5db; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; padding: 0;
+    }
+    .aic-file-switch.active { background: #3b82f6; }
+    .aic-file-switch-dot {
+        width: 16px; height: 16px; border-radius: 50%; background: #fff;
+        position: absolute; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .aic-file-switch.active .aic-file-switch-dot { transform: translateX(18px); }
+    .aic-file-label { font-size: 0.68rem; font-weight: 700; color: var(--bs-secondary-color); flex-shrink: 0; white-space: nowrap; }
+    .aic-divider { width: 1px; height: 20px; background: var(--border-color, #dee2e6); flex-shrink: 0; margin: 0 0.25rem; }
+
     /* Empty */
     .aic-empty {
         text-align: center; padding: 3rem 1rem; color: var(--bs-secondary-color);
@@ -264,6 +278,11 @@
                     <div class="aic-task-icon"><i class="bi bi-file-earmark-text"></i></div>
                     <div class="aic-task-name">{{ hw.lesson.title }}</div>
                     <span class="aic-task-type aic-type-hw">Vazifa</span>
+                    <span class="aic-file-label"><i class="bi bi-file-earmark"></i> Fayl</span>
+                    <button class="aic-file-switch {% if hw.file_only %}active{% endif %}" onclick="toggleFileOnly(this, {{ hw.pk }})" title="Faqat fayl qabul qilish">
+                        <div class="aic-file-switch-dot"></div>
+                    </button>
+                    <div class="aic-divider"></div>
                     <span class="aic-status-text {% if hw.ai_check and data.ai_enabled %}aic-status-on{% else %}aic-status-off{% endif %}">
                         {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
                     </span>
@@ -344,6 +363,26 @@
 
     function getCSRF() {
         return document.querySelector('[name="csrfmiddlewaretoken"]')?.value || getCookie('csrftoken');
+    }
+
+    function toggleFileOnly(btn, hwId) {
+        const fd = new FormData();
+        fd.append('id', hwId);
+
+        fetch("{% url 'admin_file_only_toggle' %}", {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': getCSRF() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active');
+                showNotif(data.message, data.new_state ? 'success' : 'warning');
+            } else {
+                showNotif(data.error || 'Xatolik', 'danger');
+            }
+        })
+        .catch(() => showNotif('Server xatosi', 'danger'));
     }
 
     function toggleCourseAI(btn, courseId) {

@@ -1176,6 +1176,12 @@
                                     <strong>Yozma topshirish</strong> — Daftaringizga yozib, rasm (foto) ko'rinishida yuboring. Faqat rasm formatida qabul qilinadi (.jpg, .jpeg, .png).
                                 </div>
                                 <input type="hidden" name="submission_type" value="file">
+                                {% elif homework.file_only %}
+                                <div class="alert" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 14px; padding: 1rem; margin-bottom: 1.5rem;">
+                                    <i class="bi bi-file-earmark-arrow-up" style="color: #3b82f6;"></i>
+                                    <strong>Faqat fayl</strong> — Bu vazifa faqat fayl ko'rinishida qabul qilinadi.
+                                </div>
+                                <input type="hidden" name="submission_type" value="file">
                                 {% else %}
                                 <div class="submission-type-toggle">
                                     <div class="type-option">
@@ -1218,7 +1224,7 @@
                                 </div>
 
                                 <!-- Text Editor Section -->
-                                <div id="text-section" style="display: none;" {% if homework.handwritten_only %}class="d-none"{% endif %}>
+                                <div id="text-section" style="display: none;" {% if homework.handwritten_only or homework.file_only %}class="d-none"{% endif %}>
                                     <div class="editor-container">
                                         <div class="editor-toolbar">
                                             <div class="toolbar-group">

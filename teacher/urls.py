@@ -52,4 +52,5 @@ urlpatterns = [
     # AI Tekshiruvchi
     path('ai-checker/', views.teacher_ai_checker, name='ai_checker'),
     path('ai-checker/toggle/', views.teacher_ai_checker_toggle, name='ai_checker_toggle'),
+    path('ai-checker/file-only-toggle/', views.teacher_file_only_toggle, name='file_only_toggle'),
 ]
