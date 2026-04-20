@@ -7,13 +7,19 @@
 <style>
 /* Modern Earnings Dashboard Styles */
 .earnings-dashboard {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, 
+        var(--bs-primary, #667eea) 0%, 
+        var(--bs-primary, #764ba2) 50%,
+        var(--bs-secondary, #8b5cf6) 100%);
     border-radius: 20px;
     padding: 2rem;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    animation: slideInDown 0.6s ease;
+    animation: slideInDown 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .earnings-dashboard::before {
@@ -23,9 +29,10 @@
     right: -10%;
     width: 400px;
     height: 400px;
-    background: rgba(255, 255, 255, 0.1);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 70%);
     border-radius: 50%;
     animation: float 6s ease-in-out infinite;
+    transition: opacity 0.3s ease;
 }
 
 .earnings-dashboard::after {
@@ -35,9 +42,10 @@
     left: -5%;
     width: 300px;
     height: 300px;
-    background: rgba(255, 255, 255, 0.08);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 70%);
     border-radius: 50%;
     animation: float 8s ease-in-out infinite reverse;
+    transition: opacity 0.3s ease;
 }
 
 .dashboard-header {
@@ -45,6 +53,27 @@
     z-index: 1;
     color: white;
     margin-bottom: 2rem;
+    transition: color 0.3s ease;
+}
+
+/* Dark mode specific dashboard enhancements */
+@media (prefers-color-scheme: dark) {
+    .earnings-dashboard {
+        background: linear-gradient(135deg, 
+            var(--bs-primary, #4c1d95) 0%, 
+            var(--bs-primary, #5b21b6) 50%,
+            var(--bs-secondary, #6d28d9) 100%);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    
+    .earnings-dashboard::before {
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 70%);
+    }
+    
+    .earnings-dashboard::after {
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 70%);
+    }
 }
 
 .dashboard-title {
@@ -69,13 +98,14 @@
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 16px;
+    background: var(--bs-card-bg, rgba(255, 255, 255, 0.95));
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.2));
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
@@ -87,18 +117,35 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
     transform: scaleX(0);
-    transition: transform 0.3s ease;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .stat-card:hover::before {
     transform: scaleX(1);
+}
+
+/* Dark mode stat card enhancements */
+@media (prefers-color-scheme: dark) {
+    .stat-card {
+        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3),
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
+    }
+    
+    .stat-card:hover {
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                    0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
 }
 
 .stat-icon-wrapper {
@@ -119,7 +166,7 @@
     inset: -2px;
     border-radius: 16px;
     padding: 2px;
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: exclude;
     mask-composite: exclude;
@@ -150,7 +197,7 @@
     font-size: 2rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, #1f2937, #374151);
+    background: linear-gradient(135deg, var(--bs-body-color, #1f2937), var(--bs-secondary-color, #374151));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -158,7 +205,7 @@
 
 .stat-label {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color, #6b7280);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -166,12 +213,12 @@
 
 /* Modern Filters Section */
 .filters-modern {
-    background: white;
+    background: var(--bs-card-bg, white);
     border-radius: 16px;
     padding: 2rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     margin-bottom: 2rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--bs-border-color, #e5e7eb);
 }
 
 .filters-header {
@@ -186,7 +233,7 @@
 .filters-title {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--bs-body-color, #1f2937);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -200,19 +247,21 @@
 }
 
 .form-control-modern {
-    border: 2px solid #e5e7eb;
+    border: 2px solid var(--bs-border-color, #e5e7eb);
     border-radius: 12px;
     padding: 0.75rem 1rem;
     font-size: 0.95rem;
     transition: all 0.3s ease;
-    background: #f9fafb;
+    background: var(--bs-tertiary-bg, #f9fafb);
+    color: var(--bs-body-color, #1f2937);
 }
 
 .form-control-modern:focus {
-    border-color: #667eea;
-    background: white;
+    border-color: var(--bs-primary, #667eea);
+    background: var(--bs-body-bg, white);
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     outline: none;
+    color: var(--bs-body-color, #1f2937);
 }
 
 .btn-modern {
@@ -227,7 +276,7 @@
 }
 
 .btn-primary-modern {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
     color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
@@ -239,11 +288,13 @@
 
 /* Modern Table Styles */
 .table-modern {
-    background: white;
-    border-radius: 16px;
+    background: var(--bs-card-bg, white);
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--bs-border-color, #e5e7eb);
+    transition: all 0.3s ease;
 }
 
 .table-modern .table {
@@ -253,34 +304,66 @@
 }
 
 .table-modern thead th {
-    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f8fafc), var(--bs-secondary-bg, #f1f5f9));
     padding: 1.25rem 1rem;
     font-weight: 700;
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #475569;
+    color: var(--bs-secondary-color, #475569);
     border: none;
     position: relative;
+    transition: all 0.3s ease;
 }
 
 .table-modern thead th:first-child {
-    border-top-left-radius: 16px;
+    border-top-left-radius: 20px;
 }
 
 .table-modern thead th:last-child {
-    border-top-right-radius: 16px;
+    border-top-right-radius: 20px;
 }
 
 .table-modern tbody td {
     padding: 1.25rem 1rem;
     vertical-align: middle;
-    border-bottom: 1px solid #f1f5f9;
-    transition: all 0.2s ease;
+    border-bottom: 1px solid var(--bs-border-color, #f1f5f9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--bs-body-color, #1f2937);
+    position: relative;
 }
 
 .table-modern tbody tr:hover td {
-    background: #f8fafc;
+    background: var(--bs-tertiary-bg, #f8fafc);
+    transform: scale(1.01);
+}
+
+.table-modern tbody tr:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark mode table enhancements */
+@media (prefers-color-scheme: dark) {
+    .table-modern {
+        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2),
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
+    }
+    
+    .table-modern thead th {
+        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #334155));
+        color: var(--bs-secondary-color, #94a3b8);
+    }
+    
+    .table-modern tbody td {
+        border-bottom: 1px solid var(--bs-border-color, #334155);
+        color: var(--bs-body-color, #f1f5f9);
+    }
+    
+    .table-modern tbody tr:hover td {
+        background: var(--bs-tertiary-bg, #1e293b);
+    }
 }
 
 .table-modern tbody tr:last-child td {
@@ -297,14 +380,14 @@
 }
 
 .teacher-card:hover {
-    background: #f1f5f9;
+    background: var(--bs-tertiary-bg, #f1f5f9);
 }
 
 .teacher-avatar {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
     color: white;
     display: flex;
     align-items: center;
@@ -320,13 +403,13 @@
 
 .teacher-name {
     font-weight: 700;
-    color: #1f2937;
+    color: var(--bs-body-color, #1f2937);
     margin-bottom: 0.25rem;
 }
 
 .teacher-username {
     font-size: 0.85rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color, #6b7280);
 }
 
 .earnings-pills {
@@ -375,9 +458,9 @@
 }
 
 .balance-zero {
-    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-    color: #6b7280;
-    border: 1px solid #d1d5db;
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f9fafb), var(--bs-secondary-bg, #f3f4f6));
+    color: var(--bs-secondary-color, #6b7280);
+    border: 1px solid var(--bs-border-color, #d1d5db);
 }
 
 .status-modern {
@@ -449,36 +532,106 @@
     transform: scale(1.1);
 }
 
+/* Month-over-month comparison styles */
+.month-earnings {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    min-width: 100px;
+}
+
+.current-month {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1d4ed8;
+}
+
+.prev-month {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
+    color: var(--bs-body-color, #374151);
+}
+
+.earnings-amount {
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.earnings-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.change-indicator {
+    text-align: center;
+    padding: 0.5rem;
+    border-radius: 8px;
+    min-width: 120px;
+    position: relative;
+}
+
+.change-positive {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+}
+
+.change-negative {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+.change-neutral {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
+    color: var(--bs-secondary-color, #6b7280);
+}
+
+.change-amount {
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.change-percent {
+    font-size: 0.75rem;
+    margin-bottom: 0.25rem;
+    opacity: 0.9;
+}
+
+.change-icon {
+    font-size: 1rem;
+    opacity: 0.7;
+}
+
 /* Empty State */
 .empty-modern {
     text-align: center;
     padding: 4rem 2rem;
-    background: white;
+    background: var(--bs-card-bg, white);
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--bs-border-color, #e5e7eb);
 }
 
 .empty-icon {
     font-size: 4rem;
-    color: #d1d5db;
+    color: var(--bs-secondary-color, #d1d5db);
     margin-bottom: 1rem;
 }
 
 .empty-title {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #374151;
+    color: var(--bs-body-color, #374151);
     margin-bottom: 0.5rem;
 }
 
 .empty-description {
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--bs-secondary-color, #6b7280);
     margin: 0;
 }
 
-/* Animations */
+/* Enhanced Animations */
 @keyframes slideInDown {
     from {
         opacity: 0;
@@ -497,6 +650,320 @@
     50% {
         transform: translateY(-20px) rotate(180deg);
     }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* Smooth theme transitions */
+* {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease,
+                fill 0.3s ease;
+}
+
+/* Enhanced hover effects */
+.btn-action {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-action:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+.earnings-pill {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.earnings-pill:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+
+.balance-badge {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.balance-badge:hover {
+    transform: translateY(-1px) scale(1.02);
+}
+
+/* Enhanced form controls */
+.form-control-modern {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control-modern:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+/* Enhanced loading animations */
+.stat-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.stat-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.stat-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.stat-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.month-summary-card {
+    animation: fadeIn 0.8s ease-out;
+}
+
+.month-summary-card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.month-summary-card:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.month-summary-card:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Beautiful dark mode transitions */
+@media (prefers-color-scheme: dark) {
+    .earnings-dashboard::before,
+    .earnings-dashboard::after {
+        opacity: 0.6;
+    }
+    
+    .btn-action:hover {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    .form-control-modern:focus {
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+    }
+}
+
+/* Enhanced visual feedback */
+.table-modern tbody tr {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teacher-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.teacher-card:hover {
+    transform: translateX(4px);
+}
+
+/* Beautiful gradient overlays */
+.month-summary-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.month-summary-card:hover::after {
+    opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+    .month-summary-card::after {
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+    }
+}
+
+/* Month Summary Styles */
+.month-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.month-summary-card {
+    background: var(--bs-card-bg, white);
+    border: 1px solid var(--bs-border-color, #e5e7eb);
+    border-radius: 20px;
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.month-summary-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
+    transform: scaleX(0);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.month-summary-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.month-summary-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Dark mode month summary enhancements */
+@media (prefers-color-scheme: dark) {
+    .month-summary-card {
+        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
+        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
+                    0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+    
+    .month-summary-card:hover {
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3),
+                    0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+}
+
+.summary-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.summary-info {
+    flex: 1;
+}
+
+.summary-name {
+    font-weight: 700;
+    color: var(--bs-body-color, #1f2937);
+    margin-bottom: 0.25rem;
+}
+
+.summary-subtitle {
+    font-size: 0.85rem;
+    color: var(--bs-secondary-color, #6b7280);
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-stat {
+    text-align: center;
+    padding: 0.75rem;
+    border-radius: 8px;
+    background: var(--bs-tertiary-bg, #f8fafc);
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color, #6b7280);
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.summary-value {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.summary-value.current {
+    color: var(--bs-primary, #1d4ed8);
+}
+
+.summary-value.previous {
+    color: var(--bs-secondary-color, #6b7280);
+}
+
+.summary-change {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.summary-change.positive {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+}
+
+.summary-change.negative {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+.summary-change.neutral {
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
+    color: var(--bs-secondary-color, #6b7280);
+}
+
+.change-icon {
+    font-size: 1.2rem;
+}
+
+.change-text {
+    font-weight: 700;
+}
+
+.change-percent {
+    font-size: 0.85rem;
+    opacity: 0.9;
 }
 
 /* Responsive Design */
@@ -605,6 +1072,70 @@
     </div>
 </div>
 
+<!-- Month-over-Month Summary -->
+{% if teacher_earnings %}
+<div class="filters-modern mb-4">
+    <div class="filters-header">
+        <h3 class="filters-title">
+            <i class="bi bi-graph-up"></i>
+            Oylik daromadlar xulosasi
+        </h3>
+    </div>
+    
+    <div class="month-summary-grid">
+        {% for earning in teacher_earnings|slice:":3" %}
+        <div class="month-summary-card">
+            <div class="summary-header">
+                <div class="summary-avatar">
+                    {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
+                </div>
+                <div class="summary-info">
+                    <div class="summary-name">{{ earning.teacher.full_name }}</div>
+                    <div class="summary-subtitle">@{{ earning.teacher.username }}</div>
+                </div>
+            </div>
+            
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <div class="summary-label">Shu oy</div>
+                    <div class="summary-value current">{{ earning.current_month_earnings|floatformat:0 }} so'm</div>
+                </div>
+                <div class="summary-stat">
+                    <div class="summary-label">O'tgan oy</div>
+                    <div class="summary-value previous">{{ earning.prev_month_earnings|floatformat:0 }} so'm</div>
+                </div>
+                <div class="summary-change {% if earning.earnings_change > 0 %}positive{% elif earning.earnings_change < 0 %}negative{% else %}neutral{% endif %}">
+                    <div class="change-icon">
+                        {% if earning.earnings_change > 0 %}
+                            <i class="bi bi-arrow-up-circle-fill"></i>
+                        {% elif earning.earnings_change < 0 %}
+                            <i class="bi bi-arrow-down-circle-fill"></i>
+                        {% else %}
+                            <i class="bi bi-dash-circle-fill"></i>
+                        {% endif %}
+                    </div>
+                    <div class="change-text">
+                        {% if earning.earnings_change > 0 %}+{% endif %}{{ earning.earnings_change|floatformat:0 }} so'm
+                    </div>
+                    <div class="change-percent">
+                        {% if earning.earnings_change_percent > 0 %}+{% endif %}{{ earning.earnings_change_percent|floatformat:1 }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% if teacher_earnings|length > 3 %}
+    <div class="text-center mt-3">
+        <button class="btn btn-outline-primary btn-sm">
+            Barcha o'qituvchilarni ko'rish ({{ teacher_earnings|length }} ta)
+        </button>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- Modern Filters Section -->
 <div class="filters-modern">
     <div class="filters-header">
@@ -669,6 +1200,9 @@
         <thead>
             <tr>
                 <th>O'qituvchi</th>
+                <th>Shu oy</th>
+                <th>O'tgan oy</th>
+                <th>O'zgarish</th>
                 <th>Video darslar</th>
                 <th>Testlar</th>
                 <th>Uyga vazifalar</th>
@@ -689,6 +1223,37 @@
                         <div class="teacher-info">
                             <div class="teacher-name">{{ earning.teacher.full_name }}</div>
                             <div class="teacher-username">@{{ earning.teacher.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="month-earnings current-month">
+                        <div class="earnings-amount">{{ earning.current_month_earnings|floatformat:0 }} so'm</div>
+                        <div class="earnings-label">Shu oy</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="month-earnings prev-month">
+                        <div class="earnings-amount">{{ earning.prev_month_earnings|floatformat:0 }} so'm</div>
+                        <div class="earnings-label">O'tgan oy</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="change-indicator {% if earning.earnings_change > 0 %}change-positive{% elif earning.earnings_change < 0 %}change-negative{% else %}change-neutral{% endif %}">
+                        <div class="change-amount">
+                            {% if earning.earnings_change > 0 %}+{% endif %}{{ earning.earnings_change|floatformat:0 }} so'm
+                        </div>
+                        <div class="change-percent">
+                            {% if earning.earnings_change_percent > 0 %}+{% endif %}{{ earning.earnings_change_percent|floatformat:1 }}%
+                        </div>
+                        <div class="change-icon">
+                            {% if earning.earnings_change > 0 %}
+                                <i class="bi bi-arrow-up-circle-fill"></i>
+                            {% elif earning.earnings_change < 0 %}
+                                <i class="bi bi-arrow-down-circle-fill"></i>
+                            {% else %}
+                                <i class="bi bi-dash-circle-fill"></i>
+                            {% endif %}
                         </div>
                     </div>
                 </td>

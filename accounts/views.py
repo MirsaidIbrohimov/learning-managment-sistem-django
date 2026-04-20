@@ -10764,6 +10764,10 @@ def admin_teacher_earnings(request):
             month_start = date(2020, 1, 1)
             month_end = date.today() + timedelta(days=1)
         
+        # Apply teacher filter if specified
+        if teacher_filter and str(teacher.id) != teacher_filter:
+            continue  # Skip this teacher if not the selected one
+        
         # Calculate earnings from content
         video_lessons = Lesson.objects.filter(
             profession__in=professions,
@@ -10800,6 +10804,78 @@ def admin_teacher_earnings(request):
             is_paid=True
         ).aggregate(total=Sum('amount'))['total'] or 0
         
+        # Calculate current month earnings
+        now = date.today()
+        current_month_start = date(now.year, now.month, 1)
+        if now.month == 12:
+            current_month_end = date(now.year + 1, 1, 1)
+        else:
+            current_month_end = date(now.year, now.month + 1, 1)
+        
+        # Calculate previous month earnings
+        if now.month == 1:
+            prev_month_start = date(now.year - 1, 12, 1)
+            prev_month_end = date(now.year, 1, 1)
+        else:
+            prev_month_start = date(now.year, now.month - 1, 1)
+            prev_month_end = date(now.year, now.month, 1)
+        
+        # Current month earnings
+        current_video = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='video',
+            created_at__gte=current_month_start,
+            created_at__lt=current_month_end,
+        ).count()
+        
+        current_test = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='test',
+            created_at__gte=current_month_start,
+            created_at__lt=current_month_end,
+        ).count()
+        
+        current_hw = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='homework',
+            created_at__gte=current_month_start,
+            created_at__lt=current_month_end,
+        ).count()
+        
+        current_month_earnings = (current_video * VIDEO_PRICE + 
+                                 current_test * TEST_PRICE + 
+                                 current_hw * HOMEWORK_PRICE)
+        
+        # Previous month earnings
+        prev_video = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='video',
+            created_at__gte=prev_month_start,
+            created_at__lt=prev_month_end,
+        ).count()
+        
+        prev_test = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='test',
+            created_at__gte=prev_month_start,
+            created_at__lt=prev_month_end,
+        ).count()
+        
+        prev_hw = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='homework',
+            created_at__gte=prev_month_start,
+            created_at__lt=prev_month_end,
+        ).count()
+        
+        prev_month_earnings = (prev_video * VIDEO_PRICE + 
+                              prev_test * TEST_PRICE + 
+                              prev_hw * HOMEWORK_PRICE)
+        
+        # Calculate month-over-month change
+        earnings_change = current_month_earnings - prev_month_earnings
+        earnings_change_percent = ((earnings_change / prev_month_earnings) * 100) if prev_month_earnings > 0 else 0
+        
         teacher_earnings.append({
             'teacher': teacher,
             'video_count': video_count,
@@ -10808,6 +10884,10 @@ def admin_teacher_earnings(request):
             'calculated_earnings': calculated_earnings,
             'paid_amount': paid_amount,
             'balance': calculated_earnings - paid_amount,
+            'current_month_earnings': current_month_earnings,
+            'prev_month_earnings': prev_month_earnings,
+            'earnings_change': earnings_change,
+            'earnings_change_percent': earnings_change_percent,
         })
     
     # Statistics
