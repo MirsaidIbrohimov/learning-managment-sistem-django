@@ -2033,31 +2033,6 @@ def teacher_ai_checker_toggle(request):
 
 @teacher_required
 def teacher_file_only_toggle(request):
-    """Faqat fayl qabul qilishni yoqish/o'chirish (AJAX)"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST kerak'}, status=400)
-
-    professions = request.user.teaching_professions.all()
-    hw_id = request.POST.get('id')
-    try:
-        hw_id = int(hw_id)
-    except (ValueError, TypeError):
-        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
-
-    hw = get_object_or_404(Homework, pk=hw_id, lesson__profession__in=professions)
-    hw.file_only = not hw.file_only
-    hw.save(update_fields=['file_only'])
-
-    status_text = "yoqildi" if hw.file_only else "o'chirildi"
-    return JsonResponse({
-        'success': True,
-        'new_state': hw.file_only,
-        'message': f"Faqat fayl rejimi {status_text}: {hw.lesson.title}",
-    })
-
-
-@teacher_required
-def teacher_file_only_toggle(request):
     """O'qituvchi uchun AI faqat fayl tekshiruvini yoqish/o'chirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)

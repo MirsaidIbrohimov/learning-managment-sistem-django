@@ -10746,7 +10746,7 @@ def admin_teacher_earnings(request):
     for teacher in teachers:
         professions = teacher.teaching_professions.all()
         
-        # Get current month data or all data if no filter
+        # Get filtered date range or all time if no filter
         if month_filter and year_filter:
             try:
                 month = int(month_filter)
@@ -10757,10 +10757,11 @@ def admin_teacher_earnings(request):
                 else:
                     month_end = date(year, month + 1, 1)
             except ValueError:
-                month_start = date.today().replace(day=1)
+                month_start = date(2020, 1, 1)  # Show all data if invalid filter
                 month_end = date.today() + timedelta(days=1)
         else:
-            month_start = date.today().replace(day=1)
+            # Show all data when no filter is applied
+            month_start = date(2020, 1, 1)
             month_end = date.today() + timedelta(days=1)
         
         # Calculate earnings from content

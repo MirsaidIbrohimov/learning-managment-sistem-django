@@ -439,6 +439,16 @@
     transform: scale(1.1);
 }
 
+.btn-calc {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+.btn-calc:hover {
+    background: linear-gradient(135deg, #fde68a, #fcd34d);
+    transform: scale(1.1);
+}
+
 /* Empty State */
 .empty-modern {
     text-align: center;
@@ -738,13 +748,18 @@
                 </td>
                 <td>
                     <div class="action-buttons">
+                        <button class="btn-action btn-calc" 
+                                onclick="showCalculationWindow('{{ earning.teacher.id }}', '{{ earning.teacher.full_name }}', '{{ earning.video_count }}', '{{ earning.test_count }}', '{{ earning.hw_count }}')" 
+                                title="Hisoblash tafsilotlari">
+                            <i class="bi bi-calculator"></i>
+                        </button>
                         <button class="btn-action btn-view" 
                                 onclick="viewEarnings('{{ earning.teacher.id }}')" 
                                 title="Batafsil ko'rish">
                             <i class="bi bi-eye"></i>
                         </button>
                         <button class="btn-action btn-edit" 
-                                onclick="editPayment('{{ earning.teacher.id }}')" 
+                                onclick="editPayment('{{ earning.teacher.teacher.id }}')" 
                                 title="To'lov tahrirlash">
                             <i class="bi bi-pencil"></i>
                         </button>
@@ -974,5 +989,136 @@ function markAsPaid(salaryId) {
         console.log('Mark as paid:', salaryId);
     }
 }
+
+function showCalculationWindow(teacherId, teacherName, videoCount, testCount, hwCount) {
+    // Convert string parameters to numbers
+    const videoCnt = parseInt(videoCount) || 0;
+    const testCnt = parseInt(testCount) || 0;
+    const hwCnt = parseInt(hwCount) || 0;
+    
+    // Calculate totals
+    const VIDEO_PRICE = 25000;
+    const TEST_PRICE = 10000;
+    const HOMEWORK_PRICE = 10000;
+    
+    const videoTotal = videoCnt * VIDEO_PRICE;
+    const testTotal = testCnt * TEST_PRICE;
+    const hwTotal = hwCnt * HOMEWORK_PRICE;
+    
+    // Create calculation data
+    const calculationData = [
+        { type: 'Video darslar', count: videoCnt, price: VIDEO_PRICE, total: videoTotal },
+        { type: 'Testlar', count: testCnt, price: TEST_PRICE, total: testTotal },
+        { type: 'Uyga vazifalar', count: hwCnt, price: HOMEWORK_PRICE, total: hwTotal }
+    ];
+    
+    // Update modal content
+    document.getElementById('calculationTeacherName').textContent = teacherName;
+    
+    let calculationHtml = '';
+    calculationData.forEach(item => {
+        calculationHtml += `
+            <tr>
+                <td>${item.type}</td>
+                <td>${item.count}</td>
+                <td>${item.price.toLocaleString()} so'm</td>
+                <td class="fw-bold">${item.total.toLocaleString()} so'm</td>
+            </tr>
+        `;
+    });
+    
+    document.getElementById('calculationBody').innerHTML = calculationHtml;
+    document.getElementById('calculationTotal').textContent = 
+        calculationData.reduce((sum, item) => sum + item.total, 0).toLocaleString() + ' so\'m';
+    
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('calculationModal'));
+    modal.show();
+}
+
+function exportCalculation() {
+    const teacherName = document.getElementById('calculationTeacherName').textContent;
+    const tableContent = document.getElementById('calculationBody').innerHTML;
+    const total = document.getElementById('calculationTotal').textContent;
+    
+    // Create CSV content
+    let csvContent = "Hisoblash tafsilotlari - " + teacherName + "\n\n";
+    csvContent += "Turi,Soni,Birlik narxi,Jami\n";
+    
+    // Extract data from table
+    const rows = document.querySelectorAll('#calculationBody tr');
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 4) {
+            csvContent += `"${cells[0].textContent}",${cells[1].textContent},"${cells[2].textContent}","${cells[3].textContent}"\n`;
+        }
+    });
+    
+    csvContent += `\nJami daromad,${total}`;
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `hisoblash_${teacherName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 </script>
+
+<!-- Calculation Modal -->
+<div class="modal fade" id="calculationModal" tabindex="-1" aria-labelledby="calculationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                <h5 class="modal-title text-white" id="calculationModalLabel">
+                    <i class="bi bi-calculator me-2"></i>
+                    <span id="calculationTeacherName">O'qituvchi</span> - Hisoblash tafsilotlari
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Turi</th>
+                                <th>Soni</th>
+                                <th>Birlik narxi</th>
+                                <th>Jami</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calculationBody">
+                            <!-- Calculation data will be inserted here -->
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Jami daromad:</th>
+                                <th class="text-primary fw-bold" id="calculationTotal">0 so'm</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Hisoblash formulasi:</strong><br>
+                    Video darslar: son × 25,000 so'm<br>
+                    Testlar: son × 10,000 so'm<br>
+                    Uyga vazifalar: son × 10,000 so'm
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
+                <button type="button" class="btn btn-primary" onclick="exportCalculation()">
+                    <i class="bi bi-download me-2"></i>Export qilish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
