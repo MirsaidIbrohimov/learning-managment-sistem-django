@@ -28,6 +28,7 @@ class Command(BaseCommand):
             'homework__lesson__profession', 'student'
         ).filter(
             homework__ai_check=True,
+            homework__lesson__profession__ai_check_enabled=True,
             ai_checked=False,
             status='pending',
             submitted_at__lte=one_hour_ago,

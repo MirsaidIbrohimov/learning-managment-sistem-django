@@ -17,6 +17,7 @@ class Profession(models.Model):
     daily_section_limit = models.BooleanField(default=True, verbose_name="Kunlik bo'lim cheklovi (bir kunda 1 bo'lim)")
     blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
     closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
+    ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan")
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

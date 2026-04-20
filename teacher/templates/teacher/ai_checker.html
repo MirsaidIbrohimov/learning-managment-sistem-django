@@ -1,0 +1,369 @@
+{% extends 'teacher/base_teacher.html' %}
+{% load static %}
+
+{% block title %}AI Tekshiruvchi - O'qituvchi paneli{% endblock %}
+{% block topbar_title %}AI Tekshiruvchi{% endblock %}
+
+{% block teacher_content %}
+{% csrf_token %}
+
+<style>
+    .aic-page { max-width: 1100px; margin: 0 auto; padding: 1rem 0.5rem; }
+
+    .aic-header {
+        display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem;
+        padding: 1.5rem; border-radius: 16px; margin-bottom: 1.5rem;
+        border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
+    }
+    .aic-header-left h2 {
+        font-size: 1.35rem; font-weight: 800; margin: 0;
+        display: flex; align-items: center; gap: 0.6rem;
+    }
+    .aic-header-left h2 i { color: #8b5cf6; font-size: 1.5rem; }
+    .aic-header-sub { font-size: 0.82rem; color: var(--bs-secondary-color); margin-top: 0.3rem; }
+
+    .aic-stats { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .aic-stat {
+        display: flex; flex-direction: column; align-items: center;
+        padding: 0.7rem 1rem; border-radius: 10px;
+        background: var(--bs-tertiary-bg); border: 1px solid var(--bs-border-color); min-width: 100px; text-align: center;
+    }
+    .aic-stat-val { font-size: 1.3rem; font-weight: 800; color: #8b5cf6; }
+    .aic-stat-val.green { color: #10b981; }
+    .aic-stat-val.red { color: #ef4444; }
+    .aic-stat-label { font-size: 0.7rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; }
+
+    .aic-controls {
+        display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem;
+        padding: 0.85rem 1rem; border-radius: 12px;
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+    }
+    .aic-select {
+        padding: 0.45rem 0.85rem; border-radius: 8px; border: 1px solid var(--bs-border-color);
+        background: var(--bs-tertiary-bg); color: var(--bs-body-color); font-size: 0.85rem; font-weight: 600;
+    }
+    .aic-btn {
+        padding: 0.5rem 1rem; border-radius: 8px; border: none; font-weight: 700; font-size: 0.8rem;
+        cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.35rem;
+    }
+    .aic-btn-on { background: #10b981; color: #fff; }
+    .aic-btn-on:hover { background: #059669; }
+    .aic-btn-off { background: #ef4444; color: #fff; }
+    .aic-btn-off:hover { background: #dc2626; }
+    .aic-btn-ml { margin-left: auto; }
+
+    .aic-tabs {
+        display: flex; gap: 0.4rem; margin-bottom: 1.25rem;
+        border-bottom: 2px solid var(--bs-border-color); overflow-x: auto;
+    }
+    .aic-tab {
+        padding: 0.65rem 1rem; border: none; background: transparent;
+        color: var(--bs-secondary-color); cursor: pointer; font-weight: 600; font-size: 0.85rem;
+        border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap;
+    }
+    .aic-tab:hover { color: #8b5cf6; }
+    .aic-tab.active { color: #8b5cf6; border-bottom-color: #8b5cf6; }
+
+    .aic-group {
+        margin-bottom: 1.25rem; border: 1px solid var(--bs-border-color);
+        border-radius: 14px; background: var(--bs-body-bg); overflow: hidden;
+    }
+    .aic-group-head {
+        padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.65rem;
+        border-bottom: 1px solid var(--bs-border-color); cursor: pointer;
+        background: linear-gradient(135deg, rgba(139,92,246,0.04), rgba(99,102,241,0.04));
+        transition: background 0.2s;
+    }
+    .aic-group-head:hover { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.08)); }
+    .aic-group-icon {
+        width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; background: rgba(139,92,246,0.1); color: #8b5cf6; flex-shrink: 0;
+    }
+    .aic-group-name { font-weight: 700; font-size: 0.92rem; }
+    .aic-group-count {
+        font-size: 0.72rem; font-weight: 700; color: var(--bs-secondary-color);
+        background: var(--bs-tertiary-bg); padding: 0.2rem 0.5rem; border-radius: 5px;
+    }
+    .aic-group-chevron { margin-left: auto; font-size: 1rem; color: var(--bs-secondary-color); transition: transform 0.3s; }
+    .aic-group-head.collapsed .aic-group-chevron { transform: rotate(-90deg); }
+
+    /* Admin override banner */
+    .aic-admin-block {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.5rem 1rem; background: rgba(239,68,68,0.08); border-bottom: 1px solid rgba(239,68,68,0.2);
+        font-size: 0.78rem; font-weight: 600; color: #ef4444;
+    }
+
+    .aic-task {
+        display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--bs-border-color); transition: background 0.15s;
+    }
+    .aic-task:last-child { border-bottom: none; }
+    .aic-task:hover { background: rgba(139,92,246,0.03); }
+    .aic-task-icon { font-size: 1rem; color: var(--bs-secondary-color); flex-shrink: 0; }
+    .aic-task-name { font-weight: 600; font-size: 0.85rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .aic-type-badge {
+        font-size: 0.68rem; font-weight: 700; text-transform: uppercase; padding: 0.15rem 0.45rem;
+        border-radius: 4px; letter-spacing: 0.3px; flex-shrink: 0;
+    }
+    .aic-hw-badge { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .aic-sp-badge { background: rgba(245,158,11,0.1); color: #f59e0b; }
+
+    .aic-switch {
+        width: 44px; height: 24px; border-radius: 12px; border: none;
+        background: #d1d5db; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; padding: 0;
+    }
+    .aic-switch.active { background: #10b981; }
+    .aic-switch.disabled { opacity: 0.4; cursor: not-allowed; }
+    .aic-switch-dot {
+        width: 18px; height: 18px; border-radius: 50%; background: #fff;
+        position: absolute; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .aic-switch.active .aic-switch-dot { transform: translateX(20px); }
+
+    .aic-status { font-size: 0.72rem; font-weight: 700; min-width: 52px; text-align: center; flex-shrink: 0; }
+    .aic-on { color: #10b981; }
+    .aic-off { color: #ef4444; }
+
+    .aic-empty { text-align: center; padding: 2.5rem 1rem; color: var(--bs-secondary-color); }
+    .aic-empty i { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; opacity: 0.3; }
+
+    @media (max-width: 768px) {
+        .aic-header { flex-direction: column; align-items: flex-start; }
+        .aic-controls { flex-direction: column; align-items: stretch; }
+        .aic-btn-ml { margin-left: 0; }
+        .aic-type-badge { display: none; }
+    }
+</style>
+
+<div class="aic-page">
+    <div class="aic-header">
+        <div class="aic-header-left">
+            <h2><i class="bi bi-cpu"></i> AI Tekshiruvchi</h2>
+            <div class="aic-header-sub">O'z kurslaringiz uchun AI tekshiruvchini boshqaring</div>
+        </div>
+        <div class="aic-stats">
+            <div class="aic-stat">
+                <div class="aic-stat-val">{{ total_hw|add:total_sp }}</div>
+                <div class="aic-stat-label">Jami</div>
+            </div>
+            <div class="aic-stat">
+                <div class="aic-stat-val green">{{ ai_on_hw|add:ai_on_sp }}</div>
+                <div class="aic-stat-label">Yoqilgan</div>
+            </div>
+            <div class="aic-stat">
+                <div class="aic-stat-val red">{{ ai_off_hw|add:ai_off_sp }}</div>
+                <div class="aic-stat-label">O'chirilgan</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="aic-controls">
+        <select class="aic-select" id="courseFilter" onchange="filterCourse()">
+            <option value="">Barcha kurslar</option>
+            {% for p in professions %}
+            <option value="{{ p.pk }}" {% if selected_course == p.pk|stringformat:"d" %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+        </select>
+        <button class="aic-btn aic-btn-on aic-btn-ml" onclick="toggleAll('all_on')">
+            <i class="bi bi-check-circle"></i> Barchasini yoqish
+        </button>
+        <button class="aic-btn aic-btn-off" onclick="toggleAll('all_off')">
+            <i class="bi bi-x-circle"></i> Barchasini o'chirish
+        </button>
+    </div>
+
+    <div class="aic-tabs">
+        <button class="aic-tab active" onclick="showTab('all', this)">
+            <i class="bi bi-grid-3x3-gap"></i> Barchasi ({{ total_hw|add:total_sp }})
+        </button>
+        <button class="aic-tab" onclick="showTab('homework', this)">
+            <i class="bi bi-file-earmark-text"></i> Uy vazifalar ({{ total_hw }})
+        </button>
+        <button class="aic-tab" onclick="showTab('speaking', this)">
+            <i class="bi bi-mic"></i> Speaking ({{ total_sp }})
+        </button>
+    </div>
+
+    <!-- Homework -->
+    {% for course_name, data in hw_by_course.items %}
+    <div class="aic-group" data-tab="homework">
+        <div class="aic-group-head" onclick="toggleGroup(this)">
+            <div class="aic-group-icon"><i class="bi bi-book"></i></div>
+            <div class="aic-group-name">{{ course_name }}</div>
+            <div class="aic-group-count">{{ data.tasks|length }} vazifa</div>
+            <i class="bi bi-chevron-down aic-group-chevron"></i>
+        </div>
+        {% if not data.ai_enabled %}
+        <div class="aic-admin-block">
+            <i class="bi bi-lock-fill"></i> Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan
+        </div>
+        {% endif %}
+        <div class="aic-task-list">
+            {% for hw in data.tasks %}
+            <div class="aic-task" data-type="homework" data-id="{{ hw.pk }}">
+                <div class="aic-task-icon"><i class="bi bi-file-earmark-text"></i></div>
+                <div class="aic-task-name">{{ hw.lesson.title }}</div>
+                <span class="aic-type-badge aic-hw-badge">Vazifa</span>
+                <span class="aic-status {% if hw.ai_check and data.ai_enabled %}aic-on{% else %}aic-off{% endif %}">
+                    {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                </span>
+                <button class="aic-switch {% if hw.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
+                        onclick="{% if data.ai_enabled %}toggleAI(this, 'homework', {{ hw.pk }}){% endif %}"
+                        {% if not data.ai_enabled %}title="Admin tomonidan bloklangan"{% endif %}>
+                    <div class="aic-switch-dot"></div>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- Speaking -->
+    {% for course_name, data in sp_by_course.items %}
+    <div class="aic-group" data-tab="speaking">
+        <div class="aic-group-head" onclick="toggleGroup(this)">
+            <div class="aic-group-icon"><i class="bi bi-mic"></i></div>
+            <div class="aic-group-name">{{ course_name }}</div>
+            <div class="aic-group-count">{{ data.tasks|length }} vazifa</div>
+            <i class="bi bi-chevron-down aic-group-chevron"></i>
+        </div>
+        {% if not data.ai_enabled %}
+        <div class="aic-admin-block">
+            <i class="bi bi-lock-fill"></i> Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan
+        </div>
+        {% endif %}
+        <div class="aic-task-list">
+            {% for sp in data.tasks %}
+            <div class="aic-task" data-type="speaking" data-id="{{ sp.pk }}">
+                <div class="aic-task-icon"><i class="bi bi-mic"></i></div>
+                <div class="aic-task-name">{{ sp.lesson.title }}</div>
+                <span class="aic-type-badge aic-sp-badge">Speaking</span>
+                <span class="aic-status {% if sp.ai_check and data.ai_enabled %}aic-on{% else %}aic-off{% endif %}">
+                    {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                </span>
+                <button class="aic-switch {% if sp.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
+                        onclick="{% if data.ai_enabled %}toggleAI(this, 'speaking', {{ sp.pk }}){% endif %}"
+                        {% if not data.ai_enabled %}title="Admin tomonidan bloklangan"{% endif %}>
+                    <div class="aic-switch-dot"></div>
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if not hw_by_course and not sp_by_course %}
+    <div class="aic-empty">
+        <i class="bi bi-inbox"></i>
+        <h5>Vazifalar topilmadi</h5>
+        <p>Sizning kurslaringizda hali vazifa yo'q.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function getCookie(name) {
+        let v = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(c => {
+                c = c.trim();
+                if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+            });
+        }
+        return v;
+    }
+    function getCSRF() {
+        return document.querySelector('[name="csrfmiddlewaretoken"]')?.value || getCookie('csrftoken');
+    }
+
+    function toggleAI(btn, type, id) {
+        if (btn.classList.contains('disabled')) return;
+        const isActive = btn.classList.contains('active');
+        const action = isActive ? 'off' : 'on';
+
+        const fd = new FormData();
+        fd.append('type', type);
+        fd.append('id', id);
+        fd.append('action', action);
+
+        fetch("{% url 'teacher:ai_checker_toggle' %}", {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': getCSRF() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active');
+                const st = btn.parentElement.querySelector('.aic-status');
+                if (data.new_state) {
+                    st.textContent = 'Yoqilgan'; st.className = 'aic-status aic-on';
+                } else {
+                    st.textContent = "O'chirilgan"; st.className = 'aic-status aic-off';
+                }
+                showNotif(data.message, data.new_state ? 'success' : 'warning');
+            } else {
+                showNotif(data.error || 'Xatolik', 'danger');
+            }
+        })
+        .catch(() => showNotif('Server xatosi', 'danger'));
+    }
+
+    function toggleAll(action) {
+        if (!confirm(action === 'all_on'
+            ? 'Barcha vazifalar uchun AI tekshiruvchini yoqmoqchimisiz?'
+            : 'Barcha vazifalar uchun AI tekshiruvchini o\'chirmoqchimisiz?')) return;
+
+        const pid = document.getElementById('courseFilter').value;
+        const fd = new FormData();
+        fd.append('action', action);
+        fd.append('profession_id', pid);
+
+        fetch("{% url 'teacher:ai_checker_toggle' %}", {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': getCSRF() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotif(data.message, data.new_state ? 'success' : 'warning');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showNotif(data.error || 'Xatolik', 'danger');
+            }
+        })
+        .catch(() => showNotif('Server xatosi', 'danger'));
+    }
+
+    function filterCourse() {
+        const val = document.getElementById('courseFilter').value;
+        const url = new URL(window.location.href);
+        if (val) url.searchParams.set('course', val); else url.searchParams.delete('course');
+        window.location.href = url.toString();
+    }
+
+    function toggleGroup(head) {
+        head.classList.toggle('collapsed');
+        const list = head.parentElement.querySelector('.aic-task-list');
+        if (list) list.style.display = list.style.display === 'none' ? '' : 'none';
+    }
+
+    function showTab(tab, el) {
+        document.querySelectorAll('.aic-tab').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.querySelectorAll('.aic-group').forEach(g => {
+            g.style.display = (tab === 'all' || g.dataset.tab === tab) ? '' : 'none';
+        });
+    }
+
+    function showNotif(msg, type) {
+        const n = document.createElement('div');
+        n.className = `alert alert-${type} position-fixed`;
+        n.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:280px;border-radius:12px;font-weight:600;';
+        const icon = type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'x-circle';
+        n.innerHTML = `<i class="bi bi-${icon} me-2"></i>${msg}`;
+        document.body.appendChild(n);
+        setTimeout(() => { n.style.opacity = '0'; n.style.transition = 'opacity .3s'; setTimeout(() => n.remove(), 300); }, 3500);
+    }
+</script>
+{% endblock %}

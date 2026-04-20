@@ -1869,3 +1869,134 @@ def teacher_reject_final_payment(request, pk):
         messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
     
     return redirect('teacher:final_test_payments')
+
+
+@teacher_required
+def teacher_ai_checker(request):
+    """O'qituvchi uchun AI Tekshiruvchi boshqaruvi"""
+    professions = request.user.teaching_professions.all()
+    
+    # Filter by profession
+    profession_id = request.GET.get('course', '')
+    filtered_professions = professions
+    if profession_id:
+        try:
+            filtered_professions = professions.filter(pk=int(profession_id))
+        except (ValueError, TypeError):
+            pass
+    
+    # Homework vazifalar
+    homeworks = Homework.objects.select_related('lesson__profession').filter(
+        lesson__profession__in=filtered_professions
+    ).order_by('lesson__profession__name', 'lesson__title')
+    
+    # Speaking vazifalar
+    speaking_tasks = SpeakingTask.objects.select_related('lesson__profession').filter(
+        lesson__profession__in=filtered_professions
+    ).order_by('lesson__profession__name', 'lesson__title')
+    
+    # Statistika
+    total_hw = homeworks.count()
+    ai_on_hw = homeworks.filter(ai_check=True).count()
+    ai_off_hw = total_hw - ai_on_hw
+    
+    total_sp = speaking_tasks.count()
+    ai_on_sp = speaking_tasks.filter(ai_check=True).count()
+    ai_off_sp = total_sp - ai_on_sp
+    
+    # Kurslar bo'yicha guruhlab
+    from collections import OrderedDict
+    hw_by_course = OrderedDict()
+    for hw in homeworks:
+        course_name = hw.lesson.profession.name
+        course_id = hw.lesson.profession.pk
+        if course_name not in hw_by_course:
+            hw_by_course[course_name] = {'tasks': [], 'ai_enabled': hw.lesson.profession.ai_check_enabled, 'id': course_id}
+        hw_by_course[course_name]['tasks'].append(hw)
+    
+    sp_by_course = OrderedDict()
+    for sp in speaking_tasks:
+        course_name = sp.lesson.profession.name
+        course_id = sp.lesson.profession.pk
+        if course_name not in sp_by_course:
+            sp_by_course[course_name] = {'tasks': [], 'ai_enabled': sp.lesson.profession.ai_check_enabled, 'id': course_id}
+        sp_by_course[course_name]['tasks'].append(sp)
+    
+    context = {
+        'professions': professions,
+        'hw_by_course': hw_by_course,
+        'sp_by_course': sp_by_course,
+        'total_hw': total_hw,
+        'ai_on_hw': ai_on_hw,
+        'ai_off_hw': ai_off_hw,
+        'total_sp': total_sp,
+        'ai_on_sp': ai_on_sp,
+        'ai_off_sp': ai_off_sp,
+        'selected_course': profession_id,
+    }
+    return render(request, 'teacher/ai_checker.html', context)
+
+
+@teacher_required
+def teacher_ai_checker_toggle(request):
+    """O'qituvchi uchun AI tekshiruvchini yoqish/o'chirish (AJAX)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=400)
+    
+    professions = request.user.teaching_professions.all()
+    
+    task_type = request.POST.get('type')
+    task_id = request.POST.get('id')
+    action = request.POST.get('action')
+    
+    if action in ('all_on', 'all_off'):
+        new_val = action == 'all_on'
+        profession_id = request.POST.get('profession_id', '')
+        
+        hw_qs = Homework.objects.filter(lesson__profession__in=professions)
+        sp_qs = SpeakingTask.objects.filter(lesson__profession__in=professions)
+        
+        if profession_id:
+            try:
+                hw_qs = hw_qs.filter(lesson__profession_id=int(profession_id))
+                sp_qs = sp_qs.filter(lesson__profession_id=int(profession_id))
+            except (ValueError, TypeError):
+                pass
+        
+        hw_updated = hw_qs.update(ai_check=new_val)
+        sp_updated = sp_qs.update(ai_check=new_val)
+        
+        return JsonResponse({
+            'success': True,
+            'message': "Barcha vazifalar AI tekshiruvi {} ({} ta)".format("yoqildi" if new_val else "o'chirildi", hw_updated + sp_updated),
+            'new_state': new_val,
+        })
+    
+    try:
+        task_id = int(task_id)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+    
+    if task_type == 'homework':
+        obj = get_object_or_404(Homework, pk=task_id, lesson__profession__in=professions)
+    elif task_type == 'speaking':
+        obj = get_object_or_404(SpeakingTask, pk=task_id, lesson__profession__in=professions)
+    else:
+        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
+    
+    # Admin override tekshiruv
+    if not obj.lesson.profession.ai_check_enabled:
+        return JsonResponse({
+            'success': False,
+            'error': "Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan. O'zgartirish mumkin emas.",
+        }, status=403)
+    
+    obj.ai_check = action == 'on'
+    obj.save(update_fields=['ai_check'])
+    
+    status_text = "Yoqildi" if obj.ai_check else "O'chirildi"
+    return JsonResponse({
+        'success': True,
+        'new_state': obj.ai_check,
+        'message': f"{status_text}: {obj.lesson.title}",
+    })

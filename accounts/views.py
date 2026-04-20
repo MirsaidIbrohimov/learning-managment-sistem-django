@@ -1948,7 +1948,7 @@ def submit_speaking(request, pk):
     )
     
     # AI avtomatik tekshiruv
-    if speaking_task.ai_check:
+    if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
         try:
             from teacher.views import _ai_grade_speaking
             ai_result = _ai_grade_speaking(submission)
@@ -2721,7 +2721,7 @@ def submit_homework(request, pk):
                 messages.error(request, "Matn kiritishingiz kerak!")
         
         # AI tekshiruv — 1 soat tahrirlash muddati tugagandan keyin avtomatik ishlaydi
-        if submission and homework.ai_check:
+        if submission and homework.ai_check and homework.lesson.profession.ai_check_enabled:
             _schedule_ai_check(submission.pk)
     
     return redirect('lesson_view', pk=homework.lesson.pk)
@@ -11369,15 +11369,21 @@ def admin_ai_checker(request):
     for hw in homeworks:
         course_name = hw.lesson.profession.name
         if course_name not in hw_by_course:
-            hw_by_course[course_name] = []
-        hw_by_course[course_name].append(hw)
+            hw_by_course[course_name] = {
+                'tasks': [], 'ai_enabled': hw.lesson.profession.ai_check_enabled,
+                'id': hw.lesson.profession.pk,
+            }
+        hw_by_course[course_name]['tasks'].append(hw)
     
     sp_by_course = OrderedDict()
     for sp in speaking_tasks:
         course_name = sp.lesson.profession.name
         if course_name not in sp_by_course:
-            sp_by_course[course_name] = []
-        sp_by_course[course_name].append(sp)
+            sp_by_course[course_name] = {
+                'tasks': [], 'ai_enabled': sp.lesson.profession.ai_check_enabled,
+                'id': sp.lesson.profession.pk,
+            }
+        sp_by_course[course_name]['tasks'].append(sp)
     
     context = {
         'professions': professions,
@@ -11398,7 +11404,7 @@ def admin_ai_checker(request):
 def admin_ai_checker_toggle(request):
     """AI tekshiruvchini yoqish/o'chirish (AJAX)"""
     if not request.user.is_admin:
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
@@ -11424,30 +11430,58 @@ def admin_ai_checker_toggle(request):
         hw_updated = hw_qs.update(ai_check=new_val)
         sp_updated = sp_qs.update(ai_check=new_val)
         
+        status_word = "yoqildi" if new_val else "o'chirildi"
         return JsonResponse({
             'success': True,
-            'message': f"Barcha vazifalar AI tekshiruvi {'yoqildi' if new_val else 'o\\'chirildi'} ({hw_updated + sp_updated} ta)",
+            'message': f"Barcha vazifalar AI tekshiruvi {status_word} ({hw_updated + sp_updated} ta)",
             'new_state': new_val,
         })
     
     try:
         task_id = int(task_id)
     except (ValueError, TypeError):
-        return JsonResponse({'error': 'Noto\'g\'ri ID'}, status=400)
+        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
     
     if task_type == 'homework':
         obj = get_object_or_404(Homework, pk=task_id)
     elif task_type == 'speaking':
         obj = get_object_or_404(SpeakingTask, pk=task_id)
     else:
-        return JsonResponse({'error': 'Noto\'g\'ri tur'}, status=400)
+        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
     
     obj.ai_check = action == 'on'
     obj.save(update_fields=['ai_check'])
     
+    status_text = "Yoqildi" if obj.ai_check else "O'chirildi"
     return JsonResponse({
         'success': True,
         'new_state': obj.ai_check,
-        'message': f"{'Yoqildi' if obj.ai_check else 'O\\'chirildi'}: {obj.lesson.title}",
+        'message': f"{status_text}: {obj.lesson.title}",
+    })
+
+
+@login_required
+def admin_ai_course_toggle(request):
+    """Kurs uchun AI tekshiruvchini yoqish/o'chirish (Admin override)"""
+    if not request.user.is_admin:
+        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=400)
+    
+    profession_id = request.POST.get('profession_id')
+    try:
+        profession = Profession.objects.get(pk=int(profession_id))
+    except (Profession.DoesNotExist, ValueError, TypeError):
+        return JsonResponse({'error': 'Kurs topilmadi'}, status=404)
+    
+    profession.ai_check_enabled = not profession.ai_check_enabled
+    profession.save(update_fields=['ai_check_enabled'])
+    
+    status_text = "yoqildi" if profession.ai_check_enabled else "o'chirildi"
+    return JsonResponse({
+        'success': True,
+        'new_state': profession.ai_check_enabled,
+        'message': f"'{profession.name}' kursi uchun AI tekshiruvchi {status_text}",
     })
 

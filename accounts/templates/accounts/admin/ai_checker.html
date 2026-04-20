@@ -125,6 +125,33 @@
         background: #d1d5db; cursor: pointer; position: relative; transition: background 0.3s; flex-shrink: 0; padding: 0;
     }
     .aic-switch.active { background: #10b981; }
+    .aic-switch.disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Course-level toggle */
+    .aic-course-toggle {
+        display: flex; align-items: center; gap: 0.5rem; margin-left: auto; margin-right: 0.5rem;
+    }
+    .aic-course-toggle-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; }
+    .aic-course-toggle-on { color: #10b981; }
+    .aic-course-toggle-off { color: #ef4444; }
+    .aic-course-switch {
+        width: 42px; height: 22px; border-radius: 11px; border: 2px solid #8b5cf6;
+        background: #d1d5db; cursor: pointer; position: relative; transition: background 0.3s; padding: 0;
+    }
+    .aic-course-switch.active { background: #8b5cf6; }
+    .aic-course-switch-dot {
+        width: 16px; height: 16px; border-radius: 50%; background: #fff;
+        position: absolute; top: 1px; left: 1px; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .aic-course-switch.active .aic-course-switch-dot { transform: translateX(20px); }
+
+    /* Admin block banner */
+    .aic-admin-block {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.5rem 1.25rem; background: rgba(239,68,68,0.08); border-bottom: 1px solid rgba(239,68,68,0.2);
+        font-size: 0.78rem; font-weight: 600; color: #ef4444;
+    }
+
     .aic-switch-thumb {
         width: 20px; height: 20px; border-radius: 50%; background: #fff;
         position: absolute; top: 3px; left: 3px; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -210,24 +237,38 @@
 
     <!-- Homework groups -->
     <div id="homeworkSection">
-        {% for course_name, tasks in hw_by_course.items %}
-        <div class="aic-course-group" data-tab="homework">
-            <div class="aic-course-head" onclick="toggleGroup(this)">
+        {% for course_name, data in hw_by_course.items %}
+        <div class="aic-course-group" data-tab="homework" data-course-id="{{ data.id }}">
+            <div class="aic-course-head">
                 <div class="aic-course-icon"><i class="bi bi-book"></i></div>
-                <div class="aic-course-name">{{ course_name }}</div>
-                <div class="aic-course-count">{{ tasks|length }} vazifa</div>
-                <i class="bi bi-chevron-down aic-course-chevron"></i>
+                <div class="aic-course-name" onclick="toggleGroup(this.parentElement)" style="cursor:pointer; flex:1;">{{ course_name }}</div>
+                <div class="aic-course-count">{{ data.tasks|length }} vazifa</div>
+                <div class="aic-course-toggle" onclick="event.stopPropagation();">
+                    <span class="aic-course-toggle-label {% if data.ai_enabled %}aic-course-toggle-on{% else %}aic-course-toggle-off{% endif %}">
+                        {% if data.ai_enabled %}Kurs AI: ON{% else %}Kurs AI: OFF{% endif %}
+                    </span>
+                    <button class="aic-course-switch {% if data.ai_enabled %}active{% endif %}" onclick="toggleCourseAI(this, {{ data.id }})">
+                        <div class="aic-course-switch-dot"></div>
+                    </button>
+                </div>
+                <i class="bi bi-chevron-down aic-course-chevron" onclick="toggleGroup(this.parentElement)" style="cursor:pointer;"></i>
             </div>
+            {% if not data.ai_enabled %}
+            <div class="aic-admin-block">
+                <i class="bi bi-lock-fill"></i> Bu kurs uchun AI tekshiruvchi o'chirilgan — o'qituvchi ham yoqa olmaydi
+            </div>
+            {% endif %}
             <div class="aic-task-list">
-                {% for hw in tasks %}
+                {% for hw in data.tasks %}
                 <div class="aic-task-row" data-type="homework" data-id="{{ hw.pk }}">
                     <div class="aic-task-icon"><i class="bi bi-file-earmark-text"></i></div>
                     <div class="aic-task-name">{{ hw.lesson.title }}</div>
                     <span class="aic-task-type aic-type-hw">Vazifa</span>
-                    <span class="aic-status-text {% if hw.ai_check %}aic-status-on{% else %}aic-status-off{% endif %}">
-                        {% if hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                    <span class="aic-status-text {% if hw.ai_check and data.ai_enabled %}aic-status-on{% else %}aic-status-off{% endif %}">
+                        {% if not data.ai_enabled %}Bloklangan{% elif hw.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
                     </span>
-                    <button class="aic-switch {% if hw.ai_check %}active{% endif %}" onclick="toggleAI(this, 'homework', {{ hw.pk }})">
+                    <button class="aic-switch {% if hw.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
+                            onclick="{% if data.ai_enabled %}toggleAI(this, 'homework', {{ hw.pk }}){% endif %}">
                         <div class="aic-switch-thumb"></div>
                     </button>
                 </div>
@@ -239,24 +280,38 @@
 
     <!-- Speaking groups -->
     <div id="speakingSection">
-        {% for course_name, tasks in sp_by_course.items %}
-        <div class="aic-course-group" data-tab="speaking">
-            <div class="aic-course-head" onclick="toggleGroup(this)">
+        {% for course_name, data in sp_by_course.items %}
+        <div class="aic-course-group" data-tab="speaking" data-course-id="{{ data.id }}">
+            <div class="aic-course-head">
                 <div class="aic-course-icon"><i class="bi bi-mic"></i></div>
-                <div class="aic-course-name">{{ course_name }}</div>
-                <div class="aic-course-count">{{ tasks|length }} vazifa</div>
-                <i class="bi bi-chevron-down aic-course-chevron"></i>
+                <div class="aic-course-name" onclick="toggleGroup(this.parentElement)" style="cursor:pointer; flex:1;">{{ course_name }}</div>
+                <div class="aic-course-count">{{ data.tasks|length }} vazifa</div>
+                <div class="aic-course-toggle" onclick="event.stopPropagation();">
+                    <span class="aic-course-toggle-label {% if data.ai_enabled %}aic-course-toggle-on{% else %}aic-course-toggle-off{% endif %}">
+                        {% if data.ai_enabled %}Kurs AI: ON{% else %}Kurs AI: OFF{% endif %}
+                    </span>
+                    <button class="aic-course-switch {% if data.ai_enabled %}active{% endif %}" onclick="toggleCourseAI(this, {{ data.id }})">
+                        <div class="aic-course-switch-dot"></div>
+                    </button>
+                </div>
+                <i class="bi bi-chevron-down aic-course-chevron" onclick="toggleGroup(this.parentElement)" style="cursor:pointer;"></i>
             </div>
+            {% if not data.ai_enabled %}
+            <div class="aic-admin-block">
+                <i class="bi bi-lock-fill"></i> Bu kurs uchun AI tekshiruvchi o'chirilgan — o'qituvchi ham yoqa olmaydi
+            </div>
+            {% endif %}
             <div class="aic-task-list">
-                {% for sp in tasks %}
+                {% for sp in data.tasks %}
                 <div class="aic-task-row" data-type="speaking" data-id="{{ sp.pk }}">
                     <div class="aic-task-icon"><i class="bi bi-mic"></i></div>
                     <div class="aic-task-name">{{ sp.lesson.title }}</div>
                     <span class="aic-task-type aic-type-sp">Speaking</span>
-                    <span class="aic-status-text {% if sp.ai_check %}aic-status-on{% else %}aic-status-off{% endif %}">
-                        {% if sp.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
+                    <span class="aic-status-text {% if sp.ai_check and data.ai_enabled %}aic-status-on{% else %}aic-status-off{% endif %}">
+                        {% if not data.ai_enabled %}Bloklangan{% elif sp.ai_check %}Yoqilgan{% else %}O'chirilgan{% endif %}
                     </span>
-                    <button class="aic-switch {% if sp.ai_check %}active{% endif %}" onclick="toggleAI(this, 'speaking', {{ sp.pk }})">
+                    <button class="aic-switch {% if sp.ai_check %}active{% endif %} {% if not data.ai_enabled %}disabled{% endif %}"
+                            onclick="{% if data.ai_enabled %}toggleAI(this, 'speaking', {{ sp.pk }}){% endif %}">
                         <div class="aic-switch-thumb"></div>
                     </button>
                 </div>
@@ -291,7 +346,28 @@
         return document.querySelector('[name="csrfmiddlewaretoken"]')?.value || getCookie('csrftoken');
     }
 
+    function toggleCourseAI(btn, courseId) {
+        const fd = new FormData();
+        fd.append('profession_id', courseId);
+
+        fetch("{% url 'admin_ai_course_toggle' %}", {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': getCSRF() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showNotif(data.message, data.new_state ? 'success' : 'warning');
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showNotif(data.error || 'Xatolik', 'danger');
+            }
+        })
+        .catch(() => showNotif('Server xatosi', 'danger'));
+    }
+
     function toggleAI(btn, type, id) {
+        if (btn.classList.contains('disabled')) return;
         const isActive = btn.classList.contains('active');
         const action = isActive ? 'off' : 'on';
 
@@ -362,7 +438,7 @@
 
     function toggleGroup(head) {
         head.classList.toggle('collapsed');
-        const list = head.nextElementSibling;
+        const list = head.closest('.aic-course-group').querySelector('.aic-task-list');
         list.style.display = list.style.display === 'none' ? '' : 'none';
     }
 

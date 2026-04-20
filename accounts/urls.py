@@ -260,4 +260,5 @@ urlpatterns = [
     # Admin: AI Tekshiruvchi
     path('dashboard/ai-checker/', views.admin_ai_checker, name='admin_ai_checker'),
     path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
+    path('dashboard/ai-checker/course-toggle/', views.admin_ai_course_toggle, name='admin_ai_course_toggle'),
 ]

@@ -48,4 +48,8 @@ urlpatterns = [
     path('final-test-payments/', views.teacher_final_test_payments, name='final_test_payments'),
     path('final-test-payments/<int:pk>/approve/', views.teacher_approve_final_payment, name='approve_final_payment'),
     path('final-test-payments/<int:pk>/reject/', views.teacher_reject_final_payment, name='reject_final_payment'),
+
+    # AI Tekshiruvchi
+    path('ai-checker/', views.teacher_ai_checker, name='ai_checker'),
+    path('ai-checker/toggle/', views.teacher_ai_checker_toggle, name='ai_checker_toggle'),
 ]
