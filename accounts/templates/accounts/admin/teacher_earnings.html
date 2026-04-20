@@ -644,27 +644,29 @@
 }
 
 .month-summary-grid.expanded {
-    max-height: none;
+    max-height: 3000px;
 }
 
-.month-summary-card:nth-child(n+4) {
+.month-summary-card.hidden-card {
     opacity: 0;
     transform: translateY(20px);
     transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    pointer-events: none;
 }
 
-.month-summary-grid.expanded .month-summary-card:nth-child(n+4) {
+.month-summary-grid.expanded .month-summary-card.hidden-card {
     opacity: 1;
     transform: translateY(0);
+    pointer-events: auto;
 }
 
-.month-summary-grid.expanded .month-summary-card:nth-child(4) { transition-delay: 0.1s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(5) { transition-delay: 0.2s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(6) { transition-delay: 0.3s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(7) { transition-delay: 0.4s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(8) { transition-delay: 0.5s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(9) { transition-delay: 0.6s; }
-.month-summary-grid.expanded .month-summary-card:nth-child(10) { transition-delay: 0.7s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(1) { transition-delay: 0.1s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(2) { transition-delay: 0.2s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(3) { transition-delay: 0.3s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(4) { transition-delay: 0.4s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(5) { transition-delay: 0.5s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(6) { transition-delay: 0.6s; }
+.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(7) { transition-delay: 0.7s; }
 
 /* Month-over-month comparison styles */
 .month-earnings {
@@ -1357,8 +1359,8 @@
     </div>
     
     <div class="month-summary-grid">
-        {% for earning in teacher_earnings|slice:":3" %}
-        <div class="month-summary-card">
+        {% for earning in teacher_earnings %}
+        <div class="month-summary-card {% if forloop.counter > 3 %}hidden-card{% endif %}">
             <div class="summary-header">
                 <div class="summary-avatar">
                     {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
@@ -1402,7 +1404,7 @@
     
     {% if teacher_earnings|length > 3 %}
     <div class="text-center mt-4">
-        <button class="btn btn-expand-modern" id="toggleAllTeachers" onclick="toggleAllTeachers()" data-total-teachers="{{ teacher_earnings|length }}">
+        <button class="btn btn-expand-modern" id="toggleAllTeachers" data-total-teachers="{{ teacher_earnings|length }}">
             <i class="bi bi-arrow-down-circle me-2"></i>
             <span id="toggleText">Barcha o'qituvchilarni ko'rish ({{ teacher_earnings|length }} ta)</span>
             <i class="bi bi-arrow-down-circle ms-2 toggle-icon"></i>
@@ -1814,40 +1816,49 @@ function viewEarnings(teacherId) {
     console.log('View earnings for teacher:', teacherId);
 }
 
+// Add event listener when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('toggleAllTeachers');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', toggleAllTeachers);
+        console.log('Toggle button event listener added');
+    } else {
+        console.log('Toggle button not found');
+    }
+});
+
 function toggleAllTeachers() {
+    console.log('Toggle function called');
+    
     const grid = document.querySelector('.month-summary-grid');
     const button = document.getElementById('toggleAllTeachers');
     const toggleText = document.getElementById('toggleText');
-    const totalTeachers = parseInt(button.dataset.totalTeachers) || 0;
     
-    if (grid.classList.contains('expanded')) {
+    console.log('Elements found:', { grid: !!grid, button: !!button, toggleText: !!toggleText });
+    
+    if (!grid || !button || !toggleText) {
+        console.error('Required elements not found');
+        return;
+    }
+    
+    const totalTeachers = parseInt(button.dataset.totalTeachers) || 0;
+    console.log('Total teachers:', totalTeachers);
+    
+    const isExpanded = grid.classList.contains('expanded');
+    console.log('Currently expanded:', isExpanded);
+    
+    if (isExpanded) {
         // Collapse
+        console.log('Collapsing...');
         grid.classList.remove('expanded');
         button.classList.remove('expanded');
         toggleText.textContent = 'Barcha o\'qituvchilarni ko\'rish (' + totalTeachers + ' ta)';
-        
-        // Hide cards beyond the first 3
-        const cards = grid.querySelectorAll('.month-summary-card:nth-child(n+4)');
-        cards.forEach(card => {
-            setTimeout(() => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-            }, 0);
-        });
     } else {
         // Expand
+        console.log('Expanding...');
         grid.classList.add('expanded');
         button.classList.add('expanded');
         toggleText.textContent = 'Yopish (' + totalTeachers + ' ta o\'qituvchi)';
-        
-        // Show all cards with staggered animation
-        const cards = grid.querySelectorAll('.month-summary-card:nth-child(n+4)');
-        cards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
     }
 }
 
