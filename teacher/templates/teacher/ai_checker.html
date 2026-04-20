@@ -374,11 +374,92 @@
         });
     }
 
+    function toggleFileOnly(btn, id) {
+        const isActive = btn.classList.contains('active');
+        const action = isActive ? 'off' : 'on';
+
+        const fd = new FormData();
+        fd.append('type', 'homework');
+        fd.append('id', id);
+        fd.append('action', action);
+
+        fetch("{% url 'teacher:file_only_toggle' %}", {
+            method: 'POST', body: fd,
+            headers: { 'X-CSRFToken': getCSRF() }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                btn.classList.toggle('active');
+                showNotif(data.message, data.new_state ? 'success' : 'warning');
+                
+                // Update homework submission form if it's open
+                updateHomeworkSubmissionForm(id, data.new_state);
+            } else {
+                showNotif(data.error || 'Xatolik', 'danger');
+            }
+        })
+        .catch(() => showNotif('Server xatosi', 'danger'));
+    }
+
+    function updateHomeworkSubmissionForm(homeworkId, fileOnly) {
+        // Check if there's a homework submission form open for this homework
+        const homeworkForm = document.querySelector(`#homeworkForm`);
+        if (!homeworkForm) return;
+        
+        // Check if this is the correct homework by matching the form action
+        const formAction = homeworkForm.getAttribute('action');
+        if (!formAction || !formAction.includes(homeworkId)) return;
+        
+        // Find the submission type toggle and text section
+        const textSection = document.getElementById('text-section');
+        const submissionToggle = document.querySelector('.submission-type-toggle');
+        const typeTextRadio = document.getElementById('type_text');
+        const typeFileRadio = document.getElementById('type_file');
+        
+        if (fileOnly) {
+            // Enable file-only mode
+            if (submissionToggle) {
+                submissionToggle.style.display = 'none';
+            }
+            if (textSection) {
+                textSection.style.display = 'none';
+                textSection.classList.add('d-none');
+            }
+            if (typeFileRadio) {
+                typeFileRadio.checked = true;
+                typeFileRadio.disabled = false;
+            }
+            if (typeTextRadio) {
+                typeTextRadio.checked = false;
+                typeTextRadio.disabled = true;
+            }
+            
+            // Show file-only notification
+            showNotif('Bu vazifa endi faqat fayl qabul qiladi', 'info');
+        } else {
+            // Disable file-only mode (allow both text and file)
+            if (submissionToggle) {
+                submissionToggle.style.display = 'flex';
+            }
+            if (textSection) {
+                textSection.style.display = 'block';
+                textSection.classList.remove('d-none');
+            }
+            if (typeTextRadio) {
+                typeTextRadio.disabled = false;
+            }
+            
+            // Show notification
+            showNotif('Bu vazifa endi matn ham qabul qiladi', 'info');
+        }
+    }
+
     function showNotif(msg, type) {
         const n = document.createElement('div');
         n.className = `alert alert-${type} position-fixed`;
         n.style.cssText = 'top:20px;right:20px;z-index:9999;min-width:280px;border-radius:12px;font-weight:600;';
-        const icon = type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'x-circle';
+        const icon = type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'info' ? 'info-circle' : 'x-circle';
         n.innerHTML = `<i class="bi bi-${icon} me-2"></i>${msg}`;
         document.body.appendChild(n);
         setTimeout(() => { n.style.opacity = '0'; n.style.transition = 'opacity .3s'; setTimeout(() => n.remove(), 300); }, 3500);

@@ -2057,8 +2057,8 @@ def teacher_file_only_toggle(request):
             except (ValueError, TypeError):
                 pass
         
-        hw_updated = hw_qs.update(ai_check_file_only=new_val)
-        sp_updated = sp_qs.update(ai_check_file_only=new_val)
+        hw_updated = hw_qs.update(file_only=new_val)
+        sp_updated = 0  # SpeakingTask doesn't have file_only field
         
         return JsonResponse({
             'success': True,
@@ -2072,9 +2072,13 @@ def teacher_file_only_toggle(request):
         return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
     
     if task_type == 'homework':
-        obj = get_object_or_404(Homework, pk=task_id, lesson__profession__in=professions)
+        try:
+            obj = Homework.objects.get(pk=task_id, lesson__profession__in=professions)
+        except Homework.DoesNotExist:
+            return JsonResponse({'error': "Vazifa topilmadi"}, status=404)
     elif task_type == 'speaking':
-        obj = get_object_or_404(SpeakingTask, pk=task_id, lesson__profession__in=professions)
+        # SpeakingTask doesn't have file_only field, return error
+        return JsonResponse({'error': "Speaking vazifalari uchun faqat fayl rejimi mavjud emas"}, status=400)
     else:
         return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
     
@@ -2085,12 +2089,12 @@ def teacher_file_only_toggle(request):
             'error': "Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan. O'zgartirish mumkin emas.",
         }, status=403)
     
-    obj.ai_check_file_only = action == 'on'
-    obj.save(update_fields=['ai_check_file_only'])
+    obj.file_only = action == 'on'
+    obj.save(update_fields=['file_only'])
     
-    status_text = "Yoqildi" if obj.ai_check_file_only else "O'chirildi"
+    status_text = "Yoqildi" if obj.file_only else "O'chirildi"
     return JsonResponse({
         'success': True,
-        'new_state': obj.ai_check_file_only,
+        'new_state': obj.file_only,
         'message': f"{status_text}: {obj.lesson.title}",
     })
