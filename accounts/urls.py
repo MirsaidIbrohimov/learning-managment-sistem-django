@@ -256,4 +256,8 @@ urlpatterns = [
     path('ariza/', views.ariza_view, name='ariza'),
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
     path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
+    
+    # Admin: AI Tekshiruvchi
+    path('dashboard/ai-checker/', views.admin_ai_checker, name='admin_ai_checker'),
+    path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
 ]

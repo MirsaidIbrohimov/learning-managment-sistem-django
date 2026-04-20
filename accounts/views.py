@@ -11329,3 +11329,125 @@ def reject_final_test_payment(request, pk):
     
     return redirect('admin_final_test_payments')
 
+
+@login_required
+def admin_ai_checker(request):
+    """AI Tekshiruvchi vazifalar boshqaruvi"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    professions = Profession.objects.all()
+    
+    # Filter by profession
+    profession_id = request.GET.get('course', '')
+    
+    # Homework vazifalar
+    homeworks = Homework.objects.select_related('lesson__profession').all().order_by('lesson__profession__name', 'lesson__title')
+    
+    # Speaking vazifalar
+    speaking_tasks = SpeakingTask.objects.select_related('lesson__profession').all().order_by('lesson__profession__name', 'lesson__title')
+    
+    if profession_id:
+        try:
+            homeworks = homeworks.filter(lesson__profession_id=int(profession_id))
+            speaking_tasks = speaking_tasks.filter(lesson__profession_id=int(profession_id))
+        except (ValueError, TypeError):
+            pass
+    
+    # Statistika
+    total_hw = homeworks.count()
+    ai_on_hw = homeworks.filter(ai_check=True).count()
+    ai_off_hw = total_hw - ai_on_hw
+    
+    total_sp = speaking_tasks.count()
+    ai_on_sp = speaking_tasks.filter(ai_check=True).count()
+    ai_off_sp = total_sp - ai_on_sp
+    
+    # Kurslar bo'yicha guruhlab
+    from collections import OrderedDict
+    hw_by_course = OrderedDict()
+    for hw in homeworks:
+        course_name = hw.lesson.profession.name
+        if course_name not in hw_by_course:
+            hw_by_course[course_name] = []
+        hw_by_course[course_name].append(hw)
+    
+    sp_by_course = OrderedDict()
+    for sp in speaking_tasks:
+        course_name = sp.lesson.profession.name
+        if course_name not in sp_by_course:
+            sp_by_course[course_name] = []
+        sp_by_course[course_name].append(sp)
+    
+    context = {
+        'professions': professions,
+        'hw_by_course': hw_by_course,
+        'sp_by_course': sp_by_course,
+        'total_hw': total_hw,
+        'ai_on_hw': ai_on_hw,
+        'ai_off_hw': ai_off_hw,
+        'total_sp': total_sp,
+        'ai_on_sp': ai_on_sp,
+        'ai_off_sp': ai_off_sp,
+        'selected_course': profession_id,
+    }
+    return render(request, 'accounts/admin/ai_checker.html', context)
+
+
+@login_required
+def admin_ai_checker_toggle(request):
+    """AI tekshiruvchini yoqish/o'chirish (AJAX)"""
+    if not request.user.is_admin:
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=400)
+    
+    task_type = request.POST.get('type')  # 'homework' or 'speaking'
+    task_id = request.POST.get('id')
+    action = request.POST.get('action')  # 'on', 'off', 'all_on', 'all_off'
+    
+    if action in ('all_on', 'all_off'):
+        new_val = action == 'all_on'
+        profession_id = request.POST.get('profession_id', '')
+        
+        hw_qs = Homework.objects.all()
+        sp_qs = SpeakingTask.objects.all()
+        
+        if profession_id:
+            try:
+                hw_qs = hw_qs.filter(lesson__profession_id=int(profession_id))
+                sp_qs = sp_qs.filter(lesson__profession_id=int(profession_id))
+            except (ValueError, TypeError):
+                pass
+        
+        hw_updated = hw_qs.update(ai_check=new_val)
+        sp_updated = sp_qs.update(ai_check=new_val)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f"Barcha vazifalar AI tekshiruvi {'yoqildi' if new_val else 'o\\'chirildi'} ({hw_updated + sp_updated} ta)",
+            'new_state': new_val,
+        })
+    
+    try:
+        task_id = int(task_id)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': 'Noto\'g\'ri ID'}, status=400)
+    
+    if task_type == 'homework':
+        obj = get_object_or_404(Homework, pk=task_id)
+    elif task_type == 'speaking':
+        obj = get_object_or_404(SpeakingTask, pk=task_id)
+    else:
+        return JsonResponse({'error': 'Noto\'g\'ri tur'}, status=400)
+    
+    obj.ai_check = action == 'on'
+    obj.save(update_fields=['ai_check'])
+    
+    return JsonResponse({
+        'success': True,
+        'new_state': obj.ai_check,
+        'message': f"{'Yoqildi' if obj.ai_check else 'O\\'chirildi'}: {obj.lesson.title}",
+    })
+
