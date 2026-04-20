@@ -1,0 +1,538 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}O'qituvchilar Davomati - Admin Panel{% endblock %}
+{% block topbar_title %}O'qituvchilar Davomati{% endblock %}
+
+{% block extra_css %}
+<style>
+.attendance-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.stat-present { color: #10b981; }
+.stat-absent { color: #ef4444; }
+.stat-late { color: #f59e0b; }
+.stat-sick { color: #6366f1; }
+.stat-total { color: #3b82f6; }
+
+.filters-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.attendance-table {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.attendance-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.attendance-table th {
+    background: var(--tertiary-bg);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.attendance-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.attendance-table tbody tr:hover {
+    background: var(--tertiary-bg);
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-present {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.status-absent {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-late {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.status-sick {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.status-vacation {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.status-business {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+}
+
+.teacher-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.teacher-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.teacher-details {
+    flex: 1;
+}
+
+.teacher-name {
+    font-weight: 600;
+    margin-bottom: 0.125rem;
+}
+
+.teacher-username {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.time-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.time-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.time-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.125rem;
+}
+
+.time-value {
+    font-weight: 500;
+}
+
+.notes-cell {
+    max-width: 200px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .attendance-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .filter-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .teacher-info {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .time-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">O'qituvchilar Davomati</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAttendanceModal">
+        <i class="bi bi-plus-circle me-2"></i>Davomat qo'shish
+    </button>
+</div>
+
+<!-- Statistics Cards -->
+<div class="attendance-stats">
+    <div class="stat-card">
+        <div class="stat-icon stat-total">
+            <i class="bi bi-people-fill"></i>
+        </div>
+        <div class="stat-value">{{ total_attendances }}</div>
+        <div class="stat-label">Jami davomat</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon stat-present">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <div class="stat-value">{{ present_count }}</div>
+        <div class="stat-label">Kelgan</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon stat-absent">
+            <i class="bi bi-x-circle-fill"></i>
+        </div>
+        <div class="stat-value">{{ absent_count }}</div>
+        <div class="stat-label">Kelmagan</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon stat-late">
+            <i class="bi bi-clock-fill"></i>
+        </div>
+        <div class="stat-value">{{ late_count }}</div>
+        <div class="stat-label">Kechikkan</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon stat-sick">
+            <i class="bi bi-heart-pulse-fill"></i>
+        </div>
+        <div class="stat-value">{{ sick_count }}</div>
+        <div class="stat-label">Kasal</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-section">
+    <form method="GET" class="mb-0">
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Qidirish</label>
+                <input type="text" class="form-control" name="q" value="{{ search_query }}" 
+                       placeholder="O'qituvchi nomi, username yoki izoh...">
+            </div>
+            
+            <div>
+                <label class="form-label">Holati</label>
+                <select class="form-select" name="status">
+                    <option value="">Barchasi</option>
+                    <option value="present" {% if status_filter == 'present' %}selected{% endif %}>Kelgan</option>
+                    <option value="absent" {% if status_filter == 'absent' %}selected{% endif %}>Kelmagan</option>
+                    <option value="late" {% if status_filter == 'late' %}selected{% endif %}>Kechikkan</option>
+                    <option value="sick" {% if status_filter == 'sick' %}selected{% endif %}>Kasal</option>
+                    <option value="vacation" {% if status_filter == 'vacation' %}selected{% endif %}>Ta'til</option>
+                    <option value="business" {% if status_filter == 'business' %}selected{% endif %}>Xizmat safari</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Sana</label>
+                <input type="date" class="form-control" name="date" value="{{ date_filter }}">
+            </div>
+            
+            <div>
+                <label class="form-label">Oy</label>
+                <select class="form-select" name="month">
+                    <option value="">Oy tanlang</option>
+                    <option value="1" {% if month_filter == '1' %}selected{% endif %}>Yanvar</option>
+                    <option value="2" {% if month_filter == '2' %}selected{% endif %}>Fevral</option>
+                    <option value="3" {% if month_filter == '3' %}selected{% endif %}>Mart</option>
+                    <option value="4" {% if month_filter == '4' %}selected{% endif %}>Aprel</option>
+                    <option value="5" {% if month_filter == '5' %}selected{% endif %}>May</option>
+                    <option value="6" {% if month_filter == '6' %}selected{% endif %}>Iyun</option>
+                    <option value="7" {% if month_filter == '7' %}selected{% endif %}>Iyul</option>
+                    <option value="8" {% if month_filter == '8' %}selected{% endif %}>Avgust</option>
+                    <option value="9" {% if month_filter == '9' %}selected{% endif %}>Sentyabr</option>
+                    <option value="10" {% if month_filter == '10' %}selected{% endif %}>Oktyabr</option>
+                    <option value="11" {% if month_filter == '11' %}selected{% endif %}>Noyabr</option>
+                    <option value="12" {% if month_filter == '12' %}selected{% endif %}>Dekabr</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="form-label">Yil</label>
+                <input type="number" class="form-control" name="year" value="{{ year_filter }}" 
+                       placeholder="2024" min="2020" max="{{ today.year }}">
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-funnel me-2"></i>Filterlash
+            </button>
+            <a href="{% url 'admin_teacher_attendance' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Attendance Table -->
+<div class="attendance-table">
+    {% if attendances %}
+    <table>
+        <thead>
+            <tr>
+                <th>O'qituvchi</th>
+                <th>Sana</th>
+                <th>Holati</th>
+                <th>Kirish vaqti</th>
+                <th>Chiqish vaqti</th>
+                <th>Izoh</th>
+                <th>Qo'shdi</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attendance in attendances %}
+            <tr>
+                <td>
+                    <div class="teacher-info">
+                        <div class="teacher-avatar">
+                            {{ attendance.teacher.first_name.0 }}{{ attendance.teacher.last_name.0 }}
+                        </div>
+                        <div class="teacher-details">
+                            <div class="teacher-name">{{ attendance.teacher.full_name }}</div>
+                            <div class="teacher-username">@{{ attendance.teacher.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ attendance.date|date:"d.m.Y" }}</td>
+                <td>
+                    <span class="status-badge status-{{ attendance.status }}">
+                        {% if attendance.status == 'present' %}
+                            <i class="bi bi-check-circle-fill"></i> Kelgan
+                        {% elif attendance.status == 'absent' %}
+                            <i class="bi bi-x-circle-fill"></i> Kelmagan
+                        {% elif attendance.status == 'late' %}
+                            <i class="bi bi-clock-fill"></i> Kechikkan
+                        {% elif attendance.status == 'sick' %}
+                            <i class="bi bi-heart-pulse-fill"></i> Kasal
+                        {% elif attendance.status == 'vacation' %}
+                            <i class="bi bi-umbrella-fill"></i> Ta'til
+                        {% elif attendance.status == 'business' %}
+                            <i class="bi bi-briefcase-fill"></i> Xizmat safari
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% if attendance.check_in_time %}
+                        <div class="time-info">
+                            <div class="time-value">{{ attendance.check_in_time|time:"H:i" }}</div>
+                        </div>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if attendance.check_out_time %}
+                        <div class="time-info">
+                            <div class="time-value">{{ attendance.check_out_time|time:"H:i" }}</div>
+                        </div>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="notes-cell">
+                        {% if attendance.notes %}
+                            {{ attendance.notes|truncatechars:50 }}
+                        {% else %}
+                            <span class="text-muted">Izoh yo'q</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <div class="text-muted small">{{ attendance.created_at|date:"d.m.Y" }}</div>
+                        <div class="text-muted small">{{ attendance.created_at|time:"H:i" }}</div>
+                        {% if attendance.created_by %}
+                            <div class="text-muted small">{{ attendance.created_by.first_name }}</div>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" 
+                                onclick="editAttendance('{{ attendance.id }}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" 
+                                onclick="deleteAttendance('{{ attendance.id }}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-calendar-x"></i>
+        <h4>Davomat ma'lumotlari topilmadi</h4>
+        <p>Berilgan filterlar bo'yicha hech qanday davomat yozuvi mavjud emas.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Attendance Modal -->
+<div class="modal fade" id="addAttendanceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Davomat qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'admin_teacher_attendance' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">O'qituvchi</label>
+                            <select class="form-select" name="teacher" required>
+                                <option value="">O'qituvchini tanlang</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Sana</label>
+                            <input type="date" class="form-control" name="date" 
+                                   value="{{ today }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Holati</label>
+                            <select class="form-select" name="status" required>
+                                <option value="present">Kelgan</option>
+                                <option value="absent">Kelmagan</option>
+                                <option value="late">Kechikkan</option>
+                                <option value="sick">Kasal</option>
+                                <option value="vacation">Ta'til</option>
+                                <option value="business">Xizmat safari</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Kirish vaqti</label>
+                            <input type="time" class="form-control" name="check_in_time">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Chiqish vaqti</label>
+                            <input type="time" class="form-control" name="check_out_time">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Izoh</label>
+                        <textarea class="form-control" name="notes" rows="3" 
+                                  placeholder="Qo'shimcha izoh..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function editAttendance(id) {
+    // Edit functionality - can be implemented later
+    console.log('Edit attendance:', id);
+}
+
+function deleteAttendance(id) {
+    if (confirm('Ushbu davomat yozuvini oʻchirishni istaysizmi?')) {
+        // Delete functionality - can be implemented later
+        console.log('Delete attendance:', id);
+    }
+}
+</script>
+{% endblock %}

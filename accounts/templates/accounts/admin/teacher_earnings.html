@@ -1,0 +1,978 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}O'qituvchilar Daromadlari - Admin Panel{% endblock %}
+{% block topbar_title %}O'qituvchilar Daromadlari{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Modern Earnings Dashboard Styles */
+.earnings-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    animation: slideInDown 0.6s ease;
+}
+
+.earnings-dashboard::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.earnings-dashboard::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -5%;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite reverse;
+}
+
+.dashboard-header {
+    position: relative;
+    z-index: 1;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.dashboard-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card:hover::before {
+    transform: scaleX(1);
+}
+
+.stat-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.stat-icon-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 16px;
+    padding: 2px;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: exclude;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover .stat-icon-wrapper::after {
+    opacity: 1;
+}
+
+.stat-icon-calculated {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.stat-icon-paid {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.stat-icon-balance {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #1f2937, #374151);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Modern Filters Section */
+.filters-modern {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    border: 1px solid #e5e7eb;
+}
+
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filters-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-control-modern {
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #f9fafb;
+}
+
+.form-control-modern:focus {
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    outline: none;
+}
+
+.btn-modern {
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    border: none;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.btn-primary-modern {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-primary-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Modern Table Styles */
+.table-modern {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+.table-modern .table {
+    margin: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-modern thead th {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    padding: 1.25rem 1rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+    border: none;
+    position: relative;
+}
+
+.table-modern thead th:first-child {
+    border-top-left-radius: 16px;
+}
+
+.table-modern thead th:last-child {
+    border-top-right-radius: 16px;
+}
+
+.table-modern tbody td {
+    padding: 1.25rem 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+}
+
+.table-modern tbody tr:hover td {
+    background: #f8fafc;
+}
+
+.table-modern tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.teacher-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.teacher-card:hover {
+    background: #f1f5f9;
+}
+
+.teacher-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.teacher-info {
+    flex: 1;
+}
+
+.teacher-name {
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+.teacher-username {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.earnings-pills {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.earnings-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.earnings-pill i {
+    font-size: 0.9rem;
+}
+
+.balance-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.balance-positive {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.balance-negative {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
+.balance-zero {
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+}
+
+.status-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-paid {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-unpaid {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #1d4ed8;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+    transform: scale(1.1);
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #166534;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #bbf7d0, #86efac);
+    transform: scale(1.1);
+}
+
+/* Empty State */
+.empty-modern {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e5e7eb;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+.empty-description {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Animations */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(180deg);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .earnings-dashboard {
+        padding: 1.5rem;
+    }
+    
+    .dashboard-title {
+        font-size: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .teacher-card {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .earnings-pills {
+        justify-content: flex-start;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .table-modern {
+        border-radius: 12px;
+    }
+    
+    .table-modern thead th,
+    .table-modern tbody td {
+        padding: 0.75rem 0.5rem;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .earnings-dashboard {
+        padding: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .filters-modern {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Modern Dashboard Header -->
+<div class="earnings-dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">O'qituvchilar Daromadlari</h1>
+        <p class="dashboard-subtitle">Barcha o'qituvchilarning daromadlari va to'lovlar boshqaruvi</p>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-calculated">
+                <i class="bi bi-calculator-fill"></i>
+            </div>
+            <div class="stat-value">{{ total_calculated|floatformat:0 }}</div>
+            <div class="stat-label">Hisoblangan daromad</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-paid">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div class="stat-value">{{ total_paid|floatformat:0 }}</div>
+            <div class="stat-label">To'langan summa</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon-wrapper stat-icon-balance">
+                <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="stat-value {% if total_balance > 0 %}balance-positive{% elif total_balance < 0 %}balance-negative{% else %}balance-zero{% endif %}">
+                {{ total_balance|floatformat:0 }}
+            </div>
+            <div class="stat-label">Qoldiq</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modern Filters Section -->
+<div class="filters-modern">
+    <div class="filters-header">
+        <h3 class="filters-title">
+            <i class="bi bi-funnel-fill"></i>
+            Filterlar
+        </h3>
+        <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+            <i class="bi bi-plus-circle me-2"></i>To'lov qo'shish
+        </button>
+    </div>
+    
+    <form method="GET" class="mb-0">
+        <div class="filter-grid">
+            <input type="text" class="form-control form-control-modern" name="q" 
+                   placeholder="O'qituvchi nomi..." value="{{ search_query }}">
+            
+            <select class="form-select form-control-modern" name="teacher">
+                <option value="">Barcha o'qituvchilar</option>
+                {% for teacher in teachers %}
+                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>
+                    {{ teacher.full_name }}
+                </option>
+                {% endfor %}
+            </select>
+            
+            <select class="form-select form-control-modern" name="month">
+                <option value="">Barcha oylar</option>
+                <option value="1" {% if month_filter == "1" %}selected{% endif %}>Yanvar</option>
+                <option value="2" {% if month_filter == "2" %}selected{% endif %}>Fevral</option>
+                <option value="3" {% if month_filter == "3" %}selected{% endif %}>Mart</option>
+                <option value="4" {% if month_filter == "4" %}selected{% endif %}>Aprel</option>
+                <option value="5" {% if month_filter == "5" %}selected{% endif %}>May</option>
+                <option value="6" {% if month_filter == "6" %}selected{% endif %}>Iyun</option>
+                <option value="7" {% if month_filter == "7" %}selected{% endif %}>Iyul</option>
+                <option value="8" {% if month_filter == "8" %}selected{% endif %}>Avgust</option>
+                <option value="9" {% if month_filter == "9" %}selected{% endif %}>Sentyabr</option>
+                <option value="10" {% if month_filter == "10" %}selected{% endif %}>Oktyabr</option>
+                <option value="11" {% if month_filter == "11" %}selected{% endif %}>Noyabr</option>
+                <option value="12" {% if month_filter == "12" %}selected{% endif %}>Dekabr</option>
+            </select>
+            
+            <input type="number" class="form-control form-control-modern" name="year" 
+                   placeholder="Yil" value="{{ year_filter }}" min="2020" max="{{ current_year|add:1 }}">
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary-modern btn-modern">
+                <i class="bi bi-search me-2"></i>Qidirish
+            </button>
+            <a href="{% url 'admin_teacher_earnings' %}" class="btn btn-secondary btn-modern">
+                <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Earnings Table -->
+{% if teacher_earnings %}
+<div class="table-modern">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>O'qituvchi</th>
+                <th>Video darslar</th>
+                <th>Testlar</th>
+                <th>Uyga vazifalar</th>
+                <th>Hisoblangan</th>
+                <th>To'langan</th>
+                <th>Qoldiq</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for earning in teacher_earnings %}
+            <tr>
+                <td>
+                    <div class="teacher-card">
+                        <div class="teacher-avatar">
+                            {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
+                        </div>
+                        <div class="teacher-info">
+                            <div class="teacher-name">{{ earning.teacher.full_name }}</div>
+                            <div class="teacher-username">@{{ earning.teacher.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="earnings-pills">
+                        <div class="earnings-pill">
+                            <i class="bi bi-camera-video"></i>
+                            <span>{{ earning.video_count }}</span>
+                        </div>
+                        <div class="earnings-pill">
+                            <i class="bi bi-cash"></i>
+                            <span>{% widthratio earning.video_count 1 25000 %} so'm</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="earnings-pills">
+                        <div class="earnings-pill">
+                            <i class="bi bi-clipboard-check"></i>
+                            <span>{{ earning.test_count }}</span>
+                        </div>
+                        <div class="earnings-pill">
+                            <i class="bi bi-cash"></i>
+                            <span>{% widthratio earning.test_count 1 10000 %} so'm</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="earnings-pills">
+                        <div class="earnings-pill">
+                            <i class="bi bi-journal-text"></i>
+                            <span>{{ earning.hw_count }}</span>
+                        </div>
+                        <div class="earnings-pill">
+                            <i class="bi bi-cash"></i>
+                            <span>{% widthratio earning.hw_count 1 10000 %} so'm</span>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="earnings-pill" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8;">
+                        <i class="bi bi-calculator"></i>
+                        <span>{{ earning.calculated_earnings|floatformat:0 }} so'm</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="earnings-pill" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534;">
+                        <i class="bi bi-cash-stack"></i>
+                        <span>{{ earning.paid_amount|floatformat:0 }} so'm</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="balance-badge {% if earning.balance > 0 %}balance-positive{% elif earning.balance < 0 %}balance-negative{% else %}balance-zero{% endif %}">
+                        <i class="bi bi-wallet2"></i>
+                        <span>{{ earning.balance|floatformat:0 }} so'm</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" 
+                                onclick="viewEarnings('{{ earning.teacher.id }}')" 
+                                title="Batafsil ko'rish">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn-action btn-edit" 
+                                onclick="editPayment('{{ earning.teacher.id }}')" 
+                                title="To'lov tahrirlash">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Payments Section -->
+{% if salaries %}
+<div class="table-modern mt-4">
+    <div class="p-3">
+        <h4 class="mb-3">
+            <i class="bi bi-cash-stack me-2"></i>To'lovlar tarixi
+        </h4>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>O'qituvchi</th>
+                <th>Oy/Yil</th>
+                <th>Turi</th>
+                <th>Summa</th>
+                <th>Status</th>
+                <th>Chek</th>
+                <th>Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for salary in salaries %}
+            <tr>
+                <td>
+                    <div class="teacher-card">
+                        <div class="teacher-avatar">
+                            {{ salary.teacher.first_name.0 }}{{ salary.teacher.last_name.0 }}
+                        </div>
+                        <div class="teacher-info">
+                            <div class="teacher-name">{{ salary.teacher.full_name }}</div>
+                            <div class="teacher-username">@{{ salary.teacher.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ salary.get_month_display }} {{ salary.year }}</td>
+                <td>
+                    <span class="status-modern status-paid">
+                        {{ salary.get_salary_type_display }}
+                    </span>
+                </td>
+                <td>
+                    <div class="earnings-pill" style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706;">
+                        <i class="bi bi-cash"></i>
+                        <span>{{ salary.amount|floatformat:0 }} so'm</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="status-modern {% if salary.is_paid %}status-paid{% else %}status-unpaid{% endif %}">
+                        {% if salary.is_paid %}
+                            <i class="bi bi-check-circle-fill"></i> To'langan
+                        {% else %}
+                            <i class="bi bi-clock-fill"></i> Kutilmoqda
+                        {% endif %}
+                    </span>
+                </td>
+                <td>
+                    {% if salary.receipt %}
+                        <a href="{{ salary.receipt.url }}" target="_blank" class="btn-action btn-view" title="Chekni ko'rish">
+                            <i class="bi bi-file-earmark-pdf"></i>
+                        </a>
+                    {% else %}
+                        <span class="text-muted">Chek yo'q</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-action btn-view" 
+                                onclick="viewReceipt('{{ salary.id }}')" 
+                                title="Batafsil">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        {% if not salary.is_paid %}
+                        <button class="btn-action btn-edit" 
+                                onclick="markAsPaid('{{ salary.id }}')" 
+                                title="To'langan deb belgilash">
+                            <i class="bi bi-check-circle"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-modern">
+    <div class="empty-icon">
+        <i class="bi bi-search"></i>
+    </div>
+    <h3 class="empty-title">Daromat ma'lumotlari topilmadi</h3>
+    <p class="empty-description">Berilgan filterlar bo'yicha hech qanday daromat yozuvi mavjud emas.</p>
+</div>
+{% endif %}
+
+<!-- Add Payment Modal -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">To'lov qo'shish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'admin_teacher_earnings' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">O'qituvchi</label>
+                            <select class="form-select" name="teacher" required>
+                                <option value="">Tanlang...</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">To'lov turi</label>
+                            <select class="form-select" name="salary_type" required>
+                                <option value="oylik">Oylik maosh</option>
+                                <option value="kpi">KPI bonus</option>
+                                <option value="bayram">Bayram puli</option>
+                                <option value="bonus">Bonus</option>
+                                <option value="jarima">Jarima</option>
+                                <option value="boshqa">Boshqa</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Oy</label>
+                            <select class="form-select" name="month" required>
+                                <option value="1">Yanvar</option>
+                                <option value="2">Fevral</option>
+                                <option value="3">Mart</option>
+                                <option value="4">Aprel</option>
+                                <option value="5">May</option>
+                                <option value="6">Iyun</option>
+                                <option value="7">Iyul</option>
+                                <option value="8">Avgust</option>
+                                <option value="9">Sentyabr</option>
+                                <option value="10">Oktyabr</option>
+                                <option value="11">Noyabr</option>
+                                <option value="12">Dekabr</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Yil</label>
+                            <input type="number" class="form-control" name="year" 
+                                   value="{{ current_year }}" min="2020" max="{{ current_year|add:1 }}" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Summa (so'm)</label>
+                            <input type="number" class="form-control" name="amount" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Chek/Kvitansiya</label>
+                            <input type="file" class="form-control" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="form-text">PDF, JPG yoki PNG fayl (maks: 5MB)</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Izoh</label>
+                            <input type="text" class="form-control" name="description" maxlength="500">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_paid" id="isPaid">
+                                <label class="form-check-label" for="isPaid">
+                                    To'langan deb belgilash
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">To'langan sana</label>
+                            <input type="date" class="form-control" name="paid_date">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewEarnings(teacherId) {
+    // Implement view earnings functionality
+    console.log('View earnings for teacher:', teacherId);
+}
+
+function editPayment(teacherId) {
+    // Implement edit payment functionality
+    console.log('Edit payment for teacher:', teacherId);
+}
+
+function viewReceipt(salaryId) {
+    // Implement view receipt functionality
+    console.log('View receipt:', salaryId);
+}
+
+function markAsPaid(salaryId) {
+    if (confirm('To\'lovni to\'langan deb belgilashni istaysizmi?')) {
+        // Implement mark as paid functionality
+        console.log('Mark as paid:', salaryId);
+    }
+}
+</script>
+{% endblock %}

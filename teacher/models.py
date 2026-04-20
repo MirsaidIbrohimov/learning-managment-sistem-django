@@ -79,3 +79,45 @@ class TeacherSalary(models.Model):
     @property
     def month_name(self):
         return dict(self.MONTH_CHOICES).get(self.month, '')
+
+
+class TeacherAttendance(models.Model):
+    STATUS_CHOICES = (
+        ('present', 'Kelgan'),
+        ('absent', 'Kelmagan'),
+        ('late', 'Kechikkan'),
+        ('sick', 'Kasal'),
+        ('vacation', 'Ta\'til'),
+        ('business', 'Xizmat safari'),
+    )
+    
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='attendances',
+        limit_choices_to={'role': 'teacher'},
+        verbose_name="O'qituvchi"
+    )
+    date = models.DateField(verbose_name="Sana")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='present', verbose_name="Holati")
+    check_in_time = models.TimeField(null=True, blank=True, verbose_name="Kirish vaqti")
+    check_out_time = models.TimeField(null=True, blank=True, verbose_name="Chiqish vaqti")
+    notes = models.TextField(blank=True, null=True, verbose_name="Izoh")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='created_attendances',
+        verbose_name="Kim tomonidan qo'shilgan"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        unique_together = ['teacher', 'date']  # Bir o'qituvchi bir kunda faqat bitta davomat yozuvi
+        verbose_name = "O'qituvchi davomati"
+        verbose_name_plural = "O'qituvchilar davomati"
+
+    def __str__(self):
+        return f"{self.teacher.full_name} - {self.date} - {self.get_status_display()}"

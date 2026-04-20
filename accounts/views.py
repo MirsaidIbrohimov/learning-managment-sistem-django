@@ -10615,6 +10615,230 @@ def admin_teachers(request):
     if not request.user.is_admin:
         return redirect('home')
     from teacher.models import TeacherCertificate, TeacherSalary
+
+
+@login_required
+def admin_teacher_attendance(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherAttendance
+    from datetime import datetime, date
+    
+    # Filter parameters
+    search_query = request.GET.get('q', '').strip()
+    status_filter = request.GET.get('status', '')
+    date_filter = request.GET.get('date', '')
+    month_filter = request.GET.get('month', '')
+    year_filter = request.GET.get('year', '')
+    
+    # Base queryset
+    attendances = TeacherAttendance.objects.all().select_related('teacher', 'created_by')
+    
+    # Apply filters
+    if search_query:
+        attendances = attendances.filter(
+            Q(teacher__first_name__icontains=search_query) |
+            Q(teacher__last_name__icontains=search_query) |
+            Q(teacher__username__icontains=search_query) |
+            Q(notes__icontains=search_query)
+        )
+    
+    if status_filter:
+        attendances = attendances.filter(status=status_filter)
+    
+    if date_filter:
+        try:
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            attendances = attendances.filter(date=filter_date)
+        except ValueError:
+            pass
+    
+    if month_filter and year_filter:
+        try:
+            month = int(month_filter)
+            year = int(year_filter)
+            attendances = attendances.filter(date__month=month, date__year=year)
+        except ValueError:
+            pass
+    
+    # Order by date descending
+    attendances = attendances.order_by('-date', '-created_at')
+    
+    # Statistics
+    total_attendances = attendances.count()
+    present_count = attendances.filter(status='present').count()
+    absent_count = attendances.filter(status='absent').count()
+    late_count = attendances.filter(status='late').count()
+    sick_count = attendances.filter(status='sick').count()
+    
+    # Get current date for form
+    today = date.today()
+    
+    # Get all teachers for the form
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name', 'last_name')
+    
+    context = {
+        'attendances': attendances,
+        'teachers': teachers,
+        'total_attendances': total_attendances,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'late_count': late_count,
+        'sick_count': sick_count,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'date_filter': date_filter,
+        'month_filter': month_filter,
+        'year_filter': year_filter,
+        'today': today,
+    }
+    return render(request, 'accounts/admin/teacher_attendance.html', context)
+
+
+@login_required
+def admin_teacher_earnings(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherSalary
+    from datetime import date, timedelta
+    import calendar
+    
+    # Filter parameters
+    search_query = request.GET.get('q', '').strip()
+    month_filter = request.GET.get('month', '')
+    year_filter = request.GET.get('year', '')
+    teacher_filter = request.GET.get('teacher', '')
+    
+    # Base queryset for teacher salaries
+    salaries = TeacherSalary.objects.all().select_related('teacher', 'created_by')
+    
+    # Apply filters
+    if search_query:
+        salaries = salaries.filter(
+            Q(teacher__first_name__icontains=search_query) |
+            Q(teacher__last_name__icontains=search_query) |
+            Q(teacher__username__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    if teacher_filter:
+        salaries = salaries.filter(teacher_id=teacher_filter)
+    
+    if month_filter and year_filter:
+        try:
+            month = int(month_filter)
+            year = int(year_filter)
+            salaries = salaries.filter(month=month, year=year)
+        except ValueError:
+            pass
+    
+    # Order by date descending
+    salaries = salaries.order_by('-year', '-month', '-created_at')
+    
+    # Calculate teacher earnings from content
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name', 'last_name')
+    teacher_earnings = []
+    
+    VIDEO_PRICE = 25000
+    TEST_PRICE = 10000
+    HOMEWORK_PRICE = 10000
+    
+    for teacher in teachers:
+        professions = teacher.teaching_professions.all()
+        
+        # Get current month data or all data if no filter
+        if month_filter and year_filter:
+            try:
+                month = int(month_filter)
+                year = int(year_filter)
+                month_start = date(year, month, 1)
+                if month == 12:
+                    month_end = date(year + 1, 1, 1)
+                else:
+                    month_end = date(year, month + 1, 1)
+            except ValueError:
+                month_start = date.today().replace(day=1)
+                month_end = date.today() + timedelta(days=1)
+        else:
+            month_start = date.today().replace(day=1)
+            month_end = date.today() + timedelta(days=1)
+        
+        # Calculate earnings from content
+        video_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='video',
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        video_count = video_lessons.count()
+        video_total = video_count * VIDEO_PRICE
+        
+        test_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='test',
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        test_count = test_lessons.count()
+        test_total = test_count * TEST_PRICE
+        
+        hw_lessons = Lesson.objects.filter(
+            profession__in=professions,
+            lesson_type='homework',
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        )
+        hw_count = hw_lessons.count()
+        hw_total = hw_count * HOMEWORK_PRICE
+        
+        calculated_earnings = video_total + test_total + hw_total
+        
+        # Get paid amount for this teacher
+        paid_amount = salaries.filter(
+            teacher=teacher,
+            is_paid=True
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        teacher_earnings.append({
+            'teacher': teacher,
+            'video_count': video_count,
+            'test_count': test_count,
+            'hw_count': hw_count,
+            'calculated_earnings': calculated_earnings,
+            'paid_amount': paid_amount,
+            'balance': calculated_earnings - paid_amount,
+        })
+    
+    # Statistics
+    total_calculated = sum(t['calculated_earnings'] for t in teacher_earnings)
+    total_paid = sum(t['paid_amount'] for t in teacher_earnings)
+    total_balance = total_calculated - total_paid
+    
+    # Get current date for filters
+    now = date.today()
+    
+    context = {
+        'teacher_earnings': teacher_earnings,
+        'salaries': salaries,
+        'total_calculated': total_calculated,
+        'total_paid': total_paid,
+        'total_balance': total_balance,
+        'search_query': search_query,
+        'month_filter': month_filter,
+        'year_filter': year_filter,
+        'teacher_filter': teacher_filter,
+        'teachers': teachers,
+        'current_month': now.month,
+        'current_year': now.year,
+    }
+    return render(request, 'accounts/admin/teacher_earnings.html', context)
+
+
+@login_required
+def admin_teachers(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    from teacher.models import TeacherCertificate, TeacherSalary
     from datetime import datetime
 
     search_query = request.GET.get('q', '').strip()

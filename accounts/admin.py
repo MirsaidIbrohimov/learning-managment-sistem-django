@@ -6,6 +6,21 @@ from .models import (
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment
 )
+from teacher.models import TeacherSalary, TeacherAttendance
+
+
+class TeacherSalaryInline(admin.TabularInline):
+    model = TeacherSalary
+    extra = 1
+    fields = ['salary_type', 'amount', 'month', 'year', 'description', 'receipt', 'is_paid', 'paid_date']
+    readonly_fields = ['created_by']
+
+
+class TeacherAttendanceInline(admin.TabularInline):
+    model = TeacherAttendance
+    extra = 1
+    fields = ['date', 'status', 'check_in_time', 'check_out_time', 'notes']
+    readonly_fields = ['created_by']
 
 
 @admin.register(CustomUser)
@@ -16,6 +31,11 @@ class CustomUserAdmin(UserAdmin):
     ordering = ['-date_joined']
     list_editable = ['is_blocked']
     list_per_page = 25
+    
+    def get_inlines(self, request, obj=None):
+        if obj and obj.role == 'teacher':
+            return [TeacherSalaryInline, TeacherAttendanceInline]
+        return []
     
     fieldsets = (
         (None, {'fields': ('username', 'password')}),

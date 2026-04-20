@@ -10,7 +10,7 @@ from accounts.models import (
     SpeakingTask, SpeakingSubmission, VideoLesson,
     FinalTestPayment
 )
-from .models import TeacherCertificate
+from .models import TeacherCertificate, TeacherSalary
 from coin.models import ActivityLog
 from accounts.views import send_course_notification
 
@@ -1709,6 +1709,18 @@ def teacher_earnings(request):
     professions = user.teaching_professions.all()
     now = timezone.now()
 
+    # O'qituvchining to'langan maoshlari
+    paid_salaries = TeacherSalary.objects.filter(
+        teacher=user,
+        is_paid=True
+    ).order_by('-year', '-month', '-created_at')
+    
+    # To'lanmagan maoshlar
+    unpaid_salaries = TeacherSalary.objects.filter(
+        teacher=user,
+        is_paid=False
+    ).order_by('-year', '-month', '-created_at')
+
     # Narxlar
     VIDEO_PRICE = 25000
     TEST_PRICE = 10000
@@ -1794,6 +1806,18 @@ def teacher_earnings(request):
     else:
         change_pct = 100 if current_data['grand_total'] > 0 else 0
 
+    # To'langan summa
+    total_paid_amount = paid_salaries.aggregate(total=Sum('amount'))['total'] or 0
+    
+    # To'lanmagan summa
+    total_unpaid_amount = unpaid_salaries.aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Admin tomonidan yuklangan cheklar
+    admin_receipts = TeacherSalary.objects.filter(
+        teacher=user,
+        receipt__isnull=False
+    ).order_by('-year', '-month', '-created_at')
+
     context = {
         'current_data': current_data,
         'prev_data': prev_data,
@@ -1805,6 +1829,11 @@ def teacher_earnings(request):
         'VIDEO_PRICE': VIDEO_PRICE,
         'TEST_PRICE': TEST_PRICE,
         'HOMEWORK_PRICE': HOMEWORK_PRICE,
+        'paid_salaries': paid_salaries,
+        'unpaid_salaries': unpaid_salaries,
+        'total_paid_amount': total_paid_amount,
+        'total_unpaid_amount': total_unpaid_amount,
+        'admin_receipts': admin_receipts,
     }
     return render(request, 'teacher/earnings.html', context)
 
@@ -1998,5 +2027,70 @@ def teacher_ai_checker_toggle(request):
     return JsonResponse({
         'success': True,
         'new_state': obj.ai_check,
+        'message': f"{status_text}: {obj.lesson.title}",
+    })
+
+
+@teacher_required
+def teacher_file_only_toggle(request):
+    """O'qituvchi uchun AI faqat fayl tekshiruvini yoqish/o'chirish (AJAX)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=400)
+    
+    professions = request.user.teaching_professions.all()
+    
+    task_type = request.POST.get('type')
+    task_id = request.POST.get('id')
+    action = request.POST.get('action')
+    
+    if action in ('all_on', 'all_off'):
+        new_val = action == 'all_on'
+        profession_id = request.POST.get('profession_id', '')
+        
+        hw_qs = Homework.objects.filter(lesson__profession__in=professions)
+        sp_qs = SpeakingTask.objects.filter(lesson__profession__in=professions)
+        
+        if profession_id:
+            try:
+                hw_qs = hw_qs.filter(lesson__profession_id=int(profession_id))
+                sp_qs = sp_qs.filter(lesson__profession_id=int(profession_id))
+            except (ValueError, TypeError):
+                pass
+        
+        hw_updated = hw_qs.update(ai_check_file_only=new_val)
+        sp_updated = sp_qs.update(ai_check_file_only=new_val)
+        
+        return JsonResponse({
+            'success': True,
+            'message': "Barcha vazifalar AI faqat fayl tekshiruvi {} ({} ta)".format("yoqildi" if new_val else "o'chirildi", hw_updated + sp_updated),
+            'new_state': new_val,
+        })
+    
+    try:
+        task_id = int(task_id)
+    except (ValueError, TypeError):
+        return JsonResponse({'error': "Noto'g'ri ID"}, status=400)
+    
+    if task_type == 'homework':
+        obj = get_object_or_404(Homework, pk=task_id, lesson__profession__in=professions)
+    elif task_type == 'speaking':
+        obj = get_object_or_404(SpeakingTask, pk=task_id, lesson__profession__in=professions)
+    else:
+        return JsonResponse({'error': "Noto'g'ri tur"}, status=400)
+    
+    # Admin override tekshiruv
+    if not obj.lesson.profession.ai_check_enabled:
+        return JsonResponse({
+            'success': False,
+            'error': "Admin bu kurs uchun AI tekshiruvchini o'chirib qo'ygan. O'zgartirish mumkin emas.",
+        }, status=403)
+    
+    obj.ai_check_file_only = action == 'on'
+    obj.save(update_fields=['ai_check_file_only'])
+    
+    status_text = "Yoqildi" if obj.ai_check_file_only else "O'chirildi"
+    return JsonResponse({
+        'success': True,
+        'new_state': obj.ai_check_file_only,
         'message': f"{status_text}: {obj.lesson.title}",
     })

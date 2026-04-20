@@ -153,24 +153,6 @@
     <h1><i class="bi bi-cash-coin" style="color: var(--t-primary);"></i> Daromadlarim</h1>
 </div>
 
-<div class="e-price-cards">
-    <div class="e-price-card">
-        <div class="e-price-icon"><i class="bi bi-camera-video-fill" style="color: #8b5cf6;"></i></div>
-        <div class="e-price-label">Har bir video dars uchun</div>
-        <div class="e-price-value" style="color: #8b5cf6;">{{ VIDEO_PRICE|floatformat:0 }} so'm</div>
-    </div>
-    <div class="e-price-card">
-        <div class="e-price-icon"><i class="bi bi-clipboard-check-fill" style="color: #3b82f6;"></i></div>
-        <div class="e-price-label">Har bir test uchun</div>
-        <div class="e-price-value" style="color: #3b82f6;">{{ TEST_PRICE|floatformat:0 }} so'm</div>
-    </div>
-    <div class="e-price-card">
-        <div class="e-price-icon"><i class="bi bi-journal-text" style="color: #f59e0b;"></i></div>
-        <div class="e-price-label">Har bir uyga vazifa uchun</div>
-        <div class="e-price-value" style="color: #f59e0b;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
-    </div>
-</div>
-
 <div class="e-total-card">
     <div class="e-total-row">
         <div>
@@ -369,4 +351,176 @@
     </div>
     {% endif %}
 </div>
+
+<!-- To'lovlar bo'limi -->
+<div class="e-payments" style="animation: fadeInUp 0.7s ease;">
+    <div class="e-details-title">
+        <i class="bi bi-cash-stack" style="color: var(--t-primary);"></i>
+        To'lovlar va Cheklar
+    </div>
+    
+    <div class="e-compare-grid" style="margin-bottom: 2rem;">
+        <div class="e-month-card">
+            <div class="e-month-header">
+                <span><i class="bi bi-check-circle-fill me-1"></i> To'langan summa</span>
+                <span class="e-month-badge" style="background: rgba(16,185,129,0.15); color: #10b981;">To'langan</span>
+            </div>
+            <div style="padding: 2rem; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 800; color: #10b981;">{{ total_paid_amount|floatformat:0 }} so'm</div>
+                <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">Jami to'langan pul</div>
+            </div>
+        </div>
+        
+        <div class="e-month-card">
+            <div class="e-month-header">
+                <span><i class="bi bi-clock-fill me-1"></i> To'lanmagan summa</span>
+                <span class="e-month-badge" style="background: rgba(245,158,11,0.15); color: #f59e0b;">Kutilmoqda</span>
+            </div>
+            <div style="padding: 2rem; text-align: center;">
+                <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">{{ total_unpaid_amount|floatformat:0 }} so'm</div>
+                <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">To'lanishi kerak</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- To'langan maoshlar -->
+    {% if paid_salaries %}
+    <div style="margin-bottom: 2rem;">
+        <h5 style="font-weight: 700; margin-bottom: 1rem; color: #10b981;">
+            <i class="bi bi-check-circle-fill me-2"></i>To'langan maoshlar
+        </h5>
+        <div style="overflow-x: auto;">
+            <table class="e-detail-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Oy/Yil</th>
+                        <th>Turi</th>
+                        <th>Summa</th>
+                        <th>Izoh</th>
+                        <th>Chek</th>
+                        <th>To'langan sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for salary in paid_salaries %}
+                    <tr>
+                        <td style="font-weight:600; text-align:left;">{{ salary.get_month_display }} {{ salary.year }}</td>
+                        <td><span class="e-type-badge" style="background: rgba(16,185,129,0.12); color: #10b981;">{{ salary.get_salary_type_display }}</span></td>
+                        <td style="font-weight:700; color:#10b981;">{{ salary.amount|floatformat:0 }} so'm</td>
+                        <td>{{ salary.description|default:"-" }}</td>
+                        <td>
+                            {% if salary.receipt %}
+                                <a href="{{ salary.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-file-earmark-pdf"></i> Chekni ko'rish
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Chek yo'q</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ salary.paid_date|date:"d.m.Y"|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- To'lanmagan maoshlar -->
+    {% if unpaid_salaries %}
+    <div>
+        <h5 style="font-weight: 700; margin-bottom: 1rem; color: #f59e0b;">
+            <i class="bi bi-clock-fill me-2"></i>To'lanmagan maoshlar
+        </h5>
+        <div style="overflow-x: auto;">
+            <table class="e-detail-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left;">Oy/Yil</th>
+                        <th>Turi</th>
+                        <th>Summa</th>
+                        <th>Izoh</th>
+                        <th>Yaratilgan sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for salary in unpaid_salaries %}
+                    <tr>
+                        <td style="font-weight:600; text-align:left;">{{ salary.get_month_display }} {{ salary.year }}</td>
+                        <td><span class="e-type-badge" style="background: rgba(245,158,11,0.12); color: #f59e0b;">{{ salary.get_salary_type_display }}</span></td>
+                        <td style="font-weight:700; color:#f59e0b;">{{ salary.amount|floatformat:0 }} so'm</td>
+                        <td>{{ salary.description|default:"-" }}</td>
+                        <td>{{ salary.created_at|date:"d.m.Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not paid_salaries and not unpaid_salaries %}
+    <div class="e-empty" style="border: 1px solid var(--bs-border-color); border-radius: 16px;">
+        <i class="bi bi-cash-stack" style="font-size: 2rem; opacity: .4;"></i>
+        <p style="margin: .5rem 0 0;">Hali hech qanday to'lov ma'lumoti yo'q</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Admin tomonidan yuklangan cheklar -->
+{% if admin_receipts %}
+<div class="e-payments" style="animation: fadeInUp 0.8s ease;">
+    <div class="e-details-title">
+        <i class="bi bi-file-earmark-text" style="color: var(--t-primary);"></i>
+        Admin tomonidan yuklangan cheklar
+    </div>
+    
+    <div style="overflow-x: auto;">
+        <table class="e-detail-table">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Oy/Yil</th>
+                    <th>Turi</th>
+                    <th>Summa</th>
+                    <th>Chek</th>
+                    <th>Yuklangan sana</th>
+                    <th>Yukladi</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in admin_receipts %}
+                <tr>
+                    <td style="font-weight:600; text-align:left;">{{ receipt.get_month_display }} {{ receipt.year }}</td>
+                    <td><span class="e-type-badge" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">{{ receipt.get_salary_type_display }}</span></td>
+                    <td style="font-weight:700; color:#3b82f6;">{{ receipt.amount|floatformat:0 }} so'm</td>
+                    <td>
+                        {% if receipt.receipt %}
+                            <a href="{{ receipt.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-pdf"></i> Chekni ko'rish
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Chek yo'q</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ receipt.created_at|date:"d.m.Y" }}</td>
+                    <td>{{ receipt.created_by.first_name|default:"Admin" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-secondary" 
+                                    onclick="viewReceipt('{{ receipt.id }}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteReceipt('{{ receipt.id }}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
 {% endblock %}
