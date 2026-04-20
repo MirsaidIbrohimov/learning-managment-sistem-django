@@ -11,6 +11,7 @@ from teacher.models import TeacherSalary, TeacherAttendance
 
 class TeacherSalaryInline(admin.TabularInline):
     model = TeacherSalary
+    fk_name = 'teacher'
     extra = 1
     fields = ['salary_type', 'amount', 'month', 'year', 'description', 'receipt', 'is_paid', 'paid_date']
     readonly_fields = ['created_by']
@@ -18,6 +19,7 @@ class TeacherSalaryInline(admin.TabularInline):
 
 class TeacherAttendanceInline(admin.TabularInline):
     model = TeacherAttendance
+    fk_name = 'teacher'
     extra = 1
     fields = ['date', 'status', 'check_in_time', 'check_out_time', 'notes']
     readonly_fields = ['created_by']

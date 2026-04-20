@@ -588,6 +588,84 @@
     box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
 }
 
+.btn-expand-modern {
+    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 1rem 2rem;
+    font-weight: 700;
+    font-size: 1rem;
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-expand-modern::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-expand-modern:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+}
+
+.btn-expand-modern:hover::before {
+    left: 100%;
+}
+
+.btn-expand-modern:active {
+    transform: translateY(-1px) scale(1.01);
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.btn-expand-modern.expanded .toggle-icon {
+    transform: rotate(180deg);
+}
+
+.month-summary-grid {
+    max-height: 600px;
+    overflow: hidden;
+    transition: max-height 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.month-summary-grid.expanded {
+    max-height: none;
+}
+
+.month-summary-card:nth-child(n+4) {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.month-summary-grid.expanded .month-summary-card:nth-child(n+4) {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.month-summary-grid.expanded .month-summary-card:nth-child(4) { transition-delay: 0.1s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(5) { transition-delay: 0.2s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(6) { transition-delay: 0.3s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(7) { transition-delay: 0.4s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(8) { transition-delay: 0.5s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(9) { transition-delay: 0.6s; }
+.month-summary-grid.expanded .month-summary-card:nth-child(10) { transition-delay: 0.7s; }
+
 /* Month-over-month comparison styles */
 .month-earnings {
     text-align: center;
@@ -1323,9 +1401,11 @@
     </div>
     
     {% if teacher_earnings|length > 3 %}
-    <div class="text-center mt-3">
-        <button class="btn btn-outline-primary btn-sm">
-            Barcha o'qituvchilarni ko'rish ({{ teacher_earnings|length }} ta)
+    <div class="text-center mt-4">
+        <button class="btn btn-expand-modern" id="toggleAllTeachers" onclick="toggleAllTeachers()" data-total-teachers="{{ teacher_earnings|length }}">
+            <i class="bi bi-arrow-down-circle me-2"></i>
+            <span id="toggleText">Barcha o'qituvchilarni ko'rish ({{ teacher_earnings|length }} ta)</span>
+            <i class="bi bi-arrow-down-circle ms-2 toggle-icon"></i>
         </button>
     </div>
     {% endif %}
@@ -1732,6 +1812,43 @@
 function viewEarnings(teacherId) {
     // Implement view earnings functionality
     console.log('View earnings for teacher:', teacherId);
+}
+
+function toggleAllTeachers() {
+    const grid = document.querySelector('.month-summary-grid');
+    const button = document.getElementById('toggleAllTeachers');
+    const toggleText = document.getElementById('toggleText');
+    const totalTeachers = parseInt(button.dataset.totalTeachers) || 0;
+    
+    if (grid.classList.contains('expanded')) {
+        // Collapse
+        grid.classList.remove('expanded');
+        button.classList.remove('expanded');
+        toggleText.textContent = 'Barcha o\'qituvchilarni ko\'rish (' + totalTeachers + ' ta)';
+        
+        // Hide cards beyond the first 3
+        const cards = grid.querySelectorAll('.month-summary-card:nth-child(n+4)');
+        cards.forEach(card => {
+            setTimeout(() => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+            }, 0);
+        });
+    } else {
+        // Expand
+        grid.classList.add('expanded');
+        button.classList.add('expanded');
+        toggleText.textContent = 'Yopish (' + totalTeachers + ' ta o\'qituvchi)';
+        
+        // Show all cards with staggered animation
+        const cards = grid.querySelectorAll('.month-summary-card:nth-child(n+4)');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
 }
 
 function editPayment(teacherId) {
