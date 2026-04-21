@@ -51,7 +51,7 @@ class TelegramBotConfig(AppConfig):
             print("SITE_URL sozlanmagan, webhook o'rnatilmadi!")
             return
 
-        webhook_url = f"{site_url}/telegram/webhook/"
+        webhook_url = f"{site_url}/telegrambotlms/webhook/"
 
         for attempt in range(3):
             try:

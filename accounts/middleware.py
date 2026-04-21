@@ -189,8 +189,8 @@ class MaintenanceMiddleware:
         except Exception:
             pass
         
-        # Static/media fayllar
-        if request.path.startswith(('/static/', '/media/')):
+        # Static/media fayllar va Telegram webhook
+        if request.path.startswith(('/static/', '/media/', '/telegrambotlms/webhook/')):
             return self.get_response(request)
         
         return render(request, 'accounts/maintenance.html', {
