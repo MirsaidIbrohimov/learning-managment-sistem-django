@@ -3,12 +3,29 @@
 // Three.js 3D + Animations
 // ============================================
 
-// === PRELOADER ===
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        document.querySelector('.preloader').classList.add('hidden');
-    }, 1500);
-});
+// === IMPROVED PRELOADER ===
+(function() {
+    const preloader = document.querySelector('.preloader');
+    const percentEl = document.querySelector('.preloader-percent');
+    const barFill = document.querySelector('.preloader-bar-fill');
+    let progress = 0;
+    
+    const interval = setInterval(() => {
+        progress += Math.random() * 15 + 5;
+        if (progress > 95) progress = 95;
+        if (percentEl) percentEl.textContent = Math.floor(progress) + '%';
+        if (barFill) barFill.style.width = progress + '%';
+    }, 200);
+    
+    window.addEventListener('load', () => {
+        clearInterval(interval);
+        if (percentEl) percentEl.textContent = '100%';
+        if (barFill) barFill.style.width = '100%';
+        setTimeout(() => {
+            if (preloader) preloader.classList.add('hidden');
+        }, 600);
+    });
+})();
 
 // === THREE.JS HERO 3D SCENE ===
 function initHero3D() {
@@ -635,8 +652,47 @@ function initTypingEffect() {
     type();
 }
 
+// === THEME TOGGLE (DARK/LIGHT) ===
+function initThemeToggle() {
+    const toggle = document.querySelector('.theme-toggle');
+    if (!toggle) return;
+    
+    // Check saved preference
+    const saved = localStorage.getItem('itc-theme');
+    if (saved === 'light') {
+        document.body.classList.add('light-mode');
+    }
+    
+    toggle.addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        const isLight = document.body.classList.contains('light-mode');
+        localStorage.setItem('itc-theme', isLight ? 'light' : 'dark');
+    });
+}
+
+// === FAQ ACCORDION ===
+function initFAQ() {
+    const faqItems = document.querySelectorAll('.faq-item');
+    
+    faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question');
+        question.addEventListener('click', () => {
+            const isActive = item.classList.contains('active');
+            
+            // Close all
+            faqItems.forEach(i => i.classList.remove('active'));
+            
+            // Toggle clicked
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        });
+    });
+}
+
 // === INITIALIZE EVERYTHING ===
 document.addEventListener('DOMContentLoaded', () => {
+    initThemeToggle();
     initNavbar();
     initHeroBackground();
     initHero3D();
@@ -649,4 +705,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initSmoothScroll();
     initTiltEffect();
     initTypingEffect();
+    initFAQ();
 });

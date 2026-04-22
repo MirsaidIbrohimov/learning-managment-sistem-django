@@ -72,10 +72,15 @@
 </head>
 <body>
     <!-- PRELOADER -->
-    <div class="preloader">
+    <div class="preloader" id="preloader">
         <div class="preloader-content">
+            <div class="preloader-spinner"></div>
             <div class="preloader-logo">IT Creative</div>
-            <div class="preloader-bar"></div>
+            <div class="preloader-percent">0%</div>
+            <div class="preloader-bar">
+                <div class="preloader-bar-fill"></div>
+            </div>
+            <div class="preloader-text">Yuklanmoqda...</div>
         </div>
     </div>
 
@@ -95,9 +100,16 @@
                 <li><a href="#about">Biz haqimizda</a></li>
                 <li><a href="#courses">Kurslar</a></li>
                 <li><a href="#advantages">Afzalliklar</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#faq">FAQ</a></li>
                 <li><a href="#contact">Aloqa</a></li>
-                <li><a href="/login" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Kirish</a></li>
+                <li><a href="/login/" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Kirish</a></li>
             </ul>
+
+            <button class="theme-toggle" id="themeToggle" aria-label="Mavzuni o'zgartirish" title="Qorong'i/Yorug' rejim">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </button>
 
             <button class="hamburger" aria-label="Menyu" aria-expanded="false">
                 <span></span>
@@ -420,6 +432,184 @@
         </div>
     </section>
 
+    <!-- BLOG -->
+    <section class="section" id="blog">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">
+                    <i class="fas fa-blog"></i> Blog
+                </span>
+                <h2 class="section-title">
+                    <span class="gradient-text">So'nggi</span> maqolalar
+                </h2>
+                <p class="section-desc">
+                    IT sohasidagi eng so'nggi yangiliklar, maslahatlar va qo'llanmalar
+                </p>
+            </div>
+
+            <div class="blog-grid">
+                <article class="blog-card reveal">
+                    <div class="blog-card-image">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 15 Aprel, 2026</span>
+                            <span><i class="fas fa-clock"></i> 5 daqiqa</span>
+                            <span class="blog-card-tag">Web Development</span>
+                        </div>
+                        <h3>Web Development 2026 — Eng muhim trendlar va texnologiyalar</h3>
+                        <p class="blog-card-excerpt">
+                            2026-yilda web dasturlash sohasida qanday o'zgarishlar kutilmoqda? React, Next.js, va yangi framework'lar haqida batafsil...
+                        </p>
+                        <a href="#" class="blog-card-link">
+                            Davomini o'qish <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-card reveal">
+                    <div class="blog-card-image">
+                        <i class="fab fa-python"></i>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 10 Aprel, 2026</span>
+                            <span><i class="fas fa-clock"></i> 7 daqiqa</span>
+                            <span class="blog-card-tag">Python</span>
+                        </div>
+                        <h3>Python o'rganib qanday qilib yaxshi ish topish mumkin?</h3>
+                        <p class="blog-card-excerpt">
+                            Python dasturlash tilini o'rganish va IT sohasida muvaffaqiyatli karyera boshlash uchun amaliy maslahatlar...
+                        </p>
+                        <a href="#" class="blog-card-link">
+                            Davomini o'qish <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="blog-card reveal">
+                    <div class="blog-card-image">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 5 Aprel, 2026</span>
+                            <span><i class="fas fa-clock"></i> 6 daqiqa</span>
+                            <span class="blog-card-tag">Sun'iy Intellekt</span>
+                        </div>
+                        <h3>Sun'iy intellekt — kelajak kasblari va imkoniyatlar</h3>
+                        <p class="blog-card-excerpt">
+                            AI texnologiyalari qanday rivojlanmoqda va qaysi kasblar eng ko'p talab qilinadi? Batafsil tahlil...
+                        </p>
+                        <a href="#" class="blog-card-link">
+                            Davomini o'qish <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq" style="background: rgba(5, 5, 16, 0.5);">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle">
+                    <i class="fas fa-question-circle"></i> FAQ
+                </span>
+                <h2 class="section-title">
+                    Ko'p <span class="gradient-text">beriladigan savollar</span>
+                </h2>
+                <p class="section-desc">
+                    O'quvchilarimiz eng ko'p beradigan savollarga javoblar
+                </p>
+            </div>
+
+            <div class="faq-container reveal">
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Kurslar qancha davom etadi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Kurslarimiz yo'nalishga qarab 3 oydan 9 oygacha davom etadi. Web Development — 6 oy, Python — 6 oy, Mobile Development — 6 oy, UI/UX Dizayn — 4 oy, Kompyuter savodxonligi — 3 oy. Har bir kurs amaliy loyihalar bilan yakunlanadi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Kurs narxi qancha?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Kurs narxlari yo'nalish va davomiyligiga qarab farq qiladi. Oylik to'lov 300 000 so'mdan boshlanadi. Bir martalik to'lov qilganda 10% chegirma beriladi. Batafsil ma'lumot uchun biz bilan bog'laning yoki ariza qoldiring.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Kurs tugagandan keyin sertifikat beriladimi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, albatta! Kursni muvaffaqiyatli tugatgan barcha o'quvchilarga IT Creative Academy tomonidan rasmiy sertifikat beriladi. Sertifikat sizning bilim va ko'nikmalaringizni tasdiqlaydi va portfoliongizga qo'shiladi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Dars jadvali qanday?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Darslar haftada 3 kun, har bir dars 2 soatdan o'tkaziladi. Ertalabki (09:00-11:00), kunduzi (14:00-16:00) va kechki (18:00-20:00) guruhlar mavjud. Siz o'zingizga qulay vaqtni tanlashingiz mumkin.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Dasturlashni noldan boshlash mumkinmi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, bizning kurslarimiz boshlang'ich darajadan boshlanadi. Hech qanday oldingi tajriba talab qilinmaydi. Tajribali ustozlarimiz sizga qadamma-qadam yo'l ko'rsatadi va har bir mavzuni tushunarli qilib tushuntiradi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Online o'qish imkoniyati bormi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, biz online va offline ta'lim imkoniyatini taqdim etamiz. Online o'quvchilar ham barcha darslarni jonli efirda kuzatishi, vazifalarni topshirishi va ustoz bilan muloqot qilishi mumkin. Platformamiz orqali barcha materiallar mavjud.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>Ishga joylashishda yordam beriladimi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, eng yaxshi o'quvchilarimizga ishga joylashishda yordam beramiz. Biz hamkor kompaniyalar bilan aloqada bo'lib, stajировka va ish imkoniyatlarini taqdim etamiz. Shuningdek, resume yozish va intervyuga tayyorgarlik ko'rishda ham yordam beramiz.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question" aria-expanded="false">
+                        <span>To'lov qanday amalga oshiriladi?</span>
+                        <i class="fas fa-chevron-down faq-icon"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>To'lovni naqd pul, bank kartasi (Uzcard, Humo, Visa, Mastercard) orqali amalga oshirishingiz mumkin. Bo'lib-bo'lib to'lash imkoniyati ham mavjud. Birinchi darsga bepul kelishingiz va kursni sinab ko'rishingiz mumkin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CONTACT / APPLICATION -->
     <section class="section" id="contact">
         <div class="section-container">
@@ -587,8 +777,10 @@
                 <h4>Havolalar</h4>
                 <ul>
                     <li><a href="#about">Biz haqimizda</a></li>
+                    <li><a href="#blog">Blog</a></li>
+                    <li><a href="#faq">FAQ</a></li>
                     <li><a href="#contact">Aloqa</a></li>
-                    <li><a href="/login">Kirish</a></li>
+                    <li><a href="/login/">Kirish</a></li>
                     <li><a href="/register">Ro'yxatdan o'tish</a></li>
                     <li><a href="/ariza">Ariza qoldirish</a></li>
                 </ul>

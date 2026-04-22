@@ -1,0 +1,716 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uz" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>ITC Academy — Zamonaviy IT ta'lim markazi</title>
+    <meta name="description" content="ITC Academy - Dasturlash, Web Development, Mobile Development va boshqa IT yo'nalishlar bo'yicha professional ta'lim. O'zbekistonda eng zamonaviy o'quv markaz.">
+    <meta name="keywords" content="IT kurslar, dasturlash kurslari, web development, ITC Academy, o'quv markaz, programming, kodlash">
+    <meta name="author" content="ITC Academy">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Uzbek">
+
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://itc-academy.uz">
+    <meta property="og:title" content="ITC Academy — Zamonaviy IT ta'lim markazi">
+    <meta property="og:description" content="Dasturlash, Web Development va boshqa IT yo'nalishlar bo'yicha professional ta'lim.">
+    <meta property="og:locale" content="uz_UZ">
+    <meta property="og:site_name" content="ITC Academy">
+
+    <link rel="canonical" href="https://itc-academy.uz">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/fav.ico' %}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": "ITC Academy",
+        "url": "https://itc-academy.uz",
+        "description": "Zamonaviy IT ta'lim markazi",
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Qarshi",
+            "addressRegion": "Qashqadaryo",
+            "addressCountry": "UZ"
+        }
+    }
+    </script>
+</head>
+<body class="landing-body">
+
+    <!-- PRELOADER -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-content">
+            <div class="preloader-spinner"></div>
+            <div class="preloader-logo">ITC Academy</div>
+            <div class="preloader-percent">0%</div>
+            <div class="preloader-bar">
+                <div class="preloader-bar-fill"></div>
+            </div>
+            <div class="preloader-text">Yuklanmoqda...</div>
+        </div>
+    </div>
+
+    <!-- PARTICLES -->
+    <div class="particles-container"></div>
+
+    <!-- NAVBAR -->
+    <nav class="landing-nav" role="navigation">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="{% static 'images/logo.png' %}" alt="ITC Academy" width="42" height="42">
+                <span>ITC Academy</span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#home">Bosh sahifa</a></li>
+                <li><a href="#about">Biz haqimizda</a></li>
+                <li><a href="#courses">Kurslar</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#contact">Aloqa</a></li>
+                <li><a href="{% url 'login' %}" class="nav-btn"><i class="fas fa-sign-in-alt"></i> Kirish</a></li>
+            </ul>
+
+            <button class="theme-toggle" id="themeToggle" title="Qorong'i/Yorug' rejim">
+                <i class="fas fa-moon"></i>
+                <i class="fas fa-sun"></i>
+            </button>
+
+            <button class="hamburger" aria-label="Menyu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="home">
+        <canvas id="hero-canvas"></canvas>
+        <div class="hero-overlay"></div>
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
+
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-badge">
+                    <span class="dot"></span>
+                    Ro'yxatdan o'tish ochiq
+                </div>
+
+                <h1 class="hero-title">
+                    <span class="gradient-text">ITC Academy</span>
+                    <span class="line-2">Kelajak <span class="typing-text">Dasturlash</span> da</span>
+                </h1>
+
+                <p class="hero-description">
+                    Zamonaviy IT ta'lim markazi. Dasturlash, Web Development, Mobile va boshqa
+                    yo'nalishlar bo'yicha professional ta'lim oling. Tajribali ustozlar va real loyihalar bilan o'rganing.
+                </p>
+
+                <div class="hero-buttons">
+                    <a href="{% url 'register' %}" class="btn-primary">
+                        <i class="fas fa-rocket"></i> Ro'yxatdan o'tish
+                    </a>
+                    <a href="#courses" class="btn-secondary">
+                        <i class="fas fa-play-circle"></i> Kurslarni ko'rish
+                    </a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="{{ total_students|default:'500' }}" data-suffix="+">0</div>
+                        <div class="stat-label">O'quvchilar</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="{{ total_courses|default:'15' }}" data-suffix="+">0</div>
+                        <div class="stat-label">Kurslar</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" data-count="98" data-suffix="%">0</div>
+                        <div class="stat-label">Mamnuniyat</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-3d">
+                <div id="hero-model"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="section" id="about">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-info-circle"></i> Biz haqimizda</span>
+                <h2 class="section-title">Nima uchun <span class="gradient-text">ITC Academy</span>?</h2>
+                <p class="section-desc">Biz nafaqat o'rgatamiz — biz kelajak IT mutaxassislarini tayyorlaymiz</p>
+            </div>
+
+            <div class="about-grid">
+                <div class="about-3d reveal">
+                    <div id="about-model"></div>
+                </div>
+
+                <div class="about-features">
+                    <div class="about-feature reveal">
+                        <div class="feature-icon blue"><i class="fas fa-laptop-code"></i></div>
+                        <div class="feature-text">
+                            <h4>Amaliy ta'lim</h4>
+                            <p>Har bir darsda real loyihalar ustida ishlaysiz. Nazariya + Amaliyot = Natija!</p>
+                        </div>
+                    </div>
+                    <div class="about-feature reveal">
+                        <div class="feature-icon purple"><i class="fas fa-users"></i></div>
+                        <div class="feature-text">
+                            <h4>Tajribali ustozlar</h4>
+                            <p>IT sohasida 5+ yillik tajribaga ega mutaxassislar dars beradi</p>
+                        </div>
+                    </div>
+                    <div class="about-feature reveal">
+                        <div class="feature-icon green"><i class="fas fa-certificate"></i></div>
+                        <div class="feature-text">
+                            <h4>Sertifikat</h4>
+                            <p>Kursni muvaffaqiyatli tugatganlarga rasmiy sertifikat beriladi</p>
+                        </div>
+                    </div>
+                    <div class="about-feature reveal">
+                        <div class="feature-icon orange"><i class="fas fa-briefcase"></i></div>
+                        <div class="feature-text">
+                            <h4>Ishga joylashish</h4>
+                            <p>Eng yaxshi o'quvchilarimizga ishga joylashishda yordam beramiz</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COURSES -->
+    <section class="section" id="courses" style="background: rgba(5, 5, 16, 0.5);">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-graduation-cap"></i> Kurslarimiz</span>
+                <h2 class="section-title"><span class="gradient-text">Professional</span> kurslar</h2>
+                <p class="section-desc">Zamonaviy texnologiyalar bo'yicha eng so'nggi kurslarni kashf eting</p>
+            </div>
+
+            <div class="courses-grid">
+                {% for profession in professions %}
+                <article class="course-card reveal">
+                    <div class="course-icon web"><i class="fas fa-laptop-code"></i></div>
+                    <h3>{{ profession.name }}</h3>
+                    <p>{{ profession.description|truncatewords:20 }}</p>
+                </article>
+                {% empty %}
+                <article class="course-card reveal">
+                    <div class="course-icon web"><i class="fas fa-code"></i></div>
+                    <h3>Web Development</h3>
+                    <p>HTML, CSS, JavaScript, React, Node.js va boshqa zamonaviy web texnologiyalarini o'rganing</p>
+                    <div class="course-tags">
+                        <span class="course-tag">HTML/CSS</span>
+                        <span class="course-tag">JavaScript</span>
+                        <span class="course-tag">React</span>
+                    </div>
+                </article>
+                <article class="course-card reveal">
+                    <div class="course-icon mobile"><i class="fas fa-mobile-alt"></i></div>
+                    <h3>Mobile Development</h3>
+                    <p>Android va iOS uchun zamonaviy mobil ilovalar yaratishni o'rganing</p>
+                    <div class="course-tags">
+                        <span class="course-tag">Flutter</span>
+                        <span class="course-tag">React Native</span>
+                    </div>
+                </article>
+                <article class="course-card reveal">
+                    <div class="course-icon python"><i class="fab fa-python"></i></div>
+                    <h3>Python dasturlash</h3>
+                    <p>Python tilida dasturlashni noldan o'rganing va real loyihalar yarating</p>
+                    <div class="course-tags">
+                        <span class="course-tag">Python</span>
+                        <span class="course-tag">Django</span>
+                        <span class="course-tag">FastAPI</span>
+                    </div>
+                </article>
+                <article class="course-card reveal">
+                    <div class="course-icon design"><i class="fas fa-paint-brush"></i></div>
+                    <h3>UI/UX Dizayn</h3>
+                    <p>Foydalanuvchi interfeysi va tajribasini loyihalashtirishni o'rganing</p>
+                    <div class="course-tags">
+                        <span class="course-tag">Figma</span>
+                        <span class="course-tag">Adobe XD</span>
+                    </div>
+                </article>
+                <article class="course-card reveal">
+                    <div class="course-icon data"><i class="fas fa-desktop"></i></div>
+                    <h3>Kompyuter savodxonligi</h3>
+                    <p>Kompyuterdan samarali foydalanish va ofis dasturlarini mukammal o'rganing</p>
+                    <div class="course-tags">
+                        <span class="course-tag">MS Office</span>
+                        <span class="course-tag">Internet</span>
+                    </div>
+                </article>
+                <article class="course-card reveal">
+                    <div class="course-icon ai"><i class="fas fa-robot"></i></div>
+                    <h3>Sun'iy Intellekt</h3>
+                    <p>AI va Machine Learning asoslarini o'rganing va loyihalar yarating</p>
+                    <div class="course-tags">
+                        <span class="course-tag">AI</span>
+                        <span class="course-tag">ML</span>
+                        <span class="course-tag">ChatGPT</span>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- ADVANTAGES -->
+    <section class="section" id="advantages">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-star"></i> Afzalliklar</span>
+                <h2 class="section-title">Bizning <span class="gradient-text">afzalliklarimiz</span></h2>
+                <p class="section-desc">ITC Academy da o'qishning boshqa joylardan farqi</p>
+            </div>
+
+            <div class="advantages-grid">
+                <div class="advantage-card reveal">
+                    <span class="advantage-icon">🎮</span>
+                    <h4>Gamifikatsiya</h4>
+                    <p>Coin yig'ing, reyting kurashida g'olib bo'ling va sovg'alar qo'lga kiriting</p>
+                </div>
+                <div class="advantage-card reveal">
+                    <span class="advantage-icon">🤖</span>
+                    <h4>AI Yordamchi</h4>
+                    <p>Sun'iy intellekt yordamchisi darslarni tushunishda sizga doimo yordam beradi</p>
+                </div>
+                <div class="advantage-card reveal">
+                    <span class="advantage-icon">📊</span>
+                    <h4>Statistika</h4>
+                    <p>Har bir kursda o'z progressingizni kuzating va natijalaringizni tahlil qiling</p>
+                </div>
+                <div class="advantage-card reveal">
+                    <span class="advantage-icon">👨‍👩‍👧‍👦</span>
+                    <h4>Ota-ona portali</h4>
+                    <p>Ota-onalar farzandlarining o'qish jarayonini kuzatishlari mumkin</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section" style="background: rgba(5, 5, 16, 0.5);">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-quote-left"></i> Fikrlar</span>
+                <h2 class="section-title">O'quvchilarimiz <span class="gradient-text">fikrlari</span></h2>
+                <p class="section-desc">Bizning bitiruvchilar nima deyishadi</p>
+            </div>
+
+            <div class="testimonials-wrapper">
+                <div class="testimonial-card reveal">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "ITC Academy da Web Development kursini tugatdim. Hozir freelancer sifatida ishlayapman va
+                        oylik daromadim ancha yaxshi. Ustozlarga rahmat!"
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar av1">A</div>
+                        <div class="author-info">
+                            <h5>Abdulloh M.</h5>
+                            <span>Web Developer</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card reveal">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Python kursini o'qib, Data Science sohasida ish topdim. Amaliy mashg'ulotlar juda foydali bo'ldi.
+                        Hamma narsani real loyihalarda o'rgandim."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar av2">S</div>
+                        <div class="author-info">
+                            <h5>Sardor T.</h5>
+                            <span>Data Analyst</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card reveal">
+                    <div class="testimonial-stars">★★★★★</div>
+                    <p class="testimonial-text">
+                        "Gamifikatsiya tizimi juda zo'r! Coin yig'ish va reyting kurashish o'qishni juda qiziqarli qildi.
+                        Platform ham juda qulay va zamonaviy."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar av3">M</div>
+                        <div class="author-info">
+                            <h5>Madina K.</h5>
+                            <span>Frontend Developer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BLOG -->
+    <section class="section" id="blog">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-blog"></i> Blog</span>
+                <h2 class="section-title"><span class="gradient-text">So'nggi</span> maqolalar</h2>
+                <p class="section-desc">IT sohasidagi eng so'nggi yangiliklar, maslahatlar va qo'llanmalar</p>
+            </div>
+
+            <div class="blog-grid">
+                {% for post in posts %}
+                <article class="blog-card reveal">
+                    <div class="blog-card-image">
+                        {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="{{ post.title }}" style="width:100%;height:100%;object-fit:cover;">
+                        {% else %}
+                        <i class="fas fa-newspaper"></i>
+                        {% endif %}
+                    </div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> {{ post.created_at|date:"d M, Y" }}</span>
+                            <span class="blog-card-tag">{{ post.get_post_type_display }}</span>
+                        </div>
+                        <h3>{{ post.title|truncatewords:10 }}</h3>
+                        <p class="blog-card-excerpt">{{ post.content|striptags|truncatewords:25 }}</p>
+                    </div>
+                </article>
+                {% empty %}
+                <article class="blog-card reveal">
+                    <div class="blog-card-image"><i class="fas fa-code"></i></div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 15 Aprel, 2026</span>
+                            <span class="blog-card-tag">Web Dev</span>
+                        </div>
+                        <h3>Web Development 2026 — Eng muhim trendlar</h3>
+                        <p class="blog-card-excerpt">2026-yilda web dasturlash sohasida qanday o'zgarishlar kutilmoqda? React, Next.js va yangi framework'lar haqida...</p>
+                    </div>
+                </article>
+                <article class="blog-card reveal">
+                    <div class="blog-card-image"><i class="fab fa-python"></i></div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 10 Aprel, 2026</span>
+                            <span class="blog-card-tag">Python</span>
+                        </div>
+                        <h3>Python o'rganib yaxshi ish topish mumkinmi?</h3>
+                        <p class="blog-card-excerpt">Python dasturlash tilini o'rganish va IT sohasida muvaffaqiyatli karyera boshlash uchun maslahatlar...</p>
+                    </div>
+                </article>
+                <article class="blog-card reveal">
+                    <div class="blog-card-image"><i class="fas fa-robot"></i></div>
+                    <div class="blog-card-body">
+                        <div class="blog-card-meta">
+                            <span><i class="fas fa-calendar-alt"></i> 5 Aprel, 2026</span>
+                            <span class="blog-card-tag">AI</span>
+                        </div>
+                        <h3>Sun'iy intellekt — kelajak kasblari</h3>
+                        <p class="blog-card-excerpt">AI texnologiyalari qanday rivojlanmoqda va qaysi kasblar eng ko'p talab qilinadi? Batafsil tahlil...</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq" style="background: rgba(5, 5, 16, 0.5);">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-question-circle"></i> FAQ</span>
+                <h2 class="section-title">Ko'p <span class="gradient-text">beriladigan savollar</span></h2>
+                <p class="section-desc">O'quvchilarimiz eng ko'p beradigan savollarga javoblar</p>
+            </div>
+
+            <div class="faq-container reveal">
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Kurslar qancha davom etadi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Kurslarimiz yo'nalishga qarab 3 oydan 9 oygacha davom etadi. Har bir kurs amaliy loyihalar bilan yakunlanadi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Kurs narxi qancha?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Kurs narxlari yo'nalish va davomiyligiga qarab farq qiladi. Oylik to'lov 300 000 so'mdan boshlanadi. Bir martalik to'lovda 10% chegirma.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Sertifikat beriladimi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha! Kursni muvaffaqiyatli tugatgan barcha o'quvchilarga ITC Academy tomonidan rasmiy sertifikat beriladi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Dars jadvali qanday?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Darslar haftada 3 kun, har biri 2 soat. Ertalabki (09:00-11:00), kunduzi (14:00-16:00) va kechki (18:00-20:00) guruhlar mavjud.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Dasturlashni noldan boshlash mumkinmi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, bizning kurslarimiz boshlang'ich darajadan boshlanadi. Hech qanday oldingi tajriba talab qilinmaydi.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Online o'qish imkoniyati bormi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, online va offline ta'lim imkoniyatini taqdim etamiz. Online o'quvchilar ham barcha darslarni platformada kuzatishi mumkin.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>Ishga joylashishda yordam beriladimi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ha, eng yaxshi o'quvchilarimizga ishga joylashishda yordam beramiz. Resume yozish va intervyuga tayyorgarlikda ham ko'maklashamiz.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">
+                        <span>To'lov qanday amalga oshiriladi?</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Naqd pul, bank kartasi (Uzcard, Humo, Visa, Mastercard) orqali to'lash mumkin. Bo'lib-bo'lib to'lash ham mavjud.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT / APPLICATION -->
+    <section class="section" id="contact">
+        <div class="section-container">
+            <div class="section-header reveal">
+                <span class="section-subtitle"><i class="fas fa-envelope"></i> Bog'lanish</span>
+                <h2 class="section-title"><span class="gradient-text">Ariza qoldiring</span></h2>
+                <p class="section-desc">Kursga yozilish yoki qo'shimcha ma'lumot olish uchun ariza qoldiring</p>
+            </div>
+
+            <div class="contact-grid">
+                <div class="contact-info reveal">
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="contact-details">
+                            <h4>Manzil</h4>
+                            <p>Qarshi shahri, Qashqadaryo viloyati, O'zbekiston</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                        <div class="contact-details">
+                            <h4>Telefon</h4>
+                            <p><a href="tel:+998911234567">+998 91 123 45 67</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fab fa-telegram-plane"></i></div>
+                        <div class="contact-details">
+                            <h4>Telegram</h4>
+                            <p><a href="https://t.me/itcreative" target="_blank" rel="noopener">@itcreative</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fab fa-instagram"></i></div>
+                        <div class="contact-details">
+                            <h4>Instagram</h4>
+                            <p><a href="https://instagram.com/itcreative" target="_blank" rel="noopener">@itcreative</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon"><i class="fas fa-clock"></i></div>
+                        <div class="contact-details">
+                            <h4>Ish vaqti</h4>
+                            <p>Dushanba - Shanba: 09:00 - 18:00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-form-wrapper reveal">
+                    <h3>📝 Ariza qoldirish</h3>
+                    <p class="form-desc">Ma'lumotlaringizni qoldiring, biz siz bilan bog'lanamiz</p>
+
+                    <form method="POST" action="/" id="applicationForm">
+                        {% csrf_token %}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first_name">Ism *</label>
+                                <input type="text" id="first_name" name="first_name" placeholder="Ismingiz" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last_name">Familiya *</label>
+                                <input type="text" id="last_name" name="last_name" placeholder="Familiyangiz" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone">Telefon raqam *</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+998 XX XXX XX XX" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="course_interest">Qiziqtirgan yo'nalish</label>
+                            <select id="course_interest" name="course_interest">
+                                <option value="">Tanlang...</option>
+                                {% for p in professions %}
+                                <option value="{{ p.name }}">{{ p.name }}</option>
+                                {% empty %}
+                                <option value="Web Development">Web Development</option>
+                                <option value="Mobile Development">Mobile Development</option>
+                                <option value="Python">Python dasturlash</option>
+                                <option value="UI/UX Design">UI/UX Dizayn</option>
+                                <option value="Kompyuter savodxonligi">Kompyuter savodxonligi</option>
+                                <option value="AI/ML">Sun'iy Intellekt</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="form-submit">
+                            <i class="fas fa-paper-plane"></i> Ariza yuborish
+                        </button>
+
+                        {% if success %}
+                        <div class="form-message success" style="display:block;">
+                            Arizangiz qabul qilindi! Tez orada siz bilan bog'lanamiz. ✅
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="section-container">
+            <div class="cta-content reveal">
+                <h2>Kelajagingizni <span class="gradient-text">bugun</span> boshlang!</h2>
+                <p>ITC Academy bilan professional IT mutaxassis bo'ling</p>
+                <div class="hero-buttons" style="justify-content: center;">
+                    <a href="{% url 'register' %}" class="btn-primary">
+                        <i class="fas fa-user-plus"></i> Hoziroq ro'yxatdan o'ting
+                    </a>
+                    <a href="{% url 'ariza' %}" class="btn-secondary">
+                        <i class="fas fa-file-alt"></i> Ariza qoldirish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="landing-footer" role="contentinfo">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>🚀 <span>ITC Academy</span></h3>
+                <p>Zamonaviy IT ta'lim markazi. Dasturlash, dizayn va boshqa IT yo'nalishlar bo'yicha sifatli ta'lim.</p>
+                <div class="social-links">
+                    <a href="https://t.me/itcreative" class="social-link" target="_blank" rel="noopener"><i class="fab fa-telegram-plane"></i></a>
+                    <a href="https://instagram.com/itcreative" class="social-link" target="_blank" rel="noopener"><i class="fab fa-instagram"></i></a>
+                    <a href="https://youtube.com/@ITCreative" class="social-link" target="_blank" rel="noopener"><i class="fab fa-youtube"></i></a>
+                    <a href="https://github.com/itcreative" class="social-link" target="_blank" rel="noopener"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+
+            <div class="footer-col">
+                <h4>Kurslar</h4>
+                <ul>
+                    <li><a href="#courses">Web Development</a></li>
+                    <li><a href="#courses">Mobile Development</a></li>
+                    <li><a href="#courses">Python</a></li>
+                    <li><a href="#courses">UI/UX Dizayn</a></li>
+                    <li><a href="#courses">Sun'iy Intellekt</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Havolalar</h4>
+                <ul>
+                    <li><a href="#about">Biz haqimizda</a></li>
+                    <li><a href="#blog">Blog</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#contact">Aloqa</a></li>
+                    <li><a href="{% url 'login' %}">Kirish</a></li>
+                    <li><a href="{% url 'register' %}">Ro'yxatdan o'tish</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Bog'lanish</h4>
+                <ul>
+                    <li><a href="tel:+998911234567">+998 91 123 45 67</a></li>
+                    <li><a href="mailto:info@itc-academy.uz">info@itc-academy.uz</a></li>
+                    <li><a href="#">Qarshi, O'zbekiston</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024-2026 <a href="/">ITC Academy</a>. Barcha huquqlar himoyalangan.</p>
+            <p>Suyunov Husan tomonidan ishlab chiqilgan ❤️</p>
+        </div>
+    </footer>
+
+    <!-- BACK TO TOP -->
+    <button class="back-to-top" aria-label="Tepaga qaytish">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="{% static 'js/landing.js' %}"></script>
+</body>
+</html>

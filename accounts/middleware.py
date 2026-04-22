@@ -163,7 +163,7 @@ class MaintenanceMiddleware:
     """
     
     # Bu URL lar har doim ishlaydi (login/logout/admin panel)
-    EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance']
+    EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance', 'home', 'register', 'ariza']
     
     def __init__(self, get_response):
         self.get_response = get_response

@@ -27,6 +27,7 @@ from .models import (
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
+from blog.models import Post
 
 from django.core.management import call_command
 from django.core.cache import cache
@@ -884,9 +885,50 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_required
 def home_view(request):
-    # --- Asosiy ma'lumotlar ---
+    # Landing sahifa — login qilmagan foydalanuvchilar uchun
+    if not request.user.is_authenticated:
+        landing_professions = Profession.objects.filter(is_blocked=False)[:6]
+        posts = Post.objects.filter(is_published=True)[:3]
+        total_students = CustomUser.objects.filter(role='student').count()
+        total_courses = Profession.objects.count()
+        success = False
+
+        if request.method == 'POST':
+            first_name = request.POST.get('first_name', '').strip()
+            last_name = request.POST.get('last_name', '').strip()
+            raw_phone = request.POST.get('phone', '').strip()
+            phone_digits = ''.join(c for c in raw_phone if c.isdigit())
+            if phone_digits.startswith('998') and len(phone_digits) == 12:
+                phone_digits = phone_digits[3:]
+            phone = '+998' + phone_digits if phone_digits else raw_phone
+            course_interest = request.POST.get('course_interest', '').strip()
+
+            if first_name and last_name and phone:
+                CourseApplication.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    phone=phone,
+                    course_interest=course_interest
+                )
+                notify_admins(
+                    f"📋 <b>Yangi ariza keldi!</b>\n\n"
+                    f"👤 {first_name} {last_name}\n"
+                    f"📱 {phone}\n"
+                    f"📚 Kurs: {course_interest or 'Belgilanmagan'}\n\n"
+                    f"📞 Tez orada bog'laning!"
+                )
+                success = True
+
+        return render(request, 'landing.html', {
+            'professions': landing_professions,
+            'posts': posts,
+            'total_students': total_students,
+            'total_courses': total_courses,
+            'success': success,
+        })
+
+    # --- Asosiy ma'lumotlar (login qilgan foydalanuvchilar) ---
     professions = Profession.objects.prefetch_related('teachers').annotate(
         lesson_count=Count('lessons')
     ).all()[:6]
