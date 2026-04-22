@@ -2,6 +2,11 @@ import Scene3D from "@/components/Scene3D";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, Play } from "lucide-react";
 
+const getDjangoUrl = (key: string, fallback: string) => {
+  const urls = (window as any).__DJANGO_URLS__;
+  return urls?.[key] || fallback;
+};
+
 const Hero = () => {
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-28 pb-20 overflow-hidden">
@@ -28,13 +33,17 @@ const Hero = () => {
           </p>
 
           <div className="flex flex-wrap gap-4">
-            <Button variant="hero" size="xl" className="group">
-              Ro'yxatdan o'tish
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            <Button variant="hero" size="xl" className="group" asChild>
+              <a href={getDjangoUrl('register', '/register/')}>
+                Ro'yxatdan o'tish
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </a>
             </Button>
-            <Button variant="glow" size="xl" className="group">
-              <Play className="w-4 h-4" />
-              Demo darsni ko'rish
+            <Button variant="glow" size="xl" className="group" asChild>
+              <a href="#courses">
+                <Play className="w-4 h-4" />
+                Kurslarni ko'rish
+              </a>
             </Button>
           </div>
 

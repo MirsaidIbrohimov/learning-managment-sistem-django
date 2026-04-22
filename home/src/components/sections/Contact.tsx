@@ -1,18 +1,61 @@
-import { Phone, Mail, MapPin, Send, MessageCircle, Instagram } from "lucide-react";
+import { useState } from "react";
+import { Phone, Mail, MapPin, Send, MessageCircle, Instagram, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { courses } from "@/data/courses";
+
+const getDjangoUrl = (key: string, fallback: string) => {
+  const urls = (window as any).__DJANGO_URLS__;
+  return urls?.[key] || fallback;
+};
+
+const formatPhone = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 9);
+  let formatted = "";
+  if (digits.length > 0) formatted = "(" + digits.substring(0, 2);
+  if (digits.length >= 2) formatted += ") ";
+  if (digits.length > 2) formatted += digits.substring(2, 5);
+  if (digits.length > 5) formatted += " " + digits.substring(5, 7);
+  if (digits.length > 7) formatted += " " + digits.substring(7, 9);
+  return formatted;
+};
 
 const Contact = () => {
-  const { toast } = useToast();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [courseInterest, setCourseInterest] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(formatPhone(e.target.value));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Arizangiz qabul qilindi! ✨",
-      description: "Tez orada siz bilan bog'lanamiz.",
-    });
+    if (submitting) return;
+    setSubmitting(true);
+
+    const arizaUrl = getDjangoUrl("ariza", "/ariza/");
+    const csrfToken = (window as any).__DJANGO_URLS__?.csrf || "";
+
+    const formData = new FormData();
+    formData.append("first_name", firstName);
+    formData.append("last_name", lastName);
+    formData.append("phone", "+998" + phone.replace(/\D/g, ""));
+    formData.append("course_interest", courseInterest);
+    formData.append("csrfmiddlewaretoken", csrfToken);
+
+    try {
+      await fetch(arizaUrl, { method: "POST", body: formData });
+      setSuccess(true);
+    } catch {
+      window.location.href = arizaUrl;
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -37,7 +80,7 @@ const Contact = () => {
           {/* Info cards */}
           <div className="lg:col-span-2 space-y-4">
             {[
-              { icon: Phone, label: "Telefon", value: "+998 90 123 45 67", sub: "Dush-Shan, 09:00-19:00" },
+              { icon: Phone, label: "Telefon", value: "+998 97 521 66 86", sub: "Dush-Shan, 09:00-19:00" },
               { icon: Mail, label: "Email", value: "info@itc-academy.uz", sub: "24/7 javob beramiz" },
               { icon: MapPin, label: "Manzil", value: "Zomin IT Park, IT shaharcha", sub: "Jizzax viloyati, Zomin tumani" },
             ].map((c) => (
@@ -68,37 +111,58 @@ const Contact = () => {
           </div>
 
           {/* Form */}
-          <form
-            onSubmit={handleSubmit}
-            className="lg:col-span-3 p-8 rounded-2xl bg-gradient-card border border-border shadow-card relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-primary" />
-
-            <div className="space-y-5">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-mono text-muted-foreground mb-2 block">FULL_NAME</label>
-                  <Input required placeholder="Ismingiz" className="bg-background/50 border-border h-12" />
-                </div>
-                <div>
-                  <label className="text-xs font-mono text-muted-foreground mb-2 block">PHONE</label>
-                  <Input required type="tel" placeholder="+998 __ ___ __ __" className="bg-background/50 border-border h-12" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-mono text-muted-foreground mb-2 block">EMAIL</label>
-                <Input type="email" placeholder="you@example.com" className="bg-background/50 border-border h-12" />
-              </div>
-              <div>
-                <label className="text-xs font-mono text-muted-foreground mb-2 block">MESSAGE</label>
-                <Textarea required rows={5} placeholder="Qaysi yo'nalish sizni qiziqtiradi?" className="bg-background/50 border-border resize-none" />
-              </div>
-              <Button type="submit" variant="hero" size="xl" className="w-full sm:w-auto">
-                <Send className="w-4 h-4" />
-                Yuborish
-              </Button>
+          {success ? (
+            <div className="lg:col-span-3 p-8 rounded-2xl bg-gradient-card border border-border shadow-card relative overflow-hidden flex flex-col items-center justify-center text-center gap-4">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-primary" />
+              <CheckCircle className="w-16 h-16 text-green-500" />
+              <h3 className="font-display text-2xl font-bold">Arizangiz qabul qilindi!</h3>
+              <p className="text-muted-foreground">Tez orada siz bilan bog'lanamiz.</p>
             </div>
-          </form>
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              className="lg:col-span-3 p-8 rounded-2xl bg-gradient-card border border-border shadow-card relative overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-primary" />
+
+              <div className="space-y-5">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-mono text-muted-foreground mb-2 block">ISM</label>
+                    <Input required placeholder="Ismingiz" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="bg-background/50 border-border h-12" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-mono text-muted-foreground mb-2 block">FAMILIYA</label>
+                    <Input required placeholder="Familiyangiz" value={lastName} onChange={(e) => setLastName(e.target.value)} className="bg-background/50 border-border h-12" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-muted-foreground mb-2 block">TELEFON</label>
+                  <div className="flex items-center gap-0">
+                    <span className="inline-flex items-center h-12 px-3 rounded-l-md border border-r-0 border-border bg-muted text-sm text-muted-foreground font-mono">+998</span>
+                    <Input required type="tel" placeholder="(97) 521 66 86" value={phone} onChange={handlePhoneChange} className="bg-background/50 border-border h-12 rounded-l-none" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-mono text-muted-foreground mb-2 block">KURS</label>
+                  <Select value={courseInterest} onValueChange={setCourseInterest}>
+                    <SelectTrigger className="bg-background/50 border-border h-12">
+                      <SelectValue placeholder="— Yo'nalishni tanlang —" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {courses.map((c) => (
+                        <SelectItem key={c.slug} value={c.name}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button type="submit" variant="hero" size="xl" className="w-full sm:w-auto" disabled={submitting}>
+                  <Send className="w-4 h-4" />
+                  {submitting ? "Yuborilmoqda..." : "Arizani yuborish"}
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </section>

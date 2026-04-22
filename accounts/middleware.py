@@ -384,11 +384,12 @@ class SecurityHeadersMiddleware:
         # CSP - Content Security Policy
         csp_directives = [
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.quilljs.com https://www.youtube.com https://player.vimeo.com https://s.ytimg.com",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.quilljs.com",
-            "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
-            "img-src 'self' data: https:",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.quilljs.com https://www.youtube.com https://player.vimeo.com https://s.ytimg.com blob:",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.quilljs.com https://cdn.tailwindcss.com",
+            "font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+            "img-src 'self' data: https: blob:",
             "connect-src 'self' https://cdn.jsdelivr.net https://www.youtube.com https://player.vimeo.com https://vimeo.com",
+            "worker-src 'self' blob:",
             "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
             "frame-ancestors 'none'",
             "base-uri 'self'",

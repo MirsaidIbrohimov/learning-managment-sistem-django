@@ -13,6 +13,11 @@ const links = [
   { label: "Aloqa", href: "#contact" },
 ];
 
+const getDjangoUrl = (key: string, fallback: string) => {
+  const urls = (window as any).__DJANGO_URLS__;
+  return urls?.[key] || fallback;
+};
+
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -57,11 +62,11 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center gap-3">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
-            Kirish
+          <Button variant="ghost" size="sm" className="text-foreground hover:text-primary" asChild>
+            <a href={getDjangoUrl('login', '/login/')}>Kirish</a>
           </Button>
-          <Button variant="hero" size="sm">
-            Ro'yxatdan o'tish
+          <Button variant="hero" size="sm" asChild>
+            <a href={getDjangoUrl('register', '/register/')}>Ro'yxatdan o'tish</a>
           </Button>
         </div>
 
@@ -93,8 +98,8 @@ const Navbar = () => {
               </li>
             ))}
             <li className="flex gap-2 mt-3">
-              <Button variant="ghost" size="sm" className="flex-1">Kirish</Button>
-              <Button variant="hero" size="sm" className="flex-1">Ro'yxat</Button>
+              <Button variant="ghost" size="sm" className="flex-1" asChild><a href={getDjangoUrl('login', '/login/')}>Kirish</a></Button>
+              <Button variant="hero" size="sm" className="flex-1" asChild><a href={getDjangoUrl('register', '/register/')}>Ro'yxat</a></Button>
             </li>
           </ul>
         </div>
