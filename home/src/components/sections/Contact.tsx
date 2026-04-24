@@ -81,8 +81,8 @@ const Contact = () => {
           <div className="lg:col-span-2 space-y-4">
             {[
               { icon: Phone, label: "Telefon", value: "+998 97 521 66 86", sub: "Dush-Shan, 09:00-19:00" },
-              { icon: Mail, label: "Email", value: "info@itc-academy.uz", sub: "24/7 javob beramiz" },
-              { icon: MapPin, label: "Manzil", value: "Zomin IT Park, IT shaharcha", sub: "Jizzax viloyati, Zomin tumani" },
+              { icon: Mail, label: "Email", value: "itpark0071@gmail.com", sub: "24/7 javob beramiz" },
+              { icon: MapPin, label: "Manzil", value: "Zomin IT Park, IT Shaharcha", sub: "Jizzax viloyati, Zomin tumani" },
             ].map((c) => (
               <div key={c.label} className="group flex items-start gap-4 p-5 rounded-2xl glass hover:border-primary/40 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow shrink-0 group-hover:scale-110 transition-transform">
