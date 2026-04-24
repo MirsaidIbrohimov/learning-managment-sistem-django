@@ -12,6 +12,16 @@ def get_item(dictionary, key):
 
 
 @register.filter
+def get_token(token_map, lesson_pk):
+    """Get student lesson token UUID from token_map by lesson pk."""
+    if token_map and isinstance(token_map, dict):
+        token_obj = token_map.get(lesson_pk)
+        if token_obj:
+            return token_obj.token
+    return None
+
+
+@register.filter
 def render_code(text):
     """Detect code blocks, backtick code, and auto-detect programming patterns."""
     import re

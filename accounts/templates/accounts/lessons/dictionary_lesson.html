@@ -235,7 +235,7 @@
         {% endif %}
 
         {% if next_lesson %}
-        <a href="{% url 'lesson_view' next_lesson.pk %}" class="dict-next">
+        {% if next_lesson_token %}<a href="{% url 'student_lesson_view' next_lesson_token.token %}" class="dict-next">{% else %}<a href="{% url 'lesson_view' next_lesson.pk %}" class="dict-next">{% endif %}
             Keyingi dars <i class="bi bi-arrow-right"></i>
         </a>
         {% endif %}

@@ -355,7 +355,11 @@
         <!-- Submit Form -->
         <div class="speaking-card">
             <h5><i class="bi bi-upload text-danger"></i> Vazifani topshirish</h5>
+            {% if student_token %}
+            <form method="POST" enctype="multipart/form-data" action="{% url 'student_submit_speaking' student_token.token %}">
+            {% else %}
             <form method="POST" enctype="multipart/form-data" action="{% url 'submit_speaking' speaking_task.pk %}">
+            {% endif %}
                 {% csrf_token %}
                 <div class="upload-area mb-3" onclick="document.getElementById('audioFile').click();">
                     <i class="bi bi-mic-fill d-block"></i>

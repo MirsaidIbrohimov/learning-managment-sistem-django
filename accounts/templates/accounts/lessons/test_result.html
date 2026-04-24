@@ -1255,10 +1255,18 @@ function showCelebrationModal() {
 
     let actionsHtml = '';
     {% if homework_lesson %}
+    {% if homework_lesson_token %}
+    actionsHtml += '<a href="{% url "student_lesson_view" homework_lesson_token.token %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topshiriqqa o\'tish</a>';
+    {% else %}
     actionsHtml += '<a href="{% url "lesson_view" homework_lesson.pk %}" class="cel-btn primary"><i class="bi bi-pencil-square"></i> Topshiriqqa o\'tish</a>';
     {% endif %}
+    {% endif %}
     {% if video_lesson %}
+    {% if video_lesson_token %}
+    actionsHtml += '<a href="{% url "student_lesson_view" video_lesson_token.token %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytish</a>';
+    {% else %}
     actionsHtml += '<a href="{% url "lesson_view" video_lesson.pk %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytish</a>';
+    {% endif %}
     {% endif %}
     actionsHtml += '<a href="{% url "profession_detail" result.test.lesson.profession.pk %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytish</a>';
 
@@ -1431,19 +1439,31 @@ function showCelebrationModal() {
                         Kursga qaytish
                     </a>
                     {% if video_lesson %}
+                    {% if video_lesson_token %}
+                    <a href="{% url 'student_lesson_view' video_lesson_token.token %}" class="action-btn video-nav">
+                    {% else %}
                     <a href="{% url 'lesson_view' video_lesson.pk %}" class="action-btn video-nav">
+                    {% endif %}
                         <i class="bi bi-play-circle"></i>
                         Video darslikka qaytish
                     </a>
                     {% endif %}
                     {% if homework_lesson %}
+                    {% if homework_lesson_token %}
+                    <a href="{% url 'student_lesson_view' homework_lesson_token.token %}" class="action-btn homework-nav">
+                    {% else %}
                     <a href="{% url 'lesson_view' homework_lesson.pk %}" class="action-btn homework-nav">
+                    {% endif %}
                         <i class="bi bi-pencil-square"></i>
                         Topshiriqqa o'tish
                     </a>
                     {% endif %}
                     {% if result.test.allow_retry and not result.passed %}
+                    {% if student_token %}
+                    <a href="{% url 'student_start_test' student_token.token %}" class="action-btn retry">
+                    {% else %}
                     <a href="{% url 'start_test' result.test.pk %}" class="action-btn retry">
+                    {% endif %}
                         <i class="bi bi-arrow-repeat"></i>
                         Qayta ishlash
                         <span class="retry-coin-tag">{% if request.user.is_premium %}3{% else %}10{% endif %} <i class="bi bi-coin"></i></span>

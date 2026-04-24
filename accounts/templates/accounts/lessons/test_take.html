@@ -917,7 +917,11 @@
         </div>
 
         <!-- Test Form -->
+        {% if student_token %}
+        <form method="POST" action="{% url 'student_submit_test' student_token.token %}" id="testForm">
+        {% else %}
         <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
+        {% endif %}
             {% csrf_token %}
 
             {% for question in questions %}

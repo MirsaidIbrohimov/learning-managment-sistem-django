@@ -1116,7 +1116,11 @@
                             </button>
 
                             <div class="edit-form-wrap" id="editFormWrap" style="display:none;">
+                                {% if student_token %}
+                                <form method="POST" action="{% url 'student_edit_homework' student_token.token %}" enctype="multipart/form-data" id="editHomeworkForm">
+                                {% else %}
                                 <form method="POST" action="{% url 'edit_homework' submission.pk %}" enctype="multipart/form-data" id="editHomeworkForm">
+                                {% endif %}
                                     {% csrf_token %}
                                     {% if submission.submission_type == 'file' %}
                                     <input type="hidden" name="submission_type" value="file">
@@ -1166,7 +1170,11 @@
                                 <i class="bi bi-info-circle-fill"></i>
                                 <span>Topshiriqni yuborgandan keyin <strong>1 soat</strong> ichida tahrirlashingiz mumkin. Shundan so'ng o'zgartirish imkoni bo'lmaydi.</span>
                             </div>
+                            {% if student_token %}
+                            <form method="POST" action="{% url 'student_submit_homework' student_token.token %}" enctype="multipart/form-data" id="homeworkForm">
+                            {% else %}
                             <form method="POST" action="{% url 'submit_homework' homework.pk %}" enctype="multipart/form-data" id="homeworkForm">
+                            {% endif %}
                                 {% csrf_token %}
                                 
                                 <!-- Submission Type Toggle -->

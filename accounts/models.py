@@ -1619,3 +1619,42 @@ class DailyLessonAccess(models.Model):
     def __str__(self):
         return f"{self.user.first_name} - {self.lesson.title} ({self.accessed_date})"
 
+
+class StudentLessonToken(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='lesson_tokens')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='student_tokens')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'lesson'], name='unique_student_lesson_token')
+        ]
+        verbose_name = "O'quvchi dars tokeni"
+        verbose_name_plural = "O'quvchi dars tokenlari"
+
+    def __str__(self):
+        return f"{self.student_id} - {self.lesson_id} ({self.token})"
+
+    @classmethod
+    def ensure_for_profession(cls, student, profession):
+        lesson_ids = list(
+            Lesson.objects.filter(profession=profession).values_list('id', flat=True)
+        )
+        existing_ids = set(
+            cls.objects.filter(student=student, lesson_id__in=lesson_ids)
+            .values_list('lesson_id', flat=True)
+        )
+        missing = [
+            cls(student=student, lesson_id=lesson_id)
+            for lesson_id in lesson_ids
+            if lesson_id not in existing_ids
+        ]
+        if missing:
+            cls.objects.bulk_create(missing, ignore_conflicts=True, batch_size=500)
+
+    @classmethod
+    def get_or_create_for_lesson(cls, student, lesson):
+        token_obj, _ = cls.objects.get_or_create(student=student, lesson=lesson)
+        return token_obj
+

@@ -23,7 +23,7 @@ from .models import (
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
-    DailyLessonAccess, FinalTestPayment
+    DailyLessonAccess, FinalTestPayment, StudentLessonToken
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -1087,9 +1087,19 @@ def profession_detail(request, pk):
     lesson_is_locked = {}
     daily_lesson_today = None
     
+    token_map = {}
     if is_enrolled or is_teaching or request.user.is_admin:
         sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
         lessons_without_section = profession.lessons.filter(section__isnull=True)
+        
+        if request.user.is_student and is_enrolled:
+            StudentLessonToken.ensure_for_profession(request.user, profession)
+            token_map = {
+                t.lesson_id: t
+                for t in StudentLessonToken.objects.filter(
+                    student=request.user, lesson__profession=profession
+                )
+            }
         
         # Get user progress for lessons
         if request.user.is_authenticated:
@@ -1345,6 +1355,7 @@ def profession_detail(request, pk):
         'certificate': certificate,
         'certificate_request': certificate_request,
         'lesson_is_locked': lesson_is_locked,
+        'token_map': token_map,
     })
 
 
@@ -1790,6 +1801,8 @@ def lesson_view(request, pk):
         if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
             messages.error(request, "Avval kursga yoziling!")
             return redirect('profession_detail', pk=profession.pk)
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, lesson)
+        return redirect('student_lesson_view', token=token_obj.token)
 
         # Lug'at darslariga cheklovsiz kirish
         if lesson.lesson_type != 'dictionary':
@@ -1970,6 +1983,10 @@ def submit_speaking(request, pk):
     """Speaking vazifani topshirish"""
     speaking_task = get_object_or_404(SpeakingTask, pk=pk)
     
+    if request.user.is_student:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, speaking_task.lesson)
+        return redirect('student_lesson_view', token=token_obj.token)
+    
     if request.method != 'POST':
         return redirect('lesson_view', pk=speaking_task.lesson.pk)
     
@@ -2041,6 +2058,9 @@ def submit_speaking(request, pk):
 def mark_video_watched(request, pk):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'POST only'})
+    
+    if request.user.is_student:
+        return JsonResponse({'success': False, 'error': 'Use token URL'}, status=403)
     
     video = get_object_or_404(VideoLesson, pk=pk)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
@@ -2717,6 +2737,10 @@ def _read_image_with_ai(file_field):
 def submit_homework(request, pk):
     homework = get_object_or_404(Homework, pk=pk)
     
+    if request.user.is_student:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, homework.lesson)
+        return redirect('student_lesson_view', token=token_obj.token)
+    
     if request.method == 'POST':
         # Agar oldin topshirilgan bo'lsa, qayta yaratmaslik
         existing = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
@@ -2778,6 +2802,10 @@ def edit_homework(request, pk):
     """Topshiriqni 1 soat ichida tahrirlash"""
     submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
     
+    if request.user.is_student:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, submission.homework.lesson)
+        return redirect('student_lesson_view', token=token_obj.token)
+    
     if not submission.can_edit:
         messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
         return redirect('lesson_view', pk=submission.homework.lesson.pk)
@@ -2814,9 +2842,8 @@ def start_test(request, pk):
     profession = test.lesson.profession
     
     if request.user.is_student:
-        if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
-            messages.error(request, "Avval kursga yoziling!")
-            return redirect('profession_detail', pk=profession.pk)
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
+        return redirect('student_start_test', token=token_obj.token)
     
     # Check if already taken and retry not allowed
     existing_result = TestResult.objects.filter(test=test, student=request.user).first()
@@ -2942,6 +2969,10 @@ def start_test(request, pk):
 @login_required
 def submit_test(request, pk):
     test = get_object_or_404(Test, pk=pk)
+    
+    if request.user.is_student:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
+        return redirect('student_submit_test', token=token_obj.token)
     
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
@@ -3090,6 +3121,11 @@ def submit_test(request, pk):
 @login_required
 def test_result(request, pk):
     result = get_object_or_404(TestResult, pk=pk)
+    
+    if request.user.is_student and result.student == request.user:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, result.test.lesson)
+        return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
+    
     user_answers = result.user_answers.all().select_related('question', 'selected_answer')
     
     lesson = result.test.lesson
@@ -3110,6 +3146,667 @@ def test_result(request, pk):
         'user_answers': user_answers,
         'video_lesson': video_lesson,
         'homework_lesson': homework_lesson,
+    })
+
+
+# ===== STUDENT TOKEN-BASED VIEWS =====
+
+def _get_token_or_404(user, token):
+    return get_object_or_404(
+        StudentLessonToken.objects.select_related(
+            'lesson', 'lesson__profession', 'lesson__section',
+        ),
+        token=token,
+        student=user,
+    )
+
+
+@login_required
+def student_lesson_view(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    profession = lesson.profession
+
+    if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
+        messages.error(request, "Avval kursga yoziling!")
+        return redirect('profession_detail', pk=profession.pk)
+
+    # Lug'at darslariga cheklovsiz kirish
+    if lesson.lesson_type != 'dictionary':
+        from datetime import date
+        today = date.today()
+
+        watched_videos = set(VideoProgress.objects.filter(
+            user=request.user, watched=True,
+            video__lesson__profession=profession
+        ).values_list('video__lesson_id', flat=True))
+        passed_tests = set(TestResult.objects.filter(
+            student=request.user, test__lesson__profession=profession, passed=True
+        ).values_list('test__lesson_id', flat=True))
+        accepted_homeworks = set(HomeworkSubmission.objects.filter(
+            student=request.user, homework__lesson__profession=profession,
+            status__in=['accepted', 'graded']
+        ).values_list('homework__lesson_id', flat=True))
+        graded_speakings = set(SpeakingSubmission.objects.filter(
+            student=request.user, speaking_task__lesson__profession=profession,
+            status='graded'
+        ).values_list('speaking_task__lesson_id', flat=True))
+        completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks | graded_speakings
+
+        if lesson.pk not in completed_lesson_ids:
+            current_section = lesson.section
+            if current_section:
+                section_lessons_ids = set(
+                    current_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
+                )
+                section_started = bool(section_lessons_ids & completed_lesson_ids)
+                section_completed = section_lessons_ids.issubset(completed_lesson_ids)
+
+                if not section_completed and not section_started:
+                    all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
+                    section_idx = None
+                    for idx, s in enumerate(all_sections):
+                        if s.id == current_section.id:
+                            section_idx = idx
+                            break
+
+                    if section_idx is not None and section_idx > 0:
+                        prev_section = all_sections[section_idx - 1]
+                        prev_section_lessons = set(
+                            prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
+                        )
+                        if not prev_section_lessons.issubset(completed_lesson_ids):
+                            messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒")
+                            return redirect('profession_detail', pk=profession.pk)
+
+                    if profession.daily_section_limit:
+                        today_section_access = DailySectionAccess.objects.filter(
+                            user=request.user, profession=profession, accessed_date=today
+                        ).select_related('section').first()
+                        if today_section_access and today_section_access.section_id != current_section.id:
+                            messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
+                            return redirect('profession_detail', pk=profession.pk)
+
+                if not section_completed and profession.daily_section_limit:
+                    today_access = DailySectionAccess.objects.filter(
+                        user=request.user, profession=profession, accessed_date=today
+                    ).first()
+                    if not today_access:
+                        DailySectionAccess.objects.create(
+                            user=request.user, profession=profession,
+                            section=current_section, accessed_date=today
+                        )
+
+    context = {'lesson': lesson, 'profession': profession, 'student_token': token_obj}
+
+    # Keyingi darsni topish
+    next_lesson = None
+    if lesson.section:
+        next_lesson = Lesson.objects.filter(
+            profession=profession, section=lesson.section, order__gt=lesson.order
+        ).first()
+        if not next_lesson:
+            next_section = Section.objects.filter(
+                profession=profession, is_active=True, order__gt=lesson.section.order
+            ).first()
+            if next_section:
+                next_lesson = Lesson.objects.filter(profession=profession, section=next_section).first()
+    else:
+        next_lesson = Lesson.objects.filter(
+            profession=profession, section__isnull=True, order__gt=lesson.order
+        ).first()
+    context['next_lesson'] = next_lesson
+    if next_lesson:
+        context['next_lesson_token'] = StudentLessonToken.get_or_create_for_lesson(request.user, next_lesson)
+
+    if lesson.lesson_type == 'video':
+        video = lesson.video
+        progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
+        if not lesson.ai_article:
+            import threading
+            _lesson_id = lesson.pk
+            _title = lesson.title
+            _prof_name = profession.name
+            def _bg_generate():
+                try:
+                    from accounts.models import Lesson as _Lesson
+                    art = _generate_ai_article(_title, _prof_name)
+                    if art:
+                        _Lesson.objects.filter(pk=_lesson_id, ai_article__isnull=True).update(ai_article=art)
+                except Exception:
+                    pass
+            threading.Thread(target=_bg_generate, daemon=True).start()
+        context['video'] = video
+        context['progress'] = progress
+        return render(request, 'accounts/lessons/video_lesson.html', context)
+
+    elif lesson.lesson_type == 'homework':
+        homework = lesson.homework
+        submission = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
+        context['homework'] = homework
+        context['submission'] = submission
+        context['form'] = HomeworkSubmissionForm()
+        return render(request, 'accounts/lessons/homework_lesson.html', context)
+
+    elif lesson.lesson_type == 'test':
+        test = lesson.test
+        result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
+        context['test'] = test
+        context['result'] = result
+        if test.test_type == 'final':
+            pending_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='pending'
+            ).exists() if result else False
+            approved_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='approved'
+            ).exists() if result else False
+            context['pending_payment'] = pending_payment
+            context['approved_payment'] = approved_payment
+            return render(request, 'accounts/lessons/final_test_lesson.html', context)
+        return render(request, 'accounts/lessons/test_lesson.html', context)
+
+    elif lesson.lesson_type == 'dictionary':
+        dictionary = lesson.dictionary
+        words = dictionary.words.all()
+        search = request.GET.get('q', '').strip()
+        if search:
+            words = words.filter(
+                Q(word__icontains=search) | Q(translation__icontains=search)
+            )
+        context['dictionary'] = dictionary
+        context['words'] = words
+        context['search'] = search
+        return render(request, 'accounts/lessons/dictionary_lesson.html', context)
+
+    elif lesson.lesson_type == 'speaking':
+        speaking_task = lesson.speaking_task
+        submission = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
+        context['speaking_task'] = speaking_task
+        context['submission'] = submission
+        return render(request, 'accounts/lessons/speaking_lesson.html', context)
+
+    return redirect('profession_detail', pk=profession.pk)
+
+
+@login_required
+def student_mark_video_watched(request, token):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST only'})
+
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+
+    if lesson.lesson_type != 'video':
+        return JsonResponse({'success': False, 'error': 'Not a video lesson'})
+
+    video = lesson.video
+    progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
+
+    coin_amount = 2 if request.user.is_premium else 1
+    awarded = False
+
+    if not progress.watched:
+        progress.watched = True
+        progress.watched_at = timezone.now()
+        progress.save()
+
+        if not progress.coin_awarded:
+            request.user.add_coins(coin_amount, f"Video darslik ko'rildi: {video.lesson.title}")
+            progress.coin_awarded = True
+            progress.save()
+            awarded = True
+
+        from .notifications import on_video_watched
+        on_video_watched(request.user, progress)
+
+    return JsonResponse({
+        'success': True,
+        'coins': request.user.coins,
+        'coin_amount': coin_amount if awarded else 0,
+        'is_premium': request.user.is_premium,
+    })
+
+
+@login_required
+def student_submit_homework(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    homework = get_object_or_404(Homework, lesson=lesson)
+
+    if request.method == 'POST':
+        existing = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
+        if existing:
+            messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+            return redirect('student_lesson_view', token=token_obj.token)
+
+        submission_type = request.POST.get('submission_type', 'file')
+        submission = None
+
+        if homework.file_only:
+            submission_type = 'file'
+
+        if homework.handwritten_only:
+            submission_type = 'file'
+            uploaded_file = request.FILES.get('file')
+            if uploaded_file:
+                import os
+                ext = os.path.splitext(uploaded_file.name)[1].lower()
+                if ext not in ('.jpg', '.jpeg', '.png'):
+                    messages.error(request, "Faqat rasm formatida (.jpg, .jpeg, .png) qabul qilinadi!")
+                    return redirect('student_lesson_view', token=token_obj.token)
+
+        if submission_type == 'file':
+            form = HomeworkSubmissionForm(request.POST, request.FILES)
+            if form.is_valid():
+                submission = form.save(commit=False)
+                submission.homework = homework
+                submission.student = request.user
+                submission.submission_type = 'file'
+                submission.save()
+                messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+                _notify_homework_submitted(request.user, homework)
+        else:
+            text_content = request.POST.get('text_content', '').strip()
+            if text_content:
+                submission = HomeworkSubmission.objects.create(
+                    homework=homework, student=request.user,
+                    submission_type='text', text_content=text_content
+                )
+                messages.success(request, "Vazifa muvaffaqiyatli yuborildi!")
+                _notify_homework_submitted(request.user, homework)
+            else:
+                messages.error(request, "Matn kiritishingiz kerak!")
+
+        if submission and homework.ai_check and homework.lesson.profession.ai_check_enabled:
+            _schedule_ai_check(submission.pk)
+
+    return redirect('student_lesson_view', token=token_obj.token)
+
+
+@login_required
+def student_edit_homework(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    submission = get_object_or_404(HomeworkSubmission, homework__lesson=lesson, student=request.user)
+
+    if not submission.can_edit:
+        messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
+        return redirect('student_lesson_view', token=token_obj.token)
+
+    if request.method == 'POST':
+        submission_type = request.POST.get('submission_type', submission.submission_type)
+
+        if submission_type == 'file':
+            new_file = request.FILES.get('file')
+            if new_file:
+                submission.file = new_file
+                submission.submission_type = 'file'
+                submission.save()
+                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+            else:
+                messages.error(request, "Fayl tanlang!")
+        else:
+            text_content = request.POST.get('text_content', '').strip()
+            if text_content:
+                submission.text_content = text_content
+                submission.submission_type = 'text'
+                submission.save()
+                messages.success(request, "Topshiriq muvaffaqiyatli tahrirlandi!")
+            else:
+                messages.error(request, "Matn kiriting!")
+
+    return redirect('student_lesson_view', token=token_obj.token)
+
+
+@login_required
+def student_submit_speaking(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    speaking_task = get_object_or_404(SpeakingTask, lesson=lesson)
+
+    if request.method != 'POST':
+        return redirect('student_lesson_view', token=token_obj.token)
+
+    existing = SpeakingSubmission.objects.filter(speaking_task=speaking_task, student=request.user).first()
+    if existing:
+        messages.info(request, "Siz bu vazifani allaqachon topshirgansiz!")
+        return redirect('student_lesson_view', token=token_obj.token)
+
+    audio_file = request.FILES.get('audio_file')
+    if not audio_file:
+        messages.error(request, "Audio faylni yuklang!")
+        return redirect('student_lesson_view', token=token_obj.token)
+
+    submission = SpeakingSubmission.objects.create(
+        speaking_task=speaking_task, student=request.user, audio_file=audio_file,
+    )
+
+    if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
+        try:
+            from teacher.views import _ai_grade_speaking
+            ai_result = _ai_grade_speaking(submission)
+            if ai_result:
+                submission.grade = ai_result['grade']
+                submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+                submission.ai_feedback = ai_result['feedback']
+                submission.pronunciation_score = ai_result.get('pronunciation', 0)
+                submission.fluency_score = ai_result.get('fluency', 0)
+                submission.grammar_score = ai_result.get('grammar', 0)
+                submission.vocabulary_score = ai_result.get('vocabulary', 0)
+                submission.status = ai_result['status']
+                submission.graded_at = timezone.now()
+                submission.save()
+
+                if ai_result['status'] == 'graded' and not submission.coin_awarded:
+                    coin_amount = 10
+                    if ai_result['grade'] >= 9:
+                        coin_amount += 5
+                    elif ai_result['grade'] >= 8:
+                        coin_amount += 3
+                    if request.user.is_premium:
+                        coin_amount *= 2
+                    request.user.add_coins(coin_amount, f"Speaking vazifa baholandi: {speaking_task.lesson.title}")
+                    submission.coin_awarded = True
+                    submission.save(update_fields=['coin_awarded'])
+                    ActivityLog.objects.create(
+                        user=request.user, action_type='homework_graded',
+                        description=f"Speaking AI baholadi: {speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+                    )
+
+                messages.success(request, f"Speaking vazifa topshirildi va AI baholadi: {ai_result['grade']} ball!")
+                return redirect('student_lesson_view', token=token_obj.token)
+            else:
+                messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+        except Exception as e:
+            import traceback
+            print(f"Speaking AI tekshiruv xatolik: {e}")
+            traceback.print_exc()
+            messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+    else:
+        messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
+
+    return redirect('student_lesson_view', token=token_obj.token)
+
+
+@login_required
+def student_start_test(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    test = get_object_or_404(Test, lesson=lesson)
+    profession = lesson.profession
+
+    if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
+        messages.error(request, "Avval kursga yoziling!")
+        return redirect('profession_detail', pk=profession.pk)
+
+    existing_result = TestResult.objects.filter(test=test, student=request.user).first()
+    if existing_result:
+        if test.test_type == 'final':
+            approved_payment = FinalTestPayment.objects.filter(
+                student=request.user, test=test, status='approved'
+            ).first()
+            if not approved_payment:
+                messages.info(request, "Yakuniy testni qayta ishlash uchun to'lov qilishingiz kerak (65,000 so'm).")
+                return redirect('final_test_payment', pk=test.pk)
+            approved_payment.delete()
+        elif not test.allow_retry:
+            messages.info(request, "Siz bu testni allaqachon topshirgansiz.")
+            return redirect('student_test_result', token=token_obj.token, result_pk=existing_result.pk)
+
+    sq_key = f'test_{test.pk}_questions'
+    st_key = f'test_{test.pk}_start'
+    sa_key = f'test_{test.pk}_answer_order'
+    token_key = f'test_{test.pk}_submit_token'
+
+    active_question_ids = request.session.get(sq_key)
+    submit_token = request.session.get(token_key)
+
+    if active_question_ids and not submit_token:
+        questions_qs = TestQuestion.objects.filter(pk__in=active_question_ids).prefetch_related('answers')
+        question_map = {q.pk: q for q in questions_qs}
+        questions = [question_map[qid] for qid in active_question_ids if qid in question_map]
+
+        answer_order = request.session.get(sa_key, {})
+        for q in questions:
+            ordered_ids = answer_order.get(str(q.pk))
+            if ordered_ids:
+                answer_map = {a.pk: a for a in q.answers.all()}
+                ordered_answers = [answer_map[aid] for aid in ordered_ids if aid in answer_map]
+                q._prefetched_objects_cache['answers'] = ordered_answers
+
+        start_time_str = request.session.get(st_key)
+        remaining = test.time_limit * 60
+        if start_time_str:
+            from datetime import datetime as dt
+            try:
+                started = dt.fromisoformat(start_time_str)
+                elapsed = (timezone.now() - started).total_seconds()
+                remaining = max(0, test.time_limit * 60 - int(elapsed))
+            except (ValueError, TypeError):
+                pass
+
+        if remaining <= 0:
+            request.session.pop(sq_key, None)
+            request.session.pop(st_key, None)
+            request.session.pop(sa_key, None)
+            return redirect('student_lesson_view', token=token_obj.token)
+
+        template = 'accounts/lessons/final_test_take.html' if test.test_type == 'final' else 'accounts/lessons/test_take.html'
+        return render(request, template, {
+            'test': test,
+            'questions': questions,
+            'remaining_time': remaining,
+            'student_token': token_obj,
+        })
+
+    if existing_result and test.allow_retry and test.test_type != 'final':
+        retry_cost = 3 if request.user.is_premium else 10
+        request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
+
+    all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
+
+    import random
+
+    if test.question_count and test.question_count > 0 and len(all_questions) > test.question_count:
+        questions = random.sample(all_questions, test.question_count)
+    else:
+        questions = all_questions[:]
+
+    if test.shuffle_questions:
+        random.shuffle(questions)
+
+    if test.shuffle_answers:
+        for q in questions:
+            answers_list = list(q.answers.all())
+            random.shuffle(answers_list)
+            q._prefetched_objects_cache['answers'] = answers_list
+
+    request.session[sq_key] = [q.pk for q in questions]
+    request.session[st_key] = timezone.now().isoformat()
+    request.session.pop(token_key, None)
+
+    answer_order = {}
+    for q in questions:
+        cached = getattr(q, '_prefetched_objects_cache', {}).get('answers')
+        if cached is not None:
+            answer_order[str(q.pk)] = [a.pk for a in cached]
+        else:
+            answer_order[str(q.pk)] = [a.pk for a in q.answers.all()]
+    request.session[sa_key] = answer_order
+
+    remaining = test.time_limit * 60
+
+    template = 'accounts/lessons/final_test_take.html' if test.test_type == 'final' else 'accounts/lessons/test_take.html'
+    return render(request, template, {
+        'test': test,
+        'questions': questions,
+        'remaining_time': remaining,
+        'student_token': token_obj,
+    })
+
+
+@login_required
+def student_submit_test(request, token):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    test = get_object_or_404(Test, lesson=lesson)
+
+    if request.method != 'POST':
+        return redirect('student_start_test', token=token_obj.token)
+
+    submit_token = request.session.get(f'test_{test.pk}_submit_token')
+    if submit_token:
+        last_result = TestResult.objects.filter(test=test, student=request.user).order_by('-id').first()
+        if last_result:
+            return redirect('student_test_result', token=token_obj.token, result_pk=last_result.pk)
+    request.session[f'test_{test.pk}_submit_token'] = True
+
+    request.session.pop(f'test_{test.pk}_answer_order', None)
+
+    start_time = request.session.get(f'test_{test.pk}_start')
+    started_at = timezone.now()
+    if start_time:
+        from datetime import datetime
+        started_at = datetime.fromisoformat(start_time)
+
+        elapsed_seconds = (timezone.now() - started_at).total_seconds()
+        allowed_seconds = test.time_limit * 60 + 60
+        if elapsed_seconds > allowed_seconds:
+            messages.warning(request, "Vaqt chegarasi o'tgan! Natijalar server vaqti bilan tekshirildi.")
+
+    shown_question_ids = request.session.get(f'test_{test.pk}_questions')
+    if shown_question_ids:
+        questions = test.questions.filter(pk__in=shown_question_ids)
+    else:
+        questions = test.questions.all()
+
+    correct = 0
+    total = questions.count()
+
+    result = TestResult.objects.create(
+        test=test, student=request.user,
+        score=0, total_questions=total, correct_answers=0,
+        started_at=started_at, passed=False
+    )
+
+    for question in questions:
+        answer_id = request.POST.get(f'question_{question.pk}')
+        selected_answer = None
+        is_correct = False
+
+        if answer_id:
+            try:
+                selected_answer = TestAnswer.objects.get(pk=answer_id)
+                is_correct = selected_answer.is_correct
+                if is_correct:
+                    correct += 1
+            except TestAnswer.DoesNotExist:
+                pass
+
+        TestUserAnswer.objects.create(
+            result=result, question=question,
+            selected_answer=selected_answer, is_correct=is_correct
+        )
+
+    score = int((correct / total) * 100) if total > 0 else 0
+    result.score = score
+    result.correct_answers = correct
+    result.passed = score >= test.passing_score
+    result.save()
+
+    existing_results_count = TestResult.objects.filter(
+        test=test, student=request.user
+    ).exclude(pk=result.pk).count()
+
+    if result.passed:
+        already_got_coin = TestResult.objects.filter(
+            test=test, student=request.user, coin_awarded=True
+        ).exclude(pk=result.pk).exists()
+
+        if not already_got_coin:
+            if correct > 0:
+                request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+            result.coin_awarded = True
+            result.save()
+
+        if existing_results_count > 0:
+            refund_amount = 5 if request.user.is_premium else 10
+            request.user.add_coins(refund_amount, f"Test muvaffaqiyatli - kirish puli qaytarildi: {test.lesson.title}")
+
+        total_earned = (correct if not already_got_coin else 0) + (5 if request.user.is_premium and existing_results_count > 0 else 10 if existing_results_count > 0 else 0)
+
+        ActivityLog.objects.create(
+            user=request.user, action_type='submit_test',
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{total_earned} coin" if total_earned > 0 else "")
+        )
+
+        if already_got_coin:
+            if existing_results_count > 0:
+                refund_amount = 5 if request.user.is_premium else 10
+                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! Siz bu test uchun coin allaqachon olib bo'lgansiz. {refund_amount} coin qaytarildi!")
+            else:
+                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
+        elif existing_results_count > 0:
+            refund_amount = 5 if request.user.is_premium else 10
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin (to'g'ri javoblar) va {refund_amount} coin qaytarildi!")
+        else:
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
+    else:
+        ActivityLog.objects.create(
+            user=request.user, action_type='submit_test',
+            description=f"Test topshirdi (muvaffaqiyatsiz): {test.lesson.title} - {correct}/{total} to'g'ri"
+        )
+        messages.warning(request, f"Testdan o'ta olmadingiz. {correct}/{total} to'g'ri javob.")
+
+    from .notifications import on_test_completed
+    on_test_completed(request.user, result)
+
+    passed_text = "✅ Muvaffaqiyatli" if result.passed else "❌ Muvaffaqiyatsiz"
+    notify_user(
+        request.user.telegram_id,
+        f"📊 <b>Test natijasi!</b>\n\n"
+        f"📚 Kurs: {test.lesson.profession.name}\n"
+        f"📖 Dars: {test.lesson.title}\n"
+        f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
+        f"{passed_text}"
+    )
+    return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
+
+
+@login_required
+def student_test_result(request, token, result_pk):
+    token_obj = _get_token_or_404(request.user, token)
+    lesson = token_obj.lesson
+    result = get_object_or_404(TestResult, pk=result_pk, student=request.user, test__lesson=lesson)
+    user_answers = result.user_answers.all().select_related('question', 'selected_answer')
+
+    profession = lesson.profession
+    section = lesson.section
+
+    video_lesson = None
+    homework_lesson = None
+    same_section_lessons = Lesson.objects.filter(profession=profession, section=section) if section else Lesson.objects.filter(profession=profession)
+    for l in same_section_lessons:
+        if l.lesson_type == 'video' and not video_lesson:
+            video_lesson = l
+        elif l.lesson_type == 'homework' and not homework_lesson:
+            homework_lesson = l
+
+    video_lesson_token = None
+    homework_lesson_token = None
+    if video_lesson:
+        video_lesson_token = StudentLessonToken.get_or_create_for_lesson(request.user, video_lesson)
+    if homework_lesson:
+        homework_lesson_token = StudentLessonToken.get_or_create_for_lesson(request.user, homework_lesson)
+
+    return render(request, 'accounts/lessons/test_result.html', {
+        'result': result,
+        'user_answers': user_answers,
+        'video_lesson': video_lesson,
+        'homework_lesson': homework_lesson,
+        'student_token': token_obj,
+        'video_lesson_token': video_lesson_token,
+        'homework_lesson_token': homework_lesson_token,
     })
 
 

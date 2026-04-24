@@ -874,7 +874,11 @@
                         </div>
                     </div>
                     {% else %}
+                    {% if request.user.is_student and token_map %}
+                    <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
+                    {% else %}
                     <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
+                    {% endif %}
                         <div class="lesson-icon {{ lesson.lesson_type }}">
                             {% if lesson.lesson_type == 'video' %}
                                 <i class="bi bi-play-fill"></i>
@@ -1016,7 +1020,11 @@
                 </div>
                 {% else %}
                 {% for lesson in lessons_without_section %}
+                {% if request.user.is_student and token_map %}
+                <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
+                {% else %}
                 <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
+                {% endif %}
                     <div class="lesson-icon {{ lesson.lesson_type }}">
                         {% if lesson.lesson_type == 'video' %}
                             <i class="bi bi-play-fill"></i>

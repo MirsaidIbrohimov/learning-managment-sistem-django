@@ -267,7 +267,7 @@
                         <div class="result-score">Oxirgi natija: {{ result.score }}%</div>
                         <div class="result-details">{{ result.correct_answers }}/{{ result.total_questions }} to'g'ri javob</div>
                     </div>
-                    <a href="{% url 'test_result' result.pk %}" class="result-btn">
+                    {% if student_token %}<a href="{% url 'student_test_result' student_token.token result.pk %}" class="result-btn">{% else %}<a href="{% url 'test_result' result.pk %}" class="result-btn">{% endif %}
                         <i class="bi bi-eye me-1"></i>Ko'rish
                     </a>
                 </div>
@@ -277,7 +277,7 @@
             <div class="action-section">
                 {% if not result %}
                     <!-- Birinchi marta - BEPUL -->
-                    <a href="{% url 'start_test' test.pk %}" class="start-btn free-btn">
+                    {% if student_token %}<a href="{% url 'student_start_test' student_token.token %}" class="start-btn free-btn">{% else %}<a href="{% url 'start_test' test.pk %}" class="start-btn free-btn">{% endif %}
                         <i class="bi bi-play-fill"></i>
                         Testni boshlash
                         <span class="free-badge"><i class="bi bi-gift-fill"></i> BEPUL</span>
@@ -295,7 +295,7 @@
                     </div>
                 {% elif approved_payment %}
                     <!-- To'lov tasdiqlangan - qayta topshirish mumkin -->
-                    <a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">
+                    {% if student_token %}<a href="{% url 'student_start_test' student_token.token %}" class="start-btn retry-btn">{% else %}<a href="{% url 'start_test' test.pk %}" class="start-btn retry-btn">{% endif %}
                         <i class="bi bi-arrow-repeat"></i>
                         Qayta topshirish
                     </a>

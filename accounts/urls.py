@@ -22,7 +22,7 @@ urlpatterns = [
     path('section/<int:pk>/edit/', views.edit_section, name='edit_section'),
     path('section/<int:pk>/delete/', views.delete_section, name='delete_section'),
     
-    # Lessons
+    # Lessons (admin/teacher - PK based)
     path('lessons/<int:pk>/', views.lesson_view, name='lesson_view'),
     path('lessons/<int:pk>/edit/', views.edit_lesson, name='edit_lesson'),
     path('lessons/<int:pk>/delete/', views.delete_lesson, name='delete_lesson'),
@@ -34,10 +34,20 @@ urlpatterns = [
     path('homework/generate-ai/', views.generate_ai_homework, name='generate_ai_homework'),
     path('test/generate-ai/', views.generate_ai_test, name='generate_ai_test'),
     
-    # Tests
+    # Tests (admin/teacher - PK based)
     path('test/<int:pk>/start/', views.start_test, name='start_test'),
     path('test/<int:pk>/submit/', views.submit_test, name='submit_test'),
     path('test/result/<int:pk>/', views.test_result, name='test_result'),
+    
+    # Student token-based lesson URLs
+    path('s/<uuid:token>/', views.student_lesson_view, name='student_lesson_view'),
+    path('s/<uuid:token>/video/watched/', views.student_mark_video_watched, name='student_mark_video_watched'),
+    path('s/<uuid:token>/homework/submit/', views.student_submit_homework, name='student_submit_homework'),
+    path('s/<uuid:token>/homework/edit/', views.student_edit_homework, name='student_edit_homework'),
+    path('s/<uuid:token>/speaking/submit/', views.student_submit_speaking, name='student_submit_speaking'),
+    path('s/<uuid:token>/test/start/', views.student_start_test, name='student_start_test'),
+    path('s/<uuid:token>/test/submit/', views.student_submit_test, name='student_submit_test'),
+    path('s/<uuid:token>/test/result/<int:result_pk>/', views.student_test_result, name='student_test_result'),
     path('test/<int:pk>/questions/', views.manage_test_questions, name='manage_test_questions'),
     path('test/<int:pk>/questions/add/', views.add_test_question, name='add_test_question'),
     path('question/<int:pk>/delete/', views.delete_test_question, name='delete_test_question'),
