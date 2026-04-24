@@ -5,1718 +5,1432 @@
 
 {% block extra_css %}
 <style>
-/* Beautiful Modern Dashboard Styles */
-.earnings-dashboard {
-    background: linear-gradient(135deg, var(--bs-primary, #667eea) 0%, var(--bs-secondary, #764ba2) 100%);
-    border-radius: 24px;
-    padding: 3rem;
+/* ═══════════════════════════════════════════════════
+   HERO DASHBOARD
+   ═══════════════════════════════════════════════════ */
+.hero-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    border-radius: 28px;
+    padding: 2.5rem 3rem;
     margin-bottom: 2rem;
     position: relative;
     overflow: hidden;
-    animation: slideInDown 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
+    animation: heroSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 60px -15px rgba(102, 126, 234, 0.5);
 }
 
-.earnings-dashboard::before {
+.hero-dashboard::before {
     content: '';
     position: absolute;
-    top: -20%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    top: -40%;
+    right: -15%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
     border-radius: 50%;
-    animation: float 8s ease-in-out infinite;
+    animation: heroFloat 10s ease-in-out infinite;
 }
 
-.earnings-dashboard::after {
+.hero-dashboard::after {
     content: '';
     position: absolute;
-    bottom: -20%;
-    left: -5%;
+    bottom: -30%;
+    left: -10%;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
     border-radius: 50%;
-    animation: float 10s ease-in-out infinite reverse;
+    animation: heroFloat 12s ease-in-out infinite reverse;
 }
 
-.dashboard-header {
+.hero-top {
     position: relative;
     z-index: 10;
-    color: white;
-    margin-bottom: 2.5rem;
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
 }
 
-.dashboard-title {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    letter-spacing: -0.02em;
-}
-
-.dashboard-subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin: 0;
-    font-weight: 400;
-}
-
-.dashboard-title {
+.hero-title {
+    color: #fff;
     font-size: 2rem;
     font-weight: 800;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.dashboard-subtitle {
-    font-size: 1rem;
-    opacity: 0.9;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    letter-spacing: -0.02em;
     margin: 0;
 }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+.hero-subtitle {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.95rem;
+    margin: 0.25rem 0 0;
+}
+
+.hero-btn {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 0.75rem 1.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.hero-btn:hover {
+    background: rgba(255,255,255,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    color: #fff;
+}
+
+.hero-stats {
     position: relative;
     z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
 }
 
-.stat-card {
-    background: var(--bs-card-bg, rgba(255, 255, 255, 0.95));
+.hero-stat {
+    background: rgba(255,255,255,0.15);
     backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 2rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
-    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.3));
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    position: relative;
-    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 1.5rem;
     text-align: center;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #8b5cf6);
-    transform: scaleX(0);
-    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+.hero-stat:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
 }
 
-.stat-card:hover {
-    transform: translateY(-12px) scale(1.03);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15),
-                0 0 0 1px rgba(255, 255, 255, 0.3);
-}
-
-.stat-card:hover::before {
-    transform: scaleX(1);
-}
-
-.stat-icon-wrapper {
-    width: 80px;
-    height: 80px;
-    border-radius: 24px;
-    display: flex;
+.hero-stat-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
-    margin: 0 auto 1.5rem;
-    position: relative;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.stat-icon-calculated {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.stat-icon-paid {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
-
-.stat-icon-balance {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.stat-value {
-    font-size: 2.5rem;
+.hero-stat-value {
+    font-size: 1.8rem;
     font-weight: 900;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--bs-body-color, #1f2937), var(--bs-secondary-color, #374151));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #fff;
     line-height: 1;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
-.stat-label {
-    font-size: 1rem;
-    color: var(--bs-secondary-color, #6b7280);
+.hero-stat-label {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.8);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 0;
-}
-
-
-.stat-icon-calculated {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.stat-icon-paid {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
-
-.stat-icon-balance {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-    background: linear-gradient(135deg, var(--bs-body-color, #1f2937), var(--bs-secondary-color, #374151));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.stat-label {
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color, #6b7280);
-    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-/* Beautiful Modern Filters Section */
-.filters-modern {
-    background: var(--bs-card-bg, rgba(255, 255, 255, 0.95));
+/* ═══════════════════════════════════════════════════
+   FILTERS
+   ═══════════════════════════════════════════════════ */
+.filters-glass {
+    background: var(--bs-card-bg, rgba(255,255,255,0.95));
     backdrop-filter: blur(20px);
     border-radius: 24px;
-    padding: 2.5rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
-    margin-bottom: 2.5rem;
-    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.3));
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.filters-modern:hover {
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12),
-                0 0 0 1px rgba(255, 255, 255, 0.3);
-}
-
-.filters-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    padding: 2rem;
     margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
+    transition: all 0.3s ease;
 }
 
-.filters-title {
-    font-size: 1.5rem;
-    font-weight: 800;
+.filters-glass:hover {
+    box-shadow: 0 12px 48px rgba(0,0,0,0.1);
+}
+
+.filters-glass-title {
+    font-size: 1.1rem;
+    font-weight: 700;
     color: var(--bs-body-color, #1f2937);
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    letter-spacing: -0.02em;
+    gap: 0.5rem;
 }
 
 .filter-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
 }
 
-.form-control-modern {
-    border: 2px solid var(--bs-border-color, rgba(229, 231, 235, 0.8));
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
-    font-size: 1rem;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    background: var(--bs-tertiary-bg, rgba(249, 250, 251, 0.8));
-    color: var(--bs-body-color, #1f2937);
-    font-weight: 500;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.form-control-modern:focus {
-    border-color: #667eea;
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15),
-                0 8px 24px rgba(102, 126, 234, 0.1);
-    outline: none;
-    color: var(--bs-body-color, #1f2937);
-    transform: translateY(-2px);
-}
-
-.form-control-modern::placeholder {
-    color: var(--bs-secondary-color, #9ca3af);
-}
-
-.btn-modern {
-    border-radius: 16px;
-    padding: 1rem 2rem;
-    font-weight: 700;
-    border: none;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.95rem;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-.btn-primary-modern {
-    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary-modern:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-/* Beautiful Modern Table Styles */
-.table-modern {
-    background: var(--bs-card-bg, rgba(255, 255, 255, 0.95));
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.08),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
-    border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.3));
-    transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-    margin-bottom: 2.5rem;
-}
-
-.table-modern .table {
-    margin: 0;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table-modern thead th {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f8fafc), var(--bs-secondary-bg, #f1f5f9));
-    padding: 1.5rem 1.25rem;
-    font-weight: 800;
+.filter-input {
+    border: 2px solid var(--bs-border-color, #e2e8f0);
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
     font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--bs-secondary-color, #475569);
-    border: none;
-    position: relative;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.table-modern thead th:first-child {
-    border-top-left-radius: 24px;
-}
-
-.table-modern thead th:last-child {
-    border-top-right-radius: 24px;
-}
-
-.table-modern tbody td {
-    padding: 1.5rem 1.25rem;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--bs-border-color, rgba(241, 245, 249, 0.8));
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    background: var(--bs-tertiary-bg, #f8fafc);
     color: var(--bs-body-color, #1f2937);
-    position: relative;
     font-weight: 500;
+    transition: all 0.3s ease;
 }
 
-.table-modern tbody tr:hover td {
-    background: var(--bs-tertiary-bg, rgba(248, 250, 252, 0.8));
-    transform: scale(1.01);
+.filter-input:focus {
+    border-color: #667eea;
+    background: var(--bs-body-bg, #fff);
+    box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+    outline: none;
+    transform: translateY(-1px);
 }
 
-.table-modern tbody tr:hover {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+.filter-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.btn-filter {
+    border-radius: 14px;
+    padding: 0.7rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.3px;
+}
+
+.btn-filter-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(102,126,234,0.35);
+}
+
+.btn-filter-primary:hover {
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+    color: #fff;
 }
 
-.table-modern tbody tr:last-child td {
-    border-bottom: none;
+.btn-filter-secondary {
+    background: var(--bs-tertiary-bg, #f1f5f9);
+    color: var(--bs-body-color, #64748b);
+    border: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
-/* Dark mode table enhancements */
-@media (prefers-color-scheme: dark) {
-    .table-modern {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-    }
-    
-    .table-modern thead th {
-        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #334155));
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-    
-    .table-modern tbody td {
-        border-bottom: 1px solid var(--bs-border-color, #334155);
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .table-modern tbody tr:hover td {
-        background: var(--bs-tertiary-bg, #1e293b);
-    }
+.btn-filter-secondary:hover {
+    background: var(--bs-secondary-bg, #e2e8f0);
+    transform: translateY(-1px);
+    color: var(--bs-body-color, #475569);
 }
 
-.table-modern tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.teacher-card {
+/* ═══════════════════════════════════════════════════
+   SECTION HEADER
+   ═══════════════════════════════════════════════════ */
+.section-header {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-    padding: 1rem;
-    border-radius: 20px;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    background: var(--bs-tertiary-bg, rgba(249, 250, 251, 0.5));
-    border: 1px solid var(--bs-border-color, rgba(229, 231, 235, 0.3));
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
-.teacher-card:hover {
-    background: var(--bs-tertiary-bg, rgba(248, 250, 252, 0.8));
-    transform: translateX(8px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.teacher-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.25rem;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.teacher-card:hover .teacher-avatar {
-    transform: scale(1.1);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
-}
-
-.teacher-info {
-    flex: 1;
-}
-
-.teacher-name {
+.section-title {
+    font-size: 1.3rem;
     font-weight: 800;
     color: var(--bs-body-color, #1f2937);
-    margin-bottom: 0.25rem;
-    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
     letter-spacing: -0.01em;
 }
 
-.teacher-username {
-    font-size: 0.9rem;
-    color: var(--bs-secondary-color, #6b7280);
-    font-weight: 500;
-}
-
-.earnings-pills {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-}
-
-.earnings-pill {
+.section-title-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
     display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 24px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    color: #166534;
-    border: 1px solid #bbf7d0;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.earnings-pill:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.25);
-}
-
-.earnings-pill i {
-    font-size: 1rem;
-}
-
-.balance-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 24px;
-    font-size: 1rem;
-    font-weight: 800;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.balance-badge:hover {
-    transform: translateY(-2px) scale(1.05);
-}
-
-.balance-positive {
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    color: #166534;
-    border: 1px solid #bbf7d0;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
-}
-
-.balance-negative {
-    background: linear-gradient(135deg, #fef2f2, #fee2e2);
-    color: #dc2626;
-    border: 1px solid #fecaca;
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-}
-
-.balance-zero {
-    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
-    color: #6b7280;
-    border: 1px solid #d1d5db;
-    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.15);
-}
-
-.status-modern {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.status-paid {
-    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-    color: #166534;
-    border: 1px solid #bbf7d0;
-}
-
-.status-unpaid {
-    background: linear-gradient(135deg, #fffbeb, #fef3c7);
-    color: #d97706;
-    border: 1px solid #fde68a;
-}
-
-.action-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-action {
-    width: 44px;
-    height: 44px;
-    border-radius: 16px;
-    display: flex;
     align-items: center;
     justify-content: center;
-    border: none;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
     font-size: 1.1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    margin: 0 0.25rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
-.btn-action:hover {
-    transform: translateY(-4px) scale(1.1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-}
-
-.btn-view {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: white;
-}
-
-.btn-view:hover {
-    background: linear-gradient(135deg, #2563eb, #1d4ed8);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
-}
-
-.btn-edit {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-}
-
-.btn-edit:hover {
-    background: linear-gradient(135deg, #059669, #047857);
-    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-}
-
-.btn-calc {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-}
-
-.btn-calc:hover {
-    background: linear-gradient(135deg, #d97706, #b45309);
-    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
-}
-
-.btn-expand-modern {
-    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
-    color: white;
-    border: none;
+.section-badge {
+    background: var(--bs-tertiary-bg, #f1f5f9);
+    color: var(--bs-secondary-color, #64748b);
+    padding: 0.3rem 0.75rem;
     border-radius: 20px;
-    padding: 1rem 2rem;
-    font-weight: 700;
-    font-size: 1rem;
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-expand-modern::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn-expand-modern:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
-}
-
-.btn-expand-modern:hover::before {
-    left: 100%;
-}
-
-.btn-expand-modern:active {
-    transform: translateY(-1px) scale(1.01);
-}
-
-.toggle-icon {
-    transition: transform 0.3s ease;
-    display: inline-block;
-}
-
-.btn-expand-modern.expanded .toggle-icon {
-    transform: rotate(180deg);
-}
-
-.month-summary-grid {
-    max-height: 600px;
-    overflow: hidden;
-    transition: max-height 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.month-summary-grid.expanded {
-    max-height: 3000px;
-}
-
-.month-summary-card.hidden-card {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    pointer-events: none;
-}
-
-.month-summary-grid.expanded .month-summary-card.hidden-card {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(1) { transition-delay: 0.1s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(2) { transition-delay: 0.2s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(3) { transition-delay: 0.3s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(4) { transition-delay: 0.4s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(5) { transition-delay: 0.5s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(6) { transition-delay: 0.6s; }
-.month-summary-grid.expanded .month-summary-card.hidden-card:nth-child(7) { transition-delay: 0.7s; }
-
-/* Month-over-month comparison styles */
-.month-earnings {
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    min-width: 100px;
-}
-
-.current-month {
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #1d4ed8;
-}
-
-.prev-month {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
-    color: var(--bs-body-color, #374151);
-}
-
-.earnings-amount {
-    font-weight: 700;
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-}
-
-.earnings-label {
     font-size: 0.75rem;
-    opacity: 0.8;
-    font-weight: 500;
-}
-
-.change-indicator {
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    min-width: 120px;
-    position: relative;
-}
-
-.change-positive {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #166534;
-}
-
-.change-negative {
-    background: linear-gradient(135deg, #fee2e2, #fecaca);
-    color: #dc2626;
-}
-
-.change-neutral {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
-    color: var(--bs-secondary-color, #6b7280);
-}
-
-.change-amount {
     font-weight: 700;
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
 }
 
-.change-percent {
-    font-size: 0.75rem;
-    margin-bottom: 0.25rem;
-    opacity: 0.9;
-}
-
-.change-icon {
-    font-size: 1rem;
-    opacity: 0.7;
-}
-
-/* Empty State */
-.empty-modern {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--bs-card-bg, white);
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--bs-border-color, #e5e7eb);
-}
-
-.empty-icon {
-    font-size: 4rem;
-    color: var(--bs-secondary-color, #d1d5db);
-    margin-bottom: 1rem;
-}
-
-.empty-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--bs-body-color, #374151);
-    margin-bottom: 0.5rem;
-}
-
-.empty-description {
-    font-size: 1rem;
-    color: var(--bs-secondary-color, #6b7280);
-    margin: 0;
-}
-
-/* Comprehensive Dark Mode Support */
-@media (prefers-color-scheme: dark) {
-    .earnings-dashboard {
-        background: linear-gradient(135deg, var(--bs-primary, #4c1d95) 0%, var(--bs-secondary, #6d28d9) 100%);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-    
-    .earnings-dashboard::before {
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-    }
-    
-    .earnings-dashboard::after {
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
-    }
-    
-    .stat-card {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-    
-    .stat-card:hover {
-        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
-                    0 0 0 1px rgba(255, 255, 255, 0.1);
-    }
-    
-    .filters-modern {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-    
-    .form-control-modern {
-        background: var(--bs-tertiary-bg, rgba(30, 41, 59, 0.8));
-        border-color: var(--bs-border-color, rgba(255, 255, 255, 0.2));
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .form-control-modern:focus {
-        background: var(--bs-body-bg, rgba(30, 41, 59, 0.95));
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.25),
-                    0 8px 24px rgba(102, 126, 234, 0.2);
-    }
-    
-    .table-modern {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-    
-    .table-modern thead th {
-        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #334155));
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-    
-    .table-modern tbody td {
-        border-bottom: 1px solid var(--bs-border-color, #334155);
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .table-modern tbody tr:hover td {
-        background: var(--bs-tertiary-bg, #1e293b);
-    }
-    
-    .teacher-card {
-        background: var(--bs-tertiary-bg, rgba(30, 41, 59, 0.5));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-    }
-    
-    .teacher-card:hover {
-        background: var(--bs-tertiary-bg, rgba(30, 41, 59, 0.8));
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    }
-    
-    .teacher-name {
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .teacher-username {
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-    
-    .balance-zero {
-        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #334155));
-        color: var(--bs-secondary-color, #94a3b8);
-        border: 1px solid var(--bs-border-color, #475569);
-    }
-    
-    .month-summary-card {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-    
-    .month-summary-card:hover {
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4),
-                    0 0 0 1px rgba(255, 255, 255, 0.1);
-    }
-    
-    .summary-stat {
-        background: var(--bs-tertiary-bg, #1e293b);
-    }
-    
-    .summary-name {
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .summary-subtitle {
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-    
-    .summary-change.neutral {
-        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #334155));
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-    
-    .empty-modern {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-    
-    .empty-icon {
-        color: var(--bs-secondary-color, #64748b);
-    }
-    
-    .empty-title {
-        color: var(--bs-body-color, #f1f5f9);
-    }
-    
-    .empty-description {
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-}
-
-/* Enhanced Animations */
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg);
-    }
-    50% {
-        transform: translateY(-20px) rotate(180deg);
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
-}
-
-/* Smooth theme transitions */
-* {
-    transition: background-color 0.3s ease,
-                color 0.3s ease,
-                border-color 0.3s ease,
-                box-shadow 0.3s ease,
-                fill 0.3s ease;
-}
-
-/* Enhanced hover effects */
-.btn-action {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-action:hover {
-    transform: translateY(-2px) scale(1.05);
-}
-
-.earnings-pill {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.earnings-pill:hover {
-    transform: translateY(-1px) scale(1.02);
-}
-
-.balance-badge {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.balance-badge:hover {
-    transform: translateY(-1px) scale(1.02);
-}
-
-/* Enhanced form controls */
-.form-control-modern {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.form-control-modern:focus {
-    transform: translateY(-1px);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-}
-
-/* Enhanced loading animations */
-.stat-card {
-    animation: fadeIn 0.6s ease-out;
-}
-
-.stat-card:nth-child(1) {
-    animation-delay: 0.1s;
-}
-
-.stat-card:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.stat-card:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.month-summary-card {
-    animation: fadeIn 0.8s ease-out;
-}
-
-.month-summary-card:nth-child(1) {
-    animation-delay: 0.2s;
-}
-
-.month-summary-card:nth-child(2) {
-    animation-delay: 0.3s;
-}
-
-.month-summary-card:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-/* Beautiful dark mode transitions */
-@media (prefers-color-scheme: dark) {
-    .earnings-dashboard::before,
-    .earnings-dashboard::after {
-        opacity: 0.6;
-    }
-    
-    .btn-action:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    }
-    
-    .form-control-modern:focus {
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
-    }
-}
-
-/* Enhanced visual feedback */
-.table-modern tbody tr {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.teacher-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.teacher-card:hover {
-    transform: translateX(4px);
-}
-
-/* Beautiful gradient overlays */
-.month-summary-card::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-}
-
-.month-summary-card:hover::after {
-    opacity: 1;
-}
-
-@media (prefers-color-scheme: dark) {
-    .month-summary-card::after {
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
-    }
-}
-
-/* Month Summary Styles */
-.month-summary-grid {
+/* ═══════════════════════════════════════════════════
+   TEACHER CARDS GRID
+   ═══════════════════════════════════════════════════ */
+.teachers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 1.5rem;
-    margin-top: 1.5rem;
+    margin-bottom: 2.5rem;
 }
 
-.month-summary-card {
-    background: var(--bs-card-bg, white);
-    border: 1px solid var(--bs-border-color, #e5e7eb);
-    border-radius: 20px;
-    padding: 1.5rem;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06),
-                0 0 0 1px rgba(255, 255, 255, 0.1);
-    position: relative;
+.t-card {
+    background: var(--bs-card-bg, #fff);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
+    border-radius: 24px;
     overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    position: relative;
 }
 
-.month-summary-card::before {
+.t-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
     transform: scaleX(0);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.month-summary-card:hover {
-    transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12),
-                0 0 0 1px rgba(255, 255, 255, 0.2);
+.t-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
 }
 
-.month-summary-card:hover::before {
+.t-card:hover::before {
     transform: scaleX(1);
 }
 
-/* Dark mode month summary enhancements */
-@media (prefers-color-scheme: dark) {
-    .month-summary-card {
-        background: var(--bs-card-bg, rgba(30, 41, 59, 0.95));
-        border: 1px solid var(--bs-border-color, rgba(255, 255, 255, 0.1));
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2),
-                    0 0 0 1px rgba(255, 255, 255, 0.05);
-    }
-    
-    .month-summary-card:hover {
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3),
-                    0 0 0 1px rgba(255, 255, 255, 0.1);
-    }
-}
-
-.summary-header {
+/* Card Header */
+.t-card-head {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    background: var(--bs-tertiary-bg, #fafbfd);
+    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
 }
 
-.summary-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--bs-primary, #667eea), var(--bs-secondary, #764ba2));
-    color: white;
+.t-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 1rem;
+    font-weight: 800;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(102,126,234,0.35);
+    transition: all 0.3s ease;
 }
 
-.summary-info {
+.t-card:hover .t-avatar {
+    transform: scale(1.08);
+    box-shadow: 0 8px 24px rgba(102,126,234,0.45);
+}
+
+.t-head-info {
     flex: 1;
+    min-width: 0;
 }
 
-.summary-name {
-    font-weight: 700;
+.t-head-name {
+    font-weight: 800;
+    font-size: 1.05rem;
     color: var(--bs-body-color, #1f2937);
-    margin-bottom: 0.25rem;
+    letter-spacing: -0.01em;
 }
 
-.summary-subtitle {
-    font-size: 0.85rem;
-    color: var(--bs-secondary-color, #6b7280);
-}
-
-.summary-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.summary-stat {
-    text-align: center;
-    padding: 0.75rem;
-    border-radius: 8px;
-    background: var(--bs-tertiary-bg, #f8fafc);
-}
-
-.summary-label {
-    font-size: 0.75rem;
-    color: var(--bs-secondary-color, #6b7280);
-    margin-bottom: 0.25rem;
+.t-head-username {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color, #94a3b8);
     font-weight: 500;
 }
 
-.summary-value {
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-.summary-value.current {
-    color: var(--bs-primary, #1d4ed8);
-}
-
-.summary-value.previous {
-    color: var(--bs-secondary-color, #6b7280);
-}
-
-.summary-change {
-    display: flex;
+.t-status {
+    display: inline-flex;
     align-items: center;
+    gap: 0.3rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.t-status-on {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
+}
+
+.t-status-off {
+    background: var(--bs-tertiary-bg, #f1f5f9);
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.t-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.t-status-on .t-status-dot {
+    background: #16a34a;
+    animation: dotPulse 2s infinite;
+}
+
+.t-status-off .t-status-dot {
+    background: #94a3b8;
+}
+
+/* Month Comparison */
+.t-comparison {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    padding: 1.25rem 1.5rem;
+    align-items: center;
+}
+
+.t-month-block {
+    text-align: center;
+    padding: 1rem;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.t-month-prev {
+    background: var(--bs-tertiary-bg, #f8fafc);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+}
+
+.t-month-curr {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+}
+
+.t-month-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.4rem;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.t-month-curr .t-month-label {
+    color: #3b82f6;
+}
+
+.t-month-amount {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 0.3rem;
+}
+
+.t-month-prev .t-month-amount {
+    color: var(--bs-body-color, #64748b);
+}
+
+.t-month-curr .t-month-amount {
+    color: #1d4ed8;
+}
+
+.t-month-detail {
+    display: flex;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: 8px;
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color, #94a3b8);
     font-weight: 600;
 }
 
-.summary-change.positive {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #166534;
+.t-month-detail-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
 }
 
-.summary-change.negative {
+.t-change-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.t-change-icon {
+    font-size: 1.6rem;
+    transition: all 0.3s ease;
+}
+
+.t-change-pct {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.t-change-up { color: #16a34a; }
+.t-change-up .t-change-pct { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #16a34a; }
+.t-change-down { color: #dc2626; }
+.t-change-down .t-change-pct { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+.t-change-same { color: #94a3b8; }
+.t-change-same .t-change-pct { background: var(--bs-tertiary-bg, #f1f5f9); color: #94a3b8; }
+
+/* Breakdown */
+.t-breakdown {
+    padding: 0 1.5rem 1rem;
+}
+
+.t-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.6rem;
+}
+
+.t-break-item {
+    text-align: center;
+    padding: 0.6rem 0.4rem;
+    border-radius: 12px;
+    background: var(--bs-tertiary-bg, #f8fafc);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+    transition: all 0.3s ease;
+}
+
+.t-break-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.t-break-icon {
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.t-break-count {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--bs-body-color, #1f2937);
+}
+
+.t-break-amount {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.t-break-label {
+    font-size: 0.6rem;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Total Row */
+.t-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f8fafc), var(--bs-secondary-bg, #f1f5f9));
+    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+    font-size: 0.85rem;
+}
+
+.t-total-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.t-total-label {
+    color: var(--bs-secondary-color, #94a3b8);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.t-total-value {
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.t-total-calc { color: #3b82f6; }
+.t-total-paid { color: #16a34a; }
+
+/* Last Activity */
+.t-activity {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+    background: var(--bs-card-bg, #fff);
+}
+
+.t-activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.t-act-video { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+.t-act-test { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #9333ea; }
+.t-act-homework { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+.t-act-default { background: var(--bs-tertiary-bg, #f1f5f9); color: #94a3b8; }
+
+.t-activity-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.t-activity-title {
+    font-weight: 700;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--bs-body-color, #1f2937);
+}
+
+.t-activity-meta {
+    font-size: 0.7rem;
+    color: var(--bs-secondary-color, #94a3b8);
+    font-weight: 500;
+}
+
+/* Card Footer */
+.t-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+    background: var(--bs-card-bg, #fff);
+}
+
+.t-balance {
+    font-weight: 800;
+    font-size: 0.9rem;
+    padding: 0.35rem 1rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.t-bal-pos {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
+    border: 1px solid #86efac;
+}
+
+.t-bal-neg {
     background: linear-gradient(135deg, #fee2e2, #fecaca);
     color: #dc2626;
+    border: 1px solid #fca5a5;
 }
 
-.summary-change.neutral {
-    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f3f4f6), var(--bs-secondary-bg, #e5e7eb));
-    color: var(--bs-secondary-color, #6b7280);
+.t-bal-zero {
+    background: var(--bs-tertiary-bg, #f1f5f9);
+    color: var(--bs-secondary-color, #94a3b8);
+    border: 1px solid var(--bs-border-color, #e2e8f0);
 }
 
-.change-icon {
-    font-size: 1.2rem;
+.t-actions {
+    display: flex;
+    gap: 0.4rem;
 }
 
-.change-text {
+.t-action-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 1rem;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.t-action-btn:hover {
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.t-btn-view {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+}
+
+.t-btn-pay {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════
+   PAYMENTS TABLE
+   ═══════════════════════════════════════════════════ */
+.payments-glass {
+    background: var(--bs-card-bg, rgba(255,255,255,0.95));
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
+    margin-bottom: 2rem;
+}
+
+.payments-glass-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--bs-body-color, #1f2937);
+}
+
+.pay-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.pay-table thead th {
+    background: var(--bs-tertiary-bg, #f8fafc);
+    padding: 1rem 1.25rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--bs-secondary-color, #64748b);
+    border-bottom: 2px solid var(--bs-border-color, #e2e8f0);
+    text-align: left;
+}
+
+.pay-table tbody td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
+    font-weight: 500;
+    color: var(--bs-body-color, #1f2937);
+    transition: all 0.3s ease;
+}
+
+.pay-table tbody tr:hover td {
+    background: var(--bs-tertiary-bg, rgba(248,250,252,0.8));
+}
+
+.pay-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pay-teacher {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.pay-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.pay-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+
+.pay-username {
+    font-size: 0.72rem;
+    color: var(--bs-secondary-color, #94a3b8);
+}
+
+.pay-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.78rem;
     font-weight: 700;
 }
 
-.change-percent {
-    font-size: 0.85rem;
-    opacity: 0.9;
+.pay-badge-paid {
+    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+    color: #16a34a;
 }
 
-/* Responsive Design */
+.pay-badge-unpaid {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+.pay-amount {
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+.pay-receipt {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+}
+
+.pay-receipt:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.pay-actions {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.pay-action-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.pay-action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.pay-btn-edit {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: #fff;
+}
+
+.pay-btn-check {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+}
+
+.pay-btn-del {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════════════════ */
+.modal-content {
+    border-radius: 24px;
+    border: none;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border: none;
+    padding: 1.25rem 1.75rem;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-body {
+    padding: 1.75rem;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--bs-border-color, #e2e8f0);
+    padding: 1rem 1.75rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════ */
+.empty-modern {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--bs-card-bg, #fff);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--bs-secondary-color, #cbd5e1);
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--bs-body-color, #475569);
+    margin-bottom: 0.5rem;
+}
+
+.empty-desc {
+    color: var(--bs-secondary-color, #94a3b8);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════ */
+@keyframes heroSlide {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-25px) rotate(180deg); }
+}
+
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+@keyframes cardIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.t-card {
+    animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.t-card:nth-child(1) { animation-delay: 0.05s; }
+.t-card:nth-child(2) { animation-delay: 0.1s; }
+.t-card:nth-child(3) { animation-delay: 0.15s; }
+.t-card:nth-child(4) { animation-delay: 0.2s; }
+.t-card:nth-child(5) { animation-delay: 0.25s; }
+.t-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* ═══════════════════════════════════════════════════
+   DARK MODE
+   ═══════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+    .hero-dashboard {
+        background: linear-gradient(135deg, #4c1d95, #6d28d9 50%, #a855f7 100%);
+        box-shadow: 0 20px 60px -15px rgba(76,29,149,0.6);
+    }
+
+    .t-card {
+        background: var(--bs-card-bg, rgba(30,41,59,0.95));
+        border: 1px solid var(--bs-border-color, rgba(255,255,255,0.08));
+    }
+
+    .t-card:hover {
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .t-card-head {
+        background: var(--bs-tertiary-bg, rgba(30,41,59,0.5));
+    }
+
+    .t-month-prev {
+        background: var(--bs-tertiary-bg, #1e293b);
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    .t-month-curr {
+        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.1));
+        border-color: rgba(59,130,246,0.2);
+    }
+
+    .t-month-prev .t-month-amount {
+        color: var(--bs-body-color, #e2e8f0);
+    }
+
+    .t-break-item {
+        background: var(--bs-tertiary-bg, #1e293b);
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    .t-total-row {
+        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #0f172a));
+    }
+
+    .filters-glass,
+    .payments-glass {
+        background: var(--bs-card-bg, rgba(30,41,59,0.95));
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .pay-table thead th {
+        background: var(--bs-tertiary-bg, #1e293b);
+        color: var(--bs-secondary-color, #94a3b8);
+    }
+
+    .pay-table tbody td {
+        border-color: rgba(255,255,255,0.06);
+    }
+
+    .empty-modern {
+        background: var(--bs-card-bg, rgba(30,41,59,0.95));
+        border-color: rgba(255,255,255,0.08);
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+    .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .hero-dashboard { padding: 1.75rem; }
+    .hero-title { font-size: 1.6rem; }
+    .hero-stat-value { font-size: 1.4rem; }
+    .teachers-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 768px) {
-    .earnings-dashboard {
-        padding: 1.5rem;
-    }
-    
-    .dashboard-title {
-        font-size: 1.5rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .filter-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .filters-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .teacher-card {
-        flex-direction: column;
-        align-items: flex-start;
-        text-align: left;
-    }
-    
-    .earnings-pills {
-        justify-content: flex-start;
-    }
-    
-    .action-buttons {
-        flex-wrap: wrap;
-    }
-    
-    .table-modern {
-        border-radius: 12px;
-    }
-    
-    .table-modern thead th,
-    .table-modern tbody td {
-        padding: 0.75rem 0.5rem;
-        font-size: 0.85rem;
-    }
+    .hero-stats { grid-template-columns: 1fr; }
+    .hero-top { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .hero-dashboard { padding: 1.5rem; border-radius: 20px; }
+    .filter-grid { grid-template-columns: 1fr; }
+    .filter-actions { flex-direction: column; }
+    .t-comparison { grid-template-columns: 1fr; gap: 0.5rem; }
+    .t-change-arrow { flex-direction: row; padding: 0.5rem 0; }
+    .t-breakdown-grid { grid-template-columns: repeat(3, 1fr); }
+    .section-header { flex-direction: column; align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
-    .earnings-dashboard {
-        padding: 1rem;
-    }
-    
-    .stat-card {
-        padding: 1rem;
-    }
-    
-    .stat-value {
-        font-size: 1.5rem;
-    }
-    
-    .filters-modern {
-        padding: 1rem;
-    }
+    .hero-dashboard { padding: 1.25rem; }
+    .hero-title { font-size: 1.3rem; }
+    .hero-stat { padding: 1rem; }
+    .t-card-head { padding: 1rem; }
+    .t-comparison { padding: 1rem; }
+    .t-breakdown { padding: 0 1rem 0.75rem; }
+    .t-card-foot { padding: 0.75rem 1rem; }
 }
 </style>
 {% endblock %}
 
 {% block admin_content %}
-<!-- Modern Dashboard Header -->
-<div class="earnings-dashboard">
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">O'qituvchilar Daromadlari</h1>
-        <p class="dashboard-subtitle">Barcha o'qituvchilarning daromadlari va to'lovlar boshqaruvi</p>
+<!-- ════════ HERO DASHBOARD ════════ -->
+<div class="hero-dashboard">
+    <div class="hero-top">
+        <div>
+            <h1 class="hero-title">💰 O'qituvchilar Daromadlari</h1>
+            <p class="hero-subtitle">{{ prev_month_name }} → {{ current_month_name }} {{ current_year }} oylik taqqoslash</p>
+        </div>
+        <button class="hero-btn" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+            <i class="bi bi-plus-circle"></i> To'lov qo'shish
+        </button>
     </div>
     
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon-wrapper stat-icon-calculated">
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <div class="hero-stat-icon">
                 <i class="bi bi-calculator-fill"></i>
             </div>
-            <div class="stat-value">{{ total_calculated|floatformat:0 }}</div>
-            <div class="stat-label">Hisoblangan daromad</div>
+            <div class="hero-stat-value">{{ total_calculated|floatformat:0 }}</div>
+            <div class="hero-stat-label">Hisoblangan</div>
         </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon-wrapper stat-icon-paid">
-                <i class="bi bi-cash-stack"></i>
+        <div class="hero-stat">
+            <div class="hero-stat-icon">
+                <i class="bi bi-check2-all"></i>
             </div>
-            <div class="stat-value">{{ total_paid|floatformat:0 }}</div>
-            <div class="stat-label">To'langan summa</div>
+            <div class="hero-stat-value">{{ total_paid|floatformat:0 }}</div>
+            <div class="hero-stat-label">To'langan</div>
         </div>
-        
-        <div class="stat-card">
-            <div class="stat-icon-wrapper stat-icon-balance">
+        <div class="hero-stat">
+            <div class="hero-stat-icon">
                 <i class="bi bi-wallet2"></i>
             </div>
-            <div class="stat-value {% if total_balance > 0 %}balance-positive{% elif total_balance < 0 %}balance-negative{% else %}balance-zero{% endif %}">
-                {{ total_balance|floatformat:0 }}
-            </div>
-            <div class="stat-label">Qoldiq</div>
+            <div class="hero-stat-value">{{ total_balance|floatformat:0 }}</div>
+            <div class="hero-stat-label">Qoldiq</div>
         </div>
     </div>
 </div>
 
-<!-- Month-over-Month Summary -->
-{% if teacher_earnings %}
-<div class="filters-modern mb-4">
-    <div class="filters-header">
-        <h3 class="filters-title">
-            <i class="bi bi-graph-up"></i>
-            Oylik daromadlar xulosasi
-        </h3>
+<!-- ════════ FILTERS ════════ -->
+<div class="filters-glass">
+    <div class="filters-glass-title">
+        <i class="bi bi-funnel-fill" style="color: #667eea;"></i> Filterlar
     </div>
-    
-    <div class="month-summary-grid">
-        {% for earning in teacher_earnings %}
-        <div class="month-summary-card {% if forloop.counter > 3 %}hidden-card{% endif %}">
-            <div class="summary-header">
-                <div class="summary-avatar">
-                    {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
-                </div>
-                <div class="summary-info">
-                    <div class="summary-name">{{ earning.teacher.full_name }}</div>
-                    <div class="summary-subtitle">@{{ earning.teacher.username }}</div>
-                </div>
-            </div>
-            
-            <div class="summary-stats">
-                <div class="summary-stat">
-                    <div class="summary-label">Shu oy</div>
-                    <div class="summary-value current">{{ earning.current_month_earnings|floatformat:0 }} so'm</div>
-                </div>
-                <div class="summary-stat">
-                    <div class="summary-label">O'tgan oy</div>
-                    <div class="summary-value previous">{{ earning.prev_month_earnings|floatformat:0 }} so'm</div>
-                </div>
-                <div class="summary-change {% if earning.earnings_change > 0 %}positive{% elif earning.earnings_change < 0 %}negative{% else %}neutral{% endif %}">
-                    <div class="change-icon">
-                        {% if earning.earnings_change > 0 %}
-                            <i class="bi bi-arrow-up-circle-fill"></i>
-                        {% elif earning.earnings_change < 0 %}
-                            <i class="bi bi-arrow-down-circle-fill"></i>
-                        {% else %}
-                            <i class="bi bi-dash-circle-fill"></i>
-                        {% endif %}
-                    </div>
-                    <div class="change-text">
-                        {% if earning.earnings_change > 0 %}+{% endif %}{{ earning.earnings_change|floatformat:0 }} so'm
-                    </div>
-                    <div class="change-percent">
-                        {% if earning.earnings_change_percent > 0 %}+{% endif %}{{ earning.earnings_change_percent|floatformat:1 }}%
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    
-    {% if teacher_earnings|length > 3 %}
-    <div class="text-center mt-4">
-        <button class="btn btn-expand-modern" id="toggleAllTeachers" data-total-teachers="{{ teacher_earnings|length }}">
-            <i class="bi bi-arrow-down-circle me-2"></i>
-            <span id="toggleText">Barcha o'qituvchilarni ko'rish ({{ teacher_earnings|length }} ta)</span>
-            <i class="bi bi-arrow-down-circle ms-2 toggle-icon"></i>
-        </button>
-    </div>
-    {% endif %}
-</div>
-{% endif %}
-
-<!-- Modern Filters Section -->
-<div class="filters-modern">
-    <div class="filters-header">
-        <h3 class="filters-title">
-            <i class="bi bi-funnel-fill"></i>
-            Filterlar
-        </h3>
-        <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
-            <i class="bi bi-plus-circle me-2"></i>To'lov qo'shish
-        </button>
-    </div>
-    
     <form method="GET" class="mb-0">
         <div class="filter-grid">
-            <input type="text" class="form-control form-control-modern" name="q" 
-                   placeholder="O'qituvchi nomi..." value="{{ search_query }}">
+            <input type="text" class="form-control filter-input" name="q" value="{{ search_query }}" 
+                   placeholder="🔍 O'qituvchi ismi yoki username...">
             
-            <select class="form-select form-control-modern" name="teacher">
-                <option value="">Barcha o'qituvchilar</option>
+            <select class="form-select filter-input" name="teacher">
+                <option value="">👨‍🏫 Barcha o'qituvchilar</option>
                 {% for teacher in teachers %}
-                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>
-                    {{ teacher.full_name }}
-                </option>
+                <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>{{ teacher.full_name }}</option>
                 {% endfor %}
             </select>
             
-            <select class="form-select form-control-modern" name="month">
-                <option value="">Barcha oylar</option>
-                <option value="1" {% if month_filter == "1" %}selected{% endif %}>Yanvar</option>
-                <option value="2" {% if month_filter == "2" %}selected{% endif %}>Fevral</option>
-                <option value="3" {% if month_filter == "3" %}selected{% endif %}>Mart</option>
-                <option value="4" {% if month_filter == "4" %}selected{% endif %}>Aprel</option>
-                <option value="5" {% if month_filter == "5" %}selected{% endif %}>May</option>
-                <option value="6" {% if month_filter == "6" %}selected{% endif %}>Iyun</option>
-                <option value="7" {% if month_filter == "7" %}selected{% endif %}>Iyul</option>
-                <option value="8" {% if month_filter == "8" %}selected{% endif %}>Avgust</option>
-                <option value="9" {% if month_filter == "9" %}selected{% endif %}>Sentyabr</option>
-                <option value="10" {% if month_filter == "10" %}selected{% endif %}>Oktyabr</option>
-                <option value="11" {% if month_filter == "11" %}selected{% endif %}>Noyabr</option>
-                <option value="12" {% if month_filter == "12" %}selected{% endif %}>Dekabr</option>
+            <select class="form-select filter-input" name="month">
+                <option value="">📅 Barcha oylar</option>
+                <option value="1" {% if month_filter == '1' %}selected{% endif %}>Yanvar</option>
+                <option value="2" {% if month_filter == '2' %}selected{% endif %}>Fevral</option>
+                <option value="3" {% if month_filter == '3' %}selected{% endif %}>Mart</option>
+                <option value="4" {% if month_filter == '4' %}selected{% endif %}>Aprel</option>
+                <option value="5" {% if month_filter == '5' %}selected{% endif %}>May</option>
+                <option value="6" {% if month_filter == '6' %}selected{% endif %}>Iyun</option>
+                <option value="7" {% if month_filter == '7' %}selected{% endif %}>Iyul</option>
+                <option value="8" {% if month_filter == '8' %}selected{% endif %}>Avgust</option>
+                <option value="9" {% if month_filter == '9' %}selected{% endif %}>Sentyabr</option>
+                <option value="10" {% if month_filter == '10' %}selected{% endif %}>Oktyabr</option>
+                <option value="11" {% if month_filter == '11' %}selected{% endif %}>Noyabr</option>
+                <option value="12" {% if month_filter == '12' %}selected{% endif %}>Dekabr</option>
             </select>
             
-            <input type="number" class="form-control form-control-modern" name="year" 
-                   placeholder="Yil" value="{{ year_filter }}" min="2020" max="{{ current_year|add:1 }}">
+            <input type="number" class="form-control filter-input" name="year" value="{{ year_filter }}" 
+                   placeholder="📆 Yil" min="2020" max="{{ current_year }}">
         </div>
         
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary-modern btn-modern">
-                <i class="bi bi-search me-2"></i>Qidirish
+        <div class="filter-actions">
+            <button type="submit" class="btn btn-filter btn-filter-primary">
+                <i class="bi bi-search"></i> Qidirish
             </button>
-            <a href="{% url 'admin_teacher_earnings' %}" class="btn btn-secondary btn-modern">
-                <i class="bi bi-arrow-clockwise me-2"></i>Tozalash
+            <a href="{% url 'admin_teacher_earnings' %}" class="btn btn-filter btn-filter-secondary">
+                <i class="bi bi-arrow-clockwise"></i> Tozalash
             </a>
         </div>
     </form>
 </div>
 
-<!-- Earnings Table -->
+<!-- ════════ TEACHER CARDS ════════ -->
+<div class="section-header">
+    <h3 class="section-title">
+        <span class="section-title-icon"><i class="bi bi-people-fill"></i></span>
+        O'qituvchilar daromadi
+    </h3>
+    {% if teacher_earnings %}
+    <span class="section-badge">{{ teacher_earnings|length }} ta o'qituvchi</span>
+    {% endif %}
+</div>
+
 {% if teacher_earnings %}
-<div class="table-modern">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>O'qituvchi</th>
-                <th>Shu oy</th>
-                <th>O'tgan oy</th>
-                <th>O'zgarish</th>
-                <th>Video darslar</th>
-                <th>Testlar</th>
-                <th>Uyga vazifalar</th>
-                <th>Hisoblangan</th>
-                <th>To'langan</th>
-                <th>Qoldiq</th>
-                <th>Amallar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for earning in teacher_earnings %}
-            <tr>
-                <td>
-                    <div class="teacher-card">
-                        <div class="teacher-avatar">
-                            {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
-                        </div>
-                        <div class="teacher-info">
-                            <div class="teacher-name">{{ earning.teacher.full_name }}</div>
-                            <div class="teacher-username">@{{ earning.teacher.username }}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="month-earnings current-month">
-                        <div class="earnings-amount">{{ earning.current_month_earnings|floatformat:0 }} so'm</div>
-                        <div class="earnings-label">Shu oy</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="month-earnings prev-month">
-                        <div class="earnings-amount">{{ earning.prev_month_earnings|floatformat:0 }} so'm</div>
-                        <div class="earnings-label">O'tgan oy</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="change-indicator {% if earning.earnings_change > 0 %}change-positive{% elif earning.earnings_change < 0 %}change-negative{% else %}change-neutral{% endif %}">
-                        <div class="change-amount">
-                            {% if earning.earnings_change > 0 %}+{% endif %}{{ earning.earnings_change|floatformat:0 }} so'm
-                        </div>
-                        <div class="change-percent">
-                            {% if earning.earnings_change_percent > 0 %}+{% endif %}{{ earning.earnings_change_percent|floatformat:1 }}%
-                        </div>
-                        <div class="change-icon">
-                            {% if earning.earnings_change > 0 %}
-                                <i class="bi bi-arrow-up-circle-fill"></i>
-                            {% elif earning.earnings_change < 0 %}
-                                <i class="bi bi-arrow-down-circle-fill"></i>
-                            {% else %}
-                                <i class="bi bi-dash-circle-fill"></i>
-                            {% endif %}
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="earnings-pills">
-                        <div class="earnings-pill">
-                            <i class="bi bi-camera-video"></i>
-                            <span>{{ earning.video_count }}</span>
-                        </div>
-                        <div class="earnings-pill">
-                            <i class="bi bi-cash"></i>
-                            <span>{% widthratio earning.video_count 1 25000 %} so'm</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="earnings-pills">
-                        <div class="earnings-pill">
-                            <i class="bi bi-clipboard-check"></i>
-                            <span>{{ earning.test_count }}</span>
-                        </div>
-                        <div class="earnings-pill">
-                            <i class="bi bi-cash"></i>
-                            <span>{% widthratio earning.test_count 1 10000 %} so'm</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="earnings-pills">
-                        <div class="earnings-pill">
-                            <i class="bi bi-journal-text"></i>
-                            <span>{{ earning.hw_count }}</span>
-                        </div>
-                        <div class="earnings-pill">
-                            <i class="bi bi-cash"></i>
-                            <span>{% widthratio earning.hw_count 1 10000 %} so'm</span>
-                        </div>
-                    </div>
-                </td>
-                <td>
-                    <div class="earnings-pill" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8;">
-                        <i class="bi bi-calculator"></i>
-                        <span>{{ earning.calculated_earnings|floatformat:0 }} so'm</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="earnings-pill" style="background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534;">
-                        <i class="bi bi-cash-stack"></i>
-                        <span>{{ earning.paid_amount|floatformat:0 }} so'm</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="balance-badge {% if earning.balance > 0 %}balance-positive{% elif earning.balance < 0 %}balance-negative{% else %}balance-zero{% endif %}">
-                        <i class="bi bi-wallet2"></i>
-                        <span>{{ earning.balance|floatformat:0 }} so'm</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-calc" 
-                                onclick="showCalculationWindow('{{ earning.teacher.id }}', '{{ earning.teacher.full_name }}', '{{ earning.video_count }}', '{{ earning.test_count }}', '{{ earning.hw_count }}')" 
-                                title="Hisoblash tafsilotlari">
-                            <i class="bi bi-calculator"></i>
-                        </button>
-                        <button class="btn-action btn-view" 
-                                onclick="viewEarnings('{{ earning.teacher.id }}')" 
-                                title="Batafsil ko'rish">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn-action btn-edit" 
-                                onclick="editPayment('{{ earning.teacher.teacher.id }}')" 
-                                title="To'lov tahrirlash">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<div class="teachers-grid">
+    {% for earning in teacher_earnings %}
+    <div class="t-card">
+        <!-- Header -->
+        <div class="t-card-head">
+            <div class="t-avatar">
+                {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
+            </div>
+            <div class="t-head-info">
+                <div class="t-head-name">{{ earning.teacher.full_name }}</div>
+                <div class="t-head-username">@{{ earning.teacher.username }}</div>
+            </div>
+            {% if earning.teacher.is_online %}
+            <span class="t-status t-status-on">
+                <span class="t-status-dot"></span> Online
+            </span>
+            {% else %}
+            <span class="t-status t-status-off">
+                <span class="t-status-dot"></span> Offline
+            </span>
+            {% endif %}
+        </div>
 
-<!-- Payments Section -->
-{% if salaries %}
-<div class="table-modern mt-4">
-    <div class="p-3">
-        <h4 class="mb-3">
-            <i class="bi bi-cash-stack me-2"></i>To'lovlar tarixi
-        </h4>
-    </div>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>O'qituvchi</th>
-                <th>Oy/Yil</th>
-                <th>Turi</th>
-                <th>Summa</th>
-                <th>Status</th>
-                <th>Chek</th>
-                <th>Amallar</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for salary in salaries %}
-            <tr>
-                <td>
-                    <div class="teacher-card">
-                        <div class="teacher-avatar">
-                            {{ salary.teacher.first_name.0 }}{{ salary.teacher.last_name.0 }}
-                        </div>
-                        <div class="teacher-info">
-                            <div class="teacher-name">{{ salary.teacher.full_name }}</div>
-                            <div class="teacher-username">@{{ salary.teacher.username }}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>{{ salary.get_month_display }} {{ salary.year }}</td>
-                <td>
-                    <span class="status-modern status-paid">
-                        {{ salary.get_salary_type_display }}
-                    </span>
-                </td>
-                <td>
-                    <div class="earnings-pill" style="background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706;">
-                        <i class="bi bi-cash"></i>
-                        <span>{{ salary.amount|floatformat:0 }} so'm</span>
-                    </div>
-                </td>
-                <td>
-                    <span class="status-modern {% if salary.is_paid %}status-paid{% else %}status-unpaid{% endif %}">
-                        {% if salary.is_paid %}
-                            <i class="bi bi-check-circle-fill"></i> To'langan
-                        {% else %}
-                            <i class="bi bi-clock-fill"></i> Kutilmoqda
-                        {% endif %}
-                    </span>
-                </td>
-                <td>
-                    {% if salary.receipt %}
-                        <a href="{{ salary.receipt.url }}" target="_blank" class="btn-action btn-view" title="Chekni ko'rish">
-                            <i class="bi bi-file-earmark-pdf"></i>
-                        </a>
+        <!-- Month Comparison -->
+        <div class="t-comparison">
+            <div class="t-month-block t-month-prev">
+                <div class="t-month-label">{{ prev_month_name }}</div>
+                <div class="t-month-amount">{{ earning.prev_month_earnings|floatformat:0 }}</div>
+                <div class="t-month-detail">
+                    <span class="t-month-detail-item">🎬 {{ earning.prev_video_count }}</span>
+                    <span class="t-month-detail-item">📝 {{ earning.prev_test_count }}</span>
+                    <span class="t-month-detail-item">📚 {{ earning.prev_hw_count }}</span>
+                </div>
+            </div>
+            
+            <div class="t-change-arrow {% if earning.earnings_change > 0 %}t-change-up{% elif earning.earnings_change < 0 %}t-change-down{% else %}t-change-same{% endif %}">
+                {% if earning.earnings_change > 0 %}
+                    <i class="bi bi-arrow-up-circle-fill t-change-icon"></i>
+                    <span class="t-change-pct">+{{ earning.earnings_change_percent|floatformat:0 }}%</span>
+                {% elif earning.earnings_change < 0 %}
+                    <i class="bi bi-arrow-down-circle-fill t-change-icon"></i>
+                    <span class="t-change-pct">{{ earning.earnings_change_percent|floatformat:0 }}%</span>
+                {% else %}
+                    <i class="bi bi-dash-circle-fill t-change-icon"></i>
+                    <span class="t-change-pct">0%</span>
+                {% endif %}
+            </div>
+            
+            <div class="t-month-block t-month-curr">
+                <div class="t-month-label">{{ current_month_name }}</div>
+                <div class="t-month-amount">{{ earning.current_month_earnings|floatformat:0 }}</div>
+                <div class="t-month-detail">
+                    <span class="t-month-detail-item">🎬 {{ earning.current_video_count }}</span>
+                    <span class="t-month-detail-item">📝 {{ earning.current_test_count }}</span>
+                    <span class="t-month-detail-item">📚 {{ earning.current_hw_count }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Breakdown -->
+        <div class="t-breakdown">
+            <div class="t-breakdown-grid">
+                <div class="t-break-item">
+                    <div class="t-break-icon">🎬</div>
+                    <div class="t-break-count">{{ earning.video_count }}</div>
+                    <div class="t-break-amount">{% widthratio earning.video_count 1 25000 %}</div>
+                    <div class="t-break-label">Video</div>
+                </div>
+                <div class="t-break-item">
+                    <div class="t-break-icon">📝</div>
+                    <div class="t-break-count">{{ earning.test_count }}</div>
+                    <div class="t-break-amount">{% widthratio earning.test_count 1 10000 %}</div>
+                    <div class="t-break-label">Test</div>
+                </div>
+                <div class="t-break-item">
+                    <div class="t-break-icon">📚</div>
+                    <div class="t-break-count">{{ earning.hw_count }}</div>
+                    <div class="t-break-amount">{% widthratio earning.hw_count 1 10000 %}</div>
+                    <div class="t-break-label">Vazifa</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="t-total-row">
+            <div class="t-total-item">
+                <span class="t-total-label">Hisoblangan:</span>
+                <span class="t-total-value t-total-calc">{{ earning.calculated_earnings|floatformat:0 }} so'm</span>
+            </div>
+            <div class="t-total-item">
+                <span class="t-total-label">To'langan:</span>
+                <span class="t-total-value t-total-paid">{{ earning.paid_amount|floatformat:0 }} so'm</span>
+            </div>
+        </div>
+
+        <!-- Last Activity -->
+        <div class="t-activity">
+            {% if earning.last_lesson %}
+                <div class="t-activity-icon {% if earning.last_lesson.lesson_type == 'video' %}t-act-video{% elif earning.last_lesson.lesson_type == 'test' %}t-act-test{% elif earning.last_lesson.lesson_type == 'homework' %}t-act-homework{% else %}t-act-default{% endif %}">
+                    {% if earning.last_lesson.lesson_type == 'video' %}
+                        <i class="bi bi-play-btn-fill"></i>
+                    {% elif earning.last_lesson.lesson_type == 'test' %}
+                        <i class="bi bi-pencil-square"></i>
+                    {% elif earning.last_lesson.lesson_type == 'homework' %}
+                        <i class="bi bi-book-fill"></i>
                     {% else %}
-                        <span class="text-muted">Chek yo'q</span>
+                        <i class="bi bi-file-earmark"></i>
                     {% endif %}
-                </td>
-                <td>
-                    <div class="action-buttons">
-                        <button class="btn-action btn-view" 
-                                onclick="viewReceipt('{{ salary.id }}')" 
-                                title="Batafsil">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                        {% if not salary.is_paid %}
-                        <button class="btn-action btn-edit" 
-                                onclick="markAsPaid('{{ salary.id }}')" 
-                                title="To'langan deb belgilash">
-                            <i class="bi bi-check-circle"></i>
-                        </button>
-                        {% endif %}
+                </div>
+                <div class="t-activity-info">
+                    <div class="t-activity-title">{{ earning.last_lesson.title }}</div>
+                    <div class="t-activity-meta">
+                        {{ earning.last_lesson.get_lesson_type_display }} · {{ earning.last_lesson.created_at|date:"d.m.Y H:i" }}
                     </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endif %}
+                </div>
+            {% else %}
+                <div class="t-activity-icon t-act-default">
+                    <i class="bi bi-dash-lg"></i>
+                </div>
+                <div class="t-activity-info">
+                    <div class="t-activity-title" style="color: var(--bs-secondary-color, #94a3b8);">Hali dars qo'shmagan</div>
+                    <div class="t-activity-meta">Faollik topilmadi</div>
+                </div>
+            {% endif %}
+        </div>
 
+        <!-- Footer -->
+        <div class="t-card-foot">
+            <span class="t-balance {% if earning.balance > 0 %}t-bal-pos{% elif earning.balance < 0 %}t-bal-neg{% else %}t-bal-zero{% endif %}">
+                <i class="bi bi-wallet2"></i>
+                {{ earning.balance|floatformat:0 }} so'm
+            </span>
+            <div class="t-actions">
+                <button class="t-action-btn t-btn-view" onclick="viewEarnings('{{ earning.teacher.id }}')" title="Batafsil">
+                    <i class="bi bi-eye"></i>
+                </button>
+                <button class="t-action-btn t-btn-pay" onclick="addPayment('{{ earning.teacher.id }}')" title="To'lov qo'shish">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 {% else %}
 <div class="empty-modern">
     <div class="empty-icon">
-        <i class="bi bi-search"></i>
+        <i class="bi bi-cash-stack"></i>
     </div>
-    <h3 class="empty-title">Daromat ma'lumotlari topilmadi</h3>
-    <p class="empty-description">Berilgan filterlar bo'yicha hech qanday daromat yozuvi mavjud emas.</p>
+    <h4 class="empty-title">Daromat ma'lumotlari topilmadi</h4>
+    <p class="empty-desc">Berilgan filterlar bo'yicha hech qanday daromat yozuvi mavjud emas.</p>
 </div>
 {% endif %}
 
-<!-- Add Payment Modal -->
+<!-- ════════ PAYMENTS TABLE ════════ -->
+{% if salaries %}
+<div class="section-header" style="margin-top: 1rem;">
+    <h3 class="section-title">
+        <span class="section-title-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <i class="bi bi-receipt"></i>
+        </span>
+        To'lov Yozuvlari
+    </h3>
+    <span class="section-badge">{{ salaries|length }} ta yozuv</span>
+</div>
+
+<div class="payments-glass">
+    <div class="table-responsive">
+        <table class="pay-table">
+            <thead>
+                <tr>
+                    <th>O'qituvchi</th>
+                    <th>Oy / Yil</th>
+                    <th>Turi</th>
+                    <th>Summa</th>
+                    <th>Holati</th>
+                    <th>Chek</th>
+                    <th>Sana</th>
+                    <th>Amallar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for salary in salaries %}
+                <tr>
+                    <td>
+                        <div class="pay-teacher">
+                            <div class="pay-avatar">
+                                {{ salary.teacher.first_name.0 }}{{ salary.teacher.last_name.0 }}
+                            </div>
+                            <div>
+                                <div class="pay-name">{{ salary.teacher.full_name }}</div>
+                                <div class="pay-username">@{{ salary.teacher.username }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{ salary.get_month_display }}</strong> {{ salary.year }}
+                    </td>
+                    <td>
+                        <span class="pay-badge {% if salary.is_paid %}pay-badge-paid{% else %}pay-badge-unpaid{% endif %}">
+                            {{ salary.get_salary_type_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="pay-amount">{{ salary.amount|floatformat:0 }} so'm</span>
+                    </td>
+                    <td>
+                        <span class="pay-badge {% if salary.is_paid %}pay-badge-paid{% else %}pay-badge-unpaid{% endif %}">
+                            {% if salary.is_paid %}
+                                <i class="bi bi-check-circle-fill"></i> To'langan
+                            {% else %}
+                                <i class="bi bi-clock-fill"></i> Kutilmoqda
+                            {% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        {% if salary.receipt %}
+                            <a href="{{ salary.receipt.url }}" target="_blank" class="pay-receipt">
+                                <i class="bi bi-file-earmark-pdf"></i> Ko'rish
+                            </a>
+                        {% else %}
+                            <span style="color: var(--bs-secondary-color, #94a3b8); font-size: 0.82rem;">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.82rem;">{{ salary.paid_date|date:"d.m.Y"|default:"—" }}</div>
+                        {% if salary.created_by %}
+                        <div style="font-size: 0.72rem; color: var(--bs-secondary-color, #94a3b8);">{{ salary.created_by.first_name }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="pay-actions">
+                            <button class="pay-action-btn pay-btn-edit" onclick="editPayment('{{ salary.id }}')" title="Tahrirlash">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            {% if not salary.is_paid %}
+                            <button class="pay-action-btn pay-btn-check" onclick="markAsPaid('{{ salary.id }}')" title="To'langan">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            {% endif %}
+                            <button class="pay-action-btn pay-btn-del" onclick="deletePayment('{{ salary.id }}')" title="O'chirish">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- ════════ ADD PAYMENT MODAL ════════ -->
 <div class="modal fade" id="addPaymentModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">To'lov qo'shish</h5>
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>To'lov qo'shish</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{% url 'admin_teacher_earnings' %}" enctype="multipart/form-data">
@@ -1724,17 +1438,17 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">O'qituvchi</label>
-                            <select class="form-select" name="teacher" required>
-                                <option value="">Tanlang...</option>
+                            <label class="form-label fw-bold">O'qituvchi</label>
+                            <select class="form-select filter-input" name="teacher" required>
+                                <option value="">O'qituvchini tanlang</option>
                                 {% for teacher in teachers %}
                                 <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">To'lov turi</label>
-                            <select class="form-select" name="salary_type" required>
+                            <label class="form-label fw-bold">Turi</label>
+                            <select class="form-select filter-input" name="salary_type" required>
                                 <option value="oylik">Oylik maosh</option>
                                 <option value="kpi">KPI bonus</option>
                                 <option value="bayram">Bayram puli</option>
@@ -1747,8 +1461,13 @@
                     
                     <div class="row">
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Oy</label>
-                            <select class="form-select" name="month" required>
+                            <label class="form-label fw-bold">Summa (so'm)</label>
+                            <input type="number" class="form-control filter-input" name="amount" 
+                                   placeholder="0" min="0" step="1000" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Oy</label>
+                            <select class="form-select filter-input" name="month" required>
                                 <option value="1">Yanvar</option>
                                 <option value="2">Fevral</option>
                                 <option value="3">Mart</option>
@@ -1764,46 +1483,45 @@
                             </select>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label class="form-label">Yil</label>
-                            <input type="number" class="form-control" name="year" 
+                            <label class="form-label fw-bold">Yil</label>
+                            <input type="number" class="form-control filter-input" name="year" 
                                    value="{{ current_year }}" min="2020" max="{{ current_year|add:1 }}" required>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Summa (so'm)</label>
-                            <input type="number" class="form-control" name="amount" required>
-                        </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Chek/Kvitansiya</label>
-                            <input type="file" class="form-control" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
-                            <div class="form-text">PDF, JPG yoki PNG fayl (maks: 5MB)</div>
+                            <label class="form-label fw-bold">Chek/Kvitansiya</label>
+                            <input type="file" class="form-control filter-input" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="form-text">PDF, JPG yoki PNG (maks: 5MB)</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Izoh</label>
-                            <input type="text" class="form-control" name="description" maxlength="500">
+                            <label class="form-label fw-bold">To'langan</label>
+                            <select class="form-select filter-input" name="is_paid">
+                                <option value="0">Kutilmoqda</option>
+                                <option value="1">To'langan</option>
+                            </select>
                         </div>
                     </div>
                     
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="is_paid" id="isPaid">
-                                <label class="form-check-label" for="isPaid">
-                                    To'langan deb belgilash
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">To'langan sana</label>
-                            <input type="date" class="form-control" name="paid_date">
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">To'langan sana</label>
+                        <input type="date" class="form-control filter-input" name="paid_date">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Izoh</label>
+                        <textarea class="form-control filter-input" name="description" rows="3" 
+                                  placeholder="Qo'shimcha izoh..." style="border-radius: 14px;"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary">Saqlash</button>
+                    <button type="button" class="btn btn-filter btn-filter-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg"></i> Bekor qilish
+                    </button>
+                    <button type="submit" class="btn btn-filter btn-filter-primary">
+                        <i class="bi bi-check-circle"></i> Saqlash
+                    </button>
                 </div>
             </form>
         </div>
@@ -1812,202 +1530,31 @@
 
 <script>
 function viewEarnings(teacherId) {
-    // Implement view earnings functionality
     console.log('View earnings for teacher:', teacherId);
 }
 
-// Add event listener when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    const toggleButton = document.getElementById('toggleAllTeachers');
-    if (toggleButton) {
-        toggleButton.addEventListener('click', toggleAllTeachers);
-        console.log('Toggle button event listener added');
-    } else {
-        console.log('Toggle button not found');
-    }
-});
+function addPayment(teacherId) {
+    const modal = document.getElementById('addPaymentModal');
+    const bsModal = new bootstrap.Modal(modal);
+    const teacherSelect = modal.querySelector('select[name="teacher"]');
+    teacherSelect.value = teacherId;
+    bsModal.show();
+}
 
-function toggleAllTeachers() {
-    console.log('Toggle function called');
-    
-    const grid = document.querySelector('.month-summary-grid');
-    const button = document.getElementById('toggleAllTeachers');
-    const toggleText = document.getElementById('toggleText');
-    
-    console.log('Elements found:', { grid: !!grid, button: !!button, toggleText: !!toggleText });
-    
-    if (!grid || !button || !toggleText) {
-        console.error('Required elements not found');
-        return;
-    }
-    
-    const totalTeachers = parseInt(button.dataset.totalTeachers) || 0;
-    console.log('Total teachers:', totalTeachers);
-    
-    const isExpanded = grid.classList.contains('expanded');
-    console.log('Currently expanded:', isExpanded);
-    
-    if (isExpanded) {
-        // Collapse
-        console.log('Collapsing...');
-        grid.classList.remove('expanded');
-        button.classList.remove('expanded');
-        toggleText.textContent = 'Barcha o\'qituvchilarni ko\'rish (' + totalTeachers + ' ta)';
-    } else {
-        // Expand
-        console.log('Expanding...');
-        grid.classList.add('expanded');
-        button.classList.add('expanded');
-        toggleText.textContent = 'Yopish (' + totalTeachers + ' ta o\'qituvchi)';
+function editPayment(paymentId) {
+    console.log('Edit payment:', paymentId);
+}
+
+function markAsPaid(paymentId) {
+    if (confirm('Ushbu to\'lovni to\'langan deb belgilashni istaysizmi?')) {
+        console.log('Mark as paid:', paymentId);
     }
 }
 
-function editPayment(teacherId) {
-    // Implement edit payment functionality
-    console.log('Edit payment for teacher:', teacherId);
-}
-
-function viewReceipt(salaryId) {
-    // Implement view receipt functionality
-    console.log('View receipt:', salaryId);
-}
-
-function markAsPaid(salaryId) {
-    if (confirm('To\'lovni to\'langan deb belgilashni istaysizmi?')) {
-        // Implement mark as paid functionality
-        console.log('Mark as paid:', salaryId);
+function deletePayment(paymentId) {
+    if (confirm('Ushbu to\'lov yozuvini o\'chirishni istaysizmi?')) {
+        console.log('Delete payment:', paymentId);
     }
-}
-
-function showCalculationWindow(teacherId, teacherName, videoCount, testCount, hwCount) {
-    // Convert string parameters to numbers
-    const videoCnt = parseInt(videoCount) || 0;
-    const testCnt = parseInt(testCount) || 0;
-    const hwCnt = parseInt(hwCount) || 0;
-    
-    // Calculate totals
-    const VIDEO_PRICE = 25000;
-    const TEST_PRICE = 10000;
-    const HOMEWORK_PRICE = 10000;
-    
-    const videoTotal = videoCnt * VIDEO_PRICE;
-    const testTotal = testCnt * TEST_PRICE;
-    const hwTotal = hwCnt * HOMEWORK_PRICE;
-    
-    // Create calculation data
-    const calculationData = [
-        { type: 'Video darslar', count: videoCnt, price: VIDEO_PRICE, total: videoTotal },
-        { type: 'Testlar', count: testCnt, price: TEST_PRICE, total: testTotal },
-        { type: 'Uyga vazifalar', count: hwCnt, price: HOMEWORK_PRICE, total: hwTotal }
-    ];
-    
-    // Update modal content
-    document.getElementById('calculationTeacherName').textContent = teacherName;
-    
-    let calculationHtml = '';
-    calculationData.forEach(item => {
-        calculationHtml += `
-            <tr>
-                <td>${item.type}</td>
-                <td>${item.count}</td>
-                <td>${item.price.toLocaleString()} so'm</td>
-                <td class="fw-bold">${item.total.toLocaleString()} so'm</td>
-            </tr>
-        `;
-    });
-    
-    document.getElementById('calculationBody').innerHTML = calculationHtml;
-    document.getElementById('calculationTotal').textContent = 
-        calculationData.reduce((sum, item) => sum + item.total, 0).toLocaleString() + ' so\'m';
-    
-    // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('calculationModal'));
-    modal.show();
-}
-
-function exportCalculation() {
-    const teacherName = document.getElementById('calculationTeacherName').textContent;
-    const tableContent = document.getElementById('calculationBody').innerHTML;
-    const total = document.getElementById('calculationTotal').textContent;
-    
-    // Create CSV content
-    let csvContent = "Hisoblash tafsilotlari - " + teacherName + "\n\n";
-    csvContent += "Turi,Soni,Birlik narxi,Jami\n";
-    
-    // Extract data from table
-    const rows = document.querySelectorAll('#calculationBody tr');
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length === 4) {
-            csvContent += `"${cells[0].textContent}",${cells[1].textContent},"${cells[2].textContent}","${cells[3].textContent}"\n`;
-        }
-    });
-    
-    csvContent += `\nJami daromad,${total}`;
-    
-    // Create download link
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `hisoblash_${teacherName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
 }
 </script>
-
-<!-- Calculation Modal -->
-<div class="modal fade" id="calculationModal" tabindex="-1" aria-labelledby="calculationModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                <h5 class="modal-title text-white" id="calculationModalLabel">
-                    <i class="bi bi-calculator me-2"></i>
-                    <span id="calculationTeacherName">O'qituvchi</span> - Hisoblash tafsilotlari
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Turi</th>
-                                <th>Soni</th>
-                                <th>Birlik narxi</th>
-                                <th>Jami</th>
-                            </tr>
-                        </thead>
-                        <tbody id="calculationBody">
-                            <!-- Calculation data will be inserted here -->
-                        </tbody>
-                        <tfoot class="table-light">
-                            <tr>
-                                <th colspan="3" class="text-end">Jami daromad:</th>
-                                <th class="text-primary fw-bold" id="calculationTotal">0 so'm</th>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Hisoblash formulasi:</strong><br>
-                    Video darslar: son × 25,000 so'm<br>
-                    Testlar: son × 10,000 so'm<br>
-                    Uyga vazifalar: son × 10,000 so'm
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Yopish</button>
-                <button type="button" class="btn btn-primary" onclick="exportCalculation()">
-                    <i class="bi bi-download me-2"></i>Export qilish
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
 {% endblock %}

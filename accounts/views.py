@@ -11615,6 +11615,19 @@ def admin_teacher_earnings(request):
         earnings_change = current_month_earnings - prev_month_earnings
         earnings_change_percent = ((earnings_change / prev_month_earnings) * 100) if prev_month_earnings > 0 else 0
         
+        # Last lesson created by this teacher
+        last_lesson = Lesson.objects.filter(
+            profession__in=professions,
+        ).order_by('-created_at').first()
+        
+        # Current month detail counts
+        current_video_count = current_video
+        current_test_count = current_test
+        current_hw_count = current_hw
+        prev_video_count = prev_video
+        prev_test_count = prev_test
+        prev_hw_count = prev_hw
+        
         teacher_earnings.append({
             'teacher': teacher,
             'video_count': video_count,
@@ -11627,6 +11640,13 @@ def admin_teacher_earnings(request):
             'prev_month_earnings': prev_month_earnings,
             'earnings_change': earnings_change,
             'earnings_change_percent': earnings_change_percent,
+            'last_lesson': last_lesson,
+            'current_video_count': current_video_count,
+            'current_test_count': current_test_count,
+            'current_hw_count': current_hw_count,
+            'prev_video_count': prev_video_count,
+            'prev_test_count': prev_test_count,
+            'prev_hw_count': prev_hw_count,
         })
     
     # Statistics
@@ -11636,6 +11656,16 @@ def admin_teacher_earnings(request):
     
     # Get current date for filters
     now = date.today()
+    
+    month_names = {1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
+                   5: 'May', 6: 'Iyun', 7: 'Iyul', 8: 'Avgust',
+                   9: 'Sentyabr', 10: 'Oktyabr', 11: 'Noyabr', 12: 'Dekabr'}
+    
+    current_month_name = month_names.get(now.month, '')
+    if now.month == 1:
+        prev_month_name = month_names.get(12, '')
+    else:
+        prev_month_name = month_names.get(now.month - 1, '')
     
     context = {
         'teacher_earnings': teacher_earnings,
@@ -11650,6 +11680,8 @@ def admin_teacher_earnings(request):
         'teachers': teachers,
         'current_month': now.month,
         'current_year': now.year,
+        'current_month_name': current_month_name,
+        'prev_month_name': prev_month_name,
     }
     return render(request, 'accounts/admin/teacher_earnings.html', context)
 
