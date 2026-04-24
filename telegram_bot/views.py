@@ -133,6 +133,11 @@ def _process_webhook(data):
         logger.error("TELEGRAM_BOT_TOKEN sozlanmagan!")
         return
 
+    # Guruhda tugmalar ishlamasin — faqat shaxsiy chatda
+    chat_type = chat.get('type', 'private')
+    if chat_type in ('group', 'supergroup'):
+        return
+
     if text.startswith('/start'):
         parts = text.split()
         if len(parts) > 1 and parts[1].startswith('link_'):
