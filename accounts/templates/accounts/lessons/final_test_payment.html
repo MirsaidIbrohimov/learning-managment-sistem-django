@@ -1,228 +1,451 @@
-{% extends 'accounts/base.html' %}
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To'lov — {{ test.lesson.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-{% block title %}To'lov - {{ test.lesson.title }}{% endblock %}
+    :root {
+        --bg: #050510;
+        --bg-card: rgba(15, 18, 35, 0.85);
+        --border: rgba(239, 68, 68, 0.15);
+        --border-hover: rgba(239, 68, 68, 0.4);
+        --text: #eef2ff;
+        --text-muted: #94a3b8;
+        --primary: #ef4444;
+        --primary-glow: rgba(239, 68, 68, 0.4);
+        --success: #10b981;
+        --success-glow: rgba(16, 185, 129, 0.3);
+        --warning: #f59e0b;
+        --warning-glow: rgba(245, 158, 11, 0.3);
+        --glass: rgba(15, 18, 35, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.06);
+        --radius: 16px;
+        --radius-lg: 24px;
+    }
 
-{% block extra_css %}
-<style>
-:root {
-    --fp-primary: #dc2626;
-    --fp-success: #22c55e;
-    --fp-warning: #f59e0b;
-    --fp-bg: #f1f5f9;
-    --fp-card: #ffffff;
-    --fp-border: #e2e8f0;
-    --fp-text: #1e293b;
-    --fp-text-muted: #64748b;
-    --fp-shadow: rgba(0,0,0,0.08);
-}
-[data-bs-theme="dark"] {
-    --fp-primary: #f87171;
-    --fp-success: #4ade80;
-    --fp-warning: #fbbf24;
-    --fp-bg: #0f172a;
-    --fp-card: #1e293b;
-    --fp-border: #334155;
-    --fp-text: #f1f5f9;
-    --fp-text-muted: #94a3b8;
-    --fp-shadow: rgba(0,0,0,0.25);
-}
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
 
-.payment-page { min-height: 100vh; background: var(--fp-bg); padding: 2rem 0 4rem; }
+    /* ==================== ANIMATED BACKGROUND ==================== */
+    .bg-canvas {
+        position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    }
+    .bg-orb {
+        position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.12;
+        animation: orbFloat 20s ease-in-out infinite;
+    }
+    .bg-orb:nth-child(1) {
+        width: 600px; height: 600px; background: #ef4444;
+        top: -200px; left: -100px; animation-delay: 0s;
+    }
+    .bg-orb:nth-child(2) {
+        width: 500px; height: 500px; background: #dc2626;
+        bottom: -150px; right: -100px; animation-delay: -7s;
+    }
+    .bg-orb:nth-child(3) {
+        width: 400px; height: 400px; background: #f87171;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        animation-delay: -14s; opacity: 0.06;
+    }
+    @keyframes orbFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.05); }
+        66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
 
-.back-link {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    padding: 0.625rem 1.25rem; border-radius: 12px;
-    background: var(--fp-card); border: 1px solid var(--fp-border);
-    color: var(--fp-text); text-decoration: none; font-weight: 500;
-    transition: all 0.25s ease; box-shadow: 0 2px 8px var(--fp-shadow);
-    margin-bottom: 1.5rem;
-}
-.back-link:hover { color: var(--fp-primary); border-color: var(--fp-primary); }
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0;
+        background-image:
+            linear-gradient(rgba(239, 68, 68, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(239, 68, 68, 0.03) 1px, transparent 1px);
+        background-size: 60px 60px;
+        pointer-events: none;
+    }
 
-.payment-card {
-    background: var(--fp-card); border-radius: 24px;
-    border: 1px solid var(--fp-border); box-shadow: 0 8px 40px var(--fp-shadow);
-    overflow: hidden; max-width: 600px; margin: 0 auto;
-}
+    /* ==================== LAYOUT ==================== */
+    .page-wrapper {
+        position: relative; z-index: 1;
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        padding: 2rem 1.25rem;
+    }
+    .page-content {
+        width: 100%; max-width: 560px;
+    }
 
-.payment-header {
-    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    padding: 2rem; text-align: center; color: #fff;
-}
-.payment-header-icon {
-    width: 70px; height: 70px; border-radius: 20px;
-    background: rgba(255,255,255,0.15); display: flex;
-    align-items: center; justify-content: center;
-    margin: 0 auto 1rem; font-size: 2rem;
-}
-.payment-header h2 { font-size: 1.3rem; font-weight: 700; margin: 0; }
-.payment-header p { opacity: 0.85; margin: 0.5rem 0 0; font-size: 0.9rem; }
+    /* ==================== BACK BUTTON ==================== */
+    .back-link {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        padding: 0.625rem 1.25rem; border-radius: 12px;
+        background: var(--bg-card);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        color: var(--text); text-decoration: none; font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+    }
+    .back-link:hover {
+        color: var(--primary); border-color: var(--border-hover);
+        transform: translateX(-4px);
+        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
+    }
 
-.payment-body { padding: 1.5rem; }
+    /* ==================== PAYMENT CARD ==================== */
+    .payment-card {
+        background: var(--bg-card);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--glass-border);
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+        animation: cardSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes cardSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-.price-display {
-    text-align: center; padding: 1.5rem; margin-bottom: 1.5rem;
-    background: rgba(220,38,38,0.04); border-radius: 16px;
-    border: 1px dashed var(--fp-primary);
-}
-.price-display .amount {
-    font-size: 2.5rem; font-weight: 800; color: var(--fp-primary);
-}
-.price-display .label {
-    font-size: 0.85rem; color: var(--fp-text-muted); margin-top: 0.25rem;
-}
+    /* ==================== HEADER ==================== */
+    .payment-header {
+        background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+        padding: 2rem; text-align: center; color: #fff;
+        position: relative; overflow: hidden;
+    }
+    .payment-header::before {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
+        animation: headerShine 4s ease-in-out infinite;
+    }
+    @keyframes headerShine {
+        0%, 100% { transform: translateX(-100%) rotate(25deg); }
+        50% { transform: translateX(100%) rotate(25deg); }
+    }
+    .payment-header-icon {
+        width: 70px; height: 70px; border-radius: 20px;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem; font-size: 2rem;
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .payment-header h2 {
+        font-size: 1.3rem; font-weight: 800; margin: 0;
+        position: relative;
+    }
+    .payment-header p {
+        opacity: 0.85; margin: 0.5rem 0 0; font-size: 0.9rem;
+        position: relative;
+    }
 
-.payment-steps {
-    margin-bottom: 1.5rem;
-}
-.payment-step {
-    display: flex; align-items: flex-start; gap: 1rem;
-    padding: 1rem; border-radius: 12px; margin-bottom: 0.5rem;
-    background: var(--fp-bg);
-}
-.step-number {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--fp-primary); color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
-}
-.step-text { font-size: 0.9rem; color: var(--fp-text); line-height: 1.5; }
-.step-text strong { color: var(--fp-primary); }
+    /* ==================== BODY ==================== */
+    .payment-body { padding: 1.5rem; }
 
-.upload-area {
-    border: 2px dashed var(--fp-border); border-radius: 16px;
-    padding: 2rem; text-align: center; margin-bottom: 1.5rem;
-    transition: all 0.3s ease; cursor: pointer; position: relative;
-}
-.upload-area:hover { border-color: var(--fp-primary); background: rgba(220,38,38,0.02); }
-.upload-area input[type="file"] {
-    position: absolute; inset: 0; opacity: 0; cursor: pointer;
-}
-.upload-icon { font-size: 3rem; color: var(--fp-text-muted); margin-bottom: 0.5rem; }
-.upload-text { font-weight: 600; color: var(--fp-text); margin-bottom: 0.25rem; }
-.upload-hint { font-size: 0.8rem; color: var(--fp-text-muted); }
+    /* ==================== APPROVED STATE ==================== */
+    .approved-status {
+        text-align: center; padding: 2rem;
+        background: rgba(16, 185, 129, 0.06);
+        border-radius: var(--radius);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        animation: fadeInScale 0.5s ease;
+    }
+    .approved-status .status-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: rgba(16, 185, 129, 0.1);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        animation: successPulse 2s ease-in-out infinite;
+    }
+    .approved-status .status-icon i { font-size: 2.5rem; color: var(--success); }
+    .approved-status h3 { font-weight: 700; margin: 0 0 0.5rem; color: var(--text); font-size: 1.15rem; }
+    .approved-status p { color: var(--text-muted); margin: 0; font-size: 0.9rem; }
+    .approved-status .start-btn {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        margin-top: 1.25rem; padding: 0.85rem 2.5rem; border-radius: 14px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff; text-decoration: none;
+        font-weight: 700; font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 20px var(--success-glow);
+        border: none;
+    }
+    .approved-status .start-btn:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 8px 32px var(--success-glow);
+    }
+    @keyframes successPulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
+        50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+    }
+    @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
 
-.submit-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-    width: 100%; padding: 1rem; border-radius: 14px;
-    background: linear-gradient(135deg, #dc2626, #991b1b);
-    color: #fff; font-weight: 700; font-size: 1rem;
-    border: none; cursor: pointer; transition: all 0.3s ease;
-}
-.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(220,38,38,0.4); }
+    /* ==================== PENDING STATE ==================== */
+    .pending-status {
+        text-align: center; padding: 2rem;
+        background: rgba(245, 158, 11, 0.06);
+        border-radius: var(--radius);
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        animation: fadeInScale 0.5s ease;
+    }
+    .pending-status .status-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: rgba(245, 158, 11, 0.1);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        animation: pendingSpin 3s linear infinite;
+    }
+    .pending-status .status-icon i { font-size: 2.5rem; color: var(--warning); }
+    .pending-status h3 { font-weight: 700; margin: 0 0 0.5rem; color: var(--text); font-size: 1.15rem; }
+    .pending-status p { color: var(--text-muted); margin: 0; font-size: 0.9rem; line-height: 1.6; }
+    @keyframes pendingSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 
-.pending-status {
-    text-align: center; padding: 2rem;
-    background: rgba(245,158,11,0.06); border-radius: 16px;
-    border: 1px solid rgba(245,158,11,0.2);
-}
-.pending-status i { font-size: 3rem; color: var(--fp-warning); }
-.pending-status h3 { font-weight: 700; margin: 1rem 0 0.5rem; color: var(--fp-text); }
-.pending-status p { color: var(--fp-text-muted); margin: 0; }
+    /* ==================== PRICE DISPLAY ==================== */
+    .price-display {
+        text-align: center; padding: 1.5rem; margin-bottom: 1.5rem;
+        background: rgba(239, 68, 68, 0.05);
+        border-radius: var(--radius);
+        border: 1px dashed rgba(239, 68, 68, 0.3);
+        position: relative; overflow: hidden;
+    }
+    .price-display::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.08), transparent 70%);
+        pointer-events: none;
+    }
+    .price-display .amount {
+        font-size: 2.5rem; font-weight: 900; color: var(--primary);
+        position: relative;
+        text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+    }
+    .price-display .label {
+        font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;
+        position: relative;
+    }
 
-.approved-status {
-    text-align: center; padding: 2rem;
-    background: rgba(34,197,94,0.06); border-radius: 16px;
-    border: 1px solid rgba(34,197,94,0.2);
-}
-.approved-status i { font-size: 3rem; color: var(--fp-success); }
-.approved-status h3 { font-weight: 700; margin: 1rem 0 0.5rem; color: var(--fp-text); }
-.approved-status a {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    margin-top: 1rem; padding: 0.75rem 2rem; border-radius: 12px;
-    background: var(--fp-success); color: #fff; text-decoration: none;
-    font-weight: 700; transition: all 0.3s ease;
-}
-.approved-status a:hover { transform: translateY(-2px); }
-</style>
-{% endblock %}
+    /* ==================== PAYMENT STEPS ==================== */
+    .payment-steps { margin-bottom: 1.5rem; }
+    .payment-step {
+        display: flex; align-items: flex-start; gap: 1rem;
+        padding: 1rem; border-radius: 12px; margin-bottom: 0.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--glass-border);
+        transition: all 0.3s ease;
+    }
+    .payment-step:hover {
+        background: rgba(239, 68, 68, 0.04);
+        border-color: rgba(239, 68, 68, 0.15);
+        transform: translateX(4px);
+    }
+    .step-number {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
+    }
+    .step-text {
+        font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;
+        padding-top: 0.2rem;
+    }
+    .step-text strong { color: var(--primary); }
 
-{% block content %}
-<div class="payment-page">
-    <div class="container">
-        <a href="{% url 'lesson_view' test.lesson.pk %}" class="back-link">
-            <i class="bi bi-arrow-left"></i>
-            <span>Orqaga</span>
-        </a>
+    /* ==================== UPLOAD AREA ==================== */
+    .upload-area {
+        border: 2px dashed rgba(239, 68, 68, 0.2); border-radius: var(--radius);
+        padding: 2rem; text-align: center; margin-bottom: 1.5rem;
+        transition: all 0.3s ease; cursor: pointer; position: relative;
+        background: rgba(239, 68, 68, 0.02);
+    }
+    .upload-area:hover {
+        border-color: var(--primary);
+        background: rgba(239, 68, 68, 0.05);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(239, 68, 68, 0.1);
+    }
+    .upload-area.file-selected {
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.05);
+    }
+    .upload-area input[type="file"] {
+        position: absolute; inset: 0; opacity: 0; cursor: pointer;
+    }
+    .upload-icon {
+        font-size: 3rem; color: var(--text-muted); margin-bottom: 0.5rem;
+        transition: all 0.3s;
+    }
+    .upload-area:hover .upload-icon { color: var(--primary); transform: translateY(-4px); }
+    .upload-area.file-selected .upload-icon { color: var(--success); }
+    .upload-text {
+        font-weight: 600; color: var(--text); margin-bottom: 0.25rem;
+        transition: color 0.3s;
+    }
+    .upload-area.file-selected .upload-text { color: var(--success); }
+    .upload-hint { font-size: 0.8rem; color: var(--text-muted); }
 
-        <div class="payment-card">
-            <div class="payment-header">
-                <div class="payment-header-icon">
-                    <i class="bi bi-credit-card-2-front-fill"></i>
-                </div>
-                <h2>Yakuniy test to'lovi</h2>
-                <p>{{ test.lesson.title }} — {{ test.lesson.profession.name }}</p>
-            </div>
+    /* ==================== SUBMIT BUTTON ==================== */
+    .submit-btn {
+        display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+        width: 100%; padding: 1rem; border-radius: 14px;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
+        color: #fff; font-weight: 700; font-size: 1rem;
+        border: none; cursor: pointer; transition: all 0.3s ease;
+        box-shadow: 0 4px 20px var(--primary-glow);
+        position: relative; overflow: hidden;
+    }
+    .submit-btn::before {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
+        transform: translateX(-100%) rotate(25deg);
+        transition: transform 0.6s;
+    }
+    .submit-btn:hover::before { transform: translateX(100%) rotate(25deg); }
+    .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 32px var(--primary-glow);
+    }
+    .submit-btn:active { transform: translateY(0) scale(0.98); }
 
-            <div class="payment-body">
-                {% if approved_payment %}
-                <div class="approved-status">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <h3>To'lov tasdiqlangan!</h3>
-                    <p>Siz yakuniy testni qayta topshirishingiz mumkin.</p>
-                    <a href="{% url 'start_test' test.pk %}">
-                        <i class="bi bi-play-fill"></i> Testni boshlash
-                    </a>
-                </div>
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 640px) {
+        .page-wrapper { padding: 1rem 0.75rem; align-items: flex-start; padding-top: 1.5rem; }
+        .payment-header { padding: 1.5rem 1rem; }
+        .payment-header-icon { width: 56px; height: 56px; border-radius: 16px; font-size: 1.5rem; }
+        .payment-header h2 { font-size: 1.1rem; }
+        .payment-body { padding: 1.25rem; }
+        .price-display .amount { font-size: 2rem; }
+        .payment-step { padding: 0.85rem; }
+        .upload-area { padding: 1.5rem; }
+        .upload-icon { font-size: 2.5rem; }
+        .back-link { font-size: 0.85rem; padding: 0.5rem 1rem; }
+    }
+    @media (max-width: 380px) {
+        .payment-header { padding: 1.25rem 0.75rem; }
+        .payment-body { padding: 1rem; }
+        .price-display .amount { font-size: 1.75rem; }
+        .step-text { font-size: 0.85rem; }
+    }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-canvas">
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+        <div class="bg-orb"></div>
+    </div>
+    <div class="bg-grid"></div>
 
-                {% elif pending_payment %}
-                <div class="pending-status">
-                    <i class="bi bi-hourglass-split"></i>
-                    <h3>To'lov kutilmoqda</h3>
-                    <p>To'lov chekingiz admin tomonidan tekshirilmoqda. Iltimos, kuting.</p>
-                </div>
+    <div class="page-wrapper">
+        <div class="page-content">
+            <a href="{% url 'lesson_view' test.lesson.pk %}" class="back-link">
+                <i class="bi bi-arrow-left"></i>
+                <span>Orqaga</span>
+            </a>
 
-                {% else %}
-                <div class="price-display">
-                    <div class="amount">65,000 so'm</div>
-                    <div class="label">Qayta topshirish narxi</div>
-                </div>
-
-                <div class="payment-steps">
-                    <div class="payment-step">
-                        <div class="step-number">1</div>
-                        <div class="step-text"><strong>65,000 so'm</strong> miqdorida to'lov qiling</div>
+            <div class="payment-card">
+                <div class="payment-header">
+                    <div class="payment-header-icon">
+                        <i class="bi bi-credit-card-2-front-fill"></i>
                     </div>
-                    <div class="payment-step">
-                        <div class="step-number">2</div>
-                        <div class="step-text">To'lov <strong>cheki rasmini</strong> pastda yuklang</div>
-                    </div>
-                    <div class="payment-step">
-                        <div class="step-number">3</div>
-                        <div class="step-text">Admin <strong>tasdiqlashi</strong>ni kuting</div>
-                    </div>
-                    <div class="payment-step">
-                        <div class="step-number">4</div>
-                        <div class="step-text">Tasdiqlangach — <strong>qayta topshiring!</strong></div>
-                    </div>
+                    <h2>Yakuniy test to'lovi</h2>
+                    <p>{{ test.lesson.title }} — {{ test.lesson.profession.name }}</p>
                 </div>
 
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <div class="upload-area" id="uploadArea">
-                        <input type="file" name="receipt_image" accept="image/*" required id="receiptInput">
-                        <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                        <div class="upload-text" id="uploadText">To'lov chekini yuklang</div>
-                        <div class="upload-hint">JPG, PNG, HEIC formatda</div>
+                <div class="payment-body">
+                    {% if approved_payment %}
+                    <div class="approved-status">
+                        <div class="status-icon">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <h3>To'lov tasdiqlangan!</h3>
+                        <p>Siz yakuniy testni qayta topshirishingiz mumkin.</p>
+                        <a href="{% url 'start_test' test.pk %}" class="start-btn">
+                            <i class="bi bi-play-fill"></i> Testni boshlash
+                        </a>
                     </div>
-                    <button type="submit" class="submit-btn">
-                        <i class="bi bi-send-fill"></i>
-                        Chekni yuborish
-                    </button>
-                </form>
-                {% endif %}
+
+                    {% elif pending_payment %}
+                    <div class="pending-status">
+                        <div class="status-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <h3>To'lov kutilmoqda</h3>
+                        <p>To'lov chekingiz admin tomonidan tekshirilmoqda. Iltimos, kuting.</p>
+                    </div>
+
+                    {% else %}
+                    <div class="price-display">
+                        <div class="amount">65,000 so'm</div>
+                        <div class="label">Qayta topshirish narxi</div>
+                    </div>
+
+                    <div class="payment-steps">
+                        <div class="payment-step">
+                            <div class="step-number">1</div>
+                            <div class="step-text"><strong>65,000 so'm</strong> miqdorida to'lov qiling</div>
+                        </div>
+                        <div class="payment-step">
+                            <div class="step-number">2</div>
+                            <div class="step-text">To'lov <strong>cheki rasmini</strong> pastda yuklang</div>
+                        </div>
+                        <div class="payment-step">
+                            <div class="step-number">3</div>
+                            <div class="step-text">Admin <strong>tasdiqlashi</strong>ni kuting</div>
+                        </div>
+                        <div class="payment-step">
+                            <div class="step-number">4</div>
+                            <div class="step-text">Tasdiqlangach — <strong>qayta topshiring!</strong></div>
+                        </div>
+                    </div>
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="upload-area" id="uploadArea">
+                            <input type="file" name="receipt_image" accept="image/*" required id="receiptInput">
+                            <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
+                            <div class="upload-text" id="uploadText">To'lov chekini yuklang</div>
+                            <div class="upload-hint">JPG, PNG, HEIC formatda</div>
+                        </div>
+                        <button type="submit" class="submit-btn">
+                            <i class="bi bi-send-fill"></i>
+                            Chekni yuborish
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-document.getElementById('receiptInput')?.addEventListener('change', function() {
-    var text = document.getElementById('uploadText');
-    if (this.files && this.files[0]) {
-        text.textContent = this.files[0].name;
-        document.getElementById('uploadArea').style.borderColor = '#22c55e';
-    }
-});
-</script>
-{% endblock %}
+    <script>
+    document.getElementById('receiptInput')?.addEventListener('change', function() {
+        var text = document.getElementById('uploadText');
+        var area = document.getElementById('uploadArea');
+        if (this.files && this.files[0]) {
+            text.textContent = this.files[0].name;
+            area.classList.add('file-selected');
+        } else {
+            text.textContent = "To'lov chekini yuklang";
+            area.classList.remove('file-selected');
+        }
+    });
+    </script>
+</body>
+</html>
