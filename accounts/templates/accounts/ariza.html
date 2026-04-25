@@ -1,563 +1,825 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
 
-{% block title %}IT Shaxarcha Zomin | Dasturlash Kurslari - Python, Web, Frontend{% endblock %}
+{% block title %}Ariza qoldirish — IT Creative Zomin | Dasturlash Kurslari{% endblock %}
+
+{% block canonical %}https://itcreative.uz/ariza/{% endblock %}
 
 {% block extra_css %}
+<!-- SEO: Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "EducationalOrganization",
-  "name": "IT Shaxarcha Zomin - IT Creative",
-  "description": "Zomin tumani IT Shaxarchada zamonaviy dasturlash kurslari.",
-  "address": {"@type": "PostalAddress","addressLocality": "Zomin","addressRegion": "Jizzax","addressCountry": "UZ"},
-  "url": "https://itcreative.uz"
+  "name": "IT Creative Zomin — IT Shaxarcha",
+  "description": "Zomin tumani IT Shaxarchada zamonaviy dasturlash kurslari. Python, Web, Frontend, Backend yo'nalishlari.",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Zomin",
+    "addressRegion": "Jizzax",
+    "addressCountry": "UZ"
+  },
+  "url": "https://itcreative.uz",
+  "potentialAction": {
+    "@type": "RegisterAction",
+    "name": "Kursga yozilish",
+    "target": "https://itcreative.uz/ariza/"
+  }
 }
 </script>
+<meta name="description" content="IT Creative Zomin — Zomin IT Shaxarchada dasturlash kurslariga ariza qoldiring. Python, Web, Frontend, Backend yo'nalishlari. Bepul konsultatsiya.">
+<meta property="og:title" content="Ariza qoldirish — IT Creative Zomin">
+<meta property="og:description" content="Zomin IT Shaxarchada zamonaviy dasturlash kurslariga hoziroq yozilin!">
+<meta property="og:url" content="https://itcreative.uz/ariza/">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
 /* ══════════════════════════════
-   THEME
+   VARIABLES
 ══════════════════════════════ */
 :root {
-
+  --bg:      #06080f;
+  --bg2:     #0d1117;
+  --card:    rgba(14,17,30,0.85);
+  --border:  rgba(99,102,241,0.12);
   --text:    #f1f5f9;
   --text2:   #94a3b8;
   --text3:   #64748b;
-  --accent:  #3b82f6;
-  --accent2: #06b6d4;
+  --accent:  #6366f1;
+  --accent2: #8b5cf6;
+  --cyan:    #06b6d4;
   --green:   #10b981;
   --pink:    #f472b6;
-  --ff:      'Plus Jakarta Sans', sans-serif;
+  --orange:  #f59e0b;
+  --ff:      'Plus Jakarta Sans', 'Inter', sans-serif;
 }
 [data-theme="light"] {
-  --bg:      #f5f8ff;
+  --bg:      #f5f7ff;
   --bg2:     #eaf0fb;
   --card:    #ffffff;
-  --border:  rgba(59,130,246,0.14);
+  --border:  rgba(99,102,241,0.12);
   --text:    #0f172a;
   --text2:   #475569;
   --text3:   #94a3b8;
-  --accent:  #2563eb;
-  --accent2: #0891b2;
-  --green:   #059669;
+  --accent:  #4f46e5;
+  --accent2: #7c3aed;
 }
 
 /* ══════════════════════════════
-   BASE
+   RESET & BASE
 ══════════════════════════════ */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:var(--ff);
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.6;
-  overflow-x:hidden;
-  transition:background .35s,color .35s;
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0 }
+html { scroll-behavior:smooth }
+body {
+  font-family: var(--ff);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+  transition: background .4s, color .4s;
+}
+
+/* ══════════════════════════════
+   PARTICLES CANVAS
+══════════════════════════════ */
+#particles {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
 }
 
 /* ══════════════════════════════
    NAV
 ══════════════════════════════ */
-.nav{
-  position:fixed;top:0;left:0;right:0;z-index:200;
-  height:60px;
-  display:flex;align-items:center;
-  padding:0 24px;gap:12px;
-  background:var(--bg);
-  border-bottom:1px solid var(--border);
-  transition:background .35s,border-color .35s;
+.ar-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  height: 64px;
+  display: flex; align-items: center;
+  padding: 0 24px; gap: 12px;
+  background: rgba(6,8,15,0.75);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: background .4s;
 }
-[data-theme="light"] .nav{background:rgba(245,248,255,.95);backdrop-filter:blur(16px)}
-.nav-brand{
-  font-size:1.1rem;font-weight:900;
-  color:var(--text);text-decoration:none;
-  display:flex;align-items:center;gap:7px;flex-shrink:0;
+[data-theme="light"] .ar-nav {
+  background: rgba(245,247,255,0.85);
 }
-.nav-brand .hi{color:var(--accent)}
-.nav-space{flex:1}
+.ar-brand {
+  font-size: 1.15rem; font-weight: 900;
+  color: var(--text); text-decoration: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.ar-brand .hi { color: var(--accent) }
+.ar-space { flex: 1 }
 
-/* toggle pill */
-.tog{
-  width:48px;height:26px;border-radius:50px;
-  background:var(--bg2);border:1px solid var(--border);
-  cursor:pointer;position:relative;flex-shrink:0;
-  transition:background .3s,border-color .3s;
+/* Theme Toggle */
+.ar-tog {
+  width: 50px; height: 28px; border-radius: 50px;
+  background: var(--bg2); border: 1px solid var(--border);
+  cursor: pointer; position: relative;
+  transition: background .3s;
 }
-.tog::after{
-  content:'';
-  position:absolute;top:3px;left:3px;
-  width:18px;height:18px;border-radius:50%;
-  background:var(--text3);
-  transition:left .3s,background .3s;
+.ar-tog::after {
+  content: ''; position: absolute;
+  top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--text3);
+  transition: left .35s cubic-bezier(.68,-.55,.27,1.55), background .3s;
 }
-[data-theme="light"] .tog::after{left:25px;background:var(--accent)}
-.tog-ic{
-  position:absolute;top:50%;transform:translateY(-50%);
-  font-size:11px;line-height:1;
-  pointer-events:none;
-}
-.tog-sun{right:5px}
-.tog-moon{left:5px}
+[data-theme="light"] .ar-tog::after { left: 25px; background: var(--accent) }
+.ar-tog .ti { position: absolute; top: 50%; transform: translateY(-50%); font-size: 12px; pointer-events: none }
+.ar-tog .ti-s { right: 5px }
+.ar-tog .ti-m { left: 5px }
 
-.nav-btn{
-  padding:8px 18px;
-  background:var(--accent);
-  color:#fff;font-weight:700;font-size:.85rem;
-  border-radius:50px;text-decoration:none;
-  transition:opacity .2s,transform .2s;flex-shrink:0;
+.ar-cta {
+  padding: 8px 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-weight: 700; font-size: .85rem;
+  border-radius: 50px; text-decoration: none;
+  transition: transform .25s, box-shadow .25s;
 }
-.nav-btn:hover{opacity:.85;transform:translateY(-1px);color:#fff}
+.ar-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99,102,241,0.35);
+  color: #fff;
+}
 
 /* ══════════════════════════════
    HERO
 ══════════════════════════════ */
-.hero{
-  min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  padding:80px 24px 64px;
-  text-align:center;
-  position:relative;overflow:hidden;
+.ar-hero {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 100px 24px 80px;
+  position: relative;
 }
-/* simple soft glow — NO grid lines */
-.hero::after{
-  content:'';
-  position:absolute;inset:0;z-index:0;
-  pointer-events:none;
+.ar-hero-bg {
+  position: absolute; inset: 0; z-index: 0;
+  overflow: hidden; pointer-events: none;
 }
-
-.hero-in{position:relative;z-index:1;max-width:680px;width:100%}
-
-/* badge */
-.badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:6px 16px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:50px;
-  font-size:.82rem;font-weight:600;color:var(--text2);
-  margin-bottom:28px;
-  animation:up .6s ease both;
+.ar-orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(100px); opacity: 0.15;
+  animation: orbFloat 12s ease-in-out infinite alternate;
 }
-.dot{
-  width:7px;height:7px;border-radius:50%;
-  background:var(--green);box-shadow:0 0 7px var(--green);
-  animation:blink 2s infinite;flex-shrink:0;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-
-h1.h1{
-  font-size:clamp(2.4rem,6vw,4.2rem);
-  font-weight:900;line-height:1.1;
-  color:var(--text);margin-bottom:20px;
-  animation:up .7s .08s ease both;
-}
-h1.h1 .gr{
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.sub{
-  font-size:clamp(1rem,2vw,1.1rem);color:var(--text2);
-  max-width:520px;margin:0 auto 36px;
-  animation:up .7s .16s ease both;
+.ar-orb-1 { width: 500px; height: 500px; background: var(--accent); top: -10%; left: -5%; animation-delay: 0s }
+.ar-orb-2 { width: 400px; height: 400px; background: var(--accent2); bottom: -10%; right: -5%; animation-delay: -4s }
+.ar-orb-3 { width: 300px; height: 300px; background: var(--cyan); top: 40%; left: 50%; animation-delay: -8s }
+@keyframes orbFloat {
+  0%   { transform: translate(0,0) scale(1) }
+  50%  { transform: translate(30px,-30px) scale(1.1) }
+  100% { transform: translate(-20px,20px) scale(0.95) }
 }
 
-/* stats */
-.stats{
-  display:flex;justify-content:center;gap:12px;flex-wrap:wrap;
-  margin-bottom:36px;
-  animation:up .7s .24s ease both;
+.ar-hero-in {
+  position: relative; z-index: 1;
+  max-width: 1100px; width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
 }
-.stat{
-  flex:1;min-width:110px;max-width:155px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:16px;padding:18px 12px;
-  transition:border-color .3s,transform .3s,box-shadow .3s;
-}
-[data-theme="light"] .stat{box-shadow:0 2px 10px rgba(59,130,246,.06)}
-.stat:hover{border-color:var(--accent);transform:translateY(-4px);box-shadow:0 12px 28px rgba(59,130,246,.14)}
-.stat-n{
-  font-size:1.9rem;font-weight:900;line-height:1;margin-bottom:4px;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.stat-l{font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em}
 
-/* cta buttons */
-.btns{
-  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
-  animation:up .7s .32s ease both;
+/* LEFT (text) */
+.ar-left { animation: slideUp .8s ease both }
+
+.ar-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 18px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 50px;
+  font-size: .8rem; font-weight: 700; color: var(--text2);
+  margin-bottom: 24px;
 }
-.btn-pri{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:13px 26px;
-  background:var(--accent);color:#fff;
-  font-weight:700;font-size:.975rem;
-  border-radius:13px;text-decoration:none;
-  box-shadow:0 8px 20px rgba(59,130,246,.3);
-  transition:background .25s,transform .25s,box-shadow .25s;
+.ar-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: pulse 2s infinite;
 }
-.btn-pri:hover{background:#2563eb;transform:translateY(-3px);box-shadow:0 14px 28px rgba(59,130,246,.4);color:#fff}
-.btn-sec{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:13px 26px;
-  background:var(--card);border:1px solid var(--border);
-  color:var(--text);font-weight:600;font-size:.975rem;
-  border-radius:13px;text-decoration:none;
-  transition:border-color .25s,background .25s,transform .25s;
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1) } 50% { opacity: .4; transform: scale(.8) } }
+
+.ar-h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900; line-height: 1.1;
+  margin-bottom: 18px;
+  animation: slideUp .8s .1s ease both;
 }
-.btn-sec:hover{border-color:var(--accent);transform:translateY(-3px);color:var(--text)}
+.ar-h1 .gr {
+  background: linear-gradient(135deg, var(--accent), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ar-sub {
+  font-size: 1.05rem; color: var(--text2);
+  max-width: 440px; margin-bottom: 32px;
+  animation: slideUp .8s .2s ease both;
+}
+
+.ar-features {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  animation: slideUp .8s .3s ease both;
+}
+.ar-feat {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: .82rem; font-weight: 600; color: var(--text2);
+  transition: border-color .3s, transform .3s;
+}
+.ar-feat:hover { border-color: var(--accent); transform: translateY(-2px) }
+.ar-feat i { color: var(--green); font-size: .95rem }
+
+/* RIGHT (form card) */
+.ar-right { animation: slideUp .8s .15s ease both }
+
+.ar-form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 40px 32px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(20px);
+  transition: border-color .4s, box-shadow .4s;
+}
+.ar-form-card:hover {
+  border-color: rgba(99,102,241,0.25);
+}
+[data-theme="light"] .ar-form-card {
+  box-shadow: 0 8px 40px rgba(99,102,241,0.07);
+}
+
+/* card shimmer line */
+.ar-form-card::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer { 0%{left:-100%} 100%{left:100%} }
+
+.ar-form-head {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.ar-form-head h2 {
+  font-size: 1.6rem; font-weight: 900;
+  margin-bottom: 6px;
+}
+.ar-form-head p {
+  color: var(--text2); font-size: .88rem;
+}
+
+/* form fields */
+.ar-field {
+  margin-bottom: 18px;
+  position: relative;
+}
+.ar-field label {
+  display: block;
+  font-size: .72rem; font-weight: 700;
+  color: var(--text3); text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 7px;
+}
+.ar-req { color: var(--pink) }
+
+.ar-inp-wrap {
+  position: relative;
+}
+.ar-inp-wrap i {
+  position: absolute; left: 14px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text3); font-size: .95rem;
+  transition: color .3s;
+  pointer-events: none;
+}
+.ar-inp {
+  width: 100%;
+  background: var(--bg);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 13px 14px 13px 42px;
+  border-radius: 12px;
+  font-size: .95rem;
+  font-family: var(--ff);
+  outline: none;
+  transition: border-color .3s, box-shadow .3s, background .3s;
+  -webkit-appearance: none;
+}
+[data-theme="light"] .ar-inp { background: #f8fafc }
+.ar-inp:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+}
+.ar-inp:focus + i,
+.ar-inp-wrap:focus-within i { color: var(--accent) }
+
+.ar-inp::placeholder { color: var(--text3) }
+
+/* phone prefix */
+.ar-ph-row { display: flex }
+.ar-ph-pre {
+  display: flex; align-items: center;
+  padding: 13px 14px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));
+  border: 1.5px solid var(--border); border-right: none;
+  border-radius: 12px 0 0 12px;
+  color: var(--accent); font-weight: 800; font-size: .92rem;
+  font-family: var(--ff);
+}
+.ar-ph-row .ar-inp-wrap { flex: 1 }
+.ar-ph-row .ar-inp {
+  border-radius: 0 12px 12px 0;
+  padding-left: 14px;
+}
+.ar-ph-row .ar-inp-wrap i { display: none }
+
+/* select */
+select.ar-inp {
+  padding-left: 42px;
+  cursor: pointer;
+}
+
+/* submit button */
+.ar-submit {
+  width: 100%; padding: 15px; margin-top: 6px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; color: #fff;
+  font-weight: 800; font-size: 1rem;
+  border-radius: 14px; cursor: pointer;
+  font-family: var(--ff);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  position: relative; overflow: hidden;
+  transition: transform .3s, box-shadow .3s;
+}
+.ar-submit::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+  transform: translateX(-100%);
+  transition: transform .5s;
+}
+.ar-submit:hover::before { transform: translateX(100%) }
+.ar-submit:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(99,102,241,0.35);
+}
+.ar-submit:active { transform: translateY(0) }
+.ar-submit:disabled {
+  opacity: .6; cursor: not-allowed; transform: none !important;
+  box-shadow: none !important;
+}
+
+.ar-priv {
+  text-align: center; margin-top: 14px;
+  font-size: .78rem; color: var(--text3);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.ar-priv i { color: var(--green) }
+
+/* field validation states */
+.ar-inp.valid { border-color: var(--green) }
+.ar-inp.invalid { border-color: #ef4444 }
+.ar-error {
+  font-size: .72rem; color: #ef4444;
+  margin-top: 4px; display: none;
+  animation: shake .4s ease;
+}
+.ar-error.show { display: block }
+
+@keyframes shake {
+  0%,100% { transform: translateX(0) }
+  25%     { transform: translateX(-6px) }
+  75%     { transform: translateX(6px) }
+}
+
+/* ══════════════════════════════
+   SUCCESS STATE
+══════════════════════════════ */
+.ar-success {
+  text-align: center; padding: 20px 0;
+}
+.ar-success-icon {
+  width: 90px; height: 90px; border-radius: 50%;
+  margin: 0 auto 22px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem; color: var(--green);
+  position: relative;
+}
+.ar-success-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 3px solid var(--green);
+  animation: ringPop .7s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes ringPop { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+.ar-success-check {
+  animation: checkPop .5s .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes checkPop { from { transform: scale(0); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+
+/* confetti */
+.confetti-piece {
+  position: absolute; width: 8px; height: 12px;
+  border-radius: 2px;
+  animation: confettiFall 1.5s ease-out forwards;
+  opacity: 0;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg) scale(0); opacity: 1 }
+  20%  { opacity: 1; transform: translateY(-80px) rotate(180deg) scale(1) }
+  100% { transform: translateY(200px) rotate(720deg) scale(0.3); opacity: 0 }
+}
+
+.ar-success h2 {
+  font-size: 1.8rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--green), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  animation: slideUp .6s .5s ease both;
+}
+.ar-success p {
+  color: var(--text2); font-size: .95rem;
+  line-height: 1.7; margin-bottom: 26px;
+  animation: slideUp .6s .6s ease both;
+}
+.ar-success .ar-home-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-weight: 700; font-size: .95rem;
+  border-radius: 14px; text-decoration: none;
+  transition: transform .3s, box-shadow .3s;
+  animation: slideUp .6s .7s ease both;
+}
+.ar-success .ar-home-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(99,102,241,0.3);
+  color: #fff;
+}
 
 /* ══════════════════════════════
    MARQUEE
 ══════════════════════════════ */
-.mq{
-  overflow:hidden;
-  border-top:1px solid var(--border);
-  border-bottom:1px solid var(--border);
-  padding:13px 0;
-  background:var(--bg2);
+.ar-mq {
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+  background: var(--bg2);
 }
-.mq-track{
-  display:flex;gap:10px;width:max-content;
-  animation:mq 24s linear infinite;
+.ar-mq-track {
+  display: flex; gap: 10px; width: max-content;
+  animation: mq 22s linear infinite;
 }
-@keyframes mq{to{transform:translateX(-50%)}}
-.mq-item{
-  display:flex;align-items:center;gap:6px;
-  padding:5px 16px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:50px;
-  font-size:.85rem;font-weight:600;color:var(--text2);
-  white-space:nowrap;
+@keyframes mq { to { transform: translateX(-50%) } }
+.ar-mq-item {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 18px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 50px;
+  font-size: .85rem; font-weight: 600; color: var(--text2);
+  white-space: nowrap;
+  transition: border-color .3s;
 }
-.mq-item i{color:var(--accent)}
+.ar-mq-item:hover { border-color: var(--accent) }
+.ar-mq-item i { color: var(--accent) }
 
 /* ══════════════════════════════
    FEATURES SECTION
 ══════════════════════════════ */
-.sec{padding:72px 24px}
-.sec-in{max-width:1080px;margin:0 auto}
-.sec-lbl{
-  font-size:.72rem;font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--accent);
-  margin-bottom:8px;display:block;
+.ar-sec {
+  padding: 80px 24px;
+  position: relative; z-index: 1;
 }
-.sec-title{
-  font-size:clamp(1.75rem,4vw,2.5rem);
-  font-weight:800;color:var(--text);line-height:1.2;
-  margin-bottom:10px;
+.ar-sec-in { max-width: 1080px; margin: 0 auto }
+.ar-sec-lbl {
+  font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 8px; display: block;
 }
-.sec-desc{color:var(--text2);font-size:.975rem;max-width:480px}
+.ar-sec-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 800; line-height: 1.2;
+  margin-bottom: 10px;
+}
+.ar-sec-desc { color: var(--text2); font-size: .975rem; max-width: 500px }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:14px;margin-top:44px;
+.ar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px; margin-top: 44px;
 }
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:18px;padding:26px 22px;
-  transition:border-color .3s,transform .3s,box-shadow .3s;
+.ar-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px 24px;
+  transition: border-color .3s, transform .4s, box-shadow .4s;
+  position: relative; overflow: hidden;
+}
+.ar-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+}
+.ar-card:hover::after { transform: scaleX(1) }
+.ar-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(99,102,241,0.12);
 }
 
-.ci{
-  width:48px;height:48px;border-radius:13px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.35rem;margin-bottom:14px;
+.ar-ci {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; margin-bottom: 16px;
 }
-.ci-b{background:rgba(59,130,246,.1);color:var(--accent)}
-.ci-p{background:rgba(244,114,182,.1);color:var(--pink)}
-.ci-g{background:rgba(16,185,129,.1);color:var(--green)}
-.ci-c{background:rgba(6,182,212,.1);color:var(--accent2)}
-.card h3{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:7px}
-.card p{font-size:.875rem;color:var(--text2);line-height:1.65}
+.ar-ci-b { background: rgba(99,102,241,0.1); color: var(--accent) }
+.ar-ci-p { background: rgba(244,114,182,0.1); color: var(--pink) }
+.ar-ci-g { background: rgba(16,185,129,0.1); color: var(--green) }
+.ar-ci-c { background: rgba(6,182,212,0.1); color: var(--cyan) }
+.ar-ci-o { background: rgba(245,158,11,0.1); color: var(--orange) }
+.ar-ci-v { background: rgba(139,92,246,0.1); color: var(--accent2) }
 
-/* ══════════════════════════════
-   FORM SECTION
-══════════════════════════════ */
-.fsec{padding:72px 24px;}
-.fbox{
-  max-width:500px;margin:0 auto;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:22px;padding:36px 32px;
-}
-[data-theme="light"] .fbox{box-shadow:0 8px 32px rgba(59,130,246,.07)}
-.fhead{text-align:center;margin-bottom:28px}
-.fhead h2{font-size:1.7rem;font-weight:900;color:var(--text);margin-bottom:5px}
-.fhead p{color:var(--text2);font-size:.88rem}
-
-.field{margin-bottom:16px}
-.field label{
-  display:block;font-size:.75rem;font-weight:700;
-  color:var(--text3);text-transform:uppercase;
-  letter-spacing:.07em;margin-bottom:6px;
-}
-.req{color:var(--pink)}
-.inp{
-  width:100%;
-  background:var(--bg);border:1.5px solid var(--border);
-  color:var(--text);padding:11px 14px;
-  border-radius:11px;font-size:.95rem;
-  font-family:var(--ff);outline:none;
-  transition:border-color .25s,box-shadow .25s,background .3s;
-  -webkit-appearance:none;
-}
-[data-theme="light"] .inp{background:#fff}
-.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
-.inp::placeholder{color:var(--text3)}
-
-.ph-row{display:flex}
-.ph-pre{
-  display:flex;align-items:center;
-  padding:11px 12px;
-  background:rgba(59,130,246,.08);
-  border:1.5px solid var(--border);border-right:none;
-  border-radius:11px 0 0 11px;
-  color:var(--accent);font-weight:700;font-size:.95rem;
-  font-family:var(--ff);white-space:nowrap;
-}
-.ph-row .inp{border-radius:0 11px 11px 0}
-
-.bsend{
-  width:100%;padding:14px;margin-top:4px;
-  background:var(--accent);border:none;color:#fff;
-  font-weight:800;font-size:.975rem;
-  border-radius:11px;cursor:pointer;
-  font-family:var(--ff);
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  box-shadow:0 8px 20px rgba(59,130,246,.28);
-  transition:background .25s,transform .25s,box-shadow .25s;
-}
-.bsend:hover{background:#2563eb;transform:translateY(-2px);box-shadow:0 12px 28px rgba(59,130,246,.38)}
-.bsend:disabled{opacity:.55;cursor:not-allowed;transform:none}
-
-.priv{
-  text-align:center;margin-top:12px;
-  font-size:.78rem;color:var(--text3);
-  display:flex;align-items:center;justify-content:center;gap:5px;
-}
-.priv i{color:var(--green)}
-
-/* ══════════════════════════════
-   SUCCESS
-══════════════════════════════ */
-.succ{text-align:center;padding:8px 0}
-.succ-ring{
-  width:76px;height:76px;border-radius:50%;
-  background:rgba(16,185,129,.1);border:2px solid var(--green);
-  display:flex;align-items:center;justify-content:center;
-  font-size:2rem;margin:0 auto 18px;
-  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
-}
-@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
-.succ h2{font-size:1.7rem;font-weight:900;color:var(--green);margin-bottom:10px}
-.succ p{color:var(--text2);font-size:.92rem;line-height:1.7;margin-bottom:22px}
+.ar-card h3 { font-size: 1.05rem; font-weight: 800; margin-bottom: 8px }
+.ar-card p  { font-size: .875rem; color: var(--text2); line-height: 1.7 }
 
 /* ══════════════════════════════
    FOOTER
 ══════════════════════════════ */
-.foot{
-  background:var(--bg2);border-top:1px solid var(--border);
-  padding:20px 24px;text-align:center;
-  font-size:.82rem;color:var(--text3);
+.ar-foot {
+  background: var(--bg2); border-top: 1px solid var(--border);
+  padding: 22px 24px; text-align: center;
+  font-size: .82rem; color: var(--text3);
+  position: relative; z-index: 1;
 }
-.foot a{color:var(--accent);text-decoration:none}
+.ar-foot a { color: var(--accent); text-decoration: none }
 
 /* ══════════════════════════════
    ANIMATIONS
 ══════════════════════════════ */
-@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-.rev{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
-.rev.on{opacity:1;transform:translateY(0)}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
+.reveal {
+  opacity: 0; transform: translateY(30px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+.reveal.on { opacity: 1; transform: translateY(0) }
+
+/* stagger children */
+.stagger > * { opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s ease }
+.stagger.on > *:nth-child(1) { transition-delay: .05s }
+.stagger.on > *:nth-child(2) { transition-delay: .1s }
+.stagger.on > *:nth-child(3) { transition-delay: .15s }
+.stagger.on > *:nth-child(4) { transition-delay: .2s }
+.stagger.on > *:nth-child(5) { transition-delay: .25s }
+.stagger.on > *:nth-child(6) { transition-delay: .3s }
+.stagger.on > * { opacity: 1; transform: translateY(0) }
+
+/* typing cursor */
+.ar-typing::after {
+  content: '|'; animation: blink-caret .75s step-end infinite;
+  color: var(--accent); font-weight: 300;
+}
+@keyframes blink-caret { 0%,100%{opacity:1} 50%{opacity:0} }
 
 /* ══════════════════════════════
    RESPONSIVE
 ══════════════════════════════ */
-@media(max-width:480px){
-  .nav{padding:0 14px}
-  .nav-btn{padding:7px 12px;font-size:.78rem}
-  .hero{padding:76px 16px 48px}
-  .stat{min-width:95px;padding:14px 8px}
-  .stat-n{font-size:1.6rem}
-  .btns{flex-direction:column;align-items:stretch}
-  .btn-pri,.btn-sec{justify-content:center}
-  .sec{padding:52px 16px}
-  .grid{grid-template-columns:1fr}
-  .fsec{padding:52px 16px}
-  .fbox{padding:24px 16px}
+@media (max-width: 900px) {
+  .ar-hero-in {
+    grid-template-columns: 1fr;
+    gap: 40px; text-align: center;
+  }
+  .ar-left { order: 1 }
+  .ar-right { order: 2 }
+  .ar-sub { margin-left: auto; margin-right: auto }
+  .ar-features { justify-content: center }
+}
+@media (max-width: 480px) {
+  .ar-nav { padding: 0 14px }
+  .ar-cta { padding: 7px 14px; font-size: .78rem }
+  .ar-hero { padding: 80px 16px 48px }
+  .ar-form-card { padding: 28px 20px; border-radius: 18px }
+  .ar-sec { padding: 56px 16px }
+  .ar-grid { grid-template-columns: 1fr }
 }
 </style>
 {% endblock %}
 
 {% block content %}
+<canvas id="particles" aria-hidden="true"></canvas>
 
-<nav class="nav">
-  <a href="{% url 'home' %}" class="nav-brand">
+<!-- NAV -->
+<nav class="ar-nav" role="navigation" aria-label="Asosiy navigatsiya">
+  <a href="{% url 'home' %}" class="ar-brand">
     <i class="bi bi-cpu-fill hi"></i>
     <span class="hi">IT</span> Creative
   </a>
-  <div class="nav-space"></div>
-  <button class="tog" id="togBtn" aria-label="Mavzuni almashtirish">
-    <span class="tog-ic tog-sun">☀️</span>
-    <span class="tog-ic tog-moon">🌙</span>
+  <div class="ar-space"></div>
+  <button class="ar-tog" id="togBtn" aria-label="Mavzuni almashtirish">
+    <span class="ti ti-s">☀️</span>
+    <span class="ti ti-m">🌙</span>
   </button>
-  <a href="#registerForm" class="nav-btn">Ro'yxatdan o'tish →</a>
+  <a href="#arizaForm" class="ar-cta">Ro'yxatdan o'tish →</a>
 </nav>
 
 <main>
 
-<!-- ── HERO ── -->
-<section class="hero" aria-labelledby="hh">
-  <div class="hero-in">
-    <div class="badge"><span class="dot"></span> Zomin IT Shaxarcha · Jizzax viloyati</div>
+<!-- ── HERO + FORM ── -->
+<section class="ar-hero" aria-labelledby="ar-heading">
+  <div class="ar-hero-bg">
+    <div class="ar-orb ar-orb-1"></div>
+    <div class="ar-orb ar-orb-2"></div>
+    <div class="ar-orb ar-orb-3"></div>
+  </div>
 
-    <h1 class="h1" id="hh">
-      Dasturlashni o'rganing va<br>
-      <span class="gr">IT Mutaxassis</span> bo'ling
-    </h1>
+  <div class="ar-hero-in">
+    <!-- LEFT -->
+    <div class="ar-left">
+      <div class="ar-badge"><span class="ar-dot"></span> Zomin IT Shaxarcha · Jizzax viloyati</div>
 
-    <p class="sub">
-      Zomin IT Park filialida zamonaviy kasblarni tajribali ustozlardan o'rganing.
-      Python, Web va boshqa yo'nalishlar yoshlar uchun yaratildi.
-    </p>
+      <h1 class="ar-h1" id="ar-heading">
+        IT kasbingizni<br>
+        <span class="gr" id="typingText"></span>
+        <span class="ar-typing" id="typingCursor"></span>
+        <noscript><span class="gr">hozir boshlang!</span></noscript>
+      </h1>
 
-    <div class="stats">
-      <div class="stat"><div class="stat-n">100+</div><div class="stat-l">Faol o'quvchi</div></div>
-      <div class="stat"><div class="stat-n">10+</div><div class="stat-l">Premium kurs</div></div>
-      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Amaliy yondashuv</div></div>
+      <p class="ar-sub">
+        Zomin IT Park filialida zamonaviy kasblarni tajribali ustozlardan o'rganing.
+        Ariza qoldiring — biz siz bilan bog'lanamiz!
+      </p>
+
+      <div class="ar-features">
+        <div class="ar-feat"><i class="bi bi-check-circle-fill"></i> 100% amaliy</div>
+        <div class="ar-feat"><i class="bi bi-check-circle-fill"></i> Sertifikat</div>
+        <div class="ar-feat"><i class="bi bi-check-circle-fill"></i> Tajribali ustozlar</div>
+        <div class="ar-feat"><i class="bi bi-check-circle-fill"></i> Ish bilan ta'minlash</div>
+      </div>
     </div>
 
-    <div class="btns">
-      <a href="#registerForm" class="btn-pri"><i class="bi bi-rocket-takeoff-fill"></i> Makomni band qilish</a>
-      <a href="#features" class="btn-sec"><i class="bi bi-play-circle"></i> Batafsil bilish</a>
+    <!-- RIGHT (FORM) -->
+    <div class="ar-right" id="arizaForm">
+      <div class="ar-form-card">
+        {% if success %}
+        <!-- ── SUCCESS ── -->
+        <div class="ar-success" role="alert" id="successBlock">
+          <div class="ar-success-icon">
+            <div class="ar-success-ring"></div>
+            <span class="ar-success-check">✓</span>
+          </div>
+          <h2>Arizangiz qabul qilindi!</h2>
+          <p>Rahmat! Ma'lumotlaringiz muvaffaqiyatli kiritildi.<br>IT Shaxarcha operatorlari tez orada siz bilan bog'lanadi.</p>
+          <a href="{% url 'home' %}" class="ar-home-btn">
+            <i class="bi bi-house-fill"></i> Bosh sahifaga qaytish
+          </a>
+        </div>
+        {% else %}
+        <!-- ── FORM ── -->
+        <div class="ar-form-head">
+          <h2>Birinchi qadamni tashlang 🚀</h2>
+          <p>Hozir ro'yxatdan o'ting — IT olamiga qadam qo'ying</p>
+        </div>
+        <form method="POST" id="arizaFormEl" novalidate>
+          {% csrf_token %}
+
+          <div class="ar-field">
+            <label for="f_fn">Ismingiz <span class="ar-req">*</span></label>
+            <div class="ar-inp-wrap">
+              <input type="text" id="f_fn" name="first_name" class="ar-inp" placeholder="Ismingizni kiriting" autocomplete="given-name" required>
+              <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="ar-error" id="err_fn">Iltimos, ismingizni kiriting</div>
+          </div>
+
+          <div class="ar-field">
+            <label for="f_ln">Familiyangiz <span class="ar-req">*</span></label>
+            <div class="ar-inp-wrap">
+              <input type="text" id="f_ln" name="last_name" class="ar-inp" placeholder="Familiyangizni kiriting" autocomplete="family-name" required>
+              <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <div class="ar-error" id="err_ln">Iltimos, familiyangizni kiriting</div>
+          </div>
+
+          <div class="ar-field">
+            <label for="f_ph">Telefon raqam <span class="ar-req">*</span></label>
+            <div class="ar-ph-row">
+              <span class="ar-ph-pre">+998</span>
+              <div class="ar-inp-wrap">
+                <input type="tel" id="f_ph" name="phone" class="ar-inp" placeholder="(XX) XXX XX XX" maxlength="15" autocomplete="tel-national" required>
+              </div>
+            </div>
+            <div class="ar-error" id="err_ph">To'liq telefon raqam kiriting</div>
+          </div>
+
+          <div class="ar-field">
+            <label for="f_co">Qaysi yo'nalish? <span class="ar-req" style="color:var(--text3);font-weight:400">(ixtiyoriy)</span></label>
+            <div class="ar-inp-wrap">
+              <select id="f_co" name="course_interest" class="ar-inp">
+                <option value="">— Yo'nalishni tanlang —</option>
+                {% for p in professions %}
+                <option value="{{ p.name }}">{{ p.name }}</option>
+                {% endfor %}
+              </select>
+              <i class="bi bi-stack"></i>
+            </div>
+          </div>
+
+          <button type="submit" class="ar-submit" id="submitBtn">
+            <i class="bi bi-send-fill"></i>
+            <span>Arizani yuborish</span>
+          </button>
+
+          <p class="ar-priv"><i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz maxfiyligi kafolatlanadi</p>
+        </form>
+        {% endif %}
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ── MARQUEE ── -->
-<div class="mq" aria-hidden="true">
-  <div class="mq-track">
-    <span class="mq-item"><i class="bi bi-code-slash"></i> Python</span>
-    <span class="mq-item"><i class="bi bi-browser-chrome"></i> Frontend</span>
-    <span class="mq-item"><i class="bi bi-server"></i> Backend</span>
-    <span class="mq-item"><i class="bi bi-phone"></i> Mobile Dev</span>
-    <span class="mq-item"><i class="bi bi-graph-up"></i> Data Science</span>
-    <span class="mq-item"><i class="bi bi-shield-check"></i> Cybersecurity</span>
-    <span class="mq-item"><i class="bi bi-vector-pen"></i> UI/UX Design</span>
-    <span class="mq-item"><i class="bi bi-cloud-arrow-up"></i> DevOps</span>
-    <!-- duplicate for infinite loop -->
-    <span class="mq-item"><i class="bi bi-code-slash"></i> Python</span>
-    <span class="mq-item"><i class="bi bi-browser-chrome"></i> Frontend</span>
-    <span class="mq-item"><i class="bi bi-server"></i> Backend</span>
-    <span class="mq-item"><i class="bi bi-phone"></i> Mobile Dev</span>
-    <span class="mq-item"><i class="bi bi-graph-up"></i> Data Science</span>
-    <span class="mq-item"><i class="bi bi-shield-check"></i> Cybersecurity</span>
-    <span class="mq-item"><i class="bi bi-vector-pen"></i> UI/UX Design</span>
-    <span class="mq-item"><i class="bi bi-cloud-arrow-up"></i> DevOps</span>
+<div class="ar-mq" aria-hidden="true">
+  <div class="ar-mq-track">
+    <span class="ar-mq-item"><i class="bi bi-code-slash"></i> Python</span>
+    <span class="ar-mq-item"><i class="bi bi-browser-chrome"></i> Frontend</span>
+    <span class="ar-mq-item"><i class="bi bi-server"></i> Backend</span>
+    <span class="ar-mq-item"><i class="bi bi-phone"></i> Mobile Dev</span>
+    <span class="ar-mq-item"><i class="bi bi-graph-up"></i> Data Science</span>
+    <span class="ar-mq-item"><i class="bi bi-shield-check"></i> Cybersecurity</span>
+    <span class="ar-mq-item"><i class="bi bi-vector-pen"></i> UI/UX Design</span>
+    <span class="ar-mq-item"><i class="bi bi-cloud-arrow-up"></i> DevOps</span>
+    <span class="ar-mq-item"><i class="bi bi-code-slash"></i> Python</span>
+    <span class="ar-mq-item"><i class="bi bi-browser-chrome"></i> Frontend</span>
+    <span class="ar-mq-item"><i class="bi bi-server"></i> Backend</span>
+    <span class="ar-mq-item"><i class="bi bi-phone"></i> Mobile Dev</span>
+    <span class="ar-mq-item"><i class="bi bi-graph-up"></i> Data Science</span>
+    <span class="ar-mq-item"><i class="bi bi-shield-check"></i> Cybersecurity</span>
+    <span class="ar-mq-item"><i class="bi bi-vector-pen"></i> UI/UX Design</span>
+    <span class="ar-mq-item"><i class="bi bi-cloud-arrow-up"></i> DevOps</span>
   </div>
 </div>
 
 <!-- ── FEATURES ── -->
-<section class="sec" id="features" aria-labelledby="fh">
-  <div class="sec-in">
-    <div class="rev">
-      <span class="sec-lbl">Nima uchun biz?</span>
-      <h2 class="sec-title" id="fh">Zomin hududidagi eng yaxshi IT ta'lim markazi</h2>
-      <p class="sec-desc">Amaliy tajriba, rasmiy sertifikat va kuchli ustoz jamoasi bilan kelajakni quramiz.</p>
+<section class="ar-sec" id="features" aria-labelledby="feat-h">
+  <div class="ar-sec-in">
+    <div class="reveal">
+      <span class="ar-sec-lbl">Nima uchun biz?</span>
+      <h2 class="ar-sec-title" id="feat-h">Zomin hududidagi eng yaxshi IT ta'lim markazi</h2>
+      <p class="ar-sec-desc">Amaliy tajriba, rasmiy sertifikat va kuchli ustoz jamoasi bilan kelajakni quramiz.</p>
     </div>
-    <div class="grid">
-      <div class="card rev">
-        <div class="ci ci-b"><i class="bi bi-laptop-fill"></i></div>
+    <div class="ar-grid stagger">
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-b"><i class="bi bi-laptop-fill"></i></div>
         <h3>Amaliy Loyihalar</h3>
         <p>Har bir darsda real loyiha yarating va portfoliongizni ish beruvchilarga taqdim etishga tayyor qiling.</p>
-      </div>
-      <div class="card rev" style="transition-delay:.08s">
-        <div class="ci ci-p"><i class="bi bi-award-fill"></i></div>
+      </article>
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-p"><i class="bi bi-award-fill"></i></div>
         <h3>Rasmiy Sertifikat</h3>
         <p>Kurs bitiruvchilariga ish beruvchilar tan oladigan sertifikat beriladi va karyerangizda qimmatli bo'ladi.</p>
-      </div>
-      <div class="card rev" style="transition-delay:.16s">
-        <div class="ci ci-g"><i class="bi bi-person-check-fill"></i></div>
+      </article>
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-g"><i class="bi bi-person-check-fill"></i></div>
         <h3>Tajribali Ustozlar</h3>
         <p>Real loyihalarda ishlab kelgan soha mutaxassislaridan dars oling va malaka oshiring.</p>
-      </div>
-      <div class="card rev" style="transition-delay:.24s">
-        <div class="ci ci-c"><i class="bi bi-briefcase-fill"></i></div>
+      </article>
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-c"><i class="bi bi-briefcase-fill"></i></div>
         <h3>Ish Bilan Ta'minlash</h3>
         <p>Kurs so'ngida eng yaxshi bitiruvchilarga IT kompaniyalarida ishlash imkoniyati taqdim etiladi.</p>
-      </div>
-      <div class="card rev" style="transition-delay:.32s">
-        <div class="ci ci-b"><i class="bi bi-people-fill"></i></div>
+      </article>
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-o"><i class="bi bi-people-fill"></i></div>
         <h3>Jamoaviy Muhit</h3>
         <p>Hamfikr yoshlar bilan birga o'rganib, kuchli IT hamjamiyat a'zosi bo'ling.</p>
-      </div>
-      <div class="card rev" style="transition-delay:.40s">
-        <div class="ci ci-p"><i class="bi bi-geo-alt-fill"></i></div>
+      </article>
+      <article class="ar-card">
+        <div class="ar-ci ar-ci-v"><i class="bi bi-geo-alt-fill"></i></div>
         <h3>Zomin Markazida</h3>
         <p>Uzoqqa bormasdan, o'z shahringizda zamonaviy IT ta'lim oling. Qulay joylashuv va moslashuvchan jadval.</p>
-      </div>
+      </article>
     </div>
-  </div>
-</section>
-
-<!-- ── FORM ── -->
-<section class="fsec" id="registerForm" aria-labelledby="form-h">
-  <div class="fbox rev">
-    {% if success %}
-    <div class="succ" role="alert">
-      <div class="succ-ring">✓</div>
-      <h2>Arizangiz qabul qilindi!</h2>
-      <p>Rahmat! Ma'lumotlaringiz muvaffaqiyatli kiritildi. IT Shaxarcha operatorlari tez orada siz bilan bog'lanadi.</p>
-      <a href="{% url 'home' %}" class="btn-sec" style="display:inline-flex">
-        <i class="bi bi-house-fill"></i> Bosh sahifaga qaytish
-      </a>
-    </div>
-    {% else %}
-    <div class="fhead">
-      <h2 id="form-h">Birinchi qadamni tashlang 🚀</h2>
-      <p>Hozir ro'yxatdan o'ting — IT olamiga qadam qo'ying.</p>
-    </div>
-    <form method="POST" id="arizaForm" novalidate>
-      {% csrf_token %}
-      <div class="field">
-        <label for="f_fn">Ismingiz <span class="req">*</span></label>
-        <input type="text" id="f_fn" name="first_name" class="inp" placeholder="Ismingizni kiriting" autocomplete="given-name" required>
-      </div>
-      <div class="field">
-        <label for="f_ln">Familiyangiz <span class="req">*</span></label>
-        <input type="text" id="f_ln" name="last_name" class="inp" placeholder="Familiyangizni kiriting" autocomplete="family-name" required>
-      </div>
-      <div class="field">
-        <label for="f_ph">Telefon Raqam <span class="req">*</span></label>
-        <div class="ph-row">
-          <span class="ph-pre">+998</span>
-          <input type="tel" id="f_ph" name="phone" class="inp" placeholder="(XX) XXX XX XX" maxlength="15" autocomplete="tel-national" required>
-        </div>
-      </div>
-      <div class="field">
-        <label for="f_co">Qaysi yo'nalish qiziqtiradi?</label>
-        <select id="f_co" name="course_interest" class="inp" style="cursor:pointer">
-          <option value="">— Yo'nalishni tanlang —</option>
-          {% for p in professions %}
-          <option value="{{ p.name }}">{{ p.name }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <button type="submit" class="bsend" id="submitBtn">
-        <i class="bi bi-send-fill"></i> Arizani yuborish
-      </button>
-      <p class="priv"><i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz maxfiyligi kafolatlanadi</p>
-    </form>
-    {% endif %}
   </div>
 </section>
 
 </main>
 
-<footer class="foot">
+<footer class="ar-foot">
   © 2025 <a href="https://itcreative.uz">IT Creative</a> · Zomin IT Shaxarcha, Jizzax viloyati, O'zbekiston
 </footer>
 
@@ -565,68 +827,233 @@ h1.h1 .gr{
 
 {% block extra_js %}
 <script>
-/* THEME */
-const root = document.documentElement;
-const tog  = document.getElementById('togBtn');
-const setTheme = t => t === 'light'
-  ? root.setAttribute('data-theme','light')
-  : root.removeAttribute('data-theme');
-setTheme(localStorage.getItem('itTheme') || 'dark');
-tog.addEventListener('click', () => {
-  const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-  setTheme(next);
-  localStorage.setItem('itTheme', next);
-});
+(function(){
+  'use strict';
 
-/* REVEAL */
-const io = new IntersectionObserver(
-  es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('on'); }),
-  { threshold: 0.1 }
-);
-document.querySelectorAll('.rev').forEach(el => io.observe(el));
+  /* ── THEME ── */
+  const root = document.documentElement;
+  const tog  = document.getElementById('togBtn');
+  const setTheme = t => t === 'light'
+    ? root.setAttribute('data-theme','light')
+    : root.removeAttribute('data-theme');
+  setTheme(localStorage.getItem('itTheme') || 'dark');
+  tog.addEventListener('click', () => {
+    const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    setTheme(next);
+    localStorage.setItem('itTheme', next);
+  });
 
-/* FORM */
-const form = document.getElementById('arizaForm');
-if(form){
+  /* ── PARTICLES ── */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+
+  function resize() {
+    w = canvas.width  = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() { this.reset() }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.r = Math.random() * 1.5 + 0.5;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = (Math.random() - 0.5) * 0.4;
+      this.alpha = Math.random() * 0.4 + 0.1;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > w) this.vx *= -1;
+      if (this.y < 0 || this.y > h) this.vy *= -1;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(99,102,241,${this.alpha})`;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < 60; i++) particles.push(new Particle());
+
+  function drawLines() {
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i + 1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 140) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.strokeStyle = `rgba(99,102,241,${0.06 * (1 - dist / 140)})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw() });
+    drawLines();
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  /* ── TYPING EFFECT ── */
+  const words = ['hozir boshlang!', "o'rganing!", 'IT mutaxassis bo\'ling!', 'kelajak quring!'];
+  const el = document.getElementById('typingText');
+  if (el) {
+    let wordIdx = 0, charIdx = 0, deleting = false;
+    function type() {
+      const word = words[wordIdx];
+      if (!deleting) {
+        el.textContent = word.substring(0, charIdx + 1);
+        charIdx++;
+        if (charIdx === word.length) {
+          deleting = true;
+          setTimeout(type, 2000);
+          return;
+        }
+        setTimeout(type, 80);
+      } else {
+        el.textContent = word.substring(0, charIdx - 1);
+        charIdx--;
+        if (charIdx === 0) {
+          deleting = false;
+          wordIdx = (wordIdx + 1) % words.length;
+          setTimeout(type, 400);
+          return;
+        }
+        setTimeout(type, 40);
+      }
+    }
+    type();
+  }
+
+  /* ── REVEAL ANIMATIONS ── */
+  const io = new IntersectionObserver(
+    entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('on') }),
+    { threshold: 0.1 }
+  );
+  document.querySelectorAll('.reveal, .stagger').forEach(el => io.observe(el));
+
+  /* ── PHONE MASK ── */
   const ph = document.getElementById('f_ph');
-  if(ph){
-    ph.addEventListener('input', function(){
-      var v=this.value.replace(/\D/g,'');
-      if(v.length>9)v=v.substring(0,9);
-      var f='';
-      if(v.length>0)f='('+v.substring(0,2);
-      if(v.length>=2)f+=') ';
-      if(v.length>2)f+=v.substring(2,5);
-      if(v.length>5)f+=' '+v.substring(5,7);
-      if(v.length>7)f+=' '+v.substring(7,9);
-      this.value=f;
+  if (ph) {
+    function formatPhone(v) {
+      var d = v.replace(/\D/g, '');
+      if (d.length > 9) d = d.substring(0, 9);
+      var f = '';
+      if (d.length > 0) f = '(' + d.substring(0, 2);
+      if (d.length >= 2) f += ') ';
+      if (d.length > 2) f += d.substring(2, 5);
+      if (d.length > 5) f += ' ' + d.substring(5, 7);
+      if (d.length > 7) f += ' ' + d.substring(7, 9);
+      return f;
+    }
+    ph.addEventListener('input', function() { this.value = formatPhone(this.value) });
+    ph.addEventListener('keydown', function(e) {
+      if (['Backspace','Delete','ArrowLeft','ArrowRight','Tab'].includes(e.key)) return;
+      if (this.value.replace(/\D/g, '').length >= 9 && !e.ctrlKey && !e.metaKey) e.preventDefault();
     });
-    ph.addEventListener('keydown', function(e){
-      if(e.key==='Backspace'||e.key==='Delete'||e.key==='ArrowLeft'||e.key==='ArrowRight'||e.key==='Tab')return;
-      var digits=this.value.replace(/\D/g,'');
-      if(digits.length>=9&&!e.ctrlKey&&!e.metaKey)e.preventDefault();
-    });
-    ph.addEventListener('paste', function(e){
+    ph.addEventListener('paste', function(e) {
       e.preventDefault();
-      var paste=(e.clipboardData||window.clipboardData).getData('text');
-      var digits=paste.replace(/\D/g,'');
-      if(digits.startsWith('998')&&digits.length>=12)digits=digits.substring(3);
-      if(digits.startsWith('8')&&digits.length===10)digits=digits.substring(1);
-      digits=digits.substring(0,9);
-      var f='';
-      if(digits.length>0)f='('+digits.substring(0,2);
-      if(digits.length>=2)f+=') ';
-      if(digits.length>2)f+=digits.substring(2,5);
-      if(digits.length>5)f+=' '+digits.substring(5,7);
-      if(digits.length>7)f+=' '+digits.substring(7,9);
-      this.value=f;
+      var paste = (e.clipboardData || window.clipboardData).getData('text');
+      var d = paste.replace(/\D/g, '');
+      if (d.startsWith('998') && d.length >= 12) d = d.substring(3);
+      if (d.startsWith('8') && d.length === 10) d = d.substring(1);
+      this.value = formatPhone(d.substring(0, 9));
     });
   }
-  form.addEventListener('submit', () => {
-    const sb = document.getElementById('submitBtn');
-    sb.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Yuborilmoqda...';
-    sb.disabled = true;
-  });
-}
+
+  /* ── FORM VALIDATION ── */
+  const form = document.getElementById('arizaFormEl');
+  if (form) {
+    const fn  = document.getElementById('f_fn');
+    const ln  = document.getElementById('f_ln');
+
+    function validate(inp, errId, condition) {
+      const err = document.getElementById(errId);
+      if (condition) {
+        inp.classList.remove('invalid');
+        inp.classList.add('valid');
+        if (err) err.classList.remove('show');
+        return true;
+      } else {
+        inp.classList.remove('valid');
+        inp.classList.add('invalid');
+        if (err) err.classList.add('show');
+        return false;
+      }
+    }
+
+    [fn, ln, ph].forEach(inp => {
+      if (!inp) return;
+      inp.addEventListener('blur', function() {
+        if (inp === fn) validate(fn, 'err_fn', fn.value.trim().length >= 2);
+        if (inp === ln) validate(ln, 'err_ln', ln.value.trim().length >= 2);
+        if (inp === ph) validate(ph, 'err_ph', ph.value.replace(/\D/g, '').length === 9);
+      });
+      inp.addEventListener('input', function() {
+        if (this.classList.contains('invalid')) {
+          if (inp === fn) validate(fn, 'err_fn', fn.value.trim().length >= 2);
+          if (inp === ln) validate(ln, 'err_ln', ln.value.trim().length >= 2);
+          if (inp === ph) validate(ph, 'err_ph', ph.value.replace(/\D/g, '').length === 9);
+        }
+      });
+    });
+
+    form.addEventListener('submit', function(e) {
+      let ok = true;
+      if (!validate(fn, 'err_fn', fn.value.trim().length >= 2)) ok = false;
+      if (!validate(ln, 'err_ln', ln.value.trim().length >= 2)) ok = false;
+      if (!validate(ph, 'err_ph', ph.value.replace(/\D/g, '').length === 9)) ok = false;
+
+      if (!ok) {
+        e.preventDefault();
+        const first = form.querySelector('.invalid');
+        if (first) first.focus();
+        return;
+      }
+
+      const sb = document.getElementById('submitBtn');
+      sb.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite"></span> Yuborilmoqda...';
+      sb.disabled = true;
+    });
+  }
+
+  /* ── CONFETTI on success ── */
+  const succBlock = document.getElementById('successBlock');
+  if (succBlock) {
+    const colors = ['#6366f1','#8b5cf6','#06b6d4','#10b981','#f472b6','#f59e0b'];
+    const icon = succBlock.querySelector('.ar-success-icon');
+    for (let i = 0; i < 24; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = '50%';
+      piece.style.top = '50%';
+      piece.style.background = colors[i % colors.length];
+      piece.style.animationDelay = (Math.random() * 0.5) + 's';
+      piece.style.transform = `rotate(${Math.random()*360}deg)`;
+      const angle = (Math.PI * 2 / 24) * i;
+      piece.style.setProperty('--tx', Math.cos(angle) * (60 + Math.random()*40) + 'px');
+      icon.appendChild(piece);
+    }
+  }
+
+  /* spinner keyframe */
+  const style = document.createElement('style');
+  style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+  document.head.appendChild(style);
+
+})();
 </script>
 {% endblock %}
