@@ -1,1464 +1,888 @@
-{% extends 'accounts/base.html' %}
 {% load custom_filters %}
-
-{% block title %}{{ test.lesson.title }} - Test{% endblock %}
-
-{% block extra_css %}
-<style>
-/* ==================== ANTI-CHEAT: Asosiy ko'rinish ==================== */
-* {
-    -webkit-user-select: none !important;
-    -moz-user-select: none !important;
-    -ms-user-select: none !important;
-    user-select: none !important;
-    -webkit-touch-callout: none !important;
-}
-
-@media print {
-    body * { display: none !important; }
-    body::after {
-        content: "Test vaqtida chop etish taqiqlangan!";
-        display: block;
-        font-size: 24px;
-        text-align: center;
-        padding: 50px;
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>📝 Test — {{ test.lesson.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+    * {
+        -webkit-user-select: none !important;
+        -moz-user-select: none !important;
+        -ms-user-select: none !important;
+        user-select: none !important;
+        -webkit-touch-callout: none !important;
+        margin: 0; padding: 0; box-sizing: border-box;
     }
-}
+    @media print {
+        body * { display: none !important; }
+        body::after {
+            content: "Test vaqtida chop etish taqiqlangan!";
+            display: block; font-size: 24px; text-align: center; padding: 50px;
+        }
+    }
+
+    :root {
+        --bg: #050510;
+        --bg-card: rgba(15, 18, 35, 0.85);
+        --bg-card-solid: #0f1223;
+        --border: rgba(99, 102, 241, 0.15);
+        --border-hover: rgba(99, 102, 241, 0.4);
+        --text: #eef2ff;
+        --text-muted: #94a3b8;
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.4);
+        --accent: #8b5cf6;
+        --success: #10b981;
+        --success-glow: rgba(16, 185, 129, 0.3);
+        --danger: #ef4444;
+        --danger-glow: rgba(239, 68, 68, 0.4);
+        --warning: #f59e0b;
+        --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+        --gradient-success: linear-gradient(135deg, #10b981, #059669);
+        --glass: rgba(15, 18, 35, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.06);
+        --radius: 16px;
+        --radius-lg: 24px;
+        --radius-xl: 32px;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
+    }
+
+    /* ==================== ANIMATED BACKGROUND ==================== */
+    .bg-canvas { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .bg-orb {
+        position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.12;
+        animation: orbFloat 20s ease-in-out infinite;
+    }
+    .bg-orb:nth-child(1) { width: 600px; height: 600px; background: #6366f1; top: -200px; left: -100px; }
+    .bg-orb:nth-child(2) { width: 500px; height: 500px; background: #8b5cf6; bottom: -150px; right: -100px; animation-delay: -7s; }
+    .bg-orb:nth-child(3) { width: 400px; height: 400px; background: #a78bfa; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -14s; opacity: 0.06; }
+    @keyframes orbFloat {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(30px, -30px) scale(1.05); }
+        66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+    .bg-grid {
+        position: fixed; inset: 0; z-index: 0;
+        background-image: linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+        background-size: 60px 60px; pointer-events: none;
+    }
+
+    /* ==================== FULLSCREEN OVERLAY ==================== */
+    .fullscreen-overlay {
+        display: flex; position: fixed; inset: 0; z-index: 9999;
+        background: rgba(5, 5, 16, 0.98); backdrop-filter: blur(20px);
+        align-items: center; justify-content: center;
+        flex-direction: column; gap: 2rem; padding: 2rem;
+    }
+    .fullscreen-overlay.hidden { display: none; }
+    .fullscreen-overlay .fs-icon {
+        width: 120px; height: 120px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.1));
+        display: flex; align-items: center; justify-content: center;
+        animation: fsPulse 2s ease-in-out infinite; position: relative;
+    }
+    .fullscreen-overlay .fs-icon::after {
+        content: ''; position: absolute; inset: -8px; border-radius: 50%;
+        border: 2px solid rgba(99,102,241,0.2); animation: fsRing 2s ease-out infinite;
+    }
+    .fullscreen-overlay .fs-icon i { font-size: 3rem; color: var(--primary); }
+    .fullscreen-overlay h2 { color: #fff; font-size: 1.5rem; font-weight: 800; text-align: center; }
+    .fullscreen-overlay p { color: var(--text-muted); max-width: 420px; text-align: center; line-height: 1.7; }
+    .fullscreen-btn {
+        padding: 1rem 3rem; border-radius: 999px; background: var(--gradient-primary);
+        color: #fff; font-weight: 700; font-size: 1.05rem; border: none; cursor: pointer;
+        transition: all 0.4s; box-shadow: 0 8px 32px var(--primary-glow);
+        display: inline-flex; align-items: center; gap: 0.5rem;
+    }
+    .fullscreen-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 16px 48px var(--primary-glow); }
+    @keyframes fsPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+    @keyframes fsRing { 0% { transform: scale(1); opacity: .4; } 100% { transform: scale(1.5); opacity: 0; } }
+
+    /* ==================== HEADER ==================== */
+    .test-header {
+        position: sticky; top: 0; z-index: 1030;
+        background: rgba(5, 5, 16, 0.8); backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border); padding: 0.75rem 0; transition: all 0.3s;
+    }
+    .test-header.scrolled { box-shadow: 0 8px 32px rgba(0,0,0,0.4); border-bottom-color: var(--primary-glow); }
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+    .header-content { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .header-left { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; }
+    .test-icon {
+        width: 50px; height: 50px; border-radius: var(--radius);
+        background: var(--gradient-primary);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.3rem; flex-shrink: 0;
+        box-shadow: 0 4px 16px var(--primary-glow);
+        position: relative; overflow: hidden;
+    }
+    .test-icon::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+        animation: iconShine 3s ease-in-out infinite;
+    }
+    @keyframes iconShine { 0%, 100% { transform: translateX(-100%) rotate(25deg); } 50% { transform: translateX(100%) rotate(25deg); } }
+    .test-info h1 {
+        font-size: 1.05rem; font-weight: 700; color: var(--text); margin: 0;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;
+    }
+    .test-info p { font-size: 0.75rem; color: var(--text-muted); margin: 0.25rem 0 0; }
+
+    /* ==================== TIMER ==================== */
+    .timer-capsule {
+        display: flex; align-items: center; gap: 0.75rem;
+        padding: 0.5rem 1.25rem; border-radius: 999px;
+        background: var(--bg-card); border: 1px solid var(--border);
+        flex-shrink: 0; backdrop-filter: blur(10px); transition: all 0.5s;
+    }
+    .timer-capsule .timer-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: var(--success); box-shadow: 0 0 12px var(--success-glow);
+        animation: dotPulse 2s ease-in-out infinite;
+    }
+    .timer-capsule.critical .timer-dot {
+        background: var(--danger); box-shadow: 0 0 12px var(--danger-glow);
+        animation: dotPulse 0.5s ease-in-out infinite;
+    }
+    @keyframes dotPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .timer-capsule .timer-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .timer-capsule .timer-value {
+        font-size: 1.6rem; font-weight: 800;
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        line-height: 1; color: var(--text); font-variant-numeric: tabular-nums;
+    }
+    .timer-capsule.critical { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.08); animation: timerShake 0.5s ease-in-out infinite; }
+    .timer-capsule.critical .timer-value { color: var(--danger); }
+    @keyframes timerShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+
+    /* ==================== PROGRESS ==================== */
+    .progress-section {
+        background: var(--bg-card); border: 1px solid var(--border); backdrop-filter: blur(10px);
+        border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .progress-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+    .progress-label strong { color: var(--text); }
+    .progress-percent { font-size: 0.85rem; font-weight: 700; color: var(--primary); background: rgba(99,102,241,0.1); padding: 0.2rem 0.6rem; border-radius: 8px; }
+    .progress-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+    .progress-fill {
+        height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--gradient-primary); position: relative;
+    }
+    .progress-fill::after {
+        content: ''; position: absolute; top: 0; right: 0; width: 30px; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+        animation: progressShine 2s ease-in-out infinite;
+    }
+    @keyframes progressShine { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+    /* ==================== QUESTION NAV ==================== */
+    .question-nav {
+        background: var(--bg-card); border: 1px solid var(--border); backdrop-filter: blur(10px);
+        border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    }
+    .nav-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .nav-pills-wrap { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+    .nav-pill {
+        width: 38px; height: 38px; border-radius: 12px;
+        border: 1.5px solid var(--border); background: transparent;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.82rem; color: var(--text-muted);
+        cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative; overflow: hidden;
+    }
+    .nav-pill::before { content: ''; position: absolute; inset: 0; background: var(--gradient-success); opacity: 0; transition: opacity 0.3s; }
+    .nav-pill:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+    .nav-pill.answered { border-color: var(--success); color: #fff; }
+    .nav-pill.answered::before { opacity: 1; }
+    .nav-pill.answered span { position: relative; z-index: 1; }
+
+    /* ==================== QUESTIONS ==================== */
+    .test-body { max-width: 800px; margin: 0 auto; padding: 1.5rem 1.25rem 140px; position: relative; z-index: 1; }
+    .question-card {
+        background: var(--bg-card); border: 1.5px solid var(--border);
+        border-radius: var(--radius-xl); overflow: hidden; margin-bottom: 1.25rem;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); backdrop-filter: blur(10px);
+        opacity: 0; transform: translateY(20px);
+        animation: cardIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    .question-card:nth-child(1) { animation-delay: 0.05s; }
+    .question-card:nth-child(2) { animation-delay: 0.1s; }
+    .question-card:nth-child(3) { animation-delay: 0.15s; }
+    .question-card:nth-child(4) { animation-delay: 0.2s; }
+    .question-card:nth-child(5) { animation-delay: 0.25s; }
+    .question-card:nth-child(6) { animation-delay: 0.3s; }
+    .question-card:nth-child(7) { animation-delay: 0.35s; }
+    .question-card:nth-child(8) { animation-delay: 0.4s; }
+    .question-card:nth-child(9) { animation-delay: 0.45s; }
+    .question-card:nth-child(10) { animation-delay: 0.5s; }
+    @keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+    .question-card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 8px 32px rgba(99,102,241,0.08); }
+    .question-card.answered { border-color: rgba(16,185,129,0.3); box-shadow: 0 0 20px rgba(16,185,129,0.05); }
+    .question-top { padding: 1.5rem; display: flex; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--glass-border); }
+    .q-number {
+        width: 44px; height: 44px; border-radius: 14px;
+        background: var(--gradient-primary); color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 1rem; flex-shrink: 0;
+        box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .q-text { font-size: 1rem; font-weight: 500; color: var(--text); line-height: 1.7; flex: 1; }
+    .question-image-box { padding: 0.75rem 1.5rem 1rem; }
+    .question-image-box img { max-width: 100%; max-height: 300px; border-radius: var(--radius); border: 1px solid var(--border); }
+    .question-options { padding: 0.5rem 1.5rem 1.5rem; }
+    .option-item {
+        display: flex; align-items: center; gap: 0.875rem;
+        padding: 1rem 1.25rem; background: rgba(255,255,255,0.02);
+        border: 1.5px solid var(--glass-border); border-radius: var(--radius);
+        margin-bottom: 0.5rem; cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative; overflow: hidden;
+    }
+    .option-item::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99,102,241,0.06), transparent); opacity: 0; transition: opacity 0.3s; }
+    .option-item:last-child { margin-bottom: 0; }
+    .option-item:hover { border-color: rgba(99,102,241,0.3); transform: translateX(4px); }
+    .option-item:hover::before { opacity: 1; }
+    .option-item:active { transform: translateX(4px) scale(0.99); }
+    .option-item input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
+    .option-check {
+        width: 22px; height: 22px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.12); background: transparent;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; transition: all 0.3s; position: relative; z-index: 1;
+    }
+    .option-check i { font-size: 0.7rem; color: transparent; transition: color 0.2s; }
+    .option-item.selected .option-check { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 12px var(--primary-glow); }
+    .option-item.selected .option-check i { color: #fff; }
+    .option-letter {
+        width: 32px; height: 32px; border-radius: 10px;
+        background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border);
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.85rem; color: var(--text-muted);
+        flex-shrink: 0; transition: all 0.3s; position: relative; z-index: 1;
+    }
+    .option-item.selected { border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.06); }
+    .option-item.selected::before { opacity: 1; }
+    .option-item.selected .option-letter { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: 0 2px 8px var(--primary-glow); }
+    .option-text { flex: 1; color: var(--text); line-height: 1.6; position: relative; z-index: 1; font-size: 0.95rem; }
+
+    /* ==================== SUBMIT ==================== */
+    .submit-card {
+        background: var(--bg-card); border-radius: var(--radius-xl); border: 1px solid var(--border);
+        padding: 2.5rem 2rem; text-align: center; margin-top: 1.5rem;
+        backdrop-filter: blur(10px); position: relative; overflow: hidden;
+    }
+    .submit-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--gradient-primary); }
+    .submit-icon {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: var(--gradient-success);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem; font-size: 2rem; color: #fff;
+        box-shadow: 0 8px 32px var(--success-glow);
+        animation: submitFloat 3s ease-in-out infinite;
+    }
+    @keyframes submitFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .submit-card h4 { color: var(--text); font-weight: 800; margin-bottom: 0.5rem; font-size: 1.2rem; }
+    .submit-card p { color: var(--text-muted); margin-bottom: 1.5rem; }
+    .submit-btn {
+        background: var(--gradient-success); border: none; padding: 1rem 2.5rem; border-radius: 999px;
+        color: #fff; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+        transition: all 0.4s; display: inline-flex; align-items: center; gap: 0.5rem;
+        box-shadow: 0 6px 24px var(--success-glow); position: relative; overflow: hidden;
+    }
+    .submit-btn::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+        transform: translateX(-100%) rotate(25deg); transition: transform 0.6s;
+    }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 40px var(--success-glow); }
+    .submit-btn:hover::after { transform: translateX(100%) rotate(25deg); }
+
+    /* ==================== WARNING OVERLAY ==================== */
+    .warning-overlay {
+        position: fixed; inset: 0; background: rgba(5,5,16,0.85);
+        backdrop-filter: blur(16px); z-index: 9998;
+        display: none; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .warning-modal {
+        background: var(--bg-card-solid); border: 1px solid rgba(239,68,68,0.2);
+        border-radius: var(--radius-xl); padding: 2.5rem 2rem;
+        max-width: 400px; width: 100%; text-align: center;
+        animation: warnPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow: 0 32px 80px rgba(0,0,0,0.5); position: relative; overflow: hidden;
+    }
+    .warning-modal::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, var(--danger), var(--warning), var(--danger));
+        background-size: 200% 100%; animation: warnShimmer 2s linear infinite;
+    }
+    @keyframes warnPop { 0% { transform: scale(0.85) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
+    @keyframes warnShimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
+    .warning-modal-icon {
+        width: 80px; height: 80px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem; position: relative;
+    }
+    .warning-modal-icon::after {
+        content: ''; position: absolute; inset: -8px; border-radius: 50%;
+        border: 2px solid rgba(239,68,68,0.15); animation: warnRing 2s ease-out infinite;
+    }
+    @keyframes warnRing { 0% { transform: scale(1); opacity: .4; } 100% { transform: scale(1.5); opacity: 0; } }
+    .warning-modal-icon i { font-size: 2.25rem; color: var(--danger); animation: warnPulse 1.5s ease-in-out infinite; }
+    @keyframes warnPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .warning-modal h3 { color: var(--danger); font-weight: 800; margin-bottom: 0.5rem; font-size: 1.2rem; }
+    .warning-modal p { color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.6; }
+    .warn-counter { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1.25rem; }
+    .warn-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+    .warn-dot.used { background: var(--danger); border-color: var(--danger); box-shadow: 0 0 12px var(--danger-glow); animation: dotAppear 0.4s ease; }
+    @keyframes dotAppear { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
+    .warn-counter-text { font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
+    .warn-counter-text strong { color: var(--danger); }
+    .warn-danger-box {
+        display: none; align-items: center; gap: 0.6rem;
+        padding: 0.75rem 1rem; border-radius: 12px;
+        background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15);
+        margin-bottom: 1.25rem; font-size: 0.82rem; font-weight: 600; color: var(--danger);
+    }
+    .warn-danger-box.show { display: flex; }
+    .warn-close-btn {
+        background: var(--gradient-danger); color: #fff; border: none;
+        padding: 0.9rem 2.5rem; border-radius: 999px; font-weight: 700; font-size: 0.95rem;
+        cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 16px var(--danger-glow);
+    }
+    .warn-close-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--danger-glow); }
+
+    /* ==================== WATERMARK ==================== */
+    .watermark {
+        position: fixed; inset: 0; pointer-events: none; z-index: 9990;
+        overflow: hidden; opacity: 0; transition: opacity 0.3s;
+    }
+    .watermark.active { opacity: 1; }
+    .watermark-text {
+        position: absolute; font-size: 1.25rem; color: rgba(239,68,68,0.1);
+        font-weight: 700; transform: rotate(-45deg); white-space: nowrap;
+    }
+
+    /* ==================== BOTTOM BAR ==================== */
+    .bottom-bar {
+        position: fixed; bottom: 0; left: 0; right: 0; z-index: 1040;
+        background: rgba(5, 5, 16, 0.85); backdrop-filter: blur(20px);
+        border-top: 1px solid var(--border); padding: 0.625rem 0;
+        box-shadow: 0 -8px 32px rgba(0,0,0,0.3);
+    }
+    .bottom-bar .container { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .bottom-timer { display: flex; align-items: center; gap: 0.75rem; }
+    .bottom-timer-icon {
+        width: 42px; height: 42px; border-radius: 12px;
+        background: var(--gradient-primary);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.2rem; box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .bottom-timer-value { font-size: 1.4rem; font-weight: 800; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--text); font-variant-numeric: tabular-nums; }
+    .bottom-timer-label { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .bottom-progress { flex: 1; max-width: 180px; }
+    .bottom-progress-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .bottom-progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s; background: var(--gradient-success); }
+    .bottom-submit-btn {
+        padding: 0.7rem 1.5rem; border-radius: 999px; background: var(--gradient-success);
+        color: #fff; font-weight: 700; border: none; cursor: pointer;
+        font-size: 0.85rem; transition: all 0.3s; box-shadow: 0 4px 16px var(--success-glow);
+        display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .bottom-submit-btn:hover { transform: scale(1.05); box-shadow: 0 8px 24px var(--success-glow); }
+
+    /* ==================== CONFETTI ==================== */
+    .confetti-particle {
+        position: fixed; z-index: 9995; width: 8px; height: 8px; border-radius: 2px;
+        pointer-events: none; animation: confettiFall 3s ease-in forwards;
+    }
+    @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+    /* ==================== RESPONSIVE ==================== */
+    @media (max-width: 768px) {
+        .test-info h1 { max-width: 150px; font-size: 0.9rem; }
+        .timer-capsule { padding: 0.4rem 0.8rem; }
+        .timer-capsule .timer-value { font-size: 1.2rem; }
+        .timer-capsule .timer-label { display: none; }
+        .test-icon { width: 40px; height: 40px; font-size: 1rem; border-radius: 12px; }
+        .question-card { border-radius: var(--radius-lg); }
+        .question-top { padding: 1.25rem; }
+        .question-options { padding: 0.5rem 1.25rem 1.25rem; }
+        .option-item { padding: 0.875rem; gap: 0.625rem; border-radius: 14px; }
+        .option-item:hover { transform: none; }
+        .bottom-progress { display: none; }
+        .nav-pill { width: 34px; height: 34px; font-size: 0.75rem; border-radius: 10px; }
+        .test-body { padding-left: 1rem; padding-right: 1rem; }
+        .bg-orb:nth-child(1) { width: 300px; height: 300px; }
+        .bg-orb:nth-child(2) { width: 250px; height: 250px; }
+        .bg-orb:nth-child(3) { display: none; }
+    }
+    @media (max-width: 480px) {
+        .test-info p { display: none; }
+        .question-top { padding: 1rem; flex-direction: column; gap: 0.5rem; }
+        .q-number { width: 36px; height: 36px; font-size: 0.85rem; border-radius: 10px; }
+        .q-text { font-size: 0.92rem; }
+        .question-options { padding: 0.25rem 1rem 1rem; }
+        .option-item { padding: 0.75rem 0.625rem; gap: 0.5rem; border-radius: 12px; margin-bottom: 0.375rem; }
+        .option-check { width: 20px; height: 20px; }
+        .option-letter { width: 28px; height: 28px; font-size: 0.78rem; border-radius: 8px; }
+        .option-text { font-size: 0.88rem; }
+        .nav-pill { width: 30px; height: 30px; font-size: 0.7rem; border-radius: 8px; }
+        .submit-card { padding: 1.5rem 1.25rem; border-radius: var(--radius-lg); }
+        .submit-icon { width: 56px; height: 56px; font-size: 1.5rem; }
+        .submit-btn { width: 100%; justify-content: center; padding: 0.875rem; font-size: 0.95rem; }
+        .warning-modal { padding: 2rem 1.25rem; margin: 0 0.5rem; border-radius: var(--radius-lg); }
+        .fullscreen-overlay .fs-icon { width: 80px; height: 80px; }
+        .fullscreen-overlay .fs-icon i { font-size: 2rem; }
+        .fullscreen-overlay h2 { font-size: 1.2rem; }
+        .container { padding: 0 0.75rem; }
+    }
+    @media (max-width: 360px) {
+        .option-check { display: none; }
+        .option-letter { width: 24px; height: 24px; font-size: 0.7rem; border-radius: 6px; }
+        .option-text { font-size: 0.85rem; }
+        .nav-pill { width: 28px; height: 28px; font-size: 0.68rem; }
+    }
+
+    html { scroll-behavior: smooth; }
+    .q-text pre, .option-text pre {
+        background: rgba(0,0,0,0.3); border: 1px solid var(--border);
+        border-radius: 8px; padding: 0.75rem; margin: 0.5rem 0;
+        overflow-x: auto; font-family: 'Fira Code', monospace; font-size: 0.85rem;
+    }
+    .q-text code, .option-text code {
+        background: rgba(99,102,241,0.1); color: var(--primary);
+        padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.88em;
+    }
+    </style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-canvas"><div class="bg-orb"></div><div class="bg-orb"></div><div class="bg-orb"></div></div>
+<div class="bg-grid"></div>
+
+<!-- Fullscreen Overlay -->
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+    <div class="fs-icon"><i class="bi bi-fullscreen"></i></div>
+    <h2>To'liq ekran rejimi talab etiladi</h2>
+    <p>Test faqat to'liq ekran rejimida ishlaydi. Davom etish uchun quyidagi tugmani bosing.</p>
+    <button class="fullscreen-btn" onclick="enterFullscreen()">
+        <i class="bi bi-fullscreen"></i> To'liq ekranga o'tish
+    </button>
+</div>
 
-/* ==================== VARIABLES ==================== */
-:root {
-    --test-primary: #6366f1;
-    --test-primary-light: #818cf8;
-    --test-success: #22c55e;
-    --test-danger: #ef4444;
-    --test-warning: #f59e0b;
-    --test-bg: #f1f5f9;
-    --test-card: #ffffff;
-    --test-border: #e2e8f0;
-    --test-text: #1e293b;
-    --test-text-muted: #64748b;
-    --test-shadow: rgba(0,0,0,0.08);
-}
-
-[data-bs-theme="dark"] {
-    --test-primary: #818cf8;
-    --test-primary-light: #a5b4fc;
-    --test-success: #4ade80;
-    --test-danger: #f87171;
-    --test-warning: #fbbf24;
-    --test-bg: #0f172a;
-    --test-card: #1e293b;
-    --test-border: #334155;
-    --test-text: #f1f5f9;
-    --test-text-muted: #94a3b8;
-    --test-shadow: rgba(0,0,0,0.3);
-}
-
-/* ==================== PAGE LAYOUT ==================== */
-.test-container {
-    min-height: 100vh;
-    background: var(--test-bg);
-    padding-bottom: 100px;
-}
-
-/* ==================== STICKY HEADER ==================== */
-.test-sticky-header {
-    position: sticky;
-    top: 0;
-    z-index: 1030;
-    background: var(--test-card);
-    border-bottom: 1px solid var(--test-border);
-    box-shadow: 0 4px 20px var(--test-shadow);
-    padding: 0.75rem 0;
-    margin-bottom: 1.5rem;
-}
-
-.header-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex: 1;
-    min-width: 0;
-}
-
-.test-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.25rem;
-    flex-shrink: 0;
-}
-
-.test-info h1 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--test-text);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 300px;
-}
-
-.test-info p {
-    font-size: 0.8rem;
-    color: var(--test-text-muted);
-    margin: 0;
-}
-
-/* ==================== TIMER ==================== */
-.timer-box {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
-    padding: 0.625rem 1.25rem;
-    border-radius: 50px;
-    color: #fff;
-    flex-shrink: 0;
-}
-
-.timer-box .timer-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-}
-
-.timer-box .timer-text { text-align: center; }
-
-.timer-box .timer-label {
-    font-size: 0.65rem;
-    opacity: 0.85;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.timer-box .timer-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    line-height: 1;
-}
-
-.timer-box.warning {
-    background: linear-gradient(135deg, var(--test-danger) 0%, #dc2626 100%);
-    animation: pulse-danger 1s infinite;
-}
-
-@keyframes pulse-danger {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-}
-
-/* ==================== FIXED BOTTOM TIMER BAR ==================== */
-.fixed-timer-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--test-card);
-    border-top: 2px solid var(--test-border);
-    padding: 0.625rem 0;
-    z-index: 1040;
-    box-shadow: 0 -4px 24px var(--test-shadow);
-}
-
-.fixed-timer-bar .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-}
-
-.fixed-timer-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.fixed-timer-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.fixed-timer-bar.warning .fixed-timer-icon {
-    background: linear-gradient(135deg, var(--test-danger) 0%, #dc2626 100%);
-    animation: shake 0.5s infinite;
-}
-
-.fixed-timer-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    color: var(--test-text);
-}
-
-.fixed-timer-bar.warning .fixed-timer-value { color: var(--test-danger); }
-
-.fixed-timer-label {
-    font-size: 0.65rem;
-    color: var(--test-text-muted);
-    text-transform: uppercase;
-}
-
-.fixed-timer-progress {
-    flex: 1;
-    max-width: 200px;
-}
-
-.fixed-timer-progress-bar {
-    height: 8px;
-    background: var(--test-border);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.fixed-timer-progress-fill {
-    height: 100%;
-    background: var(--test-success);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.fixed-timer-progress-text {
-    font-size: 0.7rem;
-    color: var(--test-text-muted);
-    text-align: center;
-    margin-top: 0.25rem;
-}
-
-/* ==================== PROGRESS BAR ==================== */
-.progress-strip {
-    height: 6px;
-    background: var(--test-border);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-top: 0.75rem;
-}
-
-.progress-strip-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--test-success) 0%, #16a34a 100%);
-    border-radius: 3px;
-    transition: width 0.4s ease;
-}
-
-.progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.75rem;
-    color: var(--test-text-muted);
-    margin-top: 0.375rem;
-}
-
-.progress-info strong { color: var(--test-text); }
-
-/* ==================== QUESTION NAV ==================== */
-.question-nav-strip {
-    background: var(--test-card);
-    border-radius: 16px;
-    padding: 1rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--test-border);
-    box-shadow: 0 2px 12px var(--test-shadow);
-}
-
-.nav-strip-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--test-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.nav-pills-wrap {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-
-.nav-pill {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    border: 2px solid var(--test-border);
-    background: var(--test-card);
-    color: var(--test-text);
-    font-weight: 600;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.nav-pill:hover {
-    border-color: var(--test-primary);
-    color: var(--test-primary);
-    transform: translateY(-2px);
-}
-
-.nav-pill.answered {
-    background: var(--test-success);
-    border-color: var(--test-success);
-    color: #fff;
-}
-
-.nav-pill.current {
-    border-color: var(--test-primary);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.2);
-}
-
-/* ==================== QUESTION CARD ==================== */
-.question-card {
-    background: var(--test-card);
-    border-radius: 20px;
-    border: 2px solid var(--test-border);
-    margin-bottom: 1.25rem;
-    overflow: hidden;
-    box-shadow: 0 4px 16px var(--test-shadow);
-    transition: all 0.3s ease;
-}
-
-.question-card:hover { box-shadow: 0 8px 24px var(--test-shadow); }
-.question-card.answered { border-color: var(--test-success); }
-
-.question-top {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.25rem;
-    background: linear-gradient(180deg, rgba(99,102,241,0.05) 0%, transparent 100%);
-    border-bottom: 1px solid var(--test-border);
-}
-
-[data-bs-theme="dark"] .question-top {
-    background: linear-gradient(180deg, rgba(129,140,248,0.08) 0%, transparent 100%);
-}
-
-.q-number {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, var(--test-primary) 0%, #8b5cf6 100%);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(99,102,241,0.3);
-}
-
-.q-text {
-    flex: 1;
-    font-size: 1.05rem;
-    font-weight: 500;
-    color: var(--test-text);
-    line-height: 1.7;
-    padding-top: 0.25rem;
-}
-
-.question-image-box {
-    padding: 1rem 1.25rem;
-    background: var(--test-bg);
-    text-align: center;
-}
-
-.question-image-box img {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px var(--test-shadow);
-}
-
-.question-options { padding: 1.25rem; }
-
-/* ==================== ANSWER OPTION ==================== */
-.option-item {
-    display: flex;
-    align-items: center;
-    gap: 0.875rem;
-    padding: 1rem;
-    background: var(--test-bg);
-    border: 2px solid transparent;
-    border-radius: 14px;
-    margin-bottom: 0.625rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
-
-.option-item:last-child { margin-bottom: 0; }
-
-.option-item:hover {
-    border-color: var(--test-primary-light);
-    background: rgba(99,102,241,0.08);
-    transform: translateX(4px);
-}
-
-[data-bs-theme="dark"] .option-item { background: rgba(0,0,0,0.2); }
-[data-bs-theme="dark"] .option-item:hover { background: rgba(129,140,248,0.12); }
-
-/* Radio input - ko'rinmaydi lekin ishlaydi */
-.option-item input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-    margin: 0;
-    padding: 0;
-    pointer-events: none;
-}
-
-.option-check {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 2px solid var(--test-border);
-    background: var(--test-card);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.option-check i {
-    font-size: 0.75rem;
-    color: transparent;
-}
-
-.option-item.selected .option-check {
-    background: var(--test-primary);
-    border-color: var(--test-primary);
-}
-
-.option-item.selected .option-check i { color: #fff; }
-
-.option-letter {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    background: var(--test-card);
-    border: 1px solid var(--test-border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--test-text-muted);
-    flex-shrink: 0;
-    transition: all 0.2s ease;
-}
-
-.option-item.selected {
-    border-color: var(--test-primary);
-    background: rgba(99,102,241,0.1);
-}
-
-[data-bs-theme="dark"] .option-item.selected { background: rgba(129,140,248,0.15); }
-
-.option-item.selected .option-letter {
-    background: var(--test-primary);
-    border-color: var(--test-primary);
-    color: #fff;
-}
-
-.option-text {
-    flex: 1;
-    color: var(--test-text);
-    line-height: 1.5;
-}
-
-/* ==================== SUBMIT SECTION ==================== */
-.submit-card {
-    background: var(--test-card);
-    border-radius: 20px;
-    border: 1px solid var(--test-border);
-    padding: 2rem;
-    text-align: center;
-    box-shadow: 0 4px 16px var(--test-shadow);
-    margin-top: 1.5rem;
-}
-
-.submit-icon {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--test-success) 0%, #16a34a 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 2rem;
-    color: #fff;
-    box-shadow: 0 8px 24px rgba(34,197,94,0.3);
-}
-
-.submit-card h4 {
-    color: var(--test-text);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.submit-card p {
-    color: var(--test-text-muted);
-    margin-bottom: 1.5rem;
-}
-
-.submit-btn {
-    background: linear-gradient(135deg, var(--test-success) 0%, #16a34a 100%);
-    border: none;
-    padding: 1rem 2.5rem;
-    border-radius: 14px;
-    color: #fff;
-    font-size: 1.1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 20px rgba(34,197,94,0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(34,197,94,0.4);
-}
-
-/* ==================== WARNING MODAL ==================== */
-.warning-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,42,.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    z-index: 9999;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-}
-.warning-overlay.show { display: flex; }
-
-.warning-modal {
-    background: var(--test-card);
-    border: 1px solid rgba(239,68,68,.15);
-    border-radius: 28px;
-    padding: 2.5rem 2rem 2rem;
-    max-width: 400px;
-    width: 100%;
-    text-align: center;
-    animation: warnPop .4s cubic-bezier(.34,1.56,.64,1);
-    box-shadow: 0 25px 80px rgba(0,0,0,.35);
-    position: relative;
-    overflow: hidden;
-}
-
-.warning-modal::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--test-danger), #f59e0b, var(--test-danger));
-    background-size: 200% 100%;
-    animation: warnShimmer 2s linear infinite;
-}
-
-@keyframes warnPop {
-    0% { transform: scale(.85) translateY(20px); opacity: 0; }
-    100% { transform: scale(1) translateY(0); opacity: 1; }
-}
-@keyframes warnShimmer {
-    0%   { background-position: -200% center; }
-    100% { background-position: 200% center; }
-}
-@keyframes warnIconPulse {
-    0%, 100% { transform: scale(1); }
-    50%       { transform: scale(1.1); }
-}
-@keyframes warnRing {
-    0%   { transform: scale(1); opacity: .3; }
-    100% { transform: scale(1.6); opacity: 0; }
-}
-@keyframes warnCountPop {
-    0%   { transform: scale(0); }
-    60%  { transform: scale(1.3); }
-    100% { transform: scale(1); }
-}
-@keyframes shake {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-3deg); }
-    75% { transform: rotate(3deg); }
-}
-@keyframes pulse-danger {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.03); }
-}
-
-.warning-modal-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(239,68,68,.12), rgba(239,68,68,.06));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.25rem;
-    position: relative;
-}
-
-.warning-modal-icon::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 50%;
-    border: 2px solid rgba(239,68,68,.15);
-    animation: warnRing 2s ease-out infinite;
-}
-
-.warning-modal-icon i {
-    font-size: 2.25rem;
-    color: var(--test-danger);
-    animation: warnIconPulse 1.5s ease-in-out infinite;
-}
-
-.warning-modal h3 {
-    color: var(--test-danger);
-    font-size: 1.3rem;
-    font-weight: 800;
-    margin-bottom: .5rem;
-}
-
-.warning-modal p {
-    color: var(--test-text-muted);
-    margin-bottom: 1.25rem;
-    line-height: 1.6;
-    font-size: .95rem;
-}
-
-.warn-counter {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .5rem;
-    margin-bottom: 1.5rem;
-}
-
-.warn-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    border: 2px solid var(--test-border);
-    background: transparent;
-    transition: all .3s;
-}
-
-.warn-dot.used {
-    background: var(--test-danger);
-    border-color: var(--test-danger);
-    box-shadow: 0 0 8px rgba(239,68,68,.4);
-    animation: warnCountPop .4s ease;
-}
-
-.warn-counter-text {
-    font-size: .82rem;
-    font-weight: 700;
-    color: var(--test-text-muted);
-    margin-left: .4rem;
-}
-
-.warn-counter-text strong { color: var(--test-danger); }
-
-.warn-danger-box {
-    display: none;
-    align-items: center;
-    gap: .6rem;
-    padding: .75rem 1rem;
-    border-radius: 12px;
-    background: rgba(239,68,68,.08);
-    border: 1px solid rgba(239,68,68,.15);
-    margin-bottom: 1.25rem;
-    font-size: .82rem;
-    font-weight: 600;
-    color: var(--test-danger);
-}
-
-.warn-danger-box.show { display: flex; }
-.warn-danger-box i { font-size: 1.1rem; }
-
-.warning-modal button {
-    background: linear-gradient(135deg, var(--test-danger), #dc2626);
-    color: #fff;
-    border: none;
-    padding: .9rem 2.5rem;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: .95rem;
-    cursor: pointer;
-    transition: all .3s;
-    box-shadow: 0 6px 20px rgba(239,68,68,.25);
-}
-
-.warning-modal button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 28px rgba(239,68,68,.35);
-}
-
-/* ==================== WATERMARK ==================== */
-.watermark {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 9998;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    overflow: hidden;
-}
-
-.watermark.active { opacity: 1; }
-
-.watermark-text {
-    position: absolute;
-    font-size: 1.25rem;
-    color: rgba(239,68,68,0.12);
-    font-weight: 700;
-    transform: rotate(-45deg);
-    white-space: nowrap;
-}
-
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 991px) {
-    .test-info h1 { max-width: 200px; font-size: 1rem; }
-    .timer-box { padding: 0.5rem 1rem; }
-    .timer-box .timer-icon { width: 32px; height: 32px; }
-    .timer-box .timer-value { font-size: 1.25rem; }
-    .timer-box .timer-label { display: none; }
-}
-
-@media (max-width: 767px) {
-    .test-container { padding-bottom: 100px; }
-    .test-sticky-header .timer-box { display: none; }
-    .test-icon { width: 40px; height: 40px; border-radius: 10px; font-size: 1rem; }
-    .test-info h1 { font-size: 0.95rem; max-width: 180px; }
-    .test-info p { display: none; }
-    .question-nav-strip { padding: 0.75rem; border-radius: 12px; margin-bottom: 1rem; }
-    .nav-pills-wrap { gap: 0.375rem; }
-    .nav-pill { width: 34px; height: 34px; font-size: 0.8rem; border-radius: 10px; }
-    .question-card { border-radius: 14px; margin-bottom: 1rem; border-width: 1.5px; }
-    .question-top { padding: 0.875rem; gap: 0.625rem; }
-    .q-number { width: 36px; height: 36px; font-size: 0.9rem; border-radius: 10px; }
-    .q-text { font-size: 0.95rem; line-height: 1.55; }
-    .question-image-box { padding: 0.75rem; }
-    .question-image-box img { max-height: 200px; border-radius: 10px; }
-    .question-options { padding: 0.75rem; }
-    .option-item { padding: 0.75rem; gap: 0.625rem; border-radius: 12px; margin-bottom: 0.5rem; }
-    .option-check { width: 22px; height: 22px; }
-    .option-letter { width: 28px; height: 28px; font-size: 0.78rem; border-radius: 8px; }
-    .option-text { font-size: 0.9rem; line-height: 1.45; word-break: break-word; }
-    .submit-card { padding: 1.25rem; border-radius: 14px; margin-top: 1rem; }
-    .submit-icon { width: 56px; height: 56px; font-size: 1.5rem; }
-    .submit-card h4 { font-size: 1.1rem; }
-    .submit-card p { font-size: 0.9rem; margin-bottom: 1rem; }
-    .submit-btn { width: 100%; justify-content: center; padding: 0.875rem 1.5rem; font-size: 1rem; border-radius: 12px; }
-    .warning-modal { padding: 2rem 1.25rem 1.5rem; border-radius: 22px; margin: 0 0.5rem; }
-    .warning-modal-icon { width: 64px; height: 64px; }
-    .warning-modal-icon i { font-size: 1.75rem; }
-    .warning-modal h3 { font-size: 1.15rem; }
-    .warning-modal p { font-size: 0.88rem; }
-    .warning-modal button { padding: .75rem 2rem; font-size: .9rem; }
-}
-
-@media (max-width: 480px) {
-    .question-top { flex-direction: column; gap: 0.5rem; padding: 0.75rem; }
-    .q-number { width: 32px; height: 32px; font-size: 0.85rem; border-radius: 8px; }
-    .q-text { font-size: 0.9rem; }
-    .question-options { padding: 0.625rem; }
-    .option-item { padding: 0.625rem 0.5rem; gap: 0.5rem; border-radius: 10px; margin-bottom: 0.375rem; }
-    .option-item:hover { transform: none; }
-    .option-check { width: 20px; height: 20px; }
-    .option-check i { font-size: 0.65rem; }
-    .option-letter { width: 26px; height: 26px; font-size: 0.72rem; border-radius: 7px; }
-    .option-text { font-size: 0.85rem; line-height: 1.4; }
-    .nav-pills-wrap { gap: 0.25rem; }
-    .nav-pill { width: 30px; height: 30px; font-size: 0.72rem; border-radius: 8px; border-width: 1.5px; }
-    .submit-card { padding: 1rem; }
-    .submit-icon { width: 48px; height: 48px; font-size: 1.25rem; margin-bottom: 0.75rem; }
-    .submit-card h4 { font-size: 1rem; }
-    .submit-card p { font-size: 0.85rem; }
-}
-
-@media (max-width: 360px) {
-    .option-item { padding: 0.5rem; gap: 0.375rem; }
-    .option-check { display: none; }
-    .option-letter { width: 24px; height: 24px; font-size: 0.7rem; border-radius: 6px; }
-    .option-text { font-size: 0.82rem; }
-    .nav-pill { width: 28px; height: 28px; font-size: 0.7rem; border-radius: 6px; }
-}
-</style>
-{% endblock %}
-
-{% block content %}
 <!-- Watermark -->
 <div class="watermark" id="watermark">
-    {% for i in "12345678" %}
-    <span class="watermark-text" style="top: {{ forloop.counter0|add:forloop.counter0 }}0%; left: {{ forloop.counter0 }}0%;">
-        {{ request.user.full_name }} - {{ request.user.email }}
-    </span>
-    {% endfor %}
+    <span class="watermark-text" style="top:10%; left:5%;">{{ request.user.full_name }}</span>
+    <span class="watermark-text" style="top:30%; left:35%;">{{ request.user.full_name }}</span>
+    <span class="watermark-text" style="top:50%; left:15%;">{{ request.user.full_name }}</span>
+    <span class="watermark-text" style="top:70%; left:55%;">{{ request.user.full_name }}</span>
+    <span class="watermark-text" style="top:90%; left:25%;">{{ request.user.full_name }}</span>
 </div>
 
 <!-- Warning Modal -->
 <div class="warning-overlay" id="warningOverlay">
     <div class="warning-modal">
-        <div class="warning-modal-icon">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-        </div>
+        <div class="warning-modal-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
         <h3>Ogohlantirish!</h3>
         <p id="warningMessage">Test vaqtida bu amal taqiqlangan!</p>
-
         <div class="warn-counter">
             <div class="warn-dot" id="warnDot1"></div>
             <div class="warn-dot" id="warnDot2"></div>
             <div class="warn-dot" id="warnDot3"></div>
             <span class="warn-counter-text"><strong id="warnCount">0</strong> / 3 ogohlantirish</span>
         </div>
-
         <div class="warn-danger-box" id="warnDangerBox">
             <i class="bi bi-exclamation-octagon-fill"></i>
             <span id="warnDangerText">Yana 1 marta qoidani buzsangiz test yakunlanadi!</span>
         </div>
-
-        <button id="warnCloseBtn">Tushundim</button>
+        <button class="warn-close-btn" id="warnCloseBtn">Tushundim</button>
     </div>
 </div>
 
-<div class="test-container" id="testPage">
-    <!-- Sticky Header -->
-    <div class="test-sticky-header">
-        <div class="container">
-            <div class="header-content">
-                <div class="header-left">
-                    <div class="test-icon">
-                        <i class="bi bi-journal-check"></i>
-                    </div>
-                    <div class="test-info">
-                        <h1>{{ test.lesson.title }}</h1>
-                        <p>{{ questions|length }} ta savol • {{ test.passing_score }}% o'tish bali</p>
-                    </div>
-                </div>
-                <div class="timer-box d-none" id="timerBox">
-                    <div class="timer-text">
-                        <div class="timer-value" id="timerDisplay">{{ test.time_limit }}:00</div>
-                    </div>
+<!-- Header -->
+<div class="test-header" id="testHeader">
+    <div class="container">
+        <div class="header-content">
+            <div class="header-left">
+                <div class="test-icon"><i class="bi bi-journal-check"></i></div>
+                <div class="test-info">
+                    <h1>{{ test.lesson.title }}</h1>
+                    <p>{{ questions|length }} ta savol • {{ test.passing_score }}% o'tish bali</p>
                 </div>
             </div>
-            <div class="progress-strip">
-                <div class="progress-strip-fill" id="progressBar" style="width: 0%;"></div>
-            </div>
-            <div class="progress-info">
-                <span><strong id="answeredCount">0</strong> / {{ questions|length }} javob berildi</span>
-                <span id="progressPercent">0%</span>
+            <div class="timer-capsule" id="timerBox">
+                <div class="timer-dot"></div>
+                <div>
+                    <div class="timer-label">Qolgan vaqt</div>
+                    <div class="timer-value" id="timerDisplay">--:--</div>
+                </div>
             </div>
         </div>
     </div>
+</div>
 
-    <div class="container">
-        <!-- Question Navigation -->
-        <div class="question-nav-strip">
-            <div class="nav-strip-title">
-                <i class="bi bi-grid-3x3-gap-fill"></i>
-                Savollar
+<!-- Test Body -->
+<div class="test-body" id="testPage">
+    <!-- Progress -->
+    <div class="progress-section">
+        <div class="progress-top">
+            <span class="progress-label">Javob berildi: <strong id="answeredCount">0</strong> / {{ questions|length }}</span>
+            <span class="progress-percent" id="progressPercent">0%</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <!-- Question Navigation -->
+    <div class="question-nav">
+        <div class="nav-title"><i class="bi bi-grid-3x3-gap-fill"></i> Savollar</div>
+        <div class="nav-pills-wrap" id="navPillsContainer">
+            {% for question in questions %}
+            <div class="nav-pill" data-q="{{ forloop.counter }}" id="pill-{{ forloop.counter }}"><span>{{ forloop.counter }}</span></div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Test Form -->
+    {% if student_token %}
+    <form method="POST" action="{% url 'student_submit_test' student_token.token %}" id="testForm">
+    {% else %}
+    <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
+    {% endif %}
+        {% csrf_token %}
+        {% for question in questions %}
+        <div class="question-card" id="q-{{ forloop.counter }}" data-qid="{{ question.pk }}" data-qnum="{{ forloop.counter }}">
+            <div class="question-top">
+                <div class="q-number">{{ forloop.counter }}</div>
+                <div class="q-text">{{ question.question_text|render_code }}</div>
             </div>
-            <!-- NOTE: class "nav-pills-wrap" ishlatiladi — Bootstrap "nav-pills" bilan to'qnashuv yo'q -->
-            <div class="nav-pills-wrap" id="navPillsContainer">
-                {% for question in questions %}
-                <div class="nav-pill" data-q="{{ forloop.counter }}" id="pill-{{ forloop.counter }}">
-                    {{ forloop.counter }}
-                </div>
+            {% if question.question_image %}
+            <div class="question-image-box">
+                <img src="{{ question.question_image.url }}" alt="Savol rasmi" draggable="false">
+            </div>
+            {% endif %}
+            <div class="question-options" data-qid="{{ question.pk }}">
+                {% for answer in question.answers.all %}
+                <label class="option-item" data-q="{{ question.pk }}" data-val="{{ answer.pk }}">
+                    <input type="radio" name="question_{{ question.pk }}" value="{{ answer.pk }}">
+                    <div class="option-check"><i class="bi bi-check2"></i></div>
+                    <div class="option-letter">
+                        {% if forloop.counter == 1 %}A{% elif forloop.counter == 2 %}B{% elif forloop.counter == 3 %}C{% elif forloop.counter == 4 %}D{% elif forloop.counter == 5 %}E{% else %}{{ forloop.counter }}{% endif %}
+                    </div>
+                    <div class="option-text">{{ answer.answer_text|render_code }}</div>
+                </label>
                 {% endfor %}
             </div>
         </div>
+        {% endfor %}
 
-        <!-- Test Form -->
-        {% if student_token %}
-        <form method="POST" action="{% url 'student_submit_test' student_token.token %}" id="testForm">
-        {% else %}
-        <form method="POST" action="{% url 'submit_test' test.pk %}" id="testForm">
-        {% endif %}
-            {% csrf_token %}
+        <div class="submit-card">
+            <div class="submit-icon"><i class="bi bi-send-check-fill"></i></div>
+            <h4>Testni yakunlash</h4>
+            <p>Javoblaringizni tekshiring va yakunlang</p>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="bi bi-check-circle-fill"></i> Yakunlash
+            </button>
+        </div>
+    </form>
+</div>
 
-            {% for question in questions %}
-            <div class="question-card" id="q-{{ forloop.counter }}" data-qid="{{ question.pk }}" data-qnum="{{ forloop.counter }}">
-                <div class="question-top">
-                    <div class="q-number">{{ forloop.counter }}</div>
-                    <div class="q-text">{{ question.question_text|render_code }}</div>
-                </div>
-
-                {% if question.question_image %}
-                <div class="question-image-box">
-                    <img src="{{ question.question_image.url }}" alt="Savol rasmi" draggable="false">
-                </div>
-                {% endif %}
-
-                <div class="question-options" data-qid="{{ question.pk }}">
-                    {% for answer in question.answers.all %}
-                    <label class="option-item"
-                           data-q="{{ question.pk }}"
-                           data-val="{{ answer.pk }}">
-                        {# Radio input - ko'rinmaydi lekin forma uchun ishlaydi #}
-                        <input type="radio"
-                               name="question_{{ question.pk }}"
-                               value="{{ answer.pk }}">
-                        <div class="option-check">
-                            <i class="bi bi-check2"></i>
-                        </div>
-                        <div class="option-letter">
-                            {% if forloop.counter == 1 %}A
-                            {% elif forloop.counter == 2 %}B
-                            {% elif forloop.counter == 3 %}C
-                            {% elif forloop.counter == 4 %}D
-                            {% elif forloop.counter == 5 %}E
-                            {% else %}{{ forloop.counter }}
-                            {% endif %}
-                        </div>
-                        <div class="option-text">{{ answer.answer_text|render_code }}</div>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endfor %}
-
-            <div class="submit-card">
-                <div class="submit-icon">
-                    <i class="bi bi-send-check-fill"></i>
-                </div>
-                <h4>Testni yakunlash</h4>
-                <p>Javoblaringizni tekshiring va yakunlang</p>
-                <button type="submit" class="submit-btn" id="submitBtn">
-                    <i class="bi bi-check-circle-fill"></i>
-                    Yakunlash
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Fixed Bottom Timer Bar -->
-    <div class="fixed-timer-bar" id="fixedTimerBar">
-        <div class="container">
-            <div class="fixed-timer-info">
-                <div class="fixed-timer-icon">
-                    <i class="bi bi-stopwatch"></i>
-                </div>
-                <div>
-                    <div class="fixed-timer-value" id="fixedTimerValue">{{ test.time_limit }}:00</div>
-                    <div class="fixed-timer-label">Qolgan vaqt</div>
-                </div>
-            </div>
-            <div class="fixed-timer-progress">
-                <div class="fixed-timer-progress-bar">
-                    <div class="fixed-timer-progress-fill" id="fixedProgressBar" style="width: 0%;"></div>
-                </div>
-                <div class="fixed-timer-progress-text">
-                    <span id="fixedAnswered">0</span>/{{ questions|length }}
-                </div>
+<!-- Bottom Bar -->
+<div class="bottom-bar">
+    <div class="container">
+        <div class="bottom-timer">
+            <div class="bottom-timer-icon"><i class="bi bi-stopwatch-fill"></i></div>
+            <div>
+                <div class="bottom-timer-label">Qolgan vaqt</div>
+                <div class="bottom-timer-value" id="bottomTimerValue">--:--</div>
             </div>
         </div>
+        <div class="bottom-progress">
+            <div class="bottom-progress-bar">
+                <div class="bottom-progress-fill" id="bottomProgressFill" style="width: 0%"></div>
+            </div>
+        </div>
+        <button class="bottom-submit-btn" onclick="document.getElementById('testForm').submit()">
+            <i class="bi bi-send-fill"></i> Yakunlash
+        </button>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-(function () {
+(function() {
     'use strict';
 
-    /* ============================================================
-       0. ASOS: DOM elementlarini IIFE ichida bir marta saqlaymiz
-          Shunday qilib querySelectorAll override kerak emas
-       ============================================================ */
-    var TOTAL = {{ questions|length }};
-    var TIME_LIMIT_SEC = {{ test.time_limit }} * 60;
-    var SERVER_END_TIME = Date.now() + {{ remaining_time }} * 1000;
-
-    var elTimerDisplay   = document.getElementById('timerDisplay');
-    var elTimerBox       = document.getElementById('timerBox');
-    var elFixedBar       = document.getElementById('fixedTimerBar');
-    var elFixedValue     = document.getElementById('fixedTimerValue');
-    var elProgressBar    = document.getElementById('progressBar');
-    var elFixedProgress  = document.getElementById('fixedProgressBar');
-    var elAnsweredCount  = document.getElementById('answeredCount');
-    var elProgressPct    = document.getElementById('progressPercent');
-    var elFixedAnswered  = document.getElementById('fixedAnswered');
-    var elTestPage       = document.getElementById('testPage');
-    var elWatermark      = document.getElementById('watermark');
-    var elOverlay        = document.getElementById('warningOverlay');
-    var elWarnMsg        = document.getElementById('warningMessage');
-    var elWarnCount      = document.getElementById('warnCount');
-    var elWarnDots       = [
-        document.getElementById('warnDot1'),
-        document.getElementById('warnDot2'),
-        document.getElementById('warnDot3')
-    ];
-    var elDangerBox      = document.getElementById('warnDangerBox');
-    var elDangerText     = document.getElementById('warnDangerText');
-    var elCloseBtn       = document.getElementById('warnCloseBtn');
-    var elSubmitBtn      = document.getElementById('submitBtn');
-    var elForm           = document.getElementById('testForm');
-
-    /* Barcha option-item lar (label) */
-    var allOptions = Array.prototype.slice.call(
-        document.querySelectorAll('.option-item')
-    );
-
-    /* Barcha nav pill lar */
-    var allPills = Array.prototype.slice.call(
-        document.querySelectorAll('.nav-pill')
-    );
-
-    /* Barcha question-card lar */
-    var allCards = Array.prototype.slice.call(
-        document.querySelectorAll('.question-card')
-    );
-
-    /* ============================================================
-       1. FORM SUBMIT
-       ============================================================ */
-    var formSubmitted = false;
-
-    function autoSubmitTest() {
-        if (formSubmitted) return;
-        formSubmitted = true;
-        if (elSubmitBtn) {
-            elSubmitBtn.disabled = true;
-            elSubmitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Tekshirilmoqda...';
-        }
-        elForm.submit();
-    }
-
-    /* ============================================================
-       2. TAMPER-PROOF TIMER
-       ============================================================ */
-    var timerSubmitted = false;
-    var perfStart = (typeof performance !== 'undefined' && performance.now)
-        ? performance.now() : null;
-    var realStart = Date.now();
-
-    function getRemaining() {
-        return Math.max(0, Math.ceil((SERVER_END_TIME - Date.now()) / 1000));
-    }
-
-    function formatTime(sec) {
-        var m = Math.floor(sec / 60);
-        var s = sec % 60;
-        return m + ':' + (s < 10 ? '0' : '') + s;
-    }
-
-    function tick() {
-        var rem = getRemaining();
-        var display = formatTime(rem);
-
-        if (elTimerDisplay) elTimerDisplay.textContent = display;
-        if (elFixedValue) elFixedValue.textContent = display;
-
-        if (rem <= 120) {
-            if (elTimerBox) elTimerBox.classList.add('warning');
-            if (elFixedBar) elFixedBar.classList.add('warning');
-        }
-
-        if (rem <= 0 && !timerSubmitted) {
-            timerSubmitted = true;
-            autoSubmitTest();
-            return;
-        }
-
-        setTimeout(tick, 1000);
-    }
-
-    tick();
-
-    /* Integrity check: performance.now vs Date.now farqi 5s dan oshsa - manipulyatsiya */
-    if (perfStart !== null) {
-        setInterval(function () {
-            var perfElapsed = performance.now() - perfStart;
-            var dateElapsed = Date.now() - realStart;
-            if (Math.abs(perfElapsed - dateElapsed) > 5000) {
-                if (!timerSubmitted) {
-                    timerSubmitted = true;
-                    autoSubmitTest();
-                }
-            }
-        }, 5000);
-    }
-
-    /* Zaxira tekshiruv */
-    setInterval(function () {
-        if (getRemaining() <= 0 && !timerSubmitted) {
-            timerSubmitted = true;
-            autoSubmitTest();
-        }
-    }, 3000);
-
-    /* ============================================================
-       3. PROGRESS UPDATE
-       ============================================================ */
-    function updateProgress() {
-        var answered = 0;
-
-        allCards.forEach(function (card) {
-            var qid = card.getAttribute('data-qid');
-            var qnum = parseInt(card.getAttribute('data-qnum'), 10);
-            var radio = card.querySelector('input[name="question_' + qid + '"]:checked');
-            var pill = document.getElementById('pill-' + qnum);
-
-            if (radio) {
-                answered++;
-                card.classList.add('answered');
-                if (pill) pill.classList.add('answered');
-            } else {
-                card.classList.remove('answered');
-                if (pill) pill.classList.remove('answered');
-            }
-        });
-
-        var pct = TOTAL > 0 ? Math.round((answered / TOTAL) * 100) : 0;
-
-        if (elAnsweredCount) elAnsweredCount.textContent = answered;
-        if (elProgressPct)   elProgressPct.textContent = pct + '%';
-        if (elProgressBar)   elProgressBar.style.width = pct + '%';
-        if (elFixedProgress) elFixedProgress.style.width = pct + '%';
-        if (elFixedAnswered) elFixedAnswered.textContent = answered;
-
-        if (answered === TOTAL && TOTAL > 0) {
-            setTimeout(autoSubmitTest, 500);
-        }
-    }
-
-    /* ============================================================
-       4. OPTION CLICK HANDLER
-          Faqat click event — input[type=radio] ni dasturiy checked qilamiz
-       ============================================================ */
-    allOptions.forEach(function (opt) {
-        opt.addEventListener('click', function (e) {
-            /* Label ichidagi input click ikki marta ishlamasligi uchun */
-            e.preventDefault();
-
-            var qid = opt.getAttribute('data-q');
-
-            /* Shu savoldagi barcha optionlarni deselect qilamiz */
-            allOptions.forEach(function (o) {
-                if (o.getAttribute('data-q') === qid) {
-                    o.classList.remove('selected');
-                }
-            });
-
-            /* Tanlangan optionni select qilamiz */
-            opt.classList.add('selected');
-
-            /* Radio inputni checked qilamiz */
-            var radio = opt.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-            }
-
-            updateProgress();
-        });
-    });
-
-    /* ============================================================
-       5. SCROLL TO QUESTION
-       ============================================================ */
-    allPills.forEach(function (pill) {
-        pill.addEventListener('click', function () {
-            var n = pill.getAttribute('data-q');
-            var el = document.getElementById('q-' + n);
-            if (el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                allPills.forEach(function (p) { p.classList.remove('current'); });
-                pill.classList.add('current');
-            }
-        });
-    });
-
-    /* ============================================================
-       6. WARNING SYSTEM
-       ============================================================ */
+    var totalTime = {{ remaining_time }};
+    var remaining = totalTime;
+    var totalQuestions = {{ questions|length }};
     var warnings = 0;
-    var warnCooldown = false; /* Bir vaqtda ko'p ogohlantirish chiqmasligi uchun */
-
-    function showWarning(msg) {
-        if (warnCooldown) return;
-        warnCooldown = true;
-        setTimeout(function () { warnCooldown = false; }, 1500);
-
-        warnings++;
-        if (elWarnMsg)   elWarnMsg.textContent = msg;
-        if (elWarnCount) elWarnCount.textContent = warnings;
-
-        elWarnDots.forEach(function (dot, i) {
-            if (i < warnings) dot.classList.add('used');
-        });
-
-        if (warnings >= 2 && elDangerBox) {
-            elDangerBox.classList.add('show');
-        }
-
-        if (elOverlay) elOverlay.style.display = 'flex';
-        if (elWatermark) elWatermark.classList.add('active');
-
-        if (warnings >= 3) {
-            if (elWarnMsg) elWarnMsg.textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
-            if (elDangerText) elDangerText.textContent = "Test yakunlanmoqda...";
-            if (elDangerBox) elDangerBox.classList.add('show');
-            if (elCloseBtn) elCloseBtn.disabled = true;
-            setTimeout(autoSubmitTest, 1500);
-        }
-    }
-
-    function closeWarning() {
-        if (elOverlay) elOverlay.style.display = 'none';
-        setTimeout(function () {
-            if (elWatermark) elWatermark.classList.remove('active');
-        }, 2000);
-    }
-
-    if (elCloseBtn) {
-        elCloseBtn.addEventListener('click', closeWarning);
-    }
-
-    /* ============================================================
-       7. ANTI-CHEAT EVENTS
-          Faqat kerakli eventlar — DOM metodlarini OVERRIDE QILMAYMIZ
-          chunki bu o'zimizning kodimizni ham buzadi
-       ============================================================ */
-
-    /* Context menu */
-    document.addEventListener('contextmenu', function (e) {
-        e.preventDefault();
-        showWarning("O'ng tugma taqiqlangan!");
-    });
-
-    /* Copy/Cut/Paste */
-    document.addEventListener('copy', function (e) {
-        e.preventDefault();
-        showWarning("Nusxa olish taqiqlangan!");
-    });
-    document.addEventListener('cut', function (e) {
-        e.preventDefault();
-        showWarning("Kesish taqiqlangan!");
-    });
-    document.addEventListener('paste', function (e) {
-        e.preventDefault();
-        /* paste uchun warning bermay qo'yamiz - foydalanuvchi parolini paste qilishi mumkin edi */
-    });
-
-    /* Keyboard shortcuts */
-    document.addEventListener('keydown', function (e) {
-        /* DevTools */
-        if (e.key === 'F12') {
-            e.preventDefault();
-            showWarning("DevTools taqiqlangan!");
-            return false;
-        }
-        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
-            e.preventDefault();
-            showWarning("DevTools taqiqlangan!");
-            return false;
-        }
-        /* View source */
-        if (e.ctrlKey && (e.key === 'U' || e.key === 'u')) {
-            e.preventDefault();
-            showWarning("Manba kodi ko'rish taqiqlangan!");
-            return false;
-        }
-        /* Copy/Cut/Select All */
-        if (e.ctrlKey && (e.key === 'c' || e.key === 'C')) {
-            e.preventDefault();
-            showWarning("Nusxa olish taqiqlangan!");
-            return false;
-        }
-        if (e.ctrlKey && (e.key === 'x' || e.key === 'X')) {
-            e.preventDefault();
-            showWarning("Kesish taqiqlangan!");
-            return false;
-        }
-        if (e.ctrlKey && (e.key === 'a' || e.key === 'A')) {
-            e.preventDefault();
-            return false;
-        }
-        /* PrintScreen */
-        if (e.key === 'PrintScreen') {
-            e.preventDefault();
-            showWarning("Skrinshot taqiqlangan!");
-        }
-    });
-
-    document.addEventListener('keyup', function (e) {
-        if (e.key === 'PrintScreen') {
-            showWarning("Skrinshot taqiqlangan!");
-            if (elTestPage) {
-                elTestPage.style.filter = 'blur(10px)';
-                setTimeout(function () {
-                    if (elTestPage) elTestPage.style.filter = 'none';
-                }, 1000);
-            }
-        }
-    });
-
-    /* Drag */
-    document.addEventListener('dragstart', function (e) { e.preventDefault(); });
-
-    /* Tab visibility change */
-    document.addEventListener('visibilitychange', function () {
-        if (document.hidden) {
-            showWarning("Sahifadan chiqish aniqlandi!");
-        }
-    });
-
-    /* Window blur — faqat sahifa bir marta to'liq yuklangandan keyin */
+    var warnCooldown = false;
     var pageReady = false;
-    window.addEventListener('load', function () {
-        /* 1 soniya kutamiz, shunda birinchi focus blur bermasin */
-        setTimeout(function () { pageReady = true; }, 1000);
-    });
+    var testSubmitted = false;
 
-    window.addEventListener('blur', function () {
-        if (!pageReady) return;
-        if (elWatermark) elWatermark.classList.add('active');
-        showWarning("Oynadan chiqish aniqlandi!");
-    });
+    var elTimerDisplay = document.getElementById('timerDisplay');
+    var elBottomTimerValue = document.getElementById('bottomTimerValue');
+    var elTimerBox = document.getElementById('timerBox');
+    var elAnsweredCount = document.getElementById('answeredCount');
+    var elProgressPercent = document.getElementById('progressPercent');
+    var elProgressFill = document.getElementById('progressFill');
+    var elBottomProgressFill = document.getElementById('bottomProgressFill');
+    var elTestForm = document.getElementById('testForm');
+    var elTestPage = document.getElementById('testPage');
+    var elWarningOverlay = document.getElementById('warningOverlay');
+    var elWarnMsg = document.getElementById('warningMessage');
+    var elWarnCount = document.getElementById('warnCount');
+    var elDangerBox = document.getElementById('warnDangerBox');
+    var elDangerText = document.getElementById('warnDangerText');
+    var elWarnCloseBtn = document.getElementById('warnCloseBtn');
+    var elWatermark = document.getElementById('watermark');
+    var elFullscreenOverlay = document.getElementById('fullscreenOverlay');
+    var elTestHeader = document.getElementById('testHeader');
+    var elWarnDots = [document.getElementById('warnDot1'), document.getElementById('warnDot2'), document.getElementById('warnDot3')];
 
-    window.addEventListener('focus', function () {
-        setTimeout(function () {
-            if (elWatermark) elWatermark.classList.remove('active');
-        }, 1000);
-    });
+    /* ==================== HEADER SCROLL ==================== */
+    window.addEventListener('scroll', function() {
+        if (window.scrollY > 10) elTestHeader.classList.add('scrolled');
+        else elTestHeader.classList.remove('scrolled');
+    }, { passive: true });
 
-    /* ============================================================
-       8. DevTools aniqlash (oyna o'lchami usuli)
-          Ichki kodga ta'sir qilmaydigan usul
-          Boshlang'ich farqni eslab qolamiz — toolbar/taskbar
-          tufayli yolg'on ogohlantirish chiqmasligi uchun
-       ============================================================ */
-    var devtoolsOpen = false;
-    var baseWidthDiff  = window.outerWidth  - window.innerWidth;
-    var baseHeightDiff = window.outerHeight - window.innerHeight;
-    var devtoolsThreshold = 160;
+    /* ==================== FULLSCREEN ==================== */
+    window.enterFullscreen = function() {
+        var el = document.documentElement;
+        var rfs = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen;
+        if (rfs) {
+            rfs.call(el).then(function() { elFullscreenOverlay.classList.add('hidden'); }).catch(function() { elFullscreenOverlay.classList.add('hidden'); });
+        } else {
+            elFullscreenOverlay.classList.add('hidden');
+        }
+    };
 
-    setInterval(function () {
-        var currentWidthDiff  = (window.outerWidth  - window.innerWidth)  - baseWidthDiff;
-        var currentHeightDiff = (window.outerHeight - window.innerHeight) - baseHeightDiff;
+    window.addEventListener('load', function() { setTimeout(function() { pageReady = true; }, 2000); });
 
-        if (currentWidthDiff > devtoolsThreshold || currentHeightDiff > devtoolsThreshold) {
-            if (!devtoolsOpen) {
-                devtoolsOpen = true;
-                showWarning("DevTools aniqlandi!");
-                if (elTestPage) elTestPage.style.filter = 'blur(20px)';
+    document.addEventListener('fullscreenchange', checkFullscreen);
+    document.addEventListener('webkitfullscreenchange', checkFullscreen);
+
+    function checkFullscreen() {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            if (pageReady && !testSubmitted) {
+                elFullscreenOverlay.classList.remove('hidden');
+                showWarning("To'liq ekrandan chiqish aniqlandi!");
             }
         } else {
-            if (devtoolsOpen) {
-                devtoolsOpen = false;
-                if (elTestPage) elTestPage.style.filter = 'none';
-            }
+            elFullscreenOverlay.classList.add('hidden');
         }
-    }, 1000);
+    }
 
-    /* ============================================================
-       9. Console bloklash — faqat console chiqishini o'chirish
-          DOM metodlarini OVERRIDE QILMAYMIZ
-       ============================================================ */
-    var noop = function () { return undefined; };
-    var consoleMethods = [
-        'log','warn','error','info','debug','table','dir','dirxml',
-        'trace','group','groupCollapsed','groupEnd','clear','count',
-        'assert','time','timeLog','timeEnd','timeStamp','profile','profileEnd'
-    ];
-    consoleMethods.forEach(function (method) {
-        try {
-            if (typeof console[method] === 'function') {
-                console[method] = noop;
+    /* ==================== TIMER ==================== */
+    function formatTime(s) {
+        var m = Math.floor(s / 60), sec = s % 60;
+        return (m < 10 ? '0' : '') + m + ':' + (sec < 10 ? '0' : '') + sec;
+    }
+    function updateTimer() {
+        if (remaining <= 0) { autoSubmit(); return; }
+        remaining--;
+        var t = formatTime(remaining);
+        elTimerDisplay.textContent = t;
+        elBottomTimerValue.textContent = t;
+        if (remaining < 60) elTimerBox.classList.add('critical');
+    }
+    setInterval(updateTimer, 1000);
+    elTimerDisplay.textContent = formatTime(remaining);
+    elBottomTimerValue.textContent = formatTime(remaining);
+
+    /* ==================== PROGRESS ==================== */
+    var prevAnswered = 0;
+    function updateProgress() {
+        var answered = document.querySelectorAll('input[type="radio"]:checked').length;
+        elAnsweredCount.textContent = answered;
+        var pct = totalQuestions > 0 ? Math.round((answered / totalQuestions) * 100) : 0;
+        elProgressPercent.textContent = pct + '%';
+        elProgressFill.style.width = pct + '%';
+        elBottomProgressFill.style.width = pct + '%';
+        document.querySelectorAll('.question-card').forEach(function(card) {
+            card.classList.toggle('answered', !!card.querySelector('input[type="radio"]:checked'));
+        });
+        for (var i = 1; i <= totalQuestions; i++) {
+            var pill = document.getElementById('pill-' + i);
+            var card = document.getElementById('q-' + i);
+            if (pill && card) pill.classList.toggle('answered', card.classList.contains('answered'));
+        }
+        if (answered === totalQuestions && prevAnswered < totalQuestions) spawnConfetti();
+        prevAnswered = answered;
+    }
+    function spawnConfetti() {
+        var colors = ['#6366f1','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899'];
+        for (var i = 0; i < 30; i++) {
+            var p = document.createElement('div');
+            p.className = 'confetti-particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = '-10px';
+            p.style.background = colors[Math.floor(Math.random() * colors.length)];
+            p.style.animationDelay = (Math.random() * 0.5) + 's';
+            p.style.animationDuration = (2 + Math.random() * 2) + 's';
+            p.style.width = (4 + Math.random() * 6) + 'px';
+            p.style.height = (4 + Math.random() * 6) + 'px';
+            document.body.appendChild(p);
+            (function(el) { setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 4000); })(p);
+        }
+    }
+
+    /* Option click */
+    document.querySelectorAll('.option-item').forEach(function(opt) {
+        opt.addEventListener('click', function() {
+            var radio = this.querySelector('input[type="radio"]');
+            if (radio) {
+                radio.checked = true;
+                this.closest('.question-options').querySelectorAll('.option-item').forEach(function(s) { s.classList.remove('selected'); });
+                this.classList.add('selected');
+                this.style.transform = 'translateX(4px) scale(0.98)';
+                var self = this;
+                setTimeout(function() { self.style.transform = ''; }, 150);
+                updateProgress();
             }
-        } catch (e) { /* ignore */ }
+        });
     });
 
-    /* ============================================================
-       10. Fetch bloklash — faqat tashqi domenlar
-       ============================================================ */
+    /* Nav pill click */
+    document.querySelectorAll('.nav-pill').forEach(function(pill) {
+        pill.addEventListener('click', function() {
+            var target = document.getElementById('q-' + this.getAttribute('data-q'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
+    /* ==================== AUTO SUBMIT ==================== */
+    function autoSubmit() {
+        if (testSubmitted) return;
+        testSubmitted = true;
+        elTestForm.submit();
+    }
+
+    /* ==================== WARNING SYSTEM ==================== */
+    function showWarning(msg) {
+        if (warnCooldown || testSubmitted) return;
+        warnCooldown = true;
+        setTimeout(function() { warnCooldown = false; }, 2000);
+        warnings++;
+        elWarnMsg.textContent = msg;
+        elWarnCount.textContent = warnings;
+        elWarnDots.forEach(function(dot, i) { if (i < warnings) dot.classList.add('used'); });
+        if (warnings >= 2) elDangerBox.classList.add('show');
+        elWarningOverlay.style.display = 'flex';
+        elWatermark.classList.add('active');
+        if (warnings >= 3) {
+            elWarnMsg.textContent = "3 marta ogohlantirish! Test yakunlanmoqda...";
+            elDangerText.textContent = "Test yakunlanmoqda...";
+            elDangerBox.classList.add('show');
+            elWarnCloseBtn.disabled = true;
+            setTimeout(autoSubmit, 1500);
+        }
+    }
+
+    elWarnCloseBtn.addEventListener('click', function() {
+        elWarningOverlay.style.display = 'none';
+        setTimeout(function() { elWatermark.classList.remove('active'); }, 2000);
+        if (!document.fullscreenElement) window.enterFullscreen();
+    });
+
+    /* ==================== ANTI-CHEAT ==================== */
+    document.addEventListener('contextmenu', function(e) { e.preventDefault(); showWarning("O'ng tugma taqiqlangan!"); });
+    document.addEventListener('copy', function(e) { e.preventDefault(); showWarning("Nusxa olish taqiqlangan!"); });
+    document.addEventListener('cut', function(e) { e.preventDefault(); showWarning("Kesish taqiqlangan!"); });
+    document.addEventListener('paste', function(e) { e.preventDefault(); });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'F12' || e.key === 'F11' || e.key === 'F5') { e.preventDefault(); showWarning("Bu tugma taqiqlangan!"); return false; }
+        if (e.ctrlKey) {
+            e.preventDefault();
+            if (e.shiftKey && /^[IJCijc]$/.test(e.key)) showWarning("DevTools taqiqlangan!");
+            else if (/^[uUpPsScCxXaA]$/.test(e.key)) showWarning("Bu kombinatsiya taqiqlangan!");
+            return false;
+        }
+        if (e.altKey && (e.key === 'Tab' || e.key === 'F4')) { e.preventDefault(); showWarning("Alt tugma taqiqlangan!"); return false; }
+        if (e.metaKey) { e.preventDefault(); return false; }
+        if (e.key === 'Escape') { e.preventDefault(); showWarning("Chiqish taqiqlangan!"); return false; }
+        if (e.key === 'PrintScreen') { e.preventDefault(); showWarning("Skrinshot taqiqlangan!"); }
+    });
+
+    document.addEventListener('keyup', function(e) {
+        if (e.key === 'PrintScreen') {
+            showWarning("Skrinshot taqiqlangan!");
+            if (elTestPage) { elTestPage.style.filter = 'blur(20px)'; setTimeout(function() { elTestPage.style.filter = 'none'; }, 1500); }
+        }
+    });
+
+    document.addEventListener('dragstart', function(e) { e.preventDefault(); });
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden && pageReady) showWarning("Sahifadan chiqish aniqlandi!");
+    });
+
+    window.addEventListener('blur', function() {
+        if (!pageReady) return;
+        elWatermark.classList.add('active');
+        showWarning("Oynadan chiqish aniqlandi!");
+    });
+    window.addEventListener('focus', function() {
+        setTimeout(function() { elWatermark.classList.remove('active'); }, 1000);
+    });
+
+    /* DevTools detection */
+    var devtoolsOpen = false;
+    var baseW = window.outerWidth - window.innerWidth;
+    var baseH = window.outerHeight - window.innerHeight;
+    setInterval(function() {
+        var dw = (window.outerWidth - window.innerWidth) - baseW;
+        var dh = (window.outerHeight - window.innerHeight) - baseH;
+        if (dw > 160 || dh > 160) {
+            if (!devtoolsOpen) { devtoolsOpen = true; showWarning("DevTools aniqlandi!"); if (elTestPage) elTestPage.style.filter = 'blur(20px)'; }
+        } else { if (devtoolsOpen) { devtoolsOpen = false; if (elTestPage) elTestPage.style.filter = 'none'; } }
+    }, 1000);
+
+    /* Console block */
+    var noop = function() { return undefined; };
+    ['log','warn','error','info','debug','table','dir','trace','group','groupEnd','clear','count','assert','time','timeEnd'].forEach(function(m) {
+        try { if (typeof console[m] === 'function') console[m] = noop; } catch(e) {}
+    });
+
+    /* Fetch block */
     var origFetch = window.fetch;
     if (origFetch) {
-        window.fetch = function (url) {
-            if (typeof url === 'string') {
-                var isExternal = url.indexOf('http') === 0
-                    && url.indexOf(window.location.origin) !== 0;
-                if (isExternal) {
-                    showWarning("Tashqi so'rov taqiqlangan!");
-                    return Promise.reject(new Error('Blocked by anti-cheat'));
-                }
+        window.fetch = function(url) {
+            if (typeof url === 'string' && url.indexOf('http') === 0 && url.indexOf(window.location.origin) !== 0) {
+                showWarning("Tashqi so'rov taqiqlangan!"); return Promise.reject(new Error('Blocked'));
             }
             return origFetch.apply(this, arguments);
         };
     }
 
-    /* ============================================================
-       11. Debugger trap — performance.now farqi 100ms dan oshsa
-       ============================================================ */
-    (function debuggerTrap() {
-        setTimeout(function () {
-            var t = performance.now();
-            debugger;
-            if (performance.now() - t > 100) {
-                if (elTestPage) elTestPage.style.filter = 'blur(20px)';
-                showWarning("Debugger aniqlandi!");
-            }
-            debuggerTrap();
+    /* Debugger trap */
+    (function trap() {
+        setTimeout(function() {
+            var t = performance.now(); debugger;
+            if (performance.now() - t > 100) { if (elTestPage) elTestPage.style.filter = 'blur(20px)'; showWarning("Debugger aniqlandi!"); }
+            trap();
         }, 4000);
     })();
 
-    /* ============================================================
-       12. DOMContentLoaded — boshlang'ich progress
-       ============================================================ */
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', updateProgress);
-    } else {
-        updateProgress();
-    }
-
+    /* Init */
+    updateProgress();
 })();
 </script>
-{% endblock %}
+</body>
+</html>
