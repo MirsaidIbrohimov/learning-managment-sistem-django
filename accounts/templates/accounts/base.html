@@ -43,7 +43,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 
 
@@ -339,256 +339,669 @@
     </div>
 
     {% if user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container main-container">
+    <style>
+    /* ========== NOODATIY NAVBAR ========== */
+    .nb { position: sticky; top: 0; z-index: 1050; }
+    .nb-inner {
+        display: flex; align-items: center; gap: 0;
+        padding: .35rem .75rem;
+        max-width: 1280px; margin: 0 auto;
+    }
+    @media(min-width:1921px){ .nb-inner{ max-width:1600px; } }
 
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}">
-                <i class="bi bi-mortarboard-fill"></i>
-                <span>LMS</span>
+    /* Brand */
+    .nb-brand {
+        display: flex; align-items: center; gap: 10px;
+        text-decoration: none; color: var(--text);
+        flex-shrink: 0; margin-right: 1rem;
+        transition: transform .2s;
+    }
+    .nb-brand:hover { transform: scale(.97); color: var(--text); }
+    .nb-brand-icon {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+        box-shadow: 0 2px 12px rgba(99,102,241,.25);
+    }
+    .nb-brand-icon i { color: #fff; font-size: 1rem; position: relative; z-index: 1; }
+    .nb-brand-icon::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.15) 50%, transparent 60%);
+        background-size: 200% 200%;
+        animation: nbShimmer 3s ease-in-out infinite;
+    }
+    @keyframes nbShimmer {
+        0% { background-position: 200% 200%; }
+        100% { background-position: -200% -200%; }
+    }
+    .nb-brand-text {
+        font-family: 'JetBrains Mono', monospace;
+        font-weight: 800; font-size: 1.05rem; letter-spacing: -.5px;
+    }
+    .nb-brand-text .nb-sep { opacity: .3; font-weight: 400; }
+
+    /* ===== DESKTOP NAV LINKS (horizontal pill bar) ===== */
+    .nb-links {
+        display: flex; align-items: center; gap: 2px;
+        flex: 1; overflow-x: auto; overflow-y: hidden;
+        scrollbar-width: none; -ms-overflow-style: none;
+        padding: 3px 4px;
+        mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+    }
+    .nb-links::-webkit-scrollbar { display: none; }
+
+    .nb-link {
+        display: flex; align-items: center; gap: 5px;
+        padding: .4rem .7rem;
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text);
+        font-weight: 500; font-size: .84rem;
+        white-space: nowrap;
+        transition: all .25s cubic-bezier(.4,0,.2,1);
+        position: relative; overflow: hidden;
+        flex-shrink: 0;
+    }
+    .nb-link i { font-size: .92rem; opacity: .6; transition: opacity .2s; }
+    .nb-link:hover i { opacity: 1; }
+
+    /* Magnetic hover glow */
+    .nb-link::before {
+        content: ''; position: absolute; inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(99,102,241,.1), transparent 65%);
+        opacity: 0; transition: opacity .3s; pointer-events: none;
+    }
+    .nb-link:hover { color: var(--primary); transform: translateY(-1px); }
+    .nb-link:hover::before { opacity: 1; }
+
+    /* Active state */
+    .nb-link.active {
+        background: rgba(99,102,241,.1);
+        color: var(--primary) !important;
+        font-weight: 600;
+        box-shadow: 0 0 12px rgba(99,102,241,.15), inset 0 0 0 1px rgba(99,102,241,.12);
+    }
+    .nb-link.active::after {
+        content: ''; position: absolute;
+        bottom: 3px; left: 50%; transform: translateX(-50%);
+        width: 16px; height: 2.5px; border-radius: 10px;
+        background: var(--primary);
+        box-shadow: 0 0 6px rgba(99,102,241,.4);
+        animation: nbDotPulse 2s ease-in-out infinite;
+    }
+    @keyframes nbDotPulse {
+        0%,100% { opacity: 1; width: 16px; }
+        50% { opacity: .6; width: 10px; }
+    }
+    .nb-link.active i { opacity: 1; }
+
+    /* ===== RIGHT ZONE ===== */
+    .nb-right {
+        display: flex; align-items: center; gap: 8px;
+        flex-shrink: 0; margin-left: 8px;
+    }
+
+    /* Icon buttons */
+    .nb-icon-btn {
+        width: 40px; height: 40px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--card); border: 1px solid var(--border);
+        color: var(--text); text-decoration: none;
+        position: relative; cursor: pointer;
+        transition: all .25s cubic-bezier(.4,0,.2,1);
+        flex-shrink: 0;
+    }
+    .nb-icon-btn:hover {
+        background: rgba(99,102,241,.08);
+        border-color: rgba(99,102,241,.2);
+        color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(99,102,241,.12);
+    }
+    .nb-icon-btn i { font-size: 1rem; }
+    .nb-badge {
+        position: absolute; top: -4px; right: -4px;
+        min-width: 18px; height: 18px; padding: 0 4px;
+        border-radius: 99px;
+        background: #ef4444;
+        color: #fff; font-size: .65rem; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        border: 2px solid var(--card);
+        animation: nbBadgePop .4s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes nbBadgePop {
+        from { transform: scale(0); } to { transform: scale(1); }
+    }
+
+    /* Coin pill */
+    .nb-coin {
+        display: flex; align-items: center; gap: 5px;
+        padding: .3rem .6rem;
+        border-radius: 99px;
+        background: linear-gradient(135deg, rgba(251,191,36,.12), rgba(245,158,11,.08));
+        border: 1px solid rgba(251,191,36,.2);
+        font-weight: 700; font-size: .82rem;
+        color: #d97706; flex-shrink: 0;
+        font-family: 'JetBrains Mono', monospace;
+        transition: all .25s;
+    }
+    .nb-coin:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(251,191,36,.15);
+    }
+    .nb-coin i { font-size: .9rem; animation: nbCoinFloat 2.5s ease-in-out infinite; }
+    @keyframes nbCoinFloat {
+        0%,100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-2px) rotate(8deg); }
+    }
+
+    /* User avatar button */
+    .nb-avatar-btn {
+        display: flex; align-items: center; gap: 6px;
+        cursor: pointer; text-decoration: none; color: var(--text);
+        padding: 3px 4px 3px 3px;
+        border-radius: 12px;
+        transition: all .25s;
+        position: relative;
+    }
+    .nb-avatar-btn:hover {
+        background: rgba(99,102,241,.06); color: var(--text);
+    }
+    .nb-avatar {
+        width: 38px; height: 38px; border-radius: 10px;
+        object-fit: cover; border: 2px solid var(--border);
+        transition: border-color .2s;
+    }
+    .nb-avatar-btn:hover .nb-avatar { border-color: rgba(99,102,241,.3); }
+    .nb-avatar-init {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff; font-weight: 700; font-size: .85rem;
+        border: 2px solid transparent;
+    }
+    .nb-online-dot {
+        position: absolute; bottom: 2px; right: 2px;
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #22c55e; border: 2px solid var(--card);
+    }
+    .nb-chevron {
+        font-size: .65rem; color: var(--text-muted);
+        transition: transform .2s;
+    }
+    .nb-avatar-btn[aria-expanded="true"] .nb-chevron { transform: rotate(180deg); }
+
+    /* Desktop dropdown */
+    .nb-dropdown {
+        min-width: 280px !important;
+        padding: .5rem !important;
+        border-radius: 16px !important;
+        background: var(--card) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,.12), 0 0 0 1px rgba(99,102,241,.05) !important;
+        animation: nbDropIn .25s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes nbDropIn {
+        from { opacity: 0; transform: translateY(-8px) scale(.97); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .nb-dropdown .dropdown-item {
+        border-radius: 10px; padding: .5rem .75rem;
+        font-weight: 500; font-size: .88rem;
+        transition: all .15s;
+    }
+    .nb-dropdown .dropdown-item:hover {
+        background: rgba(99,102,241,.06);
+    }
+    .nb-dropdown .dropdown-item i { width: 20px; text-align: center; }
+
+    .nb-user-card {
+        display: flex; align-items: center; gap: 12px;
+        padding: .6rem .75rem; margin-bottom: .25rem;
+        border-radius: 12px;
+        background: var(--bg);
+    }
+    .nb-user-card-avatar {
+        width: 48px; height: 48px; border-radius: 12px;
+        object-fit: cover;
+    }
+    .nb-user-card-init {
+        width: 48px; height: 48px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff; font-weight: 700; font-size: 1rem;
+    }
+    .nb-user-name { font-weight: 700; font-size: .92rem; }
+    .nb-user-role {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 2px 8px; border-radius: 6px;
+        font-size: .68rem; font-weight: 700;
+        margin-top: 4px;
+    }
+    .nb-user-role.admin { background: rgba(239,68,68,.1); color: #ef4444; }
+    .nb-user-role.teacher { background: rgba(16,185,129,.1); color: #10b981; }
+    .nb-user-role.student { background: rgba(99,102,241,.1); color: #6366f1; }
+
+    /* ===== MOBILE HAMBURGER ===== */
+    .nb-hamburger {
+        display: none; width: 40px; height: 40px;
+        border-radius: 10px; border: 1px solid var(--border);
+        background: var(--card); cursor: pointer;
+        align-items: center; justify-content: center;
+        flex-direction: column; gap: 4px;
+        padding: 0; transition: all .2s;
+        flex-shrink: 0;
+    }
+    .nb-hamburger:hover { border-color: rgba(99,102,241,.3); }
+    .nb-hamburger span {
+        display: block; width: 18px; height: 2px;
+        background: var(--text); border-radius: 2px;
+        transition: all .3s cubic-bezier(.4,0,.2,1);
+    }
+    .nb-hamburger.open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .nb-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .nb-hamburger.open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    /* ===== RESPONSIVE: tablet/mobile ===== */
+    @media(max-width:991px) {
+        .nb-links-desktop { display: none !important; }
+        .nb-hamburger { display: flex; }
+        .nb-right .nb-desktop-only { display: none !important; }
+        .nb-inner { padding: .35rem .5rem; }
+    }
+    @media(min-width:992px) {
+        .nb-hamburger { display: none !important; }
+    }
+
+    /* ===== MOBILE SLIDE MENU ===== */
+    .nb-mobile-backdrop {
+        position: fixed; inset: 0; z-index: 1060;
+        background: rgba(0,0,0,.4);
+        backdrop-filter: blur(4px);
+        opacity: 0; pointer-events: none;
+        transition: opacity .3s;
+    }
+    .nb-mobile-backdrop.show { opacity: 1; pointer-events: auto; }
+
+    .nb-mobile-panel {
+        position: fixed; top: 0; left: 0;
+        width: min(320px, 85vw); height: 100%;
+        z-index: 1061;
+        background: var(--card);
+        transform: translateX(-100%);
+        transition: transform .35s cubic-bezier(.4,0,.2,1);
+        display: flex; flex-direction: column;
+        box-shadow: 10px 0 40px rgba(0,0,0,.15);
+        overflow-y: auto;
+    }
+    .nb-mobile-panel.show { transform: translateX(0); }
+
+    .nb-mobile-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .nb-mobile-close {
+        width: 32px; height: 32px; border-radius: 8px;
+        background: var(--bg); border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--text); font-size: 1.1rem;
+    }
+
+    .nb-mobile-user {
+        display: flex; align-items: center; gap: 12px;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .nb-mobile-user-avatar { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; }
+    .nb-mobile-user-init {
+        width: 44px; height: 44px; border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        color: #fff; font-weight: 700;
+    }
+
+    .nb-mobile-nav { padding: .75rem; flex: 1; }
+    .nb-mobile-link {
+        display: flex; align-items: center; gap: 10px;
+        padding: .6rem .75rem; border-radius: 10px;
+        text-decoration: none; color: var(--text);
+        font-weight: 500; font-size: .9rem;
+        transition: all .15s; margin-bottom: 2px;
+    }
+    .nb-mobile-link:hover, .nb-mobile-link.active {
+        background: rgba(99,102,241,.08); color: var(--primary);
+    }
+    .nb-mobile-link.active { font-weight: 600; }
+    .nb-mobile-link i { width: 20px; text-align: center; font-size: 1rem; opacity: .7; }
+    .nb-mobile-link.active i { opacity: 1; }
+
+    .nb-mobile-section-title {
+        padding: .5rem .75rem .25rem;
+        font-size: .7rem; font-weight: 700;
+        color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px;
+    }
+
+    .nb-mobile-footer {
+        padding: .75rem 1rem;
+        border-top: 1px solid var(--border);
+        margin-top: auto;
+    }
+    .nb-mobile-logout {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        width: 100%; padding: .65rem;
+        border-radius: 10px; border: none;
+        background: rgba(239,68,68,.08); color: #ef4444;
+        font-weight: 700; font-size: .9rem;
+        text-decoration: none; cursor: pointer;
+        transition: all .2s;
+    }
+    .nb-mobile-logout:hover { background: rgba(239,68,68,.15); color: #dc2626; }
+    </style>
+
+    <nav class="navbar nb" id="mainNavbar">
+        <div class="nb-inner">
+            <!-- Brand -->
+            <a class="nb-brand" href="{% url 'home' %}">
+                <div class="nb-brand-icon"><i class="bi bi-code-slash"></i></div>
+                <div class="nb-brand-text">ITC<span class="nb-sep">_</span>LMS</div>
             </a>
 
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <i class="bi bi-list fs-4" style="color: var(--text);"></i>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNav">
-
-                <!-- ================= LEFT MENU ================= -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-lg-center gap-lg-1">
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-                            href="{% url 'home' %}">
-                            <i class="bi bi-house me-1"></i><span data-i18n="nav.home">Bosh sahifa</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}"
-                            href="{% url 'professions' %}">
-                            <i class="bi bi-book me-1"></i><span data-i18n="nav.courses">Kurslar</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
-                            href="{% url 'leaderboard' %}">
-                            <i class="bi bi-trophy me-1"></i><span data-i18n="nav.rating">Reyting</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}"
-                            href="{% url 'blog:post_list' %}">
-                            <i class="bi bi-newspaper me-1"></i><span data-i18n="nav.posts">Postlar</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}"
-                            href="{% url 'coin:market_list' %}">
-                            <i class="bi bi-shop me-1"></i><span data-i18n="nav.market">Market</span>
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}"
-                            href="{% url 'my_deploys' %}">
-                            <i class="bi bi-code-slash me-1"></i><span data-i18n="nav.coding">Coding</span>
-                        </a>
-                    </li>
-
-                    <!-- <li class="nav-item">
-                        <a class="nav-link {% if 'ai_yordamchi' in request.resolver_match.app_names %}active{% endif %}"
-                            href="{% url 'ai_yordamchi:chat_home' %}">
-                            <i class="bi bi-robot me-1"></i>AI Yordamchi
-                        </a>
-                    </li> -->
-
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}"
-                            href="{% url 'help_page' %}">
-                            <i class="bi bi-question-circle me-1"></i><span data-i18n="nav.help">Yordam</span>
-                        </a>
-                    </li>
-
-                    {% if user.is_teacher or user.is_admin %}
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}"
-                            href="{% url 'homework_submissions' %}">
-                            <i class="bi bi-file-check me-1"></i><span data-i18n="nav.tasks">Vazifalar</span>
-                        </a>
-                    </li>
-                    {% endif %}
-
-
-
-                </ul>
-
-                <!-- ================= RIGHT USER ZONE ================= -->
-                <div class="d-flex align-items-center gap-3">
-
-                    <!-- SOCIAL MEDIA (Desktop: dropdown, Mobile: bottom sheet) -->
-                    <!-- Desktop dropdown -->
-                    <div class="dropdown d-none d-lg-block">
-                        <button class="btn social-toggle-btn shadow-soft position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar">
-                            <i class="bi bi-share-fill"></i>
-                            <span class="social-pulse"></span>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end social-dropdown p-3 shadow-lg rounded-4" style="min-width:260px;">
-                            <div class="text-center mb-3">
-                                <div class="social-header-icon mb-2">
-                                    <i class="bi bi-globe2"></i>
-                                </div>
-                                <h6 class="fw-bold mb-0" style="color:var(--text);">Bizni kuzating!</h6>
-                                <small class="text-muted">Ijtimoiy tarmoqlarda biz bilan bo'ling</small>
-                            </div>
-                            <div class="d-flex flex-column gap-2">
-                                <a href="https://t.me/IT_Creative" target="_blank" class="social-link-item telegram-item">
-                                    <div class="social-link-icon telegram-bg"><i class="bi bi-telegram"></i></div>
-                                    <div>
-                                        <div class="fw-semibold">Telegram</div>
-                                        <small class="text-muted">@IT_Creative</small>
-                                    </div>
-                                    <i class="bi bi-arrow-up-right ms-auto"></i>
-                                </a>
-                                <a href="https://instagram.com/ITC_Zomin" target="_blank" class="social-link-item instagram-item">
-                                    <div class="social-link-icon instagram-bg"><i class="bi bi-instagram"></i></div>
-                                    <div>
-                                        <div class="fw-semibold">Instagram</div>
-                                        <small class="text-muted">@ITC_Zomin</small>
-                                    </div>
-                                    <i class="bi bi-arrow-up-right ms-auto"></i>
-                                </a>
-                                <a href="https://youtube.com/@IT_Creative" target="_blank" class="social-link-item youtube-item">
-                                    <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
-                                    <div>
-                                        <div class="fw-semibold">YouTube</div>
-                                        <small class="text-muted">IT Creative</small>
-                                    </div>
-                                    <i class="bi bi-arrow-up-right ms-auto"></i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Mobile button (triggers bottom sheet) -->
-                    <button class="btn social-toggle-btn shadow-soft position-relative d-lg-none" onclick="openSocialSheet()" title="Ijtimoiy tarmoqlar">
-                        <i class="bi bi-share-fill"></i>
-                        <span class="social-pulse"></span>
-                    </button>
-
-                    <!-- COIN -->
-                    <div class="coin-badge d-flex align-items-center gap-1 shadow-sm" title="Sizning coinlaringiz">
-                        <i class="bi bi-coin"><span data-i18n="nav.balance">Balans</span>: </i>
-                        {{ user.coins|default:0 }}
-                    </div>
-
-                    <!-- MESSAGES (unread badge) -->
-                    <a href="{% url 'messages' %}"
-                        class="btn position-relative shadow-soft d-inline-flex align-items-center justify-content-center"
-                        style="background: var(--card); border: 1px solid var(--border); width: 44px; height: 44px; border-radius: 12px;"
-                        title="Xabarlar">
-                        <i class="bi bi-envelope" aria-hidden="true"></i>
-                        {% if unread_messages_count|default:0|add:0 > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ unread_messages_count }}
-                            <span class="visually-hidden">o'qilmagan xabarlar</span>
-                        </span>
-                        {% endif %}
-                    </a>
-
-
-
-
-                    <!-- USER DROPDOWN (Desktop) -->
-                    <div class="dropdown d-none d-lg-block">
-                        <a class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
-                            aria-expanded="false" role="button">
-                            <div class="position-relative">
-                                {% if user.photo %}
-                                <img src="{{ user.photo.url }}" class="rounded-circle shadow-sm"
-                                    style="width:42px;height:42px;object-fit:cover"
-                                    alt="{{ user.get_full_name|default:user.username }}">
-                                {% else %}
-                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                                    style="width:42px;height:42px;">
-                                    {{ user.get_full_name|default:user.username|slice:":1"|upper }}
-                                </div>
-                                {% endif %}
-                                <span class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle"></span>
-                            </div>
-                            <i class="bi bi-chevron-down small text-muted"></i>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end p-2 shadow-lg rounded-4" style="min-width:260px;">
-                            <li class="px-2 py-2">
-                                <div class="d-flex align-items-center gap-3">
-                                    {% if user.photo %}
-                                    <img src="{{ user.photo.url }}" class="rounded-circle" style="width:52px;height:52px;object-fit:cover">
-                                    {% else %}
-                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width:52px;height:52px;">
-                                        {{ user.get_full_name|default:user.username|slice:":1"|upper }}
-                                    </div>
-                                    {% endif %}
-                                    <div>
-                                        <div class="fw-bold">{{ user.get_full_name|default:user.username }}</div>
-                                        {% if user.email %}<small class="text-muted">{{ user.email }}</small>{% endif %}
-                                    </div>
-                                </div>
-                                <span class="role-badge role-{{ user.role }}">
-                                    {% if user.role == 'admin' %}Admin{% elif user.role == 'teacher' %}Ustoz{% else %}O'quvchi{% endif %}
-                                </span>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i><span data-i18n="menu.profile">Profil</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check me-2"></i><span data-i18n="menu.verify_certificate">Sertifikat tekshirish</span></a></li>
-                            <li>
-                                <a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
-                                    <span class="d-inline-flex align-items-center"><i class="bi bi-envelope me-2"></i><span data-i18n="menu.messages">Xabarlar</span></span>
-                                    {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto">{{ unread_messages_count }}</span>{% endif %}
-                                </a>
-                            </li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i><span data-i18n="menu.ai_chat">AI suhbat</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i><span data-i18n="menu.games">O'yinlar</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i><span data-i18n="menu.my_homework">Vazifalarim</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i><span data-i18n="menu.my_books">Ijaradagi kitoblarim</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-1"></i><span data-i18n="menu.devices">Qurilmalar</span></a></li>
-                            <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i><span data-i18n="menu.settings">Sozlamalar</span></a></li>
-                            {% if user.is_teacher %}
-                            <li><a class="dropdown-item rounded-3" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard me-2"></i><span data-i18n="menu.teacher_panel">O'qituvchi paneli</span></a></li>
-                            {% endif %}
-                            {% if user.is_admin %}
-                            <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i><span data-i18n="menu.admin_panel">Panel</span></a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i><span data-i18n="menu.logout">Chiqish</span></a></li>
-                        </ul>
-                    </div>
-
-                    <!-- USER PROFILE BUTTON (Mobile) - triggers offcanvas -->
-                    <a class="d-flex d-lg-none align-items-center gap-2 text-decoration-none" 
-                       data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
-                        <div class="position-relative">
-                            {% if user.photo %}
-                            <img src="{{ user.photo.url }}" class="rounded-circle shadow-sm"
-                                style="width:42px;height:42px;object-fit:cover"
-                                alt="{{ user.get_full_name|default:user.username }}">
-                            {% else %}
-                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
-                                style="width:42px;height:42px;">
-                                {{ user.get_full_name|default:user.username|slice:":1"|upper }}
-                            </div>
-                            {% endif %}
-                            <span class="position-absolute bottom-0 end-0 translate-middle p-1 bg-success border border-white rounded-circle"></span>
-                        </div>
-                        <i class="bi bi-chevron-down small text-muted"></i>
-                    </a>
-
-                </div>
+            <!-- Desktop Links -->
+            <div class="nb-links nb-links-desktop" id="nbLinksDesktop">
+                <a class="nb-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                    <i class="bi bi-house-fill"></i><span data-i18n="nav.home">Bosh sahifa</span>
+                </a>
+                <a class="nb-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}">
+                    <i class="bi bi-book-fill"></i><span data-i18n="nav.courses">Kurslar</span>
+                </a>
+                <a class="nb-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
+                    <i class="bi bi-trophy-fill"></i><span data-i18n="nav.rating">Reyting</span>
+                </a>
+                <a class="nb-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}">
+                    <i class="bi bi-newspaper"></i><span data-i18n="nav.posts">Postlar</span>
+                </a>
+                <a class="nb-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}">
+                    <i class="bi bi-shop"></i><span data-i18n="nav.market">Market</span>
+                </a>
+                <a class="nb-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}" href="{% url 'my_deploys' %}">
+                    <i class="bi bi-terminal-fill"></i><span data-i18n="nav.coding">Coding</span>
+                </a>
+                <a class="nb-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}">
+                    <i class="bi bi-question-circle"></i><span data-i18n="nav.help">Yordam</span>
+                </a>
+                {% if user.is_teacher or user.is_admin %}
+                <a class="nb-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}">
+                    <i class="bi bi-file-check-fill"></i><span data-i18n="nav.tasks">Vazifalar</span>
+                </a>
+                {% endif %}
             </div>
 
+            <!-- Right Zone -->
+            <div class="nb-right">
+                <!-- Social (desktop) -->
+                <div class="dropdown nb-desktop-only">
+                    <button class="nb-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar">
+                        <i class="bi bi-share-fill"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end social-dropdown p-3 shadow-lg rounded-4" style="min-width:260px;">
+                        <div class="text-center mb-3">
+                            <div class="social-header-icon mb-2"><i class="bi bi-globe2"></i></div>
+                            <h6 class="fw-bold mb-0" style="color:var(--text);">Bizni kuzating!</h6>
+                            <small class="text-muted">Ijtimoiy tarmoqlarda biz bilan bo'ling</small>
+                        </div>
+                        <div class="d-flex flex-column gap-2">
+                            <a href="https://t.me/IT_Creative" target="_blank" class="social-link-item telegram-item">
+                                <div class="social-link-icon telegram-bg"><i class="bi bi-telegram"></i></div>
+                                <div><div class="fw-semibold">Telegram</div><small class="text-muted">@IT_Creative</small></div>
+                                <i class="bi bi-arrow-up-right ms-auto"></i>
+                            </a>
+                            <a href="https://instagram.com/ITC_Zomin" target="_blank" class="social-link-item instagram-item">
+                                <div class="social-link-icon instagram-bg"><i class="bi bi-instagram"></i></div>
+                                <div><div class="fw-semibold">Instagram</div><small class="text-muted">@ITC_Zomin</small></div>
+                                <i class="bi bi-arrow-up-right ms-auto"></i>
+                            </a>
+                            <a href="https://youtube.com/@IT_Creative" target="_blank" class="social-link-item youtube-item">
+                                <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
+                                <div><div class="fw-semibold">YouTube</div><small class="text-muted">IT Creative</small></div>
+                                <i class="bi bi-arrow-up-right ms-auto"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Coin -->
+                <div class="nb-coin" title="Coinlar">
+                    <i class="bi bi-coin"></i>
+                    {{ user.coins|default:0 }}
+                </div>
+
+                <!-- Messages -->
+                <a href="{% url 'messages' %}" class="nb-icon-btn" title="Xabarlar">
+                    <i class="bi bi-envelope"></i>
+                    {% if unread_messages_count|default:0|add:0 > 0 %}
+                    <span class="nb-badge">{{ unread_messages_count }}</span>
+                    {% endif %}
+                </a>
+
+                <!-- User dropdown (Desktop) -->
+                <div class="dropdown nb-desktop-only">
+                    <a class="nb-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                        {% if user.photo %}
+                        <img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
+                        {% else %}
+                        <div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span class="nb-online-dot"></span>
+                        <i class="bi bi-chevron-down nb-chevron"></i>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end nb-dropdown">
+                        <li>
+                            <div class="nb-user-card">
+                                {% if user.photo %}
+                                <img src="{{ user.photo.url }}" class="nb-user-card-avatar">
+                                {% else %}
+                                <div class="nb-user-card-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="nb-user-name">{{ user.get_full_name|default:user.username }}</div>
+                                    <div class="nb-user-role {% if user.role == 'admin' %}admin{% elif user.role == 'teacher' %}teacher{% else %}student{% endif %}">
+                                        {% if user.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin
+                                        {% elif user.role == 'teacher' %}<i class="bi bi-mortarboard"></i> Ustoz
+                                        {% else %}<i class="bi bi-code-slash"></i> O'quvchi{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i><span data-i18n="menu.profile">Profil</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check me-2"></i><span data-i18n="menu.verify_certificate">Sertifikat tekshirish</span></a></li>
+                        <li><a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
+                            <i class="bi bi-envelope me-2"></i><span data-i18n="menu.messages">Xabarlar</span>
+                            {% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto" style="font-size:.65rem;">{{ unread_messages_count }}</span>{% endif %}
+                        </a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i><span data-i18n="menu.ai_chat">AI suhbat</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i><span data-i18n="menu.games">O'yinlar</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i><span data-i18n="menu.my_homework">Vazifalarim</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i><span data-i18n="menu.my_books">Ijaradagi kitoblarim</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-2"></i><span data-i18n="menu.devices">Qurilmalar</span></a></li>
+                        <li><a class="dropdown-item rounded-3" href="{% url 'site_settings' %}"><i class="bi bi-gear me-2"></i><span data-i18n="menu.settings">Sozlamalar</span></a></li>
+                        {% if user.is_teacher %}
+                        <li><a class="dropdown-item rounded-3" href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard me-2"></i><span data-i18n="menu.teacher_panel">O'qituvchi paneli</span></a></li>
+                        {% endif %}
+                        {% if user.is_admin %}
+                        <li><a class="dropdown-item rounded-3" href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2 me-2"></i><span data-i18n="menu.admin_panel">Panel</span></a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item rounded-3 text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i><span data-i18n="menu.logout">Chiqish</span></a></li>
+                    </ul>
+                </div>
+
+                <!-- Mobile: avatar (triggers offcanvas) + hamburger -->
+                <a class="nb-avatar-btn d-lg-none" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
+                    {% if user.photo %}
+                    <img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
+                    {% else %}
+                    <div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+                    {% endif %}
+                    <span class="nb-online-dot"></span>
+                </a>
+
+                <button class="nb-hamburger" id="nbHamburger" aria-label="Menyu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
         </div>
     </nav>
+
+    <!-- MOBILE SLIDE PANEL -->
+    <div class="nb-mobile-backdrop" id="nbMobileBackdrop"></div>
+    <div class="nb-mobile-panel" id="nbMobilePanel">
+        <div class="nb-mobile-header">
+            <div class="nb-brand" style="pointer-events:none;">
+                <div class="nb-brand-icon"><i class="bi bi-code-slash"></i></div>
+                <div class="nb-brand-text">ITC<span class="nb-sep">_</span>LMS</div>
+            </div>
+            <button class="nb-mobile-close" id="nbMobileClose"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="nb-mobile-user">
+            {% if user.photo %}
+            <img src="{{ user.photo.url }}" class="nb-mobile-user-avatar">
+            {% else %}
+            <div class="nb-mobile-user-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>
+            {% endif %}
+            <div>
+                <div class="fw-bold" style="font-size:.92rem;">{{ user.get_full_name|default:user.username }}</div>
+                <div class="nb-coin" style="margin-top:4px;font-size:.75rem;padding:.2rem .5rem;">
+                    <i class="bi bi-coin" style="font-size:.75rem;"></i> {{ user.coins|default:0 }} coin
+                </div>
+            </div>
+        </div>
+        <div class="nb-mobile-nav">
+            <div class="nb-mobile-section-title">Asosiy</div>
+            <a class="nb-mobile-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+                <i class="bi bi-house-fill"></i> <span data-i18n="nav.home">Bosh sahifa</span>
+            </a>
+            <a class="nb-mobile-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}">
+                <i class="bi bi-book-fill"></i> <span data-i18n="nav.courses">Kurslar</span>
+            </a>
+            <a class="nb-mobile-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
+                <i class="bi bi-trophy-fill"></i> <span data-i18n="nav.rating">Reyting</span>
+            </a>
+            <a class="nb-mobile-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}">
+                <i class="bi bi-newspaper"></i> <span data-i18n="nav.posts">Postlar</span>
+            </a>
+            <a class="nb-mobile-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}">
+                <i class="bi bi-shop"></i> <span data-i18n="nav.market">Market</span>
+            </a>
+            <a class="nb-mobile-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}" href="{% url 'my_deploys' %}">
+                <i class="bi bi-terminal-fill"></i> <span data-i18n="nav.coding">Coding</span>
+            </a>
+            <a class="nb-mobile-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}">
+                <i class="bi bi-question-circle"></i> <span data-i18n="nav.help">Yordam</span>
+            </a>
+            {% if user.is_teacher or user.is_admin %}
+            <a class="nb-mobile-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}">
+                <i class="bi bi-file-check-fill"></i> <span data-i18n="nav.tasks">Vazifalar</span>
+            </a>
+            {% endif %}
+
+            <div class="nb-mobile-section-title" style="margin-top:.5rem;">Ijtimoiy</div>
+            <a class="nb-mobile-link" href="https://t.me/IT_Creative" target="_blank">
+                <i class="bi bi-telegram" style="color:#0088cc;"></i> Telegram
+            </a>
+            <a class="nb-mobile-link" href="https://instagram.com/ITC_Zomin" target="_blank">
+                <i class="bi bi-instagram" style="color:#e1306c;"></i> Instagram
+            </a>
+            <a class="nb-mobile-link" href="https://youtube.com/@IT_Creative" target="_blank">
+                <i class="bi bi-youtube" style="color:#ff0000;"></i> YouTube
+            </a>
+        </div>
+        <div class="nb-mobile-footer">
+            <a class="nb-mobile-logout" href="{% url 'logout' %}">
+                <i class="bi bi-box-arrow-right"></i> <span data-i18n="menu.logout">Chiqish</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        var nav = document.getElementById('mainNavbar');
+        var ham = document.getElementById('nbHamburger');
+        var panel = document.getElementById('nbMobilePanel');
+        var backdrop = document.getElementById('nbMobileBackdrop');
+        var closeBtn = document.getElementById('nbMobileClose');
+
+        // === Hide/show on scroll ===
+        var lastY = 0, ticking = false;
+        window.addEventListener('scroll', function(){
+            if (!ticking) {
+                window.requestAnimationFrame(function(){
+                    var y = window.scrollY;
+                    if (y > 60) {
+                        nav.classList.add('nav-shadow');
+                        if (y > lastY && y > 200) nav.classList.add('nav-hidden');
+                        else nav.classList.remove('nav-hidden');
+                    } else {
+                        nav.classList.remove('nav-shadow', 'nav-hidden');
+                    }
+                    lastY = y;
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }, {passive: true});
+
+        // === Magnetic hover on nav links ===
+        document.querySelectorAll('.nb-link').forEach(function(link){
+            link.addEventListener('mousemove', function(e){
+                var r = link.getBoundingClientRect();
+                link.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+                link.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+            });
+        });
+
+        // === Mobile menu ===
+        function openMobile(){
+            panel.classList.add('show');
+            backdrop.classList.add('show');
+            ham.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeMobile(){
+            panel.classList.remove('show');
+            backdrop.classList.remove('show');
+            ham.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        if(ham) ham.addEventListener('click', function(){ panel.classList.contains('show') ? closeMobile() : openMobile(); });
+        if(backdrop) backdrop.addEventListener('click', closeMobile);
+        if(closeBtn) closeBtn.addEventListener('click', closeMobile);
+
+        // === Swipe to close ===
+        var touchStartX = 0;
+        if(panel){
+            panel.addEventListener('touchstart', function(e){ touchStartX = e.touches[0].clientX; }, {passive:true});
+            panel.addEventListener('touchend', function(e){
+                var dx = e.changedTouches[0].clientX - touchStartX;
+                if (dx < -60) closeMobile();
+            }, {passive:true});
+        }
+
+        // === Horizontal scroll with drag (desktop links) ===
+        var linksEl = document.getElementById('nbLinksDesktop');
+        if(linksEl){
+            var isDown=false, startX, scrollL;
+            linksEl.addEventListener('mousedown',function(e){isDown=true;startX=e.pageX-linksEl.offsetLeft;scrollL=linksEl.scrollLeft;});
+            linksEl.addEventListener('mouseleave',function(){isDown=false;});
+            linksEl.addEventListener('mouseup',function(){isDown=false;});
+            linksEl.addEventListener('mousemove',function(e){if(!isDown)return;e.preventDefault();linksEl.scrollLeft=scrollL-(e.pageX-linksEl.offsetLeft-startX);});
+        }
+    })();
+    </script>
 
     <!-- Social Media Styles -->
     <style>

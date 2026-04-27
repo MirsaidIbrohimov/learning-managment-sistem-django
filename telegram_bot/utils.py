@@ -264,12 +264,25 @@ def notify_unchecked_homework():
 
 
 def check_birthdays():
-    """Bugun tug'ilgan kunni nishonlayotgan foydalanuvchilarni tekshirish va tabrik yuborish"""
+    """Bugun tug'ilgan kunni nishonlayotgan foydalanuvchilarni tekshirish va tabrik yuborish (kuniga 1 marta)"""
+    import os
     import random
     from datetime import date
+    from django.conf import settings as django_settings
     from accounts.models import CustomUser
 
     today = date.today()
+
+    # Kuniga faqat 1 marta yuborish — fayl marker orqali tekshirish
+    marker_dir = os.path.join(getattr(django_settings, 'BASE_DIR', ''), 'media')
+    marker_file = os.path.join(marker_dir, '.birthday_check_marker')
+    try:
+        if os.path.exists(marker_file):
+            with open(marker_file, 'r') as f:
+                if f.read().strip() == today.isoformat():
+                    return 0
+    except Exception:
+        pass
 
     birthday_users = CustomUser.objects.filter(
         birth_date__month=today.month,
@@ -278,6 +291,13 @@ def check_birthdays():
     )
 
     if not birthday_users.exists():
+        # Marker yozish — bugun tekshirildi (tug'ilgan kun yo'q ham bo'lsa)
+        try:
+            os.makedirs(marker_dir, exist_ok=True)
+            with open(marker_file, 'w') as f:
+                f.write(today.isoformat())
+        except Exception:
+            pass
         return 0
 
     emojis = ['🎂', '🎉', '🎊', '🥳', '🎈', '🎁', '🌟', '✨', '💐', '🎇']
@@ -338,5 +358,13 @@ def check_birthdays():
         notify_group(group_text)
 
         count += 1
+
+    # Marker yozish — bugun yuborildi
+    try:
+        os.makedirs(marker_dir, exist_ok=True)
+        with open(marker_file, 'w') as f:
+            f.write(today.isoformat())
+    except Exception:
+        pass
 
     return count

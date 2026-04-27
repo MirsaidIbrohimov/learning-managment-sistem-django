@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
     <meta charset="UTF-8">
@@ -6,190 +6,586 @@
     <title>Sertifikat tekshirish | IT Creative Zomin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
     <link rel="icon" href="{% static 'img/fav.ico' %}">
     <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Inter',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%);color:#fff;overflow-x:hidden}
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-    .bg-particles{position:fixed;inset:0;z-index:0;overflow:hidden}
-    .bg-particles span{position:absolute;display:block;width:20px;height:20px;background:rgba(255,255,255,.03);border-radius:50%;animation:float-up linear infinite}
-    @keyframes float-up{0%{transform:translateY(100vh) scale(0);opacity:0}50%{opacity:1}100%{transform:translateY(-100px) scale(1);opacity:0}}
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        min-height: 100vh;
+        background: #0a0e1a;
+        color: #e2e8f0;
+        overflow-x: hidden;
+    }
 
-    .vc-wrap{position:relative;z-index:1;max-width:600px;margin:0 auto;padding:2rem 1rem;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
 
-    .vc-logo{text-align:center;margin-bottom:2rem;animation:fadeDown .8s ease}
-    .vc-logo i{font-size:3rem;background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;margin-bottom:.5rem}
-    .vc-logo h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
-    .vc-logo p{font-size:.85rem;color:rgba(255,255,255,.5);margin-top:.25rem}
+    /* ========== BG GRID ========== */
+    .vc-bg {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        background:
+            linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #0f172a 100%);
+    }
+    .vc-bg::before {
+        content: '';
+        position: absolute; inset: 0;
+        background-image:
+            linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
+        background-size: 60px 60px;
+    }
+    .vc-bg::after {
+        content: '';
+        position: absolute;
+        top: -20%; left: -10%;
+        width: 600px; height: 600px;
+        background: radial-gradient(circle, rgba(99,102,241,.08) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .vc-glow-right {
+        position: fixed; top: 20%; right: -10%;
+        width: 500px; height: 500px;
+        background: radial-gradient(circle, rgba(168,85,247,.06) 0%, transparent 70%);
+        border-radius: 50%; z-index: 0; pointer-events: none;
+    }
 
-    .vc-search-card{width:100%;background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:2rem;animation:fadeUp .8s ease .1s both}
-    .vc-search-card h2{font-size:1.1rem;font-weight:700;text-align:center;margin-bottom:1.5rem}
-    .vc-input-group{position:relative;margin-bottom:1rem}
-    .vc-input-group>i{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:1.1rem;z-index:2}
-    .vc-input{width:100%;padding:.9rem 1rem .9rem 48px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.1);border-radius:16px;color:#fff;font-size:.95rem;font-weight:600;letter-spacing:1px;outline:none;transition:all .3s}
-    .vc-input::placeholder{color:rgba(255,255,255,.3);font-weight:400;letter-spacing:0}
-    .vc-input:focus{border-color:rgba(99,102,241,.6);background:rgba(255,255,255,.1);box-shadow:0 0 0 4px rgba(99,102,241,.15)}
-    .vc-btn{width:100%;padding:.9rem;border:none;border-radius:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
-    .vc-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(99,102,241,.4)}
-    .vc-btn:active{transform:translateY(0)}
-    .vc-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);transition:.6s}
-    .vc-btn:hover::after{left:100%}
+    /* ========== LAYOUT ========== */
+    .vc-wrap {
+        position: relative; z-index: 1;
+        max-width: 640px; margin: 0 auto;
+        padding: 2rem 1rem;
+        min-height: 100vh;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+    }
 
-    .vc-result{width:100%;margin-top:1.5rem;animation:fadeUp .6s ease both}
-    .vc-result-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;overflow:hidden}
-    .vc-result-header{padding:1.5rem 2rem;text-align:center;position:relative;overflow:hidden}
-    .vc-result-header::before{content:'';position:absolute;inset:0;opacity:.15}
-    .vc-result-header.active::before{background:linear-gradient(135deg,#34c759,#30d158)}
-    .vc-result-header.expired::before{background:linear-gradient(135deg,#ff9500,#ff6b00)}
-    .vc-result-header.frozen::before{background:linear-gradient(135deg,#007aff,#5ac8fa)}
-    .vc-result-header.revoked::before{background:linear-gradient(135deg,#ff3b30,#ff453a)}
-    .vc-status-badge{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem 1.2rem;border-radius:50px;font-size:.82rem;font-weight:700;animation:pulse-badge 2s ease infinite}
-    .vc-status-badge.active{background:rgba(52,199,89,.2);color:#34c759;border:1px solid rgba(52,199,89,.3)}
-    .vc-status-badge.expired{background:rgba(255,149,0,.2);color:#ff9500;border:1px solid rgba(255,149,0,.3)}
-    .vc-status-badge.frozen{background:rgba(0,122,255,.2);color:#5ac8fa;border:1px solid rgba(0,122,255,.3)}
-    .vc-status-badge.revoked{background:rgba(255,59,48,.2);color:#ff3b30;border:1px solid rgba(255,59,48,.3)}
-    @keyframes pulse-badge{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-    .vc-cert-icon{font-size:3rem;margin-bottom:.5rem;animation:rotate-in .8s ease}
-    @keyframes rotate-in{from{transform:rotateY(90deg);opacity:0}to{transform:rotateY(0);opacity:1}}
-    .vc-cert-id{font-size:1.2rem;font-weight:800;letter-spacing:1px;margin:.5rem 0}
+    /* ========== LOGO ========== */
+    .vc-brand {
+        text-align: center;
+        margin-bottom: 2rem;
+        animation: vcFadeDown .6s ease both;
+    }
+    .vc-brand-icon {
+        width: 72px; height: 72px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.8rem; color: #fff;
+        box-shadow: 0 8px 32px rgba(99,102,241,.3), inset 0 1px 0 rgba(255,255,255,.1);
+        position: relative;
+    }
+    .vc-brand-icon::after {
+        content: ''; position: absolute; inset: -4px;
+        border-radius: 24px;
+        border: 1.5px solid rgba(99,102,241,.2);
+        animation: vcRingPulse 3s ease-in-out infinite;
+    }
+    @keyframes vcRingPulse {
+        0%, 100% { transform: scale(1); opacity: .5; }
+        50% { transform: scale(1.08); opacity: 0; }
+    }
+    .vc-brand h1 {
+        font-size: 1.4rem; font-weight: 800; letter-spacing: -.5px;
+        background: linear-gradient(90deg, #e2e8f0, #a5b4fc);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .vc-brand p {
+        font-size: .82rem; color: rgba(255,255,255,.35);
+        font-weight: 500; margin-top: .25rem;
+    }
+    .vc-brand-tag {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 3px 10px; border-radius: 6px; margin-top: .6rem;
+        background: rgba(99,102,241,.1);
+        border: 1px solid rgba(99,102,241,.15);
+        font-size: .7rem; font-weight: 600; color: #818cf8;
+    }
 
-    .vc-info{padding:1.5rem 2rem}
-    .vc-info-row{display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid rgba(255,255,255,.06);transition:all .3s}
-    .vc-info-row:last-child{border-bottom:none}
-    .vc-info-row:hover{padding-left:8px}
-    .vc-info-icon{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
-    .vc-info-label{font-size:.72rem;color:rgba(255,255,255,.4);font-weight:500}
-    .vc-info-value{font-size:.9rem;font-weight:600}
+    /* ========== GLASS CARD ========== */
+    .vc-glass {
+        width: 100%;
+        background: rgba(255,255,255,.03);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,.06);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: all .3s ease;
+    }
+    .vc-glass:hover {
+        border-color: rgba(99,102,241,.15);
+        box-shadow: 0 8px 40px rgba(99,102,241,.08);
+    }
 
-    .vc-error{width:100%;margin-top:1.5rem;text-align:center;animation:shake .5s ease}
-    .vc-error-card{background:rgba(255,59,48,.1);backdrop-filter:blur(20px);border:1px solid rgba(255,59,48,.2);border-radius:20px;padding:2rem}
-    .vc-error i{font-size:3rem;color:#ff3b30;display:block;margin-bottom:.75rem}
-    .vc-error p{color:rgba(255,255,255,.7);font-size:.9rem}
-    @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    /* ========== SEARCH ========== */
+    .vc-search {
+        padding: 2rem;
+        animation: vcFadeUp .6s ease .1s both;
+    }
+    .vc-search-title {
+        font-size: 1rem; font-weight: 700;
+        text-align: center; margin-bottom: 1.5rem;
+        display: flex; align-items: center; justify-content: center; gap: .5rem;
+    }
+    .vc-search-title i { color: #6366f1; }
 
-    .vc-cert-preview{padding:0 2rem 1.5rem;animation:fadeUp .5s ease .7s both}
-    .vc-cert-preview-title{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-    .vc-cert-embed{width:100%;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05)}
-    .vc-cert-embed img{width:100%;border:none;border-radius:16px;display:block}
-    .vc-pdf-card{padding:2rem;text-align:center}
-    .vc-pdf-card i{font-size:4rem;color:#ff3b30;display:block;margin-bottom:.75rem}
-    .vc-pdf-card p{font-size:.85rem;color:rgba(255,255,255,.5);margin:0}
-    .vc-cert-actions{display:flex;gap:.75rem;margin-top:1rem}
-    .vc-download-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.8rem 1rem;border-radius:16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:all .3s;border:none;cursor:pointer}
-    .vc-download-btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
-    .vc-download-btn.primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(99,102,241,.4)}
-    .vc-download-btn.secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.15)}
-    .vc-download-btn.secondary:hover{background:rgba(255,255,255,.15);transform:translateY(-2px)}
+    .vc-input-wrap { position: relative; margin-bottom: 1rem; }
+    .vc-input-wrap > .bi-upc-scan {
+        position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+        color: rgba(255,255,255,.25); font-size: 1.1rem; z-index: 2;
+    }
+    .vc-input {
+        width: 100%;
+        padding: .85rem 1rem .85rem 48px;
+        background: rgba(255,255,255,.05);
+        border: 1.5px solid rgba(255,255,255,.08);
+        border-radius: 14px;
+        color: #e2e8f0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .9rem;
+        font-weight: 500;
+        letter-spacing: .5px;
+        outline: none;
+        transition: all .3s;
+    }
+    .vc-input::placeholder {
+        color: rgba(255,255,255,.2);
+        font-family: 'Inter', sans-serif;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+    .vc-input:focus {
+        border-color: rgba(99,102,241,.5);
+        background: rgba(255,255,255,.07);
+        box-shadow: 0 0 0 4px rgba(99,102,241,.1), 0 0 20px rgba(99,102,241,.05);
+    }
 
-    .vc-footer{margin-top:2rem;text-align:center;font-size:.78rem;color:rgba(255,255,255,.3);animation:fadeUp .8s ease .3s both}
-    .vc-footer a{color:rgba(255,255,255,.5);text-decoration:none;transition:color .3s}
-    .vc-footer a:hover{color:#a855f7}
+    .vc-btn {
+        width: 100%;
+        padding: .85rem;
+        border: none; border-radius: 14px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        font-size: .95rem; font-weight: 700;
+        cursor: pointer;
+        transition: all .3s;
+        position: relative; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(99,102,241,.25);
+    }
+    .vc-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(99,102,241,.4);
+    }
+    .vc-btn:active { transform: translateY(0); }
+    .vc-btn::after {
+        content: ''; position: absolute;
+        top: -50%; left: -50%;
+        width: 200%; height: 200%;
+        background: linear-gradient(transparent, rgba(255,255,255,.08), transparent);
+        transform: rotate(45deg);
+        transition: .6s;
+    }
+    .vc-btn:hover::after { left: 100%; }
 
-    /* Student Results Section */
-    .vc-results-section{width:100%;margin-top:1.5rem;animation:fadeUp .6s ease .3s both}
-    .vc-results-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:24px;overflow:hidden}
-    .vc-results-title{padding:1.5rem 2rem 1rem;font-size:1.05rem;font-weight:800;display:flex;align-items:center;gap:.6rem}
-    .vc-results-title i{font-size:1.3rem;color:#ffd60a}
+    /* ========== RESULT CARD ========== */
+    .vc-result {
+        width: 100%; margin-top: 1.5rem;
+        animation: vcFadeUp .5s ease both;
+    }
 
-    .vc-overall{padding:0 2rem 1.5rem;text-align:center}
-    .vc-overall-score{position:relative;width:120px;height:120px;margin:0 auto 1rem}
-    .vc-overall-circle{transform:rotate(-90deg)}
-    .vc-overall-bg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:8}
-    .vc-overall-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
-    .vc-overall-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .vc-overall-num{font-size:1.8rem;font-weight:900;line-height:1}
-    .vc-overall-label{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:.2rem}
+    .vc-result-top {
+        padding: 2rem 2rem 1.5rem;
+        text-align: center;
+        position: relative; overflow: hidden;
+    }
+    .vc-result-top::before {
+        content: ''; position: absolute; inset: 0; opacity: .08;
+    }
+    .vc-result-top.active::before { background: linear-gradient(135deg, #22c55e, #10b981); }
+    .vc-result-top.expired::before { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+    .vc-result-top.frozen::before { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
+    .vc-result-top.revoked::before { background: linear-gradient(135deg, #ef4444, #dc2626); }
 
-    .vc-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 2rem 1.5rem}
-    .vc-stat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1rem;text-align:center;transition:all .3s}
-    .vc-stat-card:hover{background:rgba(255,255,255,.1);transform:translateY(-2px)}
-    .vc-stat-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto .6rem;font-size:1.1rem}
-    .vc-stat-num{font-size:1.4rem;font-weight:800;line-height:1}
-    .vc-stat-label{font-size:.68rem;color:rgba(255,255,255,.4);margin-top:.3rem;font-weight:500}
-    .vc-stat-sub{font-size:.65rem;color:rgba(255,255,255,.3);margin-top:.15rem}
+    .vc-cert-icon { font-size: 2.8rem; margin-bottom: .5rem; }
 
-    .vc-test-list{padding:0 2rem 1.5rem}
-    .vc-test-list-title{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
-    .vc-test-item{display:flex;align-items:center;gap:.75rem;padding:.65rem .75rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:12px;margin-bottom:.5rem;transition:all .3s}
-    .vc-test-item:hover{background:rgba(255,255,255,.08)}
-    .vc-test-badge{min-width:44px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0}
-    .vc-test-badge.passed{background:rgba(52,199,89,.15);color:#34c759;border:1px solid rgba(52,199,89,.2)}
-    .vc-test-badge.failed{background:rgba(255,59,48,.15);color:#ff3b30;border:1px solid rgba(255,59,48,.2)}
-    .vc-test-name{font-size:.82rem;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .vc-test-status{font-size:.7rem;font-weight:600;padding:.2rem .5rem;border-radius:6px}
-    .vc-test-status.pass{background:rgba(52,199,89,.15);color:#34c759}
-    .vc-test-status.fail{background:rgba(255,59,48,.15);color:#ff3b30}
+    .vc-cert-id {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.1rem; font-weight: 700;
+        letter-spacing: 1px; margin: .5rem 0;
+        color: #e2e8f0;
+    }
 
-    @keyframes fadeDown{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:translateY(0)}}
-    @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+    .vc-status {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 16px; border-radius: 50px;
+        font-size: .8rem; font-weight: 700;
+        letter-spacing: .3px;
+    }
+    .vc-status.active {
+        background: rgba(34,197,94,.12); color: #4ade80;
+        border: 1px solid rgba(34,197,94,.2);
+        box-shadow: 0 0 20px rgba(34,197,94,.1);
+    }
+    .vc-status.expired {
+        background: rgba(245,158,11,.12); color: #fbbf24;
+        border: 1px solid rgba(245,158,11,.2);
+    }
+    .vc-status.frozen {
+        background: rgba(59,130,246,.12); color: #60a5fa;
+        border: 1px solid rgba(59,130,246,.2);
+    }
+    .vc-status.revoked {
+        background: rgba(239,68,68,.12); color: #f87171;
+        border: 1px solid rgba(239,68,68,.2);
+    }
 
-    @media(max-width:576px){
-        .vc-wrap{padding:1.5rem .75rem}
-        .vc-search-card,.vc-info{padding:1.25rem}
-        .vc-result-header{padding:1.25rem}
-        .vc-logo h1{font-size:1.25rem}
-        .vc-cert-id{font-size:1rem}
-        .vc-stats-grid{grid-template-columns:repeat(2,1fr)}
-        .vc-results-title,.vc-overall,.vc-test-list{padding-left:1.25rem;padding-right:1.25rem}
-        .vc-stats-grid{padding:0 1.25rem 1.25rem}
+    /* ========== INFO ROWS ========== */
+    .vc-info { padding: .5rem 2rem 1.5rem; }
+    .vc-info-row {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .7rem 0;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+        transition: all .2s;
+    }
+    .vc-info-row:last-child { border-bottom: none; }
+    .vc-info-row:hover { padding-left: 6px; }
+
+    .vc-info-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .95rem; flex-shrink: 0;
+    }
+    .vc-info-label {
+        font-size: .7rem; color: rgba(255,255,255,.3);
+        font-weight: 500; text-transform: uppercase; letter-spacing: .5px;
+    }
+    .vc-info-value { font-size: .88rem; font-weight: 600; }
+
+    /* ========== CERT PREVIEW ========== */
+    .vc-preview { padding: 0 2rem 1.5rem; }
+    .vc-preview-title {
+        font-size: .82rem; font-weight: 700;
+        color: rgba(255,255,255,.4); margin-bottom: .75rem;
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .vc-preview-embed {
+        border-radius: 14px; overflow: hidden;
+        border: 1px solid rgba(255,255,255,.06);
+        background: rgba(255,255,255,.03);
+    }
+    .vc-preview-embed img {
+        width: 100%; display: block; border-radius: 14px;
+    }
+    .vc-pdf-placeholder {
+        padding: 2rem; text-align: center;
+    }
+    .vc-pdf-placeholder i {
+        font-size: 3.5rem; color: #ef4444; display: block; margin-bottom: .5rem;
+    }
+    .vc-pdf-placeholder p {
+        font-size: .82rem; color: rgba(255,255,255,.35);
+    }
+
+    .vc-actions {
+        display: flex; gap: .75rem; margin-top: 1rem;
+    }
+    .vc-dl-btn {
+        flex: 1; display: flex; align-items: center; justify-content: center; gap: .5rem;
+        padding: .75rem 1rem; border-radius: 12px;
+        font-size: .88rem; font-weight: 700;
+        text-decoration: none; border: none; cursor: pointer;
+        transition: all .3s;
+    }
+    .vc-dl-btn.primary {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff; box-shadow: 0 4px 15px rgba(99,102,241,.25);
+    }
+    .vc-dl-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(99,102,241,.4);
+        color: #fff;
+    }
+    .vc-dl-btn.outline {
+        background: rgba(255,255,255,.04);
+        border: 1px solid rgba(255,255,255,.1);
+        color: #e2e8f0;
+    }
+    .vc-dl-btn.outline:hover {
+        background: rgba(255,255,255,.08);
+        transform: translateY(-2px);
+        color: #fff;
+    }
+
+    /* ========== STUDENT RESULTS ========== */
+    .vc-results-section {
+        width: 100%; margin-top: 1.5rem;
+        animation: vcFadeUp .5s ease .2s both;
+    }
+
+    .vc-results-head {
+        padding: 1.5rem 2rem 1rem;
+        font-size: 1rem; font-weight: 800;
+        display: flex; align-items: center; gap: .5rem;
+        border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .vc-results-head i { color: #fbbf24; font-size: 1.2rem; }
+
+    /* Score Circle */
+    .vc-score-wrap {
+        padding: 1.5rem 2rem; text-align: center;
+    }
+    .vc-score-circle {
+        position: relative;
+        width: 130px; height: 130px;
+        margin: 0 auto 1rem;
+    }
+    .vc-score-svg { transform: rotate(-90deg); }
+    .vc-score-bg {
+        fill: none; stroke: rgba(255,255,255,.05); stroke-width: 8;
+    }
+    .vc-score-fill {
+        fill: none; stroke-width: 8; stroke-linecap: round;
+        transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
+        filter: drop-shadow(0 0 6px currentColor);
+    }
+    .vc-score-text {
+        position: absolute; inset: 0;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+    }
+    .vc-score-num {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 2rem; font-weight: 900; line-height: 1;
+    }
+    .vc-score-label {
+        font-size: .7rem; color: rgba(255,255,255,.3); margin-top: .2rem;
+        font-weight: 500;
+    }
+
+    /* Stats Grid */
+    .vc-stats {
+        display: grid; grid-template-columns: repeat(3, 1fr);
+        gap: .75rem; padding: 0 2rem 1.5rem;
+    }
+    .vc-stat {
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(255,255,255,.05);
+        border-radius: 14px; padding: 1rem; text-align: center;
+        transition: all .3s;
+    }
+    .vc-stat:hover {
+        background: rgba(255,255,255,.06);
+        transform: translateY(-2px);
+        border-color: rgba(255,255,255,.1);
+    }
+    .vc-stat-icon {
+        width: 40px; height: 40px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto .5rem; font-size: 1.1rem;
+    }
+    .vc-stat-num {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.3rem; font-weight: 800; line-height: 1;
+    }
+    .vc-stat-label {
+        font-size: .67rem; color: rgba(255,255,255,.3);
+        margin-top: .3rem; font-weight: 500;
+    }
+    .vc-stat-sub {
+        font-size: .62rem; color: rgba(255,255,255,.2); margin-top: .15rem;
+    }
+
+    /* Test List */
+    .vc-tests { padding: 0 2rem 1.5rem; }
+    .vc-tests-title {
+        font-size: .82rem; font-weight: 700;
+        color: rgba(255,255,255,.4); margin-bottom: .75rem;
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .vc-test-row {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .6rem .75rem;
+        background: rgba(255,255,255,.02);
+        border: 1px solid rgba(255,255,255,.04);
+        border-radius: 10px; margin-bottom: .4rem;
+        transition: all .2s;
+    }
+    .vc-test-row:hover {
+        background: rgba(255,255,255,.05);
+        border-color: rgba(255,255,255,.08);
+    }
+    .vc-test-score {
+        font-family: 'JetBrains Mono', monospace;
+        min-width: 48px; height: 28px; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: .78rem; font-weight: 700; flex-shrink: 0;
+    }
+    .vc-test-score.pass {
+        background: rgba(34,197,94,.1); color: #4ade80;
+        border: 1px solid rgba(34,197,94,.15);
+    }
+    .vc-test-score.fail {
+        background: rgba(239,68,68,.1); color: #f87171;
+        border: 1px solid rgba(239,68,68,.15);
+    }
+    .vc-test-name {
+        font-size: .82rem; font-weight: 600; flex: 1;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .vc-test-tag {
+        font-size: .68rem; font-weight: 600;
+        padding: .15rem .5rem; border-radius: 6px;
+    }
+    .vc-test-tag.pass { background: rgba(34,197,94,.1); color: #4ade80; }
+    .vc-test-tag.fail { background: rgba(239,68,68,.1); color: #f87171; }
+
+    /* Average Box */
+    .vc-avg-box {
+        margin: 0 2rem 1.5rem;
+        padding: 1rem 1.25rem;
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(255,255,255,.06);
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .vc-avg-left {
+        display: flex; align-items: center; gap: .6rem;
+    }
+    .vc-avg-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        background: rgba(251,191,36,.1);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .vc-avg-icon i { color: #fbbf24; font-size: .95rem; }
+    .vc-avg-label { font-size: .7rem; color: rgba(255,255,255,.3); }
+    .vc-avg-num {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1rem; font-weight: 800;
+    }
+    .vc-avg-badge {
+        font-size: .72rem; font-weight: 700;
+        padding: .25rem .65rem; border-radius: 8px;
+    }
+
+    /* ========== ERROR ========== */
+    .vc-error {
+        width: 100%; margin-top: 1.5rem;
+        animation: vcShake .5s ease;
+    }
+    .vc-error-card {
+        background: rgba(239,68,68,.06);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(239,68,68,.12);
+        border-radius: 20px; padding: 2rem; text-align: center;
+    }
+    .vc-error-card i {
+        font-size: 3rem; color: #ef4444; display: block; margin-bottom: .75rem;
+    }
+    .vc-error-card h5 { font-weight: 700; margin-bottom: .5rem; }
+    .vc-error-card p { color: rgba(255,255,255,.5); font-size: .88rem; }
+
+    /* ========== FOOTER ========== */
+    .vc-footer {
+        margin-top: 2.5rem; text-align: center;
+        font-size: .76rem; color: rgba(255,255,255,.2);
+        animation: vcFadeUp .6s ease .3s both;
+    }
+    .vc-footer a {
+        color: rgba(255,255,255,.35); text-decoration: none;
+        transition: color .3s; display: inline-flex;
+        align-items: center; gap: 4px; margin-top: .4rem;
+    }
+    .vc-footer a:hover { color: #818cf8; }
+
+    /* ========== ANIMATIONS ========== */
+    @keyframes vcFadeDown {
+        from { opacity:0; transform: translateY(-25px); }
+        to { opacity:1; transform: translateY(0); }
+    }
+    @keyframes vcFadeUp {
+        from { opacity:0; transform: translateY(25px); }
+        to { opacity:1; transform: translateY(0); }
+    }
+    @keyframes vcShake {
+        0%,100% { transform: translateX(0); }
+        20%,60% { transform: translateX(-6px); }
+        40%,80% { transform: translateX(6px); }
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 576px) {
+        .vc-wrap { padding: 1.5rem .75rem; }
+        .vc-search, .vc-info { padding-left: 1.25rem; padding-right: 1.25rem; }
+        .vc-result-top { padding: 1.5rem 1.25rem 1.25rem; }
+        .vc-brand h1 { font-size: 1.2rem; }
+        .vc-cert-id { font-size: .95rem; }
+        .vc-stats { grid-template-columns: repeat(2, 1fr); }
+        .vc-results-head, .vc-score-wrap, .vc-tests, .vc-preview { padding-left: 1.25rem; padding-right: 1.25rem; }
+        .vc-stats { padding: 0 1.25rem 1.25rem; }
+        .vc-avg-box { margin: 0 1.25rem 1.25rem; }
     }
     </style>
 </head>
 <body>
 
-<div class="bg-particles">
-    <span style="left:5%;width:8px;height:8px;animation-duration:12s;animation-delay:0s"></span>
-    <span style="left:15%;width:14px;height:14px;animation-duration:18s;animation-delay:2s"></span>
-    <span style="left:25%;width:6px;height:6px;animation-duration:14s;animation-delay:4s"></span>
-    <span style="left:35%;width:20px;height:20px;animation-duration:20s;animation-delay:1s"></span>
-    <span style="left:45%;width:10px;height:10px;animation-duration:16s;animation-delay:3s"></span>
-    <span style="left:55%;width:16px;height:16px;animation-duration:22s;animation-delay:5s"></span>
-    <span style="left:65%;width:12px;height:12px;animation-duration:15s;animation-delay:2s"></span>
-    <span style="left:75%;width:8px;height:8px;animation-duration:19s;animation-delay:4s"></span>
-    <span style="left:85%;width:18px;height:18px;animation-duration:17s;animation-delay:1s"></span>
-    <span style="left:95%;width:10px;height:10px;animation-duration:13s;animation-delay:3s"></span>
-</div>
+<div class="vc-bg"></div>
+<div class="vc-glow-right"></div>
 
 <div class="vc-wrap">
-    <div class="vc-logo">
-        <i class="bi bi-patch-check-fill"></i>
+
+    <!-- ===== BRAND ===== -->
+    <div class="vc-brand">
+        <div class="vc-brand-icon">
+            <i class="bi bi-patch-check-fill"></i>
+        </div>
         <h1>Sertifikat tekshirish</h1>
         <p>IT Creative Zomin</p>
+        <div class="vc-brand-tag mono">
+            <i class="bi bi-terminal-fill"></i> itc-academy.uz
+        </div>
     </div>
 
-    <div class="vc-search-card">
-        <h2><i class="bi bi-search me-2"></i>Sertifikat ID raqamini kiriting</h2>
-        <form method="GET" action="{% url 'verify_certificate' %}">
-            <div class="vc-input-group">
-                <i class="bi bi-upc-scan"></i>
-                <input type="text" name="id" class="vc-input" placeholder="Masalan: CERT-20260324-1234" 
-                       value="{{ cert_id }}" autocomplete="off" required>
+    <!-- ===== SEARCH ===== -->
+    <div class="vc-glass">
+        <div class="vc-search">
+            <div class="vc-search-title">
+                <i class="bi bi-search"></i> Sertifikat ID raqamini kiriting
             </div>
-            <button type="submit" class="vc-btn">
-                <i class="bi bi-shield-check me-2"></i>Tekshirish
-            </button>
-        </form>
+            <form method="GET" action="{% url 'verify_certificate' %}">
+                <div class="vc-input-wrap">
+                    <i class="bi bi-upc-scan"></i>
+                    <input type="text" name="id" class="vc-input"
+                           placeholder="CERT-20260324-1234"
+                           value="{{ cert_id }}" autocomplete="off" required>
+                </div>
+                <button type="submit" class="vc-btn">
+                    <i class="bi bi-shield-check me-2"></i>Tekshirish
+                </button>
+            </form>
+        </div>
     </div>
 
+    <!-- ===== CERTIFICATE FOUND ===== -->
     {% if searched and certificate %}
     <div class="vc-result">
-        <div class="vc-result-card">
-            <div class="vc-result-header {{ certificate.status }}">
+        <div class="vc-glass">
+            <div class="vc-result-top {{ certificate.status }}">
                 <div class="vc-cert-icon">
                     {% if certificate.status == 'active' %}
-                    <i class="bi bi-patch-check-fill" style="color:#34c759"></i>
+                    <i class="bi bi-patch-check-fill" style="color:#4ade80"></i>
                     {% elif certificate.status == 'expired' %}
-                    <i class="bi bi-clock-history" style="color:#ff9500"></i>
+                    <i class="bi bi-clock-history" style="color:#fbbf24"></i>
                     {% elif certificate.status == 'frozen' %}
-                    <i class="bi bi-snow2" style="color:#5ac8fa"></i>
+                    <i class="bi bi-snow2" style="color:#60a5fa"></i>
                     {% else %}
-                    <i class="bi bi-x-octagon-fill" style="color:#ff3b30"></i>
+                    <i class="bi bi-x-octagon-fill" style="color:#f87171"></i>
                     {% endif %}
                 </div>
                 <div class="vc-cert-id">{{ certificate.certificate_id }}</div>
-                <div class="vc-status-badge {{ certificate.status }}">
+                <div class="vc-status {{ certificate.status }}">
                     {% if certificate.status == 'active' %}<i class="bi bi-check-circle-fill"></i> Faol
                     {% elif certificate.status == 'expired' %}<i class="bi bi-clock"></i> Muddati tugagan
                     {% elif certificate.status == 'frozen' %}<i class="bi bi-snow2"></i> Muzlatilgan
@@ -197,9 +593,10 @@
                     {% endif %}
                 </div>
             </div>
+
             <div class="vc-info">
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .1s both">
-                    <div class="vc-info-icon" style="background:rgba(99,102,241,.15);color:#818cf8">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(99,102,241,.1);color:#818cf8">
                         <i class="bi bi-person-fill"></i>
                     </div>
                     <div>
@@ -207,8 +604,8 @@
                         <div class="vc-info-value">{{ certificate.student.full_name }}</div>
                     </div>
                 </div>
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .2s both">
-                    <div class="vc-info-icon" style="background:rgba(168,85,247,.15);color:#a855f7">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(168,85,247,.1);color:#a78bfa">
                         <i class="bi bi-book-fill"></i>
                     </div>
                     <div>
@@ -216,28 +613,28 @@
                         <div class="vc-info-value">{{ certificate.profession.name }}</div>
                     </div>
                 </div>
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .3s both">
-                    <div class="vc-info-icon" style="background:rgba(52,199,89,.15);color:#34c759">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(34,197,94,.1);color:#4ade80">
                         <i class="bi bi-calendar-check-fill"></i>
                     </div>
                     <div>
                         <div class="vc-info-label">Berilgan sana</div>
-                        <div class="vc-info-value">{{ certificate.valid_from|date:"d.m.Y" }}</div>
+                        <div class="vc-info-value mono">{{ certificate.valid_from|date:"d.m.Y" }}</div>
                     </div>
                 </div>
                 {% if certificate.valid_until %}
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .4s both">
-                    <div class="vc-info-icon" style="background:rgba(255,149,0,.15);color:#ff9500">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(245,158,11,.1);color:#fbbf24">
                         <i class="bi bi-calendar-x-fill"></i>
                     </div>
                     <div>
                         <div class="vc-info-label">Amal qilish muddati</div>
-                        <div class="vc-info-value">{{ certificate.valid_until|date:"d.m.Y" }}</div>
+                        <div class="vc-info-value mono">{{ certificate.valid_until|date:"d.m.Y" }}</div>
                     </div>
                 </div>
                 {% endif %}
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .5s both">
-                    <div class="vc-info-icon" style="background:rgba(255,214,10,.15);color:#ffd60a">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(251,191,36,.1);color:#fbbf24">
                         <i class="bi bi-award-fill"></i>
                     </div>
                     <div>
@@ -246,8 +643,8 @@
                     </div>
                 </div>
                 {% if certificate.description %}
-                <div class="vc-info-row" style="animation:fadeUp .5s ease .6s both">
-                    <div class="vc-info-icon" style="background:rgba(0,122,255,.15);color:#0a84ff">
+                <div class="vc-info-row">
+                    <div class="vc-info-icon" style="background:rgba(59,130,246,.1);color:#60a5fa">
                         <i class="bi bi-info-circle-fill"></i>
                     </div>
                     <div>
@@ -259,13 +656,13 @@
             </div>
 
             {% if certificate.file and certificate.status == 'active' %}
-            <div class="vc-cert-preview">
-                <div class="vc-cert-preview-title">
+            <div class="vc-preview">
+                <div class="vc-preview-title">
                     <i class="bi bi-file-earmark-richtext"></i> Sertifikat hujjati
                 </div>
-                <div class="vc-cert-embed">
+                <div class="vc-preview-embed">
                     {% if certificate.file.name|lower|slice:"-4:" == ".pdf" %}
-                    <div class="vc-pdf-card">
+                    <div class="vc-pdf-placeholder">
                         <i class="bi bi-file-earmark-pdf-fill"></i>
                         <p>PDF sertifikat hujjati</p>
                     </div>
@@ -273,11 +670,11 @@
                     <img src="{{ certificate.file.url }}" alt="Sertifikat - {{ certificate.certificate_id }}">
                     {% endif %}
                 </div>
-                <div class="vc-cert-actions">
-                    <a href="{{ certificate.file.url }}" download class="vc-download-btn primary">
+                <div class="vc-actions">
+                    <a href="{{ certificate.file.url }}" download class="vc-dl-btn primary">
                         <i class="bi bi-download"></i> Yuklab olish
                     </a>
-                    <a href="{{ certificate.file.url }}" target="_blank" class="vc-download-btn secondary">
+                    <a href="{{ certificate.file.url }}" target="_blank" class="vc-dl-btn outline">
                         <i class="bi bi-box-arrow-up-right"></i> Ochish
                     </a>
                 </div>
@@ -286,74 +683,71 @@
         </div>
     </div>
 
+    <!-- ===== STUDENT RESULTS ===== -->
     {% if student_results %}
     <div class="vc-results-section">
-        <div class="vc-results-card">
-            <div class="vc-results-title">
+        <div class="vc-glass">
+            <div class="vc-results-head">
                 <i class="bi bi-bar-chart-fill"></i> O'quvchi natijalari
             </div>
 
-            <!-- Overall Score Circle -->
-            <div class="vc-overall">
+            <div class="vc-score-wrap">
                 {% with score=student_results.overall_avg %}
-                <div class="vc-overall-score">
-                    <svg class="vc-overall-circle" width="120" height="120" viewBox="0 0 120 120">
-                        <circle class="vc-overall-bg" cx="60" cy="60" r="52"/>
-                        <circle class="vc-overall-fill" cx="60" cy="60" r="52"
-                            stroke="{% if score >= 80 %}#34c759{% elif score >= 60 %}#ffd60a{% elif score >= 40 %}#ff9500{% else %}#ff3b30{% endif %}"
-                            stroke-dasharray="326.73"
-                            stroke-dashoffset="{{ score|floatformat:0 }}"
-                            style="stroke-dashoffset:calc(326.73 - 326.73 * {{ score }} / 100)"/>
+                <div class="vc-score-circle">
+                    <svg class="vc-score-svg" width="130" height="130" viewBox="0 0 130 130">
+                        <circle class="vc-score-bg" cx="65" cy="65" r="56"/>
+                        <circle class="vc-score-fill" cx="65" cy="65" r="56"
+                            stroke="{% if score >= 80 %}#4ade80{% elif score >= 60 %}#fbbf24{% elif score >= 40 %}#fb923c{% else %}#f87171{% endif %}"
+                            stroke-dasharray="351.86"
+                            style="stroke-dashoffset:calc(351.86 - 351.86 * {{ score }} / 100)"/>
                     </svg>
-                    <div class="vc-overall-text">
-                        <div class="vc-overall-num" style="color:{% if score >= 80 %}#34c759{% elif score >= 60 %}#ffd60a{% elif score >= 40 %}#ff9500{% else %}#ff3b30{% endif %}">{{ score }}%</div>
-                        <div class="vc-overall-label">Umumiy ball</div>
+                    <div class="vc-score-text">
+                        <div class="vc-score-num" style="color:{% if score >= 80 %}#4ade80{% elif score >= 60 %}#fbbf24{% elif score >= 40 %}#fb923c{% else %}#f87171{% endif %}">{{ score }}%</div>
+                        <div class="vc-score-label">Umumiy ball</div>
                     </div>
                 </div>
                 {% endwith %}
             </div>
 
-            <!-- Stats Grid -->
-            <div class="vc-stats-grid">
-                <div class="vc-stat-card">
-                    <div class="vc-stat-icon" style="background:rgba(99,102,241,.15);color:#818cf8">
+            <div class="vc-stats">
+                <div class="vc-stat">
+                    <div class="vc-stat-icon" style="background:rgba(99,102,241,.1);color:#818cf8">
                         <i class="bi bi-journal-check"></i>
                     </div>
                     <div class="vc-stat-num" style="color:#818cf8">{{ student_results.tests_taken }}</div>
                     <div class="vc-stat-label">Testlar topshirildi</div>
                     <div class="vc-stat-sub">{{ student_results.tests_passed }} ta o'tdi</div>
                 </div>
-                <div class="vc-stat-card">
-                    <div class="vc-stat-icon" style="background:rgba(52,199,89,.15);color:#34c759">
+                <div class="vc-stat">
+                    <div class="vc-stat-icon" style="background:rgba(34,197,94,.1);color:#4ade80">
                         <i class="bi bi-clipboard-check"></i>
                     </div>
-                    <div class="vc-stat-num" style="color:#34c759">{{ student_results.hw_count }}</div>
+                    <div class="vc-stat-num" style="color:#4ade80">{{ student_results.hw_count }}</div>
                     <div class="vc-stat-label">Vazifalar bajarildi</div>
                     <div class="vc-stat-sub">O'rtacha: {{ student_results.avg_hw_grade }}/10</div>
                 </div>
-                <div class="vc-stat-card">
-                    <div class="vc-stat-icon" style="background:rgba(168,85,247,.15);color:#a855f7">
+                <div class="vc-stat">
+                    <div class="vc-stat-icon" style="background:rgba(168,85,247,.1);color:#a78bfa">
                         <i class="bi bi-mic-fill"></i>
                     </div>
-                    <div class="vc-stat-num" style="color:#a855f7">{{ student_results.speaking_count }}</div>
+                    <div class="vc-stat-num" style="color:#a78bfa">{{ student_results.speaking_count }}</div>
                     <div class="vc-stat-label">Speaking topshirildi</div>
                     <div class="vc-stat-sub">O'rtacha: {{ student_results.avg_speaking_grade }}/10</div>
                 </div>
             </div>
 
-            <!-- Test Results List -->
             {% if student_results.test_results %}
-            <div class="vc-test-list">
-                <div class="vc-test-list-title">
+            <div class="vc-tests">
+                <div class="vc-tests-title">
                     <i class="bi bi-list-check"></i> Test natijalari
                 </div>
                 {% for result in student_results.test_results %}
-                <div class="vc-test-item">
-                    <div class="vc-test-badge {% if result.passed %}passed{% else %}failed{% endif %}">
+                <div class="vc-test-row">
+                    <div class="vc-test-score {% if result.passed %}pass{% else %}fail{% endif %}">
                         {{ result.score }}%
                     </div>
                     <div class="vc-test-name">{{ result.test.lesson.title }}</div>
-                    <div class="vc-test-status {% if result.passed %}pass{% else %}fail{% endif %}">
+                    <div class="vc-test-tag {% if result.passed %}pass{% else %}fail{% endif %}">
                         {% if result.passed %}O'tdi{% else %}O'tmadi{% endif %}
                     </div>
                 </div>
@@ -361,22 +755,18 @@
             </div>
             {% endif %}
 
-            <!-- Average Test Score -->
             {% if student_results.tests_taken > 0 %}
-            <div style="padding:0 2rem 1.5rem">
-                <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between">
-                    <div style="display:flex;align-items:center;gap:.6rem">
-                        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,214,10,.15);display:flex;align-items:center;justify-content:center">
-                            <i class="bi bi-trophy-fill" style="color:#ffd60a;font-size:.95rem"></i>
-                        </div>
-                        <div>
-                            <div style="font-size:.7rem;color:rgba(255,255,255,.4)">O'rtacha test bali</div>
-                            <div style="font-size:1rem;font-weight:800">{{ student_results.avg_test_score }}%</div>
-                        </div>
+            <div class="vc-avg-box">
+                <div class="vc-avg-left">
+                    <div class="vc-avg-icon"><i class="bi bi-trophy-fill"></i></div>
+                    <div>
+                        <div class="vc-avg-label">O'rtacha test bali</div>
+                        <div class="vc-avg-num">{{ student_results.avg_test_score }}%</div>
                     </div>
-                    <div style="font-size:.75rem;font-weight:600;padding:.3rem .7rem;border-radius:8px;{% if student_results.avg_test_score >= 80 %}background:rgba(52,199,89,.15);color:#34c759{% elif student_results.avg_test_score >= 60 %}background:rgba(255,214,10,.15);color:#ffd60a{% else %}background:rgba(255,59,48,.15);color:#ff3b30{% endif %}">
-                        {% if student_results.avg_test_score >= 80 %}A'lo{% elif student_results.avg_test_score >= 60 %}Yaxshi{% elif student_results.avg_test_score >= 40 %}Qoniqarli{% else %}Qoniqarsiz{% endif %}
-                    </div>
+                </div>
+                <div class="vc-avg-badge"
+                    style="{% if student_results.avg_test_score >= 80 %}background:rgba(34,197,94,.1);color:#4ade80{% elif student_results.avg_test_score >= 60 %}background:rgba(251,191,36,.1);color:#fbbf24{% else %}background:rgba(239,68,68,.1);color:#f87171{% endif %}">
+                    {% if student_results.avg_test_score >= 80 %}A'lo{% elif student_results.avg_test_score >= 60 %}Yaxshi{% elif student_results.avg_test_score >= 40 %}Qoniqarli{% else %}Qoniqarsiz{% endif %}
                 </div>
             </div>
             {% endif %}
@@ -384,19 +774,21 @@
     </div>
     {% endif %}
 
+    <!-- ===== ERROR ===== -->
     {% elif searched and error %}
     <div class="vc-error">
         <div class="vc-error-card">
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <h5 style="font-weight:700;margin-bottom:.5rem">Sertifikat topilmadi</h5>
+            <h5>Sertifikat topilmadi</h5>
             <p>{{ error }}</p>
         </div>
     </div>
     {% endif %}
 
+    <!-- ===== FOOTER ===== -->
     <div class="vc-footer">
         <p>&copy; IT Creative Zomin — Sertifikat tekshirish tizimi</p>
-        <a href="{% url 'home' %}"><i class="bi bi-house me-1"></i>Bosh sahifa</a>
+        <a href="{% url 'home' %}"><i class="bi bi-house"></i> Bosh sahifa</a>
     </div>
 </div>
 

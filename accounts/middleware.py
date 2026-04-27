@@ -10,7 +10,8 @@ from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, 
 
 class BirthdayCheckMiddleware:
     """
-    O'quvchi tug'ilgan kun bo'lsa, bildirishnoma ko'rsatadi
+    O'quvchi tug'ilgan kun bo'lsa, bildirishnoma ko'rsatadi.
+    Kuniga 1 marta Telegram orqali tabrik yuboradi.
     """
     
     def __init__(self, get_response):
@@ -19,11 +20,20 @@ class BirthdayCheckMiddleware:
     def __call__(self, request):
         if request.user.is_authenticated and request.user.role == 'student':
             today = timezone.now().date()
-            # Xavfsiz tekshirish - date_of_birth mavjud bo'lsa
-            if hasattr(request.user, 'date_of_birth') and request.user.date_of_birth:
-                if (request.user.date_of_birth.month == today.month and 
-                    request.user.date_of_birth.day == today.day):
+            if request.user.birth_date:
+                if (request.user.birth_date.month == today.month and 
+                    request.user.birth_date.day == today.day):
                     request.birthday_today = True
+        
+        # Kuniga 1 marta tug'ilgan kun tabrikini Telegram orqali yuborish
+        cache_key = 'birthday_check_done'
+        if not cache.get(cache_key):
+            try:
+                from telegram_bot.utils import check_birthdays
+                check_birthdays()
+            except Exception:
+                pass
+            cache.set(cache_key, True, 86400)  # 24 soat
         
         return self.get_response(request)
 
