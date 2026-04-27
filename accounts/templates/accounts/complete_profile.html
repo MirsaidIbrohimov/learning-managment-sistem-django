@@ -895,10 +895,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyDeceased(checkbox, wrapper) {
         if (!checkbox || !wrapper) return;
+        var inputs = wrapper.querySelectorAll('input, select, textarea');
+        var requiredLabel = wrapper.querySelector('.cp-required, .cp-optional');
         if (checkbox.checked) {
             wrapper.classList.add('cp-disabled-overlay');
+            inputs.forEach(function(inp) {
+                inp.removeAttribute('required');
+                inp.disabled = true;
+            });
+            if (requiredLabel) {
+                requiredLabel.textContent = 'Ixtiyoriy';
+                requiredLabel.classList.remove('cp-required');
+                requiredLabel.classList.add('cp-optional');
+            }
         } else {
             wrapper.classList.remove('cp-disabled-overlay');
+            inputs.forEach(function(inp) {
+                inp.disabled = false;
+            });
+            if (requiredLabel) {
+                requiredLabel.textContent = 'Majburiy';
+                requiredLabel.classList.remove('cp-optional');
+                requiredLabel.classList.add('cp-required');
+            }
         }
     }
 
@@ -909,6 +928,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (motherDeceased) {
         motherDeceased.addEventListener('change', function() { applyDeceased(motherDeceased, motherWrapper); });
         applyDeceased(motherDeceased, motherWrapper);
+    }
+
+    // Re-enable disabled fields before submit so values are sent
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            form.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(function(el) {
+                el.disabled = false;
+            });
+        });
     }
 
     // ===== Steps highlight on scroll =====

@@ -195,10 +195,14 @@ class CustomUser(AbstractUser):
         required_fields = [
             self.first_name, self.last_name, self.birth_date,
             self.gender, self.nationality,
-            self.father_name, self.mother_name, self.parent_phone,
+            self.parent_phone,
             self.school_name, self.school_number, self.address,
             self.passport_series, self.passport_number, self.jshshir,
         ]
+        if not self.father_deceased:
+            required_fields.append(self.father_name)
+        if not self.mother_deceased:
+            required_fields.append(self.mother_name)
         filled = sum(1 for f in required_fields if f)
         total = len(required_fields)
         return round((filled / total) * 100)
@@ -208,10 +212,14 @@ class CustomUser(AbstractUser):
         required = all([
             self.first_name, self.last_name, self.birth_date,
             self.gender, self.nationality,
-            self.father_name, self.mother_name, self.parent_phone,
+            self.parent_phone,
             self.school_name, self.school_number, self.address,
             self.passport_series, self.passport_number, self.jshshir,
         ])
+        if not self.father_deceased:
+            required = required and bool(self.father_name)
+        if not self.mother_deceased:
+            required = required and bool(self.mother_name)
         return required
 
     # ---------------- COINS ----------------
