@@ -61,48 +61,105 @@
 @keyframes leafFall{ to{ transform: translateY(110vh); } }
 @keyframes leafSway{ 0%{margin-left:0}50%{margin-left:40px}100%{margin-left:0} }
 
-/* ================= LOADING ================= */
+/* ================= LOADING — iOS Style ================= */
 
 #pageLoader{
   position:fixed;
   inset:0;
-  background:rgba(255,255,255,.75);
-  backdrop-filter:blur(10px);
+  background:rgba(255,255,255,.6);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
   z-index:10000;
   display:flex;
   align-items:center;
   justify-content:center;
+  transition:opacity .4s cubic-bezier(.4,0,.2,1);
 }
 
 [data-bs-theme="dark"] #pageLoader{
-  background:rgba(2,6,23,.75);
+  background:rgba(0,0,0,.5);
 }
 
 .loader-card{
-  background:rgba(255,255,255,.9);
-  padding:30px 40px;
-  border-radius:20px;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  padding:28px 36px;
+  border-radius:22px;
   text-align:center;
-  box-shadow:0 20px 50px rgba(0,0,0,.3);
+  box-shadow:
+    0 0 0 0.5px rgba(0,0,0,.06),
+    0 8px 40px rgba(0,0,0,.12),
+    0 2px 8px rgba(0,0,0,.06);
+  animation:loaderPop .35s cubic-bezier(.175,.885,.32,1.275) both;
 }
 
 [data-bs-theme="dark"] .loader-card{
-  background:rgba(15,23,42,.9);
-  color:white;
+  background:rgba(30,30,30,.82);
+  box-shadow:
+    0 0 0 0.5px rgba(255,255,255,.08),
+    0 8px 40px rgba(0,0,0,.45),
+    0 2px 8px rgba(0,0,0,.2);
 }
 
-.spinner{
-  width:42px;height:42px;
-  border:4px solid #c7d2fe;
-  border-top-color:#6366f1;
-  border-radius:50%;
-  margin:auto;
-  animation:spin 1s linear infinite;
+@keyframes loaderPop{
+  from{ opacity:0; transform:scale(.88); }
+  to{ opacity:1; transform:scale(1); }
 }
 
-@keyframes spin{ to{ transform:rotate(360deg);} }
+/* iOS Activity Indicator */
+.ios-loader{
+  position:relative;
+  width:40px;
+  height:40px;
+  margin:0 auto 14px;
+}
+
+.ios-loader-blade{
+  position:absolute;
+  left:50%;
+  top:0;
+  width:3.2px;
+  height:10px;
+  margin-left:-1.6px;
+  border-radius:3px;
+  background:rgba(99,102,241,.25);
+  transform-origin:center 20px;
+  animation:iosFade .8s linear infinite;
+}
+
+[data-bs-theme="dark"] .ios-loader-blade{
+  background:rgba(165,165,180,.2);
+  animation-name:iosFadeDark;
+}
+
+.ios-loader-blade:nth-child(1){ transform:rotate(0deg);   animation-delay:-0.7s; }
+.ios-loader-blade:nth-child(2){ transform:rotate(45deg);  animation-delay:-0.6s; }
+.ios-loader-blade:nth-child(3){ transform:rotate(90deg);  animation-delay:-0.5s; }
+.ios-loader-blade:nth-child(4){ transform:rotate(135deg); animation-delay:-0.4s; }
+.ios-loader-blade:nth-child(5){ transform:rotate(180deg); animation-delay:-0.3s; }
+.ios-loader-blade:nth-child(6){ transform:rotate(225deg); animation-delay:-0.2s; }
+.ios-loader-blade:nth-child(7){ transform:rotate(270deg); animation-delay:-0.1s; }
+.ios-loader-blade:nth-child(8){ transform:rotate(315deg); animation-delay: 0s;   }
+
+@keyframes iosFade{
+  0%{ background:rgba(99,102,241,.85); }
+  100%{ background:rgba(99,102,241,.12); }
+}
+
+@keyframes iosFadeDark{
+  0%{ background:rgba(210,210,225,.9); }
+  100%{ background:rgba(165,165,180,.15); }
+}
 
 .loader-text{
-  margin-top:12px;
+  margin-top:0;
   font-weight:600;
+  font-size:.82rem;
+  letter-spacing:.02em;
+  color:rgba(60,60,67,.7);
+}
+
+[data-bs-theme="dark"] .loader-text{
+  color:rgba(235,235,245,.55);
 }
