@@ -61,105 +61,134 @@
 @keyframes leafFall{ to{ transform: translateY(110vh); } }
 @keyframes leafSway{ 0%{margin-left:0}50%{margin-left:40px}100%{margin-left:0} }
 
-/* ================= LOADING — iOS Style ================= */
+/* ================= LOADING — Code Terminal ================= */
 
 #pageLoader{
   position:fixed;
   inset:0;
-  background:rgba(255,255,255,.6);
-  backdrop-filter:blur(24px) saturate(180%);
-  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  background:rgba(15,23,42,.7);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
   z-index:10000;
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:opacity .4s cubic-bezier(.4,0,.2,1);
-}
-
-[data-bs-theme="dark"] #pageLoader{
-  background:rgba(0,0,0,.5);
+  transition:opacity .4s ease;
 }
 
 .loader-card{
-  background:rgba(255,255,255,.85);
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  padding:28px 36px;
-  border-radius:22px;
   text-align:center;
+  animation:ldrPop .4s cubic-bezier(.175,.885,.32,1.275) both;
+}
+@keyframes ldrPop{
+  from{ opacity:0; transform:scale(.9) translateY(12px); }
+  to{ opacity:1; transform:scale(1) translateY(0); }
+}
+
+/* ---- Terminal Window ---- */
+.ldr-terminal{
+  width:320px;
+  border-radius:12px;
+  overflow:hidden;
   box-shadow:
-    0 0 0 0.5px rgba(0,0,0,.06),
-    0 8px 40px rgba(0,0,0,.12),
-    0 2px 8px rgba(0,0,0,.06);
-  animation:loaderPop .35s cubic-bezier(.175,.885,.32,1.275) both;
+    0 25px 60px rgba(0,0,0,.5),
+    0 0 0 1px rgba(255,255,255,.06);
+  font-family:'JetBrains Mono','Fira Code',monospace;
 }
 
-[data-bs-theme="dark"] .loader-card{
-  background:rgba(30,30,30,.82);
-  box-shadow:
-    0 0 0 0.5px rgba(255,255,255,.08),
-    0 8px 40px rgba(0,0,0,.45),
-    0 2px 8px rgba(0,0,0,.2);
+.ldr-titlebar{
+  background:#1e1e2e;
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.ldr-dot{
+  width:11px; height:11px;
+  border-radius:50%;
+  display:inline-block;
+}
+.ldr-dot--red{ background:#ff5f57; }
+.ldr-dot--yellow{ background:#febc2e; }
+.ldr-dot--green{ background:#28c840; }
+.ldr-titlebar-text{
+  margin-left:auto;
+  margin-right:auto;
+  font-size:.65rem;
+  color:rgba(255,255,255,.3);
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  padding-right:40px;
 }
 
-@keyframes loaderPop{
-  from{ opacity:0; transform:scale(.88); }
-  to{ opacity:1; transform:scale(1); }
+.ldr-body{
+  background:#0d1117;
+  padding:16px 18px;
+  text-align:left;
+  line-height:1.9;
+  font-size:.78rem;
 }
 
-/* iOS Activity Indicator */
-.ios-loader{
-  position:relative;
-  width:40px;
-  height:40px;
-  margin:0 auto 14px;
+/* Lines appear one by one */
+.ldr-line{ opacity:0; animation:ldrType .3s ease forwards; }
+.ldr-line--1{ animation-delay:.2s; }
+.ldr-line--2{ animation-delay:.7s; }
+.ldr-line--3{ animation-delay:1.2s; }
+.ldr-line--4{ animation-delay:1.7s; }
+
+@keyframes ldrType{
+  from{ opacity:0; transform:translateX(-6px); }
+  to{ opacity:1; transform:translateX(0); }
 }
 
-.ios-loader-blade{
-  position:absolute;
-  left:50%;
-  top:0;
-  width:3.2px;
-  height:10px;
-  margin-left:-1.6px;
-  border-radius:3px;
-  background:rgba(99,102,241,.25);
-  transform-origin:center 20px;
-  animation:iosFade .8s linear infinite;
+/* Tokens */
+.ldr-prompt{ color:#7c3aed; font-weight:700; margin-right:8px; }
+.ldr-cmd{ color:#22d3ee; font-weight:600; }
+.ldr-arg{ color:#a5f3fc; margin-left:6px; }
+.ldr-flag{ color:#fbbf24; margin-left:6px; }
+.ldr-muted{ color:rgba(148,163,184,.7); }
+.ldr-success{ color:#34d399; font-weight:700; margin-right:6px; }
+
+/* Typing dots ... */
+.ldr-dots-anim::after{
+  content:'';
+  animation:ldrDots 1.4s steps(4,end) infinite;
+  color:rgba(148,163,184,.7);
+}
+@keyframes ldrDots{
+  0%{ content:''; }
+  25%{ content:'.'; }
+  50%{ content:'..'; }
+  75%{ content:'...'; }
 }
 
-[data-bs-theme="dark"] .ios-loader-blade{
-  background:rgba(165,165,180,.2);
-  animation-name:iosFadeDark;
+/* Blinking cursor */
+.ldr-cursor{
+  display:inline-block;
+  width:8px; height:16px;
+  background:#7c3aed;
+  border-radius:1px;
+  vertical-align:middle;
+  animation:ldrBlink 1s step-end infinite;
+  box-shadow:0 0 8px rgba(124,58,237,.5);
+}
+@keyframes ldrBlink{
+  0%,100%{ opacity:1; }
+  50%{ opacity:0; }
 }
 
-.ios-loader-blade:nth-child(1){ transform:rotate(0deg);   animation-delay:-0.7s; }
-.ios-loader-blade:nth-child(2){ transform:rotate(45deg);  animation-delay:-0.6s; }
-.ios-loader-blade:nth-child(3){ transform:rotate(90deg);  animation-delay:-0.5s; }
-.ios-loader-blade:nth-child(4){ transform:rotate(135deg); animation-delay:-0.4s; }
-.ios-loader-blade:nth-child(5){ transform:rotate(180deg); animation-delay:-0.3s; }
-.ios-loader-blade:nth-child(6){ transform:rotate(225deg); animation-delay:-0.2s; }
-.ios-loader-blade:nth-child(7){ transform:rotate(270deg); animation-delay:-0.1s; }
-.ios-loader-blade:nth-child(8){ transform:rotate(315deg); animation-delay: 0s;   }
-
-@keyframes iosFade{
-  0%{ background:rgba(99,102,241,.85); }
-  100%{ background:rgba(99,102,241,.12); }
-}
-
-@keyframes iosFadeDark{
-  0%{ background:rgba(210,210,225,.9); }
-  100%{ background:rgba(165,165,180,.15); }
-}
-
+/* Bottom text */
 .loader-text{
-  margin-top:0;
+  margin-top:16px;
   font-weight:600;
-  font-size:.82rem;
-  letter-spacing:.02em;
-  color:rgba(60,60,67,.7);
+  font-size:.78rem;
+  letter-spacing:.04em;
+  color:rgba(255,255,255,.45);
+  font-family:'JetBrains Mono','Fira Code',monospace;
 }
 
-[data-bs-theme="dark"] .loader-text{
-  color:rgba(235,235,245,.55);
+/* ---- responsive ---- */
+@media(max-width:400px){
+  .ldr-terminal{ width:280px; }
+  .ldr-body{ font-size:.72rem; padding:12px 14px; }
 }
