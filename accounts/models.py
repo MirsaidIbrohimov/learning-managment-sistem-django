@@ -150,6 +150,14 @@ class CustomUser(AbstractUser):
     parent_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Ota-ona telefon raqami")
     school_name = models.CharField(max_length=300, blank=True, null=True, verbose_name="Maktab nomi")
     school_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Maktab raqami")
+    passport_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Pasport seriyasi")
+    passport_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Pasport raqami")
+    jshshir = models.CharField(max_length=14, blank=True, null=True, verbose_name="JSHSHIR (PINFL)")
+    passport_issued_date = models.DateField(null=True, blank=True, verbose_name="Pasport berilgan sana")
+    father_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Otasining telefon raqami")
+    mother_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Onasining telefon raqami")
+    father_deceased = models.BooleanField(default=False, verbose_name="Otasi vafot etgan")
+    mother_deceased = models.BooleanField(default=False, verbose_name="Onasi vafot etgan")
     is_profile_completed = models.BooleanField(default=False, verbose_name="Profil to'ldirilgan")
 
     # ---------------- PROPERTIES ----------------
@@ -189,11 +197,10 @@ class CustomUser(AbstractUser):
             self.gender, self.nationality,
             self.father_name, self.mother_name, self.parent_phone,
             self.school_name, self.school_number, self.address,
+            self.passport_series, self.passport_number, self.jshshir,
         ]
-        # At least one document required
-        has_document = bool(self.id_card) or bool(self.birth_certificate)
-        filled = sum(1 for f in required_fields if f) + (1 if has_document else 0)
-        total = len(required_fields) + 1  # +1 for document
+        filled = sum(1 for f in required_fields if f)
+        total = len(required_fields)
         return round((filled / total) * 100)
     
     def check_profile_completed(self):
@@ -203,9 +210,9 @@ class CustomUser(AbstractUser):
             self.gender, self.nationality,
             self.father_name, self.mother_name, self.parent_phone,
             self.school_name, self.school_number, self.address,
+            self.passport_series, self.passport_number, self.jshshir,
         ])
-        has_document = bool(self.id_card) or bool(self.birth_certificate)
-        return required and has_document
+        return required
 
     # ---------------- COINS ----------------
 

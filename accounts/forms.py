@@ -588,21 +588,71 @@ class StudentProfileCompleteForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}),
         label="Millati"
     )
+    
+    # Passport fields
+    passport_series = forms.CharField(
+        max_length=10,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA'}),
+        label="Pasport seriyasi"
+    )
+    passport_number = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1234567'}),
+        label="Pasport raqami"
+    )
+    jshshir = forms.CharField(
+        max_length=14,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678901234'}),
+        label="JSHSHIR (PINFL)"
+    )
+    passport_issued_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Pasport berilgan sana"
+    )
+    
+    # Parent fields
     father_name = forms.CharField(
         max_length=200,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Otangizning to'liq ismi"}),
         label="Otasining to'liq ismi"
     )
+    father_phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998XXXXXXXXX'}),
+        label="Otasining telefon raqami"
+    )
+    father_deceased = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Otasi vafot etgan"
+    )
     mother_name = forms.CharField(
         max_length=200,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Onangizning to'liq ismi"}),
         label="Onasining to'liq ismi"
+    )
+    mother_phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998XXXXXXXXX'}),
+        label="Onasining telefon raqami"
+    )
+    mother_deceased = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Onasi vafot etgan"
     )
     parent_phone = forms.CharField(
         max_length=20,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998XXXXXXXXX'}),
-        label="Ota-ona telefon raqami"
+        label="Asosiy ota-ona telefon raqami"
     )
+    
+    # School
     school_name = forms.CharField(
         max_length=300,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maktab nomi'}),
@@ -618,25 +668,16 @@ class StudentProfileCompleteForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "To'liq yashash manzili"}),
         label="Yashash manzili"
     )
-    id_card = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
-        label="Pasport / ID karta",
-        help_text="Pasport yoki tug'ilganlik guvohnomasi yuklash majburiy"
-    )
-    birth_certificate = forms.FileField(
-        required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
-        label="Tug'ilganlik haqida guvohnoma"
-    )
 
     class Meta:
         model = CustomUser
         fields = [
             'first_name', 'last_name', 'birth_date', 'gender', 'nationality',
-            'father_name', 'mother_name', 'parent_phone',
+            'passport_series', 'passport_number', 'jshshir', 'passport_issued_date',
+            'father_name', 'father_phone', 'father_deceased',
+            'mother_name', 'mother_phone', 'mother_deceased',
+            'parent_phone',
             'school_name', 'school_number', 'address',
-            'id_card', 'birth_certificate',
         ]
 
     def clean_first_name(self):
@@ -644,6 +685,12 @@ class StudentProfileCompleteForm(forms.ModelForm):
 
     def clean_last_name(self):
         return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
+    def clean_jshshir(self):
+        jshshir = self.cleaned_data.get('jshshir', '').strip()
+        if not jshshir.isdigit() or len(jshshir) != 14:
+            raise forms.ValidationError("JSHSHIR 14 ta raqamdan iborat bo'lishi kerak!")
+        return jshshir
 
     def clean_parent_phone(self):
         phone = self.cleaned_data.get('parent_phone', '').strip()
@@ -662,17 +709,27 @@ class StudentProfileCompleteForm(forms.ModelForm):
             raise forms.ValidationError("Telefon raqami noto'g'ri formatda")
         return phone
 
-    def clean(self):
-        cleaned_data = super().clean()
-        id_card = cleaned_data.get('id_card')
-        birth_certificate = cleaned_data.get('birth_certificate')
-        
-        # Check if instance already has these files
-        has_existing_id = self.instance and self.instance.id_card
-        has_existing_cert = self.instance and self.instance.birth_certificate
-        
-        if not id_card and not birth_certificate and not has_existing_id and not has_existing_cert:
-            raise forms.ValidationError(
-                "Pasport yoki tug'ilganlik guvohnomasidan kamida bittasini yuklashingiz kerak!"
-            )
-        return cleaned_data
+    def _clean_optional_phone(self, field_name):
+        phone = self.cleaned_data.get(field_name, '').strip()
+        if not phone:
+            return phone
+        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        if not phone.startswith('+998'):
+            if phone.startswith('998'):
+                phone = '+' + phone
+            elif phone.startswith('9'):
+                phone = '+998' + phone
+            else:
+                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
+        digits_after_code = phone[4:]
+        if not digits_after_code.isdigit():
+            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
+        if len(phone) != 13:
+            raise forms.ValidationError("Telefon raqami noto'g'ri formatda")
+        return phone
+
+    def clean_father_phone(self):
+        return self._clean_optional_phone('father_phone')
+
+    def clean_mother_phone(self):
+        return self._clean_optional_phone('mother_phone')

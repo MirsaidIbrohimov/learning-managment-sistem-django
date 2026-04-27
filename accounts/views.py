@@ -7394,8 +7394,16 @@ def admin_export_students(request):
         'birth_date': "Tug'ilgan kuni",
         'gender': "Jinsi",
         'nationality': "Millati",
+        'passport_series': "Pasport seriyasi",
+        'passport_number': "Pasport raqami",
+        'jshshir': "JSHSHIR (PINFL)",
+        'passport_issued_date': "Pasport berilgan sana",
         'father_name': "Otasining ismi",
+        'father_phone': "Otasining telefoni",
+        'father_deceased': "Otasi vafot etgan",
         'mother_name': "Onasining ismi",
+        'mother_phone': "Onasining telefoni",
+        'mother_deceased': "Onasi vafot etgan",
         'parent_phone': "Ota-ona telefoni",
         'school_name': "Maktab nomi",
         'school_number': "Maktab raqami",
@@ -7485,12 +7493,10 @@ def _generate_students_excel(selected_fields, field_labels):
                 value = student.date_joined.strftime('%d.%m.%Y %H:%M') if student.date_joined else '-'
             elif field == 'last_activity':
                 value = student.last_activity.strftime('%d.%m.%Y %H:%M') if student.last_activity else '-'
-            elif field == 'is_blocked':
-                value = 'Ha' if student.is_blocked else "Yo'q"
-            elif field == 'is_premium':
-                value = 'Ha' if student.is_premium else "Yo'q"
-            elif field == 'is_profile_completed':
-                value = 'Ha' if student.is_profile_completed else "Yo'q"
+            elif field == 'passport_issued_date':
+                value = student.passport_issued_date.strftime('%d.%m.%Y') if student.passport_issued_date else '-'
+            elif field in ('is_blocked', 'is_premium', 'is_profile_completed', 'father_deceased', 'mother_deceased'):
+                value = 'Ha' if getattr(student, field, False) else "Yo'q"
             elif field == 'gender':
                 value = student.get_gender_display() if student.gender else '-'
             elif field == 'role':
