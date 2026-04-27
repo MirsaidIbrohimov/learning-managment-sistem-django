@@ -5,490 +5,966 @@
 
 {% block extra_css %}
 <style>
-    .profile-complete-container {
-        max-width: 860px;
-        margin: 2rem auto;
-        padding: 0 1rem;
-    }
+/* ============ ANIMATIONS ============ */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes progressPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
 
-    .progress-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 2.5rem 2rem;
-        color: white;
-        margin-bottom: 2rem;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
+.cp-container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+}
 
-    .progress-header::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -20%;
-        width: 300px;
-        height: 300px;
-        background: rgba(255,255,255,0.05);
-        border-radius: 50%;
-    }
+/* ============ HERO HEADER ============ */
+.cp-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 100%);
+    border-radius: 24px;
+    padding: 2.5rem 2rem 2rem;
+    color: white;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.75rem;
+    animation: fadeInUp 0.5s ease both;
+}
+.cp-hero::before {
+    content: '';
+    position: absolute;
+    top: -60%;
+    right: -15%;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+}
+.cp-hero::after {
+    content: '';
+    position: absolute;
+    bottom: -40%;
+    left: -10%;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+}
 
-    .progress-header::after {
-        content: '';
-        position: absolute;
-        bottom: -30%;
-        left: -10%;
-        width: 200px;
-        height: 200px;
-        background: rgba(255,255,255,0.08);
-        border-radius: 50%;
-    }
+.cp-progress-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.8rem;
+    font-weight: 800;
+    border: 3px solid rgba(255,255,255,0.25);
+    position: relative;
+    z-index: 1;
+    animation: scaleIn 0.5s ease 0.2s both, progressPulse 2.5s ease-in-out infinite;
+}
 
-    .progress-header h2 {
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        position: relative;
-        z-index: 1;
-    }
+.cp-hero h2 {
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin-bottom: 0.4rem;
+    position: relative;
+    z-index: 1;
+}
+.cp-hero p {
+    opacity: 0.8;
+    font-size: 0.92rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    z-index: 1;
+}
 
-    .progress-circle {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(10px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.6rem;
-        font-weight: 800;
-        border: 3px solid rgba(255,255,255,0.3);
-        position: relative;
-        z-index: 1;
-    }
+.cp-progress-track {
+    height: 8px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50px;
+    max-width: 380px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+.cp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.9), #fff);
+    border-radius: 50px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+.cp-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+}
 
-    .form-section {
-        background: var(--bs-body-bg);
-        border: 1px solid var(--bs-border-color);
-        border-radius: 16px;
-        padding: 1.75rem;
-        margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
-        position: relative;
-    }
+/* ============ STEPS NAVIGATION ============ */
+.cp-steps {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.75rem;
+    padding: 0 0.25rem;
+    animation: fadeInUp 0.5s ease 0.15s both;
+}
+.cp-step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--bs-body-bg);
+    border: 2px solid var(--bs-border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: var(--bs-body-color);
+}
+.cp-step:hover {
+    border-color: #6366f1;
+    background: rgba(99,102,241,0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(99,102,241,0.12);
+}
+.cp-step.active {
+    border-color: #6366f1;
+    background: rgba(99,102,241,0.06);
+}
+.cp-step-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+.cp-step-text {
+    font-weight: 600;
+    font-size: 0.8rem;
+    line-height: 1.2;
+}
+.cp-step-text small {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    display: block;
+}
 
-    .form-section:hover {
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        transform: translateY(-2px);
-    }
+.cp-step:nth-child(1) .cp-step-num { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+.cp-step:nth-child(2) .cp-step-num { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+.cp-step:nth-child(3) .cp-step-num { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; }
+.cp-step:nth-child(4) .cp-step-num { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
 
-    .section-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.3rem;
-        color: white;
-        flex-shrink: 0;
-    }
+/* ============ ALERT ============ */
+.cp-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 0.5s ease 0.2s both;
+}
+.cp-alert.info {
+    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+    border: 1px solid rgba(99,102,241,0.15);
+}
+.cp-alert i {
+    font-size: 1.4rem;
+    color: #6366f1;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+.cp-alert .cp-alert-text {
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
 
-    .section-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
+/* ============ FORM SECTIONS ============ */
+.cp-section {
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeInUp 0.5s ease both;
+}
+.cp-section:nth-child(2) { animation-delay: 0.1s; }
+.cp-section:nth-child(3) { animation-delay: 0.2s; }
+.cp-section:nth-child(4) { animation-delay: 0.3s; }
 
-    .required-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        color: white;
-        font-size: 0.6rem;
-        padding: 0.15rem 0.5rem;
-        border-radius: 20px;
-        font-weight: 700;
-        vertical-align: middle;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
+.cp-section:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.07);
+    transform: translateY(-2px);
+}
 
-    .optional-badge {
-        display: inline-block;
-        background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-        color: white;
-        font-size: 0.6rem;
-        padding: 0.15rem 0.5rem;
-        border-radius: 20px;
-        font-weight: 700;
-        vertical-align: middle;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-    }
+.cp-section-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.cp-section-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+.cp-section-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+}
+.cp-section-header h3 small {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+    margin-top: 2px;
+}
 
-    .form-label {
-        font-weight: 600;
-        font-size: 0.88rem;
-        margin-bottom: 0.35rem;
-        color: var(--bs-body-color);
-    }
+.cp-section-body {
+    padding: 1.5rem;
+}
 
-    .form-control, .form-select {
-        border-radius: 10px;
-        padding: 0.6rem 0.85rem;
-        border: 1.5px solid var(--bs-border-color);
-        transition: all 0.2s;
-    }
+/* ============ FORM FIELDS ============ */
+.cp-field {
+    margin-bottom: 1.25rem;
+}
+.cp-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: var(--bs-body-color);
+}
+.cp-required {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 8px;
+    border-radius: 50px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #fff;
+}
+.cp-optional {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 8px;
+    border-radius: 50px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #a78bfa, #7c3aed);
+    color: #fff;
+}
 
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-    }
+.cp-section .form-control,
+.cp-section .form-select {
+    border-radius: 12px;
+    padding: 0.65rem 0.9rem;
+    border: 1.5px solid var(--bs-border-color);
+    font-size: 0.9rem;
+    transition: all 0.25s ease;
+    background: var(--bs-body-bg);
+}
+.cp-section .form-control:focus,
+.cp-section .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+}
 
-    .deceased-check {
-        background: rgba(220, 53, 69, 0.05);
-        border: 1px solid rgba(220, 53, 69, 0.15);
-        border-radius: 10px;
-        padding: 0.6rem 0.85rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-        transition: all 0.2s;
-    }
+.cp-field-hint {
+    font-size: 0.75rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
 
-    .deceased-check:hover {
-        background: rgba(220, 53, 69, 0.08);
-    }
+/* ============ PASSPORT SECTION ============ */
+.cp-passport-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 1fr;
+    gap: 1rem;
+    align-items: end;
+}
+.cp-passport-visual {
+    background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(22,163,74,0.06));
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 14px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.cp-passport-icon-big {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: #fff;
+    flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+}
+.cp-passport-desc {
+    font-size: 0.85rem;
+    color: var(--bs-body-color);
+    font-weight: 500;
+    line-height: 1.5;
+}
+.cp-passport-desc strong {
+    color: #16a34a;
+}
 
-    .deceased-check .form-check-input {
-        margin: 0;
-        cursor: pointer;
-    }
+/* ============ PARENT CARDS ============ */
+.cp-parent-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+.cp-parent-card {
+    background: var(--bs-tertiary-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    transition: all 0.3s;
+    position: relative;
+}
+.cp-parent-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+.cp-parent-card.father {
+    border-top: 3px solid #3b82f6;
+}
+.cp-parent-card.mother {
+    border-top: 3px solid #ec4899;
+}
 
-    .deceased-check label {
-        font-size: 0.85rem;
-        color: #dc3545;
-        font-weight: 500;
-        cursor: pointer;
-        margin: 0;
-    }
+.cp-parent-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
+}
+.cp-parent-title-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: #fff;
+}
+.cp-parent-card.father .cp-parent-title-icon {
+    background: linear-gradient(135deg, #3b82f6, #6366f1);
+}
+.cp-parent-card.mother .cp-parent-title-icon {
+    background: linear-gradient(135deg, #ec4899, #d946ef);
+}
 
-    .parent-card {
-        background: var(--bs-tertiary-bg);
-        border-radius: 12px;
-        padding: 1.25rem;
-        border: 1px solid var(--bs-border-color);
-    }
+/* Deceased checkbox */
+.cp-deceased {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(220,53,69,0.04);
+    border: 1px solid rgba(220,53,69,0.12);
+    margin-top: 0.75rem;
+    transition: all 0.25s;
+    cursor: pointer;
+}
+.cp-deceased:hover {
+    background: rgba(220,53,69,0.08);
+    border-color: rgba(220,53,69,0.25);
+}
+.cp-deceased .form-check-input {
+    margin: 0;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+.cp-deceased label {
+    font-size: 0.82rem;
+    color: #dc3545;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 
-    .parent-card-title {
-        font-weight: 700;
-        font-size: 0.95rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
+.cp-disabled-overlay {
+    opacity: 0.35;
+    pointer-events: none;
+    filter: grayscale(0.5);
+    transition: all 0.3s;
+}
 
-    .submit-section {
-        text-align: center;
-        padding: 2rem 0;
-    }
+/* ============ SCHOOL SECTION ============ */
+.cp-school-visual {
+    background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(239,68,68,0.04));
+    border: 1px solid rgba(245,158,11,0.15);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
+}
+.cp-school-visual i {
+    font-size: 1.2rem;
+    color: #f59e0b;
+}
 
-    .submit-section .btn-primary {
-        padding: 0.85rem 3.5rem;
-        font-size: 1.1rem;
-        font-weight: 700;
-        border-radius: 50px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        transition: all 0.3s ease;
-        letter-spacing: 0.5px;
-    }
+/* ============ SUBMIT ============ */
+.cp-submit {
+    text-align: center;
+    padding: 1.5rem 0 0;
+    animation: fadeInUp 0.5s ease 0.4s both;
+}
+.cp-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.9rem 3rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
+    position: relative;
+    overflow: hidden;
+}
+.cp-submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.5s ease;
+}
+.cp-submit-btn:hover::before {
+    left: 100%;
+}
+.cp-submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(99,102,241,0.4);
+    color: #fff;
+}
+.cp-submit-btn:active {
+    transform: translateY(-1px);
+}
+.cp-submit-hint {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    margin-top: 0.75rem;
+}
 
-    .submit-section .btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    }
+/* ============ ERROR ALERT ============ */
+.cp-errors {
+    border-radius: 16px;
+    border: 1px solid rgba(239,68,68,0.2);
+    background: rgba(239,68,68,0.04);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: scaleIn 0.3s ease both;
+}
+.cp-errors-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #ef4444;
+    margin-bottom: 0.5rem;
+}
+.cp-errors ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--bs-body-color);
+}
+.cp-errors ul li {
+    margin-bottom: 2px;
+}
 
-    .alert-info-custom {
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.08), rgba(118, 75, 162, 0.08));
-        border: 1px solid rgba(102, 126, 234, 0.2);
-        border-radius: 12px;
-        padding: 1rem 1.25rem;
-        color: var(--bs-body-color);
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-    }
-
-    .alert-info-custom i {
-        font-size: 1.3rem;
-        color: #667eea;
-        margin-top: 0.1rem;
-    }
-
-    .step-number {
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        font-weight: 700;
-        margin-right: 0.5rem;
-    }
-
-    .disabled-field {
-        opacity: 0.4;
-        pointer-events: none;
-    }
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .cp-steps { flex-direction: column; gap: 8px; }
+    .cp-passport-grid { grid-template-columns: 1fr 1fr; }
+    .cp-passport-grid .cp-field:first-child { grid-column: 1 / -1; }
+    .cp-parent-grid { grid-template-columns: 1fr; }
+    .cp-hero { padding: 2rem 1.25rem 1.5rem; border-radius: 18px; }
+    .cp-progress-ring { width: 80px; height: 80px; font-size: 1.5rem; }
+}
+@media (max-width: 480px) {
+    .cp-passport-grid { grid-template-columns: 1fr; }
+    .cp-section-body { padding: 1.25rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-complete-container">
-    <!-- Header -->
-    <div class="progress-header">
-        <div class="progress-circle">{{ completion_percent }}%</div>
-        <h2><i class="bi bi-person-check-fill"></i> Profilingizni to'ldiring</h2>
-        <p class="mb-2 opacity-75">Tizimdan foydalanish uchun barcha ma'lumotlarni kiritishingiz kerak</p>
-        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.15); border-radius: 10px; max-width: 400px; margin: 0 auto;">
-            <div class="progress-bar bg-white" style="width: {{ completion_percent }}%; border-radius: 10px; transition: width 0.5s ease;"></div>
+<div class="cp-container">
+
+    <!-- ======== HERO HEADER ======== -->
+    <div class="cp-hero">
+        <div class="cp-progress-ring">{{ completion_percent }}%</div>
+        <h2><i class="bi bi-person-check-fill me-2"></i>Profilingizni to'ldiring</h2>
+        <p>Tizimdan to'liq foydalanish uchun barcha ma'lumotlarni kiriting</p>
+        <div class="cp-progress-track">
+            <div class="cp-progress-fill" style="width: {{ completion_percent }}%;"></div>
         </div>
     </div>
 
+    <!-- ======== STEPS ======== -->
+    <div class="cp-steps">
+        <div class="cp-step" onclick="scrollToSection('section-personal')">
+            <div class="cp-step-num">1</div>
+            <div class="cp-step-text">Shaxsiy<small>Ism, tug'ilgan kun</small></div>
+        </div>
+        <div class="cp-step" onclick="scrollToSection('section-passport')">
+            <div class="cp-step-num">2</div>
+            <div class="cp-step-text">Pasport<small>Seriya, JSHSHIR</small></div>
+        </div>
+        <div class="cp-step" onclick="scrollToSection('section-parents')">
+            <div class="cp-step-num">3</div>
+            <div class="cp-step-text">Ota-ona<small>Aloqa ma'lumotlari</small></div>
+        </div>
+        <div class="cp-step" onclick="scrollToSection('section-school')">
+            <div class="cp-step-num">4</div>
+            <div class="cp-step-text">Maktab<small>Ta'lim ma'lumotlari</small></div>
+        </div>
+    </div>
+
+    <!-- ======== ERROR DISPLAY ======== -->
     {% if form.errors %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 12px;">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>Xatoliklar mavjud!</strong>
-        <ul class="mb-0 mt-2">
+    <div class="cp-errors">
+        <div class="cp-errors-title">
+            <i class="bi bi-exclamation-triangle-fill"></i> Xatoliklar topildi!
+        </div>
+        <ul>
         {% for field, errors in form.errors.items %}
             {% for error in errors %}
             <li>{{ error }}</li>
             {% endfor %}
         {% endfor %}
         </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endif %}
 
-    <div class="alert-info-custom mb-3">
+    <!-- ======== HINT ======== -->
+    <div class="cp-alert info">
         <i class="bi bi-info-circle-fill"></i>
-        <div>
-            <strong>Eslatma:</strong> Barcha <span class="required-badge">Majburiy</span> belgilangan maydonlarni to'ldiring.
-            Pasport seriyasi, raqami va JSHSHIR kiritish majburiy.
+        <div class="cp-alert-text">
+            <strong>Eslatma:</strong> <span class="cp-required">Majburiy</span> belgilangan maydonlarni to'ldiring.
+            Pasport seriyasi, raqami va JSHSHIR to'g'ri kiritilganligiga ishonch hosil qiling.
         </div>
     </div>
 
     <form method="post">
         {% csrf_token %}
 
-        <!-- Section 1: Shaxsiy ma'lumotlar -->
-        <div class="form-section">
-            <div class="section-title">
-                <div class="section-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+        <!-- ======== SECTION 1: SHAXSIY ======== -->
+        <div class="cp-section" id="section-personal">
+            <div class="cp-section-header">
+                <div class="cp-section-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
                     <i class="bi bi-person-fill"></i>
                 </div>
-                <span><span class="step-number">1</span> Shaxsiy ma'lumotlar</span>
+                <h3>Shaxsiy ma'lumotlar<small>Asosiy shaxsiy ma'lumotlaringiz</small></h3>
             </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Ism <span class="required-badge">Majburiy</span></label>
-                    {{ form.first_name }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Familiya <span class="required-badge">Majburiy</span></label>
-                    {{ form.last_name }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Tug'ilgan kuni <span class="required-badge">Majburiy</span></label>
-                    {{ form.birth_date }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Jinsi <span class="required-badge">Majburiy</span></label>
-                    {{ form.gender }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Millati <span class="required-badge">Majburiy</span></label>
-                    {{ form.nationality }}
+            <div class="cp-section-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-person"></i> Ism <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.first_name }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-person"></i> Familiya <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-calendar-event"></i> Tug'ilgan kuni <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.birth_date }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-gender-ambiguous"></i> Jinsi <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.gender }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-globe2"></i> Millati <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.nationality }}
+                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Masalan: O'zbek, Tojik, Qozoq</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section 2: Pasport ma'lumotlari -->
-        <div class="form-section">
-            <div class="section-title">
-                <div class="section-icon" style="background: linear-gradient(135deg, #00b894, #00cec9);">
+        <!-- ======== SECTION 2: PASPORT ======== -->
+        <div class="cp-section" id="section-passport">
+            <div class="cp-section-header">
+                <div class="cp-section-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
                     <i class="bi bi-credit-card-2-front-fill"></i>
                 </div>
-                <span><span class="step-number">2</span> Pasport ma'lumotlari</span>
+                <h3>Pasport ma'lumotlari<small>Hujjat seriya raqami va JSHSHIR</small></h3>
             </div>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Seriya <span class="required-badge">Majburiy</span></label>
-                    {{ form.passport_series }}
+            <div class="cp-section-body">
+                <div class="cp-passport-visual">
+                    <div class="cp-passport-icon-big">
+                        <i class="bi bi-credit-card-2-front"></i>
+                    </div>
+                    <div class="cp-passport-desc">
+                        Pasport yoki ID kartangizning <strong>seriya va raqamini</strong>,
+                        <strong>JSHSHIR (PINFL)</strong> hamda <strong>berilgan sanasini</strong> kiriting.
+                        Rasm yuklanmaydi — faqat ma'lumotlar kiritiladi.
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Raqam <span class="required-badge">Majburiy</span></label>
-                    {{ form.passport_number }}
+
+                <div class="cp-passport-grid">
+                    <div class="cp-field">
+                        <label class="cp-label">
+                            <i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span>
+                        </label>
+                        {{ form.passport_series }}
+                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: AA</div>
+                    </div>
+                    <div class="cp-field">
+                        <label class="cp-label">
+                            <i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span>
+                        </label>
+                        {{ form.passport_number }}
+                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
+                    </div>
+                    <div class="cp-field">
+                        <label class="cp-label">
+                            <i class="bi bi-fingerprint"></i> JSHSHIR (PINFL) <span class="cp-required">Majburiy</span>
+                        </label>
+                        {{ form.jshshir }}
+                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
+                    </div>
                 </div>
-                <div class="col-md-5">
-                    <label class="form-label">JSHSHIR (PINFL) <span class="required-badge">Majburiy</span></label>
-                    {{ form.jshshir }}
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Berilgan sana <span class="optional-badge">Ixtiyoriy</span></label>
-                    {{ form.passport_issued_date }}
+
+                <div class="row mt-3">
+                    <div class="col-md-4">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-calendar-date"></i> Berilgan sana <span class="cp-optional">Ixtiyoriy</span>
+                            </label>
+                            {{ form.passport_issued_date }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section 3: Ota-ona ma'lumotlari -->
-        <div class="form-section">
-            <div class="section-title">
-                <div class="section-icon" style="background: linear-gradient(135deg, #e17055, #d63031);">
+        <!-- ======== SECTION 3: OTA-ONA ======== -->
+        <div class="cp-section" id="section-parents">
+            <div class="cp-section-header">
+                <div class="cp-section-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">
                     <i class="bi bi-people-fill"></i>
                 </div>
-                <span><span class="step-number">3</span> Ota-ona ma'lumotlari</span>
+                <h3>Ota-ona ma'lumotlari<small>Ota va ona haqida to'liq ma'lumot</small></h3>
             </div>
-
-            <div class="row g-3">
-                <!-- Ota -->
-                <div class="col-md-6">
-                    <div class="parent-card">
-                        <div class="parent-card-title">
-                            <i class="bi bi-person" style="color: #0984e3;"></i> Ota ma'lumotlari
+            <div class="cp-section-body">
+                <div class="cp-parent-grid">
+                    <!-- OTA -->
+                    <div class="cp-parent-card father">
+                        <div class="cp-parent-title">
+                            <div class="cp-parent-title-icon"><i class="bi bi-person-fill"></i></div>
+                            Ota ma'lumotlari
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">To'liq ismi <span class="required-badge">Majburiy</span></label>
-                            <div id="father-name-wrapper">{{ form.father_name }}</div>
+                        <div id="father-fields-wrapper">
+                            <div class="cp-field">
+                                <label class="cp-label">
+                                    To'liq ismi <span class="cp-required">Majburiy</span>
+                                </label>
+                                {{ form.father_name }}
+                            </div>
+                            <div class="cp-field mb-0">
+                                <label class="cp-label">
+                                    Telefon raqami <span class="cp-optional">Ixtiyoriy</span>
+                                </label>
+                                {{ form.father_phone }}
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Telefon raqami <span class="optional-badge">Ixtiyoriy</span></label>
-                            <div id="father-phone-wrapper">{{ form.father_phone }}</div>
-                        </div>
-                        <div class="deceased-check">
+                        <div class="cp-deceased" onclick="toggleDeceased(this, 'father')">
                             {{ form.father_deceased }}
                             <label for="{{ form.father_deceased.id_for_label }}">
-                                <i class="bi bi-heartbreak"></i> Vafot etgan
+                                <i class="bi bi-heartbreak-fill"></i> Vafot etgan
                             </label>
                         </div>
                     </div>
-                </div>
 
-                <!-- Ona -->
-                <div class="col-md-6">
-                    <div class="parent-card">
-                        <div class="parent-card-title">
-                            <i class="bi bi-person" style="color: #e84393;"></i> Ona ma'lumotlari
+                    <!-- ONA -->
+                    <div class="cp-parent-card mother">
+                        <div class="cp-parent-title">
+                            <div class="cp-parent-title-icon"><i class="bi bi-person-fill"></i></div>
+                            Ona ma'lumotlari
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">To'liq ismi <span class="required-badge">Majburiy</span></label>
-                            <div id="mother-name-wrapper">{{ form.mother_name }}</div>
+                        <div id="mother-fields-wrapper">
+                            <div class="cp-field">
+                                <label class="cp-label">
+                                    To'liq ismi <span class="cp-required">Majburiy</span>
+                                </label>
+                                {{ form.mother_name }}
+                            </div>
+                            <div class="cp-field mb-0">
+                                <label class="cp-label">
+                                    Telefon raqami <span class="cp-optional">Ixtiyoriy</span>
+                                </label>
+                                {{ form.mother_phone }}
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Telefon raqami <span class="optional-badge">Ixtiyoriy</span></label>
-                            <div id="mother-phone-wrapper">{{ form.mother_phone }}</div>
-                        </div>
-                        <div class="deceased-check">
+                        <div class="cp-deceased" onclick="toggleDeceased(this, 'mother')">
                             {{ form.mother_deceased }}
                             <label for="{{ form.mother_deceased.id_for_label }}">
-                                <i class="bi bi-heartbreak"></i> Vafot etgan
+                                <i class="bi bi-heartbreak-fill"></i> Vafot etgan
                             </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <label class="form-label">Asosiy ota-ona telefon raqami <span class="required-badge">Majburiy</span></label>
-                    {{ form.parent_phone }}
-                    <small class="text-muted mt-1 d-block">Bog'lanish uchun asosiy raqam</small>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-telephone-fill"></i> Asosiy ota-ona telefon raqami <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.parent_phone }}
+                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Bog'lanish uchun asosiy raqam (+998...)</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Section 4: Maktab ma'lumotlari -->
-        <div class="form-section">
-            <div class="section-title">
-                <div class="section-icon" style="background: linear-gradient(135deg, #fdcb6e, #e17055);">
+        <!-- ======== SECTION 4: MAKTAB ======== -->
+        <div class="cp-section" id="section-school">
+            <div class="cp-section-header">
+                <div class="cp-section-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
                     <i class="bi bi-building"></i>
                 </div>
-                <span><span class="step-number">4</span> Maktab ma'lumotlari</span>
+                <h3>Maktab ma'lumotlari<small>Hozirgi ta'lim muassasasi</small></h3>
             </div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Maktab nomi <span class="required-badge">Majburiy</span></label>
-                    {{ form.school_name }}
+            <div class="cp-section-body">
+                <div class="cp-school-visual">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    Hozirda o'qiyotgan yoki oxirgi maktabingiz haqida ma'lumot kiriting
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label">Maktab raqami <span class="required-badge">Majburiy</span></label>
-                    {{ form.school_number }}
-                </div>
-                <div class="col-12">
-                    <label class="form-label">Yashash manzili <span class="required-badge">Majburiy</span></label>
-                    {{ form.address }}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-building"></i> Maktab nomi <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.school_name }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="cp-field">
+                            <label class="cp-label">
+                                <i class="bi bi-123"></i> Maktab raqami <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.school_number }}
+                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: 15, 32-IDUM</div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="cp-field mb-0">
+                            <label class="cp-label">
+                                <i class="bi bi-geo-alt-fill"></i> Yashash manzili <span class="cp-required">Majburiy</span>
+                            </label>
+                            {{ form.address }}
+                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Viloyat, tuman, ko'cha va uy raqami</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Submit -->
-        <div class="submit-section">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-check-circle-fill me-2"></i> Profilni saqlash
+        <!-- ======== SUBMIT ======== -->
+        <div class="cp-submit">
+            <button type="submit" class="cp-submit-btn">
+                <i class="bi bi-check-circle-fill"></i> Profilni saqlash
             </button>
+            <div class="cp-submit-hint">
+                <i class="bi bi-shield-check"></i> Ma'lumotlaringiz xavfsiz saqlanadi
+            </div>
         </div>
     </form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Father deceased toggle
+    // ===== Deceased toggles =====
     const fatherDeceased = document.getElementById('{{ form.father_deceased.id_for_label }}');
-    const fatherNameWrapper = document.getElementById('father-name-wrapper');
-    const fatherPhoneWrapper = document.getElementById('father-phone-wrapper');
+    const fatherWrapper = document.getElementById('father-fields-wrapper');
+    const motherDeceased = document.getElementById('{{ form.mother_deceased.id_for_label }}');
+    const motherWrapper = document.getElementById('mother-fields-wrapper');
 
-    function toggleFather() {
-        if (fatherDeceased && fatherDeceased.checked) {
-            fatherNameWrapper.classList.add('disabled-field');
-            fatherPhoneWrapper.classList.add('disabled-field');
+    function applyDeceased(checkbox, wrapper) {
+        if (!checkbox || !wrapper) return;
+        if (checkbox.checked) {
+            wrapper.classList.add('cp-disabled-overlay');
         } else {
-            fatherNameWrapper.classList.remove('disabled-field');
-            fatherPhoneWrapper.classList.remove('disabled-field');
+            wrapper.classList.remove('cp-disabled-overlay');
         }
     }
 
     if (fatherDeceased) {
-        fatherDeceased.addEventListener('change', toggleFather);
-        toggleFather();
+        fatherDeceased.addEventListener('change', function() { applyDeceased(fatherDeceased, fatherWrapper); });
+        applyDeceased(fatherDeceased, fatherWrapper);
     }
-
-    // Mother deceased toggle
-    const motherDeceased = document.getElementById('{{ form.mother_deceased.id_for_label }}');
-    const motherNameWrapper = document.getElementById('mother-name-wrapper');
-    const motherPhoneWrapper = document.getElementById('mother-phone-wrapper');
-
-    function toggleMother() {
-        if (motherDeceased && motherDeceased.checked) {
-            motherNameWrapper.classList.add('disabled-field');
-            motherPhoneWrapper.classList.add('disabled-field');
-        } else {
-            motherNameWrapper.classList.remove('disabled-field');
-            motherPhoneWrapper.classList.remove('disabled-field');
-        }
-    }
-
     if (motherDeceased) {
-        motherDeceased.addEventListener('change', toggleMother);
-        toggleMother();
+        motherDeceased.addEventListener('change', function() { applyDeceased(motherDeceased, motherWrapper); });
+        applyDeceased(motherDeceased, motherWrapper);
+    }
+
+    // ===== Steps highlight on scroll =====
+    const sections = document.querySelectorAll('.cp-section');
+    const steps = document.querySelectorAll('.cp-step');
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+                const idx = Array.from(sections).indexOf(entry.target);
+                steps.forEach(function(s, i) {
+                    s.classList.toggle('active', i === idx);
+                });
+            }
+        });
+    }, { threshold: 0.3 });
+    sections.forEach(function(s) { observer.observe(s); });
+
+    // ===== Input mask: JSHSHIR =====
+    const jshshirInput = document.getElementById('{{ form.jshshir.id_for_label }}');
+    if (jshshirInput) {
+        jshshirInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14);
+        });
+    }
+
+    // ===== Input mask: passport series =====
+    const passSeriesInput = document.getElementById('{{ form.passport_series.id_for_label }}');
+    if (passSeriesInput) {
+        passSeriesInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2);
+        });
+    }
+
+    // ===== Input mask: passport number =====
+    const passNumInput = document.getElementById('{{ form.passport_number.id_for_label }}');
+    if (passNumInput) {
+        passNumInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 7);
+        });
     }
 });
+
+function scrollToSection(id) {
+    var el = document.getElementById(id);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function toggleDeceased(container, type) {
+    if (event.target.tagName === 'INPUT') return;
+    var cb = container.querySelector('input[type="checkbox"]');
+    if (cb) {
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+    }
+}
 </script>
 {% endblock %}

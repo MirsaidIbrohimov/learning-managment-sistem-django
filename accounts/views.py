@@ -4126,42 +4126,125 @@ def export_student_pdf(request, pk=None):
     
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from io import BytesIO
     
     buffer = BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=A4)
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=30, bottomMargin=30)
     elements = []
     styles = getSampleStyleSheet()
     
-    elements.append(Paragraph(f"O'quvchi statistikasi: {student.full_name}", styles['Heading1']))
-    elements.append(Paragraph(f"Sana: {timezone.now().strftime('%d.%m.%Y')}", styles['Normal']))
-    elements.append(Spacer(1, 20))
+    heading_style = ParagraphStyle(
+        'SectionHeading',
+        parent=styles['Heading2'],
+        spaceAfter=8,
+        spaceBefore=16,
+        textColor=colors.HexColor('#6366f1')
+    )
     
-    # General info
-    info_data = [
-        ['Ko\'rsatkich', 'Qiymat'],
+    def make_table(data, col_widths=None):
+        if col_widths is None:
+            col_widths = [220, 250]
+        t = Table(data, colWidths=col_widths)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#6366f1')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6')),
+            ('PADDING', (0, 0), (-1, -1), 8),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f8f9fa')]),
+        ]))
+        return t
+    
+    elements.append(Paragraph(f"O'quvchi anketa: {student.full_name}", styles['Heading1']))
+    elements.append(Paragraph(f"Sana: {timezone.now().strftime('%d.%m.%Y')}", styles['Normal']))
+    elements.append(Spacer(1, 16))
+    
+    # Shaxsiy ma'lumotlar
+    elements.append(Paragraph("Shaxsiy ma'lumotlar", heading_style))
+    personal_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ['Ism', student.first_name or '-'],
+        ['Familiya', student.last_name or '-'],
+        ["Tug'ilgan kuni", student.birth_date.strftime('%d.%m.%Y') if student.birth_date else '-'],
+        ['Jinsi', student.get_gender_display() if student.gender else '-'],
+        ['Millati', student.nationality or '-'],
+        ['Telefon', student.phone or '-'],
+        ['Manzil', student.address or '-'],
+    ]
+    elements.append(make_table(personal_data))
+    elements.append(Spacer(1, 12))
+    
+    # Pasport ma'lumotlari
+    elements.append(Paragraph("Pasport ma'lumotlari", heading_style))
+    passport_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ['Pasport seriyasi', student.passport_series or '-'],
+        ['Pasport raqami', student.passport_number or '-'],
+        ['JSHSHIR (PINFL)', student.jshshir or '-'],
+        ['Berilgan sana', student.passport_issued_date.strftime('%d.%m.%Y') if student.passport_issued_date else '-'],
+    ]
+    elements.append(make_table(passport_data))
+    elements.append(Spacer(1, 12))
+    
+    # Ota ma'lumotlari
+    elements.append(Paragraph("Ota ma'lumotlari", heading_style))
+    father_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ["To'liq ismi", student.father_name or '-'],
+        ['Telefon raqami', student.father_phone or '-'],
+        ['Vafot etgan', 'Ha' if student.father_deceased else "Yo'q"],
+    ]
+    elements.append(make_table(father_data))
+    elements.append(Spacer(1, 12))
+    
+    # Ona ma'lumotlari
+    elements.append(Paragraph("Ona ma'lumotlari", heading_style))
+    mother_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ["To'liq ismi", student.mother_name or '-'],
+        ['Telefon raqami', student.mother_phone or '-'],
+        ['Vafot etgan', 'Ha' if student.mother_deceased else "Yo'q"],
+    ]
+    elements.append(make_table(mother_data))
+    elements.append(Spacer(1, 12))
+    
+    # Asosiy aloqa
+    elements.append(Paragraph("Asosiy aloqa", heading_style))
+    contact_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ['Ota-ona telefoni', student.parent_phone or '-'],
+    ]
+    elements.append(make_table(contact_data))
+    elements.append(Spacer(1, 12))
+    
+    # Maktab ma'lumotlari
+    elements.append(Paragraph("Maktab ma'lumotlari", heading_style))
+    school_data = [
+        ["Ma'lumot", 'Qiymat'],
+        ['Maktab nomi', student.school_name or '-'],
+        ['Maktab raqami', student.school_number or '-'],
+    ]
+    elements.append(make_table(school_data))
+    elements.append(Spacer(1, 16))
+    
+    # Statistika
+    elements.append(Paragraph("O'quv statistikasi", heading_style))
+    stats_data = [
+        ["Ko'rsatkich", 'Qiymat'],
         ['Jami coinlar', str(student.coins)],
-        ['Ko\'rilgan videolar', str(VideoProgress.objects.filter(user=student, watched=True).count())],
+        ["Ko'rilgan videolar", str(VideoProgress.objects.filter(user=student, watched=True).count())],
         ['Test natijalari', str(TestResult.objects.filter(student=student).count())],
         ['Topshirilgan vazifalar', str(HomeworkSubmission.objects.filter(student=student).count())],
     ]
-    
-    table = Table(info_data, colWidths=[250, 150])
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0d6efd')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#dee2e6')),
-        ('PADDING', (0, 0), (-1, -1), 8),
-    ]))
-    elements.append(table)
+    elements.append(make_table(stats_data))
     
     doc.build(elements)
     buffer.seek(0)
     
     response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="student_stats_{student.username}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="student_anketa_{student.username}.pdf"'
     return response
 
 
