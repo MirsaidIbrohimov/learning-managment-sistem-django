@@ -675,6 +675,153 @@
         </div>
     </div>
 
+    <!-- ANKETA MA'LUMOTLARI -->
+    {% if user_obj.is_profile_completed or user_obj.passport_series or user_obj.father_name or user_obj.mother_name %}
+    <div class="uv-info-card uv-anim-3">
+        <div class="uv-info-header">
+            <div class="uv-info-header-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
+                <i class="bi bi-card-checklist"></i>
+            </div>
+            <h5>Anketa ma'lumotlari</h5>
+            {% if user_obj.is_profile_completed %}
+            <span style="margin-left:auto;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(34,197,94,.12);color:#22c55e;">
+                <i class="bi bi-check-circle-fill me-1"></i>To'ldirilgan
+            </span>
+            {% else %}
+            <span style="margin-left:auto;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(245,158,11,.12);color:#f59e0b;">
+                <i class="bi bi-exclamation-circle-fill me-1"></i>To'liq emas
+            </span>
+            {% endif %}
+        </div>
+        <div class="uv-info-body">
+
+            <!-- Pasport -->
+            <div style="margin-bottom:20px;">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-credit-card-2-front-fill" style="color:#6366f1;"></i> Pasport ma'lumotlari
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-hash me-1"></i> Seriya</div>
+                        <div class="uv-info-value">{{ user_obj.passport_series|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-123 me-1"></i> Raqam</div>
+                        <div class="uv-info-value">{{ user_obj.passport_number|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-fingerprint me-1"></i> JSHSHIR (PINFL)</div>
+                        <div class="uv-info-value" style="letter-spacing:.5px;">{{ user_obj.jshshir|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-calendar-date me-1"></i> Berilgan sana</div>
+                        <div class="uv-info-value">{% if user_obj.passport_issued_date %}{{ user_obj.passport_issued_date|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shaxsiy -->
+            <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--bs-border-color);">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-person-fill" style="color:#8b5cf6;"></i> Shaxsiy
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-gender-ambiguous me-1"></i> Jinsi</div>
+                        <div class="uv-info-value">{% if user_obj.gender %}{{ user_obj.get_gender_display }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-globe2 me-1"></i> Millati</div>
+                        <div class="uv-info-value">{{ user_obj.nationality|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-cake2 me-1"></i> Tug'ilgan kuni</div>
+                        <div class="uv-info-value">{% if user_obj.birth_date %}{{ user_obj.birth_date|date:"d.m.Y" }}{% else %}—{% endif %}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-geo-alt me-1"></i> Manzil</div>
+                        <div class="uv-info-value">{{ user_obj.address|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ota ma'lumotlari -->
+            <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--bs-border-color);">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-person" style="color:#3b82f6;"></i> Ota ma'lumotlari
+                    {% if user_obj.father_deceased %}
+                    <span style="padding:2px 10px;border-radius:50px;font-size:.68rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;">
+                        <i class="bi bi-heartbreak"></i> Vafot etgan
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-person me-1"></i> To'liq ismi</div>
+                        <div class="uv-info-value">{{ user_obj.father_name|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-telephone me-1"></i> Telefon</div>
+                        <div class="uv-info-value">{{ user_obj.father_phone|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ona ma'lumotlari -->
+            <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--bs-border-color);">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-person" style="color:#ec4899;"></i> Ona ma'lumotlari
+                    {% if user_obj.mother_deceased %}
+                    <span style="padding:2px 10px;border-radius:50px;font-size:.68rem;font-weight:700;background:rgba(239,68,68,.1);color:#ef4444;">
+                        <i class="bi bi-heartbreak"></i> Vafot etgan
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-person me-1"></i> To'liq ismi</div>
+                        <div class="uv-info-value">{{ user_obj.mother_name|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-telephone me-1"></i> Telefon</div>
+                        <div class="uv-info-value">{{ user_obj.mother_phone|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ota-ona umumiy telefon -->
+            <div style="margin-bottom:20px;padding-top:16px;border-top:1px solid var(--bs-border-color);">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-telephone-fill" style="color:#f59e0b;"></i> Asosiy aloqa
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-telephone-forward me-1"></i> Ota-ona telefoni</div>
+                        <div class="uv-info-value">{{ user_obj.parent_phone|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maktab -->
+            <div style="padding-top:16px;border-top:1px solid var(--bs-border-color);">
+                <div style="font-size:.78rem;font-weight:700;color:var(--bs-secondary-color);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
+                    <i class="bi bi-building" style="color:#f59e0b;"></i> Maktab ma'lumotlari
+                </div>
+                <div class="uv-info-grid">
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-building me-1"></i> Maktab nomi</div>
+                        <div class="uv-info-value">{{ user_obj.school_name|default:"—" }}</div>
+                    </div>
+                    <div class="uv-info-item">
+                        <div class="uv-info-label"><i class="bi bi-123 me-1"></i> Maktab raqami</div>
+                        <div class="uv-info-value">{{ user_obj.school_number|default:"—" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- CERTIFICATES -->
     {% if certificates %}
     <div class="uv-info-card uv-anim-3">
