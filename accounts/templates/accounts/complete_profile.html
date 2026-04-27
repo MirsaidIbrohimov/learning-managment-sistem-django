@@ -1,0 +1,271 @@
+{% extends 'accounts/base.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Profilni to'ldirish - LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-complete-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .progress-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .progress-header h2 {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-circle {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .form-section {
+        background: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .section-title i {
+        font-size: 1.3rem;
+        color: #667eea;
+    }
+    
+    .required-badge {
+        display: inline-block;
+        background: #dc3545;
+        color: white;
+        font-size: 0.65rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 20px;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+    
+    .doc-upload-area {
+        border: 2px dashed var(--bs-border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s;
+        background: var(--bs-tertiary-bg);
+    }
+    
+    .doc-upload-area:hover {
+        border-color: #667eea;
+        background: rgba(102, 126, 234, 0.05);
+    }
+    
+    .submit-section {
+        text-align: center;
+        padding: 2rem 0;
+    }
+    
+    .submit-section .btn-primary {
+        padding: 0.75rem 3rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+    
+    .submit-section .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .alert-info-custom {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        color: var(--bs-body-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-complete-container">
+    <!-- Header -->
+    <div class="progress-header">
+        <div class="progress-circle">{{ completion_percent }}%</div>
+        <h2><i class="bi bi-person-check"></i> Profilingizni to'ldiring</h2>
+        <p class="mb-2">Tizimdan foydalanish uchun barcha ma'lumotlarni kiritishingiz kerak</p>
+        <div class="progress" style="height: 8px; background: rgba(255,255,255,0.2); border-radius: 10px;">
+            <div class="progress-bar bg-white" style="width: {{ completion_percent }}%; border-radius: 10px;"></div>
+        </div>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>Xatoliklar mavjud!</strong>
+        <ul class="mb-0 mt-2">
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <div class="alert-info-custom mb-3">
+        <i class="bi bi-info-circle me-1"></i>
+        <strong>Eslatma:</strong> Barcha <span class="required-badge">Majburiy</span> belgilangan maydonlarni to'ldiring. 
+        Pasport yoki tug'ilganlik guvohnomasidan kamida bittasini yuklang.
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Section 1: Shaxsiy ma'lumotlar -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-person-fill"></i> Shaxsiy ma'lumotlar
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Ism <span class="required-badge">Majburiy</span></label>
+                    {{ form.first_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Familiya <span class="required-badge">Majburiy</span></label>
+                    {{ form.last_name }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tug'ilgan kuni <span class="required-badge">Majburiy</span></label>
+                    {{ form.birth_date }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Jinsi <span class="required-badge">Majburiy</span></label>
+                    {{ form.gender }}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Millati <span class="required-badge">Majburiy</span></label>
+                    {{ form.nationality }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Ota-ona ma'lumotlari -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-people-fill"></i> Ota-ona ma'lumotlari
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Otasining to'liq ismi <span class="required-badge">Majburiy</span></label>
+                    {{ form.father_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Onasining to'liq ismi <span class="required-badge">Majburiy</span></label>
+                    {{ form.mother_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ota-ona telefon raqami <span class="required-badge">Majburiy</span></label>
+                    {{ form.parent_phone }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Maktab ma'lumotlari -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-building"></i> Maktab ma'lumotlari
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Maktab nomi <span class="required-badge">Majburiy</span></label>
+                    {{ form.school_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Maktab raqami <span class="required-badge">Majburiy</span></label>
+                    {{ form.school_number }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Yashash manzili <span class="required-badge">Majburiy</span></label>
+                    {{ form.address }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Hujjatlar -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="bi bi-file-earmark-text-fill"></i> Hujjatlar
+                <span class="required-badge">Kamida bittasi</span>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="doc-upload-area">
+                        <i class="bi bi-credit-card-2-front" style="font-size: 2rem; color: #667eea;"></i>
+                        <p class="mb-2 mt-2 fw-semibold">Pasport / ID karta</p>
+                        {{ form.id_card }}
+                        {% if form.instance.id_card %}
+                        <div class="mt-2">
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Yuklangan</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="doc-upload-area">
+                        <i class="bi bi-file-earmark-medical" style="font-size: 2rem; color: #764ba2;"></i>
+                        <p class="mb-2 mt-2 fw-semibold">Tug'ilganlik guvohnomasi</p>
+                        {{ form.birth_certificate }}
+                        {% if form.instance.birth_certificate %}
+                        <div class="mt-2">
+                            <span class="badge bg-success"><i class="bi bi-check-circle"></i> Yuklangan</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="submit-section">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-2"></i> Profilni saqlash
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

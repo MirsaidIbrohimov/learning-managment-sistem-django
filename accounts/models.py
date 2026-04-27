@@ -137,6 +137,21 @@ class CustomUser(AbstractUser):
         verbose_name="Tug'ilganlik haqida guvohnoma"
     )
 
+    # Student Profile - additional required fields
+    GENDER_CHOICES = (
+        ('male', 'Erkak'),
+        ('female', 'Ayol'),
+    )
+    
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True, verbose_name="Jinsi")
+    nationality = models.CharField(max_length=100, blank=True, null=True, verbose_name="Millati")
+    father_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Otasining to'liq ismi")
+    mother_name = models.CharField(max_length=200, blank=True, null=True, verbose_name="Onasining to'liq ismi")
+    parent_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Ota-ona telefon raqami")
+    school_name = models.CharField(max_length=300, blank=True, null=True, verbose_name="Maktab nomi")
+    school_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Maktab raqami")
+    is_profile_completed = models.BooleanField(default=False, verbose_name="Profil to'ldirilgan")
+
     # ---------------- PROPERTIES ----------------
 
     @property
@@ -165,6 +180,32 @@ class CustomUser(AbstractUser):
         first = self.first_name[0] if self.first_name else ''
         last = self.last_name[0] if self.last_name else ''
         return f"{first}{last}".upper()
+
+    @property
+    def profile_completion_percent(self):
+        """Calculate profile completion percentage"""
+        required_fields = [
+            self.first_name, self.last_name, self.birth_date,
+            self.gender, self.nationality,
+            self.father_name, self.mother_name, self.parent_phone,
+            self.school_name, self.school_number, self.address,
+        ]
+        # At least one document required
+        has_document = bool(self.id_card) or bool(self.birth_certificate)
+        filled = sum(1 for f in required_fields if f) + (1 if has_document else 0)
+        total = len(required_fields) + 1  # +1 for document
+        return round((filled / total) * 100)
+    
+    def check_profile_completed(self):
+        """Check if all required profile fields are filled"""
+        required = all([
+            self.first_name, self.last_name, self.birth_date,
+            self.gender, self.nationality,
+            self.father_name, self.mother_name, self.parent_phone,
+            self.school_name, self.school_number, self.address,
+        ])
+        has_document = bool(self.id_card) or bool(self.birth_certificate)
+        return required and has_document
 
     # ---------------- COINS ----------------
 

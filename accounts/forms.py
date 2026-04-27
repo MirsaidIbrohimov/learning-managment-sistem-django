@@ -561,3 +561,118 @@ class PasswordResetRequestForm(forms.Form):
             raise forms.ValidationError("Parol kamida 6 ta belgidan iborat bo'lishi kerak!")
         
         return cleaned_data
+
+
+class StudentProfileCompleteForm(forms.ModelForm):
+    """Profil to'ldirish formasi - login dan keyin majburiy"""
+    
+    first_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ismingiz'})
+    )
+    last_name = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Familiyangiz'})
+    )
+    birth_date = forms.DateField(
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        label="Tug'ilgan kuni"
+    )
+    gender = forms.ChoiceField(
+        choices=[('', 'Tanlang...')] + list(CustomUser.GENDER_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Jinsi"
+    )
+    nationality = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}),
+        label="Millati"
+    )
+    father_name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Otangizning to'liq ismi"}),
+        label="Otasining to'liq ismi"
+    )
+    mother_name = forms.CharField(
+        max_length=200,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Onangizning to'liq ismi"}),
+        label="Onasining to'liq ismi"
+    )
+    parent_phone = forms.CharField(
+        max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998XXXXXXXXX'}),
+        label="Ota-ona telefon raqami"
+    )
+    school_name = forms.CharField(
+        max_length=300,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Maktab nomi'}),
+        label="Maktab nomi"
+    )
+    school_number = forms.CharField(
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: 15'}),
+        label="Maktab raqami"
+    )
+    address = forms.CharField(
+        max_length=300,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "To'liq yashash manzili"}),
+        label="Yashash manzili"
+    )
+    id_card = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label="Pasport / ID karta",
+        help_text="Pasport yoki tug'ilganlik guvohnomasi yuklash majburiy"
+    )
+    birth_certificate = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        label="Tug'ilganlik haqida guvohnoma"
+    )
+
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'birth_date', 'gender', 'nationality',
+            'father_name', 'mother_name', 'parent_phone',
+            'school_name', 'school_number', 'address',
+            'id_card', 'birth_certificate',
+        ]
+
+    def clean_first_name(self):
+        return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
+
+    def clean_last_name(self):
+        return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
+    def clean_parent_phone(self):
+        phone = self.cleaned_data.get('parent_phone', '').strip()
+        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
+        if not phone.startswith('+998'):
+            if phone.startswith('998'):
+                phone = '+' + phone
+            elif phone.startswith('9'):
+                phone = '+998' + phone
+            else:
+                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
+        digits_after_code = phone[4:]
+        if not digits_after_code.isdigit():
+            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
+        if len(phone) != 13:
+            raise forms.ValidationError("Telefon raqami noto'g'ri formatda")
+        return phone
+
+    def clean(self):
+        cleaned_data = super().clean()
+        id_card = cleaned_data.get('id_card')
+        birth_certificate = cleaned_data.get('birth_certificate')
+        
+        # Check if instance already has these files
+        has_existing_id = self.instance and self.instance.id_card
+        has_existing_cert = self.instance and self.instance.birth_certificate
+        
+        if not id_card and not birth_certificate and not has_existing_id and not has_existing_cert:
+            raise forms.ValidationError(
+                "Pasport yoki tug'ilganlik guvohnomasidan kamida bittasini yuklashingiz kerak!"
+            )
+        return cleaned_data

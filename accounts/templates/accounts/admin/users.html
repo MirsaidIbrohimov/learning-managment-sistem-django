@@ -275,10 +275,16 @@
             <h1 class="au-title"><i class="bi bi-people"></i> Foydalanuvchilar</h1>
             <p class="au-sub" style="margin-bottom:0;">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
         </div>
-        <a href="{% url 'admin_add_teacher' %}" class="au-add-teacher-btn">
-            <i class="bi bi-person-plus-fill"></i>
-            <span>O'qituvchi qo'shish</span>
-        </a>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <a href="{% url 'admin_export_students' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#28a745,#20c997);box-shadow:0 2px 8px rgba(40,167,69,0.25);">
+                <i class="bi bi-file-earmark-excel"></i>
+                <span>Excel Export</span>
+            </a>
+            <a href="{% url 'admin_add_teacher' %}" class="au-add-teacher-btn">
+                <i class="bi bi-person-plus-fill"></i>
+                <span>O'qituvchi qo'shish</span>
+            </a>
+        </div>
     </div>
 
     <form method="GET" id="auForm">

@@ -9,6 +9,7 @@ from django.urls import re_path
 urlpatterns = [
     path("ai/", include("ai_yordamchi.urls")),
     path('admin/', admin.site.urls),
+    path('api/v1/', include('api.urls')),
     path('teacher/', include('teacher.urls')),
     path('', include('accounts.urls')),
     path('dashboard/parents/', include('parents.urls')),

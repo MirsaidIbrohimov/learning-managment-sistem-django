@@ -69,6 +69,7 @@ urlpatterns = [
     # Profile
     path('profile/', views.profile_view, name='profile'),
     path('profile/edit/', views.profile_edit_view, name='profile_edit'),
+    path('profile/complete/', views.complete_profile, name='complete_profile'),
     path('profile/change-password/', views.change_password_view, name='change_password'),
     path('profile/statistics/', views.student_statistics, name='my_statistics'),
     path('profile/statistics/pdf/', views.export_student_pdf, name='my_statistics_pdf'),
@@ -115,6 +116,7 @@ urlpatterns = [
     path('dashboard/professions/<int:profession_pk>/add-student/', views.admin_add_student_to_course, name='admin_add_student_to_course'),
     path('dashboard/users/', views.admin_users, name='admin_users'),
     path('dashboard/users/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
+    path('dashboard/users/export/', views.admin_export_students, name='admin_export_students'),
     
     # Admin: O'qituvchilar boshqaruvi
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),

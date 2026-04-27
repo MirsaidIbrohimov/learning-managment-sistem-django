@@ -398,3 +398,35 @@ class SecurityHeadersMiddleware:
         response['Content-Security-Policy'] = '; '.join(csp_directives)
         
         return response
+
+
+class ProfileCompletionMiddleware:
+    """
+    Profil to'ldirilmagan studentlarni complete_profile sahifasiga yo'naltiradi.
+    Login qilgandan keyin majburiy profil to'ldirish.
+    """
+    
+    EXEMPT_URLS = [
+        'complete_profile', 'logout', 'login', 'register', 'admin',
+        'device_limit', 'force_logout_device',
+    ]
+    
+    def __init__(self, get_response):
+        self.get_response = get_response
+    
+    def __call__(self, request):
+        if request.user.is_authenticated and request.user.role == 'student':
+            # Admin va teacher uchun tekshirish kerak emas
+            if not request.user.is_profile_completed:
+                # Static/media fayllar uchun tekshirmaslik
+                if request.path.startswith(('/static/', '/media/', '/admin/')):
+                    return self.get_response(request)
+                
+                try:
+                    resolved = resolve(request.path)
+                    if resolved.url_name not in self.EXEMPT_URLS:
+                        return redirect('complete_profile')
+                except Exception:
+                    pass
+        
+        return self.get_response(request)

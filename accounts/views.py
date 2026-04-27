@@ -798,6 +798,10 @@ def login_view(request):
         # AI yordamchi reklama (har safar login qilganda)
         request.session['show_ai_ad'] = True
 
+        # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
+        if user.role == 'student' and not user.is_profile_completed:
+            return redirect('complete_profile')
+
         return redirect('home')
 
     else:
@@ -3807,6 +3811,36 @@ def student_test_result(request, token, result_pk):
         'student_token': token_obj,
         'video_lesson_token': video_lesson_token,
         'homework_lesson_token': homework_lesson_token,
+    })
+
+
+@login_required
+def complete_profile(request):
+    """Profilni to'ldirish - login dan keyin majburiy"""
+    from .forms import StudentProfileCompleteForm
+    
+    # Agar profil allaqachon to'ldirilgan bo'lsa
+    if request.user.is_profile_completed:
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = StudentProfileCompleteForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            user = form.save(commit=False)
+            if user.check_profile_completed():
+                user.is_profile_completed = True
+            user.save()
+            if user.is_profile_completed:
+                messages.success(request, "Profilingiz muvaffaqiyatli to'ldirildi! ✅")
+                return redirect('home')
+            else:
+                messages.warning(request, "Iltimos, barcha majburiy maydonlarni to'ldiring!")
+    else:
+        form = StudentProfileCompleteForm(instance=request.user)
+    
+    return render(request, 'accounts/complete_profile.html', {
+        'form': form,
+        'completion_percent': request.user.profile_completion_percent,
     })
 
 
@@ -7342,6 +7376,151 @@ def admin_users(request):
         'total_count': total_count,
         'active_filters': active_filters,
     })
+
+
+@login_required
+def admin_export_students(request):
+    """O'quvchilar ma'lumotlarini Excel ga export qilish - maydonlarni tanlash"""
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    # Available fields for export
+    EXPORT_FIELDS = {
+        'username': "Username",
+        'first_name': "Ism",
+        'last_name': "Familiya",
+        'phone': "Telefon",
+        'email': "Email",
+        'birth_date': "Tug'ilgan kuni",
+        'gender': "Jinsi",
+        'nationality': "Millati",
+        'father_name': "Otasining ismi",
+        'mother_name': "Onasining ismi",
+        'parent_phone': "Ota-ona telefoni",
+        'school_name': "Maktab nomi",
+        'school_number': "Maktab raqami",
+        'address': "Manzil",
+        'profession__name': "Yo'nalish",
+        'role': "Rol",
+        'coins': "Coinlar",
+        'date_joined': "Ro'yxatdan o'tgan",
+        'last_activity': "Oxirgi faollik",
+        'is_blocked': "Bloklangan",
+        'is_premium': "Premium",
+        'is_profile_completed': "Profil to'liq",
+        'telegram_username': "Telegram",
+    }
+    
+    if request.method == 'POST':
+        selected_fields = request.POST.getlist('fields')
+        if not selected_fields:
+            messages.error(request, "Kamida bitta maydon tanlang!")
+            return render(request, 'accounts/admin/export_students.html', {
+                'export_fields': EXPORT_FIELDS,
+            })
+        
+        # Filter: only valid fields
+        valid_fields = [f for f in selected_fields if f in EXPORT_FIELDS]
+        if not valid_fields:
+            messages.error(request, "Noto'g'ri maydonlar tanlandi!")
+            return redirect('admin_export_students')
+        
+        return _generate_students_excel(valid_fields, EXPORT_FIELDS)
+    
+    return render(request, 'accounts/admin/export_students.html', {
+        'export_fields': EXPORT_FIELDS,
+    })
+
+
+def _generate_students_excel(selected_fields, field_labels):
+    """Tanlangan maydonlar asosida Excel fayl yaratish"""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    from django.http import HttpResponse
+    
+    # Query students
+    students = CustomUser.objects.filter(role='student').select_related('profession').order_by('first_name', 'last_name')
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "O'quvchilar"
+    
+    # Styles
+    header_font = Font(name='Arial', bold=True, size=12, color='FFFFFF')
+    header_fill = PatternFill(start_color='667eea', end_color='667eea', fill_type='solid')
+    header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    cell_alignment = Alignment(vertical='center', wrap_text=True)
+    thin_border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Headers
+    headers = [field_labels[f] for f in selected_fields]
+    headers.insert(0, '№')
+    
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = thin_border
+    
+    # Data
+    for row_idx, student in enumerate(students, 2):
+        # Row number
+        cell = ws.cell(row=row_idx, column=1, value=row_idx - 1)
+        cell.alignment = cell_alignment
+        cell.border = thin_border
+        
+        for col_idx, field in enumerate(selected_fields, 2):
+            if field == 'profession__name':
+                value = student.profession.name if student.profession else '-'
+            elif field == 'birth_date':
+                value = student.birth_date.strftime('%d.%m.%Y') if student.birth_date else '-'
+            elif field == 'date_joined':
+                value = student.date_joined.strftime('%d.%m.%Y %H:%M') if student.date_joined else '-'
+            elif field == 'last_activity':
+                value = student.last_activity.strftime('%d.%m.%Y %H:%M') if student.last_activity else '-'
+            elif field == 'is_blocked':
+                value = 'Ha' if student.is_blocked else "Yo'q"
+            elif field == 'is_premium':
+                value = 'Ha' if student.is_premium else "Yo'q"
+            elif field == 'is_profile_completed':
+                value = 'Ha' if student.is_profile_completed else "Yo'q"
+            elif field == 'gender':
+                value = student.get_gender_display() if student.gender else '-'
+            elif field == 'role':
+                value = student.get_role_display()
+            else:
+                value = getattr(student, field, '-') or '-'
+            
+            cell = ws.cell(row=row_idx, column=col_idx, value=str(value))
+            cell.alignment = cell_alignment
+            cell.border = thin_border
+    
+    # Auto-width
+    for col in range(1, len(headers) + 1):
+        max_len = 0
+        for row in range(1, ws.max_row + 1):
+            cell_value = str(ws.cell(row=row, column=col).value or '')
+            max_len = max(max_len, len(cell_value))
+        ws.column_dimensions[get_column_letter(col)].width = min(max_len + 4, 40)
+    
+    # Freeze header
+    ws.freeze_panes = 'A2'
+    
+    # Response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    filename = f"students_export_{timezone.now().strftime('%Y%m%d_%H%M')}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    wb.save(response)
+    return response
 
 
 @login_required
