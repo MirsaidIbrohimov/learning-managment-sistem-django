@@ -12865,3 +12865,6 @@ def admin_file_only_toggle(request):
         'message': f"Faqat fayl rejimi {status_text}: {hw.lesson.title}",
     })
 
+
+
+
