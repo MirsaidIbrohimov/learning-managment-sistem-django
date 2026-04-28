@@ -39,6 +39,9 @@ urlpatterns = [
     path('test/<int:pk>/submit/', views.submit_test, name='submit_test'),
     path('test/result/<int:pk>/', views.test_result, name='test_result'),
     
+    # Student token-based course URL
+    path('c/<uuid:token>/', views.student_course_view, name='student_course_view'),
+
     # Student token-based lesson URLs
     path('s/<uuid:token>/', views.student_lesson_view, name='student_lesson_view'),
     path('s/<uuid:token>/video/watched/', views.student_mark_video_watched, name='student_mark_video_watched'),

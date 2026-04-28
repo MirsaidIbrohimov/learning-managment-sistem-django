@@ -1676,6 +1676,28 @@ class DailyLessonAccess(models.Model):
         return f"{self.user.first_name} - {self.lesson.title} ({self.accessed_date})"
 
 
+class StudentCourseToken(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='course_tokens')
+    profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='student_tokens')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['student', 'profession'], name='unique_student_course_token')
+        ]
+        verbose_name = "O'quvchi kurs tokeni"
+        verbose_name_plural = "O'quvchi kurs tokenlari"
+
+    def __str__(self):
+        return f"{self.student_id} - {self.profession_id} ({self.token})"
+
+    @classmethod
+    def get_or_create(cls, student, profession):
+        token_obj, _ = cls.objects.get_or_create(student=student, profession=profession)
+        return token_obj
+
+
 class StudentLessonToken(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='lesson_tokens')
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='student_tokens')

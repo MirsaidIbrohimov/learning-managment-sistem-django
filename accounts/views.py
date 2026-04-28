@@ -23,7 +23,7 @@ from .models import (
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
-    DailyLessonAccess, FinalTestPayment, StudentLessonToken
+    DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken
 )
 from django.contrib.auth.hashers import make_password
 from coin.models import ActivityLog, CoinTransaction
@@ -1063,6 +1063,12 @@ def professions_view(request):
 @login_required
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
+
+    # O'quvchilarni tokenli kurs URL ga yo'naltirish
+    if request.user.is_student and not request.user.is_admin:
+        course_token = StudentCourseToken.get_or_create(request.user, profession)
+        return redirect('student_course_view', token=course_token.token)
+
     is_enrolled = False
     enrollment_request = None
     unenroll_request = None
@@ -3079,6 +3085,209 @@ def _get_token_or_404(user, token):
         token=token,
         student=user,
     )
+
+
+@login_required
+def student_course_view(request, token):
+    """O'quvchi uchun tokenli kurs sahifasi"""
+    token_obj = get_object_or_404(
+        StudentCourseToken.objects.select_related('profession'),
+        token=token, student=request.user
+    )
+    profession = token_obj.profession
+
+    if profession.is_blocked:
+        messages.warning(request, f"'{profession.name}' kursi vaqtincha bloklangan. {profession.blocked_reason or ''}")
+        return redirect('professions')
+
+    is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
+    enrollment_request = None
+    unenroll_request = None
+    if is_enrolled:
+        unenroll_request = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
+    else:
+        enrollment_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
+
+    sections = []
+    lessons_without_section = []
+    lesson_progress = {}
+    daily_section_today = None
+    daily_limit_section_name = None
+    section_daily_locked = {}
+    lesson_is_locked = {}
+    daily_lesson_today = None
+    token_map = {}
+    classmates = []
+    course_teachers = profession.teachers.all() if hasattr(profession, 'teachers') else []
+    course_completed = False
+    has_empty_section = False
+    certificate = None
+    certificate_request = None
+    section_is_locked = {}
+
+    if is_enrolled:
+        StudentLessonToken.ensure_for_profession(request.user, profession)
+        token_map = {
+            t.lesson_id: t
+            for t in StudentLessonToken.objects.filter(
+                student=request.user, lesson__profession=profession
+            )
+        }
+        sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
+        lessons_without_section = profession.lessons.filter(section__isnull=True)
+
+        # Video progress
+        watched_videos = VideoProgress.objects.filter(
+            user=request.user, watched=True, video__lesson__profession=profession
+        ).values_list('video__lesson_id', flat=True)
+        for vid in watched_videos:
+            lesson_progress[vid] = {'completed': True, 'type': 'video'}
+
+        # Test results
+        test_results = TestResult.objects.filter(
+            student=request.user, test__lesson__profession=profession
+        ).order_by('test__lesson_id', '-completed_at')
+        latest_tests = {}
+        for tr in test_results:
+            if tr.test.lesson_id not in latest_tests:
+                latest_tests[tr.test.lesson_id] = tr
+        for lesson_id, tr in latest_tests.items():
+            lesson_progress[lesson_id] = {
+                'completed': tr.passed,
+                'type': 'test',
+                'score': tr.score,
+                'passed': tr.passed,
+                'attempted': True,
+            }
+
+        # Homework submissions
+        hw_submissions = HomeworkSubmission.objects.filter(
+            student=request.user, homework__lesson__profession=profession
+        ).order_by('homework__lesson_id', '-submitted_at')
+        latest_hw = {}
+        for hw in hw_submissions:
+            if hw.homework.lesson_id not in latest_hw:
+                latest_hw[hw.homework.lesson_id] = hw
+        for lesson_id, hw in latest_hw.items():
+            is_completed = hw.status in ('accepted', 'graded')
+            lesson_progress[lesson_id] = {
+                'completed': is_completed,
+                'type': 'homework',
+                'graded': hw.grade is not None,
+                'status': hw.status,
+                'attempted': True,
+            }
+
+        # Speaking submissions
+        speaking_submissions = SpeakingSubmission.objects.filter(
+            student=request.user, speaking_task__lesson__profession=profession
+        ).order_by('speaking_task__lesson_id', '-submitted_at')
+        latest_speaking = {}
+        for sp in speaking_submissions:
+            if sp.speaking_task.lesson_id not in latest_speaking:
+                latest_speaking[sp.speaking_task.lesson_id] = sp
+        for lesson_id, sp in latest_speaking.items():
+            is_completed = sp.status in ('graded',)
+            lesson_progress[lesson_id] = {
+                'completed': is_completed,
+                'type': 'speaking',
+                'graded': sp.grade is not None,
+                'status': sp.status,
+                'attempted': True,
+            }
+
+        # Daily section access
+        from datetime import date
+        today = date.today()
+        accessed_section_ids = set(
+            DailySectionAccess.objects.filter(
+                user=request.user, profession=profession
+            ).values_list('section_id', flat=True)
+        )
+        today_access = DailySectionAccess.objects.filter(
+            user=request.user, profession=profession, accessed_date=today
+        ).select_related('section').first()
+        if today_access:
+            daily_section_today = today_access.section_id
+            daily_limit_section_name = today_access.section.title
+
+        # Section locking logic
+        completed_lesson_ids = set(
+            lid for lid, prog in lesson_progress.items() if prog.get('completed')
+        )
+        ordered_sections = list(sections)
+        for idx, section in enumerate(ordered_sections):
+            section_lesson_ids = set(
+                section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
+            )
+            if not section_lesson_ids:
+                section_is_locked[section.id] = False
+                section_daily_locked[section.id] = False
+                continue
+
+            section_completed = section_lesson_ids.issubset(completed_lesson_ids)
+            section_started = bool(section_lesson_ids & completed_lesson_ids)
+
+            if section_completed or section_started:
+                section_is_locked[section.id] = False
+                section_daily_locked[section.id] = False
+            elif idx == 0:
+                section_is_locked[section.id] = False
+                section_daily_locked[section.id] = False
+            else:
+                prev_section = ordered_sections[idx - 1]
+                prev_ids = set(prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True))
+                if not prev_ids.issubset(completed_lesson_ids):
+                    section_is_locked[section.id] = True
+                    section_daily_locked[section.id] = False
+                else:
+                    section_is_locked[section.id] = False
+                    if profession.daily_section_limit and daily_section_today and daily_section_today != section.id:
+                        section_daily_locked[section.id] = True
+                    else:
+                        section_daily_locked[section.id] = False
+
+        # Classmates
+        classmates = CustomUser.objects.filter(
+            enrollments__profession=profession, role='student'
+        ).exclude(pk=request.user.pk).order_by('-coins')[:10]
+
+        # Course completion
+        all_lesson_ids = set(
+            Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary').values_list('pk', flat=True)
+        )
+        course_completed = all_lesson_ids and all_lesson_ids.issubset(completed_lesson_ids)
+
+        has_empty_section = any(
+            not s.lessons.exists() for s in sections
+        )
+
+        certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
+        certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
+
+    return render(request, 'accounts/profession_detail.html', {
+        'profession': profession,
+        'is_enrolled': is_enrolled,
+        'is_teaching': False,
+        'enrollment_request': enrollment_request,
+        'unenroll_request': unenroll_request,
+        'sections': sections,
+        'lessons_without_section': lessons_without_section,
+        'lesson_progress': lesson_progress,
+        'section_is_locked': section_is_locked,
+        'section_daily_locked': section_daily_locked,
+        'daily_section_today': daily_section_today if is_enrolled else None,
+        'daily_limit_section_name': daily_limit_section_name if is_enrolled else None,
+        'classmates': classmates,
+        'course_teachers': course_teachers,
+        'course_completed': course_completed,
+        'has_empty_section': has_empty_section,
+        'certificate': certificate,
+        'certificate_request': certificate_request,
+        'lesson_is_locked': lesson_is_locked,
+        'token_map': token_map,
+        'course_token': token_obj,
+    })
 
 
 @login_required
