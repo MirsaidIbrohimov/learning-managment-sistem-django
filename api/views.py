@@ -121,3 +121,6 @@ def api_status(request):
         'is_profile_completed': request.user.is_profile_completed,
         'server_time': timezone.now().isoformat(),
     })
+
+
+

@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
 from . import views
 
@@ -26,4 +26,7 @@ urlpatterns = [
 
     # Admin
     path('admin/students/', views.AdminStudentListView.as_view(), name='admin_students'),
+
+    # Reyting (leaderboard)
+    path('reyting/', include('api.reyting.urls')),
 ]

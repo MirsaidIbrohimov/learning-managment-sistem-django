@@ -34,6 +34,14 @@ from django.core.cache import cache
 from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
+def _deny_student_direct_access(request):
+    """O'quvchilar uchun to'g'ridan-to'g'ri PK orqali kirishni bloklash.
+    Faqat token URL orqali kirish mumkin."""
+    if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
+        return render(request, 'accounts/student_token_required.html', status=403)
+    return None
+
+
 def _reset_course_progress(user, profession):
     """O'quvchi kursdan chiqib qayta yozilganda barcha progressni tozalash.
     Video progress, homework submissions, test results, speaking submissions va sertifikatlarni o'chiradi."""
@@ -1798,90 +1806,12 @@ def _is_section_locked_for_student(user, section, profession):
 
 @login_required
 def lesson_view(request, pk):
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     lesson = get_object_or_404(Lesson, pk=pk)
     profession = lesson.profession
-    
-    if request.user.is_student:
-        if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
-            messages.error(request, "Avval kursga yoziling!")
-            return redirect('profession_detail', pk=profession.pk)
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, lesson)
-        return redirect('student_lesson_view', token=token_obj.token)
 
-        # Lug'at darslariga cheklovsiz kirish
-        if lesson.lesson_type != 'dictionary':
-            from datetime import date
-            today = date.today()
-
-            # Bajarilgan darslarni aniqlash
-            watched_videos = set(VideoProgress.objects.filter(
-                user=request.user, watched=True,
-                video__lesson__profession=profession
-            ).values_list('video__lesson_id', flat=True))
-            passed_tests = set(TestResult.objects.filter(
-                student=request.user, test__lesson__profession=profession, passed=True
-            ).values_list('test__lesson_id', flat=True))
-            accepted_homeworks = set(HomeworkSubmission.objects.filter(
-                student=request.user, homework__lesson__profession=profession,
-                status__in=['accepted', 'graded']
-            ).values_list('homework__lesson_id', flat=True))
-            graded_speakings = set(SpeakingSubmission.objects.filter(
-                student=request.user, speaking_task__lesson__profession=profession,
-                status='graded'
-            ).values_list('speaking_task__lesson_id', flat=True))
-            completed_lesson_ids = watched_videos | passed_tests | accepted_homeworks | graded_speakings
-
-            # Agar bu dars allaqachon bajarilgan bo'lsa — erkin kirish
-            if lesson.pk not in completed_lesson_ids:
-                current_section = lesson.section
-                if current_section:
-                    section_lessons_ids = set(
-                        current_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
-                    )
-                    section_started = bool(section_lessons_ids & completed_lesson_ids)
-                    section_completed = section_lessons_ids.issubset(completed_lesson_ids)
-
-                    if not section_completed and not section_started:
-                        # === YANGI BO'LIM — cheklovlar qo'llanadi ===
-                        # Oldingi bo'lim tugatilganmi?
-                        all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
-                        section_idx = None
-                        for idx, s in enumerate(all_sections):
-                            if s.id == current_section.id:
-                                section_idx = idx
-                                break
-
-                        if section_idx is not None and section_idx > 0:
-                            prev_section = all_sections[section_idx - 1]
-                            prev_section_lessons = set(
-                                prev_section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
-                            )
-                            if not prev_section_lessons.issubset(completed_lesson_ids):
-                                messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒")
-                                return redirect('profession_detail', pk=profession.pk)
-
-                        # Kunlik cheklash: bugun boshqa bo'limga kirilganmi?
-                        if profession.daily_section_limit:
-                            today_section_access = DailySectionAccess.objects.filter(
-                                user=request.user, profession=profession, accessed_date=today
-                            ).select_related('section').first()
-                            if today_section_access and today_section_access.section_id != current_section.id:
-                                messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
-                                return redirect('profession_detail', pk=profession.pk)
-
-                    # Tugatilmagan bo'limga kirganida DailySectionAccess yozish
-                    # (boshlangan yoki yangi — farqi yo'q)
-                    # Bu bo'limni bugun tugatsa, keyingi bo'lim ertaga ochiladi
-                    if not section_completed and profession.daily_section_limit:
-                        today_access = DailySectionAccess.objects.filter(
-                            user=request.user, profession=profession, accessed_date=today
-                        ).first()
-                        if not today_access:
-                            DailySectionAccess.objects.create(
-                                user=request.user, profession=profession,
-                                section=current_section, accessed_date=today
-                            )
-    
     context = {'lesson': lesson, 'profession': profession}
     
     # Keyingi darsni topish
@@ -1985,11 +1915,10 @@ def lesson_view(request, pk):
 @login_required
 def submit_speaking(request, pk):
     """Speaking vazifani topshirish"""
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     speaking_task = get_object_or_404(SpeakingTask, pk=pk)
-    
-    if request.user.is_student:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, speaking_task.lesson)
-        return redirect('student_lesson_view', token=token_obj.token)
     
     if request.method != 'POST':
         return redirect('lesson_view', pk=speaking_task.lesson.pk)
@@ -2063,8 +1992,8 @@ def mark_video_watched(request, pk):
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'POST only'})
     
-    if request.user.is_student:
-        return JsonResponse({'success': False, 'error': 'Use token URL'}, status=403)
+    if request.user.is_student and not request.user.is_admin:
+        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin'}, status=403)
     
     video = get_object_or_404(VideoLesson, pk=pk)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
@@ -2739,11 +2668,10 @@ def _read_image_with_ai(file_field):
 
 @login_required
 def submit_homework(request, pk):
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     homework = get_object_or_404(Homework, pk=pk)
-    
-    if request.user.is_student:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, homework.lesson)
-        return redirect('student_lesson_view', token=token_obj.token)
     
     if request.method == 'POST':
         # Agar oldin topshirilgan bo'lsa, qayta yaratmaslik
@@ -2804,11 +2732,10 @@ def submit_homework(request, pk):
 @login_required
 def edit_homework(request, pk):
     """Topshiriqni 1 soat ichida tahrirlash"""
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
-    
-    if request.user.is_student:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, submission.homework.lesson)
-        return redirect('student_lesson_view', token=token_obj.token)
     
     if not submission.can_edit:
         messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
@@ -2841,13 +2768,12 @@ def edit_homework(request, pk):
 
 @login_required
 def start_test(request, pk):
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     test = get_object_or_404(Test, pk=pk)
     
     profession = test.lesson.profession
-    
-    if request.user.is_student:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
-        return redirect('student_start_test', token=token_obj.token)
     
     # Check if already taken and retry not allowed
     existing_result = TestResult.objects.filter(test=test, student=request.user).first()
@@ -2972,11 +2898,10 @@ def start_test(request, pk):
 
 @login_required
 def submit_test(request, pk):
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     test = get_object_or_404(Test, pk=pk)
-    
-    if request.user.is_student:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
-        return redirect('student_submit_test', token=token_obj.token)
     
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
@@ -3124,11 +3049,10 @@ def submit_test(request, pk):
 
 @login_required
 def test_result(request, pk):
+    blocked = _deny_student_direct_access(request)
+    if blocked:
+        return blocked
     result = get_object_or_404(TestResult, pk=pk)
-    
-    if request.user.is_student and result.student == request.user:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, result.test.lesson)
-        return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
     
     user_answers = result.user_answers.all().select_related('question', 'selected_answer')
     
@@ -4416,133 +4340,7 @@ def export_system_pdf(request):
 
 @login_required
 def leaderboard(request):
-    tab = request.GET.get('tab', 'coins')
-    profession_id = request.GET.get('profession')
-    search_query = request.GET.get('q', '').strip()
-
-    professions = Profession.objects.all()
-
-    if tab == 'score':
-        from accounts.models import HomeworkSubmission
-
-        cache_key = f'leaderboard_score_{profession_id or "all"}_{search_query}'
-        cached = cache.get(cache_key)
-        if cached:
-            cached['professions'] = professions
-            # user rank hisoblash
-            user_rank = None
-            user_score = 0
-            if request.user.role == 'student':
-                for i, s in enumerate(cached.get('_scored_data', [])):
-                    if s['id'] == request.user.pk:
-                        user_rank = i + 1
-                        user_score = s['score']
-                        break
-            cached['user_rank'] = user_rank
-            cached['user_in_list'] = user_rank is not None
-            cached['user_score'] = user_score
-            return render(request, 'accounts/leaderboard.html', cached)
-
-        students_qs = CustomUser.objects.filter(role='student')
-        if profession_id:
-            students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct()
-        if search_query:
-            students_qs = students_qs.filter(
-                Q(first_name__icontains=search_query) |
-                Q(last_name__icontains=search_query) |
-                Q(username__icontains=search_query)
-            )
-
-        student_ids = list(students_qs.values_list('id', flat=True))
-
-        # Uy vazifasi ballari bo'yicha score hisoblash
-        hw_filter = Q(student_id__in=student_ids, status='graded', grade__isnull=False)
-        if profession_id:
-            hw_filter &= Q(homework__lesson__profession_id=profession_id)
-
-        hw_scores = dict(
-            HomeworkSubmission.objects.filter(hw_filter)
-            .values('student_id')
-            .annotate(total_grade=Sum('grade'))
-            .values_list('student_id', 'total_grade')
-        )
-
-        scored_data = []
-        for sid in student_ids:
-            total_hw_score = hw_scores.get(sid, 0) or 0
-            if total_hw_score > 0 or not search_query:
-                scored_data.append({'id': sid, 'score': total_hw_score})
-
-        scored_data.sort(key=lambda s: s['score'], reverse=True)
-
-        top_ids = [s['id'] for s in scored_data[:100]]
-        students_map = {s.pk: s for s in CustomUser.objects.filter(pk__in=top_ids)}
-        students_list = []
-        for s in scored_data[:100]:
-            student = students_map.get(s['id'])
-            if student:
-                student.score = s['score']
-                students_list.append(student)
-
-        user_rank = None
-        user_score = 0
-        if request.user.role == 'student':
-            for i, s in enumerate(scored_data):
-                if s['id'] == request.user.pk:
-                    user_rank = i + 1
-                    user_score = s['score']
-                    break
-
-        result = {
-            'students': students_list,
-            'professions': professions,
-            'selected_profession': profession_id,
-            'search_query': search_query,
-            'user_rank': user_rank,
-            'user_in_list': user_rank is not None,
-            'tab': tab,
-            'user_score': user_score,
-            '_scored_data': scored_data,
-        }
-        cache.set(cache_key, result, 120)
-        return render(request, 'accounts/leaderboard.html', result)
-
-    # Coins tab (default)
-    students = CustomUser.objects.filter(role='student').order_by('-coins')
-
-    if profession_id:
-        students = students.filter(enrollments__profession_id=profession_id).distinct()
-
-    if search_query:
-        students = students.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(username__icontains=search_query)
-        )
-
-    user_rank = None
-    user_in_list = False
-    students_list = students[:100]
-    if request.user.role == 'student':
-        all_students_ids = list(students.values_list('pk', flat=True))
-        if request.user.pk in all_students_ids:
-            user_rank = all_students_ids.index(request.user.pk) + 1
-            user_in_list = True
-        else:
-            all_ranked = CustomUser.objects.filter(role='student').order_by('-coins').values_list('pk', flat=True)
-            all_ranked_list = list(all_ranked)
-            if request.user.pk in all_ranked_list:
-                user_rank = all_ranked_list.index(request.user.pk) + 1
-
-    return render(request, 'accounts/leaderboard.html', {
-        'students': students_list,
-        'professions': professions,
-        'selected_profession': profession_id,
-        'search_query': search_query,
-        'user_rank': user_rank,
-        'user_in_list': user_in_list,
-        'tab': tab,
-    })
+    return render(request, 'accounts/leaderboard.html')
 
 
 # Messages views
