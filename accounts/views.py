@@ -34,11 +34,11 @@ from django.core.cache import cache
 from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
-def _deny_student_direct_access(request):
-    """O'quvchilar uchun to'g'ridan-to'g'ri PK orqali kirishni bloklash.
-    Faqat token URL orqali kirish mumkin."""
+def _redirect_student_to_token(request, lesson):
+    """O'quvchilarni PK URL'dan shaxsiy token URL'ga yo'naltirish."""
     if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
-        return render(request, 'accounts/student_token_required.html', status=403)
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, lesson)
+        return redirect('student_lesson_view', token=token_obj.token)
     return None
 
 
@@ -1806,10 +1806,10 @@ def _is_section_locked_for_student(user, section, profession):
 
 @login_required
 def lesson_view(request, pk):
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     lesson = get_object_or_404(Lesson, pk=pk)
+    redir = _redirect_student_to_token(request, lesson)
+    if redir:
+        return redir
     profession = lesson.profession
 
     context = {'lesson': lesson, 'profession': profession}
@@ -1915,10 +1915,10 @@ def lesson_view(request, pk):
 @login_required
 def submit_speaking(request, pk):
     """Speaking vazifani topshirish"""
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     speaking_task = get_object_or_404(SpeakingTask, pk=pk)
+    redir = _redirect_student_to_token(request, speaking_task.lesson)
+    if redir:
+        return redir
     
     if request.method != 'POST':
         return redirect('lesson_view', pk=speaking_task.lesson.pk)
@@ -1993,7 +1993,7 @@ def mark_video_watched(request, pk):
         return JsonResponse({'success': False, 'error': 'POST only'})
     
     if request.user.is_student and not request.user.is_admin:
-        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin'}, status=403)
+        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin', 'use_token': True}, status=403)
     
     video = get_object_or_404(VideoLesson, pk=pk)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
@@ -2668,10 +2668,10 @@ def _read_image_with_ai(file_field):
 
 @login_required
 def submit_homework(request, pk):
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     homework = get_object_or_404(Homework, pk=pk)
+    redir = _redirect_student_to_token(request, homework.lesson)
+    if redir:
+        return redir
     
     if request.method == 'POST':
         # Agar oldin topshirilgan bo'lsa, qayta yaratmaslik
@@ -2732,10 +2732,10 @@ def submit_homework(request, pk):
 @login_required
 def edit_homework(request, pk):
     """Topshiriqni 1 soat ichida tahrirlash"""
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     submission = get_object_or_404(HomeworkSubmission, pk=pk, student=request.user)
+    redir = _redirect_student_to_token(request, submission.homework.lesson)
+    if redir:
+        return redir
     
     if not submission.can_edit:
         messages.error(request, "Tahrirlash muddati tugagan (1 soat)!")
@@ -2768,10 +2768,10 @@ def edit_homework(request, pk):
 
 @login_required
 def start_test(request, pk):
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     test = get_object_or_404(Test, pk=pk)
+    redir = _redirect_student_to_token(request, test.lesson)
+    if redir:
+        return redirect('student_start_test', token=StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson).token)
     
     profession = test.lesson.profession
     
@@ -2898,10 +2898,10 @@ def start_test(request, pk):
 
 @login_required
 def submit_test(request, pk):
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     test = get_object_or_404(Test, pk=pk)
+    if request.user.is_student and not request.user.is_admin:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
+        return redirect('student_submit_test', token=token_obj.token)
     
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
@@ -3049,10 +3049,10 @@ def submit_test(request, pk):
 
 @login_required
 def test_result(request, pk):
-    blocked = _deny_student_direct_access(request)
-    if blocked:
-        return blocked
     result = get_object_or_404(TestResult, pk=pk)
+    if request.user.is_student and not request.user.is_admin and result.student == request.user:
+        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, result.test.lesson)
+        return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
     
     user_answers = result.user_answers.all().select_related('question', 'selected_answer')
     
