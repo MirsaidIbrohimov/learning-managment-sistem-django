@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 - CSRF xatosi</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --tip-bg: #f8f9fa;
+            --tip-border: #e2e8f0;
+        }
+        [data-bs-theme="dark"] {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --tip-bg: #1a2332;
+            --tip-border: #334155;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 20px;
+        }
+        .error-card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 520px;
+            width: 100%;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .error-icon {
+            font-size: 3.5rem;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        .error-icon i {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .tips {
+            background: var(--tip-bg);
+            border: 1px solid var(--tip-border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+        .tips h6 {
+            font-weight: 700;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+        }
+        .tips ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .tips li {
+            padding: 6px 0;
+            font-size: 0.88rem;
+            color: var(--muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .tips li i {
+            color: #fd7e14;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .btn-home {
+            background: linear-gradient(135deg, #0d6efd, #0a58ca);
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(13,110,253,0.4);
+            color: white;
+        }
+        .btn-retry {
+            background: transparent;
+            border: 2px solid #fd7e14;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #fd7e14;
+            transition: all 0.3s ease;
+        }
+        .btn-retry:hover {
+            background: #fd7e14;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(253,126,20,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-card">
+        <div class="error-code">403</div>
+        <div class="error-icon">
+            <i class="bi bi-shield-exclamation"></i>
+        </div>
+        <h2 class="mb-2">CSRF tekshiruvi amalga oshmadi</h2>
+        <p style="color: var(--muted);" class="mb-0">
+            Xavfsizlik tekshiruvi muvaffaqiyatsiz yakunlandi. So'rov bekor qilindi.
+        </p>
+
+        <div class="tips">
+            <h6><i class="bi bi-lightbulb me-1"></i> Nima qilish kerak?</h6>
+            <ul>
+                <li>
+                    <i class="bi bi-arrow-clockwise"></i>
+                    <span>Sahifani qayta yuklang va formani qaytadan to'ldiring</span>
+                </li>
+                <li>
+                    <i class="bi bi-cookie"></i>
+                    <span>Brauzeringizda cookie (kuki) yoqilganligini tekshiring</span>
+                </li>
+                <li>
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Tizimga qaytadan kiring</span>
+                </li>
+                <li>
+                    <i class="bi bi-clock-history"></i>
+                    <span>Agar uzoq vaqt o'tirgan bo'lsangiz, sessiya tugagan bo'lishi mumkin</span>
+                </li>
+            </ul>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="javascript:history.back()" class="btn btn-retry">
+                <i class="bi bi-arrow-left me-2"></i>Orqaga
+            </a>
+            <a href="/" class="btn btn-home">
+                <i class="bi bi-house me-2"></i>Bosh sahifa
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
+</body>
+</html>

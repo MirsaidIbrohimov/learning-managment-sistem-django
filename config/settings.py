@@ -352,6 +352,7 @@ X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
 CSRF_USE_SESSIONS = True
+CSRF_FAILURE_VIEW = 'config.views.csrf_failure'
 
 # Session xavfsizligi
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
