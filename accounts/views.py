@@ -35,10 +35,9 @@ from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
 def _redirect_student_to_token(request, lesson):
-    """O'quvchilarni PK URL'dan shaxsiy token URL'ga yo'naltirish."""
+    """O'quvchilarni PK URL'dan bloklash — faqat token URL orqali kirish mumkin."""
     if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, lesson)
-        return redirect('student_lesson_view', token=token_obj.token)
+        return render(request, 'accounts/student_token_required.html', status=403)
     return None
 
 
@@ -2764,7 +2763,7 @@ def start_test(request, pk):
     test = get_object_or_404(Test, pk=pk)
     redir = _redirect_student_to_token(request, test.lesson)
     if redir:
-        return redirect('student_start_test', token=StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson).token)
+        return redir
     
     profession = test.lesson.profession
     
@@ -2892,9 +2891,9 @@ def start_test(request, pk):
 @login_required
 def submit_test(request, pk):
     test = get_object_or_404(Test, pk=pk)
-    if request.user.is_student and not request.user.is_admin:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, test.lesson)
-        return redirect('student_submit_test', token=token_obj.token)
+    redir = _redirect_student_to_token(request, test.lesson)
+    if redir:
+        return redir
     
     if request.method != 'POST':
         return redirect('start_test', pk=pk)
@@ -3043,9 +3042,9 @@ def submit_test(request, pk):
 @login_required
 def test_result(request, pk):
     result = get_object_or_404(TestResult, pk=pk)
-    if request.user.is_student and not request.user.is_admin and result.student == request.user:
-        token_obj = StudentLessonToken.get_or_create_for_lesson(request.user, result.test.lesson)
-        return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
+    redir = _redirect_student_to_token(request, result.test.lesson)
+    if redir:
+        return redir
     
     user_answers = result.user_answers.all().select_related('question', 'selected_answer')
     
