@@ -1053,10 +1053,18 @@ def professions_view(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    # O'quvchilar uchun kurs tokenlarini yaratish
+    course_token_map = {}
+    if request.user.is_authenticated and request.user.is_student:
+        for p in page_obj:
+            ct = StudentCourseToken.get_or_create(request.user, p)
+            course_token_map[p.pk] = ct.token
+
     return render(request, 'accounts/professions.html', {
         'professions': page_obj,
         'all_professions': professions,
         'enrolled_ids': enrolled_ids,
+        'course_token_map': course_token_map,
     })
 
 
@@ -1064,10 +1072,9 @@ def professions_view(request):
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
 
-    # O'quvchilarni tokenli kurs URL ga yo'naltirish
+    # O'quvchilar uchun PK orqali kirishni bloklash
     if request.user.is_student and not request.user.is_admin:
-        course_token = StudentCourseToken.get_or_create(request.user, profession)
-        return redirect('student_course_view', token=course_token.token)
+        return render(request, 'accounts/student_token_required.html', status=403)
 
     is_enrolled = False
     enrollment_request = None

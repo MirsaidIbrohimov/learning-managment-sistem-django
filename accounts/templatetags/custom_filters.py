@@ -12,6 +12,14 @@ def get_item(dictionary, key):
 
 
 @register.filter
+def get_course_token(course_token_map, profession_pk):
+    """Get student course token UUID from course_token_map by profession pk."""
+    if course_token_map and isinstance(course_token_map, dict):
+        return course_token_map.get(profession_pk)
+    return None
+
+
+@register.filter
 def get_token(token_map, lesson_pk):
     """Get student lesson token UUID from token_map by lesson pk."""
     if token_map and isinstance(token_map, dict):

@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Kasblar - LMS{% endblock %}
 
@@ -677,7 +678,7 @@
     <!-- GRID -->
     <div class="prof-grid" id="profGrid">
         {% for profession in professions %}
-        <a href="{% url 'profession_detail' profession.pk %}"
+        <a href="{% with ct=course_token_map|get_course_token:profession.pk %}{% if ct %}{% url 'student_course_view' ct %}{% else %}{% url 'profession_detail' profession.pk %}{% endif %}{% endwith %}"
            class="prof-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
            data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
            data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}"
