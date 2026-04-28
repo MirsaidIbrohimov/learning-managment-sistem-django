@@ -463,12 +463,12 @@
    VIEW: LIST
    ============================ */
 .prof-grid.view-list { grid-template-columns:1fr; gap:1rem; }
-.prof-grid.view-list .prof-card { flex-direction:row; border-radius:14px; }
+.prof-grid.view-list .prof-card { flex-direction:row; flex-wrap:wrap; border-radius:14px; }
 .prof-grid.view-list .prof-img { width:200px; height:auto; min-height:150px; }
-.prof-grid.view-list .prof-body { padding:1rem 1.15rem; }
+.prof-grid.view-list .prof-body { padding:1rem 1.15rem; flex:1; min-width:0; }
 .prof-grid.view-list .prof-name { font-size:1.05rem; }
 .prof-grid.view-list .prof-desc { -webkit-line-clamp:2; margin-bottom:0.5rem; }
-.prof-grid.view-list .prof-progress { padding:0 1.15rem 0.4rem; }
+.prof-grid.view-list .prof-progress { width:100%; order:3; padding:0.4rem 1.15rem; }
 .prof-grid.view-list .prof-badges-top { top:0.5rem;left:0.5rem;right:0.5rem; }
 .prof-grid.view-list .prof-students { bottom:0.5rem; right:0.5rem; }
 
@@ -541,8 +541,9 @@
 }
 @media (max-width:767px) {
     .prof-grid.view-compact { grid-template-columns:repeat(2,1fr); }
-    .prof-grid.view-list .prof-card { flex-direction:column; }
+    .prof-grid.view-list .prof-card { flex-direction:column; flex-wrap:nowrap; }
     .prof-grid.view-list .prof-img { width:100%;height:160px; }
+    .prof-grid.view-list .prof-progress { width:auto; order:unset; }
     .prof-toolbar { gap:0.5rem; }
     .prof-hero { padding:1.5rem; }
     .prof-hero-stats { gap:1rem; }
