@@ -429,13 +429,6 @@ def send_course_notification(profession, title, content, sender=None):
                 telegram_text += f"👨‍🏫 O'qituvchi: {teacher_name}\n"
             telegram_text += f"🔗 Saytga kiring va ko'ring!"
             notify_user(tid, telegram_text)
-        
-        notify_group(
-            f"📢 <b>{title}</b>\n\n"
-            f"📚 Kurs: {profession.name}\n"
-            + (f"👨‍🏫 O'qituvchi: {teacher_name}\n\n" if teacher_name else "\n")
-            + content
-        )
     
     threading.Thread(target=_send_telegram, daemon=True).start()
 
