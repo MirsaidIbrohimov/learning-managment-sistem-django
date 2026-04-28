@@ -1049,7 +1049,7 @@ def professions_view(request):
                 p.progress = min(round((completed / total_items) * 100), 100)
 
     from django.core.paginator import Paginator
-    paginator = Paginator(professions, 6)
+    paginator = Paginator(professions, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
