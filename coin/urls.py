@@ -4,15 +4,12 @@ from . import views
 app_name = 'coin'
 
 urlpatterns = [
-    # Market (User)
+    # Frontend Pages (API-backed)
+    path('coin-history/', views.coin_history, name='coin_history'),
     path('market/', views.market_list, name='market_list'),
-    path('market/premium/', views.request_premium, name='buy_premium'),
-    path('market/premium/extend/', views.extend_premium, name='extend_premium'),
+    path('market/premium/', views.premium_page, name='buy_premium'),
     path('market/<int:pk>/', views.market_detail, name='market_detail'),
-    path('market/<int:pk>/like/', views.market_like, name='market_like'),
-    path('market/<int:pk>/purchase/', views.market_purchase, name='market_purchase'),
     path('market/my-purchases/', views.my_purchases, name='my_purchases'),
-    path('market/purchase/<int:pk>/cancel/', views.cancel_purchase, name='cancel_purchase'),
     
     # Admin: Products
     path('dashboard/products/', views.admin_products, name='admin_products'),

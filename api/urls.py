@@ -27,6 +27,9 @@ urlpatterns = [
     # Admin
     path('admin/students/', views.AdminStudentListView.as_view(), name='admin_students'),
 
+    # Coin
+    path('coin/', include('api.coin.urls')),
+
     # Reyting (leaderboard)
     path('reyting/', include('api.reyting.urls')),
 ]

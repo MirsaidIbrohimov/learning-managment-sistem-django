@@ -802,10 +802,10 @@
                 </div>
 
                 <!-- Coin -->
-                <div class="nb-coin" title="Coinlar">
+                <a href="{% url 'coin:coin_history' %}" class="nb-coin" title="Coin tarixi" style="text-decoration:none;color:inherit;">
                     <i class="bi bi-coin"></i>
                     {{ user.coins|default:0 }}
-                </div>
+                </a>
 
                 <!-- Messages -->
                 <a href="{% url 'messages' %}" class="nb-icon-btn" title="Xabarlar">
@@ -846,6 +846,7 @@
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li><a class="dropdown-item rounded-3" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i><span data-i18n="menu.profile">Profil</span></a></li>
+                        <li><a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'coin:coin_history' %}"><i class="bi bi-coin me-2 text-warning"></i><span>Coin tarixi</span><span class="badge bg-warning text-dark ms-auto">{{ user.coins|default:0 }}</span></a></li>
                         <li><a class="dropdown-item rounded-3" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check me-2"></i><span data-i18n="menu.verify_certificate">Sertifikat tekshirish</span></a></li>
                         <li><a class="dropdown-item rounded-3 d-flex align-items-center" href="{% url 'messages' %}">
                             <i class="bi bi-envelope me-2"></i><span data-i18n="menu.messages">Xabarlar</span>
@@ -1380,6 +1381,10 @@
                 <a href="{% url 'profile' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-blue"><i class="bi bi-person-fill"></i></div>
                     <span>Profil</span>
+                </a>
+                <a href="{% url 'coin:coin_history' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-coin"></i></div>
+                    <span>Coin tarixi</span>
                 </a>
                 <a href="{% url 'verify_certificate' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-green"><i class="bi bi-patch-check-fill"></i></div>
