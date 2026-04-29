@@ -1,561 +1,206 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Mening xaridlarim | LMS{% endblock %}
+{% block title %}Mening Xaridlarim | LMS{% endblock %}
 
 {% block extra_css %}
 <style>
-:root {
-    --mp-card: #ffffff;
-    --mp-card-hover: #f8fafc;
-    --mp-border: rgba(0, 0, 0, 0.06);
-    --mp-text: #1e293b;
-    --mp-muted: #64748b;
-    --mp-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --mp-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
-    --mp-radius: 20px;
-    --mp-radius-md: 14px;
-    --mp-primary: #6366f1;
-}
+@keyframes mpFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
-[data-bs-theme="dark"] {
-    --mp-card: #1e1e1e;
-    --mp-card-hover: #2a2a2a;
-    --mp-border: rgba(255, 255, 255, 0.08);
-    --mp-text: #f1f5f9;
-    --mp-muted: #94a3b8;
-    --mp-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    --mp-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.5);
-}
+.mp-container { max-width:1000px; margin:0 auto; padding:1.5rem 1rem 3rem; }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-}
-
-.mp-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-}
-
-/* Hero */
 .mp-hero {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-    border-radius: var(--mp-radius);
-    padding: 2rem;
-    color: white;
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInUp 0.5s ease;
+    background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#a855f7 100%);
+    border-radius:20px; padding:2rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; animation:mpFadeUp 0.5s ease;
 }
+.mp-hero::before { content:''; position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%); pointer-events:none; }
+.mp-hero-title { font-size:1.5rem; font-weight:800; margin:0; position:relative; z-index:1; display:flex; align-items:center; gap:0.5rem; }
+.mp-hero-sub { margin:0.3rem 0 0; opacity:0.85; font-size:0.88rem; position:relative; z-index:1; }
 
-.mp-hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-}
+.mp-tabs { display:flex; gap:0.5rem; margin-bottom:1.5rem; flex-wrap:wrap; animation:mpFadeUp 0.5s ease 0.1s both; }
+.mp-tab { padding:0.5rem 1.25rem; border-radius:12px; border:2px solid var(--border); background:var(--card); color:var(--text-muted); font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:0.35rem; }
+.mp-tab:hover { border-color:var(--primary); color:var(--primary); }
+.mp-tab.active { background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; border-color:transparent; }
 
-.mp-hero-content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
+.mp-list { display:flex; flex-direction:column; gap:0.75rem; }
 
-.mp-hero h1 {
-    font-size: 1.75rem;
-    font-weight: 800;
-    margin: 0;
-}
-
-.mp-hero p {
-    margin: 0.4rem 0 0;
-    opacity: 0.9;
-}
-
-.mp-stats {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.mp-stat {
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    padding: 0.6rem 1.1rem;
-    border-radius: 14px;
-    text-align: center;
-}
-
-.mp-stat-val {
-    font-size: 1.3rem;
-    font-weight: 800;
-}
-
-.mp-stat-label {
-    font-size: 0.72rem;
-    opacity: 0.85;
-}
-
-/* Tabs */
-.mp-tabs {
-    display: flex;
-    gap: 6px;
-    background: var(--mp-card);
-    border-radius: 16px;
-    padding: 5px;
-    margin-bottom: 1.5rem;
-    box-shadow: var(--mp-shadow);
-    animation: fadeInUp 0.5s ease 0.1s both;
-}
-
-.mp-tab {
-    flex: 1;
-    padding: 0.7rem 1rem;
-    border-radius: 12px;
-    border: none;
-    background: transparent;
-    color: var(--mp-muted);
-    font-size: 0.88rem;
-    font-weight: 650;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-}
-
-.mp-tab:hover {
-    color: var(--mp-text);
-    background: var(--mp-card-hover);
-}
-
-.mp-tab.active {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white;
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
-}
-
-.mp-tab .badge-count {
-    background: rgba(255,255,255,0.25);
-    padding: 0.15rem 0.5rem;
-    border-radius: 10px;
-    font-size: 0.72rem;
-    font-weight: 700;
-}
-
-.mp-tab:not(.active) .badge-count {
-    background: var(--mp-card-hover);
-    color: var(--mp-muted);
-}
-
-/* Purchase Card */
 .mp-card {
-    background: var(--mp-card);
-    border-radius: var(--mp-radius);
-    box-shadow: var(--mp-shadow);
-    overflow: hidden;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
-    animation: slideIn 0.4s ease both;
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1rem 1.25rem;
+    display:flex; align-items:center; gap:1rem; transition:all 0.25s ease; animation:mpFadeUp 0.4s ease both;
 }
+.mp-card:hover { transform:translateX(4px); box-shadow:0 4px 16px rgba(0,0,0,0.06); }
 
-.mp-card:hover {
-    box-shadow: var(--mp-shadow-hover);
-    transform: translateY(-2px);
-}
+.mp-card-img { width:60px; height:60px; min-width:60px; border-radius:12px; object-fit:cover; background:var(--bg); }
+.mp-card-body { flex:1; min-width:0; }
+.mp-card-title { font-size:0.95rem; font-weight:700; color:var(--text); margin:0 0 0.3rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mp-card-meta { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; }
+.mp-card-price { font-size:0.8rem; font-weight:700; color:#f59e0b; display:flex; align-items:center; gap:0.2rem; }
+.mp-card-date { font-size:0.75rem; color:var(--text-muted); }
+.mp-status { font-size:0.7rem; font-weight:700; padding:0.2rem 0.6rem; border-radius:8px; text-transform:uppercase; }
+.mp-status.pending { background:rgba(245,158,11,0.1); color:#f59e0b; }
+.mp-status.delivered { background:rgba(16,185,129,0.1); color:#10b981; }
+.mp-status.cancelled { background:rgba(239,68,68,0.1); color:#ef4444; }
 
-.mp-card-inner {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem;
-}
+.mp-cancel-btn { padding:0.4rem 1rem; border:2px solid rgba(239,68,68,0.3); border-radius:10px; background:rgba(239,68,68,0.05); color:#ef4444; font-weight:700; font-size:0.8rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.mp-cancel-btn:hover { background:#ef4444; color:#fff; }
 
-.mp-card-img {
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
+.mp-empty { text-align:center; padding:3rem; background:var(--card); border:1px solid var(--border); border-radius:16px; }
+.mp-empty i { font-size:3rem; color:var(--text-muted); opacity:0.4; }
+.mp-empty h4 { font-weight:700; margin:1rem 0 0.5rem; }
+.mp-empty p { color:var(--text-muted); font-size:0.9rem; }
 
-.mp-card-img-placeholder {
-    width: 80px;
-    height: 80px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: white;
-    font-size: 1.8rem;
-    opacity: 0.7;
-}
+.mp-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
 
-.mp-card-body {
-    flex: 1;
-    min-width: 0;
-}
+.mp-pagination { display:flex; justify-content:center; align-items:center; gap:0.35rem; margin-top:1.5rem; flex-wrap:wrap; }
+.mp-pagination a,.mp-pagination span { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; font-size:0.85rem; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer; }
+.mp-pagination a { background:var(--card); border:1px solid var(--border); color:var(--text); }
+.mp-pagination a:hover { background:#6366f1; color:#fff; border-color:#6366f1; }
+.mp-pg-active { background:linear-gradient(135deg,#6366f1,#4f46e5)!important; color:#fff!important; border:none!important; }
+.mp-pg-disabled { color:var(--text-muted); opacity:0.4; cursor:default!important; }
 
-.mp-card-title {
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--mp-text);
-    margin: 0 0 0.3rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* Modal */
+.mp-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:9998; display:none; align-items:center; justify-content:center; }
+.mp-modal-overlay.show { display:flex; }
+.mp-modal { background:var(--card); border-radius:20px; padding:2rem; max-width:400px; width:90%; animation:mpFadeUp 0.3s ease; text-align:center; }
+.mp-modal h3 { font-size:1.1rem; font-weight:700; margin:0 0 0.5rem; }
+.mp-modal p { color:var(--text-muted); font-size:0.9rem; margin:0 0 1.25rem; }
+.mp-modal-actions { display:flex; gap:0.5rem; }
+.mp-modal-actions button { flex:1; height:44px; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
+.mp-modal-no { background:var(--bg); color:var(--text-muted); border:2px solid var(--border)!important; }
+.mp-modal-yes { background:#ef4444; color:#fff; }
 
-.mp-card-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    font-size: 0.82rem;
-    color: var(--mp-muted);
-}
+.mp-toast { position:fixed; top:20px; right:20px; padding:0.85rem 1.5rem; border-radius:14px; font-weight:600; font-size:0.9rem; z-index:9999; animation:mpFadeUp 0.3s ease; display:flex; align-items:center; gap:0.5rem; }
+.mp-toast.success { background:#10b981; color:#fff; }
+.mp-toast.error { background:#ef4444; color:#fff; }
 
-.mp-card-meta i {
-    margin-right: 0.2rem;
-}
-
-.mp-card-actions {
-    flex-shrink: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 0.5rem;
-}
-
-/* Status Badges */
-.mp-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.35rem 0.85rem;
-    border-radius: 20px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.mp-status-pending {
-    background: rgba(245, 158, 11, 0.12);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-[data-bs-theme="dark"] .mp-status-pending {
-    background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-}
-
-.mp-status-delivered {
-    background: rgba(16, 185, 129, 0.12);
-    color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
-
-[data-bs-theme="dark"] .mp-status-delivered {
-    background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-}
-
-.mp-status-cancelled {
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.15);
-}
-
-[data-bs-theme="dark"] .mp-status-cancelled {
-    background: rgba(239, 68, 68, 0.15);
-    color: #f87171;
-}
-
-/* Cancel Button */
-.mp-cancel-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.9rem;
-    border-radius: 10px;
-    border: 1.5px solid rgba(239, 68, 68, 0.3);
-    background: transparent;
-    color: #ef4444;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s;
-}
-
-.mp-cancel-btn:hover {
-    background: #ef4444;
-    color: white;
-    border-color: #ef4444;
-    transform: translateY(-1px);
-}
-
-/* Coin badge */
-.mp-coin {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.7rem;
-    border-radius: 10px;
-    background: rgba(245, 158, 11, 0.12);
-    color: #b45309;
-    font-weight: 700;
-    font-size: 0.82rem;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-}
-
-[data-bs-theme="dark"] .mp-coin {
-    color: #fbbf24;
-    border-color: rgba(245, 158, 11, 0.3);
-}
-
-/* Empty State */
-.mp-empty {
-    text-align: center;
-    padding: 4rem 2rem;
-    animation: fadeInUp 0.5s ease;
-}
-
-.mp-empty-icon {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    background: var(--mp-card-hover);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.25rem;
-    font-size: 2.5rem;
-    color: var(--mp-muted);
-}
-
-.mp-empty h4 {
-    font-weight: 700;
-    color: var(--mp-text);
-    margin-bottom: 0.5rem;
-}
-
-.mp-empty p {
-    color: var(--mp-muted);
-    margin-bottom: 1.5rem;
-}
-
-.mp-empty-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.8rem 1.5rem;
-    border-radius: 14px;
-    background: var(--mp-primary);
-    color: white;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.3s;
-}
-
-.mp-empty-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35);
-    color: white;
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-    .mp-container {
-        padding: 1rem 0.75rem;
-    }
-
-    .mp-hero {
-        padding: 1.5rem;
-    }
-
-    .mp-hero h1 {
-        font-size: 1.4rem;
-    }
-
-    .mp-hero-content {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .mp-stats {
-        justify-content: center;
-    }
-
-    .mp-card-inner {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.75rem;
-    }
-
-    .mp-card-meta {
-        justify-content: center;
-    }
-
-    .mp-card-actions {
-        align-items: center;
-        flex-direction: row;
-        gap: 0.75rem;
-    }
-
-    .mp-tab {
-        font-size: 0.8rem;
-        padding: 0.6rem 0.5rem;
-        gap: 4px;
-    }
+@media(max-width:576px) {
+    .mp-card { flex-wrap:wrap; }
+    .mp-card-img { width:50px; height:50px; min-width:50px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="mp-container">
-
-    <!-- Hero -->
     <div class="mp-hero">
-        <div class="mp-hero-content">
-            <div>
-                <h1><i class="bi bi-bag-check me-2"></i>Mening xaridlarim</h1>
-                <p>Buyurtmalaringizni kuzating va boshqaring</p>
-            </div>
-            <div class="mp-stats">
-                <div class="mp-stat">
-                    <div class="mp-stat-val">{{ purchases.count }}</div>
-                    <div class="mp-stat-label">Jami</div>
-                </div>
-                <div class="mp-stat">
-                    <div class="mp-stat-val"><i class="bi bi-coin"></i> {{ request.user.coins }}</div>
-                    <div class="mp-stat-label">Balans</div>
-                </div>
-            </div>
-        </div>
+        <h1 class="mp-hero-title"><i class="bi bi-bag-check"></i> Mening Xaridlarim</h1>
+        <p class="mp-hero-sub">Barcha buyurtmalaringiz tarixi</p>
     </div>
 
-    <!-- Tabs -->
-    <div class="mp-tabs">
-        <button class="mp-tab active" onclick="filterTab('all', this)">
-            <i class="bi bi-grid-fill"></i> Barchasi
-            <span class="badge-count" id="countAll">{{ purchases.count }}</span>
-        </button>
-        <button class="mp-tab" onclick="filterTab('pending', this)">
-            <i class="bi bi-clock"></i> Kutilmoqda
-        </button>
-        <button class="mp-tab" onclick="filterTab('delivered', this)">
-            <i class="bi bi-check-circle"></i> Yetkazilgan
-        </button>
-        <button class="mp-tab" onclick="filterTab('cancelled', this)">
-            <i class="bi bi-x-circle"></i> Bekor
-        </button>
+    <div class="mp-tabs" id="mpTabs">
+        <button class="mp-tab active" data-status="" onclick="filterStatus(this,'')">Barchasi</button>
+        <button class="mp-tab" data-status="pending" onclick="filterStatus(this,'pending')"><i class="bi bi-clock"></i> Kutilmoqda</button>
+        <button class="mp-tab" data-status="delivered" onclick="filterStatus(this,'delivered')"><i class="bi bi-check-circle"></i> Yetkazildi</button>
+        <button class="mp-tab" data-status="cancelled" onclick="filterStatus(this,'cancelled')"><i class="bi bi-x-circle"></i> Bekor qilingan</button>
     </div>
 
-    {% if purchases %}
-    <div id="purchasesList">
-        {% for purchase in purchases %}
-        <div class="mp-card" data-status="{{ purchase.status }}" style="animation-delay: {{ forloop.counter }}00ms">
-            <div class="mp-card-inner">
-                {% if purchase.product.image %}
-                <img src="{{ purchase.product.image.url }}" alt="{{ purchase.product.name }}" class="mp-card-img">
-                {% else %}
-                <div class="mp-card-img-placeholder">
-                    <i class="bi bi-box-seam"></i>
-                </div>
-                {% endif %}
-
-                <div class="mp-card-body">
-                    <h3 class="mp-card-title">{{ purchase.product.name }}</h3>
-                    <div class="mp-card-meta">
-                        <span class="mp-coin">
-                            <i class="bi bi-coin"></i> {{ purchase.coins_spent }}
-                        </span>
-                        <span>
-                            <i class="bi bi-calendar3"></i> {{ purchase.purchased_at|date:"d.m.Y, H:i" }}
-                        </span>
-                        <span>
-                            #{{ purchase.pk }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="mp-card-actions">
-                    {% if purchase.status == 'cancelled' %}
-                    <span class="mp-status mp-status-cancelled">
-                        <i class="bi bi-x-circle-fill"></i> Bekor qilingan
-                    </span>
-                    {% elif purchase.status == 'delivered' or purchase.is_delivered %}
-                    <span class="mp-status mp-status-delivered">
-                        <i class="bi bi-check-circle-fill"></i> Yetkazilgan
-                    </span>
-                    {% else %}
-                    <span class="mp-status mp-status-pending">
-                        <i class="bi bi-clock-fill"></i> Kutilmoqda
-                    </span>
-                    {% if purchase.can_cancel %}
-                    <a href="{% url 'coin:cancel_purchase' purchase.pk %}" class="mp-cancel-btn">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
-                    </a>
-                    {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+    <div class="mp-list" id="mpList">
+        <div class="mp-skeleton" style="height:80px"></div>
+        <div class="mp-skeleton" style="height:80px"></div>
     </div>
-    {% else %}
-    <div class="mp-card">
-        <div class="mp-empty">
-            <div class="mp-empty-icon">
-                <i class="bi bi-bag"></i>
-            </div>
-            <h4>Xaridlar yo'q</h4>
-            <p>Siz hali hech narsa sotib olmadingiz</p>
-            <a href="{% url 'coin:market_list' %}" class="mp-empty-btn">
-                <i class="bi bi-shop"></i> Marketga o'tish
-            </a>
-        </div>
-    </div>
-    {% endif %}
-
+    <div id="mpPagination"></div>
 </div>
 
-<script>
-function filterTab(status, btn) {
-    document.querySelectorAll('.mp-tab').forEach(function(t) {
-        t.classList.remove('active');
-    });
-    btn.classList.add('active');
+<div class="mp-modal-overlay" id="cancelModal">
+    <div class="mp-modal">
+        <h3>❌ Buyurtmani bekor qilish</h3>
+        <p id="cancelInfo">Haqiqatan ham bekor qilmoqchimisiz?</p>
+        <div class="mp-modal-actions">
+            <button class="mp-modal-no" onclick="closeCancel()">Yo'q</button>
+            <button class="mp-modal-yes" id="cancelConfirmBtn" onclick="confirmCancel()">Ha, bekor qilish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-    document.querySelectorAll('.mp-card[data-status]').forEach(function(card) {
-        if (status === 'all') {
-            card.style.display = 'block';
-        } else {
-            card.style.display = card.dataset.status === status ? 'block' : 'none';
-        }
-    });
-}
+{% block extra_js %}
+<script>
+(function(){
+    const API = '/api/v1/coin';
+    let page=1, status='', cancelId=null;
+
+    function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
+    async function get(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
+    async function post(u){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:'{}'});const d=await r.json();if(!r.ok)throw d;return d;}
+
+    function fmtDate(iso){return new Date(iso).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'});}
+    function toast(msg,type){const t=document.createElement('div');t.className='mp-toast '+type;t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+
+    function statusLabel(s){return s==='pending'?'Kutilmoqda':s==='delivered'?'Yetkazildi':'Bekor qilingan';}
+
+    async function loadPurchases(pg){
+        page=pg||1;
+        const list=document.getElementById('mpList');
+        const pag=document.getElementById('mpPagination');
+        list.innerHTML='<div class="mp-skeleton" style="height:80px;margin-bottom:8px"></div>'.repeat(3);
+        pag.innerHTML='';
+
+        try{
+            let params=['page='+page];
+            if(status)params.push('status='+status);
+            const d=await get(API+'/my-purchases/?'+params.join('&'));
+            const totalPages=Math.ceil(d.count/20);
+
+            if(!d.results.length){
+                list.innerHTML='<div class="mp-empty"><i class="bi bi-bag-x"></i><h4>Xaridlar topilmadi</h4><p>Hali xarid qilmagansiz yoki filtrni o\'zgartiring</p></div>';
+                return;
+            }
+
+            list.innerHTML=d.results.map((p,i)=>`<div class="mp-card" style="animation-delay:${i*50}ms">
+                ${p.product_image?'<img class="mp-card-img" src="'+p.product_image+'" alt="">':'<div class="mp-card-img"></div>'}
+                <div class="mp-card-body">
+                    <div class="mp-card-title">${p.product_name}</div>
+                    <div class="mp-card-meta">
+                        <span class="mp-card-price"><i class="bi bi-coin"></i> ${p.coins_spent}</span>
+                        <span class="mp-card-date">${fmtDate(p.purchased_at)}</span>
+                        <span class="mp-status ${p.status}">${statusLabel(p.status)}</span>
+                    </div>
+                </div>
+                ${p.can_cancel?'<button class="mp-cancel-btn" onclick="openCancel('+p.id+\',\\\''+p.product_name+'\\\','+p.coins_spent+')"><i class="bi bi-x-lg"></i> Bekor qilish</button>':''}
+            </div>`).join('');
+
+            if(totalPages>1){
+                let h='<div class="mp-pagination">';
+                if(page>1)h+=`<a onclick="loadPage(${page-1})"><i class="bi bi-chevron-left"></i></a>`;
+                for(let n=Math.max(1,page-2);n<=Math.min(totalPages,page+2);n++){
+                    h+=n===page?`<span class="mp-pg-active">${n}</span>`:`<a onclick="loadPage(${n})">${n}</a>`;
+                }
+                if(page<totalPages)h+=`<a onclick="loadPage(${page+1})"><i class="bi bi-chevron-right"></i></a>`;
+                h+='</div>';pag.innerHTML=h;
+            }
+        }catch(e){list.innerHTML='<div class="mp-empty"><i class="bi bi-exclamation-triangle"></i><h4>Xatolik</h4></div>';}
+    }
+
+    window.loadPage=function(p){loadPurchases(p);window.scrollTo({top:0,behavior:'smooth'});};
+
+    window.filterStatus=function(btn,s){
+        status=s;
+        document.querySelectorAll('.mp-tab').forEach(t=>t.classList.remove('active'));
+        btn.classList.add('active');
+        loadPurchases(1);
+    };
+
+    window.openCancel=function(id,name,coins){
+        cancelId=id;
+        document.getElementById('cancelInfo').textContent=`"${name}" buyurtmasini bekor qilsangiz ${coins} coin qaytariladi.`;
+        document.getElementById('cancelModal').classList.add('show');
+    };
+    window.closeCancel=function(){document.getElementById('cancelModal').classList.remove('show');cancelId=null;};
+
+    window.confirmCancel=async function(){
+        if(!cancelId)return;
+        const btn=document.getElementById('cancelConfirmBtn');
+        btn.disabled=true;btn.textContent='Kutiling...';
+        try{
+            await post(API+'/purchases/'+cancelId+'/cancel/');
+            closeCancel();
+            toast('Buyurtma bekor qilindi!','success');
+            loadPurchases(page);
+        }catch(e){toast(e.error||'Xatolik','error');}
+        finally{btn.disabled=false;btn.textContent='Ha, bekor qilish';}
+    };
+
+    loadPurchases(1);
+})();
 </script>
 {% endblock %}

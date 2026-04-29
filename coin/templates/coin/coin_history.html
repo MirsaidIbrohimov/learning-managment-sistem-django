@@ -4,768 +4,321 @@
 
 {% block extra_css %}
 <style>
-/* ===== Coin History Page ===== */
 @keyframes chFadeUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes chCountUp {
     from { opacity: 0; transform: scale(0.8); }
     to { opacity: 1; transform: scale(1); }
 }
-
-.ch-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem 3rem;
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
-/* ===== Hero Header ===== */
+.ch-container { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
 .ch-hero {
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 100%);
-    border-radius: 20px;
-    padding: 2rem 2rem 1.75rem;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    animation: chFadeUp 0.5s ease;
+    border-radius: 20px; padding: 2rem 2rem 1.75rem; color: #fff;
+    position: relative; overflow: hidden; margin-bottom: 1.5rem; animation: chFadeUp 0.5s ease;
 }
+.ch-hero::before { content:''; position:absolute; top:-60%; right:-15%; width:320px; height:320px; background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%); pointer-events:none; }
+.ch-hero::after { content:''; position:absolute; bottom:-40%; left:-10%; width:250px; height:250px; background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%); pointer-events:none; }
+.ch-hero-title { font-size:1.65rem; font-weight:800; margin:0; display:flex; align-items:center; gap:0.6rem; position:relative; z-index:1; }
+.ch-hero-title i { font-size:1.5rem; filter:drop-shadow(0 2px 6px rgba(0,0,0,0.15)); }
+.ch-hero-sub { margin:0.4rem 0 0; opacity:0.85; font-size:0.92rem; position:relative; z-index:1; }
 
-.ch-hero::before {
-    content: '';
-    position: absolute;
-    top: -60%;
-    right: -15%;
-    width: 320px;
-    height: 320px;
-    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.ch-hero::after {
-    content: '';
-    position: absolute;
-    bottom: -40%;
-    left: -10%;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    pointer-events: none;
-}
-
-.ch-hero-title {
-    font-size: 1.65rem;
-    font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    position: relative;
-    z-index: 1;
-}
-
-.ch-hero-title i {
-    font-size: 1.5rem;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
-}
-
-.ch-hero-sub {
-    margin: 0.4rem 0 0;
-    opacity: 0.85;
-    font-size: 0.92rem;
-    position: relative;
-    z-index: 1;
-}
-
-/* ===== Summary Cards ===== */
-.ch-stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
+.ch-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
 .ch-stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    animation: chFadeUp 0.5s ease both;
+    background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem;
+    display:flex; align-items:center; gap:1rem; transition:transform 0.25s ease,box-shadow 0.25s ease;
+    animation:chFadeUp 0.5s ease both;
 }
+.ch-stat-card:nth-child(1){animation-delay:0.1s} .ch-stat-card:nth-child(2){animation-delay:0.15s}
+.ch-stat-card:nth-child(3){animation-delay:0.2s} .ch-stat-card:nth-child(4){animation-delay:0.25s}
+.ch-stat-card:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(0,0,0,0.08); }
+.ch-stat-icon { width:48px; height:48px; min-width:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; }
+.ch-stat-icon.blue { background:rgba(59,130,246,0.1); color:#3b82f6; }
+.ch-stat-icon.green { background:rgba(16,185,129,0.1); color:#10b981; }
+.ch-stat-icon.red { background:rgba(239,68,68,0.1); color:#ef4444; }
+.ch-stat-icon.purple { background:rgba(139,92,246,0.1); color:#8b5cf6; }
+.ch-stat-label { font-size:0.78rem; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:0.15rem; }
+.ch-stat-value { font-size:1.4rem; font-weight:800; color:var(--text); line-height:1; animation:chCountUp 0.6s ease both; }
 
-.ch-stat-card:nth-child(1) { animation-delay: 0.1s; }
-.ch-stat-card:nth-child(2) { animation-delay: 0.15s; }
-.ch-stat-card:nth-child(3) { animation-delay: 0.2s; }
-.ch-stat-card:nth-child(4) { animation-delay: 0.25s; }
+.ch-filter-bar { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; margin-bottom:1.5rem; animation:chFadeUp 0.5s ease 0.3s both; }
+.ch-filter-row { display:flex; flex-wrap:wrap; gap:0.75rem; align-items:end; }
+.ch-filter-group { display:flex; flex-direction:column; gap:0.35rem; flex:1; min-width:150px; }
+.ch-filter-group.search-group { flex:2; min-width:200px; }
+.ch-filter-label { font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; }
+.ch-filter-input { height:42px; padding:0 0.875rem; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:0.875rem; font-weight:500; transition:border-color 0.2s,box-shadow 0.2s; width:100%; }
+.ch-filter-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(99,102,241,0.12); }
+.ch-filter-input::placeholder { color:var(--text-muted); opacity:0.7; }
+.ch-search-wrap { position:relative; }
+.ch-search-wrap i { position:absolute; left:0.875rem; top:50%; transform:translateY(-50%); color:var(--text-muted); font-size:0.9rem; pointer-events:none; }
+.ch-search-wrap .ch-filter-input { padding-left:2.5rem; }
+.ch-filter-actions { display:flex; gap:0.5rem; align-items:end; padding-bottom:1px; }
+.ch-btn-filter { height:42px; padding:0 1.25rem; border-radius:12px; border:none; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; display:inline-flex; align-items:center; gap:0.4rem; white-space:nowrap; }
+.ch-btn-apply { background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; box-shadow:0 4px 14px rgba(99,102,241,0.25); }
+.ch-btn-apply:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(99,102,241,0.35); }
+.ch-btn-reset { background:var(--bg); color:var(--text-muted); border:2px solid var(--border); }
+.ch-btn-reset:hover { background:var(--border); color:var(--text); }
 
-.ch-stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px var(--card-hover-shadow);
-}
-
-.ch-stat-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-}
-
-.ch-stat-icon.blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
-.ch-stat-icon.green { background: rgba(16,185,129,0.1); color: #10b981; }
-.ch-stat-icon.red { background: rgba(239,68,68,0.1); color: #ef4444; }
-.ch-stat-icon.purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
-
-.ch-stat-label {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-bottom: 0.15rem;
-}
-
-.ch-stat-value {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--text);
-    line-height: 1;
-    animation: chCountUp 0.6s ease both;
-}
-
-/* ===== Filter Bar ===== */
-.ch-filter-bar {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
-    animation: chFadeUp 0.5s ease 0.3s both;
-}
-
-.ch-filter-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: end;
-}
-
-.ch-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    flex: 1;
-    min-width: 150px;
-}
-
-.ch-filter-group.search-group {
-    flex: 2;
-    min-width: 200px;
-}
-
-.ch-filter-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.ch-filter-input {
-    height: 42px;
-    padding: 0 0.875rem;
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 0.875rem;
-    font-weight: 500;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    width: 100%;
-}
-
-.ch-filter-input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-}
-
-.ch-filter-input::placeholder {
-    color: var(--text-muted);
-    opacity: 0.7;
-}
-
-.ch-search-wrap {
-    position: relative;
-}
-
-.ch-search-wrap i {
-    position: absolute;
-    left: 0.875rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    pointer-events: none;
-}
-
-.ch-search-wrap .ch-filter-input {
-    padding-left: 2.5rem;
-}
-
-.ch-filter-actions {
-    display: flex;
-    gap: 0.5rem;
-    align-items: end;
-    padding-bottom: 1px;
-}
-
-.ch-btn-filter {
-    height: 42px;
-    padding: 0 1.25rem;
-    border-radius: 12px;
-    border: none;
-    font-weight: 700;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    white-space: nowrap;
-}
-
-.ch-btn-apply {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.25);
-}
-
-.ch-btn-apply:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(99,102,241,0.35);
-}
-
-.ch-btn-reset {
-    background: var(--bg);
-    color: var(--text-muted);
-    border: 2px solid var(--border);
-}
-
-.ch-btn-reset:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-/* ===== Transaction List ===== */
-.ch-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-    margin-bottom: 1.5rem;
-}
-
+.ch-list { display:flex; flex-direction:column; gap:0.5rem; }
 .ch-tx-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    animation: chFadeUp 0.35s ease both;
+    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem;
+    display:flex; align-items:center; gap:1rem; transition:all 0.25s ease; animation:chFadeUp 0.4s ease both;
 }
+.ch-tx-card:hover { transform:translateX(4px); box-shadow:0 4px 16px rgba(0,0,0,0.06); }
+.ch-tx-icon { width:42px; height:42px; min-width:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+.ch-tx-icon.add { background:rgba(16,185,129,0.1); color:#10b981; }
+.ch-tx-icon.remove { background:rgba(239,68,68,0.1); color:#ef4444; }
+.ch-tx-icon.purchase { background:rgba(245,158,11,0.1); color:#f59e0b; }
+.ch-tx-body { flex:1; min-width:0; }
+.ch-tx-reason { font-size:0.9rem; font-weight:600; color:var(--text); margin:0 0 0.25rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ch-tx-meta { display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center; }
+.ch-tx-date { font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.25rem; }
+.ch-tx-type-badge { font-size:0.65rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:6px; text-transform:uppercase; letter-spacing:0.03em; }
+.ch-tx-type-badge.add { background:rgba(16,185,129,0.1); color:#10b981; }
+.ch-tx-type-badge.remove { background:rgba(239,68,68,0.1); color:#ef4444; }
+.ch-tx-type-badge.purchase { background:rgba(245,158,11,0.1); color:#f59e0b; }
+.ch-tx-amount { font-size:1.15rem; font-weight:800; white-space:nowrap; display:flex; align-items:center; gap:0.3rem; }
+.ch-tx-amount.add { color:#10b981; }
+.ch-tx-amount.remove { color:#ef4444; }
+.ch-tx-amount.purchase { color:#f59e0b; }
 
-.ch-tx-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px var(--card-hover-shadow);
-    border-color: rgba(99,102,241,0.15);
+.ch-empty { text-align:center; padding:3rem 1.5rem; background:var(--card); border:1px solid var(--border); border-radius:16px; }
+.ch-empty-icon { font-size:3rem; color:var(--text-muted); opacity:0.4; margin-bottom:1rem; }
+.ch-empty h4 { font-weight:700; color:var(--text); margin-bottom:0.5rem; }
+.ch-empty p { color:var(--text-muted); font-size:0.9rem; }
+
+.ch-pagination { display:flex; justify-content:center; align-items:center; gap:0.35rem; margin-top:1.5rem; flex-wrap:wrap; }
+.ch-pagination a, .ch-pagination span { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; font-size:0.85rem; font-weight:600; text-decoration:none; transition:all 0.2s; }
+.ch-pagination a { background:var(--card); border:1px solid var(--border); color:var(--text); cursor:pointer; }
+.ch-pagination a:hover { background:var(--primary); color:#fff; border-color:var(--primary); }
+.ch-page-active { background:linear-gradient(135deg,#6366f1,#4f46e5) !important; color:#fff !important; border:none !important; box-shadow:0 4px 14px rgba(99,102,241,0.3); }
+.ch-page-disabled { color:var(--text-muted); opacity:0.4; cursor:default; }
+.ch-page-info { font-size:0.78rem; color:var(--text-muted); padding:0 0.5rem; font-weight:600; }
+
+.ch-skeleton { background: linear-gradient(90deg, var(--border) 25%, var(--card) 50%, var(--border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 8px; }
+
+@media(max-width:768px) {
+    .ch-stats { grid-template-columns:repeat(2,1fr); }
+    .ch-filter-group { min-width:unset; width:100%; }
+    .ch-filter-actions { width:100%; }
+    .ch-btn-filter { flex:1; justify-content:center; }
+    .ch-tx-card { padding:0.875rem 1rem; gap:0.75rem; }
+    .ch-tx-icon { width:38px; height:38px; min-width:38px; font-size:1.1rem; border-radius:10px; }
+    .ch-tx-reason { font-size:0.85rem; }
+    .ch-tx-amount { font-size:1rem; }
 }
-
-.ch-tx-icon {
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-}
-
-.ch-tx-icon.add {
-    background: rgba(16,185,129,0.1);
-    color: #10b981;
-}
-
-.ch-tx-icon.remove {
-    background: rgba(239,68,68,0.1);
-    color: #ef4444;
-}
-
-.ch-tx-icon.purchase {
-    background: rgba(245,158,11,0.1);
-    color: #f59e0b;
-}
-
-.ch-tx-body {
-    flex: 1;
-    min-width: 0;
-}
-
-.ch-tx-reason {
-    font-weight: 600;
-    font-size: 0.92rem;
-    color: var(--text);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.ch-tx-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.2rem;
-}
-
-.ch-tx-date {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.ch-tx-type-badge {
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 0.15rem 0.5rem;
-    border-radius: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.ch-tx-type-badge.add {
-    background: rgba(16,185,129,0.1);
-    color: #10b981;
-}
-
-.ch-tx-type-badge.remove {
-    background: rgba(239,68,68,0.1);
-    color: #ef4444;
-}
-
-.ch-tx-type-badge.purchase {
-    background: rgba(245,158,11,0.1);
-    color: #f59e0b;
-}
-
-.ch-tx-amount {
-    font-weight: 800;
-    font-size: 1.1rem;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.ch-tx-amount.add { color: #10b981; }
-.ch-tx-amount.remove { color: #ef4444; }
-.ch-tx-amount.purchase { color: #f59e0b; }
-
-.ch-tx-amount .bi-coin {
-    font-size: 0.85rem;
-    opacity: 0.7;
-}
-
-/* ===== Empty State ===== */
-.ch-empty {
-    text-align: center;
-    padding: 3.5rem 1.5rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    animation: chFadeUp 0.5s ease;
-}
-
-.ch-empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(99,102,241,0.08);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    color: var(--primary);
-    margin-bottom: 1rem;
-}
-
-.ch-empty h4 {
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: var(--text);
-    margin: 0 0 0.4rem;
-}
-
-.ch-empty p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin: 0;
-}
-
-/* ===== Pagination ===== */
-.ch-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    animation: chFadeUp 0.5s ease 0.4s both;
-}
-
-.ch-pagination a,
-.ch-pagination span {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 40px;
-    height: 40px;
-    padding: 0 0.6rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.88rem;
-    text-decoration: none;
-    transition: all 0.25s;
-}
-
-.ch-pagination a {
-    background: var(--card);
-    color: var(--text);
-    border: 2px solid var(--border);
-}
-
-.ch-pagination a:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(99,102,241,0.12);
-}
-
-.ch-pagination .ch-page-active {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: #fff;
-    border: 2px solid transparent;
-    box-shadow: 0 4px 14px rgba(99,102,241,0.3);
-}
-
-.ch-pagination .ch-page-disabled {
-    opacity: 0.35;
-    pointer-events: none;
-    background: var(--card);
-    border: 2px solid var(--border);
-    color: var(--text-muted);
-}
-
-.ch-pagination .ch-page-info {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin: 0 0.35rem;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 991px) {
-    .ch-stats {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 767px) {
-    .ch-container { padding: 1rem 0.75rem 2rem; }
-
-    .ch-hero { padding: 1.5rem; border-radius: 16px; }
-    .ch-hero-title { font-size: 1.35rem; }
-
-    .ch-stats {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-    }
-
-    .ch-stat-card { padding: 1rem; gap: 0.75rem; }
-    .ch-stat-icon { width: 40px; height: 40px; min-width: 40px; font-size: 1.1rem; border-radius: 12px; }
-    .ch-stat-value { font-size: 1.15rem; }
-    .ch-stat-label { font-size: 0.7rem; }
-
-    .ch-filter-bar { padding: 1rem; border-radius: 14px; }
-
-    .ch-filter-row {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .ch-filter-group,
-    .ch-filter-group.search-group {
-        flex: unset;
-        min-width: unset;
-        width: 100%;
-    }
-
-    .ch-filter-actions {
-        width: 100%;
-    }
-
-    .ch-btn-filter { flex: 1; justify-content: center; }
-
-    .ch-tx-card { padding: 0.875rem 1rem; gap: 0.75rem; }
-    .ch-tx-icon { width: 38px; height: 38px; min-width: 38px; font-size: 1.1rem; border-radius: 10px; }
-    .ch-tx-reason { font-size: 0.85rem; }
-    .ch-tx-amount { font-size: 1rem; }
-}
-
-@media (max-width: 400px) {
-    .ch-stats { grid-template-columns: 1fr; }
-    .ch-hero-title { font-size: 1.2rem; }
-}
+@media(max-width:400px) { .ch-stats{grid-template-columns:1fr} .ch-hero-title{font-size:1.2rem} }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="ch-container">
-
-    <!-- ===== Hero ===== -->
     <div class="ch-hero">
-        <h1 class="ch-hero-title">
-            <i class="bi bi-clock-history"></i>
-            Coin Tarixi
-        </h1>
+        <h1 class="ch-hero-title"><i class="bi bi-clock-history"></i> Coin Tarixi</h1>
         <p class="ch-hero-sub">Barcha coin tranzaksiyalaringiz tarixi va statistikasi</p>
     </div>
 
-    <!-- ===== Stats Cards ===== -->
     <div class="ch-stats">
         <div class="ch-stat-card">
-            <div class="ch-stat-icon blue">
-                <i class="bi bi-coin"></i>
-            </div>
-            <div>
-                <div class="ch-stat-label">Jami coinlar</div>
-                <div class="ch-stat-value">{{ total_coins|default:0 }}</div>
-            </div>
+            <div class="ch-stat-icon blue"><i class="bi bi-coin"></i></div>
+            <div><div class="ch-stat-label">Jami coinlar</div><div class="ch-stat-value" id="statTotal">...</div></div>
         </div>
         <div class="ch-stat-card">
-            <div class="ch-stat-icon green">
-                <i class="bi bi-arrow-up-circle-fill"></i>
-            </div>
-            <div>
-                <div class="ch-stat-label">Yig'ilgan</div>
-                <div class="ch-stat-value" style="color:#10b981;">+{{ total_earned|default:0 }}</div>
-            </div>
+            <div class="ch-stat-icon green"><i class="bi bi-arrow-up-circle-fill"></i></div>
+            <div><div class="ch-stat-label">Yig'ilgan</div><div class="ch-stat-value" id="statEarned" style="color:#10b981;">...</div></div>
         </div>
         <div class="ch-stat-card">
-            <div class="ch-stat-icon red">
-                <i class="bi bi-arrow-down-circle-fill"></i>
-            </div>
-            <div>
-                <div class="ch-stat-label">Sarflangan</div>
-                <div class="ch-stat-value" style="color:#ef4444;">-{{ total_spent|default:0 }}</div>
-            </div>
+            <div class="ch-stat-icon red"><i class="bi bi-arrow-down-circle-fill"></i></div>
+            <div><div class="ch-stat-label">Sarflangan</div><div class="ch-stat-value" id="statSpent" style="color:#ef4444;">...</div></div>
         </div>
         <div class="ch-stat-card">
-            <div class="ch-stat-icon purple">
-                <i class="bi bi-receipt"></i>
-            </div>
-            <div>
-                <div class="ch-stat-label">Tranzaksiyalar soni</div>
-                <div class="ch-stat-value">{{ total_transactions|default:0 }}</div>
-            </div>
+            <div class="ch-stat-icon purple"><i class="bi bi-receipt"></i></div>
+            <div><div class="ch-stat-label">Tranzaksiyalar</div><div class="ch-stat-value" id="statCount">...</div></div>
         </div>
     </div>
 
-    <!-- ===== Filter Bar ===== -->
-    <form method="get" class="ch-filter-bar" id="chFilterForm">
+    <div class="ch-filter-bar" id="chFilterForm">
         <div class="ch-filter-row">
             <div class="ch-filter-group">
                 <label class="ch-filter-label">Turi</label>
-                <select name="action" class="ch-filter-input">
+                <select id="fAction" class="ch-filter-input">
                     <option value="">Barchasi</option>
-                    <option value="add" {% if current_action == 'add' %}selected{% endif %}>Qo'shildi</option>
-                    <option value="remove" {% if current_action == 'remove' %}selected{% endif %}>Ayirildi</option>
-                    <option value="purchase" {% if current_action == 'purchase' %}selected{% endif %}>Xarid</option>
+                    <option value="add">Qo'shildi</option>
+                    <option value="remove">Ayirildi</option>
+                    <option value="purchase">Xarid</option>
                 </select>
             </div>
             <div class="ch-filter-group">
                 <label class="ch-filter-label">Dan</label>
-                <input type="date" name="date_from" class="ch-filter-input"
-                       value="{{ current_date_from|default:'' }}">
+                <input type="date" id="fDateFrom" class="ch-filter-input">
             </div>
             <div class="ch-filter-group">
                 <label class="ch-filter-label">Gacha</label>
-                <input type="date" name="date_to" class="ch-filter-input"
-                       value="{{ current_date_to|default:'' }}">
+                <input type="date" id="fDateTo" class="ch-filter-input">
             </div>
             <div class="ch-filter-group search-group">
                 <label class="ch-filter-label">Qidiruv</label>
                 <div class="ch-search-wrap">
                     <i class="bi bi-search"></i>
-                    <input type="text" name="search" class="ch-filter-input"
-                           placeholder="Sabab bo'yicha izlash..."
-                           value="{{ current_search|default:'' }}">
+                    <input type="text" id="fSearch" class="ch-filter-input" placeholder="Sabab bo'yicha izlash...">
                 </div>
             </div>
             <div class="ch-filter-actions">
-                <button type="submit" class="ch-btn-filter ch-btn-apply">
-                    <i class="bi bi-funnel-fill"></i> Filtr
-                </button>
-                <a href="{{ request.path }}" class="ch-btn-filter ch-btn-reset">
-                    <i class="bi bi-x-lg"></i> Tozalash
-                </a>
+                <button type="button" class="ch-btn-filter ch-btn-apply" id="chApplyBtn"><i class="bi bi-funnel-fill"></i> Filtr</button>
+                <button type="button" class="ch-btn-filter ch-btn-reset" id="chResetBtn"><i class="bi bi-x-lg"></i> Tozalash</button>
             </div>
         </div>
-    </form>
-
-    <!-- ===== Transaction List ===== -->
-    <div class="ch-list">
-        {% for tx in transactions %}
-        <div class="ch-tx-card" style="animation-delay: {{ forloop.counter0 }}50ms;">
-            <div class="ch-tx-icon {{ tx.action }}">
-                {% if tx.action == 'add' %}
-                    <i class="bi bi-arrow-up-circle-fill"></i>
-                {% elif tx.action == 'purchase' %}
-                    <i class="bi bi-cart-fill"></i>
-                {% else %}
-                    <i class="bi bi-arrow-down-circle-fill"></i>
-                {% endif %}
-            </div>
-            <div class="ch-tx-body">
-                <p class="ch-tx-reason" title="{{ tx.reason }}">{{ tx.reason|default:"—" }}</p>
-                <div class="ch-tx-meta">
-                    <span class="ch-tx-date">
-                        <i class="bi bi-calendar3"></i>
-                        {{ tx.created_at|date:"d.m.Y" }}
-                    </span>
-                    <span class="ch-tx-date">
-                        <i class="bi bi-clock"></i>
-                        {{ tx.created_at|date:"H:i" }}
-                    </span>
-                    <span class="ch-tx-type-badge {{ tx.action }}">
-                        {% if tx.action == 'add' %}Qo'shildi{% elif tx.action == 'purchase' %}Xarid{% else %}Ayirildi{% endif %}
-                    </span>
-                </div>
-            </div>
-            <div class="ch-tx-amount {{ tx.action }}">
-                {% if tx.action == 'add' %}+{% else %}-{% endif %}{{ tx.amount }}
-                <i class="bi bi-coin"></i>
-            </div>
-        </div>
-        {% empty %}
-        <div class="ch-empty">
-            <div class="ch-empty-icon">
-                <i class="bi bi-inbox"></i>
-            </div>
-            <h4>Tranzaksiyalar topilmadi</h4>
-            <p>Hozircha hech qanday coin tranzaksiyasi mavjud emas{% if current_action or current_search or current_date_from or current_date_to %}. Filtrni o'zgartiring yoki tozalang{% endif %}.</p>
-        </div>
-        {% endfor %}
     </div>
 
-    <!-- ===== Pagination ===== -->
-    {% if page_obj.paginator.num_pages > 1 %}
-    <div class="ch-pagination">
-        {% if page_obj.has_previous %}
-        <a href="?page=1{% if current_action %}&action={{ current_action }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
-           title="Birinchi sahifa">
-            <i class="bi bi-chevron-double-left"></i>
-        </a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}">
-            <i class="bi bi-chevron-left"></i>
-        </a>
-        {% else %}
-        <span class="ch-page-disabled"><i class="bi bi-chevron-double-left"></i></span>
-        <span class="ch-page-disabled"><i class="bi bi-chevron-left"></i></span>
-        {% endif %}
-
-        {% for num in page_obj.paginator.page_range %}
-            {% if page_obj.number == num %}
-            <span class="ch-page-active">{{ num }}</span>
-            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-            <a href="?page={{ num }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}">
-                {{ num }}
-            </a>
-            {% endif %}
-        {% endfor %}
-
-        <span class="ch-page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-
-        {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}">
-            <i class="bi bi-chevron-right"></i>
-        </a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
-           title="Oxirgi sahifa">
-            <i class="bi bi-chevron-double-right"></i>
-        </a>
-        {% else %}
-        <span class="ch-page-disabled"><i class="bi bi-chevron-right"></i></span>
-        <span class="ch-page-disabled"><i class="bi bi-chevron-double-right"></i></span>
-        {% endif %}
+    <div class="ch-list" id="txList">
+        <div class="ch-skeleton" style="height:68px;margin-bottom:8px;"></div>
+        <div class="ch-skeleton" style="height:68px;margin-bottom:8px;"></div>
+        <div class="ch-skeleton" style="height:68px;"></div>
     </div>
-    {% endif %}
 
+    <div id="txPagination"></div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-(function() {
-    // Animate stat values on scroll into view
-    var observed = false;
-    var stats = document.querySelectorAll('.ch-stat-value');
-    if (!stats.length) return;
+(function(){
+    const API = '/api/v1/coin';
+    let page = 1;
 
-    var observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting && !observed) {
-                observed = true;
-                stats.forEach(function(el) {
-                    var text = el.textContent.trim();
-                    var prefix = '';
-                    if (text.charAt(0) === '+' || text.charAt(0) === '-') {
-                        prefix = text.charAt(0);
-                        text = text.substring(1);
-                    }
-                    var target = parseInt(text, 10);
-                    if (isNaN(target) || target === 0) return;
+    function fmtDate(iso) {
+        const d = new Date(iso);
+        return d.toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'});
+    }
+    function fmtTime(iso) {
+        const d = new Date(iso);
+        return d.toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit',hour12:false});
+    }
 
-                    var duration = 800;
-                    var start = performance.now();
-                    function step(now) {
-                        var progress = Math.min((now - start) / duration, 1);
-                        var eased = 1 - Math.pow(1 - progress, 3);
-                        el.textContent = prefix + Math.round(target * eased).toLocaleString('uz-UZ');
-                        if (progress < 1) requestAnimationFrame(step);
-                    }
-                    el.textContent = prefix + '0';
-                    requestAnimationFrame(step);
-                });
-                observer.disconnect();
+    async function api(url) {
+        const r = await fetch(url, {credentials:'same-origin'});
+        if (!r.ok) throw new Error(r.statusText);
+        return r.json();
+    }
+
+    function animateNum(el, target, prefix) {
+        prefix = prefix || '';
+        let dur = 700, start = performance.now();
+        function step(now) {
+            let p = Math.min((now-start)/dur,1), e = 1-Math.pow(1-p,3);
+            el.textContent = prefix + Math.round(target*e).toLocaleString('uz-UZ');
+            if (p < 1) requestAnimationFrame(step);
+        }
+        el.textContent = prefix + '0';
+        requestAnimationFrame(step);
+    }
+
+    async function loadSummary() {
+        try {
+            const d = await api(API+'/summary/');
+            animateNum(document.getElementById('statTotal'), d.total_coins);
+            animateNum(document.getElementById('statEarned'), d.total_earned, '+');
+            animateNum(document.getElementById('statSpent'), d.total_spent, '-');
+            animateNum(document.getElementById('statCount'), d.total_transactions);
+        } catch(e) { console.error(e); }
+    }
+
+    function getFilters() {
+        let p = [];
+        const a = document.getElementById('fAction').value;
+        const s = document.getElementById('fSearch').value.trim();
+        const df = document.getElementById('fDateFrom').value;
+        const dt = document.getElementById('fDateTo').value;
+        if (a) p.push('action='+a);
+        if (s) p.push('search='+encodeURIComponent(s));
+        if (df) p.push('date_from='+df);
+        if (dt) p.push('date_to='+dt);
+        return p;
+    }
+
+    async function loadTx(pg) {
+        page = pg || 1;
+        const list = document.getElementById('txList');
+        const pag = document.getElementById('txPagination');
+        list.innerHTML = '<div class="ch-skeleton" style="height:68px;margin-bottom:8px;"></div>'.repeat(3);
+        pag.innerHTML = '';
+
+        try {
+            let params = getFilters();
+            params.push('page='+page);
+            const d = await api(API+'/transactions/?'+params.join('&'));
+            const totalPages = Math.ceil(d.count/20);
+
+            if (!d.results.length) {
+                list.innerHTML = '<div class="ch-empty"><div class="ch-empty-icon"><i class="bi bi-inbox"></i></div><h4>Tranzaksiyalar topilmadi</h4><p>Filtrni o\'zgartiring yoki tozalang</p></div>';
+                return;
             }
-        });
-    }, { threshold: 0.3 });
 
-    observer.observe(document.querySelector('.ch-stats'));
+            list.innerHTML = d.results.map((tx,i) => {
+                const icon = tx.action==='add'?'bi-arrow-up-circle-fill':tx.action==='purchase'?'bi-cart-fill':'bi-arrow-down-circle-fill';
+                const sign = tx.action==='add'?'+':'-';
+                const label = tx.action==='add'?"Qo'shildi":tx.action==='purchase'?'Xarid':'Ayirildi';
+                return `<div class="ch-tx-card" style="animation-delay:${i*50}ms">
+                    <div class="ch-tx-icon ${tx.action}"><i class="bi ${icon}"></i></div>
+                    <div class="ch-tx-body">
+                        <p class="ch-tx-reason" title="${tx.reason||''}">${tx.reason||'—'}</p>
+                        <div class="ch-tx-meta">
+                            <span class="ch-tx-date"><i class="bi bi-calendar3"></i> ${fmtDate(tx.created_at)}</span>
+                            <span class="ch-tx-date"><i class="bi bi-clock"></i> ${fmtTime(tx.created_at)}</span>
+                            <span class="ch-tx-type-badge ${tx.action}">${label}</span>
+                        </div>
+                    </div>
+                    <div class="ch-tx-amount ${tx.action}">${sign}${tx.amount} <i class="bi bi-coin"></i></div>
+                </div>`;
+            }).join('');
+
+            if (totalPages > 1) {
+                let h = '<div class="ch-pagination">';
+                if (page > 1) {
+                    h += `<a onclick="loadPage(1)"><i class="bi bi-chevron-double-left"></i></a>`;
+                    h += `<a onclick="loadPage(${page-1})"><i class="bi bi-chevron-left"></i></a>`;
+                } else {
+                    h += '<span class="ch-page-disabled"><i class="bi bi-chevron-double-left"></i></span>';
+                    h += '<span class="ch-page-disabled"><i class="bi bi-chevron-left"></i></span>';
+                }
+                for (let n=Math.max(1,page-2); n<=Math.min(totalPages,page+2); n++) {
+                    h += n===page ? `<span class="ch-page-active">${n}</span>` : `<a onclick="loadPage(${n})">${n}</a>`;
+                }
+                h += `<span class="ch-page-info">${page} / ${totalPages}</span>`;
+                if (page < totalPages) {
+                    h += `<a onclick="loadPage(${page+1})"><i class="bi bi-chevron-right"></i></a>`;
+                    h += `<a onclick="loadPage(${totalPages})"><i class="bi bi-chevron-double-right"></i></a>`;
+                } else {
+                    h += '<span class="ch-page-disabled"><i class="bi bi-chevron-right"></i></span>';
+                    h += '<span class="ch-page-disabled"><i class="bi bi-chevron-double-right"></i></span>';
+                }
+                h += '</div>';
+                pag.innerHTML = h;
+            }
+        } catch(e) {
+            list.innerHTML = '<div class="ch-empty"><div class="ch-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h4>Xatolik yuz berdi</h4></div>';
+        }
+    }
+
+    window.loadPage = function(p) { loadTx(p); window.scrollTo({top:0,behavior:'smooth'}); };
+
+    document.getElementById('chApplyBtn').addEventListener('click', ()=>loadTx(1));
+    document.getElementById('chResetBtn').addEventListener('click', ()=>{
+        document.getElementById('fAction').value='';
+        document.getElementById('fSearch').value='';
+        document.getElementById('fDateFrom').value='';
+        document.getElementById('fDateTo').value='';
+        loadTx(1);
+    });
+
+    loadSummary();
+    loadTx(1);
 })();
 </script>
 {% endblock %}

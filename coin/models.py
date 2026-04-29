@@ -136,6 +136,10 @@ class CoinTransaction(models.Model):
         ordering = ['-created_at']
         verbose_name = "Coin tranzaksiya"
         verbose_name_plural = "Coin tranzaksiyalar"
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'action']),
+        ]
 
     def __str__(self):
         sign = '+' if self.action == 'add' else '-'
@@ -182,6 +186,10 @@ class ActivityLog(models.Model):
         ordering = ['-created_at']
         verbose_name = "Faollik"
         verbose_name_plural = "Faolliklar"
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'action_type']),
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.get_action_type_display()}"

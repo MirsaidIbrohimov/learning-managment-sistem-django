@@ -1,581 +1,278 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}{{ product.name }} | Coin Market{% endblock %}
+{% block title %}Mahsulot | LMS{% endblock %}
 
 {% block extra_css %}
 <style>
-:root {
-    --d-card: #ffffff;
-    --d-border: rgba(0, 0, 0, 0.06);
-    --d-text: #1e293b;
-    --d-text-muted: #64748b;
-    --d-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-    --d-radius: 20px;
-    --d-radius-md: 14px;
-    --d-primary: #6366f1;
-    --d-coin: #f59e0b;
-}
+@keyframes dtFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes dtPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
 
-[data-bs-theme="dark"] {
-    --d-card: #1e1e1e;
-    --d-border: rgba(255, 255, 255, 0.08);
-    --d-text: #f1f5f9;
-    --d-text-muted: #94a3b8;
-    --d-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-}
+.dt-container { max-width:1000px; margin:0 auto; padding:1.5rem 1rem 3rem; }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+.dt-back { display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-muted); font-weight:600; font-size:0.9rem; text-decoration:none; margin-bottom:1.25rem; transition:color 0.2s; }
+.dt-back:hover { color:var(--primary); }
 
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
+.dt-main { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem; animation:dtFadeUp 0.5s ease; }
 
-.detail-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-}
+.dt-img-wrap { border-radius:20px; overflow:hidden; background:var(--card); border:1px solid var(--border); }
+.dt-img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
 
-/* Back Button */
-.back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--d-text-muted);
-    text-decoration: none;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s;
-}
+.dt-info { display:flex; flex-direction:column; gap:1rem; }
+.dt-title { font-size:1.6rem; font-weight:800; color:var(--text); margin:0; }
+.dt-desc { font-size:0.92rem; color:var(--text-muted); line-height:1.65; margin:0; }
 
-.back-btn:hover {
-    color: var(--d-primary);
-    transform: translateX(-4px);
-}
+.dt-meta { display:flex; flex-wrap:wrap; gap:0.75rem; }
+.dt-badge { display:inline-flex; align-items:center; gap:0.35rem; padding:0.5rem 1rem; border-radius:12px; font-weight:700; font-size:0.88rem; }
+.dt-badge.price { background:rgba(245,158,11,0.1); color:#f59e0b; }
+.dt-badge.stock { background:rgba(16,185,129,0.1); color:#10b981; }
+.dt-badge.out { background:rgba(239,68,68,0.1); color:#ef4444; }
+.dt-badge.balance { background:rgba(59,130,246,0.1); color:#3b82f6; }
 
-/* Product Hero */
-.product-hero {
-    background: var(--d-card);
-    border-radius: var(--d-radius);
-    overflow: hidden;
-    box-shadow: var(--d-shadow);
-    margin-bottom: 2rem;
-    animation: fadeIn 0.5s ease;
-}
+.dt-stats { display:flex; gap:1.25rem; }
+.dt-stat { display:flex; align-items:center; gap:0.35rem; font-size:0.9rem; color:var(--text-muted); }
 
-.product-image {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
+.dt-actions { display:flex; gap:0.75rem; margin-top:auto; }
+.dt-like-btn {
+    width:50px; height:50px; border:2px solid var(--border); border-radius:14px; background:var(--bg);
+    display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--text-muted);
+    cursor:pointer; transition:all 0.2s;
 }
-
-.product-content {
-    padding: 2rem;
+.dt-like-btn.liked { color:#ef4444; border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); }
+.dt-like-btn:hover i { animation:dtPulse 0.4s ease; }
+.dt-purchase-btn {
+    flex:1; height:50px; border:none; border-radius:14px; font-weight:700; font-size:1rem;
+    background:linear-gradient(135deg,#10b981,#059669); color:#fff;
+    cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:0.5rem;
 }
+.dt-purchase-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(16,185,129,0.3); }
+.dt-purchase-btn:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; transform:none; box-shadow:none; }
 
-/* Price Bar */
-.price-bar {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-    border-radius: var(--d-radius-md);
-    padding: 1.25rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-}
+/* Comments */
+.dt-comments { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:1.5rem; animation:dtFadeUp 0.5s ease 0.2s both; }
+.dt-comments-title { font-size:1.15rem; font-weight:700; margin:0 0 1rem; display:flex; align-items:center; gap:0.5rem; }
+.dt-comment-form { display:flex; gap:0.5rem; margin-bottom:1.25rem; }
+.dt-comment-input { flex:1; padding:0.75rem 1rem; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:0.88rem; resize:none; min-height:44px; font-family:inherit; }
+.dt-comment-input:focus { outline:none; border-color:var(--primary); }
+.dt-comment-submit { height:44px; padding:0 1.25rem; border:none; border-radius:12px; background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.dt-comment-submit:hover { transform:translateY(-1px); }
 
-.price-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    padding: 0.6rem 1.25rem;
-    border-radius: 25px;
-    color: white;
-    font-weight: 800;
-    font-size: 1.25rem;
-}
+.dt-comment-list { display:flex; flex-direction:column; gap:0.75rem; }
+.dt-comment { display:flex; gap:0.75rem; padding:0.75rem; background:var(--bg); border-radius:14px; }
+.dt-comment-avatar { width:36px; height:36px; min-width:36px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; font-size:0.8rem; display:flex; align-items:center; justify-content:center; }
+.dt-comment-body { flex:1; min-width:0; }
+.dt-comment-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem; }
+.dt-comment-name { font-weight:700; font-size:0.85rem; color:var(--text); }
+.dt-comment-date { font-size:0.72rem; color:var(--text-muted); }
+.dt-comment-text { font-size:0.85rem; color:var(--text-muted); margin:0; line-height:1.5; }
 
-.stock-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 0.875rem;
-}
+.dt-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
 
-.stock-badge.available {
-    background: rgba(16, 185, 129, 0.2);
-    color: #10b981;
-}
+.dt-toast { position:fixed; top:20px; right:20px; padding:0.85rem 1.5rem; border-radius:14px; font-weight:600; font-size:0.9rem; z-index:9999; animation:dtFadeUp 0.3s ease; display:flex; align-items:center; gap:0.5rem; }
+.dt-toast.success { background:#10b981; color:#fff; }
+.dt-toast.error { background:#ef4444; color:#fff; }
 
-.stock-badge.out {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
+/* Modal */
+.dt-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:9998; display:none; align-items:center; justify-content:center; }
+.dt-modal-overlay.show { display:flex; }
+.dt-modal { background:var(--card); border-radius:20px; padding:2rem; max-width:420px; width:90%; animation:dtFadeUp 0.3s ease; }
+.dt-modal h3 { font-size:1.2rem; font-weight:700; margin:0 0 1rem; }
+.dt-modal-info { background:var(--bg); border-radius:12px; padding:1rem; margin-bottom:1.25rem; font-size:0.9rem; }
+.dt-modal-info div { display:flex; justify-content:space-between; padding:0.25rem 0; }
+.dt-modal-info .dt-modal-total { font-weight:700; border-top:1px solid var(--border); margin-top:0.5rem; padding-top:0.5rem; }
+.dt-modal-actions { display:flex; gap:0.5rem; }
+.dt-modal-actions button { flex:1; height:44px; border:none; border-radius:12px; font-weight:700; cursor:pointer; transition:all 0.2s; }
+.dt-modal-cancel { background:var(--bg); color:var(--text-muted); border:2px solid var(--border)!important; }
+.dt-modal-confirm { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
 
-.product-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--d-text);
-    margin-bottom: 1rem;
-}
-
-.product-description {
-    color: var(--d-text-muted);
-    line-height: 1.7;
-    white-space: pre-wrap;
-    margin-bottom: 2rem;
-}
-
-/* Actions */
-.actions-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    align-items: center;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--d-border);
-}
-
-.action-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.3s;
-    border: none;
-    cursor: pointer;
-}
-
-.like-btn {
-    background: rgba(239, 68, 68, 0.1);
-    color: #64748b;
-}
-
-.like-btn:hover {
-    background: rgba(239, 68, 68, 0.2);
-}
-
-.like-btn.liked {
-    background: #ef4444;
-    color: white;
-}
-
-.buy-btn {
-    background: #10b981;
-    color: white;
-    margin-left: auto;
-}
-
-.buy-btn:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
-    color: white;
-}
-
-.buy-btn:disabled {
-    background: var(--d-border);
-    color: var(--d-text-muted);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-}
-
-.balance-info {
-    width: 100%;
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: var(--d-text-muted);
-}
-
-/* Comments Section */
-.comments-section {
-    background: var(--d-card);
-    border-radius: var(--d-radius);
-    padding: 2rem;
-    box-shadow: var(--d-shadow);
-    animation: fadeIn 0.5s ease 0.2s both;
-}
-
-.comments-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.comments-header h3 {
-    font-weight: 700;
-    color: var(--d-text);
-    margin: 0;
-}
-
-.comment-count {
-    background: var(--d-primary);
-    color: white;
-    padding: 0.35rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-/* Comment Form */
-.comment-form {
-    margin-bottom: 2rem;
-}
-
-.comment-textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 2px solid var(--d-border);
-    border-radius: var(--d-radius-md);
-    background: var(--d-card);
-    color: var(--d-text);
-    font-size: 1rem;
-    resize: none;
-    transition: all 0.3s;
-    min-height: 100px;
-}
-
-.comment-textarea:focus {
-    outline: none;
-    border-color: var(--d-primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-}
-
-.comment-textarea::placeholder {
-    color: var(--d-text-muted);
-}
-
-.form-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1rem;
-}
-
-.coin-reward {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--d-coin);
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.submit-btn {
-    background: var(--d-primary);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-
-.submit-btn:hover {
-    background: #4f46e5;
-    transform: translateY(-2px);
-}
-
-/* Comment List */
-.comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.comment-item {
-    display: flex;
-    gap: 1rem;
-    animation: slideIn 0.4s ease both;
-}
-
-.comment-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.comment-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--d-primary), #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.comment-body {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    background: rgba(99, 102, 241, 0.05);
-    border-radius: var(--d-radius-md);
-    padding: 1rem;
-    border: 1px solid var(--d-border);
-}
-
-[data-bs-theme="dark"] .comment-body {
-    background: rgba(99, 102, 241, 0.1);
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.comment-author {
-    font-weight: 700;
-    color: var(--d-text);
-}
-
-.comment-time {
-    font-size: 0.8rem;
-    color: var(--d-text-muted);
-}
-
-.comment-text {
-    color: var(--d-text);
-    line-height: 1.6;
-    margin: 0;
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-
-/* Empty Comments */
-.empty-comments {
-    text-align: center;
-    padding: 3rem;
-    color: var(--d-text-muted);
-}
-
-.empty-comments i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .detail-container {
-        padding: 1rem 0.75rem;
-    }
-    
-    .product-content {
-        padding: 1.5rem;
-    }
-    
-    .product-title {
-        font-size: 1.4rem;
-    }
-    
-    .price-bar {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .actions-bar {
-        flex-direction: column;
-    }
-    
-    .buy-btn {
-        width: 100%;
-        justify-content: center;
-        margin-left: 0;
-    }
-    
-    .comments-section {
-        padding: 1.5rem;
-    }
-    
-    .comment-item {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .comment-avatar,
-    .comment-avatar-placeholder {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-@media (max-width: 480px) {
-    .product-image {
-        max-height: 250px;
-    }
-    
-    .form-footer {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .submit-btn {
-        width: 100%;
-    }
+@media(max-width:768px) {
+    .dt-main { grid-template-columns:1fr; }
+    .dt-title { font-size:1.3rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="detail-container">
+<div class="dt-container">
+    <a href="/market/" class="dt-back"><i class="bi bi-arrow-left"></i> Market</a>
 
-    <!-- Back Button -->
-    <a href="{% url 'coin:market_list' %}" class="back-btn">
-        <i class="bi bi-arrow-left"></i>
-        Marketga qaytish
-    </a>
-
-    <!-- Product Hero -->
-    <div class="product-hero">
-        {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
-        {% endif %}
-        
-        <div class="product-content">
-            <!-- Price Bar -->
-            <div class="price-bar">
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    {% if has_discount %}
-                    <div class="price-display" style="text-decoration:line-through;opacity:0.5;font-size:1rem;">
-                        <i class="bi bi-coin"></i>
-                        <span>{{ product.coin_price }}</span>
-                    </div>
-                    <div class="price-display" style="background:rgba(16,185,129,0.3);">
-                        <i class="bi bi-coin"></i>
-                        <span>{{ discounted_price }} coin</span>
-                    </div>
-                    <span style="background:#10b981;color:#fff;padding:0.3rem 0.75rem;border-radius:20px;font-size:0.8rem;font-weight:700;">
-                        <i class="bi bi-patch-check-fill me-1"></i>Premium -5%
-                    </span>
-                    {% else %}
-                    <div class="price-display">
-                        <i class="bi bi-coin"></i>
-                        <span>{{ product.coin_price }} coin</span>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                {% if product.stock > 0 %}
-                <span class="stock-badge available">
-                    <i class="bi bi-check-circle me-1"></i>{{ product.stock }} ta mavjud
-                </span>
-                {% else %}
-                <span class="stock-badge out">
-                    <i class="bi bi-x-circle me-1"></i>Tugagan
-                </span>
-                {% endif %}
-            </div>
-            
-            <h1 class="product-title">{{ product.name }}</h1>
-            
-            <div class="product-description">{{ product.description }}</div>
-            
-            <!-- Actions -->
-            <div class="actions-bar">
-                <a href="{% url 'coin:market_like' product.pk %}"
-                   class="action-btn like-btn {% if is_liked %}liked{% endif %}">
-                    <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
-                    <span>{{ product.likes.count }}</span>
-                </a>
-                
-                <span style="color: var(--d-text-muted);">
-                    <i class="bi bi-chat-dots me-1"></i>{{ product.comments.count }} izoh
-                </span>
-                
-                {% if product.stock > 0 %}
-                    {% if can_purchase %}
-                    <a href="{% url 'coin:market_purchase' product.pk %}" class="action-btn buy-btn">
-                        <i class="bi bi-cart-check"></i>
-                        Sotib olish{% if has_discount %} ({{ discounted_price }} coin){% endif %}
-                    </a>
-                    {% else %}
-                    <button class="action-btn buy-btn" disabled>
-                        <i class="bi bi-wallet2"></i>
-                        Coin yetarli emas
-                    </button>
-                    {% endif %}
-                {% endif %}
-                
-                <div class="balance-info">
-                    <i class="bi bi-wallet2 me-1"></i>Balansingiz: <strong>{{ user.coins }}</strong> coin
-                </div>
-            </div>
+    <div class="dt-main">
+        <div class="dt-img-wrap" id="dtImageWrap">
+            <div class="dt-skeleton" style="aspect-ratio:4/3;width:100%"></div>
+        </div>
+        <div class="dt-info" id="dtInfo">
+            <div class="dt-skeleton" style="height:32px;width:70%"></div>
+            <div class="dt-skeleton" style="height:60px;width:100%"></div>
+            <div class="dt-skeleton" style="height:40px;width:50%"></div>
         </div>
     </div>
 
-    <!-- Comments Section -->
-    <div class="comments-section">
-        <div class="comments-header">
-            <h3><i class="bi bi-chat-square-text me-2"></i>Izohlar</h3>
-            <span class="comment-count">{{ comments.count }}</span>
-        </div>
-        
-        <!-- Comment Form -->
-        <form method="post" class="comment-form">
-            {% csrf_token %}
-            <input type="hidden" name="comment" value="1">
-            <textarea name="content" class="comment-textarea" 
-                      placeholder="Fikringizni yozing..." required></textarea>
-            <div class="form-footer">
-                <div class="coin-reward">
-                </div>
-                <button type="submit" class="submit-btn">
-                    <i class="bi bi-send me-1"></i>Yuborish
-                </button>
-            </div>
-        </form>
-        
-        <!-- Comment List -->
-        <div class="comment-list">
-            {% for comment in comments %}
-            <div class="comment-item" style="animation-delay: {{ forloop.counter }}00ms">
-                {% if comment.user.photo %}
-                <img src="{{ comment.user.photo.url }}" alt="" class="comment-avatar">
-                {% else %}
-                <div class="comment-avatar-placeholder">
-                    {{ comment.user.first_name|slice:":1"|upper }}
-                </div>
-                {% endif %}
-                
-                <div class="comment-body">
-                    <div class="comment-header">
-                        <span class="comment-author">{{ comment.user.full_name }}</span>
-                        <span class="comment-time">{{ comment.created_at|timesince }} oldin</span>
-                    </div>
-                    <p class="comment-text">{{ comment.content }}</p>
-                </div>
-            </div>
-            {% empty %}
-            <div class="empty-comments">
-                <i class="bi bi-chat-square"></i>
-                <h4>Hozircha izohlar yo'q</h4>
-                <p>Birinchi bo'lib fikr bildiring!</p>
-            </div>
-            {% endfor %}
-        </div>
+    <div class="dt-comments" id="dtComments">
+        <div class="dt-skeleton" style="height:200px;width:100%"></div>
     </div>
-
 </div>
+
+<div class="dt-modal-overlay" id="purchaseModal">
+    <div class="dt-modal">
+        <h3><i class="bi bi-cart-check"></i> Xaridni tasdiqlash</h3>
+        <div class="dt-modal-info" id="modalInfo"></div>
+        <div class="dt-modal-actions">
+            <button class="dt-modal-cancel" onclick="closeModal()">Bekor qilish</button>
+            <button class="dt-modal-confirm" id="confirmBtn" onclick="confirmPurchase()"><i class="bi bi-check-lg"></i> Sotib olish</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    const PID = {{ product_id }};
+    const API = '/api/v1/coin';
+    let product = null, userCoins = 0, commentPage = 1;
+
+    function getCsrf() { let v='; '+document.cookie,p=v.split('; csrftoken='); if(p.length===2) return p.pop().split(';').shift(); }
+    async function get(u) { const r=await fetch(u,{credentials:'same-origin'}); if(!r.ok) throw new Error(r.statusText); return r.json(); }
+    async function post(u,b) {
+        const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});
+        const d=await r.json(); if(!r.ok) throw d; return d;
+    }
+
+    function fmtDate(iso) { return new Date(iso).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}); }
+    function fmtTime(iso) { return new Date(iso).toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+
+    function toast(msg, type) {
+        const t=document.createElement('div'); t.className='dt-toast '+type; t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+msg;
+        document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+    }
+
+    async function loadProduct() {
+        try {
+            const [p,s] = await Promise.all([get(API+'/products/'+PID+'/'), get(API+'/summary/')]);
+            product = p; userCoins = s.total_coins;
+
+            document.getElementById('dtImageWrap').innerHTML = `<img class="dt-img" src="${p.image}" alt="${p.name}">`;
+
+            const outOfStock = p.stock<=0;
+            const canAfford = userCoins >= p.coin_price;
+            document.getElementById('dtInfo').innerHTML = `
+                <h1 class="dt-title">${p.name}</h1>
+                <p class="dt-desc">${p.description||''}</p>
+                <div class="dt-meta">
+                    <span class="dt-badge price"><i class="bi bi-coin"></i> ${p.coin_price} coin</span>
+                    <span class="dt-badge ${outOfStock?'out':'stock'}"><i class="bi bi-${outOfStock?'x-circle':'box-seam'}"></i> ${outOfStock?'Tugagan':'Omborda: '+p.stock+' ta'}</span>
+                    <span class="dt-badge balance"><i class="bi bi-wallet2"></i> Balans: ${userCoins}</span>
+                </div>
+                <div class="dt-stats">
+                    <span class="dt-stat" id="dtLikeCount"><i class="bi bi-heart-fill" style="color:${p.is_liked?'#ef4444':''}"></i> ${p.likes_count} ta like</span>
+                    <span class="dt-stat"><i class="bi bi-chat-fill"></i> ${p.comments_count} ta izoh</span>
+                </div>
+                <div class="dt-actions">
+                    <button class="dt-like-btn ${p.is_liked?'liked':''}" id="dtLikeBtn" onclick="toggleLike()">
+                        <i class="bi ${p.is_liked?'bi-heart-fill':'bi-heart'}"></i>
+                    </button>
+                    <button class="dt-purchase-btn" id="dtBuyBtn" ${outOfStock||!canAfford?'disabled':''} onclick="openModal()">
+                        <i class="bi bi-cart-plus"></i> ${outOfStock?'Tugagan':!canAfford?'Coin yetarli emas':'Sotib olish'}
+                    </button>
+                </div>`;
+        } catch(e) {
+            document.getElementById('dtInfo').innerHTML = '<p style="color:var(--text-muted)">Mahsulot topilmadi</p>';
+        }
+    }
+
+    async function loadComments(pg) {
+        commentPage = pg||1;
+        try {
+            const d = await get(API+'/products/'+PID+'/comments/?page='+commentPage);
+            const totalPages = Math.ceil(d.count/20);
+            let h = `<h3 class="dt-comments-title"><i class="bi bi-chat-dots"></i> Izohlar (${d.count})</h3>
+                <div class="dt-comment-form">
+                    <textarea class="dt-comment-input" id="commentInput" placeholder="Izoh yozing..." rows="1"></textarea>
+                    <button class="dt-comment-submit" onclick="addComment()"><i class="bi bi-send"></i> Yuborish</button>
+                </div>
+                <div class="dt-comment-list" id="commentList">`;
+            if(!d.results.length) { h+='<p style="color:var(--text-muted);text-align:center;padding:1rem;">Hali izohlar yo\'q</p>'; }
+            else {
+                h += d.results.map(c => `<div class="dt-comment">
+                    <div class="dt-comment-avatar">${(c.full_name||c.username||'?')[0].toUpperCase()}</div>
+                    <div class="dt-comment-body">
+                        <div class="dt-comment-header">
+                            <span class="dt-comment-name">${c.full_name||c.username}</span>
+                            <span class="dt-comment-date">${fmtDate(c.created_at)} ${fmtTime(c.created_at)}</span>
+                        </div>
+                        <p class="dt-comment-text">${c.content}</p>
+                    </div>
+                </div>`).join('');
+            }
+            h += '</div>';
+            if(totalPages>1) {
+                h += '<div class="mk-pagination" style="margin-top:1rem">';
+                for(let n=1;n<=totalPages;n++) {
+                    h += n===commentPage ? `<span class="mk-pg-active">${n}</span>` : `<a onclick="loadCommentPage(${n})">${n}</a>`;
+                }
+                h += '</div>';
+            }
+            document.getElementById('dtComments').innerHTML = h;
+        } catch(e) {
+            document.getElementById('dtComments').innerHTML = '<p style="color:var(--text-muted)">Izohlarni yuklab bo\'lmadi</p>';
+        }
+    }
+
+    window.loadCommentPage = function(p) { loadComments(p); };
+
+    window.toggleLike = async function() {
+        try {
+            const d = await post(API+'/products/'+PID+'/like/');
+            const btn = document.getElementById('dtLikeBtn');
+            const icon = btn.querySelector('i');
+            if(d.liked) { btn.classList.add('liked'); icon.className='bi bi-heart-fill'; }
+            else { btn.classList.remove('liked'); icon.className='bi bi-heart'; }
+            document.getElementById('dtLikeCount').innerHTML = `<i class="bi bi-heart-fill" style="color:${d.liked?'#ef4444':''}"></i> ${d.likes_count} ta like`;
+            const s = await get(API+'/summary/');
+            userCoins = s.total_coins;
+        } catch(e) { toast('Xatolik yuz berdi','error'); }
+    };
+
+    window.openModal = function() {
+        if(!product) return;
+        document.getElementById('modalInfo').innerHTML = `
+            <div><span>Mahsulot:</span><span><b>${product.name}</b></span></div>
+            <div><span>Narxi:</span><span><b>${product.coin_price} coin</b></span></div>
+            <div><span>Balansingiz:</span><span>${userCoins} coin</span></div>
+            <div class="dt-modal-total"><span>Qoldiq:</span><span>${userCoins-product.coin_price} coin</span></div>`;
+        document.getElementById('purchaseModal').classList.add('show');
+    };
+    window.closeModal = function() { document.getElementById('purchaseModal').classList.remove('show'); };
+
+    window.confirmPurchase = async function() {
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled = true; btn.textContent = 'Kutiling...';
+        try {
+            await post(API+'/products/'+PID+'/purchase/');
+            closeModal();
+            toast("Muvaffaqiyatli sotib olindi! ✅",'success');
+            loadProduct();
+        } catch(e) {
+            toast(e.error||'Xatolik yuz berdi','error');
+        } finally { btn.disabled=false; btn.innerHTML='<i class="bi bi-check-lg"></i> Sotib olish'; }
+    };
+
+    window.addComment = async function() {
+        const input = document.getElementById('commentInput');
+        const content = input.value.trim();
+        if(!content) return;
+        try {
+            await post(API+'/products/'+PID+'/comments/add/', {content});
+            input.value = '';
+            toast("Izoh qo'shildi",'success');
+            loadComments(1);
+        } catch(e) {
+            toast(e.error||'Xatolik yuz berdi','error');
+        }
+    };
+
+    loadProduct();
+    loadComments(1);
+})();
+</script>
 {% endblock %}

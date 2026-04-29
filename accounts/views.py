@@ -1018,34 +1018,36 @@ def professions_view(request):
         # Sort: enrolled courses first, then the rest
         professions = sorted(professions, key=lambda p: (p.pk not in enrolled_ids, p.pk))
 
-        # Har bir kurs uchun progress hisoblash
+        # Har bir kurs uchun progress hisoblash (bulk querylar)
         if enrolled_ids:
+            video_counts = dict(VideoLesson.objects.filter(
+                lesson__profession_id__in=enrolled_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            test_counts = dict(Test.objects.filter(
+                lesson__profession_id__in=enrolled_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            hw_counts = dict(Homework.objects.filter(
+                lesson__profession_id__in=enrolled_ids
+            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            watched_counts = dict(VideoProgress.objects.filter(
+                user=request.user, watched=True, video__lesson__profession_id__in=enrolled_ids
+            ).values_list('video__lesson__profession_id').annotate(c=Count('id')).values_list('video__lesson__profession_id', 'c'))
+            passed_counts = dict(TestResult.objects.filter(
+                student=request.user, passed=True, test__lesson__profession_id__in=enrolled_ids
+            ).values_list('test__lesson__profession_id').annotate(c=Count('test_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
+            done_hw_counts = dict(HomeworkSubmission.objects.filter(
+                student=request.user, homework__lesson__profession_id__in=enrolled_ids, status__in=['accepted', 'graded']
+            ).values_list('homework__lesson__profession_id').annotate(c=Count('homework_id', distinct=True)).values_list('homework__lesson__profession_id', 'c'))
+
             for p in professions:
                 if p.pk not in enrolled_ids:
                     p.progress = None
                     continue
-
-                total_videos = VideoLesson.objects.filter(lesson__profession_id=p.pk).count()
-                total_tests = Test.objects.filter(lesson__profession_id=p.pk).count()
-                total_homeworks = Homework.objects.filter(lesson__profession_id=p.pk).count()
-                total_items = total_videos + total_tests + total_homeworks
-
+                total_items = video_counts.get(p.pk, 0) + test_counts.get(p.pk, 0) + hw_counts.get(p.pk, 0)
                 if total_items == 0:
                     p.progress = 0
                     continue
-
-                watched = VideoProgress.objects.filter(
-                    user=request.user, video__lesson__profession_id=p.pk, watched=True
-                ).count()
-                passed_tests = TestResult.objects.filter(
-                    student=request.user, test__lesson__profession_id=p.pk, passed=True
-                ).values('test_id').distinct().count()
-                done_hw = HomeworkSubmission.objects.filter(
-                    student=request.user, homework__lesson__profession_id=p.pk,
-                    status__in=['accepted', 'graded']
-                ).values('homework_id').distinct().count()
-
-                completed = watched + passed_tests + done_hw
+                completed = watched_counts.get(p.pk, 0) + passed_counts.get(p.pk, 0) + done_hw_counts.get(p.pk, 0)
                 p.progress = min(round((completed / total_items) * 100), 100)
 
     from django.core.paginator import Paginator

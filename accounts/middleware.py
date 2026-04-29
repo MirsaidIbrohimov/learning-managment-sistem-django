@@ -7,6 +7,9 @@ from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message
 
+# Static/media/API so'rovlarini tezkor o'tkazish uchun
+_SKIP_PREFIXES = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
+
 
 class BirthdayCheckMiddleware:
     """
@@ -18,6 +21,9 @@ class BirthdayCheckMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
+
         if request.user.is_authenticated and request.user.role == 'student':
             today = timezone.now().date()
             if request.user.birth_date:
@@ -49,6 +55,8 @@ class UpdateLastActivityMiddleware:
     
     def __call__(self, request):
         response = self.get_response(request)
+        if request.path.startswith(_SKIP_PREFIXES):
+            return response
         if request.user.is_authenticated:
             now = timezone.now()
             now_ts = now.timestamp()
@@ -115,6 +123,8 @@ class PaymentCheckMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
         try:
             if request.user.is_authenticated and request.user.role == 'student':
                 cache_key = f'pending_pay_{request.user.id}'
@@ -146,6 +156,8 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
         if request.user.is_authenticated:
             last_activity = request.session.get('_last_activity')
             now = timezone.now().timestamp()
@@ -352,24 +364,30 @@ class PremiumExpiryMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
+
         if request.user.is_authenticated:
             cache_key = 'global_premium_expiry_check'
             if not cache.get(cache_key):
                 now = timezone.now()
-                expired_users = CustomUser.objects.filter(
+                # Bulk update — har bir userni alohida save qilmaymiz
+                expired_qs = CustomUser.objects.filter(
                     is_premium=True,
                     premium_expires_at__lte=now
                 )
-                for user in expired_users:
-                    user.is_premium = False
-                    user.save(update_fields=['is_premium'])
-                    Message.objects.create(
-                        recipient=user,
-                        title="Premium muddati tugadi",
-                        content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
-                        message_type='system'
-                    )
-                cache.set(cache_key, True, 600)  # 10 daqiqa
+                expired_ids = list(expired_qs.values_list('id', flat=True))
+                if expired_ids:
+                    expired_qs.update(is_premium=False)
+                    Message.objects.bulk_create([
+                        Message(
+                            recipient_id=uid,
+                            title="Premium muddati tugadi",
+                            content="Sizning Premium obunangiz muddati tugadi.\n\nQayta olish uchun Market bo'limiga kiring.",
+                            message_type='system'
+                        ) for uid in expired_ids
+                    ])
+                cache.set(cache_key, True, 600)
 
         return self.get_response(request)
 

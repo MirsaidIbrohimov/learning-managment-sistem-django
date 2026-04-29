@@ -1,0 +1,215 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Premium | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes pmFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pmGlow { 0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15)} 50%{box-shadow:0 0 40px rgba(245,158,11,0.3)} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+
+.pm-container { max-width:900px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+
+.pm-hero {
+    background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);
+    border-radius:20px; padding:2rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem;
+    animation:pmFadeUp 0.5s ease; text-align:center;
+}
+.pm-hero::before { content:''; position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%); pointer-events:none; }
+.pm-hero-title { font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; position:relative; z-index:1; }
+.pm-hero-sub { opacity:0.9; font-size:0.9rem; margin:0; position:relative; z-index:1; }
+.pm-balance { margin-top:0.75rem; font-size:0.95rem; font-weight:700; opacity:0.9; position:relative; z-index:1; }
+
+.pm-status-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; margin-bottom:1.5rem; text-align:center; animation:pmFadeUp 0.5s ease 0.1s both; }
+.pm-status-card.premium { border-color:rgba(245,158,11,0.3); animation:pmGlow 3s ease infinite; }
+.pm-status-card i { font-size:2rem; margin-bottom:0.5rem; }
+.pm-status-card h4 { font-weight:700; margin:0 0 0.25rem; }
+.pm-status-card p { color:var(--text-muted); font-size:0.88rem; margin:0; }
+
+.pm-pending-alert { background:rgba(245,158,11,0.1); border:2px solid rgba(245,158,11,0.3); border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; font-size:0.9rem; font-weight:600; color:#d97706; animation:pmFadeUp 0.5s ease 0.15s both; }
+
+.pm-benefits { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:2rem; animation:pmFadeUp 0.5s ease 0.2s both; }
+.pm-benefit { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem; display:flex; align-items:flex-start; gap:0.75rem; }
+.pm-benefit-icon { width:40px; height:40px; min-width:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; background:rgba(245,158,11,0.1); color:#f59e0b; }
+.pm-benefit-title { font-weight:700; font-size:0.9rem; margin:0 0 0.15rem; }
+.pm-benefit-desc { font-size:0.8rem; color:var(--text-muted); margin:0; }
+
+.pm-plans { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:1.5rem; animation:pmFadeUp 0.5s ease 0.3s both; }
+.pm-plan {
+    background:var(--card); border:2px solid var(--border); border-radius:18px; padding:1.5rem; text-align:center;
+    position:relative; transition:all 0.3s ease; cursor:pointer;
+}
+.pm-plan:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.1); }
+.pm-plan.popular { border-color:#f59e0b; }
+.pm-plan-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; font-size:0.7rem; font-weight:800; padding:0.2rem 0.8rem; border-radius:8px; text-transform:uppercase; }
+.pm-plan-name { font-size:1.1rem; font-weight:800; margin:0.5rem 0; }
+.pm-plan-price { font-size:2rem; font-weight:800; color:#f59e0b; margin:0.25rem 0; }
+.pm-plan-price small { font-size:0.8rem; font-weight:600; color:var(--text-muted); }
+.pm-plan-days { font-size:0.85rem; color:var(--text-muted); margin:0 0 1rem; }
+.pm-plan-btn {
+    width:100%; height:44px; border:none; border-radius:12px; font-weight:700; font-size:0.9rem;
+    background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; cursor:pointer; transition:all 0.2s;
+}
+.pm-plan-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(245,158,11,0.35); }
+.pm-plan-btn:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* Modal */
+.pm-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:9998; display:none; align-items:center; justify-content:center; }
+.pm-modal-overlay.show { display:flex; }
+.pm-modal { background:var(--card); border-radius:20px; padding:2rem; max-width:420px; width:90%; animation:pmFadeUp 0.3s ease; }
+.pm-modal h3 { font-size:1.15rem; font-weight:700; margin:0 0 1rem; text-align:center; }
+.pm-modal-info { background:var(--bg); border-radius:12px; padding:1rem; margin-bottom:1.25rem; }
+.pm-modal-info div { display:flex; justify-content:space-between; padding:0.3rem 0; font-size:0.9rem; }
+.pm-modal-info .total { font-weight:700; border-top:1px solid var(--border); margin-top:0.5rem; padding-top:0.5rem; }
+.pm-modal-actions { display:flex; gap:0.5rem; }
+.pm-modal-actions button { flex:1; height:44px; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
+.pm-modal-cancel { background:var(--bg); color:var(--text-muted); border:2px solid var(--border)!important; }
+.pm-modal-confirm { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+
+.pm-toast { position:fixed; top:20px; right:20px; padding:0.85rem 1.5rem; border-radius:14px; font-weight:600; font-size:0.9rem; z-index:9999; animation:pmFadeUp 0.3s ease; display:flex; align-items:center; gap:0.5rem; }
+.pm-toast.success { background:#10b981; color:#fff; }
+.pm-toast.error { background:#ef4444; color:#fff; }
+
+.pm-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
+
+@media(max-width:768px) { .pm-plans{grid-template-columns:1fr} .pm-benefits{grid-template-columns:1fr} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="pm-container">
+    <div class="pm-hero">
+        <h1 class="pm-hero-title">⭐ Premium</h1>
+        <p class="pm-hero-sub">Maxsus imkoniyatlardan foydalaning</p>
+        <div class="pm-balance" id="pmBalance"><i class="bi bi-coin"></i> Balans: ...</div>
+    </div>
+
+    <div id="pmStatus">
+        <div class="pm-skeleton" style="height:80px;margin-bottom:1rem"></div>
+    </div>
+
+    <div class="pm-benefits">
+        <div class="pm-benefit">
+            <div class="pm-benefit-icon"><i class="bi bi-percent"></i></div>
+            <div><p class="pm-benefit-title">5% chegirma</p><p class="pm-benefit-desc">Barcha mahsulotlarga chegirma</p></div>
+        </div>
+        <div class="pm-benefit">
+            <div class="pm-benefit-icon"><i class="bi bi-coin"></i></div>
+            <div><p class="pm-benefit-title">2x coin</p><p class="pm-benefit-desc">Like va izoh uchun 2x coin</p></div>
+        </div>
+        <div class="pm-benefit">
+            <div class="pm-benefit-icon"><i class="bi bi-gem"></i></div>
+            <div><p class="pm-benefit-title">Premium badge</p><p class="pm-benefit-desc">Profilda maxsus nishon</p></div>
+        </div>
+        <div class="pm-benefit">
+            <div class="pm-benefit-icon"><i class="bi bi-star-fill"></i></div>
+            <div><p class="pm-benefit-title">Premium imkoniyatlar</p><p class="pm-benefit-desc">Kelajakda yangi funksiyalar</p></div>
+        </div>
+    </div>
+
+    <div class="pm-plans" id="pmPlans">
+        <div class="pm-skeleton" style="height:280px"></div>
+        <div class="pm-skeleton" style="height:280px"></div>
+        <div class="pm-skeleton" style="height:280px"></div>
+    </div>
+</div>
+
+<div class="pm-modal-overlay" id="premiumModal">
+    <div class="pm-modal">
+        <h3>⭐ Premium sotib olish</h3>
+        <div class="pm-modal-info" id="pmModalInfo"></div>
+        <div class="pm-modal-actions">
+            <button class="pm-modal-cancel" onclick="closePmModal()">Bekor qilish</button>
+            <button class="pm-modal-confirm" id="pmConfirmBtn" onclick="confirmPremium()"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    const API = '/api/v1/coin';
+    let userCoins=0, selectedPlan=null, plansData=null;
+
+    function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
+    async function get(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
+    async function post(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+
+    function toast(msg,type){const t=document.createElement('div');t.className='pm-toast '+type;t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+
+    async function loadAll(){
+        try{
+            const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/')]);
+            userCoins = summary.total_coins;
+            plansData = plans;
+
+            document.getElementById('pmBalance').innerHTML = '<i class="bi bi-coin"></i> Balans: '+userCoins+' coin';
+
+            // Status
+            let statusH = '';
+            if(plans.has_pending_request){
+                statusH = '<div class="pm-pending-alert"><i class="bi bi-hourglass-split" style="font-size:1.3rem"></i> Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.</div>';
+            } else if(plans.is_premium){
+                statusH = '<div class="pm-status-card premium"><i class="bi bi-gem" style="color:#f59e0b"></i><h4>Siz Premium foydalanuvchisiz! ⭐</h4><p>Muddatni uzaytirish uchun tarif tanlang</p></div>';
+            } else {
+                statusH = '<div class="pm-status-card"><i class="bi bi-gem" style="color:var(--text-muted)"></i><h4>Premium afzalliklaridan foydalaning</h4><p>Quyidagi tariflardan birini tanlang</p></div>';
+            }
+            document.getElementById('pmStatus').innerHTML = statusH;
+
+            // Plans
+            const planKeys = ['weekly','monthly','bimonthly'];
+            const badges = {monthly:'Mashhur', bimonthly:'Tejamkor'};
+            document.getElementById('pmPlans').innerHTML = planKeys.map(key => {
+                const p = plans.plans[key];
+                const canAfford = userCoins >= p.price;
+                const disabled = plans.has_pending_request || !canAfford;
+                return `<div class="pm-plan ${key==='monthly'?'popular':''}">
+                    ${badges[key]?'<div class="pm-plan-badge">'+badges[key]+'</div>':''}
+                    <div class="pm-plan-name">${p.name}</div>
+                    <div class="pm-plan-price">${p.price} <small>coin</small></div>
+                    <div class="pm-plan-days">${p.days} kun</div>
+                    <button class="pm-plan-btn" ${disabled?'disabled':''} onclick="selectPlan('${key}')">
+                        ${plans.has_pending_request?'Kutilmoqda':!canAfford?'Coin yetarli emas':'Tanlash'}
+                    </button>
+                </div>`;
+            }).join('');
+
+        }catch(e){
+            document.getElementById('pmStatus').innerHTML='<div class="pm-status-card"><p>Xatolik yuz berdi</p></div>';
+            console.error(e);
+        }
+    }
+
+    window.selectPlan = function(key){
+        if(!plansData) return;
+        selectedPlan = key;
+        const p = plansData.plans[key];
+        document.getElementById('pmModalInfo').innerHTML = `
+            <div><span>Tarif:</span><span><b>${p.name}</b></span></div>
+            <div><span>Muddat:</span><span>${p.days} kun</span></div>
+            <div><span>Narxi:</span><span><b>${p.price} coin</b></span></div>
+            <div><span>Balansingiz:</span><span>${userCoins} coin</span></div>
+            <div class="total"><span>Qoldiq:</span><span>${userCoins-p.price} coin</span></div>`;
+        document.getElementById('premiumModal').classList.add('show');
+    };
+    window.closePmModal = function(){ document.getElementById('premiumModal').classList.remove('show'); selectedPlan=null; };
+
+    window.confirmPremium = async function(){
+        if(!selectedPlan) return;
+        const btn=document.getElementById('pmConfirmBtn');
+        btn.disabled=true; btn.textContent='Kutiling...';
+        try{
+            const d = await post(API+'/premium/request/',{plan:selectedPlan});
+            closePmModal();
+            toast(d.message||"So'rov yuborildi!",'success');
+            loadAll();
+        }catch(e){
+            toast(e.error||'Xatolik yuz berdi','error');
+        }finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-check-lg"></i> Tasdiqlash';}
+    };
+
+    loadAll();
+})();
+</script>
+{% endblock %}

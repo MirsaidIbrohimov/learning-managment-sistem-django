@@ -208,23 +208,23 @@ AUTH_USER_MODEL = 'accounts.CustomUser'
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'accounts.middleware.SecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'accounts.middleware.MaintenanceMiddleware',
-    'accounts.middleware.SectionBlockMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'accounts.middleware.BirthdayCheckMiddleware',
-    'accounts.middleware.UpdateLastActivityMiddleware',
+    'accounts.middleware.SecurityHeadersMiddleware',
+    'accounts.middleware.MaintenanceMiddleware',
     'accounts.middleware.BlockedUserMiddleware',
-    'accounts.middleware.PaymentCheckMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
     'accounts.middleware.DeviceLimitMiddleware',
-    'accounts.middleware.PremiumExpiryMiddleware',
     'accounts.middleware.ProfileCompletionMiddleware',
+    'accounts.middleware.SectionBlockMiddleware',
+    'accounts.middleware.UpdateLastActivityMiddleware',
+    'accounts.middleware.PaymentCheckMiddleware',
+    'accounts.middleware.BirthdayCheckMiddleware',
+    'accounts.middleware.PremiumExpiryMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -275,6 +275,22 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {
+            'timeout': 20,
+        },
+        'CONN_MAX_AGE': 600,
+    }
+}
+
+# ============ CACHE ============
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'lms-cache',
+        'TIMEOUT': 300,
+        'OPTIONS': {
+            'MAX_ENTRIES': 2000,
+        },
     }
 }
 
@@ -349,9 +365,9 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # CSRF sozlamalari
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
-CSRF_USE_SESSIONS = True
+CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'config.views.csrf_failure'
 
 # Session xavfsizligi
@@ -401,7 +417,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
-        'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 }
 

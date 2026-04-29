@@ -739,6 +739,113 @@ Foydalanuvchining barcha harakatlari logi.
 
 ---
 
+### 🪙 Coin — Yozish endpointlari (Write)
+
+#### `POST /api/v1/coin/products/<id>/like/` — Like/Unlike
+
+Mahsulotga like bosish yoki olib tashlash (toggle).
+
+**Javob:**
+```json
+{
+    "liked": true,
+    "likes_count": 15
+}
+```
+
+---
+
+#### `POST /api/v1/coin/products/<id>/purchase/` — Mahsulot sotib olish
+
+**Javob (201):**
+```json
+{
+    "id": 5,
+    "product": 1,
+    "product_name": "Futbolka",
+    "product_image": "/media/products/img.jpg",
+    "coins_spent": 150,
+    "purchased_at": "2026-04-29T10:00:00Z",
+    "is_delivered": false,
+    "status": "pending",
+    "can_cancel": true,
+    "cancelled_at": null
+}
+```
+
+**Xato (400):**
+```json
+{"error": "Coinlaringiz yetarli emas!"}
+```
+
+---
+
+#### `POST /api/v1/coin/products/<id>/comments/add/` — Izoh qo'shish
+
+**So'rov:**
+```json
+{"content": "Juda yaxshi mahsulot!"}
+```
+
+**Javob (201):**
+```json
+{
+    "id": 10,
+    "product": 1,
+    "username": "student01",
+    "full_name": "Ali Valiyev",
+    "content": "Juda yaxshi mahsulot!",
+    "created_at": "2026-04-29T10:05:00Z"
+}
+```
+
+**Xato (429):** 1 soatda 1 ta izoh cheklovi.
+
+---
+
+#### `POST /api/v1/coin/purchases/<id>/cancel/` — Buyurtmani bekor qilish
+
+Faqat `status=pending` va yetkazilmagan buyurtmalar uchun.
+
+**Javob:** Yangilangan purchase obyekti (status: cancelled).
+
+---
+
+#### `GET /api/v1/coin/premium/plans/` — Premium tariflar
+
+```json
+{
+    "plans": {
+        "weekly": {"name": "Haftalik", "price": 350, "days": 7},
+        "monthly": {"name": "1 oylik", "price": 700, "days": 30},
+        "bimonthly": {"name": "2 oylik", "price": 1000, "days": 60}
+    },
+    "has_pending_request": false,
+    "is_premium": false
+}
+```
+
+---
+
+#### `POST /api/v1/coin/premium/request/` — Premium so'rov yuborish
+
+**So'rov:**
+```json
+{"plan": "monthly"}
+```
+
+**Javob (201):**
+```json
+{"message": "Premium so'rovingiz yuborildi! Admin tasdiqlashini kuting."}
+```
+
+**Xato (400):**
+```json
+{"error": "Sizda allaqachon kutilayotgan Premium so'rov bor!"}
+```
+
+---
+
 ## ⚠️ Xato javoblari (Error Responses)
 
 Barcha endpointlar standart HTTP status kodlarini qaytaradi:
