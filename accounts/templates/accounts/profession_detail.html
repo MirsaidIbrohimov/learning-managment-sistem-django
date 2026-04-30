@@ -593,6 +593,201 @@
     padding: 0;
 }
 
+/* ==================== COURSE ROADMAP NODES ==================== */
+.roadmap-wrap {
+    padding: 1rem 0 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.roadmap-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #6366f1;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+[data-bs-theme="dark"] .roadmap-title { color: #a5b4fc; }
+
+.roadmap-nodes {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.roadmap-nodes::-webkit-scrollbar { display: none; }
+
+.roadmap-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 72px;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.roadmap-node:hover { transform: translateY(-3px); }
+
+.roadmap-connector {
+    position: absolute;
+    top: 22px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 0;
+    pointer-events: none;
+}
+.roadmap-connector-bg {
+    position: absolute;
+    top: 0;
+    left: calc(50px / 2);
+    right: calc(50px / 2);
+    height: 100%;
+    background: var(--card-border);
+    border-radius: 2px;
+}
+.roadmap-connector-fill {
+    position: absolute;
+    top: 0;
+    left: calc(50px / 2);
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #059669);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rn-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    font-weight: 800;
+    border: 3px solid var(--card-border);
+    background: var(--card-bg);
+    color: #9ca3af;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+[data-bs-theme="dark"] .rn-circle {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.roadmap-node.rn-completed .rn-circle {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+}
+.roadmap-node.rn-active .rn-circle {
+    border-color: #6366f1;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+    animation: rnActivePulse 2s ease-in-out infinite;
+}
+.roadmap-node.rn-locked .rn-circle {
+    opacity: 0.5;
+    border-style: dashed;
+}
+@keyframes rnActivePulse {
+    0%, 100% { box-shadow: 0 4px 16px rgba(99,102,241,0.35); }
+    50% { box-shadow: 0 4px 28px rgba(99,102,241,0.55); }
+}
+
+.rn-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+    line-height: 1.25;
+    max-width: 76px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+[data-bs-theme="dark"] .rn-label { color: #94a3b8; }
+.roadmap-node.rn-completed .rn-label { color: #10b981; }
+.roadmap-node.rn-active .rn-label { color: #6366f1; font-weight: 700; }
+[data-bs-theme="dark"] .roadmap-node.rn-completed .rn-label { color: #4ade80; }
+[data-bs-theme="dark"] .roadmap-node.rn-active .rn-label { color: #a5b4fc; }
+
+.rn-check {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #10b981;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    box-shadow: 0 2px 6px rgba(16,185,129,0.4);
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.roadmap-node.rn-completed .rn-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Roadmap overall progress bar */
+.roadmap-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+.roadmap-progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--card-border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+.roadmap-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #10b981, #059669);
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.roadmap-progress-text {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #10b981;
+    min-width: 36px;
+    text-align: right;
+}
+
+@media (max-width: 640px) {
+    .rn-circle { width: 36px; height: 36px; font-size: 0.72rem; border-width: 2.5px; }
+    .rn-label { font-size: 0.62rem; max-width: 60px; }
+    .roadmap-connector-bg, .roadmap-connector-fill { top: 0; }
+    .roadmap-connector { top: 18px; }
+    .rn-check { width: 15px; height: 15px; font-size: 0.5rem; top: -3px; right: -3px; }
+    .roadmap-node { min-width: 60px; }
+}
+
 /* Image lightbox */
 .prof-img-clickable {
     cursor: zoom-in;
@@ -792,6 +987,39 @@
 
     <div class="p-3">
         {% if sections or lessons_without_section %}
+
+        <!-- Course Roadmap Nodes -->
+        {% if sections %}
+        <div class="roadmap-wrap" id="courseRoadmap">
+            <div class="roadmap-title">
+                <i class="bi bi-signpost-split-fill"></i>
+                <span>Kurs yo'l xaritasi</span>
+            </div>
+            <div style="position:relative;">
+                <div class="roadmap-connector">
+                    <div class="roadmap-connector-bg"></div>
+                    <div class="roadmap-connector-fill" id="rmConnectorFill"></div>
+                </div>
+                <div class="roadmap-nodes" id="rmNodes">
+                    {% for section in sections %}
+                    <div class="roadmap-node" data-section-idx="{{ forloop.counter0 }}" data-section-id="{{ section.id }}" id="rmNode{{ forloop.counter0 }}">
+                        <div class="rn-circle">
+                            {{ forloop.counter }}
+                            <div class="rn-check"><i class="bi bi-check"></i></div>
+                        </div>
+                        <div class="rn-label">{{ section.title|truncatechars:20 }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="roadmap-progress-row">
+                <div class="roadmap-progress-track">
+                    <div class="roadmap-progress-fill" id="rmProgressFill"></div>
+                </div>
+                <div class="roadmap-progress-text" id="rmProgressText">0%</div>
+            </div>
+        </div>
+        {% endif %}
 
         {% if daily_limit_section_name %}
         <div class="daily-limit-banner">
@@ -1311,6 +1539,141 @@ if (ueOverlay) {
         if (e.target === this) closeUnenrollModal();
     });
 }
+
+// ===== Course Roadmap Nodes Engine =====
+(function() {
+    var roadmap = document.getElementById('courseRoadmap');
+    if (!roadmap) return;
+
+    var nodes = document.querySelectorAll('#rmNodes .roadmap-node');
+    var connectorFill = document.getElementById('rmConnectorFill');
+    var progressFill = document.getElementById('rmProgressFill');
+    var progressText = document.getElementById('rmProgressText');
+    var totalSections = nodes.length;
+    if (totalSections === 0) return;
+
+    // Analyze each section's completion by scanning lesson-items inside section-body
+    var sectionCards = document.querySelectorAll('.section-card');
+    var sectionStates = []; // 'completed' | 'active' | 'locked'
+
+    sectionCards.forEach(function(card, idx) {
+        if (idx >= totalSections) return; // skip "Boshqa darslar"
+
+        if (card.classList.contains('section-locked')) {
+            sectionStates.push('locked');
+            return;
+        }
+
+        var lessons = card.querySelectorAll('.lesson-item');
+        var completedBadges = card.querySelectorAll('.status-badge.completed, .status-badge.graded');
+        var totalLessons = lessons.length;
+        var completedCount = completedBadges.length;
+
+        if (totalLessons === 0) {
+            sectionStates.push('active');
+        } else if (completedCount >= totalLessons) {
+            sectionStates.push('completed');
+        } else {
+            sectionStates.push('active');
+        }
+    });
+
+    // Fill remaining if fewer section cards
+    while (sectionStates.length < totalSections) {
+        sectionStates.push('locked');
+    }
+
+    // Find first non-completed section (active one)
+    var activeIdx = -1;
+    var completedSections = 0;
+    for (var i = 0; i < sectionStates.length; i++) {
+        if (sectionStates[i] === 'completed') {
+            completedSections++;
+        } else if (activeIdx === -1 && sectionStates[i] !== 'locked') {
+            activeIdx = i;
+        }
+    }
+    // If all completed
+    if (completedSections === totalSections) {
+        activeIdx = -1; // no active, all done
+    }
+
+    // Apply states to nodes with staggered animation
+    nodes.forEach(function(node, idx) {
+        setTimeout(function() {
+            if (sectionStates[idx] === 'completed') {
+                node.classList.add('rn-completed');
+            } else if (idx === activeIdx) {
+                node.classList.add('rn-active');
+            } else if (sectionStates[idx] === 'locked') {
+                node.classList.add('rn-locked');
+            }
+        }, idx * 120);
+    });
+
+    // Animate connector fill
+    setTimeout(function() {
+        if (totalSections <= 1) {
+            if (completedSections > 0) {
+                connectorFill.style.width = '100%';
+            }
+            return;
+        }
+        var fillTo = completedSections > 0 ? ((completedSections - 1) / (totalSections - 1)) * 100 : 0;
+        if (activeIdx > 0) {
+            fillTo = Math.max(fillTo, ((activeIdx - 0.5) / (totalSections - 1)) * 100);
+        }
+        var bgEl = connectorFill.previousElementSibling;
+        if (bgEl) {
+            var bgWidth = bgEl.offsetWidth;
+            connectorFill.style.width = Math.min(fillTo, 100) + '%';
+        } else {
+            connectorFill.style.width = Math.min(fillTo, 100) + '%';
+        }
+    }, 300);
+
+    // Animate progress bar
+    var pct = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
+    setTimeout(function() {
+        progressFill.style.width = pct + '%';
+        // Count up animation
+        var current = 0;
+        var step = Math.max(1, Math.ceil(pct / 30));
+        var countInterval = setInterval(function() {
+            current += step;
+            if (current >= pct) {
+                current = pct;
+                clearInterval(countInterval);
+            }
+            progressText.textContent = current + '%';
+        }, 40);
+    }, 500);
+
+    // Click on node → scroll to and open that section
+    nodes.forEach(function(node, idx) {
+        node.addEventListener('click', function() {
+            if (idx >= sectionCards.length) return;
+            var card = sectionCards[idx];
+            if (card.classList.contains('section-locked')) return;
+
+            // Close all, open clicked
+            document.querySelectorAll('.section-header').forEach(function(h) { h.classList.remove('active'); });
+            document.querySelectorAll('.section-body').forEach(function(b) { b.classList.remove('show'); });
+
+            var header = card.querySelector('.section-header');
+            var body = card.querySelector('.section-body');
+            if (header) header.classList.add('active');
+            if (body) body.classList.add('show');
+
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Ripple effect on node circle
+            var circle = node.querySelector('.rn-circle');
+            circle.style.transform = 'scale(0.85)';
+            setTimeout(function() { circle.style.transform = ''; }, 200);
+        });
+    });
+})();
 </script>
 
 <!-- Unenroll Modal -->

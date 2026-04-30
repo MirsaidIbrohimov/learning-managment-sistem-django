@@ -322,6 +322,87 @@
     }
     .submit-btn:active { transform: translateY(0) scale(0.98); }
 
+    /* ==================== PROCESS NODES ==================== */
+    .process-strip {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--glass-border);
+        background: rgba(255,255,255,0.02);
+    }
+    .process-nodes {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        position: relative;
+        padding: 0 0.25rem;
+    }
+    .process-nodes::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: calc(12.5% + 4px);
+        right: calc(12.5% + 4px);
+        height: 3px;
+        background: rgba(255,255,255,0.06);
+        z-index: 0;
+    }
+    .process-node {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        position: relative;
+        z-index: 1;
+    }
+    .node-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        border: 2.5px solid rgba(255,255,255,0.08);
+        background: rgba(15, 18, 35, 0.9);
+        color: var(--text-muted);
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .process-node.completed .node-circle {
+        border-color: var(--success);
+        background: var(--success);
+        color: #fff;
+        box-shadow: 0 4px 12px var(--success-glow);
+    }
+    .process-node.active .node-circle {
+        border-color: var(--primary);
+        background: var(--primary);
+        color: #fff;
+        box-shadow: 0 4px 16px var(--primary-glow);
+        animation: nodeActivePulse 2s ease-in-out infinite;
+    }
+    .process-node.pending .node-circle {
+        border-color: var(--warning);
+        background: var(--warning);
+        color: #fff;
+        box-shadow: 0 4px 12px var(--warning-glow);
+    }
+    @keyframes nodeActivePulse {
+        0%, 100% { box-shadow: 0 4px 16px var(--primary-glow); }
+        50% { box-shadow: 0 4px 28px var(--primary-glow); }
+    }
+    .node-label {
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-align: center;
+        line-height: 1.3;
+        max-width: 72px;
+    }
+    .process-node.completed .node-label { color: var(--success); }
+    .process-node.active .node-label { color: var(--primary); font-weight: 700; }
+    .process-node.pending .node-label { color: var(--warning); }
+
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 640px) {
         .page-wrapper { padding: 1rem 0.75rem; align-items: flex-start; padding-top: 1.5rem; }
@@ -334,6 +415,9 @@
         .upload-area { padding: 1.5rem; }
         .upload-icon { font-size: 2.5rem; }
         .back-link { font-size: 0.85rem; padding: 0.5rem 1rem; }
+        .node-circle { width: 34px; height: 34px; font-size: 0.9rem; }
+        .node-label { font-size: 0.62rem; max-width: 60px; }
+        .process-nodes::before { top: 17px; }
     }
     @media (max-width: 380px) {
         .payment-header { padding: 1.25rem 0.75rem; }
@@ -366,6 +450,28 @@
                     </div>
                     <h2>Yakuniy test to'lovi</h2>
                     <p>{{ test.lesson.title }} — {{ test.lesson.profession.name }}</p>
+                </div>
+
+                <!-- Process Nodes -->
+                <div class="process-strip">
+                    <div class="process-nodes">
+                        <div class="process-node completed">
+                            <div class="node-circle"><i class="bi bi-shield-lock"></i></div>
+                            <div class="node-label">Test topshirish</div>
+                        </div>
+                        <div class="process-node {% if approved_payment %}completed{% elif pending_payment %}pending{% else %}active{% endif %}">
+                            <div class="node-circle"><i class="bi bi-credit-card"></i></div>
+                            <div class="node-label">To'lov</div>
+                        </div>
+                        <div class="process-node {% if approved_payment %}completed{% elif pending_payment %}active{% endif %}">
+                            <div class="node-circle"><i class="bi bi-check-circle"></i></div>
+                            <div class="node-label">Tasdiqlash</div>
+                        </div>
+                        <div class="process-node {% if approved_payment %}active{% endif %}">
+                            <div class="node-circle"><i class="bi bi-arrow-repeat"></i></div>
+                            <div class="node-label">Qayta topshirish</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="payment-body">
