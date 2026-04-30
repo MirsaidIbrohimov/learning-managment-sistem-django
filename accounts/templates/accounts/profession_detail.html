@@ -1068,6 +1068,28 @@
                     <i class="bi bi-lock-fill" style="font-size: 2rem;"></i>
                     <p class="mt-2 mb-0">Bu bo'lim ochilishi uchun avval oldingi bo'limdagi barcha darslarni (video, test, uyga vazifa) bajarishingiz kerak</p>
                 </div>
+                {% for lesson in section.lessons.all %}
+                    {% if lesson.lesson_type == 'dictionary' %}
+                    {% if request.user.is_student and token_map %}
+                    <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
+                    {% else %}
+                    <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
+                    {% endif %}
+                        <div class="lesson-icon dictionary">
+                            <i class="bi bi-translate"></i>
+                        </div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">{{ lesson.title }}</div>
+                            <div class="lesson-type">Lug'at</div>
+                        </div>
+                        <div class="lesson-status">
+                            <span class="status-badge" style="background:rgba(16,185,129,0.1);color:#10b981;">
+                                <i class="bi bi-unlock-fill"></i>Ochiq
+                            </span>
+                        </div>
+                    </a>
+                    {% endif %}
+                {% endfor %}
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
                     {% with lock_status=lesson_is_locked|get_item:lesson.pk %}
