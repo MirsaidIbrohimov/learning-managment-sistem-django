@@ -50,6 +50,29 @@
         --radius-xl: 32px;
     }
 
+    [data-theme="light"] {
+        --bg: #f1f5f9;
+        --bg-card: rgba(255, 255, 255, 0.9);
+        --bg-card-solid: #ffffff;
+        --border: rgba(99, 102, 241, 0.12);
+        --border-hover: rgba(99, 102, 241, 0.25);
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.2);
+        --accent: #8b5cf6;
+        --success: #10b981;
+        --success-glow: rgba(16, 185, 129, 0.2);
+        --danger: #ef4444;
+        --danger-glow: rgba(239, 68, 68, 0.2);
+        --warning: #f59e0b;
+        --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        --gradient-danger: linear-gradient(135deg, #ef4444, #dc2626);
+        --gradient-success: linear-gradient(135deg, #10b981, #059669);
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(0, 0, 0, 0.06);
+    }
+
     body {
         background: var(--bg);
         color: var(--text);
@@ -455,6 +478,36 @@
         .option-text { font-size: 0.85rem; }
         .nav-pill { width: 28px; height: 28px; font-size: 0.68rem; }
     }
+
+    /* ==================== LIGHT MODE SPECIFICS ==================== */
+    [data-theme="light"] .bg-orb { opacity: 0.05; }
+    [data-theme="light"] .bg-grid {
+        background-image: linear-gradient(rgba(99,102,241,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.05) 1px, transparent 1px);
+    }
+    [data-theme="light"] .test-header {
+        background: rgba(255,255,255,0.85); border-bottom-color: rgba(0,0,0,0.06);
+    }
+    [data-theme="light"] .test-header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    [data-theme="light"] .timer-capsule { background: #fff; border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .progress-section { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .question-nav { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .question-card { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .question-card:hover { border-color: rgba(99,102,241,0.2); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    [data-theme="light"] .question-card.answered { border-color: rgba(16,185,129,0.25); }
+    [data-theme="light"] .option-item { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .option-item:hover { border-color: rgba(99,102,241,0.25); }
+    [data-theme="light"] .option-item.selected { background: rgba(99,102,241,0.06); border-color: rgba(99,102,241,0.3); }
+    [data-theme="light"] .option-letter { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.06); color: #64748b; }
+    [data-theme="light"] .option-check { border-color: rgba(0,0,0,0.12); }
+    [data-theme="light"] .nav-pill { border-color: rgba(0,0,0,0.08); color: #64748b; }
+    [data-theme="light"] .submit-card { background: rgba(255,255,255,0.9); border-color: rgba(0,0,0,0.06); }
+    [data-theme="light"] .bottom-bar { background: rgba(255,255,255,0.9); border-top-color: rgba(0,0,0,0.06); box-shadow: 0 -4px 20px rgba(0,0,0,0.06); }
+    [data-theme="light"] .fullscreen-overlay { background: rgba(241,245,249,0.98); }
+    [data-theme="light"] .fullscreen-overlay h2 { color: #1e293b; }
+    [data-theme="light"] .warning-overlay { background: rgba(241,245,249,0.9); }
+    [data-theme="light"] .warning-modal { background: #fff; border-color: rgba(239,68,68,0.15); box-shadow: 0 24px 48px rgba(0,0,0,0.12); }
+    [data-theme="light"] .watermark { color: rgba(239,68,68,0.06); }
+    [data-theme="light"] .q-text pre, [data-theme="light"] .option-text pre { background: #f1f5f9; }
 
     html { scroll-behavior: smooth; }
     .q-text pre, .option-text pre {
@@ -882,6 +935,12 @@
 
     /* Init */
     updateProgress();
+})();
+</script>
+<script>
+(function() {
+    var saved = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
 })();
 </script>
 </body>

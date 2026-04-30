@@ -1,6 +1,7 @@
+
 {% load custom_filters %}
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" id="themeRoot">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,6 +35,27 @@
         --radius-xl: 32px;
     }
 
+    [data-theme="light"] {
+        --bg: #f1f5f9;
+        --bg-card: rgba(255, 255, 255, 0.9);
+        --bg-card-solid: #ffffff;
+        --border: rgba(99, 102, 241, 0.15);
+        --border-hover: rgba(99, 102, 241, 0.3);
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.25);
+        --accent: #8b5cf6;
+        --success: #10b981;
+        --success-glow: rgba(16, 185, 129, 0.2);
+        --danger: #ef4444;
+        --danger-glow: rgba(239, 68, 68, 0.2);
+        --warning: #f59e0b;
+        --warning-glow: rgba(245, 158, 11, 0.2);
+        --glass: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(0, 0, 0, 0.06);
+    }
+
     body {
         background: var(--bg);
         color: var(--text);
@@ -61,10 +83,18 @@
         background-image: linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
         background-size: 60px 60px; pointer-events: none;
     }
+    [data-theme="light"] .bg-orb { opacity: 0.06; }
+    [data-theme="light"] .bg-grid {
+        background-image: linear-gradient(rgba(99,102,241,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,0.06) 1px, transparent 1px);
+    }
 
     /* ==================== LAYOUT ==================== */
-    .page-wrapper { position: relative; z-index: 1; min-height: 100vh; padding: 2rem 1.25rem 4rem; }
-    .container { max-width: 720px; margin: 0 auto; }
+    .page-wrapper {
+        position: relative; z-index: 1; min-height: 100vh;
+        padding: 2rem 1.25rem 4rem;
+        display: flex; justify-content: center;
+    }
+    .tl-container { width: 100%; max-width: 720px; padding: 0; }
 
     /* ==================== BACK BUTTON ==================== */
     .back-link {
@@ -412,6 +442,18 @@
     }
     .fullscreen-note strong { color: var(--text); }
 
+    /* ==================== LIGHT MODE OVERRIDES ==================== */
+    [data-theme="light"] .warning-item strong { color: #1e293b; }
+    [data-theme="light"] .node-circle { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    [data-theme="light"] .stat-item { background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.06); }
+    [data-theme="light"] .result-card.passed { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.2); }
+    [data-theme="light"] .result-card.failed { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.2); }
+    [data-theme="light"] .retry-cost-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .retry-pricing-compare { background: #fff; border-color: rgba(0,0,0,0.08); }
+    [data-theme="light"] .retry-pricing-vs { background: rgba(0,0,0,0.06); }
+    [data-theme="light"] .retry-warning { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.15); }
+    [data-theme="light"] .next-lesson-card { background: rgba(255,255,255,0.9); }
+
     /* ==================== RESPONSIVE ==================== */
     @media (max-width: 640px) {
         .page-wrapper { padding: 1.25rem 1rem 3rem; }
@@ -449,7 +491,7 @@
 <div class="bg-grid"></div>
 
 <div class="page-wrapper">
-    <div class="container">
+    <div class="tl-container">
 
         <!-- Back Button -->
         <a href="{% url 'profession_detail' profession.pk %}" class="back-link">
@@ -726,5 +768,11 @@
     </div>
 </div>
 
+<script>
+(function() {
+    var saved = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+})();
+</script>
 </body>
 </html>
