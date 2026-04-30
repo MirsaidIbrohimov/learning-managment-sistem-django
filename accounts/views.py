@@ -2985,49 +2985,30 @@ def submit_test(request, pk):
     result.passed = score >= test.passing_score
     result.save()
     
-    # Testdan o'tsa - kirish puli qaytariladi
+    # Birinchi urinishmi yoki qayta topshirishmi tekshirish
     existing_results_count = TestResult.objects.filter(
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
+    is_first_attempt = existing_results_count == 0
     
     if result.passed:
-        # Avval coin olinganmi tekshirish
-        already_got_coin = TestResult.objects.filter(
-            test=test, student=request.user, coin_awarded=True
-        ).exclude(pk=result.pk).exists()
-        
-        if not already_got_coin:
-            # Birinchi marta o'tmoqda — coin berish
-            if correct > 0:
-                request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+        if is_first_attempt and correct > 0:
+            # Faqat birinchi urinishda coin beriladi
+            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
             result.coin_awarded = True
             result.save()
-        
-        # Kirish pulini qaytarish (qayta topshirgan bo'lsa)
-        if existing_results_count > 0:
-            refund_amount = 5 if request.user.is_premium else 10
-            request.user.add_coins(refund_amount, f"Test muvaffaqiyatli - kirish puli qaytarildi: {test.lesson.title}")
-        
-        total_earned = (correct if not already_got_coin else 0) + (5 if request.user.is_premium and existing_results_count > 0 else 10 if existing_results_count > 0 else 0)
         
         # Activity log
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{total_earned} coin" if total_earned > 0 else "")
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
         )
         
-        if already_got_coin:
-            if existing_results_count > 0:
-                refund_amount = 5 if request.user.is_premium else 10
-                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! Siz bu test uchun coin allaqachon olib bo'lgansiz. {refund_amount} coin qaytarildi!")
-            else:
-                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
-        elif existing_results_count > 0:
-            refund_amount = 5 if request.user.is_premium else 10
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin (to'g'ri javoblar) va {refund_amount} coin qaytarildi!")
-        else:
+        if is_first_attempt and correct > 0:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
+        else:
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
     else:
         # Testdan o'tmadi - coin berilmaydi
         ActivityLog.objects.create(
@@ -3852,43 +3833,28 @@ def student_submit_test(request, token):
     result.passed = score >= test.passing_score
     result.save()
 
+    # Birinchi urinishmi yoki qayta topshirishmi tekshirish
     existing_results_count = TestResult.objects.filter(
         test=test, student=request.user
     ).exclude(pk=result.pk).count()
+    is_first_attempt = existing_results_count == 0
 
     if result.passed:
-        already_got_coin = TestResult.objects.filter(
-            test=test, student=request.user, coin_awarded=True
-        ).exclude(pk=result.pk).exists()
-
-        if not already_got_coin:
-            if correct > 0:
-                request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
+        if is_first_attempt and correct > 0:
+            # Faqat birinchi urinishda coin beriladi
+            request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
             result.coin_awarded = True
             result.save()
 
-        if existing_results_count > 0:
-            refund_amount = 5 if request.user.is_premium else 10
-            request.user.add_coins(refund_amount, f"Test muvaffaqiyatli - kirish puli qaytarildi: {test.lesson.title}")
-
-        total_earned = (correct if not already_got_coin else 0) + (5 if request.user.is_premium and existing_results_count > 0 else 10 if existing_results_count > 0 else 0)
-
         ActivityLog.objects.create(
             user=request.user, action_type='submit_test',
-            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{total_earned} coin" if total_earned > 0 else "")
+            description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
         )
 
-        if already_got_coin:
-            if existing_results_count > 0:
-                refund_amount = 5 if request.user.is_premium else 10
-                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! Siz bu test uchun coin allaqachon olib bo'lgansiz. {refund_amount} coin qaytarildi!")
-            else:
-                messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
-        elif existing_results_count > 0:
-            refund_amount = 5 if request.user.is_premium else 10
-            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin (to'g'ri javoblar) va {refund_amount} coin qaytarildi!")
-        else:
+        if is_first_attempt and correct > 0:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
+        else:
+            messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
     else:
         ActivityLog.objects.create(
             user=request.user, action_type='submit_test',
