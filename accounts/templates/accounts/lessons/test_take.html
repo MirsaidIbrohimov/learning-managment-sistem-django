@@ -934,10 +934,11 @@
     /* Debugger trap */
     (function trap() {
         setTimeout(function() {
+            if (!devtoolsReady) { trap(); return; }
             var t = performance.now(); debugger;
-            if (performance.now() - t > 100) { if (elTestPage) elTestPage.style.filter = 'blur(20px)'; showWarning("Debugger aniqlandi!"); }
+            if (performance.now() - t > 200) { if (elTestPage) elTestPage.style.filter = 'blur(20px)'; showWarning("Debugger aniqlandi!"); }
             trap();
-        }, 4000);
+        }, 5000);
     })();
 
     /* Init */

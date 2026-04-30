@@ -1073,12 +1073,19 @@
 
     /* DevTools detection */
     var devtoolsOpen = false;
-    var baseW = window.outerWidth - window.innerWidth;
-    var baseH = window.outerHeight - window.innerHeight;
+    var baseW = 0;
+    var baseH = 0;
+    var devtoolsReady = false;
+    setTimeout(function() {
+        baseW = window.outerWidth - window.innerWidth;
+        baseH = window.outerHeight - window.innerHeight;
+        devtoolsReady = true;
+    }, 3000);
     setInterval(function() {
+        if (!devtoolsReady) return;
         var dw = (window.outerWidth - window.innerWidth) - baseW;
         var dh = (window.outerHeight - window.innerHeight) - baseH;
-        if (dw > 160 || dh > 160) {
+        if (dw > 200 || dh > 200) {
             if (!devtoolsOpen) { devtoolsOpen = true; showWarning("DevTools aniqlandi!"); if (elTestPage) elTestPage.style.filter = 'blur(20px)'; }
         } else {
             if (devtoolsOpen) { devtoolsOpen = false; if (elTestPage) elTestPage.style.filter = 'none'; }
