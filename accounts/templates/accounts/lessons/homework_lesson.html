@@ -930,7 +930,11 @@
 <div class="homework-page">
     <div class="container">
         <!-- Back Button -->
+        {% if course_token %}
+        <a href="{% url 'student_course_view' course_token.token %}" class="back-btn mb-4">
+        {% else %}
         <a href="{% url 'profession_detail' profession.pk %}" class="back-btn mb-4">
+        {% endif %}
             <i class="bi bi-arrow-left"></i>
             <span>Orqaga qaytish</span>
         </a>

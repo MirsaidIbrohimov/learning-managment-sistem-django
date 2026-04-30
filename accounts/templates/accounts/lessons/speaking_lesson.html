@@ -219,7 +219,11 @@
 
 <div class="speaking-page">
     <div class="container" style="max-width: 800px;">
+        {% if course_token %}
+        <a href="{% url 'student_course_view' course_token.token %}" class="back-btn mb-3">
+        {% else %}
         <a href="{% url 'profession_detail' lesson.profession.pk %}" class="back-btn mb-3">
+        {% endif %}
             <i class="bi bi-arrow-left"></i> Kursga qaytish
         </a>
 

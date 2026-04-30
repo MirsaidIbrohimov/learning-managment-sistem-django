@@ -3288,7 +3288,7 @@ def student_lesson_view(request, token):
 
     if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
         messages.error(request, "Avval kursga yoziling!")
-        return redirect('profession_detail', pk=profession.pk)
+        return redirect('professions')
 
     # Lug'at darslariga cheklovsiz kirish
     if lesson.lesson_type != 'dictionary':
@@ -3336,7 +3336,8 @@ def student_lesson_view(request, token):
                         )
                         if not prev_section_lessons.issubset(completed_lesson_ids):
                             messages.warning(request, "Avval oldingi bo'limdagi barcha darslarni bajaring! 🔒")
-                            return redirect('profession_detail', pk=profession.pk)
+                            ct = StudentCourseToken.get_or_create(request.user, profession)
+                            return redirect('student_course_view', token=ct.token)
 
                     if profession.daily_section_limit:
                         today_section_access = DailySectionAccess.objects.filter(
@@ -3344,7 +3345,8 @@ def student_lesson_view(request, token):
                         ).select_related('section').first()
                         if today_section_access and today_section_access.section_id != current_section.id:
                             messages.warning(request, f"Bugun siz faqat \"{today_section_access.section.title}\" bo'limini o'qiyolasiz. Yangi bo'limga ertaga kirishingiz mumkin! 📚")
-                            return redirect('profession_detail', pk=profession.pk)
+                            ct = StudentCourseToken.get_or_create(request.user, profession)
+                            return redirect('student_course_view', token=ct.token)
 
                 if not section_completed and profession.daily_section_limit:
                     today_access = DailySectionAccess.objects.filter(
@@ -3356,7 +3358,10 @@ def student_lesson_view(request, token):
                             section=current_section, accessed_date=today
                         )
 
-    context = {'lesson': lesson, 'profession': profession, 'student_token': token_obj}
+    # Kurs tokenini olish (orqaga qaytish uchun)
+    course_token = StudentCourseToken.get_or_create(request.user, profession)
+
+    context = {'lesson': lesson, 'profession': profession, 'student_token': token_obj, 'course_token': course_token}
 
     # Keyingi darsni topish
     next_lesson = None
@@ -3903,6 +3908,8 @@ def student_test_result(request, token, result_pk):
     if homework_lesson:
         homework_lesson_token = StudentLessonToken.get_or_create_for_lesson(request.user, homework_lesson)
 
+    course_token = StudentCourseToken.get_or_create(request.user, profession)
+
     return render(request, 'accounts/lessons/test_result.html', {
         'result': result,
         'user_answers': user_answers,
@@ -3911,6 +3918,7 @@ def student_test_result(request, token, result_pk):
         'student_token': token_obj,
         'video_lesson_token': video_lesson_token,
         'homework_lesson_token': homework_lesson_token,
+        'course_token': course_token,
     })
 
 

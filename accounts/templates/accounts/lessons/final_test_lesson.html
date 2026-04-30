@@ -498,7 +498,11 @@
     <div class="container">
 
         <!-- Back Button -->
+        {% if course_token %}
+        <a href="{% url 'student_course_view' course_token.token %}" class="back-link">
+        {% else %}
         <a href="{% url 'profession_detail' profession.pk %}" class="back-link">
+        {% endif %}
             <i class="bi bi-arrow-left"></i>
             <span>Orqaga</span>
         </a>

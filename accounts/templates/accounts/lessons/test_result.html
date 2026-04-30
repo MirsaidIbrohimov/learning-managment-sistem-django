@@ -569,7 +569,11 @@ function showCelebrationModal() {
     actionsHtml += '<a href="{% url "lesson_view" video_lesson.pk %}" class="cel-btn secondary"><i class="bi bi-play-circle"></i> Video darslikka qaytish</a>';
     {% endif %}
     {% endif %}
+    {% if course_token %}
+    actionsHtml += '<a href="{% url "student_course_view" course_token.token %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytish</a>';
+    {% else %}
     actionsHtml += '<a href="{% url "profession_detail" result.test.lesson.profession.pk %}" class="cel-btn secondary"><i class="bi bi-grid"></i> Kursga qaytish</a>';
+    {% endif %}
     overlay.innerHTML = `
         <div class="celebration-modal">
             <div class="cel-icon"><i class="bi bi-trophy-fill"></i></div>
@@ -740,7 +744,11 @@ function showCelebrationModal() {
 
         <!-- Action Buttons -->
         <div class="action-section">
+            {% if course_token %}
+            <a href="{% url 'student_course_view' course_token.token %}" class="action-btn back">
+            {% else %}
             <a href="{% url 'profession_detail' result.test.lesson.profession.pk %}" class="action-btn back">
+            {% endif %}
                 <i class="bi bi-arrow-left"></i> Kursga qaytish
             </a>
             {% if video_lesson %}
