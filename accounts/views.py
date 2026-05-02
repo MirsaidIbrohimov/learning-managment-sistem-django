@@ -643,32 +643,32 @@ def login_view(request):
             messages.error(request, "Username yoki parol noto'g'ri ❌")
             return _login_render(request, form, login_mode, captcha_needed)
 
-        # 🔒 Brute-force himoya — reCAPTCHA v3 tekshirish (bloklash o'rniga)
+        # 🔒 Brute-force himoya — reCAPTCHA v2 tekshirish (bloklash o'rniga)
         captcha_needed = LoginAttempt.is_captcha_required(ip_address, max_attempts, captcha_duration)
         if captcha_needed:
             recaptcha_response = request.POST.get('g-recaptcha-response', '')
-            if not recaptcha_response:
-                messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Sahifani yangilang. 🤖")
+            recaptcha_passed = False
+
+            if recaptcha_response:
+                import requests as http_requests
+                try:
+                    verify_response = http_requests.post(
+                        'https://www.google.com/recaptcha/api/siteverify',
+                        data={
+                            'secret': getattr(django_settings, 'RECAPTCHA_SECRET_KEY', ''),
+                            'response': recaptcha_response,
+                            'remoteip': ip_address,
+                        }, timeout=5
+                    )
+                    recaptcha_passed = verify_response.json().get('success', False)
+                except Exception:
+                    recaptcha_passed = True  # API xatolik — o'tkazib yuboramiz
+            
+            if not recaptcha_passed:
+                messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Qayta urinib ko'ring. ❌")
                 return _login_render(request, form, login_mode, True)
 
-            # Google API orqali tekshirish (v3)
-            import requests as http_requests
-            try:
-                verify_url = 'https://www.google.com/recaptcha/api/siteverify'
-                verify_response = http_requests.post(verify_url, data={
-                    'secret': getattr(django_settings, 'RECAPTCHA_SECRET_KEY', ''),
-                    'response': recaptcha_response,
-                    'remoteip': ip_address,
-                }, timeout=5)
-                verify_result = verify_response.json()
-                recaptcha_score = verify_result.get('score', 0)
-                if not verify_result.get('success') or recaptcha_score < 0.5:
-                    messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Qayta urinib ko'ring. ❌")
-                    return _login_render(request, form, login_mode, True)
-            except Exception:
-                pass  # reCAPTCHA tekshirishda xatolik bo'lsa — o'tkazib yuboramiz
-
-            # reCAPTCHA to'g'ri — admin'ga birinchi marta xabar berish
+            # Admin'ga birinchi marta xabar berish
             if not request.session.get('captcha_notified'):
                 try:
                     notify_admins(

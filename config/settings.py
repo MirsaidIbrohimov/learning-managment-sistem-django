@@ -404,9 +404,9 @@ LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
 LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
 LOGIN_CAPTCHA_DURATION = 20  # Captcha davomiyligi (daqiqa)
 
-# Google reCAPTCHA v2
-RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LfldNUsAAAAAOBPdmbWs-LYGFOM_lywuydG8_0I')
-RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LfldNUsAAAAAEIlfhLV1Rp4f9G-OtUv1wYVnX_a')
+# Google reCAPTCHA v2 (checkbox)
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LdZfNUsAAAAAAtIHPU1Yr3FbejBiCQGDShMYHrA')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LdZfNUsAAAAACfhIsKfP1WUy7Zm5pcgUSPSCIbM')
 
 # ============ REST FRAMEWORK ============
 
