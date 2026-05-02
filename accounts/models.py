@@ -1637,6 +1637,17 @@ class LoginAttempt(models.Model):
         return recent_failures >= max_attempts
     
     @staticmethod
+    def is_captcha_required(ip_address, max_attempts=5, captcha_duration_minutes=20):
+        """Captcha kerak yoki yo'qligini tekshirish"""
+        cutoff = timezone.now() - timedelta(minutes=captcha_duration_minutes)
+        recent_failures = LoginAttempt.objects.filter(
+            ip_address=ip_address,
+            was_successful=False,
+            attempted_at__gte=cutoff
+        ).count()
+        return recent_failures >= max_attempts
+
+    @staticmethod
     def get_remaining_lockout_time(ip_address, max_attempts=5, block_duration_minutes=15):
         """Qolgan bloklash vaqtini qaytarish (sekundlarda)"""
         cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)

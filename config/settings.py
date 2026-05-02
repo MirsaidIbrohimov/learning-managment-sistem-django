@@ -402,6 +402,11 @@ SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
 # Brute-force himoya
 LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
 LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
+LOGIN_CAPTCHA_DURATION = 20  # Captcha davomiyligi (daqiqa)
+
+# Google reCAPTCHA v2
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')  # test key
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')  # test key
 
 # ============ REST FRAMEWORK ============
 
