@@ -223,9 +223,32 @@ class AdminUserEditForm(forms.ModelForm):
     id_card = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     birth_certificate = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
 
+    gender = forms.ChoiceField(required=False, choices=[('', 'Tanlang')] + list(CustomUser.GENDER_CHOICES), widget=forms.Select(attrs={'class': 'form-control'}))
+    nationality = forms.CharField(required=False, max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}))
+    passport_series = forms.CharField(required=False, max_length=10, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA', 'maxlength': '2'}))
+    passport_number = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1234567', 'maxlength': '7'}))
+    jshshir = forms.CharField(required=False, max_length=14, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '14 xonali raqam', 'maxlength': '14'}))
+    passport_issued_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    father_name = forms.CharField(required=False, max_length=200, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    father_phone = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998...'}))
+    father_deceased = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    mother_name = forms.CharField(required=False, max_length=200, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    mother_phone = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998...'}))
+    mother_deceased = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    parent_phone = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998...'}))
+    school_name = forms.CharField(required=False, max_length=300, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    school_number = forms.CharField(required=False, max_length=50, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: 15'}))
+
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'username', 'phone', 'role', 'profession', 'photo', 'bio', 'is_blocked', 'address', 'birth_date', 'id_card', 'birth_certificate']
+        fields = [
+            'first_name', 'last_name', 'username', 'phone', 'role', 'profession',
+            'photo', 'bio', 'is_blocked', 'address', 'birth_date', 'id_card', 'birth_certificate',
+            'gender', 'nationality', 'passport_series', 'passport_number', 'jshshir', 'passport_issued_date',
+            'father_name', 'father_phone', 'father_deceased',
+            'mother_name', 'mother_phone', 'mother_deceased',
+            'parent_phone', 'school_name', 'school_number',
+        ]
 
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')

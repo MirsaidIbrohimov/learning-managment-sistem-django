@@ -4,146 +4,135 @@
 
 {% block admin_content %}
 <style>
-/* ===== User Edit Responsive ===== */
-.ue-page { max-width: 1000px; margin: 0 auto; }
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 
-.ue-back {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    color: var(--text-color); text-decoration: none; font-weight: 600;
-    font-size: 0.9rem; margin-bottom: 1.5rem; transition: all 0.2s;
-}
-.ue-back:hover { color: #6366f1; }
+.ue-page{max-width:1100px;margin:0 auto;animation:fadeUp .4s ease}
 
-.ue-header {
-    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;
-}
-.ue-header-icon {
-    width: 50px; height: 50px; border-radius: 14px;
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 1.4rem;
-}
-.ue-header h1 { font-size: 1.5rem; font-weight: 800; color: var(--text-color); margin: 0; }
-.ue-header-sub { font-size: 0.85rem; color: #6c757d; margin: 0; }
+.ue-back{display:inline-flex;align-items:center;gap:.45rem;color:var(--text-color);text-decoration:none;font-weight:600;font-size:.86rem;margin-bottom:1.2rem;padding:.35rem .7rem;border-radius:10px;transition:.2s}
+.ue-back:hover{color:#6366f1;background:rgba(99,102,241,.06)}
 
-.ue-grid { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+/* Hero */
+.ue-hero{background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 50%,#a855f7 100%);border-radius:20px;padding:1.75rem 2rem;color:#fff;display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.ue-hero::before{content:'';position:absolute;top:-50%;right:-10%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%)}
+.ue-hero-avatar{width:76px;height:76px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.3);flex-shrink:0;position:relative;z-index:1}
+.ue-hero-ph{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:700;flex-shrink:0;border:3px solid rgba(255,255,255,.3);position:relative;z-index:1}
+.ue-hero-info{position:relative;z-index:1}
+.ue-hero-info h1{font-size:1.35rem;font-weight:800;margin:0 0 .15rem}
+.ue-hero-info p{margin:0;opacity:.8;font-size:.86rem}
+.ue-hero-badge{display:inline-flex;padding:.22rem .65rem;border-radius:8px;font-size:.7rem;font-weight:700;margin-top:.35rem;text-transform:uppercase;letter-spacing:.5px}
+.ue-hero-badge.r-admin{background:rgba(239,68,68,.2);color:#fca5a5}
+.ue-hero-badge.r-teacher{background:rgba(16,185,129,.2);color:#6ee7b7}
+.ue-hero-badge.r-student{background:rgba(255,255,255,.2);color:#fff}
 
-.ue-card {
-    background: var(--card-bg); border: 1px solid var(--border-color);
-    border-radius: 18px; overflow: hidden; margin-bottom: 1.5rem;
-}
-.ue-card-head {
-    padding: 16px 24px; border-bottom: 1px solid var(--border-color);
-    font-weight: 700; font-size: 0.95rem; color: var(--text-color);
-    display: flex; align-items: center; gap: 0.5rem;
-}
-.ue-card-body { padding: 24px; }
+/* Tabs */
+.ue-tabs{display:flex;gap:5px;margin-bottom:1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.ue-tabs::-webkit-scrollbar{display:none}
+.ue-tab{display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:12px;cursor:pointer;background:var(--card-bg);border:2px solid var(--border-color);font-weight:600;font-size:.8rem;color:var(--text-color);transition:.25s;white-space:nowrap;user-select:none}
+.ue-tab:hover{border-color:#6366f1;background:rgba(99,102,241,.04);transform:translateY(-1px)}
+.ue-tab.active{border-color:#6366f1;background:rgba(99,102,241,.08);color:#6366f1}
+.ue-tab i{font-size:.95rem}
 
-.ue-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-.ue-field-full { margin-bottom: 1rem; }
-.ue-label {
-    display: block; font-size: 0.78rem; font-weight: 700; color: #6c757d;
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
-}
-.ue-card .form-control, .ue-card .form-select {
-    border-radius: 12px; border: 2px solid var(--border-color);
-    background: var(--bg-color); color: var(--text-color);
-    padding: 0.65rem 1rem; font-size: 0.9rem; transition: all 0.2s;
-}
-.ue-card .form-control:focus, .ue-card .form-select:focus {
-    border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
-}
+/* Section toggle */
+.ue-section{display:none;animation:scaleIn .22s ease}
+.ue-section.active{display:block}
+
+/* Grid */
+.ue-grid{display:grid;grid-template-columns:1fr 310px;gap:1.5rem}
+
+/* Cards */
+.ue-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:18px;overflow:hidden;margin-bottom:1.25rem;transition:.3s}
+.ue-card:hover{box-shadow:0 8px 25px rgba(0,0,0,.06)}
+.ue-card-head{padding:13px 20px;border-bottom:1px solid var(--border-color);font-weight:700;font-size:.9rem;color:var(--text-color);display:flex;align-items:center;gap:10px}
+.ue-card-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff;flex-shrink:0}
+.ue-card-body{padding:20px}
+
+/* Fields */
+.ue-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.ue-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}
+.ue-field{margin-bottom:1rem}
+.ue-field:last-child{margin-bottom:0}
+.ue-label{display:flex;align-items:center;gap:5px;font-size:.74rem;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.35rem}
+.ue-card .form-control,.ue-card .form-select{border-radius:12px;border:2px solid var(--border-color);background:var(--bg-color);color:var(--text-color);padding:.6rem .9rem;font-size:.87rem;transition:.2s}
+.ue-card .form-control:focus,.ue-card .form-select:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.ue-hint{font-size:.7rem;color:#9ca3af;margin-top:.25rem;display:flex;align-items:center;gap:4px}
+.ue-file-link{margin-top:.3rem;font-size:.76rem;color:#6c757d}
+.ue-file-link a{color:#6366f1;text-decoration:none;font-weight:600}
+.ue-file-link a:hover{text-decoration:underline}
+
+/* Passport visual */
+.ue-passport-vis{background:linear-gradient(135deg,rgba(34,197,94,.06),rgba(22,163,74,.06));border:1px solid rgba(34,197,94,.15);border-radius:14px;padding:.9rem 1.15rem;margin-bottom:1.15rem;display:flex;align-items:center;gap:12px;font-size:.82rem;font-weight:500;color:#6c757d}
+.ue-passport-vis i{font-size:1.4rem;color:#22c55e}
+
+/* Parent cards */
+.ue-parent-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ue-parent-card{background:var(--bg-color);border:1px solid var(--border-color);border-radius:14px;padding:1.15rem;transition:.3s}
+.ue-parent-card:hover{box-shadow:0 4px 15px rgba(0,0,0,.05)}
+.ue-parent-card.father{border-top:3px solid #3b82f6}
+.ue-parent-card.mother{border-top:3px solid #ec4899}
+.ue-parent-title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:.88rem;margin-bottom:1rem;color:var(--text-color)}
+.ue-parent-ico{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:#fff}
+.father .ue-parent-ico{background:linear-gradient(135deg,#3b82f6,#6366f1)}
+.mother .ue-parent-ico{background:linear-gradient(135deg,#ec4899,#d946ef)}
+.ue-deceased{display:flex;align-items:center;gap:8px;padding:7px 11px;border-radius:10px;background:rgba(220,53,69,.04);border:1px solid rgba(220,53,69,.12);margin-top:.7rem;cursor:pointer;transition:.25s}
+.ue-deceased:hover{background:rgba(220,53,69,.08);border-color:rgba(220,53,69,.25)}
+.ue-deceased label{font-size:.78rem;color:#dc3545;font-weight:600;cursor:pointer;margin:0;display:flex;align-items:center;gap:5px}
+.ue-disabled{opacity:.35;pointer-events:none;filter:grayscale(.5);transition:.3s}
 
 /* Teacher courses */
-.ue-courses-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0.75rem;
-}
-.ue-course-item {
-    display: flex; align-items: center; gap: 0.6rem;
-    padding: 0.65rem 0.875rem; border-radius: 12px;
-    border: 2px solid var(--border-color); background: var(--bg-color);
-    cursor: pointer; transition: all 0.2s; user-select: none;
-}
-.ue-course-item:hover { border-color: #10b981; }
-.ue-course-item.selected { border-color: #10b981; background: rgba(16,185,129,0.08); }
-[data-bs-theme="dark"] .ue-course-item.selected { background: rgba(16,185,129,0.15); }
-.ue-course-item input[type="checkbox"] { display: none; }
-.ue-course-check {
-    width: 20px; height: 20px; border-radius: 6px; flex-shrink: 0;
-    border: 2px solid var(--border-color); display: flex;
-    align-items: center; justify-content: center; font-size: 0.7rem; color: transparent;
-    transition: all 0.2s;
-}
-.ue-course-item.selected .ue-course-check { background: #10b981; border-color: #10b981; color: #fff; }
-.ue-course-name { font-weight: 600; font-size: 0.85rem; color: var(--text-color); }
+.ue-courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.7rem}
+.ue-course-item{display:flex;align-items:center;gap:.55rem;padding:.55rem .8rem;border-radius:12px;border:2px solid var(--border-color);background:var(--bg-color);cursor:pointer;transition:.2s;user-select:none}
+.ue-course-item:hover{border-color:#10b981}
+.ue-course-item.selected{border-color:#10b981;background:rgba(16,185,129,.08)}
+[data-bs-theme="dark"] .ue-course-item.selected{background:rgba(16,185,129,.15)}
+.ue-course-item input[type="checkbox"]{display:none}
+.ue-course-check{width:20px;height:20px;border-radius:6px;flex-shrink:0;border:2px solid var(--border-color);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:.2s}
+.ue-course-item.selected .ue-course-check{background:#10b981;border-color:#10b981;color:#fff}
+.ue-course-name{font-weight:600;font-size:.82rem;color:var(--text-color)}
 
 /* Sidebar */
-.ue-sidebar-card {
-    background: var(--card-bg); border: 1px solid var(--border-color);
-    border-radius: 18px; padding: 2rem 1.5rem; text-align: center; margin-bottom: 1.5rem;
-}
-.ue-sidebar-avatar {
-    width: 100px; height: 100px; border-radius: 50%; object-fit: cover;
-    margin: 0 auto 1rem; border: 3px solid var(--border-color);
-}
-.ue-sidebar-ph {
-    width: 100px; height: 100px; border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1rem; font-size: 2rem; color: #fff; font-weight: 700;
-}
-.ue-sidebar-name { font-size: 1.1rem; font-weight: 700; color: var(--text-color); margin-bottom: 0.25rem; }
-.ue-sidebar-uname { font-size: 0.85rem; color: #6c757d; margin-bottom: 0.75rem; }
-.ue-sidebar-role {
-    display: inline-flex; padding: 0.3rem 0.75rem; border-radius: 8px;
-    font-size: 0.78rem; font-weight: 700;
-}
-.ue-sidebar-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
-.ue-sidebar-role.r-teacher { background: rgba(16,185,129,0.1); color: #10b981; }
-.ue-sidebar-role.r-student { background: rgba(99,102,241,0.1); color: #6366f1; }
+.ue-side{background:var(--card-bg);border:1px solid var(--border-color);border-radius:18px;padding:1.35rem;margin-bottom:1.2rem}
+.ue-side-title{font-size:.8rem;font-weight:700;color:var(--text-color);display:flex;align-items:center;gap:8px;margin-bottom:.7rem}
+.ue-side-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem 0;border-bottom:1px solid var(--border-color);font-size:.8rem}
+.ue-side-row:last-child{border-bottom:none}
+.ue-side-row .lb{color:#6c757d;font-weight:500}
+.ue-side-row .vl{color:var(--text-color);font-weight:600}
 
-.ue-info-card {
-    background: var(--card-bg); border: 1px solid var(--border-color);
-    border-radius: 18px; padding: 1.25rem; margin-bottom: 1.5rem;
-}
-.ue-info-card h6 {
-    font-size: 0.85rem; font-weight: 700; color: var(--text-color);
-    display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
-}
-.ue-info-list { list-style: none; padding: 0; margin: 0; }
-.ue-info-list li {
-    font-size: 0.82rem; color: #6c757d; padding: 0.4rem 0;
-    padding-left: 1.25rem; position: relative;
-}
-.ue-info-list li::before {
-    content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
-    width: 6px; height: 6px; border-radius: 50%; background: var(--border-color);
-}
+.ue-completion{text-align:center;padding:.5rem 0}
+.ue-ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(#6366f1 calc(var(--pct)*1%),var(--border-color) 0);display:flex;align-items:center;justify-content:center;margin:0 auto .65rem;position:relative}
+.ue-ring::after{content:'';width:60px;height:60px;border-radius:50%;background:var(--card-bg);position:absolute}
+.ue-ring-pct{position:relative;z-index:1;font-size:.95rem;font-weight:800;color:#6366f1}
+.ue-ring-text{font-size:.75rem;color:#6c757d;font-weight:600}
+
+.ue-notes{list-style:none;padding:0;margin:0}
+.ue-notes li{font-size:.78rem;color:#6c757d;padding:.35rem 0 .35rem 1.15rem;position:relative}
+.ue-notes li::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%;background:var(--border-color)}
 
 /* Actions */
-.ue-actions { display: flex; gap: 0.75rem; }
-.ue-btn-save {
-    padding: 0.7rem 2rem; border-radius: 12px; font-weight: 700;
-    font-size: 0.9rem; border: none; cursor: pointer;
-    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
-    display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
-}
-.ue-btn-save:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.3); }
-.ue-btn-cancel {
-    padding: 0.7rem 1.5rem; border-radius: 12px; font-weight: 600;
-    font-size: 0.9rem; border: 2px solid var(--border-color);
-    background: var(--card-bg); color: var(--text-color);
-    text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
-}
-.ue-btn-cancel:hover { background: var(--bg-color); color: var(--text-color); }
+.ue-actions{display:flex;gap:.7rem;margin-top:.5rem}
+.ue-btn-save{padding:.65rem 1.8rem;border-radius:12px;font-weight:700;font-size:.87rem;border:none;cursor:pointer;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:inline-flex;align-items:center;gap:.5rem;transition:.2s;position:relative;overflow:hidden}
+.ue-btn-save::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transition:left .5s}
+.ue-btn-save:hover::before{left:100%}
+.ue-btn-save:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,102,241,.35)}
+.ue-btn-cancel{padding:.65rem 1.4rem;border-radius:12px;font-weight:600;font-size:.87rem;border:2px solid var(--border-color);background:var(--card-bg);color:var(--text-color);text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;transition:.2s}
+.ue-btn-cancel:hover{background:var(--bg-color);color:var(--text-color)}
 
-@media (max-width: 900px) {
-    .ue-grid { grid-template-columns: 1fr; }
-    .ue-row { grid-template-columns: 1fr; }
-    .ue-actions { flex-direction: column; }
-    .ue-btn-save, .ue-btn-cancel { width: 100%; justify-content: center; }
-    .ue-courses-grid { grid-template-columns: 1fr; }
+/* Errors */
+.ue-errors{border-radius:16px;border:1px solid rgba(239,68,68,.2);background:rgba(239,68,68,.04);padding:.9rem 1.15rem;margin-bottom:1.15rem;animation:scaleIn .3s}
+.ue-errors-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.86rem;color:#ef4444;margin-bottom:.35rem}
+.ue-errors ul{margin:0;padding-left:1.2rem;font-size:.8rem;color:var(--text-color)}
+
+/* Responsive */
+@media(max-width:900px){
+    .ue-grid{grid-template-columns:1fr}
+    .ue-row,.ue-row3{grid-template-columns:1fr}
+    .ue-parent-grid{grid-template-columns:1fr}
+    .ue-hero{flex-direction:column;text-align:center;padding:1.5rem}
+    .ue-tabs{gap:4px}
+    .ue-tab{padding:7px 11px;font-size:.76rem}
+    .ue-actions{flex-direction:column}
+    .ue-btn-save,.ue-btn-cancel{width:100%;justify-content:center}
+    .ue-courses-grid{grid-template-columns:1fr}
 }
 </style>
 
@@ -152,187 +141,396 @@
         <i class="bi bi-arrow-left"></i> Foydalanuvchilarga qaytish
     </a>
 
-    <div class="ue-header">
-        <div class="ue-header-icon"><i class="bi bi-pencil-square"></i></div>
-        <div>
-            <h1>Foydalanuvchini tahrirlash</h1>
-            <p class="ue-header-sub">{{ user_obj.full_name }} ma'lumotlarini o'zgartirish</p>
+    <!-- ====== HERO ====== -->
+    <div class="ue-hero">
+        {% if user_obj.photo %}
+        <img src="{{ user_obj.photo.url }}" class="ue-hero-avatar" alt="">
+        {% else %}
+        <div class="ue-hero-ph">{{ user_obj.get_initials }}</div>
+        {% endif %}
+        <div class="ue-hero-info">
+            <h1><i class="bi bi-pencil-square me-2"></i>{{ user_obj.full_name }}</h1>
+            <p>@{{ user_obj.username }} &bull; {{ user_obj.phone }}</p>
+            <span class="ue-hero-badge {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+            </span>
         </div>
     </div>
+
+    <!-- ====== TABS ====== -->
+    <div class="ue-tabs">
+        <div class="ue-tab active" data-tab="personal"><i class="bi bi-person-fill" style="color:#6366f1"></i> Shaxsiy</div>
+        <div class="ue-tab" data-tab="passport"><i class="bi bi-credit-card-2-front-fill" style="color:#22c55e"></i> Pasport</div>
+        <div class="ue-tab" data-tab="parents"><i class="bi bi-people-fill" style="color:#3b82f6"></i> Ota-ona</div>
+        <div class="ue-tab" data-tab="school"><i class="bi bi-building" style="color:#f59e0b"></i> Maktab</div>
+        <div class="ue-tab" data-tab="documents"><i class="bi bi-file-earmark-fill" style="color:#f59e0b"></i> Hujjatlar</div>
+        <div class="ue-tab" data-tab="security"><i class="bi bi-shield-lock-fill" style="color:#ef4444"></i> Xavfsizlik</div>
+    </div>
+
+    <!-- ====== ERRORS ====== -->
+    {% if form.errors %}
+    <div class="ue-errors">
+        <div class="ue-errors-h"><i class="bi bi-exclamation-triangle-fill"></i> Xatoliklar topildi!</div>
+        <ul>
+        {% for field, errors in form.errors.items %}
+            {% for error in errors %}
+            <li>{{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="ue-grid">
-            <!-- Main Content -->
+            <!-- ============ MAIN ============ -->
             <div>
-                <!-- Personal info -->
-                <div class="ue-card">
-                    <div class="ue-card-head">
-                        <i class="bi bi-person-fill" style="color:#6366f1;"></i> Shaxsiy ma'lumotlar
-                    </div>
-                    <div class="ue-card-body">
-                        <div class="ue-row">
-                            <div>
-                                <label class="ue-label">Ism</label>
-                                {{ form.first_name }}
-                            </div>
-                            <div>
-                                <label class="ue-label">Familiya</label>
-                                {{ form.last_name }}
-                            </div>
-                        </div>
-                        <div class="ue-row">
-                            <div>
-                                <label class="ue-label">Username</label>
-                                {{ form.username }}
-                            </div>
-                            <div>
-                                <label class="ue-label">Telefon</label>
-                                {{ form.phone }}
-                            </div>
-                        </div>
-                        <div class="ue-row">
-                            <div>
-                                <label class="ue-label">Rol</label>
-                                {{ form.role }}
-                            </div>
-                            <div>
-                                <label class="ue-label">Yo'nalish</label>
-                                {{ form.profession }}
-                            </div>
-                        </div>
-                        <div class="ue-row">
-                            <div>
-                                <label class="ue-label">Yashash manzili</label>
-                                {{ form.address }}
-                            </div>
-                            <div>
-                                <label class="ue-label">Tug'ilgan sana</label>
-                                {{ form.birth_date }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Documents & Photo -->
-                <div class="ue-card">
-                    <div class="ue-card-head">
-                        <i class="bi bi-file-earmark-fill" style="color:#f59e0b;"></i> Hujjatlar va rasm
-                    </div>
-                    <div class="ue-card-body">
-                        <div class="ue-row">
-                            <div>
-                                <label class="ue-label">ID Karta/Pasport</label>
-                                {{ form.id_card }}
-                                {% if user_obj.id_card %}
-                                <small style="color:#6c757d; margin-top:0.25rem; display:block;">
-                                    Joriy: <a href="{{ user_obj.id_card.url }}" target="_blank">Ko'rish</a>
-                                </small>
+                <!-- ===== TAB: SHAXSIY ===== -->
+                <div class="ue-section active" id="tab-personal">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)"><i class="bi bi-person-fill"></i></div>
+                            Shaxsiy ma'lumotlar
+                        </div>
+                        <div class="ue-card-body">
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-person"></i> Ism</label>
+                                    {{ form.first_name }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-person"></i> Familiya</label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-at"></i> Username</label>
+                                    {{ form.username }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-telephone"></i> Telefon</label>
+                                    {{ form.phone }}
+                                </div>
+                            </div>
+                            <div class="ue-row3">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-calendar-event"></i> Tug'ilgan sana</label>
+                                    {{ form.birth_date }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-gender-ambiguous"></i> Jinsi</label>
+                                    {{ form.gender }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-globe2"></i> Millati</label>
+                                    {{ form.nationality }}
+                                </div>
+                            </div>
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-tag"></i> Rol</label>
+                                    {{ form.role }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-compass"></i> Yo'nalish</label>
+                                    {{ form.profession }}
+                                </div>
+                            </div>
+                            <div class="ue-field">
+                                <label class="ue-label"><i class="bi bi-geo-alt"></i> Yashash manzili</label>
+                                {{ form.address }}
+                                <div class="ue-hint"><i class="bi bi-lightbulb"></i> Viloyat, tuman, ko'cha va uy raqami</div>
+                            </div>
+                            <div class="ue-field">
+                                <label class="ue-label"><i class="bi bi-camera"></i> Profil rasmi</label>
+                                {{ form.photo }}
+                                {% if user_obj.photo %}
+                                <div style="margin-top:.45rem">
+                                    <img src="{{ user_obj.photo.url }}" style="width:54px;height:54px;border-radius:10px;object-fit:cover">
+                                </div>
                                 {% endif %}
                             </div>
-                            <div>
-                                <label class="ue-label">Tug'ilganlik guvohnomasi</label>
-                                {{ form.birth_certificate }}
-                                {% if user_obj.birth_certificate %}
-                                <small style="color:#6c757d; margin-top:0.25rem; display:block;">
-                                    Joriy: <a href="{{ user_obj.birth_certificate.url }}" target="_blank">Ko'rish</a>
-                                </small>
-                                {% endif %}
+                            <div class="ue-field">
+                                <label class="ue-label"><i class="bi bi-chat-text"></i> O'zi haqida</label>
+                                {{ form.bio }}
                             </div>
                         </div>
-                        <div class="ue-field-full">
-                            <label class="ue-label">Profil rasmi</label>
-                            {{ form.photo }}
-                            {% if user_obj.photo %}
-                            <div style="margin-top:0.5rem;">
-                                <img src="{{ user_obj.photo.url }}" style="width:64px; height:64px; border-radius:10px; object-fit:cover;">
+                    </div>
+
+                    <!-- Teacher courses -->
+                    <div class="ue-card" id="ueTeacherCourses" style="{% if user_obj.role != 'teacher' %}display:none{% endif %}">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#10b981,#059669)"><i class="bi bi-mortarboard-fill"></i></div>
+                            Dars beradigan kurslar
+                        </div>
+                        <div class="ue-card-body">
+                            {% if professions %}
+                            <div class="ue-courses-grid">
+                                {% for p in professions %}
+                                <div class="ue-course-item {% if p in user_obj.teaching_professions.all %}selected{% endif %}">
+                                    <input type="checkbox" name="teaching_professions" value="{{ p.pk }}"
+                                           {% if p in user_obj.teaching_professions.all %}checked{% endif %}>
+                                    <span class="ue-course-check"><i class="bi bi-check2"></i></span>
+                                    <span class="ue-course-name">{{ p.name }}</span>
+                                </div>
+                                {% endfor %}
                             </div>
+                            {% else %}
+                            <p style="color:#6c757d;text-align:center">Hali kurslar mavjud emas</p>
                             {% endif %}
                         </div>
-                        <div class="ue-field-full">
-                            <label class="ue-label">O'zi haqida</label>
-                            {{ form.bio }}
-                        </div>
                     </div>
                 </div>
 
-                <!-- Teacher courses (only show when role is teacher) -->
-                <div class="ue-card" id="ueTeacherCourses" style="{% if user_obj.role != 'teacher' %}display:none;{% endif %}">
-                    <div class="ue-card-head">
-                        <i class="bi bi-mortarboard-fill" style="color:#10b981;"></i> Dars beradigan kurslar
-                    </div>
-                    <div class="ue-card-body">
-                        {% if professions %}
-                        <div class="ue-courses-grid">
-                            {% for p in professions %}
-                            <div class="ue-course-item {% if p in user_obj.teaching_professions.all %}selected{% endif %}">
-                                <input type="checkbox" name="teaching_professions" value="{{ p.pk }}"
-                                       {% if p in user_obj.teaching_professions.all %}checked{% endif %}>
-                                <span class="ue-course-check"><i class="bi bi-check2"></i></span>
-                                <span class="ue-course-name">{{ p.name }}</span>
+                <!-- ===== TAB: PASPORT ===== -->
+                <div class="ue-section" id="tab-passport">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="bi bi-credit-card-2-front-fill"></i></div>
+                            Pasport ma'lumotlari
+                        </div>
+                        <div class="ue-card-body">
+                            <div class="ue-passport-vis">
+                                <i class="bi bi-credit-card-2-front"></i>
+                                Pasport yoki ID kartaning <strong>seriya va raqami</strong>, <strong>JSHSHIR (PINFL)</strong> hamda <strong>berilgan sanasini</strong> kiriting.
                             </div>
-                            {% endfor %}
+                            <div class="ue-row3">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-hash"></i> Seriya</label>
+                                    {{ form.passport_series }}
+                                    <div class="ue-hint"><i class="bi bi-info-circle"></i> Masalan: AA</div>
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-123"></i> Raqam</label>
+                                    {{ form.passport_number }}
+                                    <div class="ue-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-fingerprint"></i> JSHSHIR (PINFL)</label>
+                                    {{ form.jshshir }}
+                                    <div class="ue-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
+                                </div>
+                            </div>
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-calendar-date"></i> Berilgan sana</label>
+                                    {{ form.passport_issued_date }}
+                                </div>
+                                <div></div>
+                            </div>
                         </div>
-                        {% else %}
-                        <p style="color:#6c757d; text-align:center;">Hali kurslar mavjud emas</p>
-                        {% endif %}
                     </div>
                 </div>
 
-                <!-- Security -->
-                <div class="ue-card">
-                    <div class="ue-card-head">
-                        <i class="bi bi-shield-lock-fill" style="color:#ef4444;"></i> Xavfsizlik
-                    </div>
-                    <div class="ue-card-body">
-                        <div class="ue-field-full">
-                            <label class="ue-label">Yangi parol</label>
-                            <input type="password" name="new_password" class="form-control"
-                                   placeholder="Yangi parol (o'zgartirish uchun)">
-                            <small style="color:#6c757d;">Bo'sh qoldiring agar parolni o'zgartirmoqchi bo'lmasangiz</small>
+                <!-- ===== TAB: OTA-ONA ===== -->
+                <div class="ue-section" id="tab-parents">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#3b82f6,#6366f1)"><i class="bi bi-people-fill"></i></div>
+                            Ota-ona ma'lumotlari
                         </div>
-                        <div style="margin-top:0.5rem;">
-                            <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                                {{ form.is_blocked }}
-                                <span style="font-size:0.9rem; font-weight:600; color:var(--text-color);">Foydalanuvchini bloklash</span>
-                            </label>
+                        <div class="ue-card-body">
+                            <div class="ue-parent-grid">
+                                <!-- OTA -->
+                                <div class="ue-parent-card father">
+                                    <div class="ue-parent-title">
+                                        <div class="ue-parent-ico"><i class="bi bi-person-fill"></i></div>
+                                        Ota ma'lumotlari
+                                    </div>
+                                    <div id="father-fields-wrapper">
+                                        <div class="ue-field">
+                                            <label class="ue-label">To'liq ismi</label>
+                                            {{ form.father_name }}
+                                        </div>
+                                        <div class="ue-field">
+                                            <label class="ue-label">Telefon raqami</label>
+                                            {{ form.father_phone }}
+                                        </div>
+                                    </div>
+                                    <div class="ue-deceased" onclick="toggleDeceased(event,this,'father')">
+                                        {{ form.father_deceased }}
+                                        <label><i class="bi bi-heartbreak-fill"></i> Vafot etgan</label>
+                                    </div>
+                                </div>
+
+                                <!-- ONA -->
+                                <div class="ue-parent-card mother">
+                                    <div class="ue-parent-title">
+                                        <div class="ue-parent-ico"><i class="bi bi-person-fill"></i></div>
+                                        Ona ma'lumotlari
+                                    </div>
+                                    <div id="mother-fields-wrapper">
+                                        <div class="ue-field">
+                                            <label class="ue-label">To'liq ismi</label>
+                                            {{ form.mother_name }}
+                                        </div>
+                                        <div class="ue-field">
+                                            <label class="ue-label">Telefon raqami</label>
+                                            {{ form.mother_phone }}
+                                        </div>
+                                    </div>
+                                    <div class="ue-deceased" onclick="toggleDeceased(event,this,'mother')">
+                                        {{ form.mother_deceased }}
+                                        <label><i class="bi bi-heartbreak-fill"></i> Vafot etgan</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:1.15rem">
+                                <div class="ue-row">
+                                    <div>
+                                        <label class="ue-label"><i class="bi bi-telephone-fill"></i> Asosiy ota-ona telefon</label>
+                                        {{ form.parent_phone }}
+                                        <div class="ue-hint"><i class="bi bi-lightbulb"></i> Bog'lanish uchun asosiy raqam</div>
+                                    </div>
+                                    <div></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- ===== TAB: MAKTAB ===== -->
+                <div class="ue-section" id="tab-school">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i class="bi bi-building"></i></div>
+                            Maktab ma'lumotlari
+                        </div>
+                        <div class="ue-card-body">
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-building"></i> Maktab nomi</label>
+                                    {{ form.school_name }}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-123"></i> Maktab raqami</label>
+                                    {{ form.school_number }}
+                                    <div class="ue-hint"><i class="bi bi-info-circle"></i> Masalan: 15, 32-IDUM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== TAB: HUJJATLAR ===== -->
+                <div class="ue-section" id="tab-documents">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="bi bi-file-earmark-fill"></i></div>
+                            Hujjatlar
+                        </div>
+                        <div class="ue-card-body">
+                            <div class="ue-row">
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-card-heading"></i> ID Karta / Pasport</label>
+                                    {{ form.id_card }}
+                                    {% if user_obj.id_card %}
+                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.id_card.url }}" target="_blank">Ko'rish</a></div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <label class="ue-label"><i class="bi bi-file-text"></i> Tug'ilganlik guvohnomasi</label>
+                                    {{ form.birth_certificate }}
+                                    {% if user_obj.birth_certificate %}
+                                    <div class="ue-file-link"><i class="bi bi-paperclip"></i> Joriy: <a href="{{ user_obj.birth_certificate.url }}" target="_blank">Ko'rish</a></div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== TAB: XAVFSIZLIK ===== -->
+                <div class="ue-section" id="tab-security">
+                    <div class="ue-card">
+                        <div class="ue-card-head">
+                            <div class="ue-card-ico" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="bi bi-shield-lock-fill"></i></div>
+                            Xavfsizlik
+                        </div>
+                        <div class="ue-card-body">
+                            <div class="ue-field">
+                                <label class="ue-label"><i class="bi bi-key"></i> Yangi parol</label>
+                                <input type="password" name="new_password" class="form-control" placeholder="Yangi parol kiriting (o'zgartirish uchun)">
+                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Bo'sh qoldiring agar parolni o'zgartirmoqchi bo'lmasangiz</div>
+                            </div>
+                            <div style="margin-top:.75rem">
+                                <label style="display:flex;align-items:center;gap:.6rem;cursor:pointer;padding:.7rem .9rem;border-radius:12px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.12)">
+                                    {{ form.is_blocked }}
+                                    <span style="font-size:.86rem;font-weight:600;color:var(--text-color)">
+                                        <i class="bi bi-slash-circle" style="color:#ef4444"></i> Foydalanuvchini bloklash
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
                 <div class="ue-actions">
-                    <a href="{% url 'admin_users' %}" class="ue-btn-cancel">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
-                    </a>
-                    <button type="submit" class="ue-btn-save">
-                        <i class="bi bi-check-lg"></i> Saqlash
-                    </button>
+                    <a href="{% url 'admin_users' %}" class="ue-btn-cancel"><i class="bi bi-x-lg"></i> Bekor qilish</a>
+                    <button type="submit" class="ue-btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
                 </div>
             </div>
 
-            <!-- Sidebar -->
+            <!-- ============ SIDEBAR ============ -->
             <div>
-                <div class="ue-sidebar-card">
-                    {% if user_obj.photo %}
-                    <img src="{{ user_obj.photo.url }}" class="ue-sidebar-avatar" alt="">
-                    {% else %}
-                    <div class="ue-sidebar-ph">{{ user_obj.get_initials }}</div>
-                    {% endif %}
-                    <div class="ue-sidebar-name">{{ user_obj.full_name }}</div>
-                    <div class="ue-sidebar-uname">@{{ user_obj.username }}</div>
-                    <span class="ue-sidebar-role {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                        {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
-                    </span>
+                <!-- Completion -->
+                <div class="ue-side" style="text-align:center">
+                    <div class="ue-completion">
+                        <div class="ue-ring" style="--pct:{{ user_obj.profile_completion_percent }}">
+                            <span class="ue-ring-pct">{{ user_obj.profile_completion_percent }}%</span>
+                        </div>
+                        <div class="ue-ring-text">Profil to'ldirilganligi</div>
+                    </div>
                 </div>
 
-                <div class="ue-info-card">
-                    <h6><i class="bi bi-info-circle" style="color:#6366f1;"></i> Eslatmalar</h6>
-                    <ul class="ue-info-list">
+                <!-- Quick info -->
+                <div class="ue-side">
+                    <div class="ue-side-title"><i class="bi bi-person-vcard" style="color:#6366f1"></i> Tezkor ma'lumot</div>
+                    <div class="ue-side-row">
+                        <span class="lb">Ro'yxatdan o'tgan</span>
+                        <span class="vl">{{ user_obj.date_joined|date:"d.m.Y" }}</span>
+                    </div>
+                    <div class="ue-side-row">
+                        <span class="lb">Oxirgi faollik</span>
+                        <span class="vl">{% if user_obj.last_activity %}{{ user_obj.last_activity|date:"d.m.Y H:i" }}{% else %}—{% endif %}</span>
+                    </div>
+                    <div class="ue-side-row">
+                        <span class="lb">Telegram</span>
+                        <span class="vl">{% if user_obj.telegram_username %}@{{ user_obj.telegram_username }}{% else %}—{% endif %}</span>
+                    </div>
+                    <div class="ue-side-row">
+                        <span class="lb">Coinlar</span>
+                        <span class="vl">🪙 {{ user_obj.coins }}</span>
+                    </div>
+                    <div class="ue-side-row">
+                        <span class="lb">Holat</span>
+                        <span class="vl">
+                            {% if user_obj.is_blocked %}
+                            <span style="color:#ef4444"><i class="bi bi-x-circle-fill"></i> Bloklangan</span>
+                            {% elif user_obj.is_online %}
+                            <span style="color:#22c55e"><i class="bi bi-circle-fill" style="font-size:.5rem"></i> Online</span>
+                            {% else %}
+                            <span style="color:#6c757d"><i class="bi bi-circle-fill" style="font-size:.5rem"></i> Offline</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="ue-side">
+                    <div class="ue-side-title"><i class="bi bi-lightbulb" style="color:#f59e0b"></i> Eslatmalar</div>
+                    <ul class="ue-notes">
                         <li>Rolni o'zgartirish foydalanuvchi huquqlarini o'zgartiradi</li>
                         <li>Parol maydonini bo'sh qoldiring agar o'zgartirmoqchi bo'lmasangiz</li>
                         <li>Bloklangan foydalanuvchi tizimga kira olmaydi</li>
                         <li>O'qituvchi rolida kurslarni tayinlash mumkin</li>
+                        <li>Barcha tab'lardagi maydonlarni to'ldiring</li>
                     </ul>
                 </div>
             </div>
@@ -341,25 +539,81 @@
 </div>
 
 <script>
-// Show/hide teacher courses section based on role selection
-document.addEventListener('DOMContentLoaded', function() {
-    var roleSelect = document.querySelector('[name="role"]');
-    var teacherSection = document.getElementById('ueTeacherCourses');
-    if (roleSelect && teacherSection) {
-        roleSelect.addEventListener('change', function() {
-            teacherSection.style.display = this.value === 'teacher' ? '' : 'none';
+document.addEventListener('DOMContentLoaded',function(){
+    // Tab navigation
+    var tabs=document.querySelectorAll('.ue-tab');
+    var sections=document.querySelectorAll('.ue-section');
+    tabs.forEach(function(tab){
+        tab.addEventListener('click',function(){
+            var t=this.getAttribute('data-tab');
+            tabs.forEach(function(x){x.classList.remove('active')});
+            sections.forEach(function(x){x.classList.remove('active')});
+            this.classList.add('active');
+            var el=document.getElementById('tab-'+t);
+            if(el) el.classList.add('active');
+        });
+    });
+
+    // Role -> teacher courses
+    var roleSelect=document.querySelector('[name="role"]');
+    var teacherSection=document.getElementById('ueTeacherCourses');
+    if(roleSelect&&teacherSection){
+        roleSelect.addEventListener('change',function(){
+            teacherSection.style.display=this.value==='teacher'?'':'none';
         });
     }
 
-    document.querySelectorAll('.ue-course-item').forEach(function(item) {
-        item.addEventListener('click', function(e) {
-            var cb = this.querySelector('input[type="checkbox"]');
-            if (e.target !== cb) {
-                cb.checked = !cb.checked;
-            }
-            this.classList.toggle('selected', cb.checked);
+    // Course items
+    document.querySelectorAll('.ue-course-item').forEach(function(item){
+        item.addEventListener('click',function(e){
+            var cb=this.querySelector('input[type="checkbox"]');
+            if(e.target!==cb){cb.checked=!cb.checked}
+            this.classList.toggle('selected',cb.checked);
         });
     });
+
+    // Deceased toggles
+    function applyDeceased(type){
+        var cb=document.getElementById('id_'+type+'_deceased');
+        var wrapper=document.getElementById(type+'-fields-wrapper');
+        if(!cb||!wrapper) return;
+        if(cb.checked){
+            wrapper.classList.add('ue-disabled');
+            wrapper.querySelectorAll('input,select,textarea').forEach(function(inp){inp.disabled=true});
+        }else{
+            wrapper.classList.remove('ue-disabled');
+            wrapper.querySelectorAll('input,select,textarea').forEach(function(inp){inp.disabled=false});
+        }
+    }
+
+    var fCb=document.getElementById('id_father_deceased');
+    var mCb=document.getElementById('id_mother_deceased');
+    if(fCb){fCb.addEventListener('change',function(){applyDeceased('father')});applyDeceased('father')}
+    if(mCb){mCb.addEventListener('change',function(){applyDeceased('mother')});applyDeceased('mother')}
+
+    // Re-enable disabled before submit
+    var form=document.querySelector('form');
+    if(form){
+        form.addEventListener('submit',function(){
+            form.querySelectorAll('input:disabled,select:disabled,textarea:disabled').forEach(function(el){el.disabled=false});
+        });
+    }
+
+    // Input masks
+    var jshshir=document.getElementById('id_jshshir');
+    if(jshshir) jshshir.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'').slice(0,14)});
+
+    var pSeries=document.getElementById('id_passport_series');
+    if(pSeries) pSeries.addEventListener('input',function(){this.value=this.value.replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,2)});
+
+    var pNum=document.getElementById('id_passport_number');
+    if(pNum) pNum.addEventListener('input',function(){this.value=this.value.replace(/[^0-9]/g,'').slice(0,7)});
 });
+
+function toggleDeceased(event,container,type){
+    if(event.target.tagName==='INPUT') return;
+    var cb=container.querySelector('input[type="checkbox"]');
+    if(cb){cb.checked=!cb.checked;cb.dispatchEvent(new Event('change'))}
+}
 </script>
 {% endblock %}
