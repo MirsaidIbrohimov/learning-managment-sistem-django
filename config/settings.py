@@ -405,8 +405,8 @@ LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
 LOGIN_CAPTCHA_DURATION = 20  # Captcha davomiyligi (daqiqa)
 
 # Google reCAPTCHA v2
-RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI')  # test key
-RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe')  # test key
+RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LfldNUsAAAAAOBPdmbWs-LYGFOM_lywuydG8_0I')
+RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LfldNUsAAAAAEIlfhLV1Rp4f9G-OtUv1wYVnX_a')
 
 # ============ REST FRAMEWORK ============
 

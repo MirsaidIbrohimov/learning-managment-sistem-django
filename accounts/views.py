@@ -643,15 +643,15 @@ def login_view(request):
             messages.error(request, "Username yoki parol noto'g'ri ❌")
             return _login_render(request, form, login_mode, captcha_needed)
 
-        # 🔒 Brute-force himoya — reCAPTCHA tekshirish (bloklash o'rniga)
+        # 🔒 Brute-force himoya — reCAPTCHA v3 tekshirish (bloklash o'rniga)
         captcha_needed = LoginAttempt.is_captcha_required(ip_address, max_attempts, captcha_duration)
         if captcha_needed:
             recaptcha_response = request.POST.get('g-recaptcha-response', '')
             if not recaptcha_response:
-                messages.error(request, "Iltimos, reCAPTCHA ni tasdiqlang! 🤖")
+                messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Sahifani yangilang. 🤖")
                 return _login_render(request, form, login_mode, True)
 
-            # Google API orqali tekshirish
+            # Google API orqali tekshirish (v3)
             import requests as http_requests
             try:
                 verify_url = 'https://www.google.com/recaptcha/api/siteverify'
@@ -661,12 +661,12 @@ def login_view(request):
                     'remoteip': ip_address,
                 }, timeout=5)
                 verify_result = verify_response.json()
-                if not verify_result.get('success'):
-                    messages.error(request, "reCAPTCHA tekshiruvi muvaffaqiyatsiz! Qayta urinib ko'ring. ❌")
+                recaptcha_score = verify_result.get('score', 0)
+                if not verify_result.get('success') or recaptcha_score < 0.5:
+                    messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Qayta urinib ko'ring. ❌")
                     return _login_render(request, form, login_mode, True)
             except Exception:
-                messages.error(request, "reCAPTCHA tekshirishda xatolik! Qayta urinib ko'ring. ❌")
-                return _login_render(request, form, login_mode, True)
+                pass  # reCAPTCHA tekshirishda xatolik bo'lsa — o'tkazib yuboramiz
 
             # reCAPTCHA to'g'ri — admin'ga birinchi marta xabar berish
             if not request.session.get('captcha_notified'):

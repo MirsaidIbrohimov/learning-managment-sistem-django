@@ -10,7 +10,7 @@
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-{% if captcha_required %}<script src="https://www.google.com/recaptcha/api.js" async defer></script>{% endif %}
+{% if captcha_required %}<script src="https://www.google.com/recaptcha/api.js?render={{ recaptcha_site_key }}"></script>{% endif %}
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -278,18 +278,17 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
 /* honeypot */
 .hp{position:absolute;left:-9999px;opacity:0;height:0;width:0;overflow:hidden}
 
-/* ═══ CAPTCHA ═══ */
-.captcha-box{background:linear-gradient(135deg,rgba(239,68,68,.08),rgba(245,158,11,.06));
-  border:1.5px solid rgba(239,68,68,.2);border-radius:16px;padding:1rem 1.15rem;margin-bottom:1.25rem;
+/* ═══ CAPTCHA v3 ═══ */
+.captcha-box{background:linear-gradient(135deg,rgba(0,255,136,.06),rgba(6,182,212,.04));
+  border:1.5px solid rgba(0,255,136,.15);border-radius:16px;padding:.85rem 1.1rem;margin-bottom:1.25rem;
   animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
-.captcha-header{display:flex;align-items:center;gap:8px;margin-bottom:.75rem}
-.captcha-shield{width:32px;height:32px;border-radius:9px;background:rgba(239,68,68,.15);
-  display:flex;align-items:center;justify-content:center;color:#ef4444;font-size:.95rem}
-.captcha-title{font-size:.78rem;font-weight:700;color:#ef4444;text-transform:uppercase;letter-spacing:.5px;
+.captcha-header{display:flex;align-items:center;gap:8px}
+.captcha-shield{width:30px;height:30px;border-radius:9px;background:rgba(0,255,136,.12);
+  display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.9rem}
+.captcha-title{font-size:.76rem;font-weight:700;color:var(--green);
   font-family:'JetBrains Mono',monospace}
-.captcha-subtitle{font-size:.7rem;color:var(--text3);font-weight:500;display:block;text-transform:none;letter-spacing:0;margin-top:1px}
-.captcha-box .g-recaptcha{display:flex;justify-content:center}
-.captcha-box .g-recaptcha>div{transform:scale(.94);transform-origin:center}
+.captcha-subtitle{font-size:.68rem;color:var(--text3);font-weight:500;display:block;margin-top:1px}
+.grecaptcha-badge{visibility:hidden!important}
 </style>
 </head>
 <body>
@@ -357,16 +356,15 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
         <div class="typing-text"><span id="typingText"></span><span class="cursor">|</span></div>
       </div>
 
-      <!-- Global reCAPTCHA (barcha formalar uchun 1 ta) -->
+      <!-- reCAPTCHA v3 himoya ko'rsatkichi -->
       {% if captcha_required %}
       <div class="captcha-box" id="globalCaptcha">
         <div class="captcha-header">
-          <div class="captcha-shield"><i class="bi bi-shield-exclamation"></i></div>
-          <div class="captcha-title">🤖 Robot emasligingizni tasdiqlang
-            <span class="captcha-subtitle">Ko'p noto'g'ri urinish aniqlandi</span>
+          <div class="captcha-shield"><i class="bi bi-shield-check"></i></div>
+          <div class="captcha-title"><i class="bi bi-check-circle-fill" style="color:var(--green);margin-right:4px"></i> Himoya faol
+            <span class="captcha-subtitle">Google reCAPTCHA orqali avtomatik tekshirilmoqda</span>
           </div>
         </div>
-        <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
       </div>
       {% endif %}
 
@@ -569,18 +567,22 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
   var tgCode=document.querySelector('.tg-code');
   if(tgCode){tgCode.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6)});}
 
-  // ═══ LOADING STATE + reCAPTCHA INJECT ═══
+  // ═══ LOADING STATE + reCAPTCHA v3 ═══
+  var RECAPTCHA_KEY='{{ recaptcha_site_key }}';
   document.querySelectorAll('.login-form').forEach(function(form){
-    form.addEventListener('submit',function(){
+    form.addEventListener('submit',function(e){
       var btn=this.querySelector('.btn-submit');if(btn)btn.classList.add('loading');
-      // reCAPTCHA javobini faol formaga ko'chirish
-      var recapResponse=document.getElementById('g-recaptcha-response');
-      if(recapResponse&&recapResponse.value){
-        var existing=this.querySelector('[name="g-recaptcha-response"]');
-        if(!existing){
-          var h=document.createElement('input');h.type='hidden';h.name='g-recaptcha-response';h.value=recapResponse.value;
-          this.appendChild(h);
-        }else{existing.value=recapResponse.value;}
+      // reCAPTCHA v3 — token olish va formaga qo'shish
+      if(RECAPTCHA_KEY && typeof grecaptcha!=='undefined' && !this.querySelector('[name="g-recaptcha-response"]')){
+        e.preventDefault();
+        var f=this;
+        grecaptcha.ready(function(){
+          grecaptcha.execute(RECAPTCHA_KEY,{action:'login'}).then(function(token){
+            var h=document.createElement('input');h.type='hidden';h.name='g-recaptcha-response';h.value=token;
+            f.appendChild(h);
+            f.submit();
+          });
+        });
       }
     });
   });
