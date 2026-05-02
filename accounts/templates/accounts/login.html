@@ -357,6 +357,19 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
         <div class="typing-text"><span id="typingText"></span><span class="cursor">|</span></div>
       </div>
 
+      <!-- Global reCAPTCHA (barcha formalar uchun 1 ta) -->
+      {% if captcha_required %}
+      <div class="captcha-box" id="globalCaptcha">
+        <div class="captcha-header">
+          <div class="captcha-shield"><i class="bi bi-shield-exclamation"></i></div>
+          <div class="captcha-title">🤖 Robot emasligingizni tasdiqlang
+            <span class="captcha-subtitle">Ko'p noto'g'ri urinish aniqlandi</span>
+          </div>
+        </div>
+        <div class="g-recaptcha" id="recaptchaWidget" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
+      </div>
+      {% endif %}
+
       <!-- Tabs -->
       <div class="tabs">
         <button type="button" class="tab {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}" data-target="panelUsername">
@@ -391,17 +404,6 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
               <button type="button" class="pw-eye" onclick="togglePw('{{ form.password.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
             </div>
           </div>
-          {% if captcha_required %}
-          <div class="captcha-box">
-            <div class="captcha-header">
-              <div class="captcha-shield"><i class="bi bi-shield-exclamation"></i></div>
-              <div class="captcha-title">🤖 Robot emasligingizni tasdiqlang
-                <span class="captcha-subtitle">Ko'p noto'g'ri urinish aniqlandi</span>
-              </div>
-            </div>
-            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
-          </div>
-          {% endif %}
           <button type="submit" class="btn-submit btn-primary"><i class="bi bi-box-arrow-in-right btn-ico"></i><span class="btn-text">Kirish</span></button>
         </form>
       </div>
@@ -430,17 +432,6 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
               <button type="button" class="pw-eye" onclick="togglePw('phonePw',this)"><i class="bi bi-eye"></i></button>
             </div>
           </div>
-          {% if captcha_required %}
-          <div class="captcha-box">
-            <div class="captcha-header">
-              <div class="captcha-shield"><i class="bi bi-shield-exclamation"></i></div>
-              <div class="captcha-title">🤖 Robot emasligingizni tasdiqlang
-                <span class="captcha-subtitle">Ko'p noto'g'ri urinish aniqlandi</span>
-              </div>
-            </div>
-            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
-          </div>
-          {% endif %}
           <button type="submit" class="btn-submit btn-primary"><i class="bi bi-box-arrow-in-right btn-ico"></i><span class="btn-text">Kirish</span></button>
         </form>
       </div>
@@ -461,17 +452,6 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
           <div class="field" style="margin-bottom:1.25rem">
             <input type="text" name="telegram_code" class="tg-code" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric" pattern="[0-9]{6}">
           </div>
-          {% if captcha_required %}
-          <div class="captcha-box">
-            <div class="captcha-header">
-              <div class="captcha-shield"><i class="bi bi-shield-exclamation"></i></div>
-              <div class="captcha-title">🤖 Robot emasligingizni tasdiqlang
-                <span class="captcha-subtitle">Ko'p noto'g'ri urinish aniqlandi</span>
-              </div>
-            </div>
-            <div class="g-recaptcha" data-sitekey="{{ recaptcha_site_key }}" data-theme="dark"></div>
-          </div>
-          {% endif %}
           <button type="submit" class="btn-submit btn-telegram"><i class="bi bi-telegram btn-ico"></i><span class="btn-text">Telegram orqali kirish</span></button>
         </form>
       </div>
@@ -589,9 +569,20 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
   var tgCode=document.querySelector('.tg-code');
   if(tgCode){tgCode.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6)});}
 
-  // ═══ LOADING STATE ═══
+  // ═══ LOADING STATE + reCAPTCHA INJECT ═══
   document.querySelectorAll('.login-form').forEach(function(form){
-    form.addEventListener('submit',function(){var btn=this.querySelector('.btn-submit');if(btn)btn.classList.add('loading')});
+    form.addEventListener('submit',function(){
+      var btn=this.querySelector('.btn-submit');if(btn)btn.classList.add('loading');
+      // reCAPTCHA javobini faol formaga ko'chirish
+      var recapResponse=document.getElementById('g-recaptcha-response');
+      if(recapResponse&&recapResponse.value){
+        var existing=this.querySelector('[name="g-recaptcha-response"]');
+        if(!existing){
+          var h=document.createElement('input');h.type='hidden';h.name='g-recaptcha-response';h.value=recapResponse.value;
+          this.appendChild(h);
+        }else{existing.value=recapResponse.value;}
+      }
+    });
   });
 
   // ═══ TOAST NOTIFICATIONS ═══
