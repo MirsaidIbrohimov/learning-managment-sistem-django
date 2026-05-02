@@ -1609,12 +1609,13 @@ class CourseApplication(models.Model):
 
 
 class LoginAttempt(models.Model):
-    """Brute-force himoya uchun login urinishlarini kuzatish"""
+    """Brute-force himoya uchun login urinishlarini kuzatish (token-based)"""
     ip_address = models.GenericIPAddressField(verbose_name="IP manzil", db_index=True)
     username = models.CharField(max_length=150, blank=True, verbose_name="Username")
     attempted_at = models.DateTimeField(auto_now_add=True, verbose_name="Urinish vaqti")
     was_successful = models.BooleanField(default=False, verbose_name="Muvaffaqiyatli")
     user_agent = models.TextField(blank=True, verbose_name="User Agent")
+    login_token = models.CharField(max_length=64, blank=True, db_index=True, verbose_name="Login token")
     
     class Meta:
         ordering = ['-attempted_at']
@@ -1626,33 +1627,26 @@ class LoginAttempt(models.Model):
         return f"{status} {self.ip_address} - {self.username} ({self.attempted_at})"
     
     @staticmethod
-    def is_ip_blocked(ip_address, max_attempts=5, block_duration_minutes=15):
-        """IP bloklangan yoki yo'qligini tekshirish"""
+    def is_token_blocked(login_token, max_attempts=5, block_duration_minutes=15):
+        """Token bloklangan yoki yo'qligini tekshirish"""
+        if not login_token:
+            return False
         cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
         recent_failures = LoginAttempt.objects.filter(
-            ip_address=ip_address,
-            was_successful=False,
-            attempted_at__gte=cutoff
-        ).count()
-        return recent_failures >= max_attempts
-    
-    @staticmethod
-    def is_captcha_required(ip_address, max_attempts=5, captcha_duration_minutes=20):
-        """Captcha kerak yoki yo'qligini tekshirish"""
-        cutoff = timezone.now() - timedelta(minutes=captcha_duration_minutes)
-        recent_failures = LoginAttempt.objects.filter(
-            ip_address=ip_address,
+            login_token=login_token,
             was_successful=False,
             attempted_at__gte=cutoff
         ).count()
         return recent_failures >= max_attempts
 
     @staticmethod
-    def get_remaining_lockout_time(ip_address, max_attempts=5, block_duration_minutes=15):
-        """Qolgan bloklash vaqtini qaytarish (sekundlarda)"""
+    def get_token_remaining_time(login_token, max_attempts=5, block_duration_minutes=15):
+        """Token uchun qolgan bloklash vaqtini qaytarish (sekundlarda)"""
+        if not login_token:
+            return 0
         cutoff = timezone.now() - timedelta(minutes=block_duration_minutes)
         recent_failures = LoginAttempt.objects.filter(
-            ip_address=ip_address,
+            login_token=login_token,
             was_successful=False,
             attempted_at__gte=cutoff
         ).order_by('-attempted_at')
@@ -1665,9 +1659,16 @@ class LoginAttempt(models.Model):
         return 0
     
     @staticmethod
-    def clear_attempts(ip_address):
-        """Muvaffaqiyatli logindan keyin urinishlarni tozalash"""
-        LoginAttempt.objects.filter(ip_address=ip_address, was_successful=False).delete()
+    def clear_token_attempts(login_token):
+        """Muvaffaqiyatli logindan keyin token urinishlarni tozalash"""
+        if login_token:
+            LoginAttempt.objects.filter(login_token=login_token, was_successful=False).delete()
+
+    @staticmethod
+    def generate_token():
+        """Yangi login token yaratish"""
+        import secrets
+        return secrets.token_hex(32)
 
 
 class DailyLessonAccess(models.Model):

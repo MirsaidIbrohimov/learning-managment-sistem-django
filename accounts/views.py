@@ -467,14 +467,17 @@ def register_view(request):
 
 
 
-def _login_render(request, form, login_mode, captcha_required=False):
+def _login_render(request, form, login_mode):
     """Login sahifasini render qilish"""
-    from django.conf import settings as django_settings
+    # Login token — har bir sahifa yuklanganda yangilanadi
+    login_token = request.session.get('login_token')
+    if not login_token:
+        login_token = LoginAttempt.generate_token()
+        request.session['login_token'] = login_token
     return render(request, 'accounts/login.html', {
         'form': form,
         'login_mode': login_mode,
-        'captcha_required': captcha_required,
-        'recaptcha_site_key': getattr(django_settings, 'RECAPTCHA_SITE_KEY', ''),
+        'login_token': login_token,
     })
 
 
@@ -594,25 +597,27 @@ def _register_device_and_session(request, user):
     return True
 
 
-def _record_failed_login(ip_address, username='', user_agent=''):
+def _record_failed_login(ip_address, username='', user_agent='', login_token=''):
     """Muvaffaqiyatsiz login urinishini yozish"""
     LoginAttempt.objects.create(
         ip_address=ip_address,
         username=username[:150],
         was_successful=False,
         user_agent=user_agent[:500],
+        login_token=login_token,
     )
 
 
-def _record_successful_login(ip_address, username='', user_agent=''):
-    """Muvaffaqiyatli loginni yozish va eski urinishlarni tozalash"""
+def _record_successful_login(ip_address, username='', user_agent='', login_token=''):
+    """Muvaffaqiyatli loginni yozish va token urinishlarni tozalash"""
     LoginAttempt.objects.create(
         ip_address=ip_address,
         username=username[:150],
         was_successful=True,
         user_agent=user_agent[:500],
+        login_token=login_token,
     )
-    LoginAttempt.clear_attempts(ip_address)
+    LoginAttempt.clear_token_attempts(login_token)
 
 
 def login_view(request):
@@ -625,87 +630,74 @@ def login_view(request):
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     max_attempts = getattr(django_settings, 'LOGIN_MAX_ATTEMPTS', 5)
     lockout_minutes = getattr(django_settings, 'LOGIN_LOCKOUT_DURATION', 15)
-    captcha_duration = getattr(django_settings, 'LOGIN_CAPTCHA_DURATION', 20)
 
     login_mode = request.POST.get('login_mode', 'username') if request.method == 'POST' else 'username'
 
-    # GET so'rovda ham captcha kerakligini tekshirish
-    captcha_needed = LoginAttempt.is_captcha_required(ip_address, max_attempts, captcha_duration)
+    # Login token — sessiyadan olish yoki yangi yaratish
+    login_token = request.session.get('login_token', '')
+    if not login_token:
+        login_token = LoginAttempt.generate_token()
+        request.session['login_token'] = login_token
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
+        # POST dan tokenni olish (hidden field)
+        login_token = request.POST.get('login_token', login_token)
+        request.session['login_token'] = login_token
 
-        # 🤖 Honeypot — botlar uchun tuzoq (yashirin maydon to'ldirilsa, bu bot)
+        # 🤖 Honeypot — botlar uchun tuzoq
         honeypot = request.POST.get('website_url', '')
         if honeypot:
             import time
             time.sleep(2)
             messages.error(request, "Username yoki parol noto'g'ri ❌")
-            return _login_render(request, form, login_mode, captcha_needed)
+            return _login_render(request, form, login_mode)
 
-        # 🔒 Brute-force himoya — reCAPTCHA v2 tekshirish (bloklash o'rniga)
-        captcha_needed = LoginAttempt.is_captcha_required(ip_address, max_attempts, captcha_duration)
-        if captcha_needed:
-            recaptcha_response = request.POST.get('g-recaptcha-response', '')
-            recaptcha_passed = False
-
-            if recaptcha_response:
-                import requests as http_requests
-                try:
-                    verify_response = http_requests.post(
-                        'https://www.google.com/recaptcha/api/siteverify',
-                        data={
-                            'secret': getattr(django_settings, 'RECAPTCHA_SECRET_KEY', ''),
-                            'response': recaptcha_response,
-                            'remoteip': ip_address,
-                        }, timeout=5
-                    )
-                    recaptcha_passed = verify_response.json().get('success', False)
-                except Exception:
-                    recaptcha_passed = True  # API xatolik — o'tkazib yuboramiz
-            
-            if not recaptcha_passed:
-                messages.error(request, "Xavfsizlik tekshiruvi muvaffaqiyatsiz! Qayta urinib ko'ring. ❌")
-                return _login_render(request, form, login_mode, True)
-
-            # Admin'ga birinchi marta xabar berish
-            if not request.session.get('captcha_notified'):
+        # 🔒 Token bloklangan bo'lsa — kirishga ruxsat bermaslik
+        if LoginAttempt.is_token_blocked(login_token, max_attempts, lockout_minutes):
+            remaining = LoginAttempt.get_token_remaining_time(login_token, max_attempts, lockout_minutes)
+            remaining_min = remaining // 60 + 1
+            messages.error(request, f"Juda ko'p noto'g'ri urinish! {remaining_min} daqiqadan keyin qayta urinib ko'ring yoki sahifani yangi tab'da oching. 🔒")
+            # Admin'ga xabar berish
+            if not request.session.get('brute_notified'):
                 try:
                     notify_admins(
                         f"🚨 <b>Brute-force hujumi aniqlandi!</b>\n\n"
                         f"🌐 IP: {ip_address}\n"
+                        f"🔑 Token: {login_token[:16]}...\n"
                         f"🕐 {timezone.now().strftime('%d.%m.%Y %H:%M')}\n"
                         f"📱 UA: {user_agent[:100]}\n"
-                        f"⚠️ {max_attempts} marta noto'g'ri urinish — reCAPTCHA yoqildi ({captcha_duration} daqiqa)"
+                        f"⚠️ {max_attempts} marta noto'g'ri urinish — token bloklandi ({lockout_minutes} daqiqa)"
                     )
                 except Exception:
                     pass
-                request.session['captcha_notified'] = True
+                request.session['brute_notified'] = True
+            return _login_render(request, form, login_mode)
 
         # Telegram kod orqali login
         if login_mode == 'telegram':
             telegram_code = request.POST.get('telegram_code', '').strip()
             if not telegram_code:
                 messages.error(request, "Iltimos, kodni kiriting! ⚠️")
-                return _login_render(request, form, 'telegram', captcha_needed)
+                return _login_render(request, form, 'telegram')
 
             from telegram_bot.models import TelegramLoginCode
             try:
                 login_code = TelegramLoginCode.objects.get(code=telegram_code, is_used=False)
             except TelegramLoginCode.DoesNotExist:
-                _record_failed_login(ip_address, f'telegram_code:{telegram_code[:6]}', user_agent)
+                _record_failed_login(ip_address, f'telegram_code:{telegram_code[:6]}', user_agent, login_token)
                 messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
-                return _login_render(request, form, 'telegram', captcha_needed)
+                return _login_render(request, form, 'telegram')
 
             if login_code.is_expired:
                 messages.error(request, "Kod muddati tugagan! Botdan yangi kod oling. ⏰")
-                return _login_render(request, form, 'telegram', captcha_needed)
+                return _login_render(request, form, 'telegram')
 
             try:
                 user = CustomUser.objects.get(telegram_id=login_code.telegram_id)
             except CustomUser.DoesNotExist:
                 messages.error(request, "Foydalanuvchi topilmadi! ❌")
-                return _login_render(request, form, 'telegram', captcha_needed)
+                return _login_render(request, form, 'telegram')
 
             login_code.is_used = True
             login_code.save()
@@ -716,7 +708,7 @@ def login_view(request):
 
             if not phone or not password:
                 messages.error(request, "Iltimos, barcha maydonlarni to'ldiring ⚠️")
-                return _login_render(request, form, 'phone', captcha_needed)
+                return _login_render(request, form, 'phone')
 
             try:
                 phone_user = CustomUser.objects.get(phone=phone)
@@ -725,9 +717,9 @@ def login_view(request):
                 user = None
 
             if user is None:
-                _record_failed_login(ip_address, f'phone:{phone[:20]}', user_agent)
+                _record_failed_login(ip_address, f'phone:{phone[:20]}', user_agent, login_token)
                 messages.error(request, "Telefon raqam yoki parol noto'g'ri ❌")
-                return _login_render(request, form, 'phone', captcha_needed)
+                return _login_render(request, form, 'phone')
 
         elif form.is_valid():
             username = form.cleaned_data.get('username')
@@ -736,20 +728,23 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is None:
-                _record_failed_login(ip_address, username, user_agent)
+                _record_failed_login(ip_address, username, user_agent, login_token)
                 messages.error(request, "Username yoki parol noto'g'ri ❌")
-                return _login_render(request, form, login_mode, captcha_needed)
+                return _login_render(request, form, login_mode)
         else:
             messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
-            return _login_render(request, form, login_mode, captcha_needed)
+            return _login_render(request, form, login_mode)
 
         # ⛔ Bloklangan user
         if hasattr(user, "is_blocked") and user.is_blocked:
             messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
-            return _login_render(request, form, login_mode, captcha_needed)
+            return _login_render(request, form, login_mode)
 
         # ✅ Login successful — urinishlarni tozalash
-        _record_successful_login(ip_address, user.username, user_agent)
+        _record_successful_login(ip_address, user.username, user_agent, login_token)
+        # Token va brute_notified ni tozalash
+        request.session.pop('login_token', None)
+        request.session.pop('brute_notified', None)
         login(request, user)
 
         user.last_activity = timezone.now()
@@ -835,7 +830,7 @@ def login_view(request):
     else:
         form = LoginForm()
 
-    return _login_render(request, form, 'username', captcha_needed)
+    return _login_render(request, form, 'username')
 
 
 @login_required

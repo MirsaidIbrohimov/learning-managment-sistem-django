@@ -378,12 +378,12 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Content Security Policy (CSP) - inline scriptlarni bloklash
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://www.youtube.com", "https://player.vimeo.com", "https://s.ytimg.com", "blob:", "https://www.google.com", "https://www.gstatic.com")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://www.youtube.com", "https://player.vimeo.com", "https://s.ytimg.com", "blob:")
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com")
 CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com")
 CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com", "https://www.google.com")
-CSP_FRAME_SRC = ("'self'", "https://www.google.com", "https://www.youtube.com", "https://player.vimeo.com")
+CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
+CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
 
 # O'yin xavfsizligi
 GAME_HMAC_SECRET = SECRET_KEY[:16]
@@ -403,11 +403,6 @@ SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
 # Brute-force himoya
 LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
 LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
-LOGIN_CAPTCHA_DURATION = 20  # Captcha davomiyligi (daqiqa)
-
-# Google reCAPTCHA v2 (checkbox)
-RECAPTCHA_SITE_KEY = os.getenv('RECAPTCHA_SITE_KEY', '6LdZfNUsAAAAAAtIHPU1Yr3FbejBiCQGDShMYHrA')
-RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY', '6LdZfNUsAAAAACfhIsKfP1WUy7Zm5pcgUSPSCIbM')
 
 # ============ REST FRAMEWORK ============
 
