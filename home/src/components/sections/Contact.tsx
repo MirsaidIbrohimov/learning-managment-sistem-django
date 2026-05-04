@@ -97,14 +97,20 @@ const Contact = () => {
             ))}
 
             <div className="flex gap-3 pt-2">
-              {[MessageCircle, Send, Instagram].map((Icon, i) => (
+              {[
+                { Icon: MessageCircle, href: "https://t.me/husanbek_coder", label: "Telegram" },
+                { Icon: Send, href: "https://t.me/husanbek_coder", label: "Telegram channel" },
+                { Icon: Instagram, href: "https://instagram.com/it_shaxarcha_zomin", label: "Instagram" },
+              ].map((s) => (
                 <a
-                  key={i}
-                  href="#"
+                  key={s.label}
+                  href={s.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-12 h-12 rounded-xl glass flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/60 hover:shadow-glow transition-all hover:-translate-y-1"
-                  aria-label="Social link"
+                  aria-label={s.label}
                 >
-                  <Icon className="w-5 h-5" />
+                  <s.Icon className="w-5 h-5" />
                 </a>
               ))}
             </div>

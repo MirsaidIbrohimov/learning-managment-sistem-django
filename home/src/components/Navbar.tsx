@@ -32,7 +32,7 @@ const Navbar = () => {
     <header
       className={cn(
         "fixed top-0 inset-x-0 z-50 transition-all duration-500",
-        scrolled ? "py-3 bg-background/80 backdrop-blur-xl border-b border-border" : "py-5 bg-transparent"
+        scrolled || open ? "py-3 bg-background/90 backdrop-blur-xl border-b border-border" : "py-5 bg-transparent"
       )}
     >
       <nav className="container flex items-center justify-between">
@@ -85,7 +85,7 @@ const Navbar = () => {
       {/* Mobile menu */}
       {open && (
         <div className="lg:hidden container mt-4 pb-4 animate-fade-in">
-          <ul className="flex flex-col gap-1 glass rounded-2xl p-4">
+          <ul className="flex flex-col gap-1 rounded-2xl p-4 bg-background/95 backdrop-blur-xl border border-border">
             {links.map((l) => (
               <li key={l.href}>
                 <a

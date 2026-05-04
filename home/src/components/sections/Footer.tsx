@@ -21,9 +21,14 @@ const Footer = () => {
               o'quv markaz — kelajak texnologiyalarini bugundan o'rganing.
             </p>
             <div className="flex gap-3">
-              {[MessageCircle, Send, Instagram, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
-                  <Icon className="w-4 h-4" />
+              {[
+                { Icon: MessageCircle, href: "https://t.me/husanbek_coder", label: "Telegram" },
+                { Icon: Send, href: "https://t.me/husanbek_coder", label: "Telegram channel" },
+                { Icon: Instagram, href: "https://instagram.com/it_shaxarcha_zomin", label: "Instagram" },
+                { Icon: Youtube, href: "https://youtube.com/@it_creative", label: "YouTube" },
+              ].map((s) => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} className="w-9 h-9 rounded-lg bg-secondary border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary transition-colors">
+                  <s.Icon className="w-4 h-4" />
                 </a>
               ))}
             </div>
