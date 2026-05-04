@@ -193,3 +193,50 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.get_action_type_display()}"
+
+
+# =========================
+# COIN TRANSFERS
+# =========================
+
+class CoinTransfer(models.Model):
+    """Foydalanuvchilar o'rtasida coin o'tkazmalar"""
+    
+    STATUS_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('completed', 'Bajarildi'),
+        ('cancelled', 'Bekor qilingan'),
+    )
+    
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_transfers',
+        verbose_name="Yuboruvchi"
+    )
+    receiver = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='received_transfers',
+        verbose_name="Qabul qiluvchi"
+    )
+    amount = models.PositiveIntegerField(verbose_name="Miqdor")
+    fee = models.PositiveIntegerField(verbose_name="Xizmat haqqi (10%)")
+    total_deducted = models.PositiveIntegerField(verbose_name="Jami yechilgan")
+    verification_code = models.CharField(max_length=6, blank=True, verbose_name="Tasdiqlash kodi")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Coin o'tkazma"
+        verbose_name_plural = "Coin o'tkazmalar"
+        indexes = [
+            models.Index(fields=['sender', '-created_at']),
+            models.Index(fields=['receiver', '-created_at']),
+            models.Index(fields=['status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.sender} → {self.receiver} | {self.amount} coin"

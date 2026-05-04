@@ -114,14 +114,160 @@
     .ch-tx-amount { font-size:1rem; }
 }
 @media(max-width:400px) { .ch-stats{grid-template-columns:1fr} .ch-hero-title{font-size:1.2rem} }
+
+/* ===== Coin Transfer ===== */
+.ch-transfer-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff; border: none; border-radius: 14px; padding: 0.75rem 1.5rem;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex;
+    align-items: center; gap: 0.5rem; transition: all 0.3s;
+    box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+}
+.ch-transfer-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.4); }
+
+/* Transfer Modal */
+.ct-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.ct-overlay.show { display: flex; }
+.ct-modal {
+    background: var(--card, #fff); border-radius: 24px; width: 100%; max-width: 480px;
+    max-height: 90vh; overflow-y: auto; padding: 2rem; position: relative;
+    animation: chFadeUp 0.3s ease; box-shadow: 0 24px 48px rgba(0,0,0,0.2);
+}
+.ct-close {
+    position: absolute; top: 1rem; right: 1rem; width: 36px; height: 36px;
+    border-radius: 50%; border: none; background: var(--bg, #f1f1f1); color: var(--text, #333);
+    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.ct-close:hover { background: #ef4444; color: #fff; }
+.ct-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 0.25rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text, #333); }
+.ct-subtitle { font-size: 0.85rem; color: var(--text-muted, #888); margin: 0 0 1.5rem; }
+
+/* Steps */
+.ct-steps { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.ct-step {
+    flex: 1; height: 4px; border-radius: 4px; background: var(--border, #e5e7eb); transition: all 0.3s;
+}
+.ct-step.active { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.ct-step.done { background: #10b981; }
+
+/* Search */
+.ct-search-wrap { position: relative; margin-bottom: 1rem; }
+.ct-search-input {
+    width: 100%; height: 48px; padding: 0 1rem 0 2.75rem; border: 2px solid var(--border, #e5e7eb);
+    border-radius: 14px; background: var(--bg, #f9fafb); color: var(--text, #333); font-size: 0.9rem;
+    font-weight: 500; transition: all 0.2s; box-sizing: border-box;
+}
+.ct-search-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+.ct-search-icon { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); color: var(--text-muted, #999); }
+.ct-search-spinner {
+    position: absolute; right: 0.875rem; top: 50%; transform: translateY(-50%);
+    width: 20px; height: 20px; border: 2.5px solid var(--border, #e5e7eb); border-top-color: #f59e0b;
+    border-radius: 50%; animation: spin 0.6s linear infinite; display: none;
+}
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+.ct-search-input.searching { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.1); }
+
+/* User results */
+.ct-results { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+.ct-user-card {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+    border: 2px solid var(--border, #e5e7eb); border-radius: 14px; cursor: pointer;
+    transition: all 0.2s; background: var(--bg, #f9fafb);
+}
+.ct-user-card:hover { border-color: #f59e0b; background: rgba(245,158,11,0.05); transform: translateX(4px); }
+.ct-user-card.selected { border-color: #f59e0b; background: rgba(245,158,11,0.08); box-shadow: 0 0 0 3px rgba(245,158,11,0.12); }
+.ct-user-avatar {
+    width: 44px; height: 44px; border-radius: 12px; object-fit: cover; background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+}
+.ct-user-avatar img { width: 100%; height: 100%; border-radius: 12px; object-fit: cover; }
+.ct-user-info { flex: 1; }
+.ct-user-name { font-weight: 700; font-size: 0.9rem; color: var(--text, #333); }
+.ct-user-username { font-size: 0.78rem; color: var(--text-muted, #888); }
+
+/* Amount */
+.ct-amount-wrap { margin-bottom: 1rem; }
+.ct-amount-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted, #888); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem; }
+.ct-amount-input {
+    width: 100%; height: 52px; padding: 0 1rem; border: 2px solid var(--border, #e5e7eb);
+    border-radius: 14px; background: var(--bg, #f9fafb); color: var(--text, #333); font-size: 1.2rem;
+    font-weight: 800; text-align: center; transition: all 0.2s; box-sizing: border-box;
+}
+.ct-amount-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+.ct-amount-hint { font-size: 0.75rem; color: var(--text-muted, #888); margin-top: 0.35rem; text-align: center; }
+
+/* Fee info */
+.ct-fee-box {
+    background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); border-radius: 14px;
+    padding: 1rem; margin-bottom: 1.25rem;
+}
+.ct-fee-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; font-size: 0.85rem; color: var(--text, #333); }
+.ct-fee-row.total { font-weight: 800; font-size: 0.95rem; border-top: 1px dashed rgba(245,158,11,0.3); padding-top: 0.6rem; margin-top: 0.3rem; }
+
+/* Confirm */
+.ct-confirm-box {
+    background: var(--bg, #f9fafb); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.25rem;
+    border: 1px solid var(--border, #e5e7eb);
+}
+.ct-confirm-row { display: flex; justify-content: space-between; padding: 0.4rem 0; font-size: 0.88rem; }
+.ct-confirm-label { color: var(--text-muted, #888); }
+.ct-confirm-value { font-weight: 700; color: var(--text, #333); }
+
+.ct-code-input {
+    width: 100%; height: 56px; padding: 0 1rem; border: 2px solid var(--border, #e5e7eb);
+    border-radius: 14px; background: var(--bg, #f9fafb); color: var(--text, #333); font-size: 1.5rem;
+    font-weight: 800; text-align: center; letter-spacing: 0.5em; transition: all 0.2s; box-sizing: border-box;
+}
+.ct-code-input:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); }
+.ct-code-hint { font-size: 0.78rem; color: var(--text-muted, #888); margin-top: 0.5rem; text-align: center; }
+
+/* Buttons */
+.ct-btn {
+    width: 100%; height: 48px; border: none; border-radius: 14px; font-weight: 700; font-size: 0.9rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s;
+}
+.ct-btn-primary { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; box-shadow: 0 4px 14px rgba(245,158,11,0.3); }
+.ct-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(245,158,11,0.4); }
+.ct-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+.ct-btn-secondary { background: var(--bg, #f1f1f1); color: var(--text, #333); border: 2px solid var(--border, #e5e7eb); margin-bottom: 0.5rem; }
+.ct-btn-secondary:hover { background: var(--border, #e5e7eb); }
+
+/* Success */
+.ct-success { text-align: center; padding: 1rem 0; }
+.ct-success-icon { font-size: 3.5rem; color: #10b981; margin-bottom: 1rem; animation: chCountUp 0.5s ease; }
+.ct-success h3 { font-weight: 800; color: var(--text, #333); margin: 0 0 0.5rem; }
+.ct-success p { color: var(--text-muted, #888); font-size: 0.9rem; }
+.ct-success .ct-new-balance { font-size: 1.3rem; font-weight: 800; color: #f59e0b; margin-top: 0.75rem; }
+
+/* Error */
+.ct-error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #ef4444; font-size: 0.85rem; font-weight: 600; display: none; }
+.ct-error.show { display: flex; align-items: center; gap: 0.5rem; }
+
+@media (max-width: 480px) {
+    .ct-modal { padding: 1.5rem; border-radius: 20px; }
+    .ct-amount-input { font-size: 1rem; }
+    .ct-code-input { font-size: 1.2rem; letter-spacing: 0.3em; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="ch-container">
     <div class="ch-hero">
-        <h1 class="ch-hero-title"><i class="bi bi-clock-history"></i> Coin Tarixi</h1>
-        <p class="ch-hero-sub">Barcha coin tranzaksiyalaringiz tarixi va statistikasi</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;position:relative;z-index:1;">
+            <div>
+                <h1 class="ch-hero-title"><i class="bi bi-clock-history"></i> Coin Tarixi</h1>
+                <p class="ch-hero-sub">Barcha coin tranzaksiyalaringiz tarixi va statistikasi</p>
+            </div>
+            <button class="ch-transfer-btn" onclick="openTransferModal()">
+                <i class="bi bi-send-fill"></i> Coin O'tkazma
+            </button>
+        </div>
     </div>
 
     <div class="ch-stats">
@@ -183,6 +329,94 @@
     </div>
 
     <div id="txPagination"></div>
+
+    <!-- Coin Transfer Modal -->
+    <div class="ct-overlay" id="ctOverlay">
+        <div class="ct-modal">
+            <button class="ct-close" onclick="closeTransferModal()"><i class="bi bi-x-lg"></i></button>
+            
+            <div class="ct-title"><i class="bi bi-send-fill" style="color:#f59e0b;"></i> Coin O'tkazma</div>
+            <p class="ct-subtitle">Boshqa foydalanuvchiga coin yuboring</p>
+            
+            <div class="ct-steps">
+                <div class="ct-step active" id="ctStep1"></div>
+                <div class="ct-step" id="ctStep2"></div>
+                <div class="ct-step" id="ctStep3"></div>
+            </div>
+            
+            <div class="ct-error" id="ctError"><i class="bi bi-exclamation-circle-fill"></i> <span id="ctErrorText"></span></div>
+            
+            <!-- Step 1: Search User -->
+            <div id="ctPanel1">
+                <div class="ct-search-wrap">
+                    <i class="bi bi-search ct-search-icon"></i>
+                    <input type="text" class="ct-search-input" id="ctSearchInput" placeholder="Username, ism yoki telefon raqam..." autocomplete="off">
+                    <div class="ct-search-spinner" id="ctSpinner"></div>
+                </div>
+                <div class="ct-search-hint" style="font-size:0.72rem;color:var(--text-muted,#999);margin:-0.5rem 0 0.75rem 0.25rem;"><i class="bi bi-info-circle"></i> Masalan: <b>ali123</b>, <b>Ali</b> yoki <b>+998901234567</b></div>
+                <div class="ct-results" id="ctResults"></div>
+                
+                <div class="ct-amount-wrap" id="ctAmountWrap" style="display:none;">
+                    <div class="ct-amount-label">Coin miqdori</div>
+                    <input type="number" class="ct-amount-input" id="ctAmount" placeholder="100 — 10,000" min="100" max="10000">
+                    <div class="ct-amount-hint">Minimal: 100 coin · Maksimal: 10,000 coin · Xizmat haqqi: 10%</div>
+                </div>
+                
+                <div id="ctFeeBox" style="display:none;">
+                    <div class="ct-fee-box">
+                        <div class="ct-fee-row"><span>O'tkazma miqdori</span><span id="ctFeeAmount">0 coin</span></div>
+                        <div class="ct-fee-row"><span>Xizmat haqqi (10%)</span><span id="ctFeeFee">0 coin</span></div>
+                        <div class="ct-fee-row total"><span>Jami yechiladi</span><span id="ctFeeTotal">0 coin</span></div>
+                    </div>
+                </div>
+                
+                <button class="ct-btn ct-btn-primary" id="ctNextBtn" disabled onclick="initiateTransfer()">
+                    <i class="bi bi-arrow-right"></i> Davom etish
+                </button>
+            </div>
+            
+            <!-- Step 2: Confirm -->
+            <div id="ctPanel2" style="display:none;">
+                <div class="ct-confirm-box">
+                    <div class="ct-confirm-row"><span class="ct-confirm-label">Qabul qiluvchi</span><span class="ct-confirm-value" id="ctConfName"></span></div>
+                    <div class="ct-confirm-row"><span class="ct-confirm-label">Username</span><span class="ct-confirm-value" id="ctConfUser"></span></div>
+                    <div class="ct-confirm-row"><span class="ct-confirm-label">Miqdor</span><span class="ct-confirm-value" id="ctConfAmount" style="color:#f59e0b;"></span></div>
+                    <div class="ct-confirm-row"><span class="ct-confirm-label">Xizmat haqqi</span><span class="ct-confirm-value" id="ctConfFee"></span></div>
+                    <div class="ct-confirm-row total" style="font-weight:800;border-top:1px dashed var(--border);padding-top:0.6rem;margin-top:0.3rem;"><span class="ct-confirm-label">Jami yechiladi</span><span class="ct-confirm-value" id="ctConfTotal" style="color:#ef4444;"></span></div>
+                </div>
+                
+                <div id="ctCodeSection">
+                    <div class="ct-amount-label" id="ctCodeLabel">Tasdiqlash kodi</div>
+                    <input type="text" class="ct-code-input" id="ctCodeInput" maxlength="6" placeholder="••••••" autocomplete="off">
+                    <div class="ct-code-hint" id="ctCodeHint">Telegramingizga yuborilgan 6 xonali kodni kiriting</div>
+                </div>
+                
+                <div id="ctPasswordSection" style="display:none;">
+                    <div class="ct-amount-label">Parolingizni kiriting</div>
+                    <input type="password" class="ct-code-input" id="ctPasswordInput" placeholder="Parol" style="letter-spacing:0.15em;font-size:1rem;">
+                    <div class="ct-code-hint">Telegram ulanmagan. Tasdiqlash uchun parolingizni kiriting</div>
+                </div>
+                
+                <div style="margin-top:1.25rem;">
+                    <button class="ct-btn ct-btn-secondary" onclick="backToStep1()"><i class="bi bi-arrow-left"></i> Orqaga</button>
+                    <button class="ct-btn ct-btn-primary" id="ctConfirmBtn" onclick="confirmTransfer()"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Success -->
+            <div id="ctPanel3" style="display:none;">
+                <div class="ct-success">
+                    <div class="ct-success-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3>Muvaffaqiyatli!</h3>
+                    <p id="ctSuccessMsg"></p>
+                    <div class="ct-new-balance"><i class="bi bi-coin"></i> <span id="ctNewBalance"></span> coin</div>
+                </div>
+                <button class="ct-btn ct-btn-primary" onclick="closeTransferModal()" style="margin-top:1rem; background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 4px 14px rgba(16,185,129,0.3);">
+                    <i class="bi bi-check-lg"></i> Tayyor
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -319,6 +553,300 @@
 
     loadSummary();
     loadTx(1);
+})();
+</script>
+<script>
+(function(){
+    const API = '/api/v1/coin';
+    let selectedUser = null;
+    let currentTransfer = null;
+    let searchTimeout = null;
+    let isSearching = false;
+
+    window.openTransferModal = function() {
+        document.getElementById('ctOverlay').classList.add('show');
+        resetTransferModal();
+        setTimeout(function(){ document.getElementById('ctSearchInput').focus(); }, 200);
+    };
+
+    window.closeTransferModal = function() {
+        document.getElementById('ctOverlay').classList.remove('show');
+        resetTransferModal();
+        location.reload();
+    };
+
+    function resetTransferModal() {
+        selectedUser = null;
+        currentTransfer = null;
+        isSearching = false;
+        var si = document.getElementById('ctSearchInput');
+        si.value = '';
+        si.classList.remove('searching');
+        document.getElementById('ctResults').innerHTML = '';
+        document.getElementById('ctAmount').value = '';
+        document.getElementById('ctAmountWrap').style.display = 'none';
+        document.getElementById('ctFeeBox').style.display = 'none';
+        document.getElementById('ctNextBtn').disabled = true;
+        document.getElementById('ctPanel1').style.display = 'block';
+        document.getElementById('ctPanel2').style.display = 'none';
+        document.getElementById('ctPanel3').style.display = 'none';
+        document.getElementById('ctStep1').className = 'ct-step active';
+        document.getElementById('ctStep2').className = 'ct-step';
+        document.getElementById('ctStep3').className = 'ct-step';
+        document.getElementById('ctSpinner').style.display = 'none';
+        hideError();
+    }
+
+    function showError(msg) {
+        document.getElementById('ctErrorText').textContent = msg;
+        document.getElementById('ctError').classList.add('show');
+    }
+    function hideError() {
+        document.getElementById('ctError').classList.remove('show');
+    }
+
+    function showSkeletons() {
+        var html = '';
+        for (var i = 0; i < 3; i++) {
+            html += '<div class="ct-user-card" style="pointer-events:none;opacity:0.6;">'
+                + '<div class="ct-user-avatar" style="background:var(--border,#e5e7eb);animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '<div class="ct-user-info" style="flex:1;">'
+                + '<div style="height:12px;width:' + (60 + i*15) + '%;background:var(--border,#e5e7eb);border-radius:6px;margin-bottom:6px;animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '<div style="height:10px;width:40%;background:var(--border,#e5e7eb);border-radius:6px;animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '</div></div>';
+        }
+        document.getElementById('ctResults').innerHTML = html;
+    }
+
+    function renderUsers(data) {
+        if (Array.isArray(data) && data.length > 0) {
+            document.getElementById('ctResults').innerHTML = data.map(function(u, i) {
+                var initials = (u.full_name || u.username || '?').charAt(0).toUpperCase();
+                var roleLabel = u.role === 'teacher' ? "O'qituvchi" : u.role === 'admin' ? 'Admin' : "O'quvchi";
+                var roleBg = u.role === 'teacher' ? 'rgba(59,130,246,0.1)' : u.role === 'admin' ? 'rgba(139,92,246,0.1)' : 'rgba(16,185,129,0.1)';
+                var roleColor = u.role === 'teacher' ? '#3b82f6' : u.role === 'admin' ? '#8b5cf6' : '#10b981';
+                return '<div class="ct-user-card' + (selectedUser && selectedUser.username === u.username ? ' selected' : '') + '" '
+                    + 'onclick="selectUser(this,\'' + u.username + '\',\'' + (u.full_name || '').replace(/'/g, "\\'") + '\',\'' + (u.photo || '') + '\')" '
+                    + 'style="animation:chFadeUp 0.3s ease ' + (i * 60) + 'ms both">'
+                    + '<div class="ct-user-avatar">'
+                    + (u.photo ? '<img src="' + u.photo + '" alt="">' : initials)
+                    + '</div>'
+                    + '<div class="ct-user-info">'
+                    + '<div class="ct-user-name">' + (u.full_name || u.username) + '</div>'
+                    + '<div class="ct-user-username" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">'
+                    + '<span>@' + u.username + '</span>'
+                    + (u.phone ? '<span style="opacity:0.5;">·</span><span><i class="bi bi-telephone" style="font-size:0.65rem;"></i> ' + u.phone + '</span>' : '')
+                    + '<span style="background:' + roleBg + ';color:' + roleColor + ';font-size:0.6rem;font-weight:700;padding:1px 6px;border-radius:4px;">' + roleLabel + '</span>'
+                    + '</div>'
+                    + '</div>'
+                    + '<i class="bi bi-chevron-right" style="color:var(--text-muted);opacity:0.4;"></i>'
+                    + '</div>';
+            }).join('');
+        } else {
+            document.getElementById('ctResults').innerHTML = '<div style="text-align:center;padding:1.5rem 1rem;color:var(--text-muted);font-size:0.85rem;">'
+                + '<i class="bi bi-person-x" style="font-size:2rem;display:block;margin-bottom:0.5rem;opacity:0.3;"></i>'
+                + '<div style="font-weight:600;">Foydalanuvchi topilmadi</div>'
+                + '<div style="font-size:0.75rem;opacity:0.7;margin-top:0.25rem;">Username, ism yoki telefon raqam bilan qidiring</div>'
+                + '</div>';
+        }
+    }
+
+    // Search with debounce
+    document.getElementById('ctSearchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        hideError();
+        var val = this.value.trim();
+
+        if (val.length < 2) {
+            document.getElementById('ctResults').innerHTML = '';
+            document.getElementById('ctSpinner').style.display = 'none';
+            this.classList.remove('searching');
+            if (!selectedUser) {
+                document.getElementById('ctAmountWrap').style.display = 'none';
+                document.getElementById('ctFeeBox').style.display = 'none';
+                document.getElementById('ctNextBtn').disabled = true;
+            }
+            return;
+        }
+
+        // Show loading immediately
+        this.classList.add('searching');
+        document.getElementById('ctSpinner').style.display = 'block';
+        showSkeletons();
+        isSearching = true;
+
+        searchTimeout = setTimeout(async function() {
+            try {
+                var r = await fetch(API + '/transfer/search/?username=' + encodeURIComponent(val), {credentials: 'same-origin'});
+                var data = await r.json();
+                document.getElementById('ctSpinner').style.display = 'none';
+                document.getElementById('ctSearchInput').classList.remove('searching');
+                isSearching = false;
+                if (r.ok) {
+                    renderUsers(data);
+                } else {
+                    renderUsers([]);
+                }
+            } catch(e) {
+                document.getElementById('ctSpinner').style.display = 'none';
+                document.getElementById('ctSearchInput').classList.remove('searching');
+                isSearching = false;
+                renderUsers([]);
+            }
+        }, 350);
+    });
+
+    window.selectUser = function(el, username, name, photo) {
+        selectedUser = { username: username, full_name: name, photo: photo };
+        document.querySelectorAll('.ct-user-card').forEach(function(c) { c.classList.remove('selected'); });
+        el.classList.add('selected');
+        document.getElementById('ctAmountWrap').style.display = 'block';
+        document.getElementById('ctAmount').focus();
+        updateFee();
+    };
+
+    document.getElementById('ctAmount').addEventListener('input', updateFee);
+
+    function updateFee() {
+        var amount = parseInt(document.getElementById('ctAmount').value) || 0;
+        if (amount >= 100 && amount <= 10000 && selectedUser) {
+            var fee = Math.ceil(amount * 0.10);
+            var total = amount + fee;
+            document.getElementById('ctFeeAmount').textContent = amount.toLocaleString() + ' coin';
+            document.getElementById('ctFeeFee').textContent = fee.toLocaleString() + ' coin';
+            document.getElementById('ctFeeTotal').textContent = total.toLocaleString() + ' coin';
+            document.getElementById('ctFeeBox').style.display = 'block';
+            document.getElementById('ctNextBtn').disabled = false;
+        } else {
+            document.getElementById('ctFeeBox').style.display = 'none';
+            document.getElementById('ctNextBtn').disabled = true;
+        }
+    }
+
+    window.initiateTransfer = async function() {
+        hideError();
+        var btn = document.getElementById('ctNextBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="ct-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Yuklanmoqda...';
+
+        try {
+            var r = await fetch(API + '/transfer/initiate/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify({
+                    receiver_username: selectedUser.username,
+                    amount: parseInt(document.getElementById('ctAmount').value),
+                })
+            });
+            var data = await r.json();
+
+            if (!r.ok) {
+                showError(data.error || "Xatolik yuz berdi!");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-right"></i> Davom etish';
+                return;
+            }
+
+            currentTransfer = data;
+
+            document.getElementById('ctConfName').textContent = selectedUser.full_name;
+            document.getElementById('ctConfUser').textContent = '@' + selectedUser.username;
+            document.getElementById('ctConfAmount').textContent = data.amount.toLocaleString() + ' coin';
+            document.getElementById('ctConfFee').textContent = data.fee.toLocaleString() + ' coin';
+            document.getElementById('ctConfTotal').textContent = data.total_deducted.toLocaleString() + ' coin';
+
+            if (data.needs_telegram_code) {
+                document.getElementById('ctCodeSection').style.display = 'block';
+                document.getElementById('ctPasswordSection').style.display = 'none';
+                setTimeout(function(){ document.getElementById('ctCodeInput').focus(); }, 200);
+            } else {
+                document.getElementById('ctCodeSection').style.display = 'none';
+                document.getElementById('ctPasswordSection').style.display = 'block';
+                setTimeout(function(){ document.getElementById('ctPasswordInput').focus(); }, 200);
+            }
+
+            document.getElementById('ctPanel1').style.display = 'none';
+            document.getElementById('ctPanel2').style.display = 'block';
+            document.getElementById('ctStep1').className = 'ct-step done';
+            document.getElementById('ctStep2').className = 'ct-step active';
+            hideError();
+        } catch(e) {
+            showError("Server bilan aloqa yo'q!");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-right"></i> Davom etish';
+    };
+
+    window.backToStep1 = function() {
+        document.getElementById('ctPanel1').style.display = 'block';
+        document.getElementById('ctPanel2').style.display = 'none';
+        document.getElementById('ctStep1').className = 'ct-step active';
+        document.getElementById('ctStep2').className = 'ct-step';
+        hideError();
+    };
+
+    window.confirmTransfer = async function() {
+        hideError();
+        var btn = document.getElementById('ctConfirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="ct-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Tasdiqlanmoqda...';
+
+        var body = { transfer_id: currentTransfer.id };
+        if (currentTransfer.needs_telegram_code) {
+            body.code = document.getElementById('ctCodeInput').value.trim();
+        } else {
+            body.password = document.getElementById('ctPasswordInput').value;
+        }
+
+        try {
+            var r = await fetch(API + '/transfer/confirm/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify(body)
+            });
+            var data = await r.json();
+
+            if (!r.ok) {
+                showError(data.error || "Xatolik yuz berdi!");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Tasdiqlash';
+                return;
+            }
+
+            document.getElementById('ctSuccessMsg').textContent = data.message;
+            document.getElementById('ctNewBalance').textContent = data.new_balance.toLocaleString();
+
+            document.getElementById('ctPanel2').style.display = 'none';
+            document.getElementById('ctPanel3').style.display = 'block';
+            document.getElementById('ctStep2').className = 'ct-step done';
+            document.getElementById('ctStep3').className = 'ct-step active';
+        } catch(e) {
+            showError("Server bilan aloqa yo'q!");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Tasdiqlash';
+    };
+
+    function getCsrf() {
+        var c = document.cookie.match(/csrftoken=([^;]+)/);
+        return c ? c[1] : '';
+    }
+
+    // Close on overlay click
+    document.getElementById('ctOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeTransferModal();
+    });
+
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && document.getElementById('ctOverlay').classList.contains('show')) {
+            closeTransferModal();
+        }
+    });
 })();
 </script>
 {% endblock %}

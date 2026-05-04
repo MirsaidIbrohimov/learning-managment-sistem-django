@@ -1,4 +1,6 @@
 import math
+import random
+import string
 from datetime import timedelta
 
 from rest_framework import generics, status
@@ -10,13 +12,15 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog
+from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer
 from accounts.models import CustomUser, PremiumRequest, Message
 from telegram_bot.utils import notify_group, notify_user, notify_admins
 from .serializers import (
     ProductSerializer, ProductCommentSerializer, ProductPurchaseSerializer,
     CoinTransactionSerializer, ActivityLogSerializer, CoinSummarySerializer,
     ProductCommentCreateSerializer, PremiumRequestSerializer,
+    CoinTransferSearchResultSerializer, CoinTransferInitSerializer,
+    CoinTransferConfirmSerializer, CoinTransferDetailSerializer,
 )
 
 PREMIUM_DISCOUNT = 0.05
@@ -396,4 +400,210 @@ def premium_plans(request):
         'plans': PREMIUM_PLANS,
         'has_pending_request': pending is not None,
         'is_premium': request.user.is_premium,
+    })
+
+
+# ============== COIN TRANSFER ==============
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_user_for_transfer(request):
+    """Username yoki telefon raqam bo'yicha foydalanuvchi qidirish"""
+    query = request.query_params.get('username', '').strip()
+    if not query or len(query) < 2:
+        return Response({'error': "Kamida 2 ta belgi kiriting"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    base_qs = CustomUser.objects.filter(
+        is_blocked=False,
+    ).exclude(pk=request.user.pk)
+    
+    # Telefon raqam bo'yicha qidirish (raqam bilan boshlansa)
+    if query.replace('+', '').replace(' ', '').replace('-', '').isdigit():
+        clean_phone = query.replace(' ', '').replace('-', '')
+        users = base_qs.filter(phone__icontains=clean_phone)[:5]
+    else:
+        # Username yoki ism bo'yicha qidirish
+        users = base_qs.filter(
+            Q(username__icontains=query) |
+            Q(first_name__icontains=query) |
+            Q(last_name__icontains=query)
+        )[:5]
+    
+    serializer = CoinTransferSearchResultSerializer(users, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def initiate_transfer(request):
+    """Coin o'tkazmani boshlash — tasdiqlash kodi yuborish"""
+    serializer = CoinTransferInitSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    receiver_username = serializer.validated_data['receiver_username']
+    amount = serializer.validated_data['amount']
+    
+    # Qabul qiluvchini topish
+    try:
+        receiver = CustomUser.objects.get(username=receiver_username, is_blocked=False)
+    except CustomUser.DoesNotExist:
+        return Response({'error': "Foydalanuvchi topilmadi!"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if receiver.pk == request.user.pk:
+        return Response({'error': "O'zingizga coin o'tkaza olmaysiz!"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # 10% xizmat haqqi
+    fee = math.ceil(amount * 0.10)
+    total_deducted = amount + fee
+    
+    if request.user.coins < total_deducted:
+        return Response({
+            'error': f"Coinlaringiz yetarli emas! Kerak: {total_deducted} coin ({amount} + {fee} xizmat haqqi), Balansingiz: {request.user.coins}"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Kutilayotgan o'tkazma bor-yo'qligini tekshirish
+    pending = CoinTransfer.objects.filter(sender=request.user, status='pending').first()
+    if pending:
+        # Eskisini bekor qilish
+        pending.status = 'cancelled'
+        pending.save()
+    
+    # Tasdiqlash kodi
+    code = ''.join(random.choices(string.digits, k=6))
+    
+    transfer = CoinTransfer.objects.create(
+        sender=request.user,
+        receiver=receiver,
+        amount=amount,
+        fee=fee,
+        total_deducted=total_deducted,
+        verification_code=code,
+        status='pending',
+    )
+    
+    # Agar telegram ulangan bo'lsa — kodni telegramga yuborish
+    needs_telegram = bool(request.user.telegram_id)
+    if needs_telegram:
+        notify_user(
+            request.user.telegram_id,
+            f"🔐 <b>Coin o'tkazma tasdiqlash kodi</b>\n\n"
+            f"👤 Qabul qiluvchi: <b>{receiver.full_name}</b> (@{receiver.username})\n"
+            f"🪙 Miqdor: <b>{amount}</b> coin\n"
+            f"💰 Xizmat haqqi: <b>{fee}</b> coin\n"
+            f"📊 Jami: <b>{total_deducted}</b> coin\n\n"
+            f"🔑 Tasdiqlash kodi: <b>{code}</b>\n\n"
+            f"⚠️ Bu kodni hech kimga bermang!"
+        )
+    
+    data = CoinTransferDetailSerializer(transfer).data
+    data['needs_telegram_code'] = needs_telegram
+    return Response(data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def confirm_transfer(request):
+    """Coin o'tkazmani tasdiqlash"""
+    serializer = CoinTransferConfirmSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    
+    transfer_id = serializer.validated_data['transfer_id']
+    
+    try:
+        transfer = CoinTransfer.objects.get(pk=transfer_id, sender=request.user, status='pending')
+    except CoinTransfer.DoesNotExist:
+        return Response({'error': "O'tkazma topilmadi yoki muddati o'tgan!"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Muddatni tekshirish (10 daqiqa)
+    if (timezone.now() - transfer.created_at).total_seconds() > 600:
+        transfer.status = 'cancelled'
+        transfer.save()
+        return Response({'error': "O'tkazma muddati o'tdi! Qaytadan urinib ko'ring."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Tasdiqlash: telegram kodi yoki parol
+    needs_telegram = bool(request.user.telegram_id)
+    
+    if needs_telegram:
+        code = serializer.validated_data.get('code', '')
+        if not code or code != transfer.verification_code:
+            return Response({'error': "Tasdiqlash kodi noto'g'ri!"}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        password = serializer.validated_data.get('password', '')
+        if not password or not request.user.check_password(password):
+            return Response({'error': "Parol noto'g'ri!"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Balansni qayta tekshirish
+    if request.user.coins < transfer.total_deducted:
+        transfer.status = 'cancelled'
+        transfer.save()
+        return Response({'error': "Coinlaringiz yetarli emas!"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # O'tkazmani amalga oshirish
+    with transaction.atomic():
+        # Yuboruvchidan yechish
+        request.user.coins -= transfer.total_deducted
+        request.user.save(update_fields=['coins'])
+        
+        # Qabul qiluvchiga qo'shish
+        transfer.receiver.coins += transfer.amount
+        transfer.receiver.save(update_fields=['coins'])
+        
+        transfer.status = 'completed'
+        transfer.completed_at = timezone.now()
+        transfer.save()
+        
+        # Tranzaksiyalar yaratish
+        CoinTransaction.objects.create(
+            user=request.user,
+            amount=transfer.total_deducted,
+            action='remove',
+            reason=f"Coin o'tkazma: {transfer.receiver.full_name} ga {transfer.amount} coin ({transfer.fee} xizmat haqqi)"
+        )
+        CoinTransaction.objects.create(
+            user=transfer.receiver,
+            amount=transfer.amount,
+            action='add',
+            reason=f"Coin qabul qilindi: {request.user.full_name} dan {transfer.amount} coin"
+        )
+        
+        # Activity log
+        ActivityLog.objects.create(
+            user=request.user,
+            action_type='earn_coins',
+            description=f"Coin o'tkazdi: {transfer.receiver.full_name} ga {transfer.amount} coin"
+        )
+        
+        # Qabul qiluvchiga telegram xabar
+        if transfer.receiver.telegram_id:
+            notify_user(
+                transfer.receiver.telegram_id,
+                f"🪙 <b>Coin qabul qildingiz!</b>\n\n"
+                f"👤 Yuboruvchi: <b>{request.user.full_name}</b>\n"
+                f"🪙 Miqdor: <b>{transfer.amount}</b> coin\n\n"
+                f"💰 Yangi balans: <b>{transfer.receiver.coins}</b> coin"
+            )
+        
+        # Yuboruvchiga telegram xabar
+        if request.user.telegram_id:
+            notify_user(
+                request.user.telegram_id,
+                f"✅ <b>Coin o'tkazma muvaffaqiyatli!</b>\n\n"
+                f"👤 Qabul qiluvchi: <b>{transfer.receiver.full_name}</b>\n"
+                f"🪙 Miqdor: <b>{transfer.amount}</b> coin\n"
+                f"💰 Xizmat haqqi: <b>{transfer.fee}</b> coin\n"
+                f"📊 Yangi balans: <b>{request.user.coins}</b> coin"
+            )
+        
+        # Xabar (Message)
+        Message.objects.create(
+            recipient=transfer.receiver,
+            title=f"🪙 {request.user.full_name} sizga coin o'tkazdi",
+            content=f"{request.user.full_name} sizga {transfer.amount} coin o'tkazdi. Yangi balansingiz: {transfer.receiver.coins} coin.",
+            message_type='system'
+        )
+    
+    return Response({
+        'message': f"Muvaffaqiyatli! {transfer.amount} coin {transfer.receiver.full_name} ga o'tkazildi.",
+        'new_balance': request.user.coins,
     })

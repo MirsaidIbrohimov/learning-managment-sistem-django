@@ -73,3 +73,58 @@ class PremiumRequestSerializer(serializers.Serializer):
         ('bimonthly', '2 oylik'),
     ]
     plan = serializers.ChoiceField(choices=PLAN_CHOICES)
+
+
+class UserSearchSerializer(serializers.Serializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    full_name = serializers.CharField(source='user.full_name', read_only=True)
+    photo = serializers.ImageField(source='user.photo', read_only=True)
+
+
+class CoinTransferSearchResultSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    full_name = serializers.CharField()
+    phone = serializers.SerializerMethodField()
+    role = serializers.CharField()
+    photo = serializers.SerializerMethodField()
+    
+    def get_phone(self, obj):
+        phone = obj.phone or ''
+        if len(phone) > 4:
+            return phone[:len(phone)-4] + '****'
+        return '****'
+    
+    def get_photo(self, obj):
+        if obj.photo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.photo.url)
+            return obj.photo.url
+        return None
+
+
+class CoinTransferInitSerializer(serializers.Serializer):
+    receiver_username = serializers.CharField()
+    amount = serializers.IntegerField(min_value=100, max_value=10000)
+
+
+class CoinTransferConfirmSerializer(serializers.Serializer):
+    transfer_id = serializers.IntegerField()
+    code = serializers.CharField(max_length=6, required=False, allow_blank=True)
+    password = serializers.CharField(required=False, allow_blank=True)
+
+
+class CoinTransferDetailSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    sender = serializers.CharField(source='sender.full_name')
+    receiver = serializers.CharField(source='receiver.full_name')
+    receiver_username = serializers.CharField(source='receiver.username')
+    amount = serializers.IntegerField()
+    fee = serializers.IntegerField()
+    total_deducted = serializers.IntegerField()
+    status = serializers.CharField()
+    needs_telegram_code = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField()
+    
+    def get_needs_telegram_code(self, obj):
+        return bool(obj.sender.telegram_id)

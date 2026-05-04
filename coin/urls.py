@@ -22,4 +22,7 @@ urlpatterns = [
     
     # Admin: Activities
     path('dashboard/activities/', views.admin_activities, name='admin_activities'),
+    
+    # Admin: Transfers
+    path('dashboard/transfers/', views.admin_transfers, name='admin_transfers'),
 ]

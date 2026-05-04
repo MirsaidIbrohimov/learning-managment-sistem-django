@@ -1,0 +1,906 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Coin O'tkazmalar — Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+    /* ===== Animations ===== */
+    @keyframes ctrFadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ctrSlideIn {
+        from { opacity: 0; transform: translateX(-16px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes ctrPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    @keyframes ctrShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    @keyframes ctrFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+    }
+
+    /* ===== Hero ===== */
+    .ctr-hero {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%);
+        border-radius: 24px;
+        padding: 2.25rem 2.5rem 2rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        animation: ctrFadeUp 0.5s ease;
+    }
+    .ctr-hero::before {
+        content: '';
+        position: absolute;
+        top: -80%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .ctr-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -50%;
+        left: -15%;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .ctr-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.25rem;
+    }
+
+    .ctr-hero h1 {
+        font-size: 1.65rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .ctr-hero h1 i {
+        font-size: 1.4rem;
+        filter: drop-shadow(0 2px 6px rgba(0,0,0,0.15));
+    }
+    .ctr-hero p {
+        margin: 0.4rem 0 0;
+        opacity: 0.88;
+        font-size: 0.92rem;
+        font-weight: 500;
+    }
+
+    .ctr-stats {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+    }
+    .ctr-stat {
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(12px);
+        padding: 0.75rem 1.25rem;
+        border-radius: 16px;
+        text-align: center;
+        min-width: 90px;
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .ctr-stat:hover {
+        transform: translateY(-3px);
+        background: rgba(255,255,255,0.25);
+    }
+    .ctr-stat-val {
+        font-size: 1.35rem;
+        font-weight: 800;
+        line-height: 1.1;
+    }
+    .ctr-stat-label {
+        font-size: 0.65rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        font-weight: 700;
+        margin-top: 0.15rem;
+    }
+
+    /* ===== Tabs ===== */
+    .ctr-tabs {
+        display: flex;
+        gap: 6px;
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 5px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+        animation: ctrFadeUp 0.5s ease 0.1s both;
+    }
+    .ctr-tab {
+        flex: 1;
+        padding: 0.7rem 0.85rem;
+        border-radius: 12px;
+        border: none;
+        background: transparent;
+        color: var(--text-color);
+        opacity: 0.5;
+        font-size: 0.82rem;
+        font-weight: 650;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+    .ctr-tab:hover {
+        opacity: 0.8;
+        background: rgba(245, 158, 11, 0.06);
+        color: var(--text-color);
+    }
+    .ctr-tab.active {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        opacity: 1;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+    }
+    .ctr-tab .ctr-tab-count {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.1rem 0.4rem;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.2);
+    }
+    .ctr-tab:not(.active) .ctr-tab-count {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+
+    /* ===== Filter Bar ===== */
+    .ctr-filter-bar {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        animation: ctrFadeUp 0.5s ease 0.15s both;
+    }
+    .ctr-filter-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--text-color);
+        opacity: 0.55;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .ctr-filter-bar input[type="date"] {
+        height: 40px;
+        padding: 0 0.875rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-color, #f9fafb);
+        color: var(--text-color);
+        font-size: 0.82rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .ctr-filter-bar input[type="date"]:focus {
+        border-color: #f59e0b;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+    }
+    .ctr-filter-bar input[type="text"] {
+        height: 40px;
+        padding: 0 0.875rem 0 2.25rem;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        background: var(--bg-color, #f9fafb);
+        color: var(--text-color);
+        font-size: 0.82rem;
+        font-weight: 500;
+        flex: 1;
+        min-width: 160px;
+        transition: all 0.2s;
+    }
+    .ctr-filter-bar input[type="text"]:focus {
+        border-color: #f59e0b;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+    }
+    .ctr-search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 160px;
+    }
+    .ctr-search-wrap i {
+        position: absolute;
+        left: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-color);
+        opacity: 0.35;
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+    .ctr-filter-btn {
+        height: 40px;
+        padding: 0 1.25rem;
+        border-radius: 12px;
+        border: none;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);
+    }
+    .ctr-filter-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(245, 158, 11, 0.35);
+    }
+    .ctr-filter-reset {
+        height: 40px;
+        padding: 0 1rem;
+        border-radius: 12px;
+        border: 2px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        font-weight: 650;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .ctr-filter-reset:hover {
+        background: var(--border-color);
+        color: var(--text-color);
+    }
+
+    /* ===== Transfer Card ===== */
+    .ctr-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .ctr-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        transition: all 0.3s ease;
+        animation: ctrSlideIn 0.4s ease both;
+        overflow: hidden;
+    }
+    .ctr-card:hover {
+        border-color: rgba(245, 158, 11, 0.3);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.07);
+        transform: translateY(-3px);
+    }
+    [data-bs-theme="dark"] .ctr-card:hover {
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .ctr-card-inner {
+        display: flex;
+        align-items: center;
+        gap: 0.875rem;
+        padding: 1.1rem 1.5rem;
+    }
+
+    /* ID badge */
+    .ctr-id {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        background: rgba(245, 158, 11, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        font-size: 0.72rem;
+        color: #d97706;
+        flex-shrink: 0;
+    }
+    [data-bs-theme="dark"] .ctr-id {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+    }
+
+    /* Avatars */
+    .ctr-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 2px solid var(--border-color);
+    }
+    .ctr-avatar-placeholder {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.78rem;
+        flex-shrink: 0;
+        color: #fff;
+    }
+    .ctr-avatar-placeholder.sender {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+    .ctr-avatar-placeholder.receiver {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    /* Person info */
+    .ctr-person {
+        min-width: 0;
+        flex: 1;
+    }
+    .ctr-person-name {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-color);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+    }
+    .ctr-person-username {
+        font-size: 0.72rem;
+        color: var(--text-color);
+        opacity: 0.5;
+        font-weight: 500;
+    }
+
+    /* Transfer direction */
+    .ctr-direction {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex: 1;
+        min-width: 0;
+    }
+    .ctr-arrow-wrap {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.3s;
+    }
+    .ctr-card:hover .ctr-arrow-wrap {
+        background: rgba(245, 158, 11, 0.2);
+        transform: scale(1.1);
+    }
+    .ctr-arrow-wrap i {
+        font-size: 1rem;
+        color: #d97706;
+    }
+    [data-bs-theme="dark"] .ctr-arrow-wrap i {
+        color: #fbbf24;
+    }
+
+    /* Sender/Receiver blocks */
+    .ctr-sender-block,
+    .ctr-receiver-block {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Meta section */
+    .ctr-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .ctr-coin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.85rem;
+        border-radius: 12px;
+        background: rgba(245, 158, 11, 0.1);
+        color: #b45309;
+        font-weight: 800;
+        font-size: 0.88rem;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+        white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .ctr-coin-badge {
+        color: #fbbf24;
+        border-color: rgba(245, 158, 11, 0.3);
+    }
+    .ctr-fee-text {
+        font-size: 0.7rem;
+        color: var(--text-color);
+        opacity: 0.45;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .ctr-date-text {
+        font-size: 0.75rem;
+        color: var(--text-color);
+        opacity: 0.5;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    /* Status badge */
+    .ctr-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .ctr-status.completed {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    [data-bs-theme="dark"] .ctr-status.completed { color: #34d399; }
+    .ctr-status.pending {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    [data-bs-theme="dark"] .ctr-status.pending { color: #fbbf24; }
+    .ctr-status.cancelled {
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+    [data-bs-theme="dark"] .ctr-status.cancelled { color: #f87171; }
+
+    /* ===== Empty State ===== */
+    .ctr-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        animation: ctrFadeUp 0.5s ease;
+    }
+    .ctr-empty-icon {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+        font-size: 2.5rem;
+        color: #d97706;
+        opacity: 0.5;
+        animation: ctrFloat 3s ease-in-out infinite;
+    }
+    [data-bs-theme="dark"] .ctr-empty-icon {
+        background: rgba(245, 158, 11, 0.12);
+        color: #fbbf24;
+    }
+    .ctr-empty h4 {
+        font-weight: 800;
+        color: var(--text-color);
+        margin-bottom: 0.4rem;
+        font-size: 1.1rem;
+    }
+    .ctr-empty p {
+        color: var(--text-color);
+        opacity: 0.5;
+        font-size: 0.9rem;
+    }
+
+    /* ===== Pagination ===== */
+    .ctr-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+    .ctr-pagination a, .ctr-pagination span {
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.25s;
+    }
+    .ctr-pagination a {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        cursor: pointer;
+    }
+    .ctr-pagination a:hover {
+        background: #f59e0b;
+        color: #fff;
+        border-color: #f59e0b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+    .ctr-page-active {
+        background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+        color: #fff !important;
+        border: none !important;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+    }
+    .ctr-page-disabled {
+        opacity: 0.35;
+        cursor: default;
+        color: var(--text-color);
+    }
+    .ctr-page-info {
+        font-size: 0.78rem;
+        color: var(--text-color);
+        opacity: 0.5;
+        font-weight: 600;
+        padding: 0 0.5rem;
+    }
+
+    /* ===== Summary cards below hero ===== */
+    .ctr-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.875rem;
+        margin-bottom: 1.5rem;
+        animation: ctrFadeUp 0.5s ease 0.08s both;
+    }
+    .ctr-summary-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+    }
+    .ctr-summary-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+    }
+    [data-bs-theme="dark"] .ctr-summary-card:hover {
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+    }
+    .ctr-summary-icon {
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+    .ctr-summary-icon.orange { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+    .ctr-summary-icon.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .ctr-summary-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .ctr-summary-icon.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+    [data-bs-theme="dark"] .ctr-summary-icon.orange { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    [data-bs-theme="dark"] .ctr-summary-icon.green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    [data-bs-theme="dark"] .ctr-summary-icon.blue { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+    [data-bs-theme="dark"] .ctr-summary-icon.red { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+    .ctr-summary-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-color);
+        opacity: 0.5;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.15rem;
+    }
+    .ctr-summary-value {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-color);
+        line-height: 1;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+        .ctr-summary-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 900px) {
+        .ctr-card-inner {
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .ctr-direction { width: 100%; }
+        .ctr-meta { width: 100%; justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
+        .ctr-hero { padding: 1.5rem; border-radius: 18px; }
+        .ctr-hero h1 { font-size: 1.25rem; }
+        .ctr-hero-inner { flex-direction: column; text-align: center; }
+        .ctr-stats { justify-content: center; }
+        .ctr-summary-grid { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+        .ctr-summary-card { padding: 1rem; }
+        .ctr-summary-icon { width: 44px; height: 44px; min-width: 44px; font-size: 1.1rem; border-radius: 12px; }
+        .ctr-summary-value { font-size: 1.2rem; }
+        .ctr-card-inner { padding: 1rem; flex-direction: column; align-items: flex-start; }
+        .ctr-id { position: absolute; top: 0.875rem; right: 0.875rem; }
+        .ctr-card { position: relative; }
+        .ctr-direction { flex-wrap: wrap; gap: 0.5rem; }
+        .ctr-arrow-wrap { width: 28px; height: 28px; }
+        .ctr-arrow-wrap i { font-size: 0.85rem; }
+        .ctr-avatar, .ctr-avatar-placeholder { width: 36px; height: 36px; border-radius: 10px; font-size: 0.7rem; }
+        .ctr-tab { font-size: 0.75rem; padding: 0.6rem 0.5rem; gap: 4px; }
+        .ctr-tab i { font-size: 0.85rem; }
+        .ctr-filter-bar { gap: 0.5rem; }
+    }
+    @media (max-width: 400px) {
+        .ctr-summary-grid { grid-template-columns: 1fr; }
+        .ctr-tab .ctr-tab-text { display: none; }
+    }
+</style>
+
+<!-- Hero -->
+<div class="ctr-hero">
+    <div class="ctr-hero-inner">
+        <div>
+            <h1><i class="bi bi-send-fill"></i> Coin O'tkazmalar</h1>
+            <p>Kim kimga qancha coin o'tkazganini kuzating va boshqaring</p>
+        </div>
+        <div class="ctr-stats">
+            <div class="ctr-stat">
+                <div class="ctr-stat-val">{{ total_count }}</div>
+                <div class="ctr-stat-label">Jami</div>
+            </div>
+            <div class="ctr-stat">
+                <div class="ctr-stat-val">{{ success_count }}</div>
+                <div class="ctr-stat-label">Muvaffaqiyatli</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="ctr-summary-grid">
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon orange"><i class="bi bi-send-fill"></i></div>
+        <div>
+            <div class="ctr-summary-label">Jami o'tkazmalar</div>
+            <div class="ctr-summary-value" id="animTotal">{{ total_count }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon green"><i class="bi bi-check-circle-fill"></i></div>
+        <div>
+            <div class="ctr-summary-label">Muvaffaqiyatli</div>
+            <div class="ctr-summary-value" id="animSuccess" style="color:#10b981;">{{ success_count }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon blue"><i class="bi bi-coin"></i></div>
+        <div>
+            <div class="ctr-summary-label">Jami coin o'tkazilgan</div>
+            <div class="ctr-summary-value" id="animCoins" style="color:#3b82f6;">{{ total_coins|default:"0" }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon red"><i class="bi bi-percent"></i></div>
+        <div>
+            <div class="ctr-summary-label">Xizmat haqqi (10%)</div>
+            <div class="ctr-summary-value" id="animFees" style="color:#ef4444;">{{ total_fees|default:"0" }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="ctr-tabs">
+    <a href="?filter=all" class="ctr-tab {% if filter_type == 'all' or not filter_type %}active{% endif %}">
+        <i class="bi bi-grid-fill"></i>
+        <span class="ctr-tab-text">Barchasi</span>
+    </a>
+    <a href="?filter=today" class="ctr-tab {% if filter_type == 'today' %}active{% endif %}">
+        <i class="bi bi-calendar-day"></i>
+        <span class="ctr-tab-text">Bugun</span>
+    </a>
+    <a href="?filter=week" class="ctr-tab {% if filter_type == 'week' %}active{% endif %}">
+        <i class="bi bi-calendar-week"></i>
+        <span class="ctr-tab-text">Bu hafta</span>
+    </a>
+    <a href="?filter=month" class="ctr-tab {% if filter_type == 'month' %}active{% endif %}">
+        <i class="bi bi-calendar-month"></i>
+        <span class="ctr-tab-text">Bu oy</span>
+    </a>
+</div>
+
+<!-- Date Filter -->
+<form class="ctr-filter-bar" method="get">
+    <input type="hidden" name="filter" value="custom">
+    <div class="ctr-filter-label"><i class="bi bi-calendar3"></i> Sana bo'yicha:</div>
+    <input type="date" name="date_from" value="{{ date_from|default:'' }}" placeholder="Dan">
+    <span style="font-size:0.82rem;opacity:0.35;font-weight:700;">→</span>
+    <input type="date" name="date_to" value="{{ date_to|default:'' }}" placeholder="Gacha">
+    <div class="ctr-search-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Username yoki ism bo'yicha izlash...">
+    </div>
+    <button type="submit" class="ctr-filter-btn"><i class="bi bi-funnel-fill"></i> Filtr</button>
+    <a href="?" class="ctr-filter-reset"><i class="bi bi-x-lg"></i> Tozalash</a>
+</form>
+
+<!-- Transfers List -->
+<div class="ctr-list" id="transfersList">
+    {% for t in transfers %}
+    <div class="ctr-card" style="animation-delay: {{ forloop.counter0 }}50ms">
+        <div class="ctr-card-inner">
+            <!-- ID -->
+            <div class="ctr-id">#{{ t.pk }}</div>
+
+            <!-- Direction: Sender → Receiver -->
+            <div class="ctr-direction">
+                <!-- Sender -->
+                <div class="ctr-sender-block">
+                    {% if t.sender.photo %}
+                    <img src="{{ t.sender.photo.url }}" class="ctr-avatar" alt="">
+                    {% else %}
+                    <div class="ctr-avatar-placeholder sender">{{ t.sender.get_initials }}</div>
+                    {% endif %}
+                    <div class="ctr-person">
+                        <div class="ctr-person-name">{{ t.sender.full_name }}</div>
+                        <div class="ctr-person-username">@{{ t.sender.username }}</div>
+                    </div>
+                </div>
+
+                <!-- Arrow -->
+                <div class="ctr-arrow-wrap">
+                    <i class="bi bi-arrow-right"></i>
+                </div>
+
+                <!-- Receiver -->
+                <div class="ctr-receiver-block">
+                    {% if t.receiver.photo %}
+                    <img src="{{ t.receiver.photo.url }}" class="ctr-avatar" alt="">
+                    {% else %}
+                    <div class="ctr-avatar-placeholder receiver">{{ t.receiver.get_initials }}</div>
+                    {% endif %}
+                    <div class="ctr-person">
+                        <div class="ctr-person-name">{{ t.receiver.full_name }}</div>
+                        <div class="ctr-person-username">@{{ t.receiver.username }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta -->
+            <div class="ctr-meta">
+                <div>
+                    <div class="ctr-coin-badge"><i class="bi bi-coin"></i> {{ t.amount }}</div>
+                    <div class="ctr-fee-text" style="text-align:right;margin-top:0.2rem;">+{{ t.fee }} xizmat haqqi</div>
+                </div>
+                <div style="text-align:right;">
+                    <div class="ctr-date-text"><i class="bi bi-calendar3"></i> {{ t.created_at|date:"d.m.Y" }}</div>
+                    <div class="ctr-date-text" style="margin-top:0.1rem;"><i class="bi bi-clock"></i> {{ t.created_at|date:"H:i" }}</div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <span class="ctr-status {{ t.status }}">
+                {% if t.status == 'completed' %}<i class="bi bi-check-circle-fill"></i> Bajarildi
+                {% elif t.status == 'pending' %}<i class="bi bi-clock-fill"></i> Kutilmoqda
+                {% else %}<i class="bi bi-x-circle-fill"></i> Bekor{% endif %}
+            </span>
+        </div>
+    </div>
+    {% empty %}
+    <div class="ctr-empty">
+        <div class="ctr-empty-icon">
+            <i class="bi bi-send"></i>
+        </div>
+        <h4>O'tkazmalar yo'q</h4>
+        <p>Hozircha hech qanday coin o'tkazma amalga oshirilmagan</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if transfers.has_other_pages %}
+<div class="ctr-pagination">
+    {% if transfers.has_previous %}
+    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page=1" title="Birinchi"><i class="bi bi-chevron-double-left"></i></a>
+    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
+    {% else %}
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-double-left"></i></span>
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-left"></i></span>
+    {% endif %}
+
+    {% for num in transfers.paginator.page_range %}
+        {% if num > transfers.number|add:'-3' and num < transfers.number|add:'3' %}
+            {% if transfers.number == num %}
+            <span class="ctr-page-active">{{ num }}</span>
+            {% else %}
+            <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <span class="ctr-page-info">{{ transfers.number }} / {{ transfers.paginator.num_pages }}</span>
+
+    {% if transfers.has_next %}
+    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
+    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.paginator.num_pages }}" title="Oxirgi"><i class="bi bi-chevron-double-right"></i></a>
+    {% else %}
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-right"></i></span>
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-double-right"></i></span>
+    {% endif %}
+</div>
+{% endif %}
+
+<script>
+// Animate numbers on load
+(function() {
+    function animateNum(el, target) {
+        if (!el || !target) return;
+        var num = parseInt(target.toString().replace(/\s/g, '').replace(/,/g, ''));
+        if (isNaN(num) || num === 0) return;
+        var dur = 800, start = performance.now();
+        function step(now) {
+            var p = Math.min((now - start) / dur, 1);
+            var ease = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(num * ease).toLocaleString('uz-UZ');
+            if (p < 1) requestAnimationFrame(step);
+        }
+        el.textContent = '0';
+        requestAnimationFrame(step);
+    }
+    animateNum(document.getElementById('animTotal'), '{{ total_count }}');
+    animateNum(document.getElementById('animSuccess'), '{{ success_count }}');
+    animateNum(document.getElementById('animCoins'), '{{ total_coins|default:"0" }}');
+    animateNum(document.getElementById('animFees'), '{{ total_fees|default:"0" }}');
+})();
+</script>
+{% endblock %}

@@ -143,6 +143,14 @@ JAZZMIN_SETTINGS = {
         "accounts.Certificate": "fas fa-certificate",
         "accounts.CoinTransaction": "fas fa-coins",
 
+        "coin.CoinTransfer": "fas fa-exchange-alt",
+        "coin.CoinTransaction": "fas fa-coins",
+        "coin.Product": "fas fa-store",
+        "coin.ProductPurchase": "fas fa-shopping-cart",
+        "coin.ProductLike": "fas fa-heart",
+        "coin.ProductComment": "fas fa-comment-dots",
+        "coin.ActivityLog": "fas fa-history",
+
         "games.Game": "fas fa-gamepad",
         "games.Prompt": "fas fa-keyboard",
         "games.Competition": "fas fa-trophy",
@@ -159,10 +167,9 @@ JAZZMIN_SETTINGS = {
     "related_modal_active": True,
 
     # FORM STYLE
-    "changeform_format": "vertical_tabs",
+    "changeform_format": "single",
     "changeform_format_overrides": {
-        "accounts.CustomUser": "collapsible",
-        "accounts.Profession": "horizontal_tabs",
+        "accounts.Profession": "single",
     },
 
     # CUSTOM STYLE

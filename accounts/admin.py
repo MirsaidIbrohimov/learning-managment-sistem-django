@@ -40,12 +40,56 @@ class CustomUserAdmin(UserAdmin):
         return []
     
     fieldsets = (
-        (None, {'fields': ('username', 'password')}),
-        ('Shaxsiy ma\'lumotlar', {'fields': ('first_name', 'last_name', 'phone', 'email', 'photo', 'bio')}),
-        ('Rol va yo\'nalish', {'fields': ('role', 'profession', 'coins')}),
-        ('Status', {'fields': ('is_blocked', 'is_active', 'is_staff', 'is_superuser')}),
-        ('Vaqtlar', {'fields': ('last_activity', 'last_login', 'date_joined')}),
-        ('Ruxsatlar', {'fields': ('groups', 'user_permissions')}),
+        (None, {
+            'fields': ('username', 'password'),
+        }),
+        ('Shaxsiy ma\'lumotlar', {
+            'fields': (
+                'first_name', 'last_name', 'phone', 'email', 'photo', 'bio',
+                'gender', 'birth_date', 'nationality', 'address',
+            ),
+            'description': 'Foydalanuvchining asosiy shaxsiy ma\'lumotlari',
+        }),
+        ('Rol va yo\'nalish', {
+            'fields': (
+                'role', 'profession', 'teaching_professions', 'coins',
+                'is_premium', 'premium_purchased_at', 'premium_expires_at',
+            ),
+            'description': 'Foydalanuvchi roli, yo\'nalishi va coin balansi',
+        }),
+        ('Ota-ona ma\'lumotlari', {
+            'fields': (
+                'father_name', 'father_phone', 'father_deceased',
+                'mother_name', 'mother_phone', 'mother_deceased',
+                'parent_phone',
+            ),
+            'classes': ('collapse',),
+        }),
+        ('Hujjatlar', {
+            'fields': (
+                'passport_series', 'passport_number', 'passport_issued_date', 'jshshir',
+                'id_card', 'birth_certificate',
+                'school_name', 'school_number',
+                'is_profile_completed',
+            ),
+            'classes': ('collapse',),
+        }),
+        ('Telegram', {
+            'fields': ('telegram_id', 'telegram_username'),
+        }),
+        ('Status', {
+            'fields': ('is_blocked', 'is_active', 'is_staff', 'is_superuser'),
+        }),
+        ('Vaqtlar', {
+            'fields': (
+                'last_activity', 'last_login', 'date_joined',
+                'last_daily_login', 'total_online_time',
+            ),
+        }),
+        ('Ruxsatlar', {
+            'fields': ('groups', 'user_permissions'),
+            'classes': ('collapse',),
+        }),
     )
     
     add_fieldsets = (
@@ -55,7 +99,7 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
     
-    readonly_fields = ['last_login', 'date_joined', 'last_activity']
+    readonly_fields = ['last_login', 'date_joined', 'last_activity', 'last_daily_login', 'total_online_time']
     
     def full_name(self, obj):
         return obj.full_name

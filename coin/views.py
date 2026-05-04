@@ -1,14 +1,17 @@
 import math
+from datetime import timedelta, datetime
 from django.db import models as db_models
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction
+from django.core.paginator import Paginator
+from django.db.models import Sum
 from accounts.models import CustomUser, PremiumRequest, Message
 from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
-    CoinTransaction, ActivityLog
+    CoinTransaction, ActivityLog, CoinTransfer
 )
 from telegram_bot.utils import notify_group, notify_user, notify_admins
 
@@ -279,4 +282,53 @@ def admin_activities(request):
         'activities': activities[:500],
         'users': users,
         'action_types': action_types,
+    })
+
+
+# ============== ADMIN: COIN TRANSFERS ==============
+
+@login_required
+def admin_transfers(request):
+    if not request.user.is_admin:
+        return redirect('home')
+    
+    transfers = CoinTransfer.objects.all().select_related('sender', 'receiver')
+    
+    filter_type = request.GET.get('filter', 'all')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    now = timezone.now()
+    
+    if filter_type == 'today':
+        transfers = transfers.filter(created_at__date=now.date())
+    elif filter_type == 'week':
+        start_of_week = now - timedelta(days=now.weekday())
+        transfers = transfers.filter(created_at__date__gte=start_of_week.date())
+    elif filter_type == 'month':
+        transfers = transfers.filter(created_at__year=now.year, created_at__month=now.month)
+    elif filter_type == 'custom':
+        if date_from:
+            transfers = transfers.filter(created_at__date__gte=date_from)
+        if date_to:
+            transfers = transfers.filter(created_at__date__lte=date_to)
+    
+    total_count = transfers.count()
+    success_qs = transfers.filter(status='completed')
+    success_count = success_qs.count()
+    total_coins = success_qs.aggregate(total=Sum('amount'))['total'] or 0
+    total_fees = success_qs.aggregate(total=Sum('fee'))['total'] or 0
+    
+    paginator = Paginator(transfers, 30)
+    page = request.GET.get('page', 1)
+    transfers = paginator.get_page(page)
+    
+    return render(request, 'coin/admin/transfers.html', {
+        'transfers': transfers,
+        'total_count': total_count,
+        'success_count': success_count,
+        'total_coins': total_coins,
+        'total_fees': total_fees,
+        'filter_type': filter_type,
+        'date_from': date_from,
+        'date_to': date_to,
     })

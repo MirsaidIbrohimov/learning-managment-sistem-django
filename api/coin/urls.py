@@ -28,4 +28,9 @@ urlpatterns = [
     # Premium
     path('premium/plans/', views.premium_plans, name='coin_premium_plans'),
     path('premium/request/', views.request_premium, name='coin_request_premium'),
+
+    # Coin Transfer
+    path('transfer/search/', views.search_user_for_transfer, name='coin_transfer_search'),
+    path('transfer/initiate/', views.initiate_transfer, name='coin_transfer_initiate'),
+    path('transfer/confirm/', views.confirm_transfer, name='coin_transfer_confirm'),
 ]
