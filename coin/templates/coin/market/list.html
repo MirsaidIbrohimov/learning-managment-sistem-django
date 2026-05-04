@@ -89,6 +89,21 @@
         <div class="mk-balance" id="mkBalance"><i class="bi bi-coin"></i> <span>...</span></div>
     </div>
 
+    <!-- Premium banner -->
+    <div id="mkPremiumBanner" style="display:none;margin-bottom:1.25rem;animation:mkFadeUp 0.5s ease 0.05s both;">
+        <a href="/market/premium/" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-radius:16px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);position:relative;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:0.75rem;position:relative;z-index:1;">
+                <span style="font-size:1.5rem;">⭐</span>
+                <div>
+                    <div style="font-weight:800;font-size:1rem;" id="mkPremiumTitle">Premium olish</div>
+                    <div style="font-size:0.82rem;opacity:0.9;" id="mkPremiumDesc">5% chegirma, 2x coin va maxsus badge</div>
+                </div>
+            </div>
+            <i class="bi bi-chevron-right" style="font-size:1.2rem;opacity:0.8;position:relative;z-index:1;"></i>
+            <div style="position:absolute;top:-50%;right:-5%;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);pointer-events:none;"></div>
+        </a>
+    </div>
+
     <div class="mk-search-bar">
         <i class="bi bi-search"></i>
         <input type="text" id="mkSearch" placeholder="Mahsulot qidirish...">
@@ -217,7 +232,28 @@
         searchTimer = setTimeout(()=>loadProducts(1), 300);
     });
 
+    async function loadPremiumBanner() {
+        try {
+            const d = await get(API+'/premium/plans/');
+            const banner = document.getElementById('mkPremiumBanner');
+            const title = document.getElementById('mkPremiumTitle');
+            const desc = document.getElementById('mkPremiumDesc');
+            if(d.has_pending_request) {
+                title.textContent = 'Premium so\'rov kutilmoqda ⏳';
+                desc.textContent = 'Admin tasdiqlashini kuting';
+            } else if(d.is_premium) {
+                title.textContent = 'Siz Premium foydalanuvchisiz! ⭐';
+                desc.textContent = 'Muddatni uzaytirish yoki batafsil ma\'lumot';
+            } else {
+                title.textContent = 'Premium olish';
+                desc.textContent = '5% chegirma, 2x coin va maxsus badge';
+            }
+            banner.style.display = 'block';
+        } catch(e) {}
+    }
+
     loadBalance();
+    loadPremiumBanner();
     loadProducts(1);
 })();
 </script>

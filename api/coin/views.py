@@ -396,11 +396,43 @@ def request_premium(request):
 @permission_classes([IsAuthenticated])
 def premium_plans(request):
     pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
-    return Response({
+    user = request.user
+
+    data = {
         'plans': PREMIUM_PLANS,
         'has_pending_request': pending is not None,
-        'is_premium': request.user.is_premium,
-    })
+        'is_premium': user.is_premium,
+        'premium_expires_at': user.premium_expires_at.isoformat() if user.premium_expires_at else None,
+        'premium_purchased_at': user.premium_purchased_at.isoformat() if user.premium_purchased_at else None,
+    }
+
+    if pending:
+        data['pending_request'] = {
+            'id': pending.id,
+            'plan': pending.plan,
+            'plan_display': pending.get_plan_display(),
+            'price': pending.price,
+            'created_at': pending.created_at.isoformat(),
+        }
+
+    # Oxirgi 5 ta premium so'rovlar tarixi
+    history = PremiumRequest.objects.filter(user=user).order_by('-created_at')[:5]
+    data['request_history'] = [
+        {
+            'id': r.id,
+            'plan': r.plan,
+            'plan_display': r.get_plan_display(),
+            'status': r.status,
+            'status_display': r.get_status_display(),
+            'price': r.price,
+            'is_extension': r.is_extension,
+            'created_at': r.created_at.isoformat(),
+            'reviewed_at': r.reviewed_at.isoformat() if r.reviewed_at else None,
+        }
+        for r in history
+    ]
+
+    return Response(data)
 
 
 # ============== COIN TRANSFER ==============

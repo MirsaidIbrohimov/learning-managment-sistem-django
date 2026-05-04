@@ -325,6 +325,192 @@
             font-weight: 500;
         }
 
+        /* ───────── Navbar ───────── */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.3s ease, backdrop-filter 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(10, 10, 26, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: rgba(10, 10, 26, 0.97);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                flex-direction: column;
+                justify-content: center;
+                gap: 2rem;
+                transition: right 0.35s ease;
+                border-left: 1px solid var(--glass-border);
+            }
+            .nav-links.open { right: 0; }
+            .nav-links a { font-size: 1.1rem; }
+            .nav-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 99;
+                display: none;
+            }
+            .nav-overlay.show { display: block; }
+        }
+
+        /* ───────── Pricing ───────── */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .pricing-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 40px rgba(102, 126, 234, 0.15);
+        }
+
+        .pricing-card.popular {
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .pricing-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #fff;
+            padding: 0.3rem 0.8rem;
+            border-radius: 999px;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .pricing-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .pricing-card .price {
+            font-size: 2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.25rem;
+        }
+
+        .pricing-card .price-period {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            text-align: left;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features li {
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pricing-features li::before {
+            content: '✓';
+            color: var(--primary);
+            font-weight: 700;
+        }
+
         /* ───────── Footer ───────── */
         footer {
             text-align: center;
@@ -337,6 +523,32 @@
         footer a {
             color: var(--primary);
             text-decoration: none;
+        }
+
+        .footer-socials {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-socials a {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .footer-socials a:hover {
+            color: #fff;
+        }
+
+        .footer-socials svg {
+            width: 20px;
+            height: 20px;
         }
 
         /* ───────── Responsive ───────── */
@@ -370,6 +582,19 @@
             <div class="loader-bar-fill"></div>
         </div>
     </div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <a href="#" class="nav-logo">IT Creative</a>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#features" onclick="closeNav()">Imkoniyatlar</a></li>
+            <li><a href="#pricing" onclick="closeNav()">Narxlar</a></li>
+            <li><a href="#stats" onclick="closeNav()">Statistika</a></li>
+            <li><a href="/login/" class="btn btn-primary" style="padding:0.55rem 1.5rem;font-size:0.85rem;" onclick="closeNav()">Kirish</a></li>
+        </ul>
+        <button class="nav-toggle" id="navToggle" onclick="toggleNav()">☰</button>
+    </nav>
+    <div class="nav-overlay" id="navOverlay" onclick="closeNav()"></div>
 
     <!-- Three.js Canvas -->
     <canvas id="three-canvas"></canvas>
@@ -418,6 +643,41 @@
             </div>
         </section>
 
+        <!-- Pricing -->
+        <section class="section" id="pricing">
+            <h2 class="section-title">Kurs narxlari</h2>
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <div class="pricing-icon">💻</div>
+                    <h3>Boshlang'ich kurs</h3>
+                    <div class="price">400 000 so'm</div>
+                    <div class="price-period">oyiga</div>
+                    <ul class="pricing-features">
+                        <li>Video darslar</li>
+                        <li>Amaliy mashqlar</li>
+                        <li>AI yordamchi</li>
+                        <li>Sertifikat</li>
+                    </ul>
+                    <a href="/register/" class="btn btn-outline" style="width:100%;justify-content:center;">Boshlash</a>
+                </div>
+                <div class="pricing-card popular">
+                    <div class="pricing-badge">Mashhur</div>
+                    <div class="pricing-icon">🚀</div>
+                    <h3>Professional kurs</h3>
+                    <div class="price">500 000 so'm</div>
+                    <div class="price-period">oyiga</div>
+                    <ul class="pricing-features">
+                        <li>Barcha video darslar</li>
+                        <li>Amaliy loyihalar</li>
+                        <li>AI yordamchi 24/7</li>
+                        <li>Sertifikat</li>
+                        <li>Shaxsiy mentor</li>
+                    </ul>
+                    <a href="/register/" class="btn btn-primary" style="width:100%;justify-content:center;">Boshlash</a>
+                </div>
+            </div>
+        </section>
+
         <!-- Stats -->
         <section class="section" id="stats">
             <h2 class="section-title">Raqamlarda biz</h2>
@@ -439,6 +699,20 @@
 
         <!-- Footer -->
         <footer>
+            <div class="footer-socials">
+                <a href="https://instagram.com/it_shaxarcha_zomin" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    @it_shaxarcha_zomin
+                </a>
+                <a href="https://t.me/husanbek_coder" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0h-.056zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    @husanbek_coder
+                </a>
+                <a href="https://youtube.com/@it_creative" target="_blank">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    @it_creative
+                </a>
+            </div>
             <p>&copy; 2024 — 2026 <a href="/">IT Creative Academy</a>. Barcha huquqlar himoyalangan.</p>
         </footer>
 
@@ -598,8 +872,24 @@
 
         animate();
 
+        /* ───────── Navbar scroll & mobile toggle ───────── */
+        var navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', function () {
+            if (window.scrollY > 50) navbar.classList.add('scrolled');
+            else navbar.classList.remove('scrolled');
+        });
+
+        window.toggleNav = function () {
+            document.getElementById('navLinks').classList.toggle('open');
+            document.getElementById('navOverlay').classList.toggle('show');
+        };
+        window.closeNav = function () {
+            document.getElementById('navLinks').classList.remove('open');
+            document.getElementById('navOverlay').classList.remove('show');
+        };
+
         /* ───────── Scroll Reveal ───────── */
-        var revealEls = document.querySelectorAll('.feature-card, .stat-card');
+        var revealEls = document.querySelectorAll('.feature-card, .stat-card, .pricing-card');
 
         function revealOnScroll() {
             var windowBottom = window.innerHeight;

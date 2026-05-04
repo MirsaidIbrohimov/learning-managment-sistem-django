@@ -72,6 +72,21 @@
 
 .pm-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
 
+.pm-history { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+.pm-history-title { font-weight:700; font-size:0.95rem; padding:1rem 1.25rem 0.5rem; }
+.pm-history-item { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1.25rem; border-top:1px solid var(--border); }
+.pm-history-item:first-of-type { border-top:none; }
+.pm-history-left { display:flex; flex-direction:column; gap:0.15rem; }
+.pm-history-plan { font-weight:600; font-size:0.9rem; }
+.pm-history-date { font-size:0.78rem; color:var(--text-muted); }
+.pm-history-badge { font-size:0.75rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:8px; }
+.pm-history-badge.pending { background:rgba(245,158,11,0.12); color:#d97706; }
+.pm-history-badge.approved { background:rgba(16,185,129,0.12); color:#10b981; }
+.pm-history-badge.rejected { background:rgba(239,68,68,0.12); color:#ef4444; }
+
+.pm-expires-info { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:0.85rem 1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; font-size:0.9rem; }
+.pm-expires-info i { font-size:1.2rem; color:#f59e0b; }
+
 @media(max-width:768px) { .pm-plans{grid-template-columns:1fr} .pm-benefits{grid-template-columns:1fr} }
 </style>
 {% endblock %}
@@ -87,6 +102,8 @@
     <div id="pmStatus">
         <div class="pm-skeleton" style="height:80px;margin-bottom:1rem"></div>
     </div>
+
+    <div id="pmHistory" style="display:none;margin-bottom:1.5rem;animation:pmFadeUp 0.5s ease 0.25s both;"></div>
 
     <div class="pm-benefits">
         <div class="pm-benefit">
@@ -149,13 +166,34 @@
             // Status
             let statusH = '';
             if(plans.has_pending_request){
-                statusH = '<div class="pm-pending-alert"><i class="bi bi-hourglass-split" style="font-size:1.3rem"></i> Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.</div>';
+                const pr = plans.pending_request;
+                const prDate = new Date(pr.created_at).toLocaleDateString('uz-UZ');
+                statusH = '<div class="pm-pending-alert"><i class="bi bi-hourglass-split" style="font-size:1.3rem"></i> <div>Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.<br><small style="opacity:0.8">Tarif: '+pr.plan_display+' | Narxi: '+pr.price+' coin | Yuborilgan: '+prDate+'</small></div></div>';
             } else if(plans.is_premium){
                 statusH = '<div class="pm-status-card premium"><i class="bi bi-gem" style="color:#f59e0b"></i><h4>Siz Premium foydalanuvchisiz! ⭐</h4><p>Muddatni uzaytirish uchun tarif tanlang</p></div>';
+                if(plans.premium_expires_at){
+                    const exp = new Date(plans.premium_expires_at);
+                    const now = new Date();
+                    const daysLeft = Math.max(0, Math.ceil((exp - now) / (1000*60*60*24)));
+                    statusH += '<div class="pm-expires-info"><i class="bi bi-calendar-check"></i> <div>Premium muddati: <b>'+exp.toLocaleDateString('uz-UZ')+'</b> gacha ('+daysLeft+' kun qoldi)</div></div>';
+                }
             } else {
                 statusH = '<div class="pm-status-card"><i class="bi bi-gem" style="color:var(--text-muted)"></i><h4>Premium afzalliklaridan foydalaning</h4><p>Quyidagi tariflardan birini tanlang</p></div>';
             }
             document.getElementById('pmStatus').innerHTML = statusH;
+
+            // Request history
+            const historyEl = document.getElementById('pmHistory');
+            if(plans.request_history && plans.request_history.length > 0){
+                let hH = '<div class="pm-history"><div class="pm-history-title">📋 So\'rovlar tarixi</div>';
+                plans.request_history.forEach(r => {
+                    const d = new Date(r.created_at).toLocaleDateString('uz-UZ');
+                    hH += '<div class="pm-history-item"><div class="pm-history-left"><span class="pm-history-plan">'+r.plan_display+(r.is_extension?' (uzaytirish)':'')+'</span><span class="pm-history-date">'+d+' • '+r.price+' coin</span></div><span class="pm-history-badge '+r.status+'">'+r.status_display+'</span></div>';
+                });
+                hH += '</div>';
+                historyEl.innerHTML = hH;
+                historyEl.style.display = 'block';
+            }
 
             // Plans
             const planKeys = ['weekly','monthly','bimonthly'];
@@ -170,7 +208,7 @@
                     <div class="pm-plan-price">${p.price} <small>coin</small></div>
                     <div class="pm-plan-days">${p.days} kun</div>
                     <button class="pm-plan-btn" ${disabled?'disabled':''} onclick="selectPlan('${key}')">
-                        ${plans.has_pending_request?'Kutilmoqda':!canAfford?'Coin yetarli emas':'Tanlash'}
+                        ${plans.has_pending_request?'Kutilmoqda':!canAfford?'Coin yetarli emas':plans.is_premium?'⏳ Uzaytirish':'Tanlash'}
                     </button>
                 </div>`;
             }).join('');
@@ -185,12 +223,21 @@
         if(!plansData) return;
         selectedPlan = key;
         const p = plansData.plans[key];
-        document.getElementById('pmModalInfo').innerHTML = `
+        const isExt = plansData.is_premium;
+        document.querySelector('#premiumModal .pm-modal h3').textContent = isExt ? '⏳ Premium uzaytirish' : '⭐ Premium sotib olish';
+        let info = `
             <div><span>Tarif:</span><span><b>${p.name}</b></span></div>
-            <div><span>Muddat:</span><span>${p.days} kun</span></div>
+            <div><span>Muddat:</span><span>+${p.days} kun</span></div>
             <div><span>Narxi:</span><span><b>${p.price} coin</b></span></div>
             <div><span>Balansingiz:</span><span>${userCoins} coin</span></div>
             <div class="total"><span>Qoldiq:</span><span>${userCoins-p.price} coin</span></div>`;
+        if(isExt && plansData.premium_expires_at){
+            const exp = new Date(plansData.premium_expires_at);
+            const newExp = new Date(exp.getTime() + p.days*24*60*60*1000);
+            info += `<div style="margin-top:0.5rem;font-size:0.82rem;color:var(--text-muted)">📅 Yangi tugash sanasi: <b>${newExp.toLocaleDateString('uz-UZ')}</b></div>`;
+        }
+        document.getElementById('pmModalInfo').innerHTML = info;
+        document.getElementById('pmConfirmBtn').innerHTML = isExt ? '<i class="bi bi-check-lg"></i> Uzaytirish' : '<i class="bi bi-check-lg"></i> Tasdiqlash';
         document.getElementById('premiumModal').classList.add('show');
     };
     window.closePmModal = function(){ document.getElementById('premiumModal').classList.remove('show'); selectedPlan=null; };
