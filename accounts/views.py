@@ -7407,7 +7407,11 @@ def admin_users(request):
     status_filter = request.GET.get('status', '')
     sort_by = request.GET.get('sort', '')
     
-    users = CustomUser.objects.all()
+    users = CustomUser.objects.only(
+        'id', 'username', 'first_name', 'last_name', 'phone', 'photo',
+        'role', 'is_blocked', 'is_premium', 'last_activity', 'date_joined',
+        'is_superuser',
+    )
     
     if search_query:
         from django.db.models import Q
@@ -7441,7 +7445,7 @@ def admin_users(request):
         users = users.order_by('-date_joined')
     
     total_count = users.count()
-    professions = Profession.objects.all()
+    professions = Profession.objects.only('id', 'name')
     
     paginator = Paginator(users, 25)
     page = request.GET.get('page')
@@ -7804,9 +7808,9 @@ def admin_user_edit(request, pk):
     if not request.user.is_admin:
         return redirect('home')
     
-    user = get_object_or_404(CustomUser, pk=pk)
+    user = get_object_or_404(CustomUser.objects.select_related('profession'), pk=pk)
     
-    professions = Profession.objects.all()
+    professions = Profession.objects.only('id', 'name')
     
     if request.method == 'POST':
         form = AdminUserEditForm(request.POST, request.FILES, instance=user)
@@ -7843,7 +7847,10 @@ def admin_user_block(request, pk):
     if not request.user.is_admin:
         return redirect('home')
     
-    user = get_object_or_404(CustomUser, pk=pk)
+    user = get_object_or_404(
+        CustomUser.objects.only('id', 'first_name', 'last_name', 'role', 'is_blocked', 'telegram_id'),
+        pk=pk
+    )
     
     if user.is_admin:
         messages.error(request, "Admin foydalanuvchini bloklash mumkin emas!")

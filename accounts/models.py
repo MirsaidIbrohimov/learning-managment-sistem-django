@@ -73,7 +73,8 @@ class CustomUser(AbstractUser):
         max_length=20,
         choices=ROLE_CHOICES,
         default='student',
-        verbose_name="Rol"
+        verbose_name="Rol",
+        db_index=True,
     )
 
     photo = models.ImageField(

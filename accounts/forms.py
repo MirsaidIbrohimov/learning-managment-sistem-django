@@ -207,7 +207,7 @@ class AdminUserEditForm(forms.ModelForm):
     phone = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
     role = forms.ChoiceField(choices=CustomUser.ROLE_CHOICES, widget=forms.Select(attrs={'class': 'form-control'}))
     profession = forms.ModelChoiceField(
-        queryset=Profession.objects.all(), required=False,
+        queryset=Profession.objects.only('id', 'name'), required=False,
         widget=forms.Select(attrs={'class': 'form-control'}), empty_label="Yo'nalishni tanlang"
     )
     photo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
