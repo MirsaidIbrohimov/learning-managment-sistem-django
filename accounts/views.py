@@ -7811,11 +7811,15 @@ def admin_user_edit(request, pk):
     if request.method == 'POST':
         form = AdminUserEditForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
             new_password = request.POST.get('new_password')
             if new_password:
                 user.set_password(new_password)
-                user.save()
+            changed_fields = list(form.changed_data)
+            if new_password:
+                changed_fields.append('password')
+            if changed_fields:
+                user.save(update_fields=changed_fields)
             
             # O'qituvchi kurslarini yangilash
             if user.role == 'teacher':
@@ -7846,7 +7850,7 @@ def admin_user_block(request, pk):
         return redirect('admin_users')
     
     user.is_blocked = not user.is_blocked
-    user.save()
+    user.save(update_fields=['is_blocked'])
     
     if user.is_blocked:
         notify_group(
