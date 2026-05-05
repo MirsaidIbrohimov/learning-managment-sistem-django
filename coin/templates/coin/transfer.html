@@ -1,0 +1,489 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Coin O'tkazma | LMS{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes ctFadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ctCountUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+.ctp{max-width:700px;margin:0 auto;padding:1.5rem 1rem 3rem}
+
+/* Hero */
+.ctp-hero{background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);border-radius:20px;padding:2rem;color:#fff;position:relative;overflow:hidden;margin-bottom:1.5rem;animation:ctFadeUp .5s ease}
+.ctp-hero::before{content:'';position:absolute;top:-60%;right:-15%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.12) 0%,transparent 70%);pointer-events:none}
+.ctp-hero-title{font-size:1.5rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.6rem;position:relative;z-index:1}
+.ctp-hero-sub{margin:.4rem 0 0;opacity:.85;font-size:.88rem;position:relative;z-index:1}
+.ctp-balance{position:relative;z-index:1;margin-top:1rem;display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);padding:.5rem 1.2rem;border-radius:12px;font-weight:800;font-size:1.15rem}
+.ctp-balance i{font-size:1.2rem}
+
+/* Back link */
+.ctp-back{display:inline-flex;align-items:center;gap:.4rem;color:var(--text-muted,#888);text-decoration:none;font-weight:600;font-size:.85rem;margin-bottom:1rem;padding:.35rem .7rem;border-radius:10px;transition:.2s}
+.ctp-back:hover{color:#f59e0b;background:rgba(245,158,11,.06)}
+
+/* Main card */
+.ctp-card{background:var(--card,#fff);border:1px solid var(--border,#e5e7eb);border-radius:20px;overflow:hidden;animation:ctFadeUp .5s ease .1s both}
+.ctp-card-body{padding:1.75rem}
+
+/* Steps indicator */
+.ctp-steps{display:flex;gap:.5rem;margin-bottom:1.75rem}
+.ctp-step{flex:1;height:4px;border-radius:4px;background:var(--border,#e5e7eb);transition:.3s}
+.ctp-step.active{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.ctp-step.done{background:#10b981}
+
+/* Search */
+.ctp-search-wrap{position:relative;margin-bottom:.75rem}
+.ctp-search-input{width:100%;height:52px;padding:0 1rem 0 3rem;border:2px solid var(--border,#e5e7eb);border-radius:14px;background:var(--bg,#f9fafb);color:var(--text,#333);font-size:.92rem;font-weight:500;transition:.2s;box-sizing:border-box}
+.ctp-search-input:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.ctp-search-input.searching{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.1)}
+.ctp-search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted,#999);font-size:1.05rem}
+.ctp-search-spinner{position:absolute;right:1rem;top:50%;transform:translateY(-50%);width:22px;height:22px;border:2.5px solid var(--border,#e5e7eb);border-top-color:#f59e0b;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.ctp-search-hint{font-size:.73rem;color:var(--text-muted,#999);margin:0 0 1rem .25rem}
+.ctp-search-hint i{margin-right:.2rem}
+
+/* Results */
+.ctp-results{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem;max-height:280px;overflow-y:auto}
+.ctp-user-card{display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;border:2px solid var(--border,#e5e7eb);border-radius:14px;cursor:pointer;transition:.2s;background:var(--bg,#f9fafb)}
+.ctp-user-card:hover{border-color:#f59e0b;background:rgba(245,158,11,.04);transform:translateX(4px)}
+.ctp-user-card.selected{border-color:#f59e0b;background:rgba(245,158,11,.08);box-shadow:0 0 0 3px rgba(245,158,11,.12)}
+.ctp-user-avatar{width:46px;height:46px;border-radius:13px;object-fit:cover;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.95rem;flex-shrink:0}
+.ctp-user-avatar img{width:100%;height:100%;border-radius:13px;object-fit:cover}
+.ctp-user-info{flex:1;min-width:0}
+.ctp-user-name{font-weight:700;font-size:.92rem;color:var(--text,#333)}
+.ctp-user-meta{font-size:.78rem;color:var(--text-muted,#888);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.ctp-role-badge{font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px}
+
+/* Amount */
+.ctp-amount-section{margin-bottom:1.25rem}
+.ctp-amount-label{font-size:.78rem;font-weight:700;color:var(--text-muted,#888);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem}
+.ctp-amount-input{width:100%;height:56px;padding:0 1rem;border:2px solid var(--border,#e5e7eb);border-radius:14px;background:var(--bg,#f9fafb);color:var(--text,#333);font-size:1.3rem;font-weight:800;text-align:center;transition:.2s;box-sizing:border-box}
+.ctp-amount-input:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.ctp-amount-hint{font-size:.75rem;color:var(--text-muted,#888);margin-top:.35rem;text-align:center}
+
+/* Quick amounts */
+.ctp-quick-amounts{display:flex;gap:.5rem;justify-content:center;margin-top:.65rem;flex-wrap:wrap}
+.ctp-quick-btn{padding:.4rem .9rem;border-radius:10px;border:2px solid var(--border,#e5e7eb);background:var(--bg,#f9fafb);color:var(--text,#333);font-weight:700;font-size:.8rem;cursor:pointer;transition:.2s}
+.ctp-quick-btn:hover{border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,.04)}
+
+/* Fee box */
+.ctp-fee-box{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:14px;padding:1rem 1.15rem;margin-bottom:1.25rem}
+.ctp-fee-row{display:flex;justify-content:space-between;align-items:center;padding:.3rem 0;font-size:.87rem;color:var(--text,#333)}
+.ctp-fee-row.total{font-weight:800;font-size:.97rem;border-top:1px dashed rgba(245,158,11,.3);padding-top:.6rem;margin-top:.3rem}
+
+/* Confirm */
+.ctp-confirm-box{background:var(--bg,#f9fafb);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem;border:1px solid var(--border,#e5e7eb)}
+.ctp-confirm-row{display:flex;justify-content:space-between;padding:.45rem 0;font-size:.9rem}
+.ctp-confirm-label{color:var(--text-muted,#888)}
+.ctp-confirm-value{font-weight:700;color:var(--text,#333)}
+
+.ctp-code-input{width:100%;height:58px;padding:0 1rem;border:2px solid var(--border,#e5e7eb);border-radius:14px;background:var(--bg,#f9fafb);color:var(--text,#333);font-size:1.6rem;font-weight:800;text-align:center;letter-spacing:.5em;transition:.2s;box-sizing:border-box}
+.ctp-code-input:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.ctp-code-hint{font-size:.78rem;color:var(--text-muted,#888);margin-top:.5rem;text-align:center}
+
+/* Buttons */
+.ctp-btn{width:100%;height:50px;border:none;border-radius:14px;font-weight:700;font-size:.92rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:.2s}
+.ctp-btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,.3)}
+.ctp-btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(245,158,11,.4)}
+.ctp-btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.ctp-btn-secondary{background:var(--bg,#f1f1f1);color:var(--text,#333);border:2px solid var(--border,#e5e7eb);margin-bottom:.5rem}
+.ctp-btn-secondary:hover{background:var(--border,#e5e7eb)}
+
+/* Error */
+.ctp-error{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;color:#ef4444;font-size:.85rem;font-weight:600;display:none;align-items:center;gap:.5rem}
+.ctp-error.show{display:flex}
+
+/* Success */
+.ctp-success{text-align:center;padding:2rem 1rem}
+.ctp-success-icon{font-size:4rem;color:#10b981;margin-bottom:1rem;animation:ctCountUp .5s ease}
+.ctp-success h3{font-weight:800;color:var(--text,#333);margin:0 0 .5rem;font-size:1.4rem}
+.ctp-success p{color:var(--text-muted,#888);font-size:.92rem}
+.ctp-new-balance{font-size:1.4rem;font-weight:800;color:#f59e0b;margin-top:.75rem;display:flex;align-items:center;justify-content:center;gap:.4rem}
+.ctp-success-actions{display:flex;gap:.75rem;margin-top:1.5rem}
+.ctp-success-actions .ctp-btn{flex:1}
+
+/* Info box */
+.ctp-info{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.15);border-radius:14px;padding:1rem 1.15rem;margin-top:1.5rem;animation:ctFadeUp .5s ease .2s both}
+.ctp-info-title{font-size:.82rem;font-weight:700;color:#6366f1;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem}
+.ctp-info ul{margin:0;padding:0 0 0 1.1rem;font-size:.8rem;color:var(--text-muted,#888);line-height:1.8}
+
+/* Skeleton */
+.ctp-skeleton{background:linear-gradient(90deg,var(--border,#e5e7eb) 25%,var(--card,#fff) 50%,var(--border,#e5e7eb) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px}
+
+@media(max-width:520px){
+    .ctp-card-body{padding:1.25rem}
+    .ctp-amount-input{font-size:1.1rem;height:50px}
+    .ctp-code-input{font-size:1.3rem;letter-spacing:.3em;height:52px}
+    .ctp-hero{padding:1.5rem}
+    .ctp-hero-title{font-size:1.25rem}
+    .ctp-quick-btn{padding:.35rem .7rem;font-size:.75rem}
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ctp">
+    <a href="{% url 'coin:coin_history' %}" class="ctp-back"><i class="bi bi-arrow-left"></i> Coin tarixiga qaytish</a>
+
+    <div class="ctp-hero">
+        <h1 class="ctp-hero-title"><i class="bi bi-send-fill"></i> Coin O'tkazma</h1>
+        <p class="ctp-hero-sub">Boshqa foydalanuvchiga tez va oson coin yuboring</p>
+        <div class="ctp-balance"><i class="bi bi-coin"></i> <span id="ctpMyBalance">{{ request.user.coins|default:0 }}</span> coin</div>
+    </div>
+
+    <div class="ctp-card">
+        <div class="ctp-card-body">
+
+            <div class="ctp-steps">
+                <div class="ctp-step active" id="ctpStep1"></div>
+                <div class="ctp-step" id="ctpStep2"></div>
+                <div class="ctp-step" id="ctpStep3"></div>
+            </div>
+
+            <div class="ctp-error" id="ctpError"><i class="bi bi-exclamation-circle-fill"></i> <span id="ctpErrorText"></span></div>
+
+            <!-- ====== STEP 1: Search & Amount ====== -->
+            <div id="ctpPanel1">
+                <div class="ctp-search-wrap">
+                    <i class="bi bi-search ctp-search-icon"></i>
+                    <input type="text" class="ctp-search-input" id="ctpSearchInput" placeholder="Username, ism yoki telefon raqam..." autocomplete="off">
+                    <div class="ctp-search-spinner" id="ctpSpinner"></div>
+                </div>
+                <div class="ctp-search-hint"><i class="bi bi-info-circle"></i> Masalan: <b>ali123</b>, <b>Ali</b> yoki <b>+998901234567</b></div>
+
+                <div class="ctp-results" id="ctpResults"></div>
+
+                <div id="ctpAmountWrap" style="display:none;">
+                    <div class="ctp-amount-section">
+                        <div class="ctp-amount-label">Coin miqdori</div>
+                        <input type="number" class="ctp-amount-input" id="ctpAmount" placeholder="100 — 10,000" min="100" max="10000">
+                        <div class="ctp-amount-hint">Minimal: 100 coin · Maksimal: 10,000 coin · Xizmat haqqi: 10%</div>
+                        <div class="ctp-quick-amounts">
+                            <button type="button" class="ctp-quick-btn" onclick="setAmount(100)">100</button>
+                            <button type="button" class="ctp-quick-btn" onclick="setAmount(250)">250</button>
+                            <button type="button" class="ctp-quick-btn" onclick="setAmount(500)">500</button>
+                            <button type="button" class="ctp-quick-btn" onclick="setAmount(1000)">1,000</button>
+                            <button type="button" class="ctp-quick-btn" onclick="setAmount(5000)">5,000</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="ctpFeeBox" style="display:none;">
+                    <div class="ctp-fee-box">
+                        <div class="ctp-fee-row"><span>O'tkazma miqdori</span><span id="ctpFeeAmount">0 coin</span></div>
+                        <div class="ctp-fee-row"><span>Xizmat haqqi (10%)</span><span id="ctpFeeFee">0 coin</span></div>
+                        <div class="ctp-fee-row total"><span>Jami yechiladi</span><span id="ctpFeeTotal">0 coin</span></div>
+                    </div>
+                </div>
+
+                <button class="ctp-btn ctp-btn-primary" id="ctpNextBtn" disabled onclick="initiateTransfer()">
+                    <i class="bi bi-arrow-right"></i> Davom etish
+                </button>
+            </div>
+
+            <!-- ====== STEP 2: Confirm ====== -->
+            <div id="ctpPanel2" style="display:none;">
+                <div class="ctp-confirm-box">
+                    <div class="ctp-confirm-row"><span class="ctp-confirm-label">Qabul qiluvchi</span><span class="ctp-confirm-value" id="ctpConfName"></span></div>
+                    <div class="ctp-confirm-row"><span class="ctp-confirm-label">Username</span><span class="ctp-confirm-value" id="ctpConfUser"></span></div>
+                    <div class="ctp-confirm-row"><span class="ctp-confirm-label">Miqdor</span><span class="ctp-confirm-value" id="ctpConfAmount" style="color:#f59e0b;"></span></div>
+                    <div class="ctp-confirm-row"><span class="ctp-confirm-label">Xizmat haqqi</span><span class="ctp-confirm-value" id="ctpConfFee"></span></div>
+                    <div class="ctp-confirm-row total" style="font-weight:800;border-top:1px dashed var(--border);padding-top:.6rem;margin-top:.3rem;"><span class="ctp-confirm-label">Jami yechiladi</span><span class="ctp-confirm-value" id="ctpConfTotal" style="color:#ef4444;"></span></div>
+                </div>
+
+                <div id="ctpCodeSection">
+                    <div class="ctp-amount-label" id="ctpCodeLabel">Tasdiqlash kodi</div>
+                    <input type="text" class="ctp-code-input" id="ctpCodeInput" maxlength="6" placeholder="••••••" autocomplete="off">
+                    <div class="ctp-code-hint" id="ctpCodeHint">Telegramingizga yuborilgan 6 xonali kodni kiriting</div>
+                </div>
+
+                <div id="ctpPasswordSection" style="display:none;">
+                    <div class="ctp-amount-label">Parolingizni kiriting</div>
+                    <input type="password" class="ctp-code-input" id="ctpPasswordInput" placeholder="Parol" style="letter-spacing:.15em;font-size:1rem;">
+                    <div class="ctp-code-hint">Telegram ulanmagan. Tasdiqlash uchun parolingizni kiriting</div>
+                </div>
+
+                <div style="margin-top:1.25rem;">
+                    <button class="ctp-btn ctp-btn-secondary" onclick="backToStep1()"><i class="bi bi-arrow-left"></i> Orqaga</button>
+                    <button class="ctp-btn ctp-btn-primary" id="ctpConfirmBtn" onclick="confirmTransfer()"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+                </div>
+            </div>
+
+            <!-- ====== STEP 3: Success ====== -->
+            <div id="ctpPanel3" style="display:none;">
+                <div class="ctp-success">
+                    <div class="ctp-success-icon"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3>Muvaffaqiyatli yuborildi!</h3>
+                    <p id="ctpSuccessMsg"></p>
+                    <div class="ctp-new-balance"><i class="bi bi-coin"></i> <span id="ctpNewBalance"></span> coin</div>
+                </div>
+                <div class="ctp-success-actions">
+                    <a href="{% url 'coin:coin_transfer' %}" class="ctp-btn ctp-btn-secondary"><i class="bi bi-arrow-repeat"></i> Yana yuborish</a>
+                    <a href="{% url 'coin:coin_history' %}" class="ctp-btn ctp-btn-primary" style="background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 4px 14px rgba(16,185,129,.3)"><i class="bi bi-clock-history"></i> Tarixga o'tish</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="ctp-info">
+        <div class="ctp-info-title"><i class="bi bi-info-circle-fill"></i> O'tkazma qoidalari</div>
+        <ul>
+            <li>Minimal o'tkazma miqdori: <b>100 coin</b></li>
+            <li>Maksimal o'tkazma miqdori: <b>10,000 coin</b></li>
+            <li>Xizmat haqqi: <b>10%</b> (miqdorga qo'shiladi)</li>
+            <li>Tasdiqlash kodi Telegram orqali yuboriladi</li>
+            <li>O'tkazma bekor qilinmaydi</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    const API = '/api/v1/coin';
+    let selectedUser = null;
+    let currentTransfer = null;
+    let searchTimeout = null;
+
+    function showError(msg) {
+        document.getElementById('ctpErrorText').textContent = msg;
+        document.getElementById('ctpError').classList.add('show');
+    }
+    function hideError() {
+        document.getElementById('ctpError').classList.remove('show');
+    }
+
+    function getCsrf() {
+        var c = document.cookie.match(/csrftoken=([^;]+)/);
+        return c ? c[1] : '';
+    }
+
+    function showSkeletons() {
+        var html = '';
+        for (var i = 0; i < 3; i++) {
+            html += '<div class="ctp-user-card" style="pointer-events:none;opacity:.6;">'
+                + '<div class="ctp-user-avatar" style="background:var(--border);animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '<div class="ctp-user-info" style="flex:1;">'
+                + '<div style="height:13px;width:' + (55 + i*15) + '%;background:var(--border);border-radius:6px;margin-bottom:6px;animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '<div style="height:10px;width:40%;background:var(--border);border-radius:6px;animation:shimmer 1.5s infinite;background-size:200% 100%;"></div>'
+                + '</div></div>';
+        }
+        document.getElementById('ctpResults').innerHTML = html;
+    }
+
+    function renderUsers(data) {
+        if (Array.isArray(data) && data.length > 0) {
+            document.getElementById('ctpResults').innerHTML = data.map(function(u, i) {
+                var initials = (u.full_name || u.username || '?').charAt(0).toUpperCase();
+                var roleLabel = u.role === 'teacher' ? "O'qituvchi" : u.role === 'admin' ? 'Admin' : "O'quvchi";
+                var roleBg = u.role === 'teacher' ? 'rgba(59,130,246,.1)' : u.role === 'admin' ? 'rgba(139,92,246,.1)' : 'rgba(16,185,129,.1)';
+                var roleColor = u.role === 'teacher' ? '#3b82f6' : u.role === 'admin' ? '#8b5cf6' : '#10b981';
+                return '<div class="ctp-user-card' + (selectedUser && selectedUser.username === u.username ? ' selected' : '') + '" '
+                    + 'onclick="selectUser(this,\'' + u.username + '\',\'' + (u.full_name || '').replace(/'/g, "\\'") + '\',\'' + (u.photo || '') + '\')" '
+                    + 'style="animation:ctFadeUp .3s ease ' + (i * 60) + 'ms both">'
+                    + '<div class="ctp-user-avatar">'
+                    + (u.photo ? '<img src="' + u.photo + '" alt="">' : initials)
+                    + '</div>'
+                    + '<div class="ctp-user-info">'
+                    + '<div class="ctp-user-name">' + (u.full_name || u.username) + '</div>'
+                    + '<div class="ctp-user-meta">'
+                    + '<span>@' + u.username + '</span>'
+                    + (u.phone ? '<span style="opacity:.4;">·</span><span><i class="bi bi-telephone" style="font-size:.65rem;"></i> ' + u.phone + '</span>' : '')
+                    + '<span class="ctp-role-badge" style="background:' + roleBg + ';color:' + roleColor + ';">' + roleLabel + '</span>'
+                    + '</div></div>'
+                    + '<i class="bi bi-chevron-right" style="color:var(--text-muted);opacity:.4;"></i>'
+                    + '</div>';
+            }).join('');
+        } else {
+            document.getElementById('ctpResults').innerHTML = '<div style="text-align:center;padding:1.5rem;color:var(--text-muted);font-size:.85rem;">'
+                + '<i class="bi bi-person-x" style="font-size:2rem;display:block;margin-bottom:.5rem;opacity:.3;"></i>'
+                + '<div style="font-weight:600;">Foydalanuvchi topilmadi</div>'
+                + '<div style="font-size:.75rem;opacity:.7;margin-top:.25rem;">Username, ism yoki telefon raqam bilan qidiring</div>'
+                + '</div>';
+        }
+    }
+
+    // Search
+    document.getElementById('ctpSearchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        hideError();
+        var val = this.value.trim();
+        if (val.length < 2) {
+            document.getElementById('ctpResults').innerHTML = '';
+            document.getElementById('ctpSpinner').style.display = 'none';
+            this.classList.remove('searching');
+            if (!selectedUser) {
+                document.getElementById('ctpAmountWrap').style.display = 'none';
+                document.getElementById('ctpFeeBox').style.display = 'none';
+                document.getElementById('ctpNextBtn').disabled = true;
+            }
+            return;
+        }
+        this.classList.add('searching');
+        document.getElementById('ctpSpinner').style.display = 'block';
+        showSkeletons();
+
+        searchTimeout = setTimeout(async function() {
+            try {
+                var r = await fetch(API + '/transfer/search/?username=' + encodeURIComponent(val), {credentials: 'same-origin'});
+                var data = await r.json();
+                document.getElementById('ctpSpinner').style.display = 'none';
+                document.getElementById('ctpSearchInput').classList.remove('searching');
+                renderUsers(r.ok ? data : []);
+            } catch(e) {
+                document.getElementById('ctpSpinner').style.display = 'none';
+                document.getElementById('ctpSearchInput').classList.remove('searching');
+                renderUsers([]);
+            }
+        }, 350);
+    });
+
+    window.selectUser = function(el, username, name, photo) {
+        selectedUser = { username: username, full_name: name, photo: photo };
+        document.querySelectorAll('.ctp-user-card').forEach(function(c) { c.classList.remove('selected'); });
+        el.classList.add('selected');
+        document.getElementById('ctpAmountWrap').style.display = 'block';
+        document.getElementById('ctpAmount').focus();
+        updateFee();
+    };
+
+    window.setAmount = function(val) {
+        document.getElementById('ctpAmount').value = val;
+        updateFee();
+    };
+
+    document.getElementById('ctpAmount').addEventListener('input', updateFee);
+
+    function updateFee() {
+        var amount = parseInt(document.getElementById('ctpAmount').value) || 0;
+        if (amount >= 100 && amount <= 10000 && selectedUser) {
+            var fee = Math.ceil(amount * 0.10);
+            var total = amount + fee;
+            document.getElementById('ctpFeeAmount').textContent = amount.toLocaleString() + ' coin';
+            document.getElementById('ctpFeeFee').textContent = fee.toLocaleString() + ' coin';
+            document.getElementById('ctpFeeTotal').textContent = total.toLocaleString() + ' coin';
+            document.getElementById('ctpFeeBox').style.display = 'block';
+            document.getElementById('ctpNextBtn').disabled = false;
+        } else {
+            document.getElementById('ctpFeeBox').style.display = 'none';
+            document.getElementById('ctpNextBtn').disabled = true;
+        }
+    }
+
+    window.initiateTransfer = async function() {
+        hideError();
+        var btn = document.getElementById('ctpNextBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="ctp-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Yuklanmoqda...';
+
+        try {
+            var r = await fetch(API + '/transfer/initiate/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify({
+                    receiver_username: selectedUser.username,
+                    amount: parseInt(document.getElementById('ctpAmount').value),
+                })
+            });
+            var data = await r.json();
+
+            if (!r.ok) {
+                showError(data.error || "Xatolik yuz berdi!");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-right"></i> Davom etish';
+                return;
+            }
+
+            currentTransfer = data;
+            document.getElementById('ctpConfName').textContent = selectedUser.full_name;
+            document.getElementById('ctpConfUser').textContent = '@' + selectedUser.username;
+            document.getElementById('ctpConfAmount').textContent = data.amount.toLocaleString() + ' coin';
+            document.getElementById('ctpConfFee').textContent = data.fee.toLocaleString() + ' coin';
+            document.getElementById('ctpConfTotal').textContent = data.total_deducted.toLocaleString() + ' coin';
+
+            if (data.needs_telegram_code) {
+                document.getElementById('ctpCodeSection').style.display = 'block';
+                document.getElementById('ctpPasswordSection').style.display = 'none';
+                setTimeout(function(){ document.getElementById('ctpCodeInput').focus(); }, 200);
+            } else {
+                document.getElementById('ctpCodeSection').style.display = 'none';
+                document.getElementById('ctpPasswordSection').style.display = 'block';
+                setTimeout(function(){ document.getElementById('ctpPasswordInput').focus(); }, 200);
+            }
+
+            document.getElementById('ctpPanel1').style.display = 'none';
+            document.getElementById('ctpPanel2').style.display = 'block';
+            document.getElementById('ctpStep1').className = 'ctp-step done';
+            document.getElementById('ctpStep2').className = 'ctp-step active';
+            hideError();
+        } catch(e) {
+            showError("Server bilan aloqa yo'q!");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-right"></i> Davom etish';
+    };
+
+    window.backToStep1 = function() {
+        document.getElementById('ctpPanel1').style.display = 'block';
+        document.getElementById('ctpPanel2').style.display = 'none';
+        document.getElementById('ctpStep1').className = 'ctp-step active';
+        document.getElementById('ctpStep2').className = 'ctp-step';
+        hideError();
+    };
+
+    window.confirmTransfer = async function() {
+        hideError();
+        var btn = document.getElementById('ctpConfirmBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="ctp-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Tasdiqlanmoqda...';
+
+        var body = { transfer_id: currentTransfer.id };
+        if (currentTransfer.needs_telegram_code) {
+            body.code = document.getElementById('ctpCodeInput').value.trim();
+        } else {
+            body.password = document.getElementById('ctpPasswordInput').value;
+        }
+
+        try {
+            var r = await fetch(API + '/transfer/confirm/', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrf()},
+                body: JSON.stringify(body)
+            });
+            var data = await r.json();
+
+            if (!r.ok) {
+                showError(data.error || "Xatolik yuz berdi!");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg"></i> Tasdiqlash';
+                return;
+            }
+
+            document.getElementById('ctpSuccessMsg').textContent = data.message;
+            document.getElementById('ctpNewBalance').textContent = data.new_balance.toLocaleString();
+            document.getElementById('ctpMyBalance').textContent = data.new_balance.toLocaleString();
+
+            document.getElementById('ctpPanel2').style.display = 'none';
+            document.getElementById('ctpPanel3').style.display = 'block';
+            document.getElementById('ctpStep2').className = 'ctp-step done';
+            document.getElementById('ctpStep3').className = 'ctp-step active';
+        } catch(e) {
+            showError("Server bilan aloqa yo'q!");
+        }
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Tasdiqlash';
+    };
+
+    // Focus search on load
+    setTimeout(function(){ document.getElementById('ctpSearchInput').focus(); }, 300);
+})();
+</script>
+{% endblock %}

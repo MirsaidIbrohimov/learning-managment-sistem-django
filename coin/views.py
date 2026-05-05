@@ -25,6 +25,12 @@ def coin_history(request):
 
 
 @login_required
+def coin_transfer(request):
+    """Coin o'tkazma sahifasi — alohida sahifa"""
+    return render(request, 'coin/transfer.html')
+
+
+@login_required
 def market_list(request):
     """Market sahifasi — data API orqali yuklanadi"""
     return render(request, 'coin/market/list.html')

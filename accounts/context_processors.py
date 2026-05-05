@@ -23,28 +23,22 @@ def unread_messages(request):
     # Local import: circular import bo'lmasin
     from .models import Message
 
-    # Faqat o'qilmaganlar
-    base_qs = Message.objects.filter(is_read=False)
+    # Shaxsiy xabarlar soni
+    personal_count = Message.objects.filter(is_read=False, recipient=user).count()
 
-    # --- 1. Shaxsiy xabarlar ---
-    personal_q = Q(recipient=user)
-
-    # --- 2. Umumiy xabarlar ---
+    # Umumiy xabarlar soni
     broadcast_types = ["all"]
-
     if getattr(user, "is_student", False):
         broadcast_types.append("students")
-
     if getattr(user, "is_teacher", False):
         broadcast_types.append("teachers")
 
-    broadcast_q = Q(recipient__isnull=True, message_type__in=broadcast_types)
+    broadcast_count = Message.objects.filter(
+        is_read=False, recipient__isnull=True, message_type__in=broadcast_types
+    ).count()
 
-    # --- Yakuniy filter ---
-    qs = base_qs.filter(personal_q | broadcast_q).distinct()
-
-    count = qs.count()
-    cache.set(cache_key, count, 30)
+    count = personal_count + broadcast_count
+    cache.set(cache_key, count, 60)
     return {"unread_messages_count": count}
 
 
@@ -90,5 +84,5 @@ def admin_badges(request):
         "admin_pending_telegram": ContactMessage.objects.filter(status="new").count(),
         "admin_pending_suggestions": WordSuggestion.objects.filter(status="pending").count(),
     }
-    cache.set(cache_key, badges, 30)
+    cache.set(cache_key, badges, 120)
     return badges

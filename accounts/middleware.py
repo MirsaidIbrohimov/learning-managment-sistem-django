@@ -97,6 +97,8 @@ class BlockedUserMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
         if request.user.is_authenticated:
             user = request.user
             # Agar is_blocked maydoni mavjud bo'lsa tekshir
@@ -313,8 +315,8 @@ class DeviceLimitMiddleware:
         if request.user.is_admin:
             return self.get_response(request)
         
-        # Static/media fayllar
-        if request.path.startswith(('/static/', '/media/')):
+        # Static/media/API fayllar
+        if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         
         # Exempt URL larni o'tkazib yuborish
@@ -334,19 +336,34 @@ class DeviceLimitMiddleware:
         if not session_key:
             return self.get_response(request)
         
+        # Cache orqali tekshirish — har requestda DB ga murojaat qilmaslik
+        cache_key = f'active_session_{request.user.id}'
+        cached_session_key = cache.get(cache_key)
+        
+        if cached_session_key is not None:
+            # Cache da bor — tezkor tekshirish
+            if cached_session_key == session_key:
+                return self.get_response(request)
+            else:
+                from django.contrib.auth import logout as auth_logout
+                auth_logout(request)
+                return redirect('login')
+        
+        # Cache da yo'q — DB dan o'qib, cache ga saqlash
         from .models import UserSession
         active_session = UserSession.objects.filter(
             user=request.user, is_active=True
-        ).first()
+        ).values_list('session_key', flat=True).first()
         
         if active_session is None:
-            # Hech qanday ro'yxatdan o'tgan sessiya yo'q — qayta login qilish kerak
             from django.contrib.auth import logout as auth_logout
             auth_logout(request)
             return redirect('login')
         
-        if active_session.session_key != session_key:
-            # Boshqa qurilmadan login qilingan — bu qurilmani chiqarish
+        # 30 sekundga cache ga saqlash
+        cache.set(cache_key, active_session, 30)
+        
+        if active_session != session_key:
             from django.contrib.auth import logout as auth_logout
             auth_logout(request)
             return redirect('login')
@@ -443,11 +460,13 @@ class ProfileCompletionMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
+        if request.path.startswith(_SKIP_PREFIXES):
+            return self.get_response(request)
         if request.user.is_authenticated and request.user.role == 'student':
             # Admin va teacher uchun tekshirish kerak emas
             if not request.user.is_profile_completed:
                 # Static/media fayllar uchun tekshirmaslik
-                if request.path.startswith(('/static/', '/media/', '/admin/')):
+                if request.path.startswith('/admin/'):
                     return self.get_response(request)
                 
                 try:

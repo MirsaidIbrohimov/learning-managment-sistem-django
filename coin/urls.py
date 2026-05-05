@@ -6,6 +6,7 @@ app_name = 'coin'
 urlpatterns = [
     # Frontend Pages (API-backed)
     path('coin-history/', views.coin_history, name='coin_history'),
+    path('coin-transfer/', views.coin_transfer, name='coin_transfer'),
     path('market/', views.market_list, name='market_list'),
     path('market/premium/', views.premium_page, name='buy_premium'),
     path('market/<int:pk>/', views.market_detail, name='market_detail'),
