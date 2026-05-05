@@ -266,12 +266,39 @@
                 <i class="bi bi-telegram me-1"></i>
                 {% if user.telegram_username %}@{{ user.telegram_username }}{% else %}Ulangan ✅{% endif %}
             </span>
-            <form method="POST" action="{% url 'telegram_bot:unlink_telegram' %}" class="d-inline">
+            <form method="POST" action="{% url 'telegram_bot:unlink_telegram' %}" class="d-inline" id="tgUnlinkForm">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" style="font-size:0.7rem;" onclick="return confirm('Telegramni uzmoqchimisiz?')">
-                    <i class="bi bi-x-lg"></i>
+                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" style="font-size:0.7rem;">
+                    <i class="bi bi-x-lg"></i> Uzish
                 </button>
             </form>
+        </div>
+
+        <!-- Telegram uzish tasdiqlash modali -->
+        <div class="modal fade" id="tgUnlinkModal" tabindex="-1" data-bs-backdrop="static">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content" style="border-radius:20px;border:none;overflow:hidden;">
+                    <div class="modal-body p-4 text-center">
+                        <div style="width:64px;height:64px;border-radius:50%;background:rgba(0,136,204,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                            <i class="bi bi-telegram" style="font-size:1.8rem;color:#0088cc;"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1">Telegramni uzish</h6>
+                        <p class="text-muted small mb-3">Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
+                        <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
+                            {% csrf_token %}
+                            <input type="text" name="unlink_code" maxlength="6" class="form-control text-center fw-bold mb-3" placeholder="••••••" autocomplete="off"
+                                style="font-size:1.5rem;letter-spacing:.4em;border-radius:14px;height:52px;border:2px solid var(--border-color,#dee2e6);" required>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger rounded-pill fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i> Tasdiqlash
+                                </button>
+                                <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Bekor qilish</button>
+                            </div>
+                        </form>
+                        <div class="text-muted mt-2" style="font-size:.72rem;"><i class="bi bi-clock"></i> Kod 5 daqiqa amal qiladi</div>
+                    </div>
+                </div>
+            </div>
         </div>
         {% else %}
         <a href="{% url 'telegram_bot:link_telegram' %}" class="btn rounded-pill fw-semibold" style="background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;border:none;">
@@ -602,5 +629,43 @@
 function openPhotoLightbox(url){var lb=document.getElementById('photoLightbox');document.getElementById('lightboxImg').src=url;lb.classList.add('active');document.body.style.overflow='hidden'}
 function closePhotoLightbox(e){if(e.target.closest('.photo-lightbox-img'))return;var lb=document.getElementById('photoLightbox');lb.classList.remove('active');document.body.style.overflow=''}
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){var lb=document.getElementById('photoLightbox');if(lb.classList.contains('active')){lb.classList.remove('active');document.body.style.overflow=''}}});
+
+{% if user.telegram_id %}
+(function(){
+    var form = document.getElementById('tgUnlinkForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        }).then(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-x-lg"></i> Uzish';
+            var modal = new bootstrap.Modal(document.getElementById('tgUnlinkModal'));
+            modal.show();
+            setTimeout(function(){ document.querySelector('#tgUnlinkModal input[name="unlink_code"]').focus(); }, 300);
+        }).catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-x-lg"></i> Uzish';
+            alert("Xatolik yuz berdi!");
+        });
+    });
+
+    var codeInput = document.querySelector('#tgUnlinkModal input[name="unlink_code"]');
+    if (codeInput) {
+        codeInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+})();
+{% endif %}
 </script>
 {% endblock %}

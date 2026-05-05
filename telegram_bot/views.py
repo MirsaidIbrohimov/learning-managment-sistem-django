@@ -43,12 +43,71 @@ def link_telegram(request):
 
 @login_required
 def unlink_telegram(request):
-    """Telegramni uzish"""
-    if request.method == 'POST':
-        request.user.telegram_id = None
-        request.user.telegram_username = None
-        request.user.save(update_fields=['telegram_id', 'telegram_username'])
-        messages.success(request, "Telegram uzildi! 🔓")
+    """Telegramni uzish — tasdiqlash kodi yuborish"""
+    if request.method != 'POST':
+        return redirect('profile')
+
+    if not request.user.telegram_id:
+        messages.error(request, "Telegram ulanmagan!")
+        return redirect('profile')
+
+    import random
+    from django.core.cache import cache
+    from .utils import notify_user
+
+    code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    cache_key = f'tg_unlink_code_{request.user.id}'
+    cache.set(cache_key, code, 300)  # 5 daqiqa
+
+    notify_user(
+        request.user.telegram_id,
+        f"🔐 <b>Telegram uzish kodi</b>\n\n"
+        f"Sizning tasdiqlash kodingiz:\n\n"
+        f"<code>{code}</code>\n\n"
+        f"⏱ Kod 5 daqiqa ichida amal qiladi.\n"
+        f"❗ Agar siz so'ramagan bo'lsangiz, e'tiborsiz qoldiring."
+    )
+
+    # AJAX so'rov bo'lsa JSON qaytarish
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'ok': True, 'message': 'Kod yuborildi'})
+
+    messages.info(request, "Tasdiqlash kodi Telegram ga yuborildi! ✅")
+    return redirect('profile')
+
+
+@login_required
+@require_POST
+def confirm_unlink_telegram(request):
+    """Telegramni uzish — kodni tasdiqlash"""
+    from django.core.cache import cache
+
+    if not request.user.telegram_id:
+        messages.error(request, "Telegram ulanmagan!")
+        return redirect('profile')
+
+    code = request.POST.get('unlink_code', '').strip()
+    if not code:
+        messages.error(request, "Kodni kiriting!")
+        return redirect('profile')
+
+    cache_key = f'tg_unlink_code_{request.user.id}'
+    correct_code = cache.get(cache_key)
+
+    if not correct_code:
+        messages.error(request, "Kod muddati tugagan! Qaytadan urinib ko'ring.")
+        return redirect('profile')
+
+    if code != correct_code:
+        messages.error(request, "Kod noto'g'ri!")
+        return redirect('profile')
+
+    # Kod to'g'ri — uzish
+    cache.delete(cache_key)
+    request.user.telegram_id = None
+    request.user.telegram_username = None
+    request.user.save(update_fields=['telegram_id', 'telegram_username'])
+    messages.success(request, "Telegram muvaffaqiyatli uzildi! 🔓")
     return redirect('profile')
 
 

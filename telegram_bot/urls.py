@@ -6,6 +6,7 @@ app_name = 'telegram_bot'
 urlpatterns = [
     path('link/', views.link_telegram, name='link_telegram'),
     path('unlink/', views.unlink_telegram, name='unlink_telegram'),
+    path('unlink/confirm/', views.confirm_unlink_telegram, name='confirm_unlink_telegram'),
     path('webhook/', views.bot_webhook, name='bot_webhook'),
     path('set_webhook/', views.set_webhook, name='set_webhook'),
     path('health/', views.bot_health, name='bot_health'),
