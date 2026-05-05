@@ -33,11 +33,18 @@ class CustomUserAdmin(UserAdmin):
     ordering = ['-date_joined']
     list_editable = ['is_blocked']
     list_per_page = 25
+    autocomplete_fields = ['profession']
+    filter_horizontal = ['teaching_professions', 'groups', 'user_permissions']
     
     def get_inlines(self, request, obj=None):
         if obj and obj.role == 'teacher':
             return [TeacherSalaryInline, TeacherAttendanceInline]
         return []
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('profession').prefetch_related(
+            'teaching_professions', 'groups'
+        )
     
     fieldsets = (
         (None, {
