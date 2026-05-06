@@ -7816,10 +7816,10 @@ def admin_user_edit(request, pk):
         form = AdminUserEditForm(request.POST, request.FILES, instance=user)
         if form.is_valid():
             user = form.save(commit=False)
-            new_password = request.POST.get('new_password')
+            new_password = form.cleaned_data.get('new_password')
             if new_password:
                 user.set_password(new_password)
-            changed_fields = list(form.changed_data)
+            changed_fields = [f for f in form.changed_data if f != 'new_password']
             if new_password:
                 changed_fields.append('password')
             if changed_fields:
