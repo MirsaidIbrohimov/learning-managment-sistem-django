@@ -13,6 +13,7 @@
 @keyframes ctCountUp{from{opacity:0;transform:scale(0.6) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+@keyframes spinInline{to{transform:rotate(360deg)}}
 @keyframes ctPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 @keyframes ctFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes ctGlow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15)}50%{box-shadow:0 0 35px rgba(245,158,11,0.3)}}
@@ -540,7 +541,7 @@
         hideError();
         var btn = document.getElementById('ctpNextBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="ctp-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Yuklanmoqda...';
+        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Yuklanmoqda...';
 
         try {
             var r = await fetch(API + '/transfer/initiate/', {
@@ -605,7 +606,7 @@
         hideError();
         var btn = document.getElementById('ctpConfirmBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span class="ctp-search-spinner" style="display:inline-block;position:static;transform:none;width:18px;height:18px;border-top-color:#fff;"></span> Tasdiqlanmoqda...';
+        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Tasdiqlanmoqda...';
 
         var body = { transfer_id: currentTransfer.id };
         if (currentTransfer.needs_telegram_code) {
