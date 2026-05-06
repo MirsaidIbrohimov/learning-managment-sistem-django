@@ -51,7 +51,7 @@ def user_weather_effect(request):
 
 def admin_badges(request):
     user = getattr(request, "user", None)
-    if not user or not user.is_authenticated or not getattr(user, "is_superuser", False):
+    if not user or not user.is_authenticated or not getattr(user, "is_admin", False):
         return {}
 
     from django.core.cache import cache

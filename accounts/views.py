@@ -917,8 +917,14 @@ def home_view(request):
     if not request.user.is_authenticated:
         landing_professions = Profession.objects.filter(is_blocked=False)[:6]
         posts = Post.objects.filter(is_published=True)[:3]
-        total_students = CustomUser.objects.filter(role='student').count()
-        total_courses = Profession.objects.count()
+        total_students = cache.get('total_students_count')
+        if total_students is None:
+            total_students = CustomUser.objects.filter(role='student').count()
+            cache.set('total_students_count', total_students, 300)
+        total_courses = cache.get('total_courses_count')
+        if total_courses is None:
+            total_courses = Profession.objects.count()
+            cache.set('total_courses_count', total_courses, 300)
         success = False
 
         if request.method == 'POST':
@@ -960,9 +966,18 @@ def home_view(request):
         lesson_count=Count('lessons')
     ).all()[:6]
 
-    total_students = CustomUser.objects.filter(role='student').count()
-    total_courses = Profession.objects.count()
-    total_lessons = Lesson.objects.count()
+    total_students = cache.get('total_students_count')
+    if total_students is None:
+        total_students = CustomUser.objects.filter(role='student').count()
+        cache.set('total_students_count', total_students, 300)
+    total_courses = cache.get('total_courses_count')
+    if total_courses is None:
+        total_courses = Profession.objects.count()
+        cache.set('total_courses_count', total_courses, 300)
+    total_lessons = cache.get('total_lessons_count')
+    if total_lessons is None:
+        total_lessons = Lesson.objects.count()
+        cache.set('total_lessons_count', total_lessons, 300)
 
     # --- O'quvchi uchun kurslari ---
     my_enrollments = []
@@ -7034,23 +7049,38 @@ def admin_dashboard(request):
         messages.error(request, "Sizda admin paneliga kirish huquqi yo'q!")
         return redirect('home')
     
-    total_users = CustomUser.objects.count()
-    total_teachers = CustomUser.objects.filter(role='teacher').count()
-    total_students = CustomUser.objects.filter(role='student').count()
-    total_professions = Profession.objects.count()
-    blocked_users = CustomUser.objects.filter(is_blocked=True).count()
+    dash_stats = cache.get('admin_dash_stats')
+    if dash_stats is None:
+        dash_stats = {
+            'total_users': CustomUser.objects.count(),
+            'total_teachers': CustomUser.objects.filter(role='teacher').count(),
+            'total_students': CustomUser.objects.filter(role='student').count(),
+            'total_professions': Profession.objects.count(),
+            'blocked_users': CustomUser.objects.filter(is_blocked=True).count(),
+            'total_lessons': Lesson.objects.count(),
+            'total_videos': VideoLesson.objects.count(),
+            'total_tests': Test.objects.count(),
+            'total_homeworks': Homework.objects.count(),
+            'total_enrollments': CourseEnrollment.objects.count(),
+            'total_certificates': Certificate.objects.count(),
+            'total_coins': CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0,
+        }
+        cache.set('admin_dash_stats', dash_stats, 120)
+    total_users = dash_stats['total_users']
+    total_teachers = dash_stats['total_teachers']
+    total_students = dash_stats['total_students']
+    total_professions = dash_stats['total_professions']
+    blocked_users = dash_stats['blocked_users']
     online_users = CustomUser.objects.filter(
         last_activity__gte=timezone.now() - timedelta(seconds=300)
     ).count()
-    
-    # Qo'shimcha statistika
-    total_lessons = Lesson.objects.count()
-    total_videos = VideoLesson.objects.count()
-    total_tests = Test.objects.count()
-    total_homeworks = Homework.objects.count()
-    total_enrollments = CourseEnrollment.objects.count()
-    total_certificates = Certificate.objects.count()
-    total_coins = CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0
+    total_lessons = dash_stats['total_lessons']
+    total_videos = dash_stats['total_videos']
+    total_tests = dash_stats['total_tests']
+    total_homeworks = dash_stats['total_homeworks']
+    total_enrollments = dash_stats['total_enrollments']
+    total_certificates = dash_stats['total_certificates']
+    total_coins = dash_stats['total_coins']
     
     # Test natijalari (cached)
     test_cache = cache.get('admin_test_stats')

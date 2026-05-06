@@ -1,3 +1,4 @@
+import threading
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.urls import resolve
@@ -31,15 +32,15 @@ class BirthdayCheckMiddleware:
                     request.user.birth_date.day == today.day):
                     request.birthday_today = True
         
-        # Kuniga 1 marta tug'ilgan kun tabrikini Telegram orqali yuborish
+        # Kuniga 1 marta tug'ilgan kun tabrikini Telegram orqali yuborish (non-blocking)
         cache_key = 'birthday_check_done'
         if not cache.get(cache_key):
+            cache.set(cache_key, True, 86400)  # 24 soat
             try:
                 from telegram_bot.utils import check_birthdays
-                check_birthdays()
+                threading.Thread(target=check_birthdays, daemon=True).start()
             except Exception:
                 pass
-            cache.set(cache_key, True, 86400)  # 24 soat
         
         return self.get_response(request)
 
@@ -54,37 +55,37 @@ class UpdateLastActivityMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        response = self.get_response(request)
         if request.path.startswith(_SKIP_PREFIXES):
-            return response
+            return self.get_response(request)
+        response = self.get_response(request)
         if request.user.is_authenticated:
             now = timezone.now()
             now_ts = now.timestamp()
             last_saved = request.session.get('_last_activity_saved', 0)
+            
+            # Faqat 60 sekundda bir marta ishlash
+            if last_saved and (now_ts - last_saved) <= 60:
+                return response
+            
             accumulated = request.session.get('_accumulated_seconds', 0)
             
             if last_saved:
                 diff_seconds = now_ts - last_saved
-                # Foydalanuvchi hali saytda (5 daqiqadan kam vaqt o'tgan)
                 if 0 < diff_seconds <= 300:
                     accumulated += diff_seconds
-                # 5 daqiqadan ko'p — foydalanuvchi ketib qaytgan, oraliqni hisoblamaymiz
             
-            # Har 30 sekundda session ni yangilash (ortiqcha yozishlarni kamaytirish)
-            if not last_saved or (now_ts - last_saved) > 30:
-                request.session['_last_activity_saved'] = now_ts
-                
-                # To'plangan soniyalar 60 dan oshganda DB ga yozish
-                if accumulated >= 60:
-                    minutes_to_add = int(accumulated / 60)
-                    remaining = accumulated - (minutes_to_add * 60)
-                    CustomUser.objects.filter(id=request.user.id).update(
-                        last_activity=now,
-                        total_online_time=models.F('total_online_time') + minutes_to_add
-                    )
-                    request.session['_accumulated_seconds'] = remaining
-                else:
-                    request.session['_accumulated_seconds'] = accumulated
+            request.session['_last_activity_saved'] = now_ts
+            
+            if accumulated >= 60:
+                minutes_to_add = int(accumulated / 60)
+                remaining = accumulated - (minutes_to_add * 60)
+                CustomUser.objects.filter(id=request.user.id).update(
+                    last_activity=now,
+                    total_online_time=models.F('total_online_time') + minutes_to_add
+                )
+                request.session['_accumulated_seconds'] = remaining
+            else:
+                request.session['_accumulated_seconds'] = accumulated
         return response
 
 
@@ -161,12 +162,11 @@ class SessionTimeoutMiddleware:
         if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         if request.user.is_authenticated:
-            last_activity = request.session.get('_last_activity')
             now = timezone.now().timestamp()
+            last_activity = request.session.get('_last_activity')
             
             if last_activity:
                 if now - last_activity > self.SESSION_TIMEOUT:
-                    # Sessiyani deaktivatsiya qilish
                     session_key = request.session.session_key
                     if session_key:
                         from .models import UserSession
@@ -175,8 +175,12 @@ class SessionTimeoutMiddleware:
                         ).update(is_active=False)
                     request.session.flush()
                     return redirect('login')
-            
-            request.session['_last_activity'] = now
+                
+                # Faqat 60 sekundda bir marta session yangilash
+                if now - last_activity > 60:
+                    request.session['_last_activity'] = now
+            else:
+                request.session['_last_activity'] = now
         
         return self.get_response(request)
 
@@ -193,12 +197,20 @@ class MaintenanceMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        try:
-            maintenance = MaintenanceMode.get_instance()
-        except Exception:
+        # Static/media fayllar uchun tekshirmaslik
+        if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         
-        if not maintenance.is_active:
+        maintenance_active = cache.get('maintenance_mode_active')
+        if maintenance_active is None:
+            try:
+                maintenance = MaintenanceMode.get_instance()
+                maintenance_active = maintenance.is_active
+                cache.set('maintenance_mode_active', maintenance_active, 30)
+            except Exception:
+                return self.get_response(request)
+        
+        if not maintenance_active:
             return self.get_response(request)
         
         # Admin va teacher har doim kirishga ruxsat
@@ -217,8 +229,13 @@ class MaintenanceMiddleware:
         if request.path.startswith(('/static/', '/media/', '/telegrambotlms/webhook/')):
             return self.get_response(request)
         
+        try:
+            maintenance = MaintenanceMode.get_instance()
+        except Exception:
+            maintenance = None
+        
         return render(request, 'accounts/maintenance.html', {
-            'message': maintenance.message,
+            'message': maintenance.message if maintenance else 'Texnik ishlar olib borilmoqda',
         }, status=503)
 
 
@@ -361,7 +378,7 @@ class DeviceLimitMiddleware:
             return redirect('login')
         
         # 30 sekundga cache ga saqlash
-        cache.set(cache_key, active_session, 30)
+        cache.set(cache_key, active_session, 120)
         
         if active_session != session_key:
             from django.contrib.auth import logout as auth_logout

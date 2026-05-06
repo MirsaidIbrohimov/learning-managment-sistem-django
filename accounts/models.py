@@ -282,6 +282,11 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Foydalanuvchi"
         verbose_name_plural = "Foydalanuvchilar"
+        indexes = [
+            models.Index(fields=['role', 'is_blocked']),
+            models.Index(fields=['date_joined']),
+            models.Index(fields=['is_premium', 'premium_expires_at']),
+        ]
 
     def __str__(self):
         return self.username
@@ -296,6 +301,9 @@ class CourseEnrollment(models.Model):
         unique_together = ['user', 'profession']
         verbose_name = "Kursga yozilish"
         verbose_name_plural = "Kursga yozilishlar"
+        indexes = [
+            models.Index(fields=['enrolled_at']),
+        ]
     
     def __str__(self):
         return f"{self.user.full_name} - {self.profession.name}"
@@ -619,6 +627,7 @@ class HomeworkSubmission(models.Model):
         ordering = ['-submitted_at']
         indexes = [
             models.Index(fields=['student', 'status']),
+            models.Index(fields=['status']),
         ]
     
     def __str__(self):
@@ -993,6 +1002,10 @@ class Message(models.Model):
         ordering = ['-created_at']
         verbose_name = "Xabar"
         verbose_name_plural = "Xabarlar"
+        indexes = [
+            models.Index(fields=['recipient', 'is_read']),
+            models.Index(fields=['message_type', 'recipient', 'is_read']),
+        ]
     
     def __str__(self):
         return self.title
@@ -1118,6 +1131,9 @@ class UserSession(models.Model):
         ordering = ['-last_activity']
         verbose_name = "Foydalanuvchi sessiyasi"
         verbose_name_plural = "Foydalanuvchi sessiyalari"
+        indexes = [
+            models.Index(fields=['user', 'is_active']),
+        ]
     
     def __str__(self):
         return f"{self.user.username} - {self.started_at}"
