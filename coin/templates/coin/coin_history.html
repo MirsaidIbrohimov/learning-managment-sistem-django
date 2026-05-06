@@ -15,8 +15,10 @@
 @keyframes chPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
 @keyframes chFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
 @keyframes chGlow { 0%,100%{box-shadow:0 0 20px rgba(99,102,241,0.15)} 50%{box-shadow:0 0 35px rgba(99,102,241,0.3)} }
-@keyframes spin { to{transform:translateY(-50%) rotate(360deg)} }
-@keyframes spinInline { to{transform:rotate(360deg)} }
+@keyframes chDotBounce {
+    0%,80%,100%{transform:scale(0);opacity:0.3}
+    40%{transform:scale(1);opacity:1}
+}
 @keyframes chCountUp { from{opacity:0;transform:scale(0.6) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
 @keyframes chRipple { 0%{transform:scale(0);opacity:0.6} 100%{transform:scale(4);opacity:0} }
 @keyframes chBorderGlow {
@@ -381,11 +383,18 @@
     transform:translateY(-1px);
 }
 .ct-search-icon { position:absolute; left:0.9rem; top:50%; transform:translateY(-50%); color:var(--text-muted,#999); }
-.ct-search-spinner {
+/* Dots loader */
+.ct-dots-loader {
     position:absolute; right:0.9rem; top:50%; transform:translateY(-50%);
-    width:22px; height:22px; border:2.5px solid var(--border,#e5e7eb);
-    border-top-color:#f59e0b; border-radius:50%; animation:spin 0.6s linear infinite; display:none;
+    display:none; gap:4px; align-items:center;
 }
+.ct-dots-loader.show { display:flex; }
+.ct-dots-loader span {
+    width:7px; height:7px; border-radius:50%; background:#f59e0b;
+    animation:chDotBounce 1.2s ease-in-out infinite;
+}
+.ct-dots-loader span:nth-child(2){animation-delay:0.15s}
+.ct-dots-loader span:nth-child(3){animation-delay:0.3s}
 .ct-search-input.searching { border-color:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,0.08); }
 
 /* User results */
@@ -671,7 +680,7 @@
                 <div class="ct-search-wrap">
                     <i class="bi bi-search ct-search-icon"></i>
                     <input type="text" class="ct-search-input" id="ctSearchInput" placeholder="Username, ism yoki telefon raqam..." autocomplete="off">
-                    <div class="ct-search-spinner" id="ctSpinner"></div>
+                    <div class="ct-dots-loader" id="ctSpinner"><span></span><span></span><span></span></div>
                 </div>
                 <div style="font-size:0.72rem;color:var(--text-muted,#999);margin:-0.5rem 0 0.75rem 0.25rem;"><i class="bi bi-info-circle"></i> Masalan: <b>ali123</b>, <b>Ali</b> yoki <b>+998901234567</b></div>
                 <div class="ct-results" id="ctResults"></div>
@@ -926,7 +935,7 @@
         document.getElementById('ctStep1').className = 'ct-step active';
         document.getElementById('ctStep2').className = 'ct-step';
         document.getElementById('ctStep3').className = 'ct-step';
-        document.getElementById('ctSpinner').style.display = 'none';
+        document.getElementById('ctSpinner').classList.remove('show');
         hideError();
     }
 
@@ -1006,7 +1015,7 @@
 
         if (val.length < 2) {
             document.getElementById('ctResults').innerHTML = '';
-            document.getElementById('ctSpinner').style.display = 'none';
+            document.getElementById('ctSpinner').classList.remove('show');
             this.classList.remove('searching');
             if (!selectedUser) {
                 document.getElementById('ctAmountWrap').style.display = 'none';
@@ -1017,7 +1026,7 @@
         }
 
         this.classList.add('searching');
-        document.getElementById('ctSpinner').style.display = 'block';
+        document.getElementById('ctSpinner').classList.add('show');
         showSkeletons();
         isSearching = true;
 
@@ -1025,7 +1034,7 @@
             try {
                 var r = await fetch(API + '/transfer/search/?username=' + encodeURIComponent(val), {credentials: 'same-origin'});
                 var data = await r.json();
-                document.getElementById('ctSpinner').style.display = 'none';
+                document.getElementById('ctSpinner').classList.remove('show');
                 document.getElementById('ctSearchInput').classList.remove('searching');
                 isSearching = false;
                 if (r.ok) {
@@ -1034,7 +1043,7 @@
                     renderUsers([]);
                 }
             } catch(e) {
-                document.getElementById('ctSpinner').style.display = 'none';
+                document.getElementById('ctSpinner').classList.remove('show');
                 document.getElementById('ctSearchInput').classList.remove('searching');
                 isSearching = false;
                 renderUsers([]);
@@ -1073,7 +1082,7 @@
         hideError();
         var btn = document.getElementById('ctNextBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Yuklanmoqda...';
+        btn.innerHTML = '<span style="display:inline-flex;gap:4px;align-items:center;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out 0.15s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out 0.3s infinite;"></span></span> Yuklanmoqda...';
 
         try {
             var r = await fetch(API + '/transfer/initiate/', {
@@ -1139,7 +1148,7 @@
         hideError();
         var btn = document.getElementById('ctConfirmBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Tasdiqlanmoqda...';
+        btn.innerHTML = '<span style="display:inline-flex;gap:4px;align-items:center;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out 0.15s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:chDotBounce 1.2s ease-in-out 0.3s infinite;"></span></span> Tasdiqlanmoqda...';
 
         var body = { transfer_id: currentTransfer.id };
         if (currentTransfer.needs_telegram_code) {

@@ -12,8 +12,10 @@
 @keyframes ctBounceIn{0%{opacity:0;transform:scale(0.3)}50%{transform:scale(1.05)}70%{transform:scale(0.95)}100%{opacity:1;transform:scale(1)}}
 @keyframes ctCountUp{from{opacity:0;transform:scale(0.6) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-@keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
-@keyframes spinInline{to{transform:rotate(360deg)}}
+@keyframes ctpDotBounce{
+    0%,80%,100%{transform:scale(0);opacity:0.3}
+    40%{transform:scale(1);opacity:1}
+}
 @keyframes ctPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 @keyframes ctFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @keyframes ctGlow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15)}50%{box-shadow:0 0 35px rgba(245,158,11,0.3)}}
@@ -106,11 +108,18 @@
 .ctp-search-input:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.12);transform:translateY(-1px)}
 .ctp-search-input.searching{border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.08)}
 .ctp-search-icon{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:var(--text-muted,#999);font-size:1.05rem}
-.ctp-search-spinner{
+/* Dots loader */
+.ctp-dots-loader{
     position:absolute;right:1rem;top:50%;transform:translateY(-50%);
-    width:22px;height:22px;border:2.5px solid var(--border,#e5e7eb);border-top-color:#f59e0b;
-    border-radius:50%;animation:spin .6s linear infinite;display:none;
+    display:none;gap:4px;align-items:center;
 }
+.ctp-dots-loader.show{display:flex}
+.ctp-dots-loader span{
+    width:7px;height:7px;border-radius:50%;background:#f59e0b;
+    animation:ctpDotBounce 1.2s ease-in-out infinite;
+}
+.ctp-dots-loader span:nth-child(2){animation-delay:0.15s}
+.ctp-dots-loader span:nth-child(3){animation-delay:0.3s}
 .ctp-search-hint{font-size:.73rem;color:var(--text-muted,#999);margin:0 0 1rem .25rem}
 .ctp-search-hint i{margin-right:.2rem}
 
@@ -295,7 +304,7 @@
                 <div class="ctp-search-wrap">
                     <i class="bi bi-search ctp-search-icon"></i>
                     <input type="text" class="ctp-search-input" id="ctpSearchInput" placeholder="Username, ism yoki telefon raqam..." autocomplete="off">
-                    <div class="ctp-search-spinner" id="ctpSpinner"></div>
+                    <div class="ctp-dots-loader" id="ctpSpinner"><span></span><span></span><span></span></div>
                 </div>
                 <div class="ctp-search-hint"><i class="bi bi-info-circle"></i> Masalan: <b>ali123</b>, <b>Ali</b> yoki <b>+998901234567</b></div>
 
@@ -477,7 +486,7 @@
         var val = this.value.trim();
         if (val.length < 2) {
             document.getElementById('ctpResults').innerHTML = '';
-            document.getElementById('ctpSpinner').style.display = 'none';
+            document.getElementById('ctpSpinner').classList.remove('show');
             this.classList.remove('searching');
             if (!selectedUser) {
                 document.getElementById('ctpAmountWrap').style.display = 'none';
@@ -487,18 +496,18 @@
             return;
         }
         this.classList.add('searching');
-        document.getElementById('ctpSpinner').style.display = 'block';
+        document.getElementById('ctpSpinner').classList.add('show');
         showSkeletons();
 
         searchTimeout = setTimeout(async function() {
             try {
                 var r = await fetch(API + '/transfer/search/?username=' + encodeURIComponent(val), {credentials: 'same-origin'});
                 var data = await r.json();
-                document.getElementById('ctpSpinner').style.display = 'none';
+                document.getElementById('ctpSpinner').classList.remove('show');
                 document.getElementById('ctpSearchInput').classList.remove('searching');
                 renderUsers(r.ok ? data : []);
             } catch(e) {
-                document.getElementById('ctpSpinner').style.display = 'none';
+                document.getElementById('ctpSpinner').classList.remove('show');
                 document.getElementById('ctpSearchInput').classList.remove('searching');
                 renderUsers([]);
             }
@@ -541,7 +550,7 @@
         hideError();
         var btn = document.getElementById('ctpNextBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Yuklanmoqda...';
+        btn.innerHTML = '<span style="display:inline-flex;gap:4px;align-items:center;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out 0.15s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out 0.3s infinite;"></span></span> Yuklanmoqda...';
 
         try {
             var r = await fetch(API + '/transfer/initiate/', {
@@ -606,7 +615,7 @@
         hideError();
         var btn = document.getElementById('ctpConfirmBtn');
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:18px;height:18px;border:2.5px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spinInline 0.6s linear infinite;vertical-align:middle;"></span> Tasdiqlanmoqda...';
+        btn.innerHTML = '<span style="display:inline-flex;gap:4px;align-items:center;"><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out 0.15s infinite;"></span><span style="width:6px;height:6px;border-radius:50%;background:#fff;animation:ctpDotBounce 1.2s ease-in-out 0.3s infinite;"></span></span> Tasdiqlanmoqda...';
 
         var body = { transfer_id: currentTransfer.id };
         if (currentTransfer.needs_telegram_code) {
