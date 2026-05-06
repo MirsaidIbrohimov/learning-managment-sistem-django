@@ -10,9 +10,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'id', 'username', 'first_name', 'last_name', 'full_name',
-            'phone', 'email', 'role', 'photo', 'bio',
+            'phone', 'role', 'photo', 'bio',
             'birth_date', 'gender', 'nationality',
-            'father_name', 'mother_name', 'parent_phone',
             'school_name', 'school_number', 'address',
             'coins', 'is_premium', 'is_profile_completed',
             'profile_completion_percent', 'date_joined', 'last_activity',
@@ -110,7 +109,7 @@ class CertificateSerializer(serializers.ModelSerializer):
 
 
 class StudentListSerializer(serializers.ModelSerializer):
-    """Admin uchun o'quvchilar ro'yxati"""
+    """Admin uchun o'quvchilar ro'yxati — faqat admin foydalanuvchilariga ochiq"""
     full_name = serializers.CharField(read_only=True)
     profession_name = serializers.CharField(source='profession.name', read_only=True, default=None)
 

@@ -1,8 +1,12 @@
+import logging
+
 from rest_framework import generics, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
+
+api_audit = logging.getLogger('api.audit')
 from accounts.models import CustomUser, Profession, Section, CourseEnrollment, Lesson, TestResult, Certificate
 
 from .serializers import (
@@ -114,6 +118,7 @@ class AdminStudentListView(generics.ListAPIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_status(request):
+    api_audit.info(f"API status check: user={request.user.username}, role={request.user.role}")
     return Response({
         'status': 'ok',
         'user': request.user.username,

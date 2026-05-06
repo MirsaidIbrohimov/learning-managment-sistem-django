@@ -8,8 +8,10 @@ from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message
 
-# Static/media/API so'rovlarini tezkor o'tkazish uchun
-_SKIP_PREFIXES = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
+# Static/media so'rovlarini tezkor o'tkazish uchun (BlockedUserMiddleware va boshqalar)
+_SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/')
+# API ni ham o'tkazib yuboradigan middleware lar uchun
+_SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
 
 
 class BirthdayCheckMiddleware:
@@ -22,7 +24,7 @@ class BirthdayCheckMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
 
         if request.user.is_authenticated and request.user.role == 'student':
@@ -55,7 +57,7 @@ class UpdateLastActivityMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         response = self.get_response(request)
         if request.user.is_authenticated:
@@ -104,6 +106,12 @@ class BlockedUserMiddleware:
             user = request.user
             # Agar is_blocked maydoni mavjud bo'lsa tekshir
             if hasattr(user, 'is_blocked') and user.is_blocked:
+                if request.path.startswith('/api/'):
+                    from django.http import JsonResponse
+                    return JsonResponse(
+                        {'detail': 'Sizning akkauntingiz bloklangan.'},
+                        status=403
+                    )
                 try:
                     return render(
                         request,
@@ -126,7 +134,7 @@ class PaymentCheckMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         try:
             if request.user.is_authenticated and request.user.role == 'student':
@@ -159,7 +167,7 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         if request.user.is_authenticated:
             now = timezone.now().timestamp()
@@ -198,7 +206,7 @@ class MaintenanceMiddleware:
     
     def __call__(self, request):
         # Static/media fayllar uchun tekshirmaslik
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         
         maintenance_active = cache.get('maintenance_mode_active')
@@ -333,7 +341,7 @@ class DeviceLimitMiddleware:
             return self.get_response(request)
         
         # Static/media/API fayllar
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         
         # Exempt URL larni o'tkazib yuborish
@@ -398,7 +406,7 @@ class PremiumExpiryMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
 
         if request.user.is_authenticated:
@@ -477,7 +485,7 @@ class ProfileCompletionMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES):
+        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         if request.user.is_authenticated and request.user.role == 'student':
             # Admin va teacher uchun tekshirish kerak emas

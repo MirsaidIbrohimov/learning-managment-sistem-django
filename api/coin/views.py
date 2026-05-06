@@ -1,10 +1,13 @@
+import logging
 import math
 import random
 import string
 from datetime import timedelta
 
+api_audit = logging.getLogger('api.audit')
+
 from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Sum, Q
@@ -12,6 +15,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from api.permissions import CoinTransferRateThrottle
 from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer
 from accounts.models import CustomUser, PremiumRequest, Message
 from telegram_bot.utils import notify_group, notify_user, notify_admins
@@ -220,6 +224,10 @@ def purchase_product(request, pk):
             message_type='system'
         )
 
+    api_audit.info(
+        f"Product purchased: user={request.user.username}, product={product.name}, "
+        f"price={final_price}, user_id={request.user.pk}"
+    )
     serializer = ProductPurchaseSerializer(purchase)
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -468,6 +476,7 @@ def search_user_for_transfer(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([CoinTransferRateThrottle])
 def initiate_transfer(request):
     """Coin o'tkazmani boshlash — tasdiqlash kodi yuborish"""
     serializer = CoinTransferInitSerializer(data=request.data)
@@ -514,6 +523,10 @@ def initiate_transfer(request):
         status='pending',
     )
     
+    api_audit.info(
+        f"Coin transfer initiated: sender={request.user.username}, "
+        f"receiver={receiver.username}, amount={amount}, fee={fee}, transfer_id={transfer.pk}"
+    )
     # Agar telegram ulangan bo'lsa — kodni telegramga yuborish
     needs_telegram = bool(request.user.telegram_id)
     if needs_telegram:
@@ -535,6 +548,7 @@ def initiate_transfer(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@throttle_classes([CoinTransferRateThrottle])
 def confirm_transfer(request):
     """Coin o'tkazmani tasdiqlash"""
     serializer = CoinTransferConfirmSerializer(data=request.data)
@@ -635,6 +649,10 @@ def confirm_transfer(request):
             message_type='system'
         )
     
+    api_audit.info(
+        f"Coin transfer confirmed: sender={request.user.username}, "
+        f"receiver={transfer.receiver.username}, amount={transfer.amount}, transfer_id={transfer.pk}"
+    )
     return Response({
         'message': f"Muvaffaqiyatli! {transfer.amount} coin {transfer.receiver.full_name} ga o'tkazildi.",
         'new_balance': request.user.coins,

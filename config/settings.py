@@ -372,15 +372,15 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 # CSRF sozlamalari
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SECURE = not DEBUG
 CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'config.views.csrf_failure'
 
 # Session xavfsizligi
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = False  # HTTPS bo'lsa True qiling
+SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Content Security Policy (CSP) - inline scriptlarni bloklash
@@ -391,6 +391,13 @@ CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net
 CSP_IMG_SRC = ("'self'", "data:", "https:")
 CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
 CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
+
+# HTTPS sozlamalari (production uchun)
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # O'yin xavfsizligi
 GAME_HMAC_SECRET = SECRET_KEY[:16]
@@ -420,7 +427,18 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+        'api.permissions.IsNotBlocked',
     ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '30/minute',
+        'user': '120/minute',
+        'login': '5/minute',
+        'coin_transfer': '10/hour',
+    },
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_RENDERER_CLASSES': [
@@ -461,6 +479,13 @@ LOGGING = {
             'formatter': 'verbose',
             'encoding': 'utf-8',
         },
+        'api_audit_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': str(LOG_DIR / 'api_audit.log'),
+            'formatter': 'verbose',
+            'encoding': 'utf-8',
+        },
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
@@ -485,6 +510,11 @@ LOGGING = {
         },
         'api': {
             'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'api.audit': {
+            'handlers': ['api_audit_file'],
             'level': 'INFO',
             'propagate': False,
         },
