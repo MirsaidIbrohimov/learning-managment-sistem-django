@@ -14,12 +14,12 @@ from .serializers import (
     SectionSerializer, LessonSerializer, EnrollmentSerializer,
     TestResultSerializer, CertificateSerializer, StudentListSerializer,
 )
-from .permissions import IsAdmin, IsTeacher, IsProfileCompleted
+from .permissions import IsAdmin, IsTeacher, IsProfileCompleted, IsNotBlocked
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_object(self):
         return self.request.user
@@ -27,7 +27,7 @@ class ProfileView(generics.RetrieveUpdateAPIView):
 
 class ProfileCompleteView(generics.UpdateAPIView):
     serializer_class = ProfileCompleteSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_object(self):
         return self.request.user
@@ -41,7 +41,7 @@ class ProfileCompleteView(generics.UpdateAPIView):
 
 class ProfessionListView(generics.ListAPIView):
     serializer_class = ProfessionListSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         qs = Profession.objects.all()
@@ -52,13 +52,13 @@ class ProfessionListView(generics.ListAPIView):
 
 class ProfessionDetailView(generics.RetrieveAPIView):
     serializer_class = ProfessionListSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
     queryset = Profession.objects.all()
 
 
 class CourseSectionsView(generics.ListAPIView):
     serializer_class = SectionSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         return Section.objects.filter(profession_id=self.kwargs['pk'], is_active=True)
@@ -66,7 +66,7 @@ class CourseSectionsView(generics.ListAPIView):
 
 class CourseLessonsView(generics.ListAPIView):
     serializer_class = LessonSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         return Lesson.objects.filter(profession_id=self.kwargs['pk']).select_related('section')
@@ -74,7 +74,7 @@ class CourseLessonsView(generics.ListAPIView):
 
 class MyEnrollmentsView(generics.ListAPIView):
     serializer_class = EnrollmentSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         return CourseEnrollment.objects.filter(user=self.request.user).select_related('profession')
@@ -82,7 +82,7 @@ class MyEnrollmentsView(generics.ListAPIView):
 
 class MyTestResultsView(generics.ListAPIView):
     serializer_class = TestResultSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         return TestResult.objects.filter(student=self.request.user).select_related('test__lesson').order_by('-completed_at')
@@ -90,7 +90,7 @@ class MyTestResultsView(generics.ListAPIView):
 
 class MyCertificatesView(generics.ListAPIView):
     serializer_class = CertificateSerializer
-    permission_classes = [IsAuthenticated, IsProfileCompleted]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsProfileCompleted]
 
     def get_queryset(self):
         return Certificate.objects.filter(student=self.request.user).select_related('profession')
@@ -98,7 +98,7 @@ class MyCertificatesView(generics.ListAPIView):
 
 class AdminStudentListView(generics.ListAPIView):
     serializer_class = StudentListSerializer
-    permission_classes = [IsAuthenticated, IsAdmin]
+    permission_classes = [IsAuthenticated, IsNotBlocked, IsAdmin]
 
     def get_queryset(self):
         qs = CustomUser.objects.filter(role='student').select_related('profession').order_by('-date_joined')
@@ -116,7 +116,7 @@ class AdminStudentListView(generics.ListAPIView):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def api_status(request):
     api_audit.info(f"API status check: user={request.user.username}, role={request.user.role}")
     return Response({

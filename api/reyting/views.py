@@ -1,13 +1,18 @@
+import logging
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Sum
 from django.core.cache import cache
 from accounts.models import CustomUser, Profession, HomeworkSubmission
+from api.permissions import IsNotBlocked
+
+logger = logging.getLogger(__name__)
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def leaderboard_api(request):
     """
     Leaderboard API - returns JSON data for the leaderboard.
@@ -18,6 +23,11 @@ def leaderboard_api(request):
     search_query = request.query_params.get('q', '').strip()
     limit = min(int(request.query_params.get('limit', 100)), 200)
 
+    logger.info(
+        "Leaderboard API accessed by user=%s tab=%s profession=%s",
+        request.user.pk, tab, profession_id,
+    )
+
     professions_data = list(Profession.objects.values('id', 'name'))
 
     if tab == 'score':
@@ -25,7 +35,7 @@ def leaderboard_api(request):
         cached = cache.get(cache_key)
 
         if not cached:
-            students_qs = CustomUser.objects.filter(role='student')
+            students_qs = CustomUser.objects.filter(role='student', is_blocked=False)
             if profession_id:
                 students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct()
             if search_query:
@@ -78,8 +88,6 @@ def leaderboard_api(request):
             if student:
                 students_list.append({
                     'rank': idx + 1,
-                    'id': student.pk,
-                    'username': student.username,
                     'first_name': student.first_name,
                     'last_name': student.last_name,
                     'full_name': student.full_name,
@@ -101,7 +109,7 @@ def leaderboard_api(request):
         })
 
     # Coins tab (default)
-    students_qs = CustomUser.objects.filter(role='student').order_by('-coins')
+    students_qs = CustomUser.objects.filter(role='student', is_blocked=False).order_by('-coins')
 
     if profession_id:
         students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct().order_by('-coins')
@@ -118,7 +126,7 @@ def leaderboard_api(request):
         if request.user.pk in all_ids:
             user_rank = all_ids.index(request.user.pk) + 1
         else:
-            all_ranked = list(CustomUser.objects.filter(role='student').order_by('-coins').values_list('pk', flat=True))
+            all_ranked = list(CustomUser.objects.filter(role='student', is_blocked=False).order_by('-coins').values_list('pk', flat=True))
             if request.user.pk in all_ranked:
                 user_rank = all_ranked.index(request.user.pk) + 1
 
@@ -127,8 +135,6 @@ def leaderboard_api(request):
     for idx, student in enumerate(students_data):
         students_list.append({
             'rank': idx + 1,
-            'id': student.pk,
-            'username': student.username,
             'first_name': student.first_name,
             'last_name': student.last_name,
             'full_name': student.full_name,

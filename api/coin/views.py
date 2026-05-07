@@ -15,7 +15,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from api.permissions import CoinTransferRateThrottle
+from api.permissions import CoinTransferRateThrottle, IsNotBlocked
 from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer
 from accounts.models import CustomUser, PremiumRequest, Message
 from telegram_bot.utils import notify_group, notify_user, notify_admins
@@ -44,7 +44,7 @@ def get_discounted_price(product, user):
 
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
         qs = Product.objects.filter(is_active=True).order_by('-created_at')
@@ -56,13 +56,13 @@ class ProductListView(generics.ListAPIView):
 
 class ProductDetailView(generics.RetrieveAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
     queryset = Product.objects.filter(is_active=True)
 
 
 class ProductCommentsView(generics.ListAPIView):
     serializer_class = ProductCommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
         return ProductComment.objects.filter(product_id=self.kwargs['pk']).select_related('user')
@@ -70,7 +70,7 @@ class ProductCommentsView(generics.ListAPIView):
 
 class MyPurchasesView(generics.ListAPIView):
     serializer_class = ProductPurchaseSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
         qs = ProductPurchase.objects.filter(user=self.request.user).select_related('product')
@@ -82,7 +82,7 @@ class MyPurchasesView(generics.ListAPIView):
 
 class CoinTransactionListView(generics.ListAPIView):
     serializer_class = CoinTransactionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
         qs = CoinTransaction.objects.filter(user=self.request.user)
@@ -103,7 +103,7 @@ class CoinTransactionListView(generics.ListAPIView):
 
 class ActivityLogListView(generics.ListAPIView):
     serializer_class = ActivityLogSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotBlocked]
 
     def get_queryset(self):
         qs = ActivityLog.objects.filter(user=self.request.user)
@@ -114,7 +114,7 @@ class ActivityLogListView(generics.ListAPIView):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def coin_summary(request):
     user = request.user
     transactions = CoinTransaction.objects.filter(user=user)
@@ -135,7 +135,7 @@ def coin_summary(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def toggle_like(request, pk):
     product = get_object_or_404(Product, pk=pk)
     like = ProductLike.objects.filter(product=product, user=request.user).first()
@@ -159,7 +159,7 @@ def toggle_like(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def purchase_product(request, pk):
     product = get_object_or_404(Product, pk=pk)
     final_price = get_discounted_price(product, request.user)
@@ -233,7 +233,7 @@ def purchase_product(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def cancel_purchase(request, pk):
     purchase = get_object_or_404(ProductPurchase, pk=pk, user=request.user)
 
@@ -293,7 +293,7 @@ def cancel_purchase(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def add_comment(request, pk):
     product = get_object_or_404(Product, pk=pk)
     serializer = ProductCommentCreateSerializer(data=request.data)
@@ -332,7 +332,7 @@ def add_comment(request, pk):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def request_premium(request):
     serializer = PremiumRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -401,7 +401,7 @@ def request_premium(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def premium_plans(request):
     pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
     user = request.user
@@ -447,7 +447,7 @@ def premium_plans(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 def search_user_for_transfer(request):
     """Username yoki telefon raqam bo'yicha foydalanuvchi qidirish"""
     query = request.query_params.get('username', '').strip()
@@ -475,7 +475,7 @@ def search_user_for_transfer(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 @throttle_classes([CoinTransferRateThrottle])
 def initiate_transfer(request):
     """Coin o'tkazmani boshlash — tasdiqlash kodi yuborish"""
@@ -547,7 +547,7 @@ def initiate_transfer(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsNotBlocked])
 @throttle_classes([CoinTransferRateThrottle])
 def confirm_transfer(request):
     """Coin o'tkazmani tasdiqlash"""

@@ -4111,6 +4111,16 @@ def student_public_profile(request, pk):
         messages.error(request, "Bu sahifa mavjud emas!")
         return redirect('home')
     
+    # Bloklangan foydalanuvchi tekshiruvi
+    if hasattr(request.user, 'is_blocked') and request.user.is_blocked:
+        messages.error(request, "Sizning akkauntingiz bloklangan!")
+        return redirect('home')
+    
+    # Bloklangan o'quvchi profili ko'rinmas
+    if student.is_blocked:
+        messages.error(request, "Bu profil mavjud emas!")
+        return redirect('home')
+    
     # Umumiy kurslar
     user_profession_ids = request.user.enrollments.values_list('profession_id', flat=True)
     student_enrollments = CourseEnrollment.objects.filter(user=student).select_related('profession')
@@ -4132,10 +4142,6 @@ def student_public_profile(request, pk):
     # Barcha kurslar (yozilgan)
     all_enrollments = student_enrollments
     
-    # Coin statistika
-    total_earned_coins = CoinTransaction.objects.filter(user=student, action='add').aggregate(total=Sum('amount'))['total'] or 0
-    total_spent_coins = CoinTransaction.objects.filter(user=student, action__in=['remove', 'purchase']).aggregate(total=Sum('amount'))['total'] or 0
-    
     # Ball statistika
     test_results_qs = TestResult.first_attempts().filter(student=student)
     total_tests_taken = test_results_qs.count()
@@ -4152,8 +4158,6 @@ def student_public_profile(request, pk):
         'completed_count': completed_count,
         'deploys': deploys,
         'all_enrollments': all_enrollments,
-        'total_earned_coins': total_earned_coins,
-        'total_spent_coins': total_spent_coins,
         'total_tests_taken': total_tests_taken,
         'avg_test_score': avg_test_score,
         'total_homeworks_submitted': total_homeworks_submitted,
