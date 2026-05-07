@@ -35,7 +35,7 @@ def leaderboard_api(request):
         cached = cache.get(cache_key)
 
         if not cached:
-            students_qs = CustomUser.objects.filter(role='student', is_blocked=False)
+            students_qs = CustomUser.objects.filter(role='student', is_blocked=False, is_profile_completed=True)
             if profession_id:
                 students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct()
             if search_query:
@@ -111,7 +111,7 @@ def leaderboard_api(request):
         })
 
     # Coins tab (default)
-    students_qs = CustomUser.objects.filter(role='student', is_blocked=False).order_by('-coins')
+    students_qs = CustomUser.objects.filter(role='student', is_blocked=False, is_profile_completed=True).order_by('-coins')
 
     if profession_id:
         students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct().order_by('-coins')
@@ -128,7 +128,7 @@ def leaderboard_api(request):
         if request.user.pk in all_ids:
             user_rank = all_ids.index(request.user.pk) + 1
         else:
-            all_ranked = list(CustomUser.objects.filter(role='student', is_blocked=False).order_by('-coins').values_list('pk', flat=True))
+            all_ranked = list(CustomUser.objects.filter(role='student', is_blocked=False, is_profile_completed=True).order_by('-coins').values_list('pk', flat=True))
             if request.user.pk in all_ranked:
                 user_rank = all_ranked.index(request.user.pk) + 1
 
