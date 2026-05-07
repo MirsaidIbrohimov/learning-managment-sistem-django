@@ -88,6 +88,8 @@ def leaderboard_api(request):
             if student:
                 students_list.append({
                     'rank': idx + 1,
+                    'id': student.pk,
+                    'username': student.username,
                     'first_name': student.first_name,
                     'last_name': student.last_name,
                     'full_name': student.full_name,
@@ -135,6 +137,8 @@ def leaderboard_api(request):
     for idx, student in enumerate(students_data):
         students_list.append({
             'rank': idx + 1,
+            'id': student.pk,
+            'username': student.username,
             'first_name': student.first_name,
             'last_name': student.last_name,
             'full_name': student.full_name,
