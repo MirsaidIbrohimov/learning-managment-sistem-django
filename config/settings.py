@@ -71,8 +71,6 @@ SESSION_SAVE_EVERY_REQUEST = False
 # 🎨 JAZZMIN — DEV LMS STYLE
 # ============================
 
-
-
 JAZZMIN_SETTINGS = {
     "site_title": "IT Creative LMS Admin",
     "site_header": "IT Creative LMS 🚀",
