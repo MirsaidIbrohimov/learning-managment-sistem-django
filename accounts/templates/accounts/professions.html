@@ -1060,7 +1060,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var sorted = sortCards(cards.slice());
         var shown = 0;
         var isFiltering = currentFilter !== 'all' || currentSearch || currentSort !== 'default';
-        var maxShow = currentView === 'compact' ? 8 : GRID_LIMIT;
 
         sorted.forEach(function(card, i) {
             var matchFilter = true;
@@ -1079,14 +1078,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (matchFilter && matchSearch) {
-                if (!isFiltering && shown >= maxShow) {
-                    card.classList.add('card-hidden');
-                } else {
-                    card.classList.remove('card-hidden');
-                    card.style.animation = 'none';
-                    card.offsetHeight;
-                    card.style.animation = 'cardReveal 0.4s ' + (shown * 0.05) + 's cubic-bezier(0.2,0.8,0.2,1) forwards';
-                }
+                card.classList.remove('card-hidden');
+                card.style.animation = 'none';
+                card.offsetHeight;
+                card.style.animation = 'cardReveal 0.4s ' + (shown * 0.05) + 's cubic-bezier(0.2,0.8,0.2,1) forwards';
                 shown++;
             } else {
                 card.classList.add('card-hidden');
@@ -1095,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         sorted.forEach(function(card) { grid.appendChild(card); });
 
-        var displayedCount = isFiltering ? shown : Math.min(shown, maxShow);
+        var displayedCount = shown;
         visibleCount.textContent = displayedCount;
         noResults.classList.toggle('show', shown === 0);
 
@@ -1119,7 +1114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ====== VIEW SWITCHER ======
     var VIEW_KEY = 'prof-view-mode';
     var currentView = 'grid';
-    var GRID_LIMIT = 6;
+
 
     function setView(mode) {
         currentView = mode;
