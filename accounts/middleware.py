@@ -447,9 +447,11 @@ class SecurityHeadersMiddleware:
         
         # XSS himoya
         response['X-Content-Type-Options'] = 'nosniff'
-        response['X-XSS-Protection'] = '1; mode=block'
+        response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP ishlatiladi
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+        response['Cross-Origin-Opener-Policy'] = 'same-origin'
+        response['Cross-Origin-Resource-Policy'] = 'same-origin'
         
         # CSP - Content Security Policy
         csp_directives = [

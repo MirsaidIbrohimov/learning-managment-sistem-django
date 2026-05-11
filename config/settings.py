@@ -17,19 +17,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+load_dotenv(BASE_DIR / '.env')
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u')
+if not os.getenv('DJANGO_SECRET_KEY') and not DEBUG:
+    import warnings
+    warnings.warn("⚠️ DJANGO_SECRET_KEY o'rnatilmagan! Production uchun .env faylda SECRET_KEY qo'shing.", stacklevel=1)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [h.strip() for h in os.getenv(
+    'ALLOWED_HOSTS',
+    'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1'
+).split(',') if h.strip()]
 
 
 # Application definition
@@ -308,6 +314,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 10},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -372,8 +379,15 @@ X_FRAME_OPTIONS = 'DENY'
 # CSRF sozlamalari
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_USE_SESSIONS = False
 CSRF_FAILURE_VIEW = 'config.views.csrf_failure'
+CSRF_TRUSTED_ORIGINS = [
+    o.strip() for o in os.getenv(
+        'CSRF_TRUSTED_ORIGINS',
+        'http://localhost:8000,http://127.0.0.1:8000' if DEBUG else 'https://itc-academy.uz,https://www.itc-academy.uz,https://itcreative.uz,https://www.itcreative.uz'
+    ).split(',') if o.strip()
+]
 
 # Session xavfsizligi
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
@@ -396,9 +410,16 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+
+# Fayl yuklash xavfsizligi
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024  # 15 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
 # O'yin xavfsizligi
-GAME_HMAC_SECRET = SECRET_KEY[:16]
+GAME_HMAC_SECRET = os.getenv('GAME_HMAC_SECRET', SECRET_KEY[:16])
 GAME_MAX_WPM = 180
 GAME_MIN_SECONDS_PER_WORD = 0.15
 GAME_MIN_SECONDS = 3
@@ -415,6 +436,14 @@ SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
 # Brute-force himoya
 LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
 LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
+
+# Rate limiting sozlamalari
+RATE_LIMIT_LOGIN_IP = 10  # Login: IP uchun urinishlar soni
+RATE_LIMIT_LOGIN_USER = 5  # Login: foydalanuvchi uchun urinishlar soni
+RATE_LIMIT_REGISTER_IP = 3  # Register: IP uchun soatiga
+RATE_LIMIT_PASSWORD_RESET_IP = 3  # Parol tiklash: IP uchun soatiga
+RATE_LIMIT_WINDOW = 900  # Vaqt oynasi (sekundlarda — 15 daqiqa)
+RATE_LIMIT_REGISTER_WINDOW = 3600  # Register vaqt oynasi (1 soat)
 
 # ============ REST FRAMEWORK ============
 

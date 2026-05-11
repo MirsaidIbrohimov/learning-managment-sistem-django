@@ -26,6 +26,7 @@ from .models import (
     DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken
 )
 from django.contrib.auth.hashers import make_password
+from .security import get_client_ip, check_rate_limit
 from coin.models import ActivityLog, CoinTransaction
 from blog.models import Post
 
@@ -436,6 +437,15 @@ def register_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     
+    # Rate limiting — ro'yxatdan o'tish uchun
+    if request.method == 'POST':
+        blocked, msg = check_rate_limit(
+            request, 'register', ip_limit=3, id_limit=3, window=3600
+        )
+        if blocked:
+            messages.error(request, msg)
+            return render(request, 'accounts/register.html', {'form': RegisterForm()})
+    
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
@@ -645,11 +655,25 @@ def login_view(request):
         login_token = request.POST.get('login_token', login_token)
         request.session['login_token'] = login_token
 
+        # 🛡️ IP-based rate limiting
+        login_identifier = (
+            request.POST.get('username', '') or
+            request.POST.get('phone', '') or
+            request.POST.get('telegram_code', '') or
+            ''
+        ).strip().lower()
+        blocked, block_msg = check_rate_limit(
+            request, 'login', identifier=login_identifier,
+            ip_limit=10, id_limit=5, window=900
+        )
+        if blocked:
+            messages.error(request, block_msg)
+            return _login_render(request, form, login_mode)
+
         # 🤖 Honeypot — botlar uchun tuzoq
         honeypot = request.POST.get('website_url', '')
         if honeypot:
-            import time
-            time.sleep(2)
+            _record_failed_login(ip_address, 'honeypot_bot', user_agent, login_token)
             messages.error(request, "Username yoki parol noto'g'ri ❌")
             return _login_render(request, form, login_mode)
 
@@ -657,7 +681,7 @@ def login_view(request):
         if LoginAttempt.is_token_blocked(login_token, max_attempts, lockout_minutes):
             remaining = LoginAttempt.get_token_remaining_time(login_token, max_attempts, lockout_minutes)
             remaining_min = remaining // 60 + 1
-            messages.error(request, f"Juda ko'p noto'g'ri urinish! {remaining_min} daqiqadan keyin qayta urinib ko'ring yoki sahifani yangi tab'da oching. 🔒")
+            messages.error(request, f"Juda ko'p noto'g'ri urinish! {remaining_min} daqiqadan keyin qayta urinib ko'ring. 🔒")
             # Admin'ga xabar berish
             if not request.session.get('brute_notified'):
                 try:
@@ -10508,6 +10532,17 @@ def password_reset_request_view(request):
     if request.user.is_authenticated:
         return redirect('home')
     
+    # Rate limiting — parol tiklash uchun
+    if request.method == 'POST':
+        blocked, msg = check_rate_limit(
+            request, 'password_reset',
+            identifier=request.POST.get('username', ''),
+            ip_limit=3, id_limit=3, window=3600
+        )
+        if blocked:
+            messages.error(request, msg)
+            return render(request, 'accounts/password_reset_request.html', {'form': PasswordResetRequestForm()})
+    
     if request.method == 'POST':
         form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
@@ -10517,8 +10552,8 @@ def password_reset_request_view(request):
             try:
                 user = CustomUser.objects.get(username=username)
             except CustomUser.DoesNotExist:
-                messages.error(request, "Bunday username topilmadi!")
-                return render(request, 'accounts/password_reset_request.html', {'form': form})
+                messages.success(request, "Parol tiklash so'rovi yuborildi! Admin tasdiqlashini kuting.")
+                return redirect('login')
             
             existing_request = PasswordResetRequest.objects.filter(user=user, status='pending').first()
             if existing_request:

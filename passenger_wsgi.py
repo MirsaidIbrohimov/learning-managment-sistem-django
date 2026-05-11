@@ -1,7 +1,16 @@
 import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(__file__))
+BASE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(BASE_DIR))
+
+# .env faylni yuklash (Passenger uchun muhim)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
