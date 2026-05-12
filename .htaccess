@@ -1,0 +1,27 @@
+# ═══ Passenger sozlamalari ═══
+PassengerAppRoot /home/itcreati/itc-academy.uz
+PassengerPython /home/itcreati/itc-academy.uz/.venv/bin/python
+
+# ═══ Xavfsizlik Headerlari ═══
+# X-Powered-By yashirish
+Header always unset X-Powered-By
+Header always unset Server
+
+# MIME sniffing himoya
+Header always set X-Content-Type-Options "nosniff"
+
+# Clickjacking himoya
+Header always set X-Frame-Options "DENY"
+
+# XSS himoya (CSP ishlatiladi)
+Header always set X-XSS-Protection "0"
+
+# Referrer siyosati
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Cross-Origin siyosatlari
+Header always set Cross-Origin-Opener-Policy "same-origin"
+Header always set Cross-Origin-Resource-Policy "same-origin"
+
+# Permissions-Policy
+Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()"
