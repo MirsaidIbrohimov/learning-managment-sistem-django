@@ -665,7 +665,7 @@ def login_view(request):
         ).strip().lower()
         blocked, block_msg = check_rate_limit(
             request, 'login', identifier=login_identifier,
-            ip_limit=5, id_limit=3, window=900
+            ip_limit=15, id_limit=5, window=900
         )
         if blocked:
             messages.error(request, block_msg)

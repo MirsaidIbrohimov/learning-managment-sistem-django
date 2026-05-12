@@ -369,11 +369,11 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ============ XAVFSIZLIK SOZLAMALARI ============
 
-# XSS himoya
-SECURE_BROWSER_XSS_FILTER = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
+# XSS himoya (SecurityHeadersMiddleware da boshqariladi — dublikat bo'lmasligi uchun)
+SECURE_BROWSER_XSS_FILTER = False
+SECURE_CONTENT_TYPE_NOSNIFF = False
 
-# Clickjacking himoya
+# Clickjacking himoya (SecurityHeadersMiddleware da boshqariladi)
 X_FRAME_OPTIONS = 'DENY'
 
 # CSRF sozlamalari
@@ -410,8 +410,9 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
+# Referrer va COOP — SecurityHeadersMiddleware da boshqariladi (dublikat oldini olish)
+SECURE_REFERRER_POLICY = None
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Fayl yuklash xavfsizligi
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
