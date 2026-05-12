@@ -10,6 +10,7 @@ from django.utils import timezone
 from datetime import timedelta
 import json
 import random
+import time
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
     AdminUserEditForm, ChangePasswordForm, VideoLessonForm, HomeworkForm, DictionaryForm,
@@ -664,7 +665,7 @@ def login_view(request):
         ).strip().lower()
         blocked, block_msg = check_rate_limit(
             request, 'login', identifier=login_identifier,
-            ip_limit=10, id_limit=5, window=900
+            ip_limit=5, id_limit=3, window=900
         )
         if blocked:
             messages.error(request, block_msg)
@@ -674,7 +675,8 @@ def login_view(request):
         honeypot = request.POST.get('website_url', '')
         if honeypot:
             _record_failed_login(ip_address, 'honeypot_bot', user_agent, login_token)
-            messages.error(request, "Username yoki parol noto'g'ri ❌")
+            time.sleep(1.5)  # Bot sekinlashtirish
+            messages.error(request, "Kirish rad etildi! ❌")
             return _login_render(request, form, login_mode)
 
         # 🔒 Token bloklangan bo'lsa — kirishga ruxsat bermaslik

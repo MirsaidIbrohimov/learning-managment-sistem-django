@@ -445,6 +445,12 @@ class SecurityHeadersMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         
+        # Server ma'lumotlarini yashirish
+        if 'X-Powered-By' in response:
+            del response['X-Powered-By']
+        if 'Server' in response:
+            del response['Server']
+        
         # XSS himoya
         response['X-Content-Type-Options'] = 'nosniff'
         response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP ishlatiladi
