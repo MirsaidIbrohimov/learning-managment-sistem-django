@@ -1059,6 +1059,9 @@ def home_view(request):
     # unread_messages_count BU YERDA HISOBLANMAYDI!
     # Navbar uchun qiymat context processor orqali keladi.
 
+    # Telegram ulash tavsiyasi
+    show_telegram_prompt = not request.user.telegram_id
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -1067,6 +1070,7 @@ def home_view(request):
         'my_enrollments': my_enrollments,
         'dashboard_courses': dashboard_courses,
         'quick_courses': quick_courses,
+        'show_telegram_prompt': show_telegram_prompt,
     }
 
     return render(request, 'accounts/home.html', context)

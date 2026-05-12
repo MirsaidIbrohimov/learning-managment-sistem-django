@@ -580,6 +580,115 @@ main.main-container { max-width: 100%; margin: 0; padding: 0; }
 </style>
 
 <div class="lms-home">
+    <!-- ====== TELEGRAM ULASH TAVSIYASI ====== -->
+    {% if show_telegram_prompt %}
+    <div class="tg-prompt-overlay" id="tgPromptOverlay" style="display:none;">
+        <div class="tg-prompt-modal">
+            <div class="tg-prompt-icon">
+                <i class="bi bi-telegram"></i>
+            </div>
+            <h3 class="tg-prompt-title">Telegramni ulang!</h3>
+            <p class="tg-prompt-desc">
+                Telegram hisobingizni ulang va muhim bildirishnomalarni, dars eslatmalarini va yangilanishlarni bevosita Telegram orqali oling.
+            </p>
+            <div class="tg-prompt-benefits">
+                <div class="tg-benefit"><i class="bi bi-bell-fill"></i> Dars eslatmalari</div>
+                <div class="tg-benefit"><i class="bi bi-chat-dots-fill"></i> Tez aloqa</div>
+                <div class="tg-benefit"><i class="bi bi-shield-check"></i> Xavfsiz kirish</div>
+            </div>
+            <div class="tg-prompt-buttons">
+                <a href="{% url 'telegram_bot:link_telegram' %}" class="tg-btn-connect">
+                    <i class="bi bi-telegram"></i> Telegramni ulash
+                </a>
+                <button type="button" class="tg-btn-later" id="tgPromptLater">
+                    <i class="bi bi-clock"></i> Keyinroq
+                </button>
+            </div>
+        </div>
+    </div>
+    <style>
+    .tg-prompt-overlay {
+        position: fixed; inset: 0; z-index: 9999;
+        background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
+        display: flex; align-items: center; justify-content: center;
+        animation: tgFadeIn 0.3s ease;
+    }
+    @keyframes tgFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .tg-prompt-modal {
+        background: var(--bg-card-solid, #fff); border-radius: 20px;
+        padding: 2.5rem 2rem; max-width: 420px; width: 90%; text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: tgSlideUp 0.4s ease;
+    }
+    @keyframes tgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .tg-prompt-icon {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, #0088cc, #00bfff);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1.25rem; font-size: 2rem; color: #fff;
+        box-shadow: 0 8px 24px rgba(0,136,204,0.35);
+    }
+    .tg-prompt-title {
+        font-size: 1.4rem; font-weight: 700; color: var(--text-primary, #0f172a); margin-bottom: 0.5rem;
+    }
+    .tg-prompt-desc {
+        color: var(--text-secondary, #475569); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.25rem;
+    }
+    .tg-prompt-benefits {
+        display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .tg-benefit {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        background: rgba(0,136,204,0.08); color: #0088cc;
+        padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    }
+    [data-bs-theme="dark"] .tg-benefit { background: rgba(0,191,255,0.12); color: #00bfff; }
+    .tg-prompt-buttons { display: flex; flex-direction: column; gap: 0.65rem; }
+    .tg-btn-connect {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+        background: linear-gradient(135deg, #0088cc, #00bfff); color: #fff;
+        padding: 0.85rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem;
+        text-decoration: none; transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(0,136,204,0.3);
+    }
+    .tg-btn-connect:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,136,204,0.45); color: #fff; }
+    .tg-btn-later {
+        background: transparent; border: 1.5px solid var(--border, #e2e8f0);
+        color: var(--text-secondary, #475569); padding: 0.7rem 1.5rem;
+        border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+        transition: all 0.3s ease;
+    }
+    .tg-btn-later:hover { background: var(--bg-secondary, #f1f5f9); }
+    </style>
+    <script>
+    (function() {
+        var KEY = 'tg_prompt_later_{{ user.id }}';
+        var stored = localStorage.getItem(KEY);
+        if (stored) {
+            var diff = Date.now() - parseInt(stored, 10);
+            // 3 kun o'tganda qayta ko'rsatish (3 * 24 * 60 * 60 * 1000 = 259200000)
+            if (diff < 259200000) return;
+        }
+        var overlay = document.getElementById('tgPromptOverlay');
+        if (overlay) overlay.style.display = 'flex';
+        var laterBtn = document.getElementById('tgPromptLater');
+        if (laterBtn) {
+            laterBtn.addEventListener('click', function() {
+                localStorage.setItem(KEY, Date.now().toString());
+                overlay.style.display = 'none';
+            });
+        }
+        // Overlay bosilganda yopish
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                localStorage.setItem(KEY, Date.now().toString());
+                overlay.style.display = 'none';
+            }
+        });
+    })();
+    </script>
+    {% endif %}
+
     <!-- ====== HERO ====== -->
     <section class="hero">
         <canvas id="hero3d"></canvas>
