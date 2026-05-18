@@ -36,25 +36,16 @@ PREMIUM_PLANS_BASE = {
 }
 
 
-def get_user_total_earned(user):
-    """Foydalanuvchining umumiy yig'ilgan coinlarini hisoblash"""
-    from_transactions = CoinTransaction.objects.filter(
-        user=user, action='add'
-    ).aggregate(total=Sum('amount'))['total'] or 0
-    # Agar coinlar tranzaksiyasiz (admin panel orqali) qo'shilgan bo'lsa,
-    # hozirgi balans tranzaksiya summasidan katta bo'lishi mumkin
-    return max(from_transactions, user.coins)
-
-
 def get_premium_plans_for_user(user):
-    """Foydalanuvchiga mos premium narxlarni hisoblash"""
-    total_earned = get_user_total_earned(user)
+    """Foydalanuvchiga mos premium narxlarni hisoblash (hozirgi balansga qarab)"""
+    total_earned = user.coins
     plans = {}
+    MINIMUM_PRICE = 1000
     for key, base in PREMIUM_PLANS_BASE.items():
         price = math.floor(total_earned * base['percent'] / 100)
         plans[key] = {
             'name': base['name'],
-            'price': max(price, 1) if total_earned > 0 else 0,
+            'price': max(price, MINIMUM_PRICE),
             'days': base['days'],
             'percent': base['percent'],
         }
