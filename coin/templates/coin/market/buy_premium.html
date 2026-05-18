@@ -1114,11 +1114,13 @@ async function loadBuyPremium() {
         let html = '';
         planKeys.forEach((key, idx) => {
             const p = plans.plans[key];
-            const canAfford = userCoins >= p.price && p.price > 0;
-            const disabled = plans.has_pending_request || !canAfford || !plans.eligible;
+            const isCheap = p.too_cheap;
+            const canAfford = !isCheap && userCoins >= p.price;
+            const disabled = plans.has_pending_request || !canAfford || !plans.eligible || isCheap;
             const isPopular = key === 'monthly';
             let btnText, btnClass;
             if (!plans.eligible) { btnText = '🔒 Hali mumkin emas'; btnClass = 'pm-btn-disabled'; }
+            else if (isCheap) { btnText = '📈 Coin yig\'ing'; btnClass = 'pm-btn-disabled'; }
             else if (plans.has_pending_request) { btnText = 'Kutilmoqda...'; btnClass = 'pm-btn-disabled'; }
             else if (!canAfford) { btnText = '<i class="bi bi-lock-fill"></i>Coin yetarli emas'; btnClass = 'pm-btn-disabled'; }
             else { btnText = '<i class="bi bi-send-fill"></i>So\'rov yuborish'; btnClass = isPopular ? 'pm-btn-primary' : 'pm-btn-outline'; }
@@ -1131,9 +1133,10 @@ async function loadBuyPremium() {
                     <div class="pm-plan-name">${p.name}</div>
                     <div class="pm-plan-days">${p.days} kun amal qiladi <span style="font-size:0.8rem;opacity:0.7">(${p.percent}%)</span></div>
                     <div class="pm-price">
-                        <div class="pm-price-amount">${p.price}</div>
+                        <div class="pm-price-amount">${isCheap?'<span style="text-decoration:line-through;opacity:0.4;font-size:0.6em">'+p.price+'</span> min '+p.min_price:p.price}</div>
                         <div class="pm-price-label">coin</div>
                     </div>
+                    ${isCheap?'<div style="color:#ef4444;font-size:0.82rem;font-weight:600;margin:0.5rem 0">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
                     <ul class="pm-features">${features}</ul>
                     <button type="button" class="pm-btn ${btnClass}" ${disabled?'disabled':''}
                         onclick="showConfirmModal('${key}','${p.name}',${p.price},${p.days})">

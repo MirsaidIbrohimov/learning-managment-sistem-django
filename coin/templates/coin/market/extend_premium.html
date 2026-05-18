@@ -578,11 +578,13 @@
             let html = '';
             planKeys.forEach((key, idx) => {
                 const p = plans.plans[key];
-                const canAfford = userCoins >= p.price && p.price > 0;
-                const disabled = plans.has_pending_request || !canAfford || !plans.eligible;
+                const isCheap = p.too_cheap;
+                const canAfford = !isCheap && userCoins >= p.price;
                 let btnHtml;
                 if (!plans.eligible) {
                     btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled>🔒 Hali mumkin emas</button>';
+                } else if (isCheap) {
+                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled>📈 Coin yig\'ing</button>';
                 } else if (!canAfford) {
                     btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled><i class="bi bi-lock-fill"></i>Coin yetarli emas</button>';
                 } else {
@@ -594,9 +596,10 @@
                         <div class="pe-plan-label">${p.name}</div>
                         <div class="pe-days-badge">+${p.days} kun <span style="font-size:0.7em;opacity:0.7">(${p.percent}%)</span></div>
                         <div class="pe-price-row">
-                            <span class="pe-price-val">${p.price}</span>
+                            <span class="pe-price-val">${isCheap?'<span style="text-decoration:line-through;opacity:0.4;font-size:0.6em">'+p.price+'</span> min '+p.min_price:p.price}</span>
                             <span class="pe-price-unit">coin</span>
                         </div>
+                        ${isCheap?'<div style="color:#ef4444;font-size:0.8rem;font-weight:600;margin:0.3rem 0">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
                         ${btnHtml}
                     </div>
                 </div>`;

@@ -212,10 +212,12 @@
             const notEligible = !plans.eligible;
             document.getElementById('pmPlans').innerHTML = planKeys.map(key => {
                 const p = plans.plans[key];
-                const canAfford = userCoins >= p.price && p.price > 0;
-                const disabled = plans.has_pending_request || !canAfford || notEligible;
+                const isCheap = p.too_cheap;
+                const canAfford = !isCheap && userCoins >= p.price;
+                const disabled = plans.has_pending_request || !canAfford || notEligible || isCheap;
                 let btnText = '';
                 if(notEligible) btnText = '🔒 Hali mumkin emas';
+                else if(isCheap) btnText = '📈 Coin yig\'ing';
                 else if(plans.has_pending_request) btnText = 'Kutilmoqda';
                 else if(!canAfford) btnText = 'Coin yetarli emas';
                 else if(plans.is_premium) btnText = '⏳ Uzaytirish';
@@ -223,8 +225,9 @@
                 return `<div class="pm-plan ${key==='monthly'?'popular':''}">
                     ${badges[key]?'<div class="pm-plan-badge">'+badges[key]+'</div>':''}
                     <div class="pm-plan-name">${p.name}</div>
-                    <div class="pm-plan-price">${p.price} <small>coin</small></div>
+                    <div class="pm-plan-price">${isCheap?'<span style="text-decoration:line-through;opacity:0.5;font-size:0.7em">'+p.price+'</span> <small>min '+p.min_price+'</small>':p.price+' <small>coin</small>'}</div>
                     <div class="pm-plan-days">${p.days} kun <span style="font-size:0.78rem;opacity:0.7">(${p.percent}%)</span></div>
+                    ${isCheap?'<div style="font-size:0.78rem;color:#ef4444;font-weight:600;margin-bottom:0.5rem">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
                     <button class="pm-plan-btn" ${disabled?'disabled':''} onclick="selectPlan('${key}')">
                         ${btnText}
                     </button>

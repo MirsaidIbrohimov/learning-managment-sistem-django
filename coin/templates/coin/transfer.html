@@ -204,6 +204,12 @@
 .ctp-code-input:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 4px rgba(245,158,11,.12)}
 .ctp-code-hint{font-size:.78rem;color:var(--text-muted,#888);margin-top:.5rem;text-align:center}
 
+/* Countdown timer */
+.ctp-countdown{display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.75rem;font-size:.88rem;font-weight:700;color:#f59e0b;animation:ctPulse 2s ease-in-out infinite}
+.ctp-countdown.danger{color:#ef4444;animation:ctPulse 1s ease-in-out infinite}
+.ctp-countdown i{font-size:1rem}
+.ctp-countdown-expired{color:#ef4444;font-weight:700;font-size:.9rem;text-align:center;margin-top:.75rem;padding:.6rem;border-radius:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)}
+
 /* ========== BUTTONS ========== */
 .ctp-btn{
     width:100%;height:52px;border:none;border-radius:16px;font-weight:700;font-size:.92rem;
@@ -362,6 +368,8 @@
                     <div class="ctp-code-hint">Telegram ulanmagan. Tasdiqlash uchun parolingizni kiriting</div>
                 </div>
 
+                <div id="ctpCountdown" class="ctp-countdown"><i class="bi bi-clock"></i> <span id="ctpCountdownText">2:00</span></div>
+
                 <div style="margin-top:1.25rem;">
                     <button class="ctp-btn ctp-btn-secondary" onclick="backToStep1()"><i class="bi bi-arrow-left"></i> Orqaga</button>
                     <button class="ctp-btn ctp-btn-primary" id="ctpConfirmBtn" onclick="confirmTransfer()"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
@@ -392,7 +400,7 @@
             <li>Minimal o'tkazma miqdori: <b>100 coin</b></li>
             <li>Maksimal o'tkazma miqdori: <b>10,000 coin</b></li>
             <li>Xizmat haqqi: <b>10%</b> (miqdorga qo'shiladi)</li>
-            <li>Tasdiqlash kodi Telegram orqali yuboriladi</li>
+            <li>Tasdiqlash kodi Telegram orqali yuboriladi (2 daqiqa amal qiladi)</li>
             <li>O'tkazma bekor qilinmaydi</li>
         </ul>
     </div>
@@ -406,6 +414,42 @@
     var selectedUser = null;
     var currentTransfer = null;
     var searchTimeout = null;
+    var countdownInterval = null;
+    var countdownSeconds = 0;
+
+    function startCountdown() {
+        stopCountdown();
+        countdownSeconds = 120;
+        var el = document.getElementById('ctpCountdown');
+        var textEl = document.getElementById('ctpCountdownText');
+        var confirmBtn = document.getElementById('ctpConfirmBtn');
+        el.className = 'ctp-countdown';
+        el.style.display = '';
+
+        countdownInterval = setInterval(function() {
+            countdownSeconds--;
+            var m = Math.floor(countdownSeconds / 60);
+            var s = countdownSeconds % 60;
+            textEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+
+            if (countdownSeconds <= 30) {
+                el.className = 'ctp-countdown danger';
+            }
+            if (countdownSeconds <= 0) {
+                stopCountdown();
+                el.innerHTML = '<div class="ctp-countdown-expired"><i class="bi bi-x-circle-fill"></i> Muddat tugadi! Orqaga qaytib qayta urinib ko\'ring</div>';
+                el.className = '';
+                confirmBtn.disabled = true;
+            }
+        }, 1000);
+    }
+
+    function stopCountdown() {
+        if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+        }
+    }
 
     function showError(msg) {
         document.getElementById('ctpErrorText').textContent = msg;
@@ -593,6 +637,7 @@
             document.getElementById('ctpPanel2').style.animation = 'ctSlideLeft .4s cubic-bezier(.23,1,.32,1)';
             document.getElementById('ctpStep1').className = 'ctp-step done';
             document.getElementById('ctpStep2').className = 'ctp-step active';
+            startCountdown();
             hideError();
         } catch(e) {
             showError("Server bilan aloqa yo'q!");
@@ -603,11 +648,16 @@
     };
 
     window.backToStep1 = function() {
+        stopCountdown();
         document.getElementById('ctpPanel1').style.display = 'block';
         document.getElementById('ctpPanel1').style.animation = 'ctSlideRight .35s cubic-bezier(.23,1,.32,1)';
         document.getElementById('ctpPanel2').style.display = 'none';
         document.getElementById('ctpStep1').className = 'ctp-step active';
         document.getElementById('ctpStep2').className = 'ctp-step';
+        // Reset countdown UI
+        var el = document.getElementById('ctpCountdown');
+        el.className = 'ctp-countdown';
+        el.innerHTML = '<i class="bi bi-clock"></i> <span id="ctpCountdownText">2:00</span>';
         hideError();
     };
 
@@ -644,6 +694,7 @@
             document.getElementById('ctpNewBalance').textContent = data.new_balance.toLocaleString();
             document.getElementById('ctpMyBalance').textContent = data.new_balance.toLocaleString();
 
+            stopCountdown();
             document.getElementById('ctpPanel2').style.display = 'none';
             document.getElementById('ctpPanel3').style.display = 'block';
             document.getElementById('ctpPanel3').style.animation = 'ctScaleIn .5s cubic-bezier(.23,1,.32,1)';

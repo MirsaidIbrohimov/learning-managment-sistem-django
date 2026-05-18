@@ -30,9 +30,9 @@ from .serializers import (
 PREMIUM_DISCOUNT = 0.05
 
 PREMIUM_PLANS_BASE = {
-    'weekly': {'name': 'Haftalik', 'days': 7, 'percent': 25},
-    'monthly': {'name': '1 oylik', 'days': 30, 'percent': 50},
-    'bimonthly': {'name': '2 oylik', 'days': 60, 'percent': 75},
+    'weekly': {'name': 'Haftalik', 'days': 7, 'percent': 25, 'min_price': 500},
+    'monthly': {'name': '1 oylik', 'days': 30, 'percent': 50, 'min_price': 750},
+    'bimonthly': {'name': '2 oylik', 'days': 60, 'percent': 75, 'min_price': 1000},
 }
 
 
@@ -40,14 +40,16 @@ def get_premium_plans_for_user(user):
     """Foydalanuvchiga mos premium narxlarni hisoblash (hozirgi balansga qarab)"""
     total_earned = user.coins
     plans = {}
-    MINIMUM_PRICE = 1000
     for key, base in PREMIUM_PLANS_BASE.items():
         price = math.floor(total_earned * base['percent'] / 100)
+        too_cheap = price < base['min_price']
         plans[key] = {
             'name': base['name'],
-            'price': max(price, MINIMUM_PRICE),
+            'price': price,
             'days': base['days'],
             'percent': base['percent'],
+            'min_price': base['min_price'],
+            'too_cheap': too_cheap,
         }
     return plans, total_earned
 
@@ -378,9 +380,9 @@ def request_premium(request):
     plan_info = plans[plan]
     price = plan_info['price']
 
-    if price <= 0:
+    if plan_info['too_cheap']:
         return Response(
-            {'error': "Sizda yetarli coin yig'ilmagan! Premium narxi sizning umumiy yig'ilgan coinlaringizga qarab belgilanadi."},
+            {'error': f"Narx juda arzon! {plan_info['name']} uchun kamida {plan_info['min_price']} coin kerak. Coinlar yig'ishni davom eting!"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -583,6 +585,7 @@ def initiate_transfer(request):
             f"💰 Xizmat haqqi: <b>{fee}</b> coin\n"
             f"📊 Jami: <b>{total_deducted}</b> coin\n\n"
             f"🔑 Tasdiqlash kodi: <b>{code}</b>\n\n"
+            f"⏱ Kod 2 daqiqa amal qiladi!\n"
             f"⚠️ Bu kodni hech kimga bermang!"
         )
     
@@ -606,8 +609,8 @@ def confirm_transfer(request):
     except CoinTransfer.DoesNotExist:
         return Response({'error': "O'tkazma topilmadi yoki muddati o'tgan!"}, status=status.HTTP_404_NOT_FOUND)
     
-    # Muddatni tekshirish (10 daqiqa)
-    if (timezone.now() - transfer.created_at).total_seconds() > 600:
+    # Muddatni tekshirish (2 daqiqa)
+    if (timezone.now() - transfer.created_at).total_seconds() > 120:
         transfer.status = 'cancelled'
         transfer.save()
         return Response({'error': "O'tkazma muddati o'tdi! Qaytadan urinib ko'ring."}, status=status.HTTP_400_BAD_REQUEST)
