@@ -38,9 +38,12 @@ PREMIUM_PLANS_BASE = {
 
 def get_user_total_earned(user):
     """Foydalanuvchining umumiy yig'ilgan coinlarini hisoblash"""
-    return CoinTransaction.objects.filter(
+    from_transactions = CoinTransaction.objects.filter(
         user=user, action='add'
     ).aggregate(total=Sum('amount'))['total'] or 0
+    # Agar coinlar tranzaksiyasiz (admin panel orqali) qo'shilgan bo'lsa,
+    # hozirgi balans tranzaksiya summasidan katta bo'lishi mumkin
+    return max(from_transactions, user.coins)
 
 
 def get_premium_plans_for_user(user):
