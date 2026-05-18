@@ -431,47 +431,21 @@
             {% endif %}
             <div class="pe-status-item">
                 <i class="bi bi-coin"></i>
-                {{ user.coins }} coin
+                <span id="epBalance">{{ user.coins }} coin</span>
+            </div>
+            <div class="pe-status-item" style="font-size:0.85rem;opacity:0.85;">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span id="epTotalEarned">...</span>
             </div>
         </div>
     </div>
 
+    <div id="epEligibility" style="max-width:960px;margin:1rem auto 0;padding:0 1rem;display:none;"></div>
+
     <!-- Plans -->
     <div class="pe-cards-wrap mt-4">
-        <div class="row g-4">
-
-            {% for key, plan in premium_plans.items %}
-            <div class="col-12 col-md-4">
-                <div class="pe-plan pe-anim-{{ forloop.counter }}">
-                    <div class="pe-plan-icon {{ key }}">
-                        {% if key == 'weekly' %}<i class="bi bi-lightning-fill"></i>
-                        {% elif key == 'monthly' %}<i class="bi bi-calendar-check-fill"></i>
-                        {% else %}<i class="bi bi-gem"></i>{% endif %}
-                    </div>
-                    <div class="pe-plan-label">{{ plan.name }}</div>
-                    <div class="pe-days-badge">+{{ plan.days }} kun</div>
-                    <div class="pe-price-row">
-                        <span class="pe-price-val">{{ plan.price }}</span>
-                        <span class="pe-price-unit">coin</span>
-                    </div>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan" value="{{ key }}">
-                        {% if user.coins >= plan.price %}
-                        <button type="submit" class="pe-btn"
-                                onclick="return confirm('{{ plan.name }} uzaytirish uchun {{ plan.price }} coin sarflanadi. So\'rov yuboriladi. Davom etasizmi?');">
-                            <i class="bi bi-plus-circle-fill"></i>Uzaytirish
-                        </button>
-                        {% else %}
-                        <button type="button" class="pe-btn pe-btn-disabled" disabled>
-                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
-                        </button>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-            {% endfor %}
-
+        <div class="row g-4" id="epPlansRow">
+            <div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>
         </div>
 
         <!-- Premium imkoniyatlari -->
@@ -574,4 +548,79 @@
     </div>
 
 </div>
+
+<script>
+(function(){
+    const API = '/api/v1/coin';
+    let userCoins = 0;
+
+    function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
+    async function get(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
+    async function post(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+
+    const PLAN_ICONS = {weekly:'bi-lightning-fill',monthly:'bi-calendar-check-fill',bimonthly:'bi-gem'};
+
+    async function loadExtendPlans() {
+        try {
+            const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/')]);
+            userCoins = summary.total_coins;
+
+            document.getElementById('epBalance').textContent = userCoins + ' coin';
+            document.getElementById('epTotalEarned').textContent = 'Jami: ' + (plans.total_earned||0) + ' coin';
+
+            const eligEl = document.getElementById('epEligibility');
+            if (!plans.eligible) {
+                eligEl.innerHTML = '<div style="background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;font-weight:600;color:#ef4444;"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i><div>Premium uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun</small></div></div>';
+                eligEl.style.display = 'block';
+            }
+
+            const planKeys = ['weekly','monthly','bimonthly'];
+            let html = '';
+            planKeys.forEach((key, idx) => {
+                const p = plans.plans[key];
+                const canAfford = userCoins >= p.price && p.price > 0;
+                const disabled = plans.has_pending_request || !canAfford || !plans.eligible;
+                let btnHtml;
+                if (!plans.eligible) {
+                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled>🔒 Hali mumkin emas</button>';
+                } else if (!canAfford) {
+                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled><i class="bi bi-lock-fill"></i>Coin yetarli emas</button>';
+                } else {
+                    btnHtml = '<button type="button" class="pe-btn" data-plan="'+key+'" data-name="'+p.name+'" data-price="'+p.price+'" data-days="'+p.days+'" onclick="epExtend(this)"><i class="bi bi-plus-circle-fill"></i>Uzaytirish</button>';
+                }
+                html += `<div class="col-12 col-md-4">
+                    <div class="pe-plan pe-anim-${idx+1}">
+                        <div class="pe-plan-icon ${key}"><i class="bi ${PLAN_ICONS[key]}"></i></div>
+                        <div class="pe-plan-label">${p.name}</div>
+                        <div class="pe-days-badge">+${p.days} kun <span style="font-size:0.7em;opacity:0.7">(${p.percent}%)</span></div>
+                        <div class="pe-price-row">
+                            <span class="pe-price-val">${p.price}</span>
+                            <span class="pe-price-unit">coin</span>
+                        </div>
+                        ${btnHtml}
+                    </div>
+                </div>`;
+            });
+            document.getElementById('epPlansRow').innerHTML = html;
+        } catch(e) {
+            document.getElementById('epPlansRow').innerHTML = '<div class="col-12 text-center py-4 text-muted">Xatolik yuz berdi</div>';
+            console.error(e);
+        }
+    }
+
+    window.epExtend = function(btn) {
+        const plan = btn.dataset.plan;
+        const name = btn.dataset.name;
+        const price = parseInt(btn.dataset.price);
+        if (!confirm(name+' uzaytirish uchun '+price+' coin sarflanadi. Davom etasizmi?')) return;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Kutiling...';
+        post(API+'/premium/request/', {plan: plan})
+            .then(d => { alert(d.message || "So'rov yuborildi!"); loadExtendPlans(); })
+            .catch(e => { alert(e.error || 'Xatolik yuz berdi'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-plus-circle-fill"></i>Uzaytirish'; });
+    };
+
+    loadExtendPlans();
+})();
+</script>
 {% endblock %}

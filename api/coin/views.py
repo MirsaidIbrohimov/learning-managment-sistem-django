@@ -29,11 +29,40 @@ from .serializers import (
 
 PREMIUM_DISCOUNT = 0.05
 
-PREMIUM_PLANS = {
-    'weekly': {'name': 'Haftalik', 'price': 350, 'days': 7},
-    'monthly': {'name': '1 oylik', 'price': 700, 'days': 30},
-    'bimonthly': {'name': '2 oylik', 'price': 1000, 'days': 60},
+PREMIUM_PLANS_BASE = {
+    'weekly': {'name': 'Haftalik', 'days': 7, 'percent': 25},
+    'monthly': {'name': '1 oylik', 'days': 30, 'percent': 50},
+    'bimonthly': {'name': '2 oylik', 'days': 60, 'percent': 75},
 }
+
+
+def get_user_total_earned(user):
+    """Foydalanuvchining umumiy yig'ilgan coinlarini hisoblash"""
+    return CoinTransaction.objects.filter(
+        user=user, action='add'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+
+def get_premium_plans_for_user(user):
+    """Foydalanuvchiga mos premium narxlarni hisoblash"""
+    total_earned = get_user_total_earned(user)
+    plans = {}
+    for key, base in PREMIUM_PLANS_BASE.items():
+        price = math.floor(total_earned * base['percent'] / 100)
+        plans[key] = {
+            'name': base['name'],
+            'price': max(price, 1) if total_earned > 0 else 0,
+            'days': base['days'],
+            'percent': base['percent'],
+        }
+    return plans, total_earned
+
+
+def can_user_buy_premium(user):
+    """Foydalanuvchi kamida 1 oy oldin ro'yxatdan o'tganmi"""
+    if not user.date_joined:
+        return False
+    return (timezone.now() - user.date_joined).days >= 30
 
 
 def get_discounted_price(product, user):
@@ -338,6 +367,12 @@ def request_premium(request):
     serializer.is_valid(raise_exception=True)
     plan = serializer.validated_data['plan']
 
+    if not can_user_buy_premium(request.user):
+        return Response(
+            {'error': "Premium sotib olish uchun kamida 1 oy oldin ro'yxatdan o'tgan bo'lishingiz kerak!"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
     if pending:
         return Response(
@@ -345,8 +380,15 @@ def request_premium(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    plan_info = PREMIUM_PLANS[plan]
+    plans, total_earned = get_premium_plans_for_user(request.user)
+    plan_info = plans[plan]
     price = plan_info['price']
+
+    if price <= 0:
+        return Response(
+            {'error': "Sizda yetarli coin yig'ilmagan! Premium narxi sizning umumiy yig'ilgan coinlaringizga qarab belgilanadi."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     if request.user.coins < price:
         return Response(
@@ -367,6 +409,7 @@ def request_premium(request):
         PremiumRequest.objects.create(
             user=request.user,
             plan=plan,
+            coins_paid=price,
             is_extension=is_ext,
         )
 
@@ -405,13 +448,21 @@ def request_premium(request):
 def premium_plans(request):
     pending = PremiumRequest.objects.filter(user=request.user, status='pending').first()
     user = request.user
+    plans, total_earned = get_premium_plans_for_user(user)
+    eligible = can_user_buy_premium(user)
+
+    days_since_reg = (timezone.now() - user.date_joined).days if user.date_joined else 0
+    days_until_eligible = max(0, 30 - days_since_reg)
 
     data = {
-        'plans': PREMIUM_PLANS,
+        'plans': plans,
+        'total_earned': total_earned,
         'has_pending_request': pending is not None,
         'is_premium': user.is_premium,
         'premium_expires_at': user.premium_expires_at.isoformat() if user.premium_expires_at else None,
         'premium_purchased_at': user.premium_purchased_at.isoformat() if user.premium_purchased_at else None,
+        'eligible': eligible,
+        'days_until_eligible': days_until_eligible,
     }
 
     if pending:

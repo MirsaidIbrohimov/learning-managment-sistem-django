@@ -97,7 +97,10 @@
         <h1 class="pm-hero-title">⭐ Premium</h1>
         <p class="pm-hero-sub">Maxsus imkoniyatlardan foydalaning</p>
         <div class="pm-balance" id="pmBalance"><i class="bi bi-coin"></i> Balans: ...</div>
+        <div class="pm-balance" id="pmTotalEarned" style="opacity:0.8;font-size:0.85rem;margin-top:0.25rem"></div>
     </div>
+
+    <div id="pmEligibility" style="display:none"></div>
 
     <div id="pmStatus">
         <div class="pm-skeleton" style="height:80px;margin-bottom:1rem"></div>
@@ -162,6 +165,14 @@
             plansData = plans;
 
             document.getElementById('pmBalance').innerHTML = '<i class="bi bi-coin"></i> Balans: '+userCoins+' coin';
+            document.getElementById('pmTotalEarned').innerHTML = '<i class="bi bi-graph-up-arrow"></i> Jami yig\'ilgan: '+(plans.total_earned||0)+' coin';
+
+            // Eligibility check
+            const eligEl = document.getElementById('pmEligibility');
+            if(!plans.eligible){
+                eligEl.innerHTML = '<div class="pm-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:rgba(239,68,68,0.1)"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i> <div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
+                eligEl.style.display = 'block';
+            }
 
             // Status
             let statusH = '';
@@ -178,7 +189,7 @@
                     statusH += '<div class="pm-expires-info"><i class="bi bi-calendar-check"></i> <div>Premium muddati: <b>'+exp.toLocaleDateString('uz-UZ')+'</b> gacha ('+daysLeft+' kun qoldi)</div></div>';
                 }
             } else {
-                statusH = '<div class="pm-status-card"><i class="bi bi-gem" style="color:var(--text-muted)"></i><h4>Premium afzalliklaridan foydalaning</h4><p>Quyidagi tariflardan birini tanlang</p></div>';
+                statusH = '<div class="pm-status-card"><i class="bi bi-gem" style="color:var(--text-muted)"></i><h4>Premium afzalliklaridan foydalaning</h4><p>Narxlar sizning umumiy yig\'ilgan coinlaringizga qarab belgilanadi</p></div>';
             }
             document.getElementById('pmStatus').innerHTML = statusH;
 
@@ -198,17 +209,24 @@
             // Plans
             const planKeys = ['weekly','monthly','bimonthly'];
             const badges = {monthly:'Mashhur', bimonthly:'Tejamkor'};
+            const notEligible = !plans.eligible;
             document.getElementById('pmPlans').innerHTML = planKeys.map(key => {
                 const p = plans.plans[key];
-                const canAfford = userCoins >= p.price;
-                const disabled = plans.has_pending_request || !canAfford;
+                const canAfford = userCoins >= p.price && p.price > 0;
+                const disabled = plans.has_pending_request || !canAfford || notEligible;
+                let btnText = '';
+                if(notEligible) btnText = '🔒 Hali mumkin emas';
+                else if(plans.has_pending_request) btnText = 'Kutilmoqda';
+                else if(!canAfford) btnText = 'Coin yetarli emas';
+                else if(plans.is_premium) btnText = '⏳ Uzaytirish';
+                else btnText = 'Tanlash';
                 return `<div class="pm-plan ${key==='monthly'?'popular':''}">
                     ${badges[key]?'<div class="pm-plan-badge">'+badges[key]+'</div>':''}
                     <div class="pm-plan-name">${p.name}</div>
                     <div class="pm-plan-price">${p.price} <small>coin</small></div>
-                    <div class="pm-plan-days">${p.days} kun</div>
+                    <div class="pm-plan-days">${p.days} kun <span style="font-size:0.78rem;opacity:0.7">(${p.percent}%)</span></div>
                     <button class="pm-plan-btn" ${disabled?'disabled':''} onclick="selectPlan('${key}')">
-                        ${plans.has_pending_request?'Kutilmoqda':!canAfford?'Coin yetarli emas':plans.is_premium?'⏳ Uzaytirish':'Tanlash'}
+                        ${btnText}
                     </button>
                 </div>`;
             }).join('');

@@ -1482,9 +1482,9 @@ class ParentPasswordResetRequest(models.Model):
 
 class PremiumRequest(models.Model):
     PLAN_CHOICES = (
-        ('weekly', 'Haftalik (350 coin)'),
-        ('monthly', '1 oylik (700 coin)'),
-        ('bimonthly', '2 oylik (1000 coin)'),
+        ('weekly', 'Haftalik (25%)'),
+        ('monthly', '1 oylik (50%)'),
+        ('bimonthly', '2 oylik (75%)'),
     )
     
     STATUS_CHOICES = (
@@ -1493,20 +1493,21 @@ class PremiumRequest(models.Model):
         ('rejected', 'Rad etilgan'),
     )
     
-    PLAN_PRICES = {
-        'weekly': 350,
-        'monthly': 700,
-        'bimonthly': 1000,
-    }
-    
     PLAN_DAYS = {
         'weekly': 7,
         'monthly': 30,
         'bimonthly': 60,
     }
     
+    PLAN_PERCENTS = {
+        'weekly': 25,
+        'monthly': 50,
+        'bimonthly': 75,
+    }
+    
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='premium_requests')
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, verbose_name="Tarif reja")
+    coins_paid = models.PositiveIntegerField(default=0, verbose_name="To'langan coin")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     is_extension = models.BooleanField(default=False, verbose_name="Muddatni uzaytirish")
     reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_premium_requests')
@@ -1515,7 +1516,7 @@ class PremiumRequest(models.Model):
     
     @property
     def price(self):
-        return self.PLAN_PRICES.get(self.plan, 0)
+        return self.coins_paid
     
     @property
     def duration_days(self):

@@ -558,118 +558,25 @@
     <div class="pm-hero">
         <div class="pm-hero-icon"><i class="bi bi-patch-check-fill"></i></div>
         <h1>Premium Obuna</h1>
-        <p>O'zingizga mos tarifni tanlang va imtiyozlardan bahramand bo'ling</p>
+        <p>Narxlar jami yig'ilgan coinlaringizga qarab belgilanadi</p>
         <div class="mt-3">
             <div class="pm-coin-badge">
                 <i class="bi bi-coin"></i>
-                <span>{{ user.coins }} coin</span>
+                <span id="bpBalance">{{ user.coins }} coin</span>
+            </div>
+            <div class="pm-coin-badge" style="margin-left:0.5rem;font-size:0.9rem;opacity:0.85;">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span id="bpTotalEarned">...</span>
             </div>
         </div>
     </div>
 
+    <div id="bpEligibility" style="max-width:960px;margin:1rem auto 0;padding:0 1rem;display:none;"></div>
+
     <!-- Plans -->
     <div class="pm-cards-wrap mt-4">
-        <div class="row g-4">
-
-            <!-- Haftalik -->
-            <div class="col-12 col-md-4">
-                <div class="pm-plan pm-animate-1">
-                    <div class="pm-plan-icon weekly"><i class="bi bi-lightning-fill"></i></div>
-                    <div class="pm-plan-name">Haftalik</div>
-                    <div class="pm-plan-days">7 kun amal qiladi</div>
-                    <div class="pm-price">
-                        <div class="pm-price-amount">350</div>
-                        <div class="pm-price-label">coin</div>
-                    </div>
-                    <ul class="pm-features">
-                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ✅ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>7 kun davomida amal qiladi</li>
-                    </ul>
-                    <form method="POST" id="form-weekly">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan" value="weekly">
-                        {% if user.coins >= 350 %}
-                        <button type="button" class="pm-btn pm-btn-outline"
-                                onclick="showConfirmModal('weekly', 'Haftalik', 350, 7)">
-                            <i class="bi bi-send-fill"></i>So'rov yuborish
-                        </button>
-                        {% else %}
-                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
-                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
-                        </button>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-
-            <!-- 1 oylik (Mashhur) -->
-            <div class="col-12 col-md-4">
-                <div class="pm-plan popular pm-animate-2">
-                    <div class="pm-popular-tag">MASHHUR</div>
-                    <div class="pm-plan-icon monthly"><i class="bi bi-patch-check-fill"></i></div>
-                    <div class="pm-plan-name">1 Oylik</div>
-                    <div class="pm-plan-days">30 kun amal qiladi</div>
-                    <div class="pm-price">
-                        <div class="pm-price-amount">700</div>
-                        <div class="pm-price-label">coin</div>
-                    </div>
-                    <ul class="pm-features">
-                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ✅ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>30 kun davomida amal qiladi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Eng ko'p tanlanadi</li>
-                    </ul>
-                    <form method="POST" id="form-monthly">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan" value="monthly">
-                        {% if user.coins >= 700 %}
-                        <button type="button" class="pm-btn pm-btn-primary"
-                                onclick="showConfirmModal('monthly', '1 Oylik', 700, 30)">
-                            <i class="bi bi-send-fill"></i>So'rov yuborish
-                        </button>
-                        {% else %}
-                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
-                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
-                        </button>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-
-            <!-- 2 oylik -->
-            <div class="col-12 col-md-4">
-                <div class="pm-plan pm-animate-3">
-                    <div class="pm-plan-icon bimonthly"><i class="bi bi-gem"></i></div>
-                    <div class="pm-plan-name">2 Oylik</div>
-                    <div class="pm-plan-days">60 kun amal qiladi</div>
-                    <div class="pm-price">
-                        <div class="pm-price-amount">1000</div>
-                        <div class="pm-price-label">coin</div>
-                    </div>
-                    <ul class="pm-features">
-                        <li><i class="bi bi-check-circle-fill"></i>Barcha Premium imkoniyatlar</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Ismingiz yonida ✅ premium belgi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>60 kun davomida amal qiladi</li>
-                        <li><i class="bi bi-check-circle-fill"></i>Eng tejamkor variant</li>
-                    </ul>
-                    <form method="POST" id="form-bimonthly">
-                        {% csrf_token %}
-                        <input type="hidden" name="plan" value="bimonthly">
-                        {% if user.coins >= 1000 %}
-                        <button type="button" class="pm-btn pm-btn-outline"
-                                onclick="showConfirmModal('bimonthly', '2 Oylik', 1000, 60)">
-                            <i class="bi bi-send-fill"></i>So'rov yuborish
-                        </button>
-                        {% else %}
-                        <button type="button" class="pm-btn pm-btn-disabled" disabled>
-                            <i class="bi bi-lock-fill"></i>Coin yetarli emas
-                        </button>
-                        {% endif %}
-                    </form>
-                </div>
-            </div>
-
+        <div class="row g-4" id="bpPlansRow">
+            <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
         </div>
 
         <!-- Premium imkoniyatlari -->
@@ -1167,11 +1074,83 @@
 
 <script>
 let selectedPlan = null;
+let userCoins = {{ user.coins }};
+let plansData = null;
+
+function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
+async function apiGet(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
+async function apiPost(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+
+const PLAN_ICONS = {weekly:'bi-lightning-fill',monthly:'bi-patch-check-fill',bimonthly:'bi-gem'};
+const PLAN_ICON_CLASS = {weekly:'weekly',monthly:'monthly',bimonthly:'bimonthly'};
+const PLAN_BADGES = {monthly:'MASHHUR',bimonthly:'TEJAMKOR'};
+const PLAN_FEATURES = {
+    weekly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','7 kun davomida amal qiladi'],
+    monthly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','30 kun davomida amal qiladi','Eng ko\'p tanlanadi'],
+    bimonthly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','60 kun davomida amal qiladi','Eng tejamkor variant'],
+};
+
+async function loadBuyPremium() {
+    try {
+        const [summary, plans] = await Promise.all([
+            apiGet('/api/v1/coin/summary/'),
+            apiGet('/api/v1/coin/premium/plans/')
+        ]);
+        userCoins = summary.total_coins;
+        plansData = plans;
+
+        document.getElementById('bpBalance').textContent = userCoins + ' coin';
+        document.getElementById('bpTotalEarned').textContent = 'Jami: ' + (plans.total_earned||0) + ' coin';
+
+        // Eligibility
+        const eligEl = document.getElementById('bpEligibility');
+        if (!plans.eligible) {
+            eligEl.innerHTML = '<div style="background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;font-weight:600;color:#ef4444;"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i><div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
+            eligEl.style.display = 'block';
+        }
+
+        // Build plan cards
+        const planKeys = ['weekly','monthly','bimonthly'];
+        let html = '';
+        planKeys.forEach((key, idx) => {
+            const p = plans.plans[key];
+            const canAfford = userCoins >= p.price && p.price > 0;
+            const disabled = plans.has_pending_request || !canAfford || !plans.eligible;
+            const isPopular = key === 'monthly';
+            let btnText, btnClass;
+            if (!plans.eligible) { btnText = '🔒 Hali mumkin emas'; btnClass = 'pm-btn-disabled'; }
+            else if (plans.has_pending_request) { btnText = 'Kutilmoqda...'; btnClass = 'pm-btn-disabled'; }
+            else if (!canAfford) { btnText = '<i class="bi bi-lock-fill"></i>Coin yetarli emas'; btnClass = 'pm-btn-disabled'; }
+            else { btnText = '<i class="bi bi-send-fill"></i>So\'rov yuborish'; btnClass = isPopular ? 'pm-btn-primary' : 'pm-btn-outline'; }
+
+            const features = PLAN_FEATURES[key].map(f => '<li><i class="bi bi-check-circle-fill"></i>'+f+'</li>').join('');
+            html += `<div class="col-12 col-md-4">
+                <div class="pm-plan ${isPopular?'popular':''} pm-animate-${idx+1}">
+                    ${PLAN_BADGES[key]?'<div class="pm-popular-tag">'+PLAN_BADGES[key]+'</div>':''}
+                    <div class="pm-plan-icon ${PLAN_ICON_CLASS[key]}"><i class="bi ${PLAN_ICONS[key]}"></i></div>
+                    <div class="pm-plan-name">${p.name}</div>
+                    <div class="pm-plan-days">${p.days} kun amal qiladi <span style="font-size:0.8rem;opacity:0.7">(${p.percent}%)</span></div>
+                    <div class="pm-price">
+                        <div class="pm-price-amount">${p.price}</div>
+                        <div class="pm-price-label">coin</div>
+                    </div>
+                    <ul class="pm-features">${features}</ul>
+                    <button type="button" class="pm-btn ${btnClass}" ${disabled?'disabled':''}
+                        onclick="showConfirmModal('${key}','${p.name}',${p.price},${p.days})">
+                        ${btnText}
+                    </button>
+                </div>
+            </div>`;
+        });
+        document.getElementById('bpPlansRow').innerHTML = html;
+    } catch(e) {
+        document.getElementById('bpPlansRow').innerHTML = '<div class="col-12 text-center py-4 text-muted">Xatolik yuz berdi</div>';
+        console.error(e);
+    }
+}
 
 function showConfirmModal(plan, name, price, days) {
     selectedPlan = plan;
-    const userCoins = {{ user.coins }};
-
     document.getElementById('pcmPlanName').textContent = name + ' Premium';
     document.getElementById('pcmPrice').textContent = price.toLocaleString();
     document.getElementById('pcmDays').textContent = days + ' kun';
@@ -1198,13 +1177,24 @@ function submitPremium() {
     const btn = document.getElementById('pcmConfirmBtn');
     btn.classList.add('loading');
     btn.innerHTML = 'Yuborilmoqda...<div class="pcm-btn-shine"></div>';
-    setTimeout(() => {
-        document.getElementById('form-' + selectedPlan).submit();
-    }, 600);
+
+    apiPost('/api/v1/coin/premium/request/', {plan: selectedPlan})
+        .then(d => {
+            closeConfirmModal();
+            alert(d.message || "So'rov yuborildi!");
+            loadBuyPremium();
+        })
+        .catch(e => {
+            alert(e.error || 'Xatolik yuz berdi');
+            btn.classList.remove('loading');
+            btn.innerHTML = '<i class="bi bi-send-fill"></i>Ha, yuborish<div class="pcm-btn-shine"></div>';
+        });
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeConfirmModal();
 });
+
+loadBuyPremium();
 </script>
 {% endblock %}

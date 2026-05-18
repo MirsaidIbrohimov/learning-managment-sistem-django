@@ -254,9 +254,13 @@
             } else if(d.is_premium) {
                 title.textContent = 'Siz Premium foydalanuvchisiz! ⭐';
                 desc.textContent = 'Muddatni uzaytirish yoki batafsil ma\'lumot';
+            } else if(!d.eligible) {
+                title.textContent = '🔒 Premium hali mavjud emas';
+                desc.textContent = 'Ro\'yxatdan o\'tganingizga kamida 1 oy bo\'lishi kerak (yana '+d.days_until_eligible+' kun)';
             } else {
+                const mp = d.plans.monthly;
                 title.textContent = 'Premium olish';
-                desc.textContent = '5% chegirma, 2x coin va maxsus badge';
+                desc.textContent = 'Narxlar jami coinlaringizga qarab: 1 oylik '+mp.price+' coin (50%)';
             }
             banner.style.display = 'block';
         } catch(e) {}
