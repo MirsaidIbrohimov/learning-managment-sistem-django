@@ -24,11 +24,11 @@ const Hero = () => {
           </div>
 
           <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight">
-            Kelajak <span className="text-gradient">kodimg</span> bilan boshlanadi
+            Kelajak <span className="text-gradient">IT Shaxarcha Zomin</span> bilan yorqinroq!
           </h1>
 
           <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-            IT Creative Academy — zamonaviy dasturlash va IT kasblariga o'rgatuvchi o'quv markaz.
+            IT Shaxarcha Zomin — zamonaviy dasturlash va IT kasblariga o'rgatuvchi o'quv markaz.
             Frontend, Backend, UI/UX dizayn va sun'iy intellekt yo'nalishlarida amaliy ta'lim oling.
           </p>
 

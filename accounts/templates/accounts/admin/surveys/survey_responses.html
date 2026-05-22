@@ -1,0 +1,109 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Javoblar - {{ survey.title }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .sr-page { padding: 1.5rem 0; }
+    .sr-header {
+        display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
+    }
+    .sr-back {
+        width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--bs-border-color);
+        background: transparent; display: flex; align-items: center; justify-content: center;
+        color: var(--bs-body-color); text-decoration: none; font-size: 1.1rem; transition: all 0.2s;
+    }
+    .sr-back:hover { background: rgba(99, 102, 241, 0.08); color: #6366f1; }
+    .sr-header h3 { font-weight: 800; margin: 0; }
+    .sr-count {
+        background: rgba(99, 102, 241, 0.12); color: #6366f1;
+        padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 0.88rem;
+    }
+
+    .sr-response-card {
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        border-radius: 16px; padding: 1.5rem; margin-bottom: 1.25rem;
+        transition: all 0.2s;
+    }
+    .sr-response-card:hover { border-color: #6366f1; }
+
+    .sr-user-info {
+        display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;
+        padding-bottom: 1rem; border-bottom: 1px solid var(--bs-border-color);
+    }
+    .sr-avatar {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    }
+    .sr-user-name { font-weight: 700; }
+    .sr-user-meta { font-size: 0.82rem; color: var(--bs-secondary-color); }
+
+    .sr-answer-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px dashed var(--bs-border-color);
+    }
+    .sr-answer-item:last-child { border-bottom: none; }
+    .sr-answer-q {
+        font-weight: 600; font-size: 0.88rem; color: #6366f1;
+        margin-bottom: 0.3rem;
+    }
+    .sr-answer-a { font-size: 0.95rem; }
+    .sr-answer-empty { color: var(--bs-secondary-color); font-style: italic; }
+
+    .sr-empty {
+        text-align: center; padding: 4rem 2rem; color: var(--bs-secondary-color);
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        border-radius: 16px;
+    }
+    .sr-empty i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; display: block; }
+</style>
+
+<div class="sr-page">
+    <div class="sr-header">
+        <a href="{% url 'admin_surveys' %}" class="sr-back"><i class="bi bi-arrow-left"></i></a>
+        <h3><i class="bi bi-chat-square-text" style="color:#6366f1;"></i> {{ survey.title }}</h3>
+        <span class="sr-count">{{ responses|length }} ta javob</span>
+    </div>
+
+    {% if survey.description %}
+    <p style="color: var(--bs-secondary-color); margin-bottom: 1.5rem;">{{ survey.description }}</p>
+    {% endif %}
+
+    {% if responses %}
+        {% for response in responses %}
+        <div class="sr-response-card">
+            <div class="sr-user-info">
+                <div class="sr-avatar">{{ response.user.first_name.0 }}{{ response.user.last_name.0 }}</div>
+                <div>
+                    <div class="sr-user-name">{{ response.user.get_full_name }}</div>
+                    <div class="sr-user-meta">
+                        @{{ response.user.username }} &bull; {{ response.submitted_at|date:"d.m.Y H:i" }}
+                    </div>
+                </div>
+            </div>
+
+            {% for answer in response.answers.all %}
+            <div class="sr-answer-item">
+                <div class="sr-answer-q"><i class="bi bi-chat-dots"></i> {{ answer.question.question_text }}</div>
+                <div class="sr-answer-a">
+                    {% if answer.answer_text %}
+                        {{ answer.answer_text }}
+                    {% else %}
+                        <span class="sr-answer-empty">Javob berilmagan</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="sr-empty">
+        <i class="bi bi-chat-square-text"></i>
+        <h5>Hali javoblar yo'q</h5>
+        <p>Foydalanuvchilar so'rovnomani to'ldirganda javoblar shu yerda ko'rinadi</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

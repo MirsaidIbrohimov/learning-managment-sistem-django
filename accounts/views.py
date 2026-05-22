@@ -24,7 +24,8 @@ from .models import (
     UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
-    DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken
+    DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken,
+    SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer
 )
 from django.contrib.auth.hashers import make_password
 from .security import get_client_ip, check_rate_limit
@@ -850,6 +851,18 @@ def login_view(request):
         # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
         if user.role == 'student' and not user.is_profile_completed:
             return redirect('complete_profile')
+
+        # So'rovnoma tekshirish (login qilganda)
+        pending_survey = SurveyForm.objects.filter(
+            is_active=True,
+            show_on_login=True,
+        ).exclude(
+            responses__user=user
+        ).filter(
+            models.Q(target_role='all') | models.Q(target_role=user.role)
+        ).first()
+        if pending_survey:
+            return redirect('fill_survey', pk=pending_survey.pk)
 
         return redirect('home')
 
@@ -12957,5 +12970,211 @@ def admin_file_only_toggle(request):
     })
 
 
+# ============================================
+# SO'ROVNOMALAR BOSHQARUVI (ADMIN)
+# ============================================
 
+@login_required
+def admin_surveys(request):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    surveys = SurveyForm.objects.all()
+    
+    context = {
+        'surveys': surveys,
+        'active_count': surveys.filter(is_active=True).count(),
+        'total_responses': SurveyResponse.objects.count(),
+    }
+    return render(request, 'accounts/admin/surveys/survey_list.html', context)
+
+
+@login_required
+def admin_survey_create(request):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    if request.method == 'POST':
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        show_on_login = request.POST.get('show_on_login') == 'on'
+        is_required = request.POST.get('is_required') == 'on'
+        target_role = request.POST.get('target_role', 'all')
+        
+        if not title:
+            messages.error(request, "Forma nomi kiritilishi shart! ⚠️")
+            return render(request, 'accounts/admin/surveys/survey_form.html', {'mode': 'create'})
+        
+        survey = SurveyForm.objects.create(
+            title=title,
+            description=description,
+            is_active=is_active,
+            show_on_login=show_on_login,
+            is_required=is_required,
+            target_role=target_role,
+        )
+        
+        # Savollarni saqlash
+        question_texts = request.POST.getlist('question_text')
+        question_types = request.POST.getlist('question_type')
+        question_choices = request.POST.getlist('question_choices')
+        question_required = request.POST.getlist('question_required')
+        
+        for i, text in enumerate(question_texts):
+            if text.strip():
+                SurveyQuestion.objects.create(
+                    survey=survey,
+                    question_text=text.strip(),
+                    question_type=question_types[i] if i < len(question_types) else 'text',
+                    choices=question_choices[i].strip() if i < len(question_choices) else '',
+                    is_required=str(i) in question_required,
+                    order=i,
+                )
+        
+        messages.success(request, f"'{survey.title}' so'rovnomasi yaratildi! ✅")
+        return redirect('admin_surveys')
+    
+    return render(request, 'accounts/admin/surveys/survey_form.html', {'mode': 'create'})
+
+
+@login_required
+def admin_survey_edit(request, pk):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    survey = get_object_or_404(SurveyForm, pk=pk)
+    
+    if request.method == 'POST':
+        survey.title = request.POST.get('title', '').strip()
+        survey.description = request.POST.get('description', '').strip()
+        survey.is_active = request.POST.get('is_active') == 'on'
+        survey.show_on_login = request.POST.get('show_on_login') == 'on'
+        survey.is_required = request.POST.get('is_required') == 'on'
+        survey.target_role = request.POST.get('target_role', 'all')
+        
+        if not survey.title:
+            messages.error(request, "Forma nomi kiritilishi shart! ⚠️")
+            return render(request, 'accounts/admin/surveys/survey_form.html', {
+                'mode': 'edit', 'survey': survey
+            })
+        
+        survey.save()
+        
+        # Eski savollarni o'chirish va yangilarini saqlash
+        survey.questions.all().delete()
+        
+        question_texts = request.POST.getlist('question_text')
+        question_types = request.POST.getlist('question_type')
+        question_choices = request.POST.getlist('question_choices')
+        question_required = request.POST.getlist('question_required')
+        
+        for i, text in enumerate(question_texts):
+            if text.strip():
+                SurveyQuestion.objects.create(
+                    survey=survey,
+                    question_text=text.strip(),
+                    question_type=question_types[i] if i < len(question_types) else 'text',
+                    choices=question_choices[i].strip() if i < len(question_choices) else '',
+                    is_required=str(i) in question_required,
+                    order=i,
+                )
+        
+        messages.success(request, f"'{survey.title}' yangilandi! ✅")
+        return redirect('admin_surveys')
+    
+    context = {
+        'mode': 'edit',
+        'survey': survey,
+        'questions': survey.questions.all(),
+    }
+    return render(request, 'accounts/admin/surveys/survey_form.html', context)
+
+
+@login_required
+def admin_survey_delete(request, pk):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    survey = get_object_or_404(SurveyForm, pk=pk)
+    
+    if request.method == 'POST':
+        title = survey.title
+        survey.delete()
+        messages.success(request, f"'{title}' o'chirildi! 🗑️")
+        return redirect('admin_surveys')
+    
+    return render(request, 'accounts/admin/surveys/survey_delete.html', {'survey': survey})
+
+
+@login_required
+def admin_survey_responses(request, pk):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    survey = get_object_or_404(SurveyForm, pk=pk)
+    responses = survey.responses.select_related('user').prefetch_related('answers__question').all()
+    questions = survey.questions.all()
+    
+    context = {
+        'survey': survey,
+        'responses': responses,
+        'questions': questions,
+    }
+    return render(request, 'accounts/admin/surveys/survey_responses.html', context)
+
+
+@login_required
+def admin_survey_toggle(request, pk):
+    if request.user.role != 'admin':
+        return redirect('home')
+    
+    survey = get_object_or_404(SurveyForm, pk=pk)
+    survey.is_active = not survey.is_active
+    survey.save(update_fields=['is_active'])
+    
+    status = "faollashtirildi ✅" if survey.is_active else "o'chirildi ⛔"
+    messages.success(request, f"'{survey.title}' {status}")
+    return redirect('admin_surveys')
+
+
+# ============================================
+# SO'ROVNOMANI TO'LDIRISH (USER)
+# ============================================
+
+@login_required
+def fill_survey(request, pk):
+    survey = get_object_or_404(SurveyForm, pk=pk, is_active=True)
+    
+    # Allaqachon javob berganmi?
+    if SurveyResponse.objects.filter(survey=survey, user=request.user).exists():
+        messages.info(request, "Siz bu so'rovnomani allaqachon to'ldirdingiz! ℹ️")
+        return redirect('home')
+    
+    questions = survey.questions.all()
+    
+    if request.method == 'POST':
+        response = SurveyResponse.objects.create(survey=survey, user=request.user)
+        
+        for question in questions:
+            if question.question_type == 'checkbox':
+                selected = request.POST.getlist(f'question_{question.id}')
+                answer_text = ', '.join(selected)
+            else:
+                answer_text = request.POST.get(f'question_{question.id}', '').strip()
+            
+            SurveyAnswer.objects.create(
+                response=response,
+                question=question,
+                answer_text=answer_text,
+            )
+        
+        messages.success(request, "So'rovnomani to'ldirganingiz uchun rahmat! 🎉")
+        return redirect('home')
+    
+    context = {
+        'survey': survey,
+        'questions': questions,
+    }
+    return render(request, 'accounts/fill_survey.html', context)
 

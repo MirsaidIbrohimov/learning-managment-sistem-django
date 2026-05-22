@@ -1766,3 +1766,94 @@ class StudentLessonToken(models.Model):
         token_obj, _ = cls.objects.get_or_create(student=student, lesson=lesson)
         return token_obj
 
+
+class SurveyForm(models.Model):
+    title = models.CharField(max_length=300, verbose_name="Forma nomi")
+    description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    show_on_login = models.BooleanField(default=True, verbose_name="Login qilganda ko'rsatish")
+    is_required = models.BooleanField(default=False, verbose_name="Majburiy")
+    target_role = models.CharField(
+        max_length=20,
+        choices=[('all', 'Hammaga'), ('student', "O'quvchilarga"), ('teacher', "O'qituvchilarga")],
+        default='all',
+        verbose_name="Kimga ko'rsatilsin"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "So'rovnoma"
+        verbose_name_plural = "So'rovnomalar"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
+
+    def question_count(self):
+        return self.questions.count()
+
+    def response_count(self):
+        return self.responses.count()
+
+
+class SurveyQuestion(models.Model):
+    QUESTION_TYPES = [
+        ('text', 'Matn (qisqa)'),
+        ('textarea', 'Matn (uzun)'),
+        ('radio', 'Bitta tanlash'),
+        ('checkbox', "Ko'p tanlash"),
+        ('select', 'Ro\'yxatdan tanlash'),
+        ('number', 'Raqam'),
+        ('date', 'Sana'),
+        ('rating', 'Baholash (1-5)'),
+    ]
+
+    survey = models.ForeignKey(SurveyForm, on_delete=models.CASCADE, related_name='questions')
+    question_text = models.CharField(max_length=500, verbose_name="Savol matni")
+    question_type = models.CharField(max_length=20, choices=QUESTION_TYPES, default='text', verbose_name="Savol turi")
+    choices = models.TextField(blank=True, null=True, verbose_name="Variantlar (har bir qator — bitta variant)", help_text="Har bir variantni yangi qatordan yozing")
+    is_required = models.BooleanField(default=True, verbose_name="Majburiy")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+
+    class Meta:
+        verbose_name = "Savol"
+        verbose_name_plural = "Savollar"
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.survey.title} - {self.question_text[:50]}"
+
+    def get_choices_list(self):
+        if not self.choices:
+            return []
+        return [c.strip() for c in self.choices.strip().split('\n') if c.strip()]
+
+
+class SurveyResponse(models.Model):
+    survey = models.ForeignKey(SurveyForm, on_delete=models.CASCADE, related_name='responses')
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='survey_responses')
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Javob"
+        verbose_name_plural = "Javoblar"
+        ordering = ['-submitted_at']
+        unique_together = ['survey', 'user']
+
+    def __str__(self):
+        return f"{self.user.get_full_name()} - {self.survey.title}"
+
+
+class SurveyAnswer(models.Model):
+    response = models.ForeignKey(SurveyResponse, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(SurveyQuestion, on_delete=models.CASCADE, related_name='answers')
+    answer_text = models.TextField(blank=True, null=True, verbose_name="Javob")
+
+    class Meta:
+        verbose_name = "Javob detali"
+        verbose_name_plural = "Javob detallari"
+
+    def __str__(self):
+        return f"{self.question.question_text[:30]}: {self.answer_text[:50] if self.answer_text else '-'}"
+

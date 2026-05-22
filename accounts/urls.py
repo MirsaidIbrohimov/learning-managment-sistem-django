@@ -279,4 +279,15 @@ urlpatterns = [
     path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
     path('dashboard/ai-checker/course-toggle/', views.admin_ai_course_toggle, name='admin_ai_course_toggle'),
     path('dashboard/ai-checker/file-only-toggle/', views.admin_file_only_toggle, name='admin_file_only_toggle'),
+    
+    # Admin: So'rovnomalar
+    path('dashboard/surveys/', views.admin_surveys, name='admin_surveys'),
+    path('dashboard/surveys/create/', views.admin_survey_create, name='admin_survey_create'),
+    path('dashboard/surveys/<int:pk>/edit/', views.admin_survey_edit, name='admin_survey_edit'),
+    path('dashboard/surveys/<int:pk>/delete/', views.admin_survey_delete, name='admin_survey_delete'),
+    path('dashboard/surveys/<int:pk>/responses/', views.admin_survey_responses, name='admin_survey_responses'),
+    path('dashboard/surveys/<int:pk>/toggle/', views.admin_survey_toggle, name='admin_survey_toggle'),
+    
+    # So'rovnomani to'ldirish
+    path('survey/<int:pk>/fill/', views.fill_survey, name='fill_survey'),
 ]

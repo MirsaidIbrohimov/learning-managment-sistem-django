@@ -1,0 +1,302 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{% if mode == 'edit' %}Tahrirlash{% else %}Yangi so'rovnoma{% endif %} - Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+    .sf-page { padding: 1.5rem 0; max-width: 900px; }
+    .sf-header {
+        display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+    }
+    .sf-header h3 { font-weight: 800; margin: 0; }
+    .sf-back {
+        width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--bs-border-color);
+        background: transparent; display: flex; align-items: center; justify-content: center;
+        color: var(--bs-body-color); text-decoration: none; font-size: 1.1rem; transition: all 0.2s;
+    }
+    .sf-back:hover { background: rgba(99, 102, 241, 0.08); color: #6366f1; }
+
+    .sf-card {
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        border-radius: 16px; padding: 1.75rem; margin-bottom: 1.5rem;
+    }
+    .sf-card-title {
+        font-weight: 700; font-size: 1.1rem; margin-bottom: 1.25rem;
+        display: flex; align-items: center; gap: 0.5rem;
+    }
+    .sf-card-title i { color: #6366f1; }
+
+    .sf-group { margin-bottom: 1.25rem; }
+    .sf-label { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.4rem; display: block; }
+    .sf-input, .sf-textarea, .sf-select {
+        width: 100%; padding: 10px 14px; border-radius: 10px;
+        border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
+        color: var(--bs-body-color); font-size: 0.92rem; transition: all 0.2s;
+    }
+    .sf-input:focus, .sf-textarea:focus, .sf-select:focus {
+        outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+    .sf-textarea { min-height: 80px; resize: vertical; }
+
+    .sf-check-row {
+        display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.5rem;
+    }
+    .sf-check-item {
+        display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
+    }
+    .sf-check-item input[type="checkbox"] {
+        width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;
+    }
+
+    /* Questions */
+    .sf-questions-title {
+        font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .sf-q-item {
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem;
+        position: relative; transition: all 0.3s;
+    }
+    .sf-q-item:hover { border-color: #6366f1; }
+    .sf-q-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 1rem; gap: 0.5rem;
+    }
+    .sf-q-num {
+        width: 32px; height: 32px; border-radius: 10px;
+        background: rgba(99, 102, 241, 0.12); color: #6366f1;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.88rem; flex-shrink: 0;
+    }
+    .sf-q-remove {
+        width: 32px; height: 32px; border-radius: 8px; border: none;
+        background: rgba(239, 68, 68, 0.1); color: #ef4444;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: all 0.2s;
+    }
+    .sf-q-remove:hover { background: #ef4444; color: #fff; }
+
+    .sf-q-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .sf-q-choices { display: none; }
+    .sf-q-choices.visible { display: block; }
+
+    .sf-add-btn {
+        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+        width: 100%; padding: 14px; border-radius: 14px;
+        border: 2px dashed var(--bs-border-color); background: transparent;
+        color: #6366f1; font-weight: 700; font-size: 0.92rem;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .sf-add-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.04); }
+
+    .sf-submit-row { display: flex; gap: 1rem; margin-top: 2rem; }
+    .sf-submit {
+        padding: 12px 28px; border-radius: 12px; border: none;
+        background: #6366f1; color: #fff; font-weight: 700; font-size: 1rem;
+        cursor: pointer; transition: all 0.2s;
+    }
+    .sf-submit:hover { background: #4f46e5; }
+    .sf-cancel {
+        padding: 12px 28px; border-radius: 12px; border: 1px solid var(--bs-border-color);
+        background: transparent; color: var(--bs-body-color); font-weight: 600;
+        text-decoration: none; display: inline-flex; align-items: center; transition: all 0.2s;
+    }
+    .sf-cancel:hover { background: rgba(0,0,0,0.04); color: var(--bs-body-color); }
+
+    @media (max-width: 768px) {
+        .sf-q-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="sf-page">
+    <div class="sf-header">
+        <a href="{% url 'admin_surveys' %}" class="sf-back"><i class="bi bi-arrow-left"></i></a>
+        <h3>{% if mode == 'edit' %}<i class="bi bi-pencil" style="color:#6366f1;"></i> Tahrirlash{% else %}<i class="bi bi-plus-lg" style="color:#6366f1;"></i> Yangi so'rovnoma{% endif %}</h3>
+    </div>
+
+    <form method="post" id="surveyForm">
+        {% csrf_token %}
+
+        <div class="sf-card">
+            <div class="sf-card-title"><i class="bi bi-info-circle"></i> Asosiy ma'lumotlar</div>
+
+            <div class="sf-group">
+                <label class="sf-label">Forma nomi *</label>
+                <input type="text" name="title" class="sf-input" required
+                       value="{% if survey %}{{ survey.title }}{% endif %}"
+                       placeholder="Masalan: O'quvchilar uchun so'rovnoma">
+            </div>
+
+            <div class="sf-group">
+                <label class="sf-label">Tavsif</label>
+                <textarea name="description" class="sf-textarea"
+                          placeholder="So'rovnoma haqida qisqacha ma'lumot...">{% if survey %}{{ survey.description }}{% endif %}</textarea>
+            </div>
+
+            <div class="sf-group">
+                <label class="sf-label">Kimga ko'rsatilsin</label>
+                <select name="target_role" class="sf-select">
+                    <option value="all" {% if survey and survey.target_role == 'all' %}selected{% endif %}>Hammaga</option>
+                    <option value="student" {% if survey and survey.target_role == 'student' %}selected{% endif %}>O'quvchilarga</option>
+                    <option value="teacher" {% if survey and survey.target_role == 'teacher' %}selected{% endif %}>O'qituvchilarga</option>
+                </select>
+            </div>
+
+            <div class="sf-check-row">
+                <label class="sf-check-item">
+                    <input type="checkbox" name="is_active" {% if mode == 'create' or survey.is_active %}checked{% endif %}>
+                    <span>Faol</span>
+                </label>
+                <label class="sf-check-item">
+                    <input type="checkbox" name="show_on_login" {% if mode == 'create' or survey.show_on_login %}checked{% endif %}>
+                    <span>Login qilganda ko'rsatish</span>
+                </label>
+                <label class="sf-check-item">
+                    <input type="checkbox" name="is_required" {% if survey and survey.is_required %}checked{% endif %}>
+                    <span>Majburiy</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="sf-card">
+            <div class="sf-questions-title">
+                <span><i class="bi bi-list-check" style="color:#6366f1;"></i> Savollar</span>
+            </div>
+
+            <div id="questionsContainer">
+                {% if questions %}
+                    {% for q in questions %}
+                    <div class="sf-q-item" data-index="{{ forloop.counter0 }}">
+                        <div class="sf-q-header">
+                            <div class="sf-q-num">{{ forloop.counter }}</div>
+                            <button type="button" class="sf-q-remove" onclick="removeQuestion(this)"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <div class="sf-group">
+                            <input type="text" name="question_text" class="sf-input" required
+                                   value="{{ q.question_text }}" placeholder="Savol matni...">
+                        </div>
+                        <div class="sf-q-grid">
+                            <div class="sf-group">
+                                <label class="sf-label">Savol turi</label>
+                                <select name="question_type" class="sf-select" onchange="toggleChoices(this)">
+                                    <option value="text" {% if q.question_type == 'text' %}selected{% endif %}>Matn (qisqa)</option>
+                                    <option value="textarea" {% if q.question_type == 'textarea' %}selected{% endif %}>Matn (uzun)</option>
+                                    <option value="radio" {% if q.question_type == 'radio' %}selected{% endif %}>Bitta tanlash</option>
+                                    <option value="checkbox" {% if q.question_type == 'checkbox' %}selected{% endif %}>Ko'p tanlash</option>
+                                    <option value="select" {% if q.question_type == 'select' %}selected{% endif %}>Ro'yxatdan tanlash</option>
+                                    <option value="number" {% if q.question_type == 'number' %}selected{% endif %}>Raqam</option>
+                                    <option value="date" {% if q.question_type == 'date' %}selected{% endif %}>Sana</option>
+                                    <option value="rating" {% if q.question_type == 'rating' %}selected{% endif %}>Baholash (1-5)</option>
+                                </select>
+                            </div>
+                            <div class="sf-group">
+                                <label class="sf-check-item" style="margin-top: 1.7rem;">
+                                    <input type="checkbox" name="question_required" value="{{ forloop.counter0 }}"
+                                           {% if q.is_required %}checked{% endif %}>
+                                    <span>Majburiy savol</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="sf-group sf-q-choices {% if q.question_type == 'radio' or q.question_type == 'checkbox' or q.question_type == 'select' %}visible{% endif %}">
+                            <label class="sf-label">Variantlar (har bir qator — bitta variant)</label>
+                            <textarea name="question_choices" class="sf-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3">{{ q.choices }}</textarea>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+
+            <button type="button" class="sf-add-btn" onclick="addQuestion()">
+                <i class="bi bi-plus-circle"></i> Savol qo'shish
+            </button>
+        </div>
+
+        <div class="sf-submit-row">
+            <button type="submit" class="sf-submit">
+                <i class="bi bi-check-lg"></i> {% if mode == 'edit' %}Saqlash{% else %}Yaratish{% endif %}
+            </button>
+            <a href="{% url 'admin_surveys' %}" class="sf-cancel">Bekor qilish</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let questionIndex = document.querySelectorAll('.sf-q-item').length;
+
+function addQuestion() {
+    const container = document.getElementById('questionsContainer');
+    const idx = questionIndex;
+    const html = `
+    <div class="sf-q-item" data-index="${idx}" style="animation: fadeIn 0.3s ease;">
+        <div class="sf-q-header">
+            <div class="sf-q-num">${idx + 1}</div>
+            <button type="button" class="sf-q-remove" onclick="removeQuestion(this)"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="sf-group">
+            <input type="text" name="question_text" class="sf-input" required placeholder="Savol matni...">
+        </div>
+        <div class="sf-q-grid">
+            <div class="sf-group">
+                <label class="sf-label">Savol turi</label>
+                <select name="question_type" class="sf-select" onchange="toggleChoices(this)">
+                    <option value="text">Matn (qisqa)</option>
+                    <option value="textarea">Matn (uzun)</option>
+                    <option value="radio">Bitta tanlash</option>
+                    <option value="checkbox">Ko'p tanlash</option>
+                    <option value="select">Ro'yxatdan tanlash</option>
+                    <option value="number">Raqam</option>
+                    <option value="date">Sana</option>
+                    <option value="rating">Baholash (1-5)</option>
+                </select>
+            </div>
+            <div class="sf-group">
+                <label class="sf-check-item" style="margin-top: 1.7rem;">
+                    <input type="checkbox" name="question_required" value="${idx}" checked>
+                    <span>Majburiy savol</span>
+                </label>
+            </div>
+        </div>
+        <div class="sf-group sf-q-choices">
+            <label class="sf-label">Variantlar (har bir qator — bitta variant)</label>
+            <textarea name="question_choices" class="sf-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3"></textarea>
+        </div>
+    </div>`;
+    container.insertAdjacentHTML('beforeend', html);
+    questionIndex++;
+    renumberQuestions();
+}
+
+function removeQuestion(btn) {
+    const item = btn.closest('.sf-q-item');
+    item.style.opacity = '0';
+    item.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        item.remove();
+        renumberQuestions();
+    }, 200);
+}
+
+function renumberQuestions() {
+    document.querySelectorAll('.sf-q-item').forEach((item, i) => {
+        item.querySelector('.sf-q-num').textContent = i + 1;
+        const reqCheckbox = item.querySelector('input[name="question_required"]');
+        if (reqCheckbox) reqCheckbox.value = i;
+    });
+}
+
+function toggleChoices(select) {
+    const choicesDiv = select.closest('.sf-q-item').querySelector('.sf-q-choices');
+    const needChoices = ['radio', 'checkbox', 'select'].includes(select.value);
+    choicesDiv.classList.toggle('visible', needChoices);
+}
+</script>
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+{% endblock %}

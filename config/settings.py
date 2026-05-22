@@ -78,11 +78,11 @@ SESSION_SAVE_EVERY_REQUEST = False
 # ============================
 
 JAZZMIN_SETTINGS = {
-    "site_title": "IT Creative LMS Admin",
-    "site_header": "IT Creative LMS 🚀",
-    "site_brand": "IT Creative",
+    "site_title": "IT Shaxarcha Zomin Admin",
+    "site_header": "IT Shaxarcha Zomin 🚀",
+    "site_brand": "IT Shaxarcha Zomin",
     "welcome_sign": "Xush kelibsiz, Developer 😎",
-    "copyright": "Suyunov Husan | IT Creative",
+    "copyright": "Suyunov Husan | IT Shaxarcha Zomin",
 
     # LOGO (agar static/images/logo.png bo‘lsa)
     "site_logo": "images/logo.png",
@@ -99,7 +99,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
         {"name": "🌐 Sayt", "url": "/", "new_window": True},
         {"name": "📊 Statistika", "url": "admin:index"},
-        {"name": "🎥 IT Creative", "url": "https://youtube.com/@ITCreative", "new_window": True},
+        {"name": "🎥 IT Shaxarcha Zomin", "url": "https://youtube.com/@ITCreative", "new_window": True},
         {"model": "accounts.CustomUser"},
     ],
 
