@@ -1,0 +1,116 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+
+{% block title %}O'quvchilar{% endblock %}
+{% block page_title %}O'quvchilar ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="🔍 Ism, familiya, telefon, username...">
+            </div>
+            <div class="col-md-3">
+                <select name="profession" class="form-select form-select-sm">
+                    <option value="">— Barcha yo'nalishlar —</option>
+                    {% for p in professions %}
+                        <option value="{{ p.pk }}" {% if profession_id == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">— Barcha holatlar —</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
+                    <option value="blocked" {% if status == 'blocked' %}selected{% endif %}>Bloklangan</option>
+                    <option value="premium" {% if status == 'premium' %}selected{% endif %}>Premium</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-warning btn-sm w-100"><i class="bi bi-search"></i> Qidirish</button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if students %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background:rgba(245,158,11,0.06);">
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Telefon</th>
+                        <th>Yo'nalish</th>
+                        <th>Coinlar</th>
+                        <th>Holati</th>
+                        <th>Oxirgi faollik</th>
+                        <th class="text-end">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if s.photo %}
+                                    <img src="{{ s.photo.url }}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">
+                                {% else %}
+                                    <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;">{{ s.get_initials }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.88rem;">
+                                        {{ s.full_name }}
+                                        {% if s.is_premium %}<i class="bi bi-patch-check-fill text-warning" title="Premium"></i>{% endif %}
+                                    </div>
+                                    <div class="text-muted" style="font-size:.75rem;">@{{ s.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size:.85rem;">{{ s.phone }}</td>
+                        <td style="font-size:.85rem;">{{ s.profession.name|default:"—" }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ s.coins }} 🪙</span></td>
+                        <td>
+                            {% if s.is_blocked %}
+                                <span class="badge bg-danger">Bloklangan</span>
+                            {% else %}
+                                <span class="badge bg-success">Faol</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size:.78rem;color:#6b7280;">
+                            {% if s.last_activity %}{{ s.last_activity|timesince }} oldin{% else %}—{% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'yordamchi_student_detail' s.pk %}" class="btn btn-sm btn-outline-warning">
+                                <i class="bi bi-eye"></i> Batafsil
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <div class="d-flex justify-content-center p-3">
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if profession_id %}&profession={{ profession_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">‹</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if profession_id %}&profession={{ profession_id }}{% endif %}{% if status %}&status={{ status }}{% endif %}">›</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
+                <p class="mt-2 mb-0">O'quvchilar topilmadi</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

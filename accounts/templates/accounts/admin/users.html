@@ -185,9 +185,11 @@
     border-radius: 8px; font-size: 0.75rem; font-weight: 700;
 }
 .au-page .au-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
+.au-page .au-role.r-assistant { background: rgba(245,158,11,0.12); color: #d97706; }
 .au-page .au-role.r-teacher { background: rgba(16,185,129,0.1); color: #10b981; }
 .au-page .au-role.r-student { background: rgba(99,102,241,0.1); color: #6366f1; }
 [data-bs-theme="dark"] .au-page .au-role.r-admin { background: rgba(239,68,68,0.2); color: #fca5a5; }
+[data-bs-theme="dark"] .au-page .au-role.r-assistant { background: rgba(245,158,11,0.22); color: #fcd34d; }
 [data-bs-theme="dark"] .au-page .au-role.r-teacher { background: rgba(16,185,129,0.2); color: #6ee7b7; }
 [data-bs-theme="dark"] .au-page .au-role.r-student { background: rgba(99,102,241,0.2); color: #a5b4fc; }
 
@@ -284,6 +286,14 @@
                 <i class="bi bi-person-plus-fill"></i>
                 <span>O'qituvchi qo'shish</span>
             </a>
+            <a href="{% url 'admin_add_assistant_admin' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#f59e0b,#f97316);box-shadow:0 2px 8px rgba(245,158,11,0.25);">
+                <i class="bi bi-person-fill-gear"></i>
+                <span>Yordamchi admin qo'shish</span>
+            </a>
+            <a href="{% url 'assistant_admin_dashboard' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 2px 8px rgba(99,102,241,0.25);">
+                <i class="bi bi-speedometer2"></i>
+                <span>Yordamchi paneli</span>
+            </a>
         </div>
     </div>
 
@@ -330,6 +340,7 @@
                 <select name="role" class="au-filter-select">
                     <option value="">Barchasi</option>
                     <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    <option value="assistant_admin" {% if role_filter == 'assistant_admin' %}selected{% endif %}>Yordamchi admin</option>
                     <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O'qituvchi</option>
                     <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O'quvchi</option>
                 </select>
@@ -378,7 +389,7 @@
         {% if role_filter %}
         <span class="au-chip">
             <i class="bi bi-person-badge"></i>
-            {% if role_filter == 'admin' %}Admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+            {% if role_filter == 'admin' %}Admin{% elif role_filter == 'assistant_admin' %}Yordamchi admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
@@ -424,8 +435,8 @@
             <div class="au-phone au-desktop">{{ u.phone }}</div>
 
             <div class="au-desktop">
-                <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                    {% if u.role == 'admin' %}Admin{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                    {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamchi{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
                 </span>
             </div>
 
@@ -470,8 +481,8 @@
                             <div class="au-uname">@{{ u.username }}</div>
                         </div>
                     </div>
-                    <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                        {% if u.role == 'admin' %}Admin{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                    <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                        {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamchi{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
                     </span>
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">

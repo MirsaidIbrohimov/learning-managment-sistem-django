@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('api.urls')),
     path('teacher/', include('teacher.urls')),
+    path('yordamchi/', include('accounts.yordamchi_urls')),
     path('', include('accounts.urls')),
     path('dashboard/parents/', include('parents.urls')),
     path('parent/', include('parents.portal_urls')),

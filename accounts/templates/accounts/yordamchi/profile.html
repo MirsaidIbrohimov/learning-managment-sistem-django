@@ -1,0 +1,82 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+
+{% block title %}Profilim & ruxsatlar{% endblock %}
+{% block page_title %}Profilim & ruxsatlar{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <!-- Profil -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                {% if request.user.photo %}
+                    <img src="{{ request.user.photo.url }}" class="rounded-circle mb-3" style="width:96px;height:96px;object-fit:cover;border:3px solid #f59e0b;">
+                {% else %}
+                    <div class="rounded-circle mb-3 mx-auto d-flex align-items-center justify-content-center"
+                         style="width:96px;height:96px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:2rem;font-weight:700;">
+                        {{ request.user.get_initials }}
+                    </div>
+                {% endif %}
+                <h5 class="mb-1">{{ request.user.full_name }}</h5>
+                <p class="text-muted small mb-2">@{{ request.user.username }}</p>
+                <span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;padding:.4rem .8rem;">
+                    <i class="bi bi-person-fill-gear me-1"></i> Yordamchi admin
+                </span>
+
+                <hr>
+                <div class="text-start small">
+                    <div class="mb-2"><i class="bi bi-telephone text-muted me-2"></i>{{ request.user.phone }}</div>
+                    {% if request.user.last_activity %}
+                    <div class="mb-2"><i class="bi bi-clock text-muted me-2"></i>Oxirgi faollik: {{ request.user.last_activity|timesince }} oldin</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rol va ruxsatlar -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
+                <h6 class="mb-0">
+                    <i class="bi bi-shield-check me-2 text-warning"></i>
+                    {% if assistant_role %}
+                        {{ assistant_role.name }}
+                    {% else %}
+                        Rol biriktirilmagan
+                    {% endif %}
+                </h6>
+                {% if assistant_role and assistant_role.description %}
+                    <small class="text-muted">{{ assistant_role.description }}</small>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if not assistant_role %}
+                    <div class="alert alert-warning small mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Sizga hali permission profili biriktirilmagan. Administratorga murojaat qiling.
+                    </div>
+                {% else %}
+                    <p class="text-muted small mb-3">Sizga berilgan ruxsatlar ({{ permission_count }} ta):</p>
+                    {% for group_label, perms in grouped_perms.items %}
+                        <div class="mb-3">
+                            <div class="fw-bold mb-2" style="font-size:.85rem;color:#4338ca;">
+                                <i class="bi bi-folder2-open me-1"></i> {{ group_label }}
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for perm_code, perm_label in perms %}
+                                    <span class="badge" style="background:rgba(16,185,129,.12);color:#047857;font-weight:500;font-size:.72rem;padding:.35rem .6rem;">
+                                        <i class="bi bi-check2 me-1"></i>{{ perm_label }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="text-muted small">Ruxsatlar yo'q.</div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

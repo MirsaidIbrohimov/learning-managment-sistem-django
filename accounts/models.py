@@ -60,6 +60,7 @@ class CustomUser(AbstractUser):
 
     ROLE_CHOICES = (
         ('admin', 'Admin'),
+        ('assistant_admin', "Yordamchi admin"),
         ('teacher', "O'qituvchi"),
         ('student', "O'quvchi"),
     )
@@ -163,9 +164,54 @@ class CustomUser(AbstractUser):
 
     # ---------------- PROPERTIES ----------------
 
+    # Granular permission role (for assistant_admin staff)
+    assistant_role = models.ForeignKey(
+        'AssistantRole',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='users',
+        verbose_name="Yordamchi rol (permission profili)",
+    )
+
     @property
     def is_admin(self):
         return self.role == 'admin'
+
+    @property
+    def is_assistant_admin(self):
+        return self.role == 'assistant_admin'
+
+    @property
+    def is_admin_or_assistant(self):
+        return self.role in ('admin', 'assistant_admin')
+
+    @property
+    def is_super_admin(self):
+        """role='admin' yoki assistant_role.code == 'super_admin'"""
+        if self.role == 'admin':
+            return True
+        if self.assistant_role and self.assistant_role.code == 'super_admin':
+            return True
+        return False
+
+    def get_assistant_permissions(self):
+        """Foydalanuvchi uchun mavjud permission kodlari to'plami."""
+        # Admin -> hammasi
+        if self.is_admin:
+            from accounts.permissions_registry import all_permission_codes
+            return set(all_permission_codes())
+        if self.assistant_role:
+            return set(self.assistant_role.get_permissions())
+        return set()
+
+    def has_assistant_perm(self, code: str) -> bool:
+        """Foydalanuvchi berilgan permission kodiga ega ekanligini tekshiradi."""
+        if self.is_admin:
+            return True
+        if self.assistant_role:
+            return self.assistant_role.has_perm(code)
+        return False
 
     @property
     def is_teacher(self):
@@ -1856,4 +1902,77 @@ class SurveyAnswer(models.Model):
 
     def __str__(self):
         return f"{self.question.question_text[:30]}: {self.answer_text[:50] if self.answer_text else '-'}"
+
+
+# ============================================================
+# ASSISTANT ROLES & PERMISSIONS (granular permission system)
+# ============================================================
+
+class AssistantRole(models.Model):
+    """Yordamchi adminlar uchun permission profili.
+
+    `permissions` - permission kodlari ro'yxati (JSON list). Masalan:
+        ["users.view", "homework.review", ...]
+    """
+    code = models.SlugField(max_length=64, unique=True, verbose_name="Kod (slug)")
+    name = models.CharField(max_length=120, verbose_name="Nomi")
+    description = models.TextField(blank=True, default='', verbose_name="Tavsif")
+    permissions = models.JSONField(default=list, verbose_name="Ruxsatlar (kodlar ro'yxati)")
+    is_system = models.BooleanField(default=False, verbose_name="Tizim roli (o'chirib bo'lmaydi)")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Yordamchi rol"
+        verbose_name_plural = "Yordamchi rollar"
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
+
+    def get_permissions(self):
+        """Permissionlar ro'yxatini qaytaradi (faqat valid kodlar)."""
+        from accounts.permissions_registry import is_valid_permission
+        if not isinstance(self.permissions, list):
+            return []
+        return [p for p in self.permissions if isinstance(p, str) and is_valid_permission(p)]
+
+    def has_perm(self, code: str) -> bool:
+        # super_admin -> hammasi
+        if self.code == 'super_admin':
+            return True
+        return code in self.get_permissions()
+
+
+class AssistantActionLog(models.Model):
+    """Yordamchi adminlar (va admin) tomonidan bajarilgan amallar jurnali."""
+    user = models.ForeignKey(
+        'CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assistant_action_logs',
+        verbose_name="Foydalanuvchi",
+    )
+    action_code = models.CharField(max_length=120, db_index=True, verbose_name="Amal kodi")
+    target_type = models.CharField(max_length=80, blank=True, default='', verbose_name="Obyekt turi")
+    target_id = models.CharField(max_length=64, blank=True, default='', verbose_name="Obyekt ID")
+    description = models.CharField(max_length=500, blank=True, default='', verbose_name="Tavsif")
+    ip_address = models.GenericIPAddressField(null=True, blank=True, verbose_name="IP manzil")
+    extra = models.JSONField(default=dict, blank=True, verbose_name="Qo'shimcha")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Admin harakati"
+        verbose_name_plural = "Admin harakatlari"
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['action_code', '-created_at']),
+        ]
+
+    def __str__(self):
+        who = self.user.username if self.user else 'system'
+        return f"{who} - {self.action_code} ({self.created_at:%Y-%m-%d %H:%M})"
 

@@ -22,6 +22,7 @@
 .ue-hero-info p{margin:0;opacity:.8;font-size:.86rem}
 .ue-hero-badge{display:inline-flex;padding:.22rem .65rem;border-radius:8px;font-size:.7rem;font-weight:700;margin-top:.35rem;text-transform:uppercase;letter-spacing:.5px}
 .ue-hero-badge.r-admin{background:rgba(239,68,68,.2);color:#fca5a5}
+.ue-hero-badge.r-assistant{background:rgba(245,158,11,.25);color:#fcd34d}
 .ue-hero-badge.r-teacher{background:rgba(16,185,129,.2);color:#6ee7b7}
 .ue-hero-badge.r-student{background:rgba(255,255,255,.2);color:#fff}
 
@@ -151,8 +152,8 @@
         <div class="ue-hero-info">
             <h1><i class="bi bi-pencil-square me-2"></i>{{ user_obj.full_name }}</h1>
             <p>@{{ user_obj.username }} &bull; {{ user_obj.phone }}</p>
-            <span class="ue-hero-badge {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+            <span class="ue-hero-badge {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'assistant_admin' %}r-assistant{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
+                {% if user_obj.role == 'admin' %}Admin{% elif user_obj.role == 'assistant_admin' %}Yordamchi admin{% elif user_obj.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
             </span>
         </div>
     </div>
@@ -239,6 +240,11 @@
                                     <label class="ue-label"><i class="bi bi-compass"></i> Yo'nalish</label>
                                     {{ form.profession }}
                                 </div>
+                            </div>
+                            <div class="ue-field" id="ueAssistantRoleWrap" style="{% if user_obj.role != 'assistant_admin' %}display:none{% endif %}">
+                                <label class="ue-label"><i class="bi bi-shield-check"></i> Yordamchi rol (permission profili)</label>
+                                {{ form.assistant_role }}
+                                <div class="ue-hint"><i class="bi bi-info-circle"></i> Faqat "Yordamchi admin" rol uchun ishlatiladi. Akademik Admin / Support / Finance / Super Admin va h.k.</div>
                             </div>
                             <div class="ue-field">
                                 <label class="ue-label"><i class="bi bi-geo-alt"></i> Yashash manzili</label>
@@ -554,12 +560,14 @@ document.addEventListener('DOMContentLoaded',function(){
         });
     });
 
-    // Role -> teacher courses
+    // Role -> teacher courses + assistant_role visibility
     var roleSelect=document.querySelector('[name="role"]');
     var teacherSection=document.getElementById('ueTeacherCourses');
-    if(roleSelect&&teacherSection){
+    var assistantRoleWrap=document.getElementById('ueAssistantRoleWrap');
+    if(roleSelect){
         roleSelect.addEventListener('change',function(){
-            teacherSection.style.display=this.value==='teacher'?'':'none';
+            if(teacherSection) teacherSection.style.display=this.value==='teacher'?'':'none';
+            if(assistantRoleWrap) assistantRoleWrap.style.display=this.value==='assistant_admin'?'':'none';
         });
     }
 

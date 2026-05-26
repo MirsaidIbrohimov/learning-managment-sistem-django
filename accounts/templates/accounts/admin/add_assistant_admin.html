@@ -1,0 +1,85 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Yordamchi admin qo'shish{% endblock %}
+
+{% block admin_content %}
+<style>
+.aa-page { max-width: 720px; margin: 0 auto; padding: 1rem; }
+.aa-card { background: var(--bs-body-bg, #fff); border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 1.5rem; box-shadow: 0 4px 16px rgba(0,0,0,0.05); }
+.aa-title { display: flex; align-items: center; gap: .6rem; margin-bottom: .25rem; font-weight: 700; }
+.aa-sub { color: #6b7280; margin-bottom: 1.25rem; }
+.aa-group { margin-bottom: 1rem; }
+.aa-label { display: block; margin-bottom: .35rem; font-weight: 600; font-size: 0.92rem; }
+.aa-input { width: 100%; padding: .65rem .85rem; border: 1px solid #d1d5db; border-radius: 10px; font-size: 0.95rem; background: var(--bs-body-bg, #fff); color: inherit; }
+.aa-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.15); }
+.aa-actions { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1rem; }
+.aa-btn { padding: .65rem 1.1rem; border-radius: 10px; border: none; font-weight: 600; cursor: pointer; }
+.aa-btn-primary { background: linear-gradient(135deg,#f59e0b,#f97316); color: #fff; }
+.aa-btn-secondary { background: #e5e7eb; color: #111827; text-decoration: none; display: inline-block; }
+.aa-info { padding: .9rem 1rem; border-left: 4px solid #6366f1; background: rgba(99,102,241,.08); border-radius: 8px; margin-bottom: 1rem; }
+.aa-info ul { margin: .4rem 0 0 1rem; padding: 0; font-size: .9rem; }
+</style>
+
+<div class="aa-page">
+    <div class="aa-card">
+        <h1 class="aa-title"><i class="bi bi-person-fill-gear" style="color:#f59e0b;"></i> Yordamchi admin qo'shish</h1>
+        <p class="aa-sub">Yordamchi admin (assistant_admin) tizimda quyidagi bo'limlarni API orqali boshqara oladi:</p>
+
+        <div class="aa-info">
+            <strong>Ruxsatlar:</strong>
+            <ul>
+                <li><b>O'quv jarayoni:</b> Vazifalar, Test hulosalari, Darslar tahlili, Davomat, Sertifikat so'rovlari</li>
+                <li><b>Foydalanuvchilar:</b> Ko'rish, Parol tiklash, Ota-onalar, So'rovlar</li>
+                <li><b>Kontent:</b> Xabarlar, Blog, Kutubxona</li>
+                <li><b>Support:</b> Yordam xatlari, Arizalar, So'rovnomalar</li>
+            </ul>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="aa-info" style="border-left-color:#ef4444; background:rgba(239,68,68,.08);">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="aa-group">
+                <label class="aa-label">Ism *</label>
+                <input type="text" name="first_name" class="aa-input" required>
+            </div>
+            <div class="aa-group">
+                <label class="aa-label">Familiya *</label>
+                <input type="text" name="last_name" class="aa-input" required>
+            </div>
+            <div class="aa-group">
+                <label class="aa-label">Username *</label>
+                <input type="text" name="username" class="aa-input" required>
+            </div>
+            <div class="aa-group">
+                <label class="aa-label">Telefon raqam *</label>
+                <input type="text" name="phone" class="aa-input" placeholder="+998..." required>
+            </div>
+            <div class="aa-group">
+                <label class="aa-label">Parol * (kamida 6 belgi)</label>
+                <input type="text" name="password" class="aa-input" minlength="6" required>
+            </div>
+            <div class="aa-group">
+                <label class="aa-label">Yordamchi rol (permission profili)</label>
+                <select name="assistant_role" class="aa-input">
+                    <option value="">— Rol tanlanmagan (cheklangan ruxsat) —</option>
+                    {% for r in roles %}
+                        <option value="{{ r.pk }}">{{ r.name }} — {{ r.description|default:r.code }}</option>
+                    {% endfor %}
+                </select>
+                <div style="margin-top:.35rem; font-size:.78rem; color:#6b7280;">
+                    Rolni keyin foydalanuvchi profilidan o'zgartira olasiz.
+                </div>
+            </div>
+            <div class="aa-actions">
+                <button type="submit" class="aa-btn aa-btn-primary"><i class="bi bi-check-lg"></i> Yaratish</button>
+                <a href="{% url 'admin_users' %}" class="aa-btn aa-btn-secondary"><i class="bi bi-arrow-left"></i> Bekor qilish</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

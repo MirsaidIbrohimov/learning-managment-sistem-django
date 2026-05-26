@@ -210,6 +210,12 @@ class AdminUserEditForm(forms.ModelForm):
         queryset=Profession.objects.only('id', 'name'), required=False,
         widget=forms.Select(attrs={'class': 'form-control'}), empty_label="Yo'nalishni tanlang"
     )
+    assistant_role = forms.ModelChoiceField(
+        queryset=None, required=False,
+        widget=forms.Select(attrs={'class': 'form-control'}),
+        empty_label="— Permission profili (faqat Yordamchi admin uchun) —",
+        label="Yordamchi rol",
+    )
     photo = forms.ImageField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
     bio = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
     is_blocked = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
@@ -242,13 +248,18 @@ class AdminUserEditForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
-            'first_name', 'last_name', 'username', 'phone', 'role', 'profession',
+            'first_name', 'last_name', 'username', 'phone', 'role', 'profession', 'assistant_role',
             'photo', 'bio', 'is_blocked', 'address', 'birth_date', 'id_card', 'birth_certificate',
             'gender', 'nationality', 'passport_series', 'passport_number', 'jshshir', 'passport_issued_date',
             'father_name', 'father_phone', 'father_deceased',
             'mother_name', 'mother_phone', 'mother_deceased',
             'parent_phone', 'school_name', 'school_number',
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from accounts.models import AssistantRole
+        self.fields['assistant_role'].queryset = AssistantRole.objects.filter(is_active=True).order_by('name')
 
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')

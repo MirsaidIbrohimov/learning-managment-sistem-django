@@ -952,6 +952,9 @@ def logout_view(request):
 
 
 def home_view(request):
+    # Yordamchi admin -> alohida panel
+    if request.user.is_authenticated and request.user.role == 'assistant_admin':
+        return redirect('yordamchi_dashboard')
     # Landing sahifa — login qilmagan foydalanuvchilar uchun
     if not request.user.is_authenticated:
         landing_professions = Profession.objects.filter(is_blocked=False)[:6]
@@ -7877,6 +7880,79 @@ def admin_add_teacher(request):
     
     return render(request, 'accounts/admin/add_teacher.html', {
         'professions': professions,
+    })
+
+
+@login_required
+def admin_add_assistant_admin(request):
+    """Yordamchi admin (assistant_admin) qo'shish - faqat admin uchun"""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    from accounts.models import AssistantRole
+    roles = AssistantRole.objects.filter(is_active=True).order_by('name')
+
+    context = {'roles': roles}
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '').strip()
+        role_id = request.POST.get('assistant_role', '').strip()
+
+        if not all([first_name, last_name, username, phone, password]):
+            messages.error(request, "Barcha maydonlarni to'ldiring!")
+            return render(request, 'accounts/admin/add_assistant_admin.html', context)
+
+        if len(password) < 6:
+            messages.error(request, "Parol kamida 6 belgi bo'lishi kerak!")
+            return render(request, 'accounts/admin/add_assistant_admin.html', context)
+
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, "Bu username allaqachon band!")
+            return render(request, 'accounts/admin/add_assistant_admin.html', context)
+
+        if CustomUser.objects.filter(phone=phone).exists():
+            messages.error(request, "Bu telefon raqam allaqachon ro'yxatdan o'tgan!")
+            return render(request, 'accounts/admin/add_assistant_admin.html', context)
+
+        assistant_role_obj = None
+        if role_id:
+            assistant_role_obj = AssistantRole.objects.filter(pk=role_id, is_active=True).first()
+
+        assistant = CustomUser.objects.create_user(
+            username=username,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            phone=phone,
+            role='assistant_admin',
+            assistant_role=assistant_role_obj,
+        )
+        messages.success(request, f"Yordamchi admin {assistant.full_name} muvaffaqiyatli qo'shildi!")
+        return redirect('admin_users')
+
+    return render(request, 'accounts/admin/add_assistant_admin.html', context)
+
+
+@login_required
+def assistant_admin_dashboard(request):
+    """Yordamchi admin uchun alohida boshqaruv sahifasi.
+
+    Sahifa API orqali (api/assistant/...) ma'lumotlarni yuklab boshqaradi.
+    Faqat admin yoki assistant_admin kira oladi.
+    """
+    if not (request.user.is_admin or request.user.is_assistant_admin):
+        return redirect('home')
+
+    # API uchun token tayyorlash
+    from rest_framework.authtoken.models import Token
+    token, _ = Token.objects.get_or_create(user=request.user)
+
+    return render(request, 'accounts/admin/assistant_dashboard.html', {
+        'api_token': token.key,
     })
 
 

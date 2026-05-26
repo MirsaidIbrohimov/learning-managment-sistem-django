@@ -119,6 +119,8 @@ urlpatterns = [
     path('dashboard/professions/<int:profession_pk>/add-student/', views.admin_add_student_to_course, name='admin_add_student_to_course'),
     path('dashboard/users/', views.admin_users, name='admin_users'),
     path('dashboard/users/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
+    path('dashboard/users/add-assistant-admin/', views.admin_add_assistant_admin, name='admin_add_assistant_admin'),
+    path('dashboard/assistant/', views.assistant_admin_dashboard, name='assistant_admin_dashboard'),
     path('dashboard/users/export/', views.admin_export_students, name='admin_export_students'),
     
     # Admin: O'qituvchilar boshqaruvi

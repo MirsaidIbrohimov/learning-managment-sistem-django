@@ -1,0 +1,72 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+
+{% block title %}Mening harakatlarim{% endblock %}
+{% block page_title %}Mening harakatlarim{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center" style="border-bottom:1px solid var(--yo-border);">
+        <div>
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-warning"></i> Harakatlar jurnali</h5>
+            <small class="text-muted">Sizning oxirgi {{ logs|length }} ta amalingiz</small>
+        </div>
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" value="{{ q|default:'' }}" class="form-control form-control-sm" placeholder="Qidirish (amal/obyekt)..." style="max-width:240px;">
+            <button class="btn btn-sm btn-warning"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if logs %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead style="background:rgba(245,158,11,0.06);">
+                        <tr>
+                            <th>Sana</th>
+                            <th>Amal</th>
+                            <th>Obyekt</th>
+                            <th>Tavsif</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td style="font-size:.82rem;white-space:nowrap;">{{ log.created_at|date:"d.m.Y H:i" }}</td>
+                            <td><code style="font-size:.78rem;background:rgba(99,102,241,.08);color:#4338ca;padding:.15rem .4rem;border-radius:4px;">{{ log.action_code }}</code></td>
+                            <td style="font-size:.82rem;">
+                                {% if log.target_type %}
+                                    <span class="badge bg-secondary">{{ log.target_type }}</span>
+                                    {% if log.target_id %}#{{ log.target_id }}{% endif %}
+                                {% else %}-{% endif %}
+                            </td>
+                            <td style="font-size:.85rem;">{{ log.description|default:"-" }}</td>
+                            <td style="font-size:.78rem;color:#6b7280;">{{ log.ip_address|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if page_obj.has_other_pages %}
+            <div class="d-flex justify-content-center p-3">
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}">‹</a></li>
+                        {% endif %}
+                        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}">›</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
+                <p class="mt-2 mb-0">Hozircha harakatlar yo'q</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

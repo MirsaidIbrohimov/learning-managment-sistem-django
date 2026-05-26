@@ -1,0 +1,255 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+
+{% block title %}{{ student.full_name }} — O'quvchi profili{% endblock %}
+{% block page_title %}O'quvchi profili{% endblock %}
+
+{% block extra_head %}
+<style>
+.std-hero { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-radius: 16px; padding: 1.5rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.std-hero-ava { width: 96px; height: 96px; border-radius: 50%; background: rgba(255,255,255,.2); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 800; border: 3px solid rgba(255,255,255,.3); flex-shrink: 0; }
+.std-hero-ava img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.std-hero-info h2 { margin: 0; font-weight: 700; }
+.std-hero-info p { margin: .25rem 0 0; opacity: .9; }
+.std-hero-badge { display: inline-block; padding: .25rem .7rem; border-radius: 999px; font-size: .72rem; font-weight: 700; background: rgba(255,255,255,.18); margin-right: .35rem; }
+
+.std-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1.25rem; }
+.std-stat { background: #fff; border-radius: 12px; padding: 1rem; border: 1px solid var(--yo-border); }
+[data-bs-theme="dark"] .std-stat { background: #1e293b; }
+.std-stat-label { font-size: .72rem; color: #6b7280; text-transform: uppercase; letter-spacing: .04em; }
+.std-stat-value { font-size: 1.5rem; font-weight: 800; margin-top: .15rem; }
+.std-stat-sub { font-size: .75rem; color: #6b7280; margin-top: .15rem; }
+
+.std-rank-card { background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #f59e0b; border-radius: 14px; padding: 1.25rem; }
+.std-rank-num { font-size: 2.4rem; font-weight: 900; color: #b45309; line-height: 1; }
+.std-rank-of { font-size: .9rem; color: #92400e; }
+.std-rank-label { font-size: .75rem; color: #78350f; text-transform: uppercase; letter-spacing: .05em; margin-top: .25rem; }
+
+.std-section { background: #fff; border-radius: 14px; padding: 1.25rem; border: 1px solid var(--yo-border); margin-top: 1.25rem; }
+[data-bs-theme="dark"] .std-section { background: #1e293b; }
+.std-section h6 { font-weight: 700; margin: 0 0 .85rem; display: flex; align-items: center; gap: .5rem; }
+
+.std-info-row { display: flex; padding: .55rem 0; border-bottom: 1px dashed rgba(0,0,0,.06); font-size: .9rem; }
+.std-info-row:last-child { border-bottom: none; }
+.std-info-row .label { color: #6b7280; min-width: 200px; }
+.std-info-row .value { font-weight: 500; flex: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{% url 'yordamchi_students' %}" class="text-muted small text-decoration-none mb-2 d-inline-block">
+    <i class="bi bi-arrow-left"></i> O'quvchilar ro'yxatiga qaytish
+</a>
+
+<!-- HERO -->
+<div class="std-hero">
+    <div class="std-hero-ava">
+        {% if student.photo %}
+            <img src="{{ student.photo.url }}" alt="">
+        {% else %}
+            {{ student.get_initials }}
+        {% endif %}
+    </div>
+    <div class="std-hero-info flex-grow-1">
+        <h2>
+            {{ student.full_name }}
+            {% if student.is_premium %}<i class="bi bi-patch-check-fill text-warning ms-2"></i>{% endif %}
+        </h2>
+        <p>@{{ student.username }} &nbsp;•&nbsp; <i class="bi bi-telephone"></i> {{ student.phone }}</p>
+        <div class="mt-2">
+            <span class="std-hero-badge"><i class="bi bi-coin"></i> {{ student.coins }} coin</span>
+            {% if student.profession %}<span class="std-hero-badge"><i class="bi bi-compass"></i> {{ student.profession.name }}</span>{% endif %}
+            {% if student.is_blocked %}
+                <span class="std-hero-badge" style="background:rgba(239,68,68,.35);"><i class="bi bi-lock"></i> Bloklangan</span>
+            {% else %}
+                <span class="std-hero-badge" style="background:rgba(16,185,129,.35);"><i class="bi bi-check2-circle"></i> Faol</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- REYTING O'RNI -->
+<div class="row g-3 mt-1">
+    <div class="col-md-4">
+        <div class="std-rank-card text-center">
+            <i class="bi bi-trophy-fill text-warning mb-1" style="font-size:1.3rem;"></i>
+            <div class="std-rank-num">
+                {% if ranks.coins_rank %}#{{ ranks.coins_rank }}{% else %}—{% endif %}
+            </div>
+            <div class="std-rank-of">{{ ranks.coins_total }} ta o'quvchidan</div>
+            <div class="std-rank-label">Umumiy reyting (coin)</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="std-rank-card text-center" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);border-color:#3b82f6;">
+            <i class="bi bi-clipboard-data text-primary mb-1" style="font-size:1.3rem;"></i>
+            <div class="std-rank-num" style="color:#1e3a8a;">
+                {% if ranks.score_rank %}#{{ ranks.score_rank }}{% else %}—{% endif %}
+            </div>
+            <div class="std-rank-of" style="color:#1e40af;">{{ ranks.score_total }} ta o'quvchidan</div>
+            <div class="std-rank-label" style="color:#1e3a8a;">Ball reytingi ({{ ranks.student_score }} ball)</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="std-rank-card text-center" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#16a34a;">
+            <i class="bi bi-mortarboard-fill text-success mb-1" style="font-size:1.3rem;"></i>
+            <div class="std-rank-num" style="color:#14532d;">
+                {% if ranks.course_rank %}#{{ ranks.course_rank }}{% else %}—{% endif %}
+            </div>
+            <div class="std-rank-of" style="color:#166534;">
+                {% if ranks.course_total %}{{ ranks.course_total }} ta o'quvchidan{% else %}Kurs tanlanmagan{% endif %}
+            </div>
+            <div class="std-rank-label" style="color:#14532d;">Kurs ichidagi o'rni</div>
+        </div>
+    </div>
+</div>
+
+<!-- QISQACHA STATISTIKA -->
+<h6 class="mt-4 mb-2 fw-bold"><i class="bi bi-graph-up text-warning me-2"></i> Qisqacha xulosa</h6>
+<div class="std-grid">
+    <div class="std-stat">
+        <div class="std-stat-label">Topshirilgan vazifalar</div>
+        <div class="std-stat-value">{{ stats.sub_total }}</div>
+        <div class="std-stat-sub">
+            <span class="text-success">{{ stats.sub_graded }} baholangan</span> ·
+            <span class="text-warning">{{ stats.sub_pending }} kutilmoqda</span>
+        </div>
+    </div>
+    <div class="std-stat">
+        <div class="std-stat-label">O'rtacha baho</div>
+        <div class="std-stat-value">{{ stats.avg_grade }}</div>
+        <div class="std-stat-sub">10 ballik tizimda</div>
+    </div>
+    <div class="std-stat">
+        <div class="std-stat-label">Test natijalari</div>
+        <div class="std-stat-value">{{ stats.test_total }}</div>
+        <div class="std-stat-sub">
+            <span class="text-success">{{ stats.test_passed }} o'tdi</span> ·
+            <span class="text-danger">{{ stats.test_failed }} o'tmadi</span>
+        </div>
+    </div>
+    <div class="std-stat">
+        <div class="std-stat-label">O'rtacha ball</div>
+        <div class="std-stat-value">{{ stats.avg_score }}%</div>
+        <div class="std-stat-sub">{{ stats.pass_rate }}% o'tish</div>
+    </div>
+    <div class="std-stat">
+        <div class="std-stat-label">Kurslar</div>
+        <div class="std-stat-value">{{ stats.enrollment_count }}</div>
+        <div class="std-stat-sub">yozilgan</div>
+    </div>
+    <div class="std-stat">
+        <div class="std-stat-label">Coinlar</div>
+        <div class="std-stat-value">{{ student.coins }}</div>
+        <div class="std-stat-sub">jami balans</div>
+    </div>
+</div>
+
+<div class="row g-3 mt-1">
+    <!-- SHAXSIY MA'LUMOT -->
+    <div class="col-lg-6">
+        <div class="std-section h-100">
+            <h6><i class="bi bi-person-fill text-primary"></i> Shaxsiy ma'lumot</h6>
+            <div class="std-info-row"><div class="label">F.I.O.</div><div class="value">{{ student.full_name }}</div></div>
+            <div class="std-info-row"><div class="label">Tug'ilgan kuni</div><div class="value">{{ student.birth_date|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Jinsi</div><div class="value">{{ student.get_gender_display|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Millati</div><div class="value">{{ student.nationality|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">JSHSHIR</div><div class="value">{{ student.jshshir|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Pasport</div><div class="value">{{ student.passport_series }} {{ student.passport_number }}</div></div>
+            <div class="std-info-row"><div class="label">Manzil</div><div class="value">{{ student.address|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Maktab</div><div class="value">{{ student.school_name|default:"—" }} {% if student.school_number %}#{{ student.school_number }}{% endif %}</div></div>
+            <div class="std-info-row"><div class="label">Profil to'liqligi</div><div class="value">{{ student.profile_completion_percent }}%</div></div>
+            <div class="std-info-row"><div class="label">Ro'yxatdan o'tgan</div><div class="value">{{ student.date_joined|date:"d.m.Y H:i" }}</div></div>
+        </div>
+    </div>
+
+    <!-- OTA-ONA MA'LUMOTI -->
+    <div class="col-lg-6">
+        <div class="std-section h-100">
+            <h6><i class="bi bi-people-fill text-success"></i> Ota-ona ma'lumotlari</h6>
+            <div class="std-info-row"><div class="label">Otasi</div><div class="value">{{ student.father_name|default:"—" }} {% if student.father_deceased %}<span class="badge bg-secondary">vafot etgan</span>{% endif %}</div></div>
+            <div class="std-info-row"><div class="label">Otasi tel.</div><div class="value">{{ student.father_phone|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Onasi</div><div class="value">{{ student.mother_name|default:"—" }} {% if student.mother_deceased %}<span class="badge bg-secondary">vafot etgan</span>{% endif %}</div></div>
+            <div class="std-info-row"><div class="label">Onasi tel.</div><div class="value">{{ student.mother_phone|default:"—" }}</div></div>
+            <div class="std-info-row"><div class="label">Umumiy tel.</div><div class="value">{{ student.parent_phone|default:"—" }}</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- YOZILGAN KURSLAR -->
+{% if enrollments %}
+<div class="std-section mt-3">
+    <h6><i class="bi bi-collection text-warning"></i> Yozilgan kurslar ({{ enrollments.count }})</h6>
+    <div class="table-responsive">
+        <table class="table table-sm mb-0">
+            <thead>
+                <tr><th>Yo'nalish</th><th>Yozilgan sana</th><th>O'qituvchilari</th></tr>
+            </thead>
+            <tbody>
+                {% for e in enrollments %}
+                <tr>
+                    <td><strong>{{ e.profession.name }}</strong></td>
+                    <td>{{ e.enrolled_at|date:"d.m.Y" }}</td>
+                    <td style="font-size:.82rem;">
+                        {% for t in e.profession.teachers.all %}
+                            <span class="badge bg-light text-dark border">{{ t.full_name }}</span>
+                        {% empty %}—{% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- OXIRGI VAZIFALAR -->
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="std-section h-100">
+            <h6><i class="bi bi-list-check text-info"></i> Oxirgi vazifalar</h6>
+            {% if recent_subs %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Vazifa</th><th>Holat</th><th>Baho</th><th>Sana</th></tr></thead>
+                        <tbody>
+                            {% for s in recent_subs %}
+                            <tr>
+                                <td style="font-size:.85rem;">{{ s.homework.title|default:"—"|truncatechars:40 }}</td>
+                                <td><span class="badge bg-secondary">{{ s.get_status_display }}</span></td>
+                                <td>{{ s.grade|default:"—" }}</td>
+                                <td style="font-size:.78rem;color:#6b7280;">{{ s.submitted_at|date:"d.m H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}<div class="text-muted small">Hozircha vazifa topshirmagan</div>{% endif %}
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="std-section h-100">
+            <h6><i class="bi bi-clipboard-check text-success"></i> Oxirgi testlar</h6>
+            {% if recent_tests %}
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Test</th><th>Ball</th><th>Natija</th><th>Sana</th></tr></thead>
+                        <tbody>
+                            {% for t in recent_tests %}
+                            <tr>
+                                <td style="font-size:.85rem;">{{ t.test.title|default:"—"|truncatechars:40 }}</td>
+                                <td>{{ t.score }}%</td>
+                                <td>
+                                    {% if t.passed %}<span class="badge bg-success">O'tdi</span>
+                                    {% else %}<span class="badge bg-danger">O'tmadi</span>{% endif %}
+                                </td>
+                                <td style="font-size:.78rem;color:#6b7280;">{{ t.completed_at|date:"d.m H:i" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}<div class="text-muted small">Hozircha test ishlamagan</div>{% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

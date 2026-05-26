@@ -1,0 +1,43 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Yordam xatlari{% endblock %}
+{% block page_title %}Yordam xatlari ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
+        <form method="get" class="d-flex gap-2">
+            <select name="status" class="form-select form-select-sm" style="max-width:200px;">
+                <option value="">— Barchasi —</option>
+                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
+                <option value="in_progress" {% if status == 'in_progress' %}selected{% endif %}>Ko'rilmoqda</option>
+                <option value="resolved" {% if status == 'resolved' %}selected{% endif %}>Hal qilingan</option>
+                <option value="closed" {% if status == 'closed' %}selected{% endif %}>Yopilgan</option>
+            </select>
+            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i></button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead style="background:rgba(6,182,212,0.06);">
+                    <tr><th>#</th><th>Foydalanuvchi</th><th>Mavzu</th><th>Holat</th><th>Sana</th></tr>
+                </thead>
+                <tbody>
+                {% for r in requests %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td>{{ r.user.full_name|default:"—" }}</td>
+                        <td style="font-size:.85rem;">{{ r.subject|default:"—"|truncatechars:60 }}</td>
+                        <td><span class="badge bg-secondary">{{ r.get_status_display }}</span></td>
+                        <td style="font-size:.78rem;color:#6b7280;">{{ r.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">So'rovlar yo'q</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Profilni tahrirlash{% endblock %}
+{% block page_title %}Profilni tahrirlash{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    {% if request.user.photo %}
+                        <img src="{{ request.user.photo.url }}" class="rounded-circle" style="width:72px;height:72px;object-fit:cover;border:3px solid #f59e0b;">
+                    {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width:72px;height:72px;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-size:1.5rem;font-weight:700;">{{ request.user.get_initials }}</div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-0">{{ request.user.full_name }}</h5>
+                        <small class="text-muted">@{{ request.user.username }}</small>
+                    </div>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ism *</label>
+                            <input type="text" name="first_name" value="{{ request.user.first_name }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Familiya *</label>
+                            <input type="text" name="last_name" value="{{ request.user.last_name }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Telefon *</label>
+                            <input type="text" name="phone" value="{{ request.user.phone }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" value="{{ request.user.username }}" class="form-control" disabled>
+                            <small class="text-muted">Username o'zgartirib bo'lmaydi</small>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">O'zi haqida</label>
+                            <textarea name="bio" rows="3" class="form-control">{{ request.user.bio|default:'' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Profil rasmi (yangilash)</label>
+                            <input type="file" name="photo" accept="image/*" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Yangi parol (ixtiyoriy)</label>
+                            <input type="password" name="new_password" minlength="6" class="form-control" placeholder="Bo'sh qoldirilsa o'zgarmaydi">
+                            <small class="text-muted">Kamida 6 belgi. Parol o'zgartirilsa, qaytadan kirishni so'raydi.</small>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg"></i> Saqlash</button>
+                        <a href="{% url 'yordamchi_profile' %}" class="btn btn-outline-secondary"><i class="bi bi-x"></i> Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

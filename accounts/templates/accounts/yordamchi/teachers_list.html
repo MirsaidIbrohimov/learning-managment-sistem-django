@@ -1,0 +1,50 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}O'qituvchilar{% endblock %}
+{% block page_title %}O'qituvchilar ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="🔍 Ism, telefon...">
+            <button class="btn btn-warning btn-sm"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if teachers %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background:rgba(16,185,129,0.06);">
+                    <tr><th>O'qituvchi</th><th>Telefon</th><th>Dars beradigan yo'nalishlar</th><th>Holati</th><th>Oxirgi faollik</th></tr>
+                </thead>
+                <tbody>
+                {% for t in teachers %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if t.photo %}<img src="{{ t.photo.url }}" style="width:34px;height:34px;border-radius:50%;object-fit:cover;">
+                                {% else %}<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;">{{ t.get_initials }}</div>{% endif %}
+                                <div>
+                                    <div class="fw-semibold" style="font-size:.88rem;">{{ t.full_name }}</div>
+                                    <div class="text-muted" style="font-size:.74rem;">@{{ t.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size:.85rem;">{{ t.phone }}</td>
+                        <td style="font-size:.8rem;">
+                            {% for p in t.teaching_professions.all %}<span class="badge bg-light text-dark border me-1">{{ p.name }}</span>{% empty %}—{% endfor %}
+                        </td>
+                        <td>
+                            {% if t.is_blocked %}<span class="badge bg-danger">Bloklangan</span>{% else %}<span class="badge bg-success">Faol</span>{% endif %}
+                        </td>
+                        <td style="font-size:.78rem;color:#6b7280;">{% if t.last_activity %}{{ t.last_activity|timesince }} oldin{% else %}—{% endif %}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">O'qituvchilar topilmadi</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

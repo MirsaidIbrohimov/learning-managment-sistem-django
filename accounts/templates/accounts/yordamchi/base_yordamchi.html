@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Yordamchi admin paneli{% endblock %} — LMS</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+
+    <script>
+        // Avvaldan tema o'rnatish (flash oldini olish uchun)
+        (function(){
+            var t = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
+
+    <style>
+        :root {
+            --yo-primary: #f59e0b;
+            --yo-primary-dark: #d97706;
+            --yo-accent: #6366f1;
+            --yo-card-bg: #ffffff;
+            --yo-page-bg: #f8fafc;
+            --yo-border: rgba(0, 0, 0, .08);
+            --yo-text-muted: #6b7280;
+            --yo-topbar-bg: #ffffff;
+            --yo-input-bg: #ffffff;
+            --yo-input-text: #111827;
+        }
+        [data-bs-theme="dark"] {
+            --yo-card-bg: #1e293b;
+            --yo-page-bg: #0b1220;
+            --yo-border: rgba(255, 255, 255, .08);
+            --yo-text-muted: #94a3b8;
+            --yo-topbar-bg: #1e293b;
+            --yo-input-bg: #0f172a;
+            --yo-input-text: #f1f5f9;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--yo-page-bg);
+            color: var(--yo-input-text);
+            min-height: 100vh;
+        }
+
+        /* Sidebar — sidebar har doim dark style */
+        .yo-sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 260px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+            color: #cbd5e1;
+            padding: 1.25rem 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            transition: transform .25s ease;
+            overflow-y: auto;
+        }
+        .yo-brand { padding: 0 1.25rem 1rem; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; align-items: center; gap: .65rem; }
+        .yo-brand-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--yo-primary), var(--yo-primary-dark)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; }
+        .yo-brand-text { color: #fff; font-weight: 700; line-height: 1.1; }
+        .yo-brand-text small { color: #94a3b8; font-weight: 400; font-size: .7rem; }
+
+        .yo-nav { padding: .75rem 0; flex: 1; }
+        .yo-nav-label { padding: .5rem 1.25rem .35rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: #64748b; font-weight: 700; }
+        .yo-nav-link { display: flex; align-items: center; gap: .7rem; padding: .65rem 1.25rem; color: #cbd5e1; text-decoration: none; font-size: .9rem; border-left: 3px solid transparent; transition: all .15s; }
+        .yo-nav-link:hover { background: rgba(255,255,255,.04); color: #fff; }
+        .yo-nav-link.active { background: rgba(245,158,11,.12); color: #fff; border-left-color: var(--yo-primary); font-weight: 600; }
+        .yo-nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+
+        .yo-user-card { margin: auto 1rem 0; padding: .85rem; background: rgba(255,255,255,.04); border-radius: 12px; display: flex; align-items: center; gap: .65rem; }
+        .yo-user-ava { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--yo-primary), var(--yo-primary-dark)); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: .9rem; flex-shrink: 0; }
+        .yo-user-info { min-width: 0; flex: 1; }
+        .yo-user-name { color: #fff; font-weight: 600; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .yo-user-role { color: #94a3b8; font-size: .72rem; }
+
+        /* Topbar */
+        .yo-topbar {
+            position: fixed; top: 0; left: 260px; right: 0; height: 60px;
+            background: var(--yo-topbar-bg); border-bottom: 1px solid var(--yo-border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 1.25rem; z-index: 998;
+        }
+        .yo-toggle { display: none; width: 40px; height: 40px; border-radius: 10px; border: none; background: rgba(245,158,11,.1); color: var(--yo-primary-dark); font-size: 1.3rem; cursor: pointer; }
+        .yo-page-title { font-weight: 700; margin: 0; font-size: 1.05rem; color: var(--yo-input-text); }
+        .yo-topbar-actions { display: flex; align-items: center; gap: .5rem; }
+        .yo-topbar-btn { padding: .45rem .85rem; border-radius: 8px; border: 1px solid var(--yo-border); background: transparent; color: inherit; text-decoration: none; font-size: .85rem; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; }
+        .yo-topbar-btn:hover { background: rgba(245,158,11,.08); color: inherit; }
+        .yo-topbar-btn.danger { color: #ef4444; border-color: rgba(239,68,68,.3); }
+        .yo-topbar-btn.danger:hover { background: rgba(239,68,68,.08); }
+
+        /* Main */
+        .yo-main { margin-left: 260px; padding-top: 60px; min-height: 100vh; }
+        .yo-content { padding: 1.25rem; }
+
+        /* Dark-mode adjustments for common components */
+        [data-bs-theme="dark"] .card { background: var(--yo-card-bg); color: var(--yo-input-text); border-color: var(--yo-border); }
+        [data-bs-theme="dark"] .card-header.bg-white, [data-bs-theme="dark"] .card-header { background: var(--yo-card-bg) !important; color: var(--yo-input-text); border-color: var(--yo-border); }
+        [data-bs-theme="dark"] .table { color: var(--yo-input-text); --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255,255,255,.02); --bs-table-hover-bg: rgba(245,158,11,.06); }
+        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background: var(--yo-input-bg); color: var(--yo-input-text); border-color: var(--yo-border); }
+        [data-bs-theme="dark"] .text-muted { color: var(--yo-text-muted) !important; }
+        [data-bs-theme="dark"] .badge.bg-light { background: #334155 !important; color: #f1f5f9 !important; }
+        [data-bs-theme="dark"] .text-dark { color: #f1f5f9 !important; }
+
+        /* Mobile */
+        @media (max-width: 991px) {
+            .yo-sidebar { transform: translateX(-100%); }
+            .yo-sidebar.open { transform: translateX(0); }
+            .yo-topbar, .yo-main { left: 0; margin-left: 0; }
+            .yo-toggle { display: inline-flex; align-items: center; justify-content: center; }
+            .yo-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 999; opacity: 0; pointer-events: none; transition: opacity .2s; }
+            .yo-overlay.show { opacity: 1; pointer-events: auto; }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<aside class="yo-sidebar" id="yoSidebar">
+    <div class="yo-brand">
+        <div class="yo-brand-icon"><i class="bi bi-person-fill-gear"></i></div>
+        <div class="yo-brand-text">Yordamchi<br><small>Admin paneli</small></div>
+    </div>
+
+    <nav class="yo-nav">
+        <div class="yo-nav-label">Asosiy</div>
+        <a href="{% url 'yordamchi_dashboard' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i> <span>Boshqaruv paneli</span>
+        </a>
+
+        <div class="yo-nav-label">Foydalanuvchilar</div>
+        <a href="{% url 'yordamchi_students' %}" class="yo-nav-link {% if 'student' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-mortarboard"></i> <span>O'quvchilar</span>
+        </a>
+        <a href="{% url 'yordamchi_teachers' %}" class="yo-nav-link {% if 'teacher' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-person-video3"></i> <span>O'qituvchilar</span>
+        </a>
+        <a href="{% url 'yordamchi_parents' %}" class="yo-nav-link {% if 'parents' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-people"></i> <span>Ota-onalar</span>
+        </a>
+
+        <div class="yo-nav-label">O'quv jarayoni</div>
+        <a href="{% url 'yordamchi_homework' %}" class="yo-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-list-task"></i> <span>Vazifalar (ko'rish)</span>
+        </a>
+        <a href="{% url 'yordamchi_tests' %}" class="yo-nav-link {% if 'tests' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-clipboard-check"></i> <span>Test natijalari</span>
+        </a>
+        <a href="{% url 'yordamchi_certificates' %}" class="yo-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-award"></i> <span>Sertifikat so'rovlari</span>
+        </a>
+
+        <div class="yo-nav-label">Kutubxona</div>
+        <a href="{% url 'yordamchi_books' %}" class="yo-nav-link {% if 'book' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-book"></i> <span>Kitoblar</span>
+        </a>
+        <a href="{% url 'yordamchi_rentals' %}" class="yo-nav-link {% if 'rental' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-journal-bookmark"></i> <span>Ijaralar</span>
+        </a>
+        <a href="{% url 'yordamchi_rentals_overdue' %}" class="yo-nav-link {% if 'overdue' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-exclamation-triangle"></i> <span>Kechikkan ijaralar</span>
+        </a>
+
+        <div class="yo-nav-label">So'rovlar & yordam</div>
+        <a href="{% url 'yordamchi_requests' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_requests' %}active{% endif %}">
+            <i class="bi bi-arrow-down-up"></i> <span>Kurs / Premium so'rovlari</span>
+        </a>
+        <a href="{% url 'yordamchi_help' %}" class="yo-nav-link {% if 'help' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-question-circle"></i> <span>Yordam xatlari</span>
+        </a>
+        <a href="{% url 'yordamchi_applications' %}" class="yo-nav-link {% if 'applications' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-clipboard"></i> <span>Arizalar</span>
+        </a>
+
+        <div class="yo-nav-label">Hisob</div>
+        <a href="{% url 'yordamchi_audit_log' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_audit_log' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i> <span>Mening harakatlarim</span>
+        </a>
+        <a href="{% url 'yordamchi_profile' %}" class="yo-nav-link {% if 'profile' in request.resolver_match.url_name or 'profil' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-person-circle"></i> <span>Profilim & ruxsatlar</span>
+        </a>
+        <a href="{% url 'logout' %}" class="yo-nav-link">
+            <i class="bi bi-box-arrow-right"></i> <span>Tizimdan chiqish</span>
+        </a>
+    </nav>
+
+    <div class="yo-user-card">
+        <div class="yo-user-ava">{{ request.user.get_initials|default:"YA" }}</div>
+        <div class="yo-user-info">
+            <div class="yo-user-name">{{ request.user.full_name }}</div>
+            <div class="yo-user-role">
+                {% if request.user.assistant_role %}{{ request.user.assistant_role.name }}{% else %}Yordamchi admin{% endif %}
+            </div>
+        </div>
+    </div>
+</aside>
+
+<div class="yo-overlay" id="yoOverlay" onclick="yoCloseSidebar()"></div>
+
+<header class="yo-topbar">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+        <button class="yo-toggle" onclick="yoOpenSidebar()" aria-label="Menu"><i class="bi bi-list"></i></button>
+        <h1 class="yo-page-title">{% block page_title %}Boshqaruv paneli{% endblock %}</h1>
+    </div>
+    <div class="yo-topbar-actions">
+        <button class="yo-topbar-btn" id="yoThemeBtn" onclick="yoToggleTheme()" title="Tema o'zgartirish">
+            <i class="bi bi-moon-fill" id="yoThemeIcon"></i>
+        </button>
+        <a href="{% url 'yordamchi_profile_edit' %}" class="yo-topbar-btn"><i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Profilim</span></a>
+        <a href="{% url 'logout' %}" class="yo-topbar-btn danger"><i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">Chiqish</span></a>
+    </div>
+</header>
+
+<main class="yo-main">
+    <div class="yo-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function yoOpenSidebar(){ document.getElementById('yoSidebar').classList.add('open'); document.getElementById('yoOverlay').classList.add('show'); }
+function yoCloseSidebar(){ document.getElementById('yoSidebar').classList.remove('open'); document.getElementById('yoOverlay').classList.remove('show'); }
+
+function yoApplyThemeIcon(t){
+    var ic = document.getElementById('yoThemeIcon');
+    if (!ic) return;
+    ic.className = t === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+}
+function yoToggleTheme(){
+    var current = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-bs-theme', next);
+    localStorage.setItem('theme', next);
+    yoApplyThemeIcon(next);
+}
+yoApplyThemeIcon(document.documentElement.getAttribute('data-bs-theme'));
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

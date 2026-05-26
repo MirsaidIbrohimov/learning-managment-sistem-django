@@ -1,0 +1,73 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Ijaralar{% endblock %}
+{% block page_title %}Kitob ijaralari ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header" style="background:transparent;border-bottom:1px solid var(--yo-border);">
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select form-select-sm" style="min-width:180px;">
+                    <option value="">— Barchasi —</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
+                    <option value="returned" {% if status == 'returned' %}selected{% endif %}>Qaytarilgan</option>
+                    <option value="overdue" {% if status == 'overdue' %}selected{% endif %}>Muddati o'tgan</option>
+                </select>
+                <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i></button>
+            </form>
+            {% if can_give %}
+            <a href="{% url 'yordamchi_rental_add' %}" class="btn btn-sm btn-success ms-auto">
+                <i class="bi bi-journal-plus"></i> Ijaraga berish
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if rentals %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background:rgba(99,102,241,0.06);">
+                    <tr><th>Kitob</th><th>O'quvchi</th><th>Berilgan</th><th>Qaytarish</th><th>Holat</th>{% if can_return %}<th class="text-end">Amal</th>{% endif %}</tr>
+                </thead>
+                <tbody>
+                {% for r in rentals %}
+                    <tr>
+                        <td><strong>{{ r.book.title }}</strong><br><small class="text-muted">{{ r.book.author }}</small></td>
+                        <td>
+                            <a href="{% url 'yordamchi_student_detail' r.student.pk %}" class="text-decoration-none">{{ r.student.full_name }}</a><br>
+                            <small class="text-muted">{{ r.student.phone }}</small>
+                        </td>
+                        <td style="font-size:.85rem;">{{ r.given_date|date:"d.m.Y" }}<br><small class="text-muted">{{ r.given_by.full_name|default:"—" }}</small></td>
+                        <td style="font-size:.85rem;">
+                            {{ r.return_date|date:"d.m.Y" }}
+                            {% if r.is_overdue and r.status != 'returned' %}
+                                <br><span class="badge bg-danger">Muddat o'tgan</span>
+                            {% elif r.status != 'returned' %}
+                                <br><small class="text-muted">{{ r.days_until_return }} kun qoldi</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if r.status == 'returned' %}<span class="badge bg-success">Qaytarilgan</span>
+                            {% elif r.is_overdue %}<span class="badge bg-danger">Kechikkan</span>
+                            {% else %}<span class="badge bg-primary">Faol</span>{% endif %}
+                        </td>
+                        {% if can_return %}
+                        <td class="text-end">
+                            {% if r.status != 'returned' %}
+                            <form method="post" action="{% url 'yordamchi_rental_return' r.pk %}" style="display:inline;" onsubmit="return confirm('Kitobni qaytarib olishni tasdiqlaysizmi?');">
+                                {% csrf_token %}
+                                <button class="btn btn-sm btn-outline-success"><i class="bi bi-check2-circle"></i> Qaytarib oldim</button>
+                            </form>
+                            {% else %}—{% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Ijaralar yo'q</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Ijaraga berish{% endblock %}
+{% block page_title %}Kitobni ijaraga berish{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Kitob *</label>
+                            <select name="book" class="form-select" required>
+                                <option value="">— Kitobni tanlang —</option>
+                                {% for b in books %}
+                                    <option value="{{ b.pk }}">{{ b.title }} — {{ b.author }} (mavjud: {{ b.available_copies }})</option>
+                                {% endfor %}
+                            </select>
+                            {% if not books %}<small class="text-danger">Mavjud kitob yo'q. Avval kitob qo'shing.</small>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">O'quvchi *</label>
+                            <select name="student" class="form-select" required>
+                                <option value="">— O'quvchini tanlang —</option>
+                                {% for s in students %}
+                                    <option value="{{ s.pk }}">{{ s.full_name }} ({{ s.phone }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Qaytarish sanasi *</label>
+                            <input type="date" name="return_date" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Izoh</label>
+                            <textarea name="notes" rows="2" class="form-control" placeholder="Ixtiyoriy izoh..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Berish</button>
+                        <a href="{% url 'yordamchi_rentals' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

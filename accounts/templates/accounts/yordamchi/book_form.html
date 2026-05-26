@@ -1,0 +1,47 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Yangi kitob{% endblock %}
+{% block page_title %}Yangi kitob qo'shish{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Kitob nomi *</label>
+                            <input type="text" name="title" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Nusxalar soni *</label>
+                            <input type="number" name="total_copies" value="1" min="1" class="form-control" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Muallif *</label>
+                            <input type="text" name="author" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">ISBN</label>
+                            <input type="text" name="isbn" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tavsif</label>
+                            <textarea name="description" rows="3" class="form-control"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Muqova rasmi</label>
+                            <input type="file" name="cover_image" accept="image/*" class="form-control">
+                        </div>
+                    </div>
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-warning"><i class="bi bi-check-lg"></i> Saqlash</button>
+                        <a href="{% url 'yordamchi_books' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -32,4 +32,7 @@ urlpatterns = [
 
     # Reyting (leaderboard)
     path('reyting/', include('api.reyting.urls')),
+
+    # Yordamchi admin (assistant_admin) boshqaruv API
+    path('assistant/', include('api.assistant.urls')),
 ]

@@ -1,0 +1,786 @@
+﻿<style>
+.asst-page { padding: 1rem; }
+.asst-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.75rem; margin-bottom:1rem; }
+.asst-title { display:flex; align-items:center; gap:.6rem; font-weight:700; margin:0; }
+.asst-sub { color:#6b7280; margin:.15rem 0 0; font-size:.9rem; }
+
+.asst-tabs { display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem; }
+.asst-tab { padding:.55rem .9rem; border-radius:10px; background:#f3f4f6; cursor:pointer; font-weight:600; font-size:.85rem; border:none; color:#374151; }
+.asst-tab.asst-active { background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; box-shadow:0 4px 10px rgba(99,102,241,.25); }
+[data-bs-theme="dark"] .asst-tab { background:#1f2937; color:#d1d5db; }
+
+.asst-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem; margin-bottom:1rem; }
+.asst-stat { background:var(--bs-body-bg,#fff); border:1px solid rgba(0,0,0,.06); border-radius:14px; padding:.9rem 1rem; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+.asst-stat-label { font-size:.78rem; color:#6b7280; text-transform:uppercase; letter-spacing:.04em; }
+.asst-stat-value { font-size:1.55rem; font-weight:700; margin-top:.15rem; }
+
+.asst-section { background:var(--bs-body-bg,#fff); border:1px solid rgba(0,0,0,.06); border-radius:14px; padding:1rem; box-shadow:0 2px 8px rgba(0,0,0,.04); margin-bottom:1rem; }
+.asst-section-title { display:flex; align-items:center; gap:.5rem; font-weight:700; margin-bottom:.75rem; }
+
+.asst-toolbar { display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:.75rem; }
+.asst-input, .asst-select { padding:.5rem .7rem; border-radius:8px; border:1px solid #d1d5db; font-size:.85rem; background:var(--bs-body-bg,#fff); color:inherit; }
+.asst-btn { padding:.5rem .9rem; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-size:.82rem; }
+.asst-btn-primary { background:#6366f1; color:#fff; }
+.asst-btn-success { background:#10b981; color:#fff; }
+.asst-btn-danger  { background:#ef4444; color:#fff; }
+.asst-btn-warn    { background:#f59e0b; color:#fff; }
+.asst-btn-light   { background:#e5e7eb; color:#111827; }
+
+.asst-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+.asst-table th, .asst-table td { padding:.55rem .65rem; border-bottom:1px solid rgba(0,0,0,.06); text-align:left; }
+.asst-table th { background:rgba(99,102,241,.06); font-weight:700; }
+.asst-table tbody tr:hover { background:rgba(99,102,241,.04); }
+
+.asst-badge { display:inline-block; padding:.18rem .55rem; border-radius:999px; font-size:.72rem; font-weight:700; }
+.b-pending { background:rgba(245,158,11,.15); color:#b45309; }
+.b-approved, .b-resolved { background:rgba(16,185,129,.15); color:#047857; }
+.b-rejected, .b-closed { background:rgba(239,68,68,.15); color:#b91c1c; }
+.b-new { background:rgba(99,102,241,.15); color:#4338ca; }
+.b-default { background:rgba(107,114,128,.15); color:#374151; }
+
+.asst-empty { text-align:center; padding:1.5rem; color:#9ca3af; }
+.asst-loading { text-align:center; padding:1rem; color:#6b7280; font-size:.85rem; }
+.asst-pane { display:none; }
+.asst-pane.asst-active { display:block; }
+
+.asst-actions { display:flex; gap:.35rem; flex-wrap:wrap; }
+</style>
+
+<div class="asst-page">
+    <div class="asst-header">
+        <div>
+            <h1 class="asst-title"><i class="bi bi-speedometer2" style="color:#6366f1;"></i> Yordamchi admin paneli</h1>
+            <p class="asst-sub">Barcha amallar <code>/api/v1/assistant/</code> orqali bajariladi</p>
+        </div>
+        <div>
+            <button class="asst-btn asst-btn-light" onclick="loadDashboard()"><i class="bi bi-arrow-clockwise"></i> Yangilash</button>
+        </div>
+    </div>
+
+    <!-- Overview stats -->
+    <div id="asstStats" class="asst-stats"></div>
+
+    <!-- Tabs -->
+    <div class="asst-tabs">
+        <button class="asst-tab asst-active" data-pane="homework">рџ“ќ Vazifalar</button>
+        <button class="asst-tab" data-pane="tests">рџ“Љ Test hulosalari</button>
+        <button class="asst-tab" data-pane="lessons">рџ“љ Darslar tahlili</button>
+        <button class="asst-tab" data-pane="attendance">рџ•’ Davomat</button>
+        <button class="asst-tab" data-pane="certs">рџЏ† Sertifikat so'rovlari</button>
+        <button class="asst-tab" data-pane="users">рџ‘Ґ Foydalanuvchilar</button>
+        <button class="asst-tab" data-pane="passwords">рџ”‘ Parol tiklash</button>
+        <button class="asst-tab" data-pane="parents">рџ‘ЁвЂЌрџ‘©вЂЌрџ‘§ Ota-onalar</button>
+        <button class="asst-tab" data-pane="requests">рџ“‹ So'rovlar</button>
+        <button class="asst-tab" data-pane="messages">рџ’¬ Xabarlar</button>
+        <button class="asst-tab" data-pane="blog">рџ“° Blog</button>
+        <button class="asst-tab" data-pane="library">рџ“– Kutubxona</button>
+        <button class="asst-tab" data-pane="help">рџ† Yordam xatlari</button>
+        <button class="asst-tab" data-pane="applications">рџ“„ Arizalar</button>
+        <button class="asst-tab" data-pane="surveys">рџ—іпёЏ So'rovnomalar</button>
+    </div>
+
+    <!-- Panes -->
+    <div id="pane-homework" class="asst-pane asst-active"></div>
+    <div id="pane-tests" class="asst-pane"></div>
+    <div id="pane-lessons" class="asst-pane"></div>
+    <div id="pane-attendance" class="asst-pane"></div>
+    <div id="pane-certs" class="asst-pane"></div>
+    <div id="pane-users" class="asst-pane"></div>
+    <div id="pane-passwords" class="asst-pane"></div>
+    <div id="pane-parents" class="asst-pane"></div>
+    <div id="pane-requests" class="asst-pane"></div>
+    <div id="pane-messages" class="asst-pane"></div>
+    <div id="pane-blog" class="asst-pane"></div>
+    <div id="pane-library" class="asst-pane"></div>
+    <div id="pane-help" class="asst-pane"></div>
+    <div id="pane-applications" class="asst-pane"></div>
+    <div id="pane-surveys" class="asst-pane"></div>
+</div>
+
+<script>
+const API_TOKEN = "{{ api_token }}";
+const API_BASE = "/api/v1/assistant";
+
+async function api(path, opts={}) {
+    const headers = Object.assign({
+        'Authorization': 'Token ' + API_TOKEN,
+        'Content-Type': 'application/json',
+    }, opts.headers || {});
+    const res = await fetch(API_BASE + path, Object.assign({}, opts, { headers }));
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+    }
+    if (res.status === 204) return null;
+    return res.json();
+}
+
+function statusBadge(v) {
+    const cls = ({
+        pending: 'b-pending', approved: 'b-approved', rejected: 'b-rejected',
+        new: 'b-new', resolved: 'b-resolved', closed: 'b-closed',
+        in_progress: 'b-pending', active: 'b-approved', returned: 'b-default',
+        overdue: 'b-rejected',
+    })[v] || 'b-default';
+    return `<span class="asst-badge ${cls}">${v || '-'}</span>`;
+}
+
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function rows(items) { return items.results || items; }
+
+// ============== DASHBOARD STATS ==============
+async function loadDashboard() {
+    try {
+        const data = await api('/dashboard/');
+        const stats = [
+            ['Talabalar', data.users.students],
+            ['O\'qituvchilar', data.users.teachers],
+            ['Vazifa (kutilayotgan)', data.learning.homework_submissions_pending],
+            ['Test natijalari', data.learning.test_results_total],
+            ['Sertifikat (so\'rov)', data.learning.certificate_requests_pending],
+            ['Parol so\'rovi', data.requests.password_reset_pending],
+            ['Kursga yozilish', data.requests.enrollment_pending],
+            ['Yordam (yangi)', data.support.help_pending],
+            ['Arizalar (yangi)', data.support.applications_new],
+            ['Faol so\'rovnomalar', data.support.surveys_active],
+            ['Faol ijara', data.content.rentals_active],
+            ['Bloklangan', data.users.blocked],
+        ];
+        document.getElementById('asstStats').innerHTML = stats.map(([l,v]) =>
+            `<div class="asst-stat"><div class="asst-stat-label">${l}</div><div class="asst-stat-value">${v}</div></div>`
+        ).join('');
+    } catch(e) {
+        document.getElementById('asstStats').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`;
+    }
+}
+
+// ============== HOMEWORK ==============
+async function loadHomework() {
+    const pane = document.getElementById('pane-homework');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-list-task"></i> Vazifa topshiruvlari</div>
+            <div class="asst-toolbar">
+                <select id="hwStatus" class="asst-select">
+                    <option value="">Barcha statuslar</option>
+                    <option value="pending">Kutilmoqda</option>
+                    <option value="reviewing">Ko'rib chiqilmoqda</option>
+                    <option value="revision">Qayta ishlash</option>
+                    <option value="accepted">Qabul qilingan</option>
+                    <option value="graded">Baholangan</option>
+                </select>
+                <button class="asst-btn asst-btn-primary" onclick="loadHomework()">Filtrlash</button>
+            </div>
+            <div id="hwList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    document.getElementById('hwStatus').addEventListener('change', () => {}); // no-op
+    try {
+        const status = document.getElementById('hwStatus').value;
+        const data = await api('/homework-submissions/' + (status ? '?status='+status : ''));
+        const list = rows(data);
+        if (!list.length) { document.getElementById('hwList').innerHTML = '<div class="asst-empty">Topshiruvlar yo\'q</div>'; return; }
+        document.getElementById('hwList').innerHTML = `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>O'quvchi</th><th>Vazifa</th><th>Status</th><th>Baho</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${esc(s.student_name)}</td>
+                    <td>${esc(s.homework_title)}</td>
+                    <td>${statusBadge(s.status)}</td>
+                    <td>${s.grade ?? '-'}</td>
+                    <td>${(s.submitted_at||'').slice(0,16).replace('T',' ')}</td>
+                    <td><div class="asst-actions">
+                        <button class="asst-btn asst-btn-success" onclick="gradeHw(${s.id})">Baholash</button>
+                    </div></td>
+                </tr>`).join('')}
+            </tbody></table>`;
+    } catch(e) {
+        document.getElementById('hwList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`;
+    }
+}
+async function gradeHw(id) {
+    const grade = prompt('Bahoni kiriting (1-10):');
+    if (!grade) return;
+    const feedback = prompt('Izoh:') || '';
+    try {
+        await api(`/homework-submissions/${id}/`, {
+            method: 'PATCH',
+            body: JSON.stringify({ grade: parseInt(grade), feedback, status: 'graded' }),
+        });
+        loadHomework();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== TESTS ==============
+async function loadTests() {
+    const pane = document.getElementById('pane-tests');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-clipboard-check"></i> Test hulosalari</div>
+            <div id="testList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/test-results/');
+        const list = rows(data).slice(0, 100);
+        document.getElementById('testList').innerHTML = `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>O'quvchi</th><th>Test</th><th>Yo'nalish</th><th>Ball</th><th>Status</th><th>Sana</th>
+            </tr></thead><tbody>
+            ${list.map(t => `<tr>
+                <td>${t.id}</td><td>${esc(t.student_name)}</td><td>${esc(t.test_name)}</td>
+                <td>${esc(t.profession||'-')}</td><td>${t.score}%</td>
+                <td>${t.passed ? '<span class="asst-badge b-approved">O\'tdi</span>' : '<span class="asst-badge b-rejected">O\'tmadi</span>'}</td>
+                <td>${(t.completed_at||'').slice(0,16).replace('T',' ')}</td>
+            </tr>`).join('')}
+            </tbody></table>`;
+    } catch(e) { document.getElementById('testList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+
+// ============== LESSONS ==============
+async function loadLessons() {
+    const pane = document.getElementById('pane-lessons');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-bar-chart"></i> Darslar tahlili</div>
+            <div id="lessonList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/lessons-analytics/');
+        const list = rows(data).slice(0, 100);
+        document.getElementById('lessonList').innerHTML = `
+            <table class="asst-table"><thead><tr>
+                <th>Dars</th><th>Yo'nalish</th><th>Bo'lim</th>
+                <th>Test urinishlari</th><th>O'tish %</th><th>O'rt. ball</th><th>Vazifa</th>
+            </tr></thead><tbody>
+            ${list.map(l => `<tr>
+                <td>${esc(l.title)}</td><td>${esc(l.profession_name||'-')}</td><td>${esc(l.section_title||'-')}</td>
+                <td>${l.test_attempts}</td><td>${l.test_pass_rate}%</td><td>${l.avg_score}</td><td>${l.homework_submissions}</td>
+            </tr>`).join('')}
+            </tbody></table>`;
+    } catch(e) { document.getElementById('lessonList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+
+// ============== ATTENDANCE ==============
+async function loadAttendance() {
+    const pane = document.getElementById('pane-attendance');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-calendar-check"></i> O'qituvchilar davomati</div>
+            <div id="attList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/attendance/');
+        const list = rows(data);
+        document.getElementById('attList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>O'qituvchi</th><th>Sana</th><th>Status</th><th>Izoh</th>
+            </tr></thead><tbody>
+            ${list.map(a => `<tr><td>${a.id}</td><td>${esc(a.teacher_name)}</td>
+                <td>${a.date}</td><td>${esc(a.status_display)}</td><td>${esc(a.notes||'-')}</td></tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Yozuvlar yo\'q</div>';
+    } catch(e) { document.getElementById('attList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+
+// ============== CERTIFICATE REQUESTS ==============
+async function loadCerts() {
+    const pane = document.getElementById('pane-certs');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-award"></i> Sertifikat so'rovlari</div>
+            <div id="certList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/certificate-requests/');
+        const list = rows(data);
+        document.getElementById('certList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>O'quvchi</th><th>Yo'nalish</th><th>Status</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(c => `<tr>
+                <td>${c.id}</td><td>${esc(c.student_name)}</td><td>${esc(c.profession_name)}</td>
+                <td>${statusBadge(c.status)}</td><td>${(c.created_at||'').slice(0,10)}</td>
+                <td><div class="asst-actions">
+                    ${c.status === 'pending' ? `
+                        <button class="asst-btn asst-btn-success" onclick="reviewCert(${c.id},'approve')">Tasdiqlash</button>
+                        <button class="asst-btn asst-btn-danger" onclick="reviewCert(${c.id},'reject')">Rad etish</button>` : ''}
+                </div></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">So\'rovlar yo\'q</div>';
+    } catch(e) { document.getElementById('certList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function reviewCert(id, action) {
+    const msg = action === 'reject' ? (prompt('Rad etish sababi:') || '') : '';
+    try {
+        await api(`/certificate-requests/${id}/review/`, { method:'POST', body: JSON.stringify({ action, admin_message: msg }) });
+        loadCerts();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== USERS ==============
+async function loadUsers() {
+    const pane = document.getElementById('pane-users');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-people"></i> Foydalanuvchilar</div>
+            <div class="asst-toolbar">
+                <input id="userSearch" class="asst-input" placeholder="Qidirish (ism, telefon)...">
+                <select id="userRole" class="asst-select">
+                    <option value="">Barcha rollar</option>
+                    <option value="student">O'quvchi</option>
+                    <option value="teacher">O'qituvchi</option>
+                    <option value="assistant_admin">Yordamchi admin</option>
+                </select>
+                <button class="asst-btn asst-btn-primary" onclick="loadUsers()">Qidirish</button>
+            </div>
+            <div id="userList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const q = document.getElementById('userSearch').value;
+        const role = document.getElementById('userRole').value;
+        const params = new URLSearchParams();
+        if (q) params.set('search', q);
+        if (role) params.set('role', role);
+        const data = await api('/users/?' + params.toString());
+        const list = rows(data).slice(0, 100);
+        document.getElementById('userList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>F.I.</th><th>Telefon</th><th>Rol</th><th>Bloklangan</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(u => `<tr>
+                <td>${u.id}</td><td>${esc(u.full_name)}</td><td>${esc(u.phone)}</td>
+                <td>${esc(u.role)}</td>
+                <td>${u.is_blocked ? '<span class="asst-badge b-rejected">Ha</span>' : '<span class="asst-badge b-approved">Yo\'q</span>'}</td>
+                <td><div class="asst-actions">
+                    <button class="asst-btn asst-btn-warn" onclick="setPassword(${u.id})">Parol</button>
+                    ${u.role !== 'admin' ? `<button class="asst-btn asst-btn-danger" onclick="toggleBlock(${u.id})">${u.is_blocked ? 'Ochish' : 'Bloklash'}</button>` : ''}
+                </div></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Topilmadi</div>';
+    } catch(e) { document.getElementById('userList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function setPassword(id) {
+    const pw = prompt('Yangi parol (kamida 6 belgi):');
+    if (!pw) return;
+    try {
+        await api(`/users/${id}/set-password/`, { method:'POST', body: JSON.stringify({ new_password: pw }) });
+        alert('Parol o\'rnatildi');
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+async function toggleBlock(id) {
+    if (!confirm('Tasdiqlaysizmi?')) return;
+    try {
+        await api(`/users/${id}/toggle-block/`, { method:'POST' });
+        loadUsers();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== PASSWORD RESETS ==============
+async function loadPasswords() {
+    const pane = document.getElementById('pane-passwords');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-key"></i> Parol tiklash so'rovlari</div>
+            <div id="pwList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/password-resets/?status=pending');
+        const list = rows(data);
+        document.getElementById('pwList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Foydalanuvchi</th><th>Telefon</th><th>Status</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(r => `<tr>
+                <td>${r.id}</td><td>${esc(r.user_name)}</td><td>${esc(r.user_phone)}</td>
+                <td>${statusBadge(r.status)}</td><td>${(r.created_at||'').slice(0,16).replace('T',' ')}</td>
+                <td><div class="asst-actions">
+                    <button class="asst-btn asst-btn-success" onclick="reviewPw(${r.id},'approve')">Tasdiqlash</button>
+                    <button class="asst-btn asst-btn-danger" onclick="reviewPw(${r.id},'reject')">Rad etish</button>
+                </div></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Yangi so\'rovlar yo\'q</div>';
+    } catch(e) { document.getElementById('pwList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function reviewPw(id, action) {
+    try {
+        await api(`/password-resets/${id}/review/`, { method:'POST', body: JSON.stringify({ action }) });
+        loadPasswords();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== PARENTS ==============
+async function loadParents() {
+    const pane = document.getElementById('pane-parents');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-people-fill"></i> Ota-onalar</div>
+            <div id="parentList" class="asst-loading">Yuklanmoqda...</div>
+        </div>
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-chat-dots"></i> Ota-ona xabarlari</div>
+            <div id="pmList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const p = await api('/parents/');
+        const list = rows(p);
+        document.getElementById('parentList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>F.I.</th><th>Telefon</th><th>Username</th><th>Farzandlar</th><th>Faol</th>
+            </tr></thead><tbody>
+            ${list.map(p => `<tr>
+                <td>${p.id}</td><td>${esc(p.full_name)}</td><td>${esc(p.phone)}</td>
+                <td>${esc(p.username)}</td><td>${p.children_count}</td>
+                <td>${p.is_active ? 'вњ…' : 'вќЊ'}</td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Ota-onalar yo\'q</div>';
+    } catch(e) { document.getElementById('parentList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+
+    try {
+        const m = await api('/parent-messages/');
+        const ml = rows(m);
+        document.getElementById('pmList').innerHTML = ml.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Ota-ona</th><th>Bola</th><th>Mavzu</th><th>Javob</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${ml.map(m => `<tr>
+                <td>${m.id}</td><td>${esc(m.parent_name)}</td><td>${esc(m.child_name)}</td>
+                <td>${esc(m.subject)}</td><td>${m.reply ? 'вњ…' : 'вЏі'}</td>
+                <td><button class="asst-btn asst-btn-primary" onclick="replyPm(${m.id})">Javob</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Xabarlar yo\'q</div>';
+    } catch(e) { document.getElementById('pmList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function replyPm(id) {
+    const reply = prompt('Javob matni:');
+    if (!reply) return;
+    try {
+        await api(`/parent-messages/${id}/reply/`, { method:'POST', body: JSON.stringify({ reply }) });
+        loadParents();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== REQUESTS ==============
+async function loadRequests() {
+    const pane = document.getElementById('pane-requests');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-arrow-down-up"></i> Kursga yozilish so'rovlari</div>
+            <div id="enrollList" class="asst-loading">Yuklanmoqda...</div>
+        </div>
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-arrow-left-right"></i> Kursdan chiqish so'rovlari</div>
+            <div id="unenrollList" class="asst-loading">Yuklanmoqda...</div>
+        </div>
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-star"></i> Premium so'rovlari</div>
+            <div id="premiumList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    await loadGenericRequests('/enrollment-requests/?status=pending', 'enrollList', 'enrollment-requests');
+    await loadGenericRequests('/unenroll-requests/?status=pending', 'unenrollList', 'unenroll-requests');
+    await loadGenericRequests('/premium-requests/?status=pending', 'premiumList', 'premium-requests');
+}
+async function loadGenericRequests(url, containerId, base) {
+    try {
+        const data = await api(url);
+        const list = rows(data);
+        document.getElementById(containerId).innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Foydalanuvchi</th><th>Tafsilot</th><th>Status</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(r => `<tr>
+                <td>${r.id}</td><td>${esc(r.user_name||'-')}</td>
+                <td>${esc(r.profession_name || r.plan_display || '-')}</td>
+                <td>${statusBadge(r.status)}</td>
+                <td><div class="asst-actions">
+                    <button class="asst-btn asst-btn-success" onclick="reviewGen('${base}',${r.id},'approve','${containerId}','${url}')">Tasdiqlash</button>
+                    <button class="asst-btn asst-btn-danger" onclick="reviewGen('${base}',${r.id},'reject','${containerId}','${url}')">Rad etish</button>
+                </div></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Yangi so\'rovlar yo\'q</div>';
+    } catch(e) { document.getElementById(containerId).innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function reviewGen(base, id, action, containerId, url) {
+    try {
+        await api(`/${base}/${id}/review/`, { method:'POST', body: JSON.stringify({ action }) });
+        loadGenericRequests(url, containerId, base);
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== MESSAGES ==============
+async function loadMessages() {
+    const pane = document.getElementById('pane-messages');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-envelope"></i> Xabarlar</div>
+            <div class="asst-toolbar">
+                <button class="asst-btn asst-btn-primary" onclick="createMessage()">+ Yangi xabar</button>
+            </div>
+            <div id="msgList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/messages/');
+        const list = rows(data).slice(0, 50);
+        document.getElementById('msgList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Sarlavha</th><th>Turi</th><th>Kimga</th><th>Yuboruvchi</th><th>Sana</th>
+            </tr></thead><tbody>
+            ${list.map(m => `<tr>
+                <td>${m.id}</td><td>${esc(m.title)}</td><td>${esc(m.message_type_display)}</td>
+                <td>${esc(m.recipient_name||'-')}</td><td>${esc(m.sender_name||'-')}</td>
+                <td>${(m.created_at||'').slice(0,16).replace('T',' ')}</td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Xabarlar yo\'q</div>';
+    } catch(e) { document.getElementById('msgList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function createMessage() {
+    const title = prompt('Xabar sarlavhasi:');
+    if (!title) return;
+    const content = prompt('Xabar matni:');
+    if (!content) return;
+    const type = prompt('Turi (all/students/teachers):', 'all') || 'all';
+    try {
+        await api('/messages/', { method:'POST', body: JSON.stringify({ title, content, message_type: type }) });
+        loadMessages();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== BLOG ==============
+async function loadBlog() {
+    const pane = document.getElementById('pane-blog');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-journal"></i> Blog postlari</div>
+            <div class="asst-toolbar">
+                <button class="asst-btn asst-btn-primary" onclick="createPost()">+ Yangi post</button>
+            </div>
+            <div id="postList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/blog/posts/');
+        const list = rows(data).slice(0, 50);
+        document.getElementById('postList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Sarlavha</th><th>Turi</th><th>Muallif</th><th>Likes</th><th>Izohlar</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(p => `<tr>
+                <td>${p.id}</td><td>${esc(p.title)}</td><td>${esc(p.post_type_display)}</td>
+                <td>${esc(p.author_name)}</td><td>${p.likes_count}</td><td>${p.comments_count}</td>
+                <td>${(p.created_at||'').slice(0,10)}</td>
+                <td><button class="asst-btn asst-btn-danger" onclick="deletePost(${p.id})">O'chirish</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Postlar yo\'q</div>';
+    } catch(e) { document.getElementById('postList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function createPost() {
+    const title = prompt('Sarlavha:');
+    if (!title) return;
+    const content = prompt('Matn:');
+    if (!content) return;
+    try {
+        await api('/blog/posts/', { method:'POST', body: JSON.stringify({ title, content, post_type: 'news', is_published: true }) });
+        loadBlog();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+async function deletePost(id) {
+    if (!confirm("O'chirishni tasdiqlaysizmi?")) return;
+    try { await api(`/blog/posts/${id}/`, { method:'DELETE' }); loadBlog(); }
+    catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== LIBRARY ==============
+async function loadLibrary() {
+    const pane = document.getElementById('pane-library');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-book"></i> Kitoblar</div>
+            <div class="asst-toolbar">
+                <button class="asst-btn asst-btn-primary" onclick="createBook()">+ Yangi kitob</button>
+            </div>
+            <div id="bookList" class="asst-loading">Yuklanmoqda...</div>
+        </div>
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-bookmark-check"></i> Faol ijara</div>
+            <div id="rentalList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const b = await api('/books/');
+        const list = rows(b);
+        document.getElementById('bookList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Nomi</th><th>Muallif</th><th>Jami</th><th>Mavjud</th>
+            </tr></thead><tbody>
+            ${list.map(b => `<tr>
+                <td>${b.id}</td><td>${esc(b.title)}</td><td>${esc(b.author)}</td>
+                <td>${b.total_copies}</td><td>${b.available_copies}</td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Kitoblar yo\'q</div>';
+    } catch(e) { document.getElementById('bookList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+
+    try {
+        const r = await api('/book-rentals/?status=active');
+        const list = rows(r);
+        document.getElementById('rentalList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Kitob</th><th>O'quvchi</th><th>Berilgan</th><th>Qaytarish</th><th>Status</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(r => `<tr>
+                <td>${r.id}</td><td>${esc(r.book_title)}</td><td>${esc(r.student_name)}</td>
+                <td>${r.given_date}</td><td>${r.return_date}</td>
+                <td>${r.is_overdue ? '<span class="asst-badge b-rejected">O\'tgan</span>' : statusBadge(r.status)}</td>
+                <td><button class="asst-btn asst-btn-success" onclick="returnBook(${r.id})">Qaytarildi</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Faol ijara yo\'q</div>';
+    } catch(e) { document.getElementById('rentalList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function createBook() {
+    const title = prompt('Kitob nomi:'); if (!title) return;
+    const author = prompt('Muallif:'); if (!author) return;
+    const total = parseInt(prompt('Jami nusxalar:', '1') || '1');
+    try {
+        await api('/books/', { method:'POST', body: JSON.stringify({ title, author, total_copies: total, available_copies: total }) });
+        loadLibrary();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+async function returnBook(id) {
+    try { await api(`/book-rentals/${id}/return/`, { method:'POST' }); loadLibrary(); }
+    catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== HELP ==============
+async function loadHelp() {
+    const pane = document.getElementById('pane-help');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-question-circle"></i> Yordam xatlari</div>
+            <div id="helpList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/help-requests/');
+        const list = rows(data);
+        document.getElementById('helpList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Foydalanuvchi</th><th>Mavzu</th><th>Status</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(h => `<tr>
+                <td>${h.id}</td><td>${esc(h.user_name)}</td><td>${esc(h.subject)}</td>
+                <td>${statusBadge(h.status)}</td><td>${(h.created_at||'').slice(0,16).replace('T',' ')}</td>
+                <td><button class="asst-btn asst-btn-primary" onclick="respondHelp(${h.id})">Javob berish</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">So\'rovlar yo\'q</div>';
+    } catch(e) { document.getElementById('helpList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function respondHelp(id) {
+    const resp = prompt('Javob matni:');
+    if (resp === null) return;
+    const st = prompt('Yangi status (pending/in_progress/resolved/closed):', 'resolved');
+    try {
+        await api(`/help-requests/${id}/respond/`, { method:'POST', body: JSON.stringify({ admin_response: resp, status: st }) });
+        loadHelp();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== APPLICATIONS ==============
+async function loadApplications() {
+    const pane = document.getElementById('pane-applications');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-clipboard"></i> Arizalar</div>
+            <div id="appList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/applications/');
+        const list = rows(data);
+        document.getElementById('appList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>F.I.</th><th>Telefon</th><th>Qiziqish</th><th>Status</th><th>Sana</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(a => `<tr>
+                <td>${a.id}</td><td>${esc(a.first_name)} ${esc(a.last_name)}</td>
+                <td>${esc(a.phone)}</td><td>${esc(a.course_interest||'-')}</td>
+                <td>${statusBadge(a.status)}</td><td>${(a.created_at||'').slice(0,16).replace('T',' ')}</td>
+                <td><button class="asst-btn asst-btn-primary" onclick="updateApp(${a.id})">Yangilash</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">Arizalar yo\'q</div>';
+    } catch(e) { document.getElementById('appList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function updateApp(id) {
+    const st = prompt('Yangi status (new/contacted/enrolled/rejected):', 'contacted');
+    if (!st) return;
+    const note = prompt('Admin izohi:') || '';
+    try {
+        await api(`/applications/${id}/`, { method:'PATCH', body: JSON.stringify({ status: st, admin_note: note }) });
+        loadApplications();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== SURVEYS ==============
+async function loadSurveys() {
+    const pane = document.getElementById('pane-surveys');
+    pane.innerHTML = `
+        <div class="asst-section">
+            <div class="asst-section-title"><i class="bi bi-card-list"></i> So'rovnomalar</div>
+            <div class="asst-toolbar">
+                <button class="asst-btn asst-btn-primary" onclick="createSurvey()">+ Yangi so'rovnoma</button>
+            </div>
+            <div id="surveyList" class="asst-loading">Yuklanmoqda...</div>
+        </div>`;
+    try {
+        const data = await api('/surveys/');
+        const list = rows(data);
+        document.getElementById('surveyList').innerHTML = list.length ? `
+            <table class="asst-table"><thead><tr>
+                <th>#</th><th>Nomi</th><th>Faol</th><th>Savollar</th><th>Javoblar</th><th>Kimga</th><th>Amallar</th>
+            </tr></thead><tbody>
+            ${list.map(s => `<tr>
+                <td>${s.id}</td><td>${esc(s.title)}</td>
+                <td>${s.is_active ? 'вњ…' : 'вќЊ'}</td>
+                <td>${s.question_count}</td><td>${s.response_count}</td>
+                <td>${esc(s.target_role_display)}</td>
+                <td><button class="asst-btn asst-btn-danger" onclick="deleteSurvey(${s.id})">O'chirish</button></td>
+            </tr>`).join('')}
+            </tbody></table>` : '<div class="asst-empty">So\'rovnomalar yo\'q</div>';
+    } catch(e) { document.getElementById('surveyList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
+}
+async function createSurvey() {
+    const title = prompt('Forma nomi:'); if (!title) return;
+    const description = prompt('Tavsif:') || '';
+    try {
+        await api('/surveys/', { method:'POST', body: JSON.stringify({ title, description, is_active: true, target_role: 'all' }) });
+        loadSurveys();
+    } catch(e) { alert('Xato: ' + e.message); }
+}
+async function deleteSurvey(id) {
+    if (!confirm("O'chirishni tasdiqlaysizmi?")) return;
+    try { await api(`/surveys/${id}/`, { method:'DELETE' }); loadSurveys(); }
+    catch(e) { alert('Xato: ' + e.message); }
+}
+
+// ============== TABS ==============
+const loaders = {
+    homework: loadHomework, tests: loadTests, lessons: loadLessons,
+    attendance: loadAttendance, certs: loadCerts, users: loadUsers,
+    passwords: loadPasswords, parents: loadParents, requests: loadRequests,
+    messages: loadMessages, blog: loadBlog, library: loadLibrary,
+    help: loadHelp, applications: loadApplications, surveys: loadSurveys,
+};
+
+document.querySelectorAll('.asst-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.asst-tab').forEach(b => b.classList.remove('asst-active'));
+        document.querySelectorAll('.asst-pane').forEach(p => p.classList.remove('asst-active'));
+        btn.classList.add('asst-active');
+        const pane = btn.dataset.pane;
+        document.getElementById('pane-' + pane).classList.add('asst-active');
+        loaders[pane]();
+    });
+});
+
+// Initial
+loadDashboard();
+loadHomework();
+</script>

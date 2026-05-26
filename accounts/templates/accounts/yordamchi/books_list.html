@@ -1,0 +1,55 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Kitoblar{% endblock %}
+{% block page_title %}Kutubxona kitoblari ({{ total_count }}){% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header" style="background:transparent;border-bottom:1px solid var(--yo-border);">
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <form method="get" class="d-flex gap-2 flex-grow-1" style="max-width:500px;">
+                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="🔍 Kitob nomi, muallif, ISBN...">
+                <button class="btn btn-warning btn-sm"><i class="bi bi-search"></i></button>
+            </form>
+            <a href="{% url 'yordamchi_rental_add' %}" class="btn btn-sm btn-success ms-auto">
+                <i class="bi bi-journal-plus"></i> Ijaraga berish
+            </a>
+            {% if can_add %}
+            <a href="{% url 'yordamchi_book_add' %}" class="btn btn-sm btn-warning">
+                <i class="bi bi-plus-lg"></i> Yangi kitob
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if books %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background:rgba(245,158,11,0.06);">
+                    <tr><th>Kitob</th><th>Muallif</th><th>ISBN</th><th>Jami</th><th>Mavjud</th><th>Holat</th></tr>
+                </thead>
+                <tbody>
+                {% for b in books %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                {% if b.cover_image %}<img src="{{ b.cover_image.url }}" style="width:36px;height:50px;object-fit:cover;border-radius:4px;">{% else %}<div style="width:36px;height:50px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-book text-muted"></i></div>{% endif %}
+                                <strong>{{ b.title }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ b.author }}</td>
+                        <td style="font-size:.82rem;">{{ b.isbn|default:"—" }}</td>
+                        <td>{{ b.total_copies }}</td>
+                        <td><strong>{{ b.available_copies }}</strong></td>
+                        <td>
+                            {% if b.is_available %}<span class="badge bg-success">Mavjud</span>{% else %}<span class="badge bg-secondary">Tugagan</span>{% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Kitoblar yo'q</p></div>{% endif %}
+    </div>
+</div>
+{% endblock %}
