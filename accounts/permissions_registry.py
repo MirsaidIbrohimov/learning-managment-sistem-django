@@ -178,7 +178,7 @@ DEFAULT_ROLES = {
     },
     "academic_admin": {
         "name": "Akademik Admin",
-        "description": "O'quv jarayoni, foydalanuvchilar, sertifikatlar",
+        "description": "O'quv jarayoni, foydalanuvchilar, sertifikatlar, kutubxona",
         "is_system": True,
         "permissions": [
             "homework.view", "homework.review",
@@ -191,6 +191,10 @@ DEFAULT_ROLES = {
             "parents.view",
             "requests.enrollment_view", "requests.enrollment_review",
             "requests.unenroll_view", "requests.unenroll_review",
+            # Kutubxona — kitoblar va ijaralar bilan ishlash
+            "library.view",
+            "library.book_add", "library.book_edit",
+            "library.rental_add", "library.rental_return",
         ],
     },
     "support": {
