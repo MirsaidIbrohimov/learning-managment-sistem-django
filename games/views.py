@@ -121,29 +121,45 @@ def game_launch(request, slug):
     """
     from django.conf import settings as dj_settings
     from django.contrib.staticfiles import finders
+    import os as _os
 
     game = get_object_or_404(Game, slug=slug, is_active=True, game_type='external')
 
     cfg = game.config or {}
-    host_base = f"{request.scheme}://{request.get_host()}"
 
     external_url = (cfg.get('external_url') or '').strip()
     if not external_url:
         builtin = (cfg.get('builtin') or game.slug).strip()
         static_rel = f"games/{builtin}/index.html"
-        # Static fayl mavjudligini tekshirish
-        if not finders.find(static_rel):
+        # Static fayl mavjudligini tekshirish:
+        #   1) avval source 'static/' kataloglaridan (finders)
+        #   2) keyin esa STATIC_ROOT'dan (collectstatic chiqishi — production)
+        found = finders.find(static_rel)
+        if not found:
+            static_root_path = _os.path.join(str(dj_settings.STATIC_ROOT or ''), *static_rel.split('/'))
+            if static_root_path and _os.path.exists(static_root_path):
+                found = static_root_path
+        if not found:
             messages.error(
                 request,
                 f"O'yin fayli topilmadi: static/{static_rel}. "
-                f"Yo'lni config.external_url ga ko'rsating yoki faylni qo'shing."
+                f"Production'da 'python manage.py collectstatic --noinput' ishga tushiring "
+                f"yoki config.external_url ga to'liq URL ko'rsating."
             )
             return redirect('games:games_list')
-        external_url = f"{host_base}{dj_settings.STATIC_URL}{static_rel}"
+        # Nisbiy URL — http/https va host masalasini umuman tug'dirmaydi (reverse-proxy uchun xavfsiz)
+        external_url = f"{dj_settings.STATIC_URL}{static_rel}"
 
     token = external_api.issue_launch_token(request.user, game)
-    api_base = f"{host_base}/api/v1/games/external"
-    return_url = f"{host_base}/games/"
+    # Tashqi URL absolyut bo'lsa (boshqa domain), nisbiy api_base ishlamaydi → absolyut beramiz
+    is_absolute_ext = external_url.startswith('http://') or external_url.startswith('https://')
+    if is_absolute_ext:
+        host_base = f"{request.scheme}://{request.get_host()}"
+        api_base = f"{host_base}/api/v1/games/external"
+        return_url = f"{host_base}/games/"
+    else:
+        api_base = "/api/v1/games/external"
+        return_url = "/games/"
 
     # Musobaqa (ixtiyoriy) — ?competition_id=... orqali
     competition_id = request.GET.get('competition_id', '').strip()
