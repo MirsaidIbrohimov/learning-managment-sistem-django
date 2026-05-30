@@ -281,22 +281,22 @@ def submit_result(request):
     # ===== AI bilan o'ynalganda g'alaba uchun COIN MUKOFOTI =====
     coins_awarded = 0
     coin_reason = ''
-    if result == 'win' and meta.get('mode') == 'ai':
+    engine = str(cfg.get('engine', '')).lower()
+
+    # Shashka (checkers)da coin umuman berilmaydi
+    if result == 'win' and meta.get('mode') == 'ai' and engine != 'checkers':
         difficulty = str(meta.get('difficulty', 'medium')).lower()
         rewards = (cfg.get('ai_coin_rewards') or {})
         # Default qiymatlar
         defaults = {'easy': 25, 'medium': 35, 'hard': 50}
         coins_awarded = int(rewards.get(difficulty, defaults.get(difficulty, 0)))
 
-        # Shaxmat va shashka uchun kunlik 3 ta o'yin limiti
-        engine = str(cfg.get('engine', '')).lower()
-        daily_limit_applies = engine in ('chess', 'checkers')
+        # Shaxmat uchun kunlik 3 ta o'yin limiti
         DAILY_AI_COIN_LIMIT = int(cfg.get('daily_ai_coin_limit', 3))
-
-        if daily_limit_applies and coins_awarded > 0:
+        if engine == 'chess' and coins_awarded > 0:
             from django.utils import timezone
             today = timezone.localdate()
-            # Bugungi AI g'alabalari soni (coin berilgan)
+            # Bugungi AI g'alabalari soni
             today_ai_wins = GameAttempt.objects.filter(
                 user=user,
                 game=game,
@@ -483,6 +483,11 @@ def mp_find(request):
     try:
         wager = int(data.get('wager', 0))
     except (TypeError, ValueError):
+        wager = 0
+    # Shashka (checkers)da coin rejimi taqiqlangan — coin umuman berilmaydi
+    engine = str((game.config or {}).get('engine', '')).lower()
+    if engine == 'checkers':
+        mode = 'casual'
         wager = 0
     if mode != 'coin':
         wager = 0
