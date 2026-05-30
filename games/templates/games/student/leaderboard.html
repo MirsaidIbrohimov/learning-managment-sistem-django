@@ -123,11 +123,6 @@
     animation: fadeInUp 0.6s ease-out 0.2s both;
 }
 
-
-
-
-
-
 .lb-row {
     display: flex;
     align-items: center;
@@ -268,7 +263,6 @@
     transform: translateX(-4px);
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 768px) {
     .lb-hero {
         padding: 1.8rem 1.2rem;
@@ -324,12 +318,12 @@
     <div class="lb-hero">
         <i class="bi bi-trophy trophy-icon"></i>
         <h2 class="mt-2">{{ competition.title }}</h2>
-        <p class="mb-0">{{ competition.game.title }} · {{ competition.start_time|date:"d.m.Y" }}</p>
+        <p class="mb-0">{{ competition.game.title }} &middot; {{ competition.start_time|date:"d.m.Y" }}</p>
         {% if competition.coin_1st %}
         <div class="coin-badges">
-            <span class="badge bg-dark">🥇 {{ competition.coin_1st }} coin</span>
-            {% if competition.coin_2nd %}<span class="badge bg-dark">🥈 {{ competition.coin_2nd }} coin</span>{% endif %}
-            {% if competition.coin_3rd %}<span class="badge bg-dark">🥉 {{ competition.coin_3rd }} coin</span>{% endif %}
+            <span class="badge bg-dark">&#x1F947; {{ competition.coin_1st }} coin</span>
+            {% if competition.coin_2nd %}<span class="badge bg-dark">&#x1F948; {{ competition.coin_2nd }} coin</span>{% endif %}
+            {% if competition.coin_3rd %}<span class="badge bg-dark">&#x1F949; {{ competition.coin_3rd }} coin</span>{% endif %}
         </div>
         {% endif %}
     </div>
@@ -338,7 +332,15 @@
         {% for attempt in attempts %}
         <div class="lb-row {% if attempt.user == request.user %}current-user{% endif %} {% if attempt.rank == 1 %}top-1{% elif attempt.rank == 2 %}top-2{% elif attempt.rank == 3 %}top-3{% endif %}">
             <div class="lb-rank {% if attempt.rank == 1 %}gold{% elif attempt.rank == 2 %}silver{% elif attempt.rank == 3 %}bronze{% endif %}">
-                {% if attempt.rank == 1 %}<span class="rank-emoji first">🥇</span>{% elif attempt.rank == 2 %}<span class="rank-emoji">🥈</span>{% elif attempt.rank == 3 %}<span class="rank-emoji">🥉</span>{% else %}{{ attempt.rank }}{% endif %}
+                {% if attempt.rank == 1 %}
+                    <span class="rank-emoji first">&#x1F947;</span>
+                {% elif attempt.rank == 2 %}
+                    <span class="rank-emoji">&#x1F948;</span>
+                {% elif attempt.rank == 3 %}
+                    <span class="rank-emoji">&#x1F949;</span>
+                {% else %}
+                    {{ attempt.rank }}
+                {% endif %}
             </div>
             <div class="lb-user">
                 <div class="name">
@@ -357,7 +359,7 @@
                 {% if is_board %}
                 <div class="st">
                     <div class="val">{{ attempt.wins }}</div>
-                    <div class="lbl"><i class="bi bi-trophy"></i> G'alaba</div>
+                    <div class="lbl"><i class="bi bi-trophy"></i> G&#x02BC;alaba</div>
                 </div>
                 <div class="st">
                     <div class="val">{{ attempt.draws }}</div>
@@ -365,11 +367,11 @@
                 </div>
                 <div class="st">
                     <div class="val">{{ attempt.losses }}</div>
-                    <div class="lbl"><i class="bi bi-x-circle"></i> Mag'lub</div>
+                    <div class="lbl"><i class="bi bi-x-circle"></i> Mag&#x02BC;lub</div>
                 </div>
                 <div class="st">
                     <div class="val">{{ attempt.played }}</div>
-                    <div class="lbl"><i class="bi bi-controller"></i> O'yin</div>
+                    <div class="lbl"><i class="bi bi-controller"></i> O&#x02BC;yin</div>
                 </div>
                 <div class="st">
                     <div class="val">{{ attempt.score }}</div>
@@ -377,7 +379,7 @@
                 </div>
                 <div class="st">
                     <div class="val">{{ attempt.win_rate }}%</div>
-                    <div class="lbl"><i class="bi bi-percent"></i> G'alaba %</div>
+                    <div class="lbl"><i class="bi bi-percent"></i> G&#x02BC;alaba %</div>
                 </div>
                 {% else %}
                 <div class="st">
@@ -398,7 +400,7 @@
         {% empty %}
         <div class="lb-empty">
             <i class="bi bi-emoji-smile"></i>
-            <p class="text-muted mt-2 mb-0">Hali natijalar yo'q</p>
+            <p class="text-muted mt-2 mb-0">Hali natijalar yo&#x02BC;q</p>
         </div>
         {% endfor %}
     </div>
@@ -406,14 +408,14 @@
     <div class="text-center mt-3 d-flex gap-2 justify-content-center flex-wrap">
         {% if is_board %}
         <a href="{% url 'games:game_launch' competition.game.slug %}?competition_id={{ competition.id }}" class="btn btn-primary btn-back">
-            <i class="bi bi-play-circle"></i> Musobaqada o'ynash
+            <i class="bi bi-play-circle"></i> Musobaqada o&#x02BC;ynash
         </a>
         <a href="{% url 'games:game_launch' competition.game.slug %}" class="btn btn-outline-primary btn-back">
-            <i class="bi bi-arrow-left"></i> O'yinga qaytish
+            <i class="bi bi-arrow-left"></i> O&#x02BC;yinga qaytish
         </a>
         {% else %}
         <a href="{% url 'games:game_detail' competition.game.slug %}" class="btn btn-outline-primary btn-back">
-            <i class="bi bi-arrow-left"></i> O'yin sahifasiga
+            <i class="bi bi-arrow-left"></i> O&#x02BC;yin sahifasiga
         </a>
         {% endif %}
     </div>
