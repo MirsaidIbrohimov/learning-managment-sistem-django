@@ -287,6 +287,27 @@ def submit_result(request):
         # Default qiymatlar
         defaults = {'easy': 25, 'medium': 35, 'hard': 50}
         coins_awarded = int(rewards.get(difficulty, defaults.get(difficulty, 0)))
+
+        # Shaxmat va shashka uchun kunlik 3 ta o'yin limiti
+        engine = str(cfg.get('engine', '')).lower()
+        daily_limit_applies = engine in ('chess', 'checkers')
+        DAILY_AI_COIN_LIMIT = int(cfg.get('daily_ai_coin_limit', 3))
+
+        if daily_limit_applies and coins_awarded > 0:
+            from django.utils import timezone
+            today = timezone.localdate()
+            # Bugungi AI g'alabalari soni (coin berilgan)
+            today_ai_wins = GameAttempt.objects.filter(
+                user=user,
+                game=game,
+                accuracy=100.0,
+                created_at__date=today,
+                typed_text__contains='"mode": "ai"',
+            ).count()
+            if today_ai_wins >= DAILY_AI_COIN_LIMIT:
+                coins_awarded = 0
+                coin_reason = f"Kunlik {DAILY_AI_COIN_LIMIT} ta o'yin limiti tugadi — coin berilmadi"
+
         if coins_awarded > 0:
             coin_reason = f"{game.title} ({difficulty}) g'olibi"
             user.add_coins(coins_awarded, coin_reason)
