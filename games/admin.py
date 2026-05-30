@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
+from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion, BoardMatch
 
 
 class PromptInline(admin.TabularInline):
@@ -66,6 +66,17 @@ class WordGameAttemptAdmin(admin.ModelAdmin):
     list_filter = ['game', 'competition', 'created_at']
     search_fields = ['user__username', 'user__first_name', 'user__last_name']
     readonly_fields = ['user', 'game', 'word_round', 'competition', 'found_words', 'total_score', 'time_spent', 'created_at']
+
+
+@admin.register(BoardMatch)
+class BoardMatchAdmin(admin.ModelAdmin):
+    list_display = ['id', 'game', 'white_player', 'black_player', 'status', 'winner',
+                    'mode', 'wager_coins', 'move_count', 'created_at', 'ended_at']
+    list_filter = ['game', 'status', 'winner', 'mode', 'created_at']
+    search_fields = ['white_player__username', 'black_player__username']
+    readonly_fields = ['game', 'white_player', 'black_player', 'mode', 'wager_coins', 'coins_settled',
+                       'board_state', 'current_turn', 'move_count', 'last_move',
+                       'created_at', 'started_at', 'last_activity_at', 'ended_at', 'competition']
 
 
 @admin.register(WordSuggestion)

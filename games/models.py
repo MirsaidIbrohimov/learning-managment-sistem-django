@@ -8,6 +8,7 @@ class Game(models.Model):
         ('typing', 'Typing Challenge'),
         ('quiz', 'Quiz'),
         ('word_builder', 'Word Builder'),
+        ('external', 'Tashqi o\'yin (External)'),
     )
 
     title = models.CharField(max_length=200, verbose_name="O'yin nomi")
@@ -277,6 +278,79 @@ class WordGameAttempt(models.Model):
     @property
     def found_count(self):
         return len(self.found_words) if self.found_words else 0
+
+
+class BoardMatch(models.Model):
+    """LMS o'quvchilari o'rtasidagi taxta o'yini (shashka, shaxmat) multiplayer matchi.
+
+    Status oqimi:  waiting → active → ended (yoki abandoned)
+    Polling orqali sinxronlash:  client har 2 sek state'ni so'raydi.
+    Coin bilan o'ynalsa, yutuq pulini g'olibga o'tkazadi.
+    """
+    STATUS_CHOICES = (
+        ('waiting', 'Raqib kutilmoqda'),
+        ('active', 'Faol'),
+        ('ended', 'Tugadi'),
+        ('abandoned', "Tashlab ketilgan"),
+    )
+    WINNER_CHOICES = (
+        ('white', "Oq g'olib"),
+        ('black', "Qora g'olib"),
+        ('draw', "Durang"),
+    )
+    MODE_CHOICES = (
+        ('casual', "Shunchaki o'yin"),
+        ('coin', "Coin bilan"),
+    )
+
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='board_matches', verbose_name="O'yin")
+    white_player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='matches_as_white', verbose_name="Oq o'yinchi")
+    black_player = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='matches_as_black', verbose_name="Qora o'yinchi")
+
+    mode = models.CharField(max_length=10, choices=MODE_CHOICES, default='casual', verbose_name="Rejim")
+    wager_coins = models.PositiveIntegerField(default=0, verbose_name="Tikilgan coin (har bir o'yinchi)")
+    coins_settled = models.BooleanField(default=False, verbose_name="Coin hisoblangan")
+
+    board_state = models.JSONField(default=list, verbose_name="Doska holati")
+    current_turn = models.CharField(max_length=10, default='white', verbose_name="Yurish navbati")
+    move_count = models.PositiveIntegerField(default=0, verbose_name="Yurishlar soni")
+    last_move = models.JSONField(default=dict, blank=True, verbose_name="Oxirgi yurish")
+
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='waiting', verbose_name="Holat")
+    winner = models.CharField(max_length=10, choices=WINNER_CHOICES, null=True, blank=True, verbose_name="G'olib")
+
+    competition = models.ForeignKey(Competition, on_delete=models.SET_NULL, null=True, blank=True, related_name='board_matches', verbose_name="Musobaqa")
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name="Boshlangan vaqt")
+    last_activity_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name="Oxirgi faollik")
+    ended_at = models.DateTimeField(null=True, blank=True, verbose_name="Tugagan vaqt")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Multiplayer match (taxta o'yini)"
+        verbose_name_plural = "Multiplayer matchlari (taxta o'yini)"
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['game', 'status']),
+            models.Index(fields=['game', 'status', 'mode', 'wager_coins']),
+        ]
+
+    def __str__(self):
+        bp = self.black_player.username if self.black_player else '—'
+        wager = f" [💰 {self.wager_coins}]" if self.mode == 'coin' else ''
+        return f"{self.game.slug}: {self.white_player.username} vs {bp} ({self.status}){wager}"
+
+    @property
+    def is_full(self):
+        return bool(self.white_player_id and self.black_player_id)
+
+    def player_role(self, user):
+        if user.pk == self.white_player_id:
+            return 'white'
+        if user.pk == self.black_player_id:
+            return 'black'
+        return None
 
 
 class WordSuggestion(models.Model):

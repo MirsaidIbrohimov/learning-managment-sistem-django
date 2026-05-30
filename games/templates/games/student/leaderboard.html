@@ -354,6 +354,32 @@
                 <div class="meta">@{{ attempt.user.username }}</div>
             </div>
             <div class="lb-stats">
+                {% if is_board %}
+                <div class="st">
+                    <div class="val">{{ attempt.wins }}</div>
+                    <div class="lbl"><i class="bi bi-trophy"></i> G'alaba</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.draws }}</div>
+                    <div class="lbl"><i class="bi bi-dash-circle"></i> Durang</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.losses }}</div>
+                    <div class="lbl"><i class="bi bi-x-circle"></i> Mag'lub</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.played }}</div>
+                    <div class="lbl"><i class="bi bi-controller"></i> O'yin</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.score }}</div>
+                    <div class="lbl"><i class="bi bi-bullseye"></i> Ball</div>
+                </div>
+                <div class="st">
+                    <div class="val">{{ attempt.win_rate }}%</div>
+                    <div class="lbl"><i class="bi bi-percent"></i> G'alaba %</div>
+                </div>
+                {% else %}
                 <div class="st">
                     <div class="val">{{ attempt.score }}</div>
                     <div class="lbl">Ball</div>
@@ -366,6 +392,7 @@
                     <div class="val">{{ attempt.accuracy }}%</div>
                     <div class="lbl">Aniqlik</div>
                 </div>
+                {% endif %}
             </div>
         </div>
         {% empty %}
@@ -376,10 +403,19 @@
         {% endfor %}
     </div>
 
-    <div class="text-center mt-3">
+    <div class="text-center mt-3 d-flex gap-2 justify-content-center flex-wrap">
+        {% if is_board %}
+        <a href="{% url 'games:game_launch' competition.game.slug %}?competition_id={{ competition.id }}" class="btn btn-primary btn-back">
+            <i class="bi bi-play-circle"></i> Musobaqada o'ynash
+        </a>
+        <a href="{% url 'games:game_launch' competition.game.slug %}" class="btn btn-outline-primary btn-back">
+            <i class="bi bi-arrow-left"></i> O'yinga qaytish
+        </a>
+        {% else %}
         <a href="{% url 'games:game_detail' competition.game.slug %}" class="btn btn-outline-primary btn-back">
             <i class="bi bi-arrow-left"></i> O'yin sahifasiga
         </a>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -24,6 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
 from accounts.models import CustomUser
+from . import external_api
 
 
 # ============== STUDENT VIEWS ==============
@@ -37,6 +38,11 @@ def games_list(request):
 @login_required
 def game_detail(request, slug):
     game = get_object_or_404(Game, slug=slug, is_active=True)
+
+    # Tashqi (External) o'yin → launch sahifaga yo'naltirish
+    if game.game_type == 'external':
+        return redirect('games:game_launch', slug=game.slug)
+
     competitions = game.competitions.filter(is_active=True).order_by('-start_time')
     for comp in competitions:
         # Musobaqa tugagan bo'lsa, coin berish
@@ -95,6 +101,87 @@ def game_detail(request, slug):
         'practice_count': practice_count,
         'best_practice': best_practice,
         'all_attempts': all_attempts,
+    })
+
+
+@login_required
+def game_launch(request, slug):
+    """
+    Tashqi (external) tipidagi o'yinni ochish.
+
+    URL aniqlash tartibi:
+      1. config.external_url      → tashqi serverdagi to'liq URL (boshqa domain ham bo'lishi mumkin)
+      2. config.builtin           → LMS'ning ichki static papkasidagi o'yin (masalan: 'shashka')
+                                    → /static/games/<builtin>/index.html
+      3. slug nomi bilan papka    → /static/games/<slug>/index.html (avto-detect)
+
+    HMAC-imzolangan launch token URL'ga qo'shiladi, o'yin uni
+    `/api/v1/games/external/verify/` orqali tekshiradi va natijani
+    `/api/v1/games/external/result/` orqali yuboradi.
+    """
+    from django.conf import settings as dj_settings
+    from django.contrib.staticfiles import finders
+
+    game = get_object_or_404(Game, slug=slug, is_active=True, game_type='external')
+
+    cfg = game.config or {}
+    host_base = f"{request.scheme}://{request.get_host()}"
+
+    external_url = (cfg.get('external_url') or '').strip()
+    if not external_url:
+        builtin = (cfg.get('builtin') or game.slug).strip()
+        static_rel = f"games/{builtin}/index.html"
+        # Static fayl mavjudligini tekshirish
+        if not finders.find(static_rel):
+            messages.error(
+                request,
+                f"O'yin fayli topilmadi: static/{static_rel}. "
+                f"Yo'lni config.external_url ga ko'rsating yoki faylni qo'shing."
+            )
+            return redirect('games:games_list')
+        external_url = f"{host_base}{dj_settings.STATIC_URL}{static_rel}"
+
+    token = external_api.issue_launch_token(request.user, game)
+    api_base = f"{host_base}/api/v1/games/external"
+    return_url = f"{host_base}/games/"
+
+    # Musobaqa (ixtiyoriy) — ?competition_id=... orqali
+    competition_id = request.GET.get('competition_id', '').strip()
+    sep = '&' if '?' in external_url else '?'
+    launch_url = (
+        f"{external_url}{sep}token={token}"
+        f"&game={game.slug}"
+        f"&api_base={api_base}"
+        f"&return_url={return_url}"
+    )
+    if competition_id:
+        launch_url += f"&competition_id={competition_id}"
+
+    embed_mode = (cfg.get('embed_mode') or 'iframe').lower()
+    if embed_mode == 'redirect':
+        return redirect(launch_url)
+
+    # iframe rejimi (default)
+    user_attempts = GameAttempt.objects.filter(
+        user=request.user, game=game
+    ).order_by('-created_at')[:10]
+    best = GameAttempt.objects.filter(
+        user=request.user, game=game
+    ).order_by('-score').first()
+
+    # Faol musobaqalar (board games uchun ham ishlaydi)
+    from django.utils import timezone
+    active_competitions = game.competitions.filter(
+        is_active=True, start_time__lte=timezone.now(), end_time__gte=timezone.now()
+    ).order_by('end_time')
+
+    return render(request, 'games/student/external_game_embed.html', {
+        'game': game,
+        'launch_url': launch_url,
+        'user_attempts': user_attempts,
+        'best': best,
+        'active_competitions': active_competitions,
+        'current_competition_id': competition_id,
     })
 
 
@@ -375,6 +462,64 @@ def competition_leaderboard(request, competition_id):
     if competition.status == 'ended' and not competition.coins_awarded:
         competition.award_competition_coins()
 
+    # Board game (shaxmat/shashka) — agregat reyting
+    engine = (competition.game.config or {}).get('engine', '')
+    is_board = competition.game.game_type == 'external' and engine in ('chess', 'checkers')
+
+    if is_board:
+        all_attempts = GameAttempt.objects.filter(
+            competition=competition
+        ).select_related('user').order_by('user_id', '-created_at')
+
+        # Foydalanuvchi bo'yicha agregatsiya: g'alaba/durang/mag'lubiyat + ball + vaqt
+        agg = {}
+        for a in all_attempts:
+            u = agg.setdefault(a.user_id, {
+                'user': a.user,
+                'played': 0, 'wins': 0, 'draws': 0, 'losses': 0,
+                'score': 0.0, 'time_spent': 0.0, 'last_at': None,
+            })
+            u['played'] += 1
+            if a.accuracy >= 100:
+                u['wins'] += 1
+            elif a.accuracy <= 0:
+                u['losses'] += 1
+            else:
+                u['draws'] += 1
+            u['score'] += float(a.score or 0)
+            u['time_spent'] += float(a.time_spent or 0)
+            if not u['last_at'] or a.created_at > u['last_at']:
+                u['last_at'] = a.created_at
+
+        # Reyting: g'alabalar > umumiy ball > durang > kam vaqt
+        ranked_list = sorted(
+            agg.values(),
+            key=lambda x: (-x['wins'], -x['score'], -x['draws'], x['time_spent'])
+        )
+
+        # Template bilan moslash uchun har bir yozuvni "attempt-like" obyektga aylantiramiz
+        class _Row:
+            __slots__ = ('user', 'rank', 'score', 'wins', 'losses', 'draws', 'played', 'time_spent', 'win_rate', 'accuracy')
+            def __init__(self, **kw):
+                for k, v in kw.items(): setattr(self, k, v)
+
+        ranked = []
+        for i, r in enumerate(ranked_list, start=1):
+            wr = round((r['wins'] / r['played']) * 100, 1) if r['played'] else 0
+            ranked.append(_Row(
+                user=r['user'], rank=i,
+                score=round(r['score'], 1),
+                wins=r['wins'], losses=r['losses'], draws=r['draws'],
+                played=r['played'], time_spent=round(r['time_spent'], 1),
+                win_rate=wr, accuracy=wr,  # accuracy = win_rate (template uchun)
+            ))
+
+        return render(request, 'games/student/leaderboard.html', {
+            'competition': competition,
+            'attempts': ranked,
+            'is_board': True,
+        })
+
     all_attempts = GameAttempt.objects.filter(competition=competition).select_related('user').order_by('-score', '-accuracy', 'time_spent')
 
     seen_users = set()
@@ -388,6 +533,7 @@ def competition_leaderboard(request, competition_id):
     return render(request, 'games/student/leaderboard.html', {
         'competition': competition,
         'attempts': ranked,
+        'is_board': False,
     })
 
 

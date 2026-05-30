@@ -1,0 +1,465 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}{{ game.title }} | O'yinlar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ext-game-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1.25rem;
+    }
+    .ext-game-header {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .ext-game-header h2 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+    }
+    .ext-frame-box {
+        background: #0f172a;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0,0,0,.18);
+        position: relative;
+    }
+    .ext-frame-box iframe {
+        width: 100%;
+        height: 78vh;
+        min-height: 540px;
+        border: 0;
+        display: block;
+        background: #0f172a;
+    }
+    .ext-actions a {
+        background: rgba(255,255,255,.18);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,.25);
+        padding: .45rem .9rem;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: .9rem;
+    }
+    .ext-actions a:hover { background: rgba(255,255,255,.28); }
+
+    .ext-results {
+        margin-top: 1.25rem;
+        background: var(--bs-body-bg, #fff);
+        border: 1px solid rgba(0,0,0,.07);
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+    }
+    [data-bs-theme="dark"] .ext-results { background: #1e1e2e; border-color: rgba(255,255,255,.07); }
+    .ext-results h5 { font-weight: 700; margin-bottom: .9rem; }
+    .ext-results table { width: 100%; }
+    .ext-results th, .ext-results td { padding: .55rem .7rem; font-size: .92rem; }
+    .ext-results th { color: #64748b; font-weight: 600; }
+    .ext-results .badge-win { background: #16a34a; color: #fff; }
+    .ext-results .badge-lose { background: #dc2626; color: #fff; }
+    .ext-results .badge-draw { background: #64748b; color: #fff; }
+
+    /* ============== FAOL MUSOBAQALAR ============== */
+    .comp-section {
+        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+        border-radius: 18px;
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.25rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(99, 102, 241, 0.18);
+    }
+    .comp-section::before {
+        content: '';
+        position: absolute;
+        top: -50%; right: -20%;
+        width: 60%; height: 200%;
+        background: radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, transparent 70%);
+        pointer-events: none;
+    }
+    .comp-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 1.1rem;
+        position: relative;
+        z-index: 1;
+    }
+    .comp-section-title {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .comp-title-icon {
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #f59e0b, #dc2626);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.6rem;
+        box-shadow: 0 6px 16px rgba(245, 158, 11, 0.45);
+    }
+    .comp-section-title h5 {
+        margin: 0;
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: #fff;
+    }
+    .comp-section-title small {
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 0.82rem;
+    }
+    .btn-free-mode {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.2s;
+    }
+    .btn-free-mode:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .comp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .comp-card {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 1.2rem;
+        text-decoration: none;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(.25,.46,.45,.94);
+        display: flex;
+        flex-direction: column;
+    }
+    .comp-card:hover {
+        transform: translateY(-6px);
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(245, 158, 11, 0.5);
+        color: #fff;
+        box-shadow: 0 12px 28px rgba(245, 158, 11, 0.25);
+    }
+    .comp-card.active {
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(220, 38, 38, 0.18));
+        border-color: #f59e0b;
+        box-shadow: 0 0 24px rgba(245, 158, 11, 0.35);
+    }
+    .comp-card-glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(245,158,11,0.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    .comp-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.9rem;
+        position: relative;
+        z-index: 1;
+    }
+    .comp-icon {
+        width: 42px; height: 42px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #f59e0b, #dc2626);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.25rem;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+    .comp-card.active .comp-icon {
+        animation: float-fire 1.5s ease-in-out infinite;
+    }
+    @keyframes float-fire {
+        0%, 100% { transform: translateY(0) rotate(-2deg); }
+        50% { transform: translateY(-4px) rotate(2deg); }
+    }
+    .comp-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0.28rem 0.7rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+    }
+    .comp-status-badge.live {
+        background: #16a34a;
+        color: #fff;
+        border-color: #16a34a;
+        animation: pulse-live 1.5s infinite;
+    }
+    @keyframes pulse-live {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5); }
+        50%      { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+    }
+    .comp-name {
+        font-weight: 700;
+        font-size: 1.05rem;
+        margin: 0 0 0.85rem 0;
+        color: #fff;
+        position: relative;
+        z-index: 1;
+    }
+    .comp-meta-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    .comp-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.75);
+    }
+    .comp-meta-item i { color: #c4b5fd; font-size: 0.95rem; }
+    .comp-meta-item.highlight { color: #fcd34d; font-weight: 600; }
+    .comp-meta-item.highlight i { color: #fcd34d; }
+
+    .comp-card-cta {
+        margin-top: auto;
+        padding-top: 0.7rem;
+        border-top: 1px dashed rgba(255, 255, 255, 0.15);
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: #fcd34d;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        position: relative;
+        z-index: 1;
+    }
+    .comp-card:hover .comp-card-cta i {
+        transform: translateX(4px);
+        transition: transform 0.2s;
+    }
+    .comp-card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    .comp-mini-btn {
+        flex: 1;
+        text-align: center;
+        padding: 0.45rem 0.6rem;
+        border-radius: 9px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+    .comp-mini-btn:hover {
+        background: rgba(252,211,77,0.22);
+        color: #fff;
+        border-color: rgba(252,211,77,0.6);
+        transform: translateY(-2px);
+    }
+    .comp-mini-btn.primary {
+        background: linear-gradient(135deg, #f59e0b, #dc2626);
+        border-color: transparent;
+    }
+    .comp-mini-btn.primary:hover {
+        filter: brightness(1.1);
+    }
+
+    @media (max-width: 640px) {
+        .comp-grid { grid-template-columns: 1fr; }
+        .comp-section { padding: 1.2rem 1rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ext-game-wrapper">
+    <div class="ext-game-header">
+        <h2>
+            <i class="bi {{ game.icon|default:'bi-controller' }}"></i>
+            {{ game.title }}
+        </h2>
+        <div class="ext-actions d-flex gap-2">
+            <a href="{{ launch_url }}" target="_blank" rel="noopener">
+                <i class="bi bi-box-arrow-up-right"></i> Yangi oynada ochish
+            </a>
+            <a href="{% url 'games:games_list' %}">
+                <i class="bi bi-arrow-left"></i> Orqaga
+            </a>
+        </div>
+    </div>
+
+    {% if active_competitions %}
+    <div class="comp-section">
+        <div class="comp-section-header">
+            <div class="comp-section-title">
+                <div class="comp-title-icon"><i class="bi bi-trophy-fill"></i></div>
+                <div>
+                    <h5>Faol musobaqalar</h5>
+                    <small>AI Qiyin rejimida bot bilan kurashing va g'olib bo'ling</small>
+                </div>
+            </div>
+            {% if current_competition_id %}
+                <a class="btn-free-mode" href="?">
+                    <i class="bi bi-arrow-counterclockwise"></i> Erkin o'yinga qaytish
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="comp-grid">
+            {% for comp in active_competitions %}
+            <div class="comp-card {% if comp.id|stringformat:'s' == current_competition_id %}active{% endif %}">
+                <div class="comp-card-glow"></div>
+                <div class="comp-card-top">
+                    <div class="comp-icon">
+                        {% if comp.id|stringformat:'s' == current_competition_id %}
+                            <i class="bi bi-fire"></i>
+                        {% else %}
+                            <i class="bi bi-trophy"></i>
+                        {% endif %}
+                    </div>
+                    {% if comp.id|stringformat:'s' == current_competition_id %}
+                        <span class="comp-status-badge live"><i class="bi bi-broadcast"></i> Faol</span>
+                    {% else %}
+                        <span class="comp-status-badge"><i class="bi bi-play-circle"></i> Qo'shilish</span>
+                    {% endif %}
+                </div>
+                <h6 class="comp-name">{{ comp.title }}</h6>
+                <div class="comp-meta-list">
+                    <div class="comp-meta-item">
+                        <i class="bi bi-robot"></i>
+                        <span>AI Qiyin rejimi</span>
+                    </div>
+                    <div class="comp-meta-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ comp.end_time|date:"d.m.Y H:i" }} gacha</span>
+                    </div>
+                    {% if comp.coin_1st %}
+                    <div class="comp-meta-item highlight">
+                        <i class="bi bi-coin"></i>
+                        <span>1-o'rin: {{ comp.coin_1st }} coin</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="comp-card-actions">
+                    {% if comp.id|stringformat:'s' == current_competition_id %}
+                        <span class="comp-mini-btn primary" style="cursor:default;">
+                            <i class="bi bi-check2-circle"></i> Joriy
+                        </span>
+                    {% else %}
+                        <a class="comp-mini-btn primary" href="?competition_id={{ comp.id }}">
+                            <i class="bi bi-play-fill"></i> O'ynash
+                        </a>
+                    {% endif %}
+                    <a class="comp-mini-btn" href="{% url 'games:competition_leaderboard' comp.id %}" target="_top">
+                        <i class="bi bi-bar-chart-fill"></i> Reyting
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="ext-frame-box">
+        <iframe
+            src="{{ launch_url }}"
+            title="{{ game.title }}"
+            allow="fullscreen; autoplay; clipboard-write"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation">
+        </iframe>
+    </div>
+
+    <div class="ext-results">
+        <h5><i class="bi bi-clock-history"></i> Sizning so'nggi natijalaringiz</h5>
+        {% if user_attempts %}
+        <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Natija</th>
+                        <th>Ball</th>
+                        <th>Vaqt (s)</th>
+                        <th>Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in user_attempts %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>
+                            {% if a.accuracy == 100 %}
+                                <span class="badge badge-win"><i class="bi bi-trophy-fill"></i> G'alaba</span>
+                            {% elif a.accuracy == 0 %}
+                                <span class="badge badge-lose"><i class="bi bi-x-circle-fill"></i> Mag'lubiyat</span>
+                            {% else %}
+                                <span class="badge badge-draw"><i class="bi bi-dash-circle-fill"></i> Durang</span>
+                            {% endif %}
+                        </td>
+                        <td><b>{{ a.score }}</b></td>
+                        <td>{{ a.time_spent }}</td>
+                        <td><small class="text-muted">{{ a.created_at|date:"d.m.Y H:i" }}</small></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if best %}
+        <div class="mt-2 small text-muted">
+            <i class="bi bi-award-fill"></i> Eng yaxshi natija: <b>{{ best.score }}</b> ball ({{ best.created_at|date:"d.m.Y" }})
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-muted mb-0">Hali natijalaringiz yo'q. O'ynashni boshlang!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

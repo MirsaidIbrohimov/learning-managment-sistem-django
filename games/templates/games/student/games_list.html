@@ -6,57 +6,31 @@
 <style>
 :root {
     --g-card: #ffffff;
-    --g-card-hover: #f8fafc;
     --g-border: rgba(0, 0, 0, 0.06);
     --g-text: #1e293b;
     --g-text-muted: #64748b;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-    --g-shadow-hover: 0 16px 48px rgba(99, 102, 241, 0.18);
+    --g-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+    --g-shadow-hover: 0 18px 50px rgba(0, 0, 0, 0.14);
     --g-radius: 22px;
-    --g-primary: #6366f1;
-    --g-primary-light: rgba(99, 102, 241, 0.08);
 }
 
 [data-bs-theme="dark"] {
     --g-card: #1e1e2e;
-    --g-card-hover: #282840;
     --g-border: rgba(255, 255, 255, 0.07);
     --g-text: #f1f5f9;
     --g-text-muted: #94a3b8;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-    --g-shadow-hover: 0 16px 48px rgba(99, 102, 241, 0.25);
-    --g-primary-light: rgba(99, 102, 241, 0.15);
+    --g-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+    --g-shadow-hover: 0 18px 50px rgba(0, 0, 0, 0.55);
 }
 
-/* ===== Animations ===== */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes floatIcon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-@keyframes pulseGlow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.3); }
-    50% { box-shadow: 0 0 20px 6px rgba(99, 102, 241, 0.15); }
-}
-
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes shine { 0% { transform: translateX(-100%) skewX(-20deg); } 100% { transform: translateX(200%) skewX(-20deg); } }
 
 /* ===== Hero ===== */
 .games-hero {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 70%, #c084fc 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #312e81 45%, #6d28d9 100%);
     border-radius: var(--g-radius);
     padding: 3rem 2rem;
     color: white;
@@ -66,267 +40,233 @@
     overflow: hidden;
     animation: fadeInDown 0.7s ease-out;
 }
-
-.games-hero::before {
+.games-hero::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
-    animation: floatIcon 6s ease-in-out infinite;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 20%, rgba(99,102,241,0.25) 0%, transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(217,70,239,0.2)  0%, transparent 45%);
+    pointer-events: none;
 }
+.games-hero .hero-inner { position: relative; z-index: 1; }
+.games-hero .hero-icon-wrap {
+    width: 70px; height: 70px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 22px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem; backdrop-filter: blur(8px);
+}
+.games-hero .hero-icon-wrap i { font-size: 2.2rem; color: #fff; }
+.games-hero h1 { font-weight: 800; font-size: 2.2rem; margin-bottom: 0.6rem; }
+.games-hero p   { opacity: 0.85; font-size: 1.05rem; max-width: 560px; margin: 0 auto; }
 
-.games-hero h1 {
-    font-weight: 800;
-    font-size: 2.2rem;
-    margin-bottom: 0.5rem;
-    position: relative;
-    z-index: 1;
-}
-
-.games-hero p {
-    opacity: 0.92;
-    font-size: 1.08rem;
-    position: relative;
-    z-index: 1;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.games-hero .hero-icon {
-    font-size: 3rem;
-    display: block;
-    margin-bottom: 0.75rem;
-    animation: floatIcon 3s ease-in-out infinite;
-    position: relative;
-    z-index: 1;
-}
-
-/* ===== Game Cards ===== */
-.game-card-wrapper {
-    animation: fadeInUp 0.6s ease-out both;
-}
+/* ===== Cards ===== */
+.game-card-wrapper { animation: fadeInUp 0.6s ease-out both; }
 
 .game-card {
     background: var(--g-card);
     border: 1px solid var(--g-border);
     border-radius: var(--g-radius);
     box-shadow: var(--g-shadow);
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     height: 100%;
-    position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
-
-.game-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.4s ease;
-}
-
 .game-card:hover {
-    transform: translateY(-10px) scale(1.02);
+    transform: translateY(-8px);
     box-shadow: var(--g-shadow-hover);
-    border-color: rgba(99, 102, 241, 0.2);
 }
 
-.game-card:hover::before {
-    transform: scaleX(1);
-}
-
-.game-card .game-icon {
-    width: 85px;
-    height: 85px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+/* "Cover" area at top of each card — themed gradient + decorative SVG */
+.game-cover {
+    position: relative;
+    height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.2rem;
-    font-size: 2.2rem;
-    color: white;
-    transition: all 0.4s ease;
-    animation: pulseGlow 3s infinite;
-}
-
-.game-card:hover .game-icon {
-    transform: scale(1.12) rotate(5deg);
-    animation: none;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
-}
-
-.game-card h3 {
-    font-weight: 700;
-    color: var(--g-text);
-    margin-bottom: 0.5rem;
-    font-size: 1.15rem;
-    transition: color 0.3s;
-}
-
-.game-card:hover h3 {
-    color: var(--g-primary);
-}
-
-.game-card p {
-    color: var(--g-text-muted);
-    font-size: 0.92rem;
-    margin-bottom: 1.3rem;
-    line-height: 1.5;
-}
-
-.game-card .badge-type {
-    display: inline-block;
-    padding: 0.3rem 0.85rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: var(--g-primary-light);
-    color: var(--g-primary);
-    margin-bottom: 1rem;
-}
-
-.btn-play {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    color: white;
-    padding: 0.65rem 2rem;
-    border-radius: 14px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    position: relative;
     overflow: hidden;
 }
-
-.btn-play::after {
+.game-cover::after {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    transition: width 0.5s, height 0.5s;
+    top: 0; left: -100%;
+    width: 80%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: skewX(-20deg);
+}
+.game-card:hover .game-cover::after {
+    animation: shine 1.1s ease-in-out;
 }
 
-.btn-play:hover {
-    transform: translateY(-3px) scale(1.05);
-    color: white;
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+.game-cover .cover-art {
+    width: 110px; height: 110px;
+    color: rgba(255,255,255,0.96);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.3));
+    transition: transform 0.4s ease;
+}
+.game-card:hover .cover-art { transform: scale(1.08) rotate(-3deg); animation: floatY 2.5s ease-in-out infinite; }
+
+.game-cover .corner-badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.25);
+    display: inline-flex; align-items: center; gap: 6px;
 }
 
-.btn-play:hover::after {
-    width: 300px;
-    height: 300px;
+/* Body */
+.game-body {
+    padding: 1.5rem 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.game-body h3 {
+    font-weight: 700;
+    color: var(--g-text);
+    margin-bottom: 0.45rem;
+    font-size: 1.25rem;
+}
+.game-meta-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+.game-meta-row .meta-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(99,102,241,0.1);
+    color: var(--g-text);
+}
+.game-meta-row .meta-pill i { font-size: 0.85rem; }
+.game-body p {
+    color: var(--g-text-muted);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    margin-bottom: 1.2rem;
+    min-height: 2.5em;
+}
+.game-actions {
+    margin-top: auto;
+    display: flex;
+    gap: 8px;
+}
+.btn-play, .btn-details {
+    border: none;
+    padding: 0.62rem 1.2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+.btn-play {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    flex: 1;
+    justify-content: center;
+}
+.btn-play:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(99,102,241,0.4); color: #fff; }
+.btn-details {
+    background: var(--g-card);
+    color: var(--g-text);
+    border: 1px solid var(--g-border);
+}
+.btn-details:hover { background: rgba(99,102,241,0.08); color: var(--g-text); }
+
+/* ===== Per-game themed covers ===== */
+.cover-shashka { background: linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%); }
+.cover-shaxmat { background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%); }
+.cover-word_builder { background: linear-gradient(135deg, #0e7490 0%, #06b6d4 50%, #22d3ee 100%); }
+.cover-typing { background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #4ade80 100%); }
+.cover-quiz   { background: linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%); }
+.cover-default { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); }
+
+/* Pattern overlays for each cover (subtle) */
+.game-cover.pattern-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.06) 25%, transparent 25%);
+    background-size: 22px 22px;
+    pointer-events: none;
+}
+.game-cover.pattern-dots::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,0.13) 1.5px, transparent 1.5px);
+    background-size: 18px 18px;
+    pointer-events: none;
 }
 
-.btn-play:active {
-    transform: translateY(-1px) scale(1.02);
-}
-
-/* ===== Empty State ===== */
+/* ===== Empty state ===== */
 .empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
+    text-align: center; padding: 4rem 2rem;
     color: var(--g-text-muted);
     animation: fadeInUp 0.7s ease-out;
 }
-
-.empty-state i {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.4;
-    animation: floatIcon 3s ease-in-out infinite;
-}
-
-.empty-state h5 {
-    font-weight: 700;
-    color: var(--g-text);
-    margin-bottom: 0.5rem;
-}
+.empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.4; }
+.empty-state h5 { font-weight: 700; color: var(--g-text); margin-bottom: 0.5rem; }
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
-    .games-hero {
-        padding: 2rem 1.2rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-    }
-    .games-hero h1 {
-        font-size: 1.5rem;
-    }
-    .games-hero p {
-        font-size: 0.92rem;
-    }
-    .games-hero .hero-icon {
-        font-size: 2.2rem;
-    }
-    .game-card {
-        padding: 1.5rem 1.2rem;
-        border-radius: 16px;
-    }
-    .game-card .game-icon {
-        width: 65px;
-        height: 65px;
-        font-size: 1.7rem;
-    }
-    .game-card h3 {
-        font-size: 1.05rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .games-hero {
-        padding: 1.5rem 1rem;
-    }
-    .games-hero h1 {
-        font-size: 1.3rem;
-    }
-    .btn-play {
-        padding: 0.55rem 1.5rem;
-        font-size: 0.88rem;
-    }
+    .games-hero { padding: 2rem 1.2rem; border-radius: 16px; margin-bottom: 1.5rem; }
+    .games-hero h1 { font-size: 1.5rem; }
+    .games-hero p  { font-size: 0.92rem; }
+    .game-cover { height: 150px; }
+    .game-cover .cover-art { width: 90px; height: 90px; }
+    .game-body h3 { font-size: 1.1rem; }
+    .game-card { border-radius: 16px; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
+
     <div class="games-hero">
-        <i class="bi bi-controller hero-icon"></i>
-        <h1>O'yinlar</h1>
-        <p>Bilimlaringizni qiziqarli o'yinlar orqali sinab ko'ring!</p>
+        <div class="hero-inner">
+            <div class="hero-icon-wrap"><i class="bi bi-joystick"></i></div>
+            <h1>O'yinlar</h1>
+            <p>Bilimlaringizni qiziqarli o'yinlar orqali sinab ko'ring va o'rtoqlaringiz bilan musobaqalashing!</p>
+        </div>
     </div>
 
     {% if games %}
     <div class="row g-4">
         {% for game in games %}
-        <div class="col-12 col-sm-6 col-lg-4 game-card-wrapper" style="animation-delay: {{ forloop.counter0 }}00ms;">
-            <div class="game-card">
-                <div class="game-icon">
-                    <i class="bi {{ game.icon }}"></i>
-                </div>
-                <h3>{{ game.title }}</h3>
-                <span class="badge-type">{{ game.get_game_type_display }}</span>
-                <p>{{ game.description|truncatewords:20 }}</p>
-                <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-play">
-                    <i class="bi bi-play-fill"></i> O'ynash
-                </a>
-            </div>
-        </div>
+        {# Per-game theming #}
+        {% if game.slug == 'shashka' %}
+            {% with theme="cover-shashka" pattern="pattern-grid" type_label="Taxta o'yini" type_icon="bi-grid-3x3" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% elif game.slug == 'shaxmat' %}
+            {% with theme="cover-shaxmat" pattern="pattern-grid" type_label="Strategiya" type_icon="bi-trophy" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% elif game.game_type == 'word_builder' %}
+            {% with theme="cover-word_builder" pattern="pattern-dots" type_label="So'z o'yini" type_icon="bi-alphabet" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% elif game.game_type == 'typing' %}
+            {% with theme="cover-typing" pattern="pattern-dots" type_label="Tezlik" type_icon="bi-keyboard" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% elif game.game_type == 'quiz' %}
+            {% with theme="cover-quiz" pattern="pattern-dots" type_label="Test" type_icon="bi-patch-question" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% else %}
+            {% with theme="cover-default" pattern="pattern-dots" type_label=game.get_game_type_display type_icon="bi-controller" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+        {% endif %}
         {% endfor %}
     </div>
     {% else %}

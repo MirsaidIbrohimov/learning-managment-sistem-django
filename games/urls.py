@@ -10,6 +10,7 @@ urlpatterns = [
     path('my-results/pdf/', views.my_results_pdf, name='my_results_pdf'),
     path('leaderboard/<int:competition_id>/', views.competition_leaderboard, name='competition_leaderboard'),
     path('<slug:slug>/', views.game_detail, name='game_detail'),
+    path('<slug:slug>/launch/', views.game_launch, name='game_launch'),
     path('<slug:slug>/play/', views.game_play, name='game_play'),
     path('<slug:slug>/play/<int:competition_id>/', views.game_play, name='game_play_competition'),
     path('<slug:slug>/submit/', views.game_submit, name='game_submit'),

@@ -1,0 +1,88 @@
+{# Per-game card. Vars: game, theme, pattern, type_label, type_icon #}
+<div class="col-12 col-sm-6 col-lg-4 game-card-wrapper" style="animation-delay: {{ forloop.counter0|default:0 }}00ms;">
+    <div class="game-card">
+        <div class="game-cover {{ theme }} {{ pattern }}">
+            <div class="corner-badge"><i class="bi {{ type_icon }}"></i> {{ type_label }}</div>
+
+            {% if game.slug == 'shashka' %}
+                {# Checkers piece illustration #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse cx="50" cy="62" rx="38" ry="10" fill="#000" opacity="0.25"/>
+                    <ellipse cx="50" cy="55" rx="38" ry="14" fill="#fde68a"/>
+                    <ellipse cx="50" cy="48" rx="38" ry="14" fill="#fbbf24"/>
+                    <ellipse cx="50" cy="48" rx="30" ry="10" fill="#f59e0b" opacity="0.55"/>
+                    <circle cx="50" cy="48" r="4" fill="#92400e"/>
+                </svg>
+            {% elif game.slug == 'shaxmat' %}
+                {# Chess king silhouette #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="42" y="6" width="16" height="6" rx="2" fill="#fff"/>
+                    <rect x="46" y="0" width="8" height="14" rx="1.5" fill="#fff"/>
+                    <path d="M30 30 Q50 16 70 30 L66 46 Q50 56 34 46 Z" fill="#fff"/>
+                    <path d="M28 50 H72 V58 H28 Z" fill="#fff"/>
+                    <path d="M34 58 L36 88 H64 L66 58 Z" fill="#fff"/>
+                    <rect x="24" y="86" width="52" height="10" rx="2" fill="#fff"/>
+                </svg>
+            {% elif game.game_type == 'word_builder' %}
+                {# Letter blocks #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8"  y="32" width="26" height="32" rx="5" fill="#fff" opacity="0.95"/>
+                    <rect x="37" y="22" width="26" height="42" rx="5" fill="#fff" opacity="0.85"/>
+                    <rect x="66" y="32" width="26" height="32" rx="5" fill="#fff" opacity="0.95"/>
+                    <text x="21" y="55" font-family="Inter,sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#0e7490">A</text>
+                    <text x="50" y="52" font-family="Inter,sans-serif" font-size="26" font-weight="800" text-anchor="middle" fill="#0e7490">B</text>
+                    <text x="79" y="55" font-family="Inter,sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#0e7490">C</text>
+                </svg>
+            {% elif game.game_type == 'typing' %}
+                {# Keyboard illustration #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="6" y="32" width="88" height="42" rx="6" fill="#fff" opacity="0.95"/>
+                    <rect x="12" y="38" width="10" height="8" rx="2" fill="#15803d"/>
+                    <rect x="24" y="38" width="10" height="8" rx="2" fill="#15803d"/>
+                    <rect x="36" y="38" width="10" height="8" rx="2" fill="#15803d"/>
+                    <rect x="48" y="38" width="10" height="8" rx="2" fill="#15803d"/>
+                    <rect x="60" y="38" width="10" height="8" rx="2" fill="#15803d"/>
+                    <rect x="72" y="38" width="16" height="8" rx="2" fill="#15803d"/>
+                    <rect x="12" y="50" width="14" height="8" rx="2" fill="#15803d"/>
+                    <rect x="28" y="50" width="44" height="8" rx="2" fill="#15803d"/>
+                    <rect x="74" y="50" width="14" height="8" rx="2" fill="#15803d"/>
+                    <rect x="30" y="62" width="40" height="8" rx="2" fill="#15803d"/>
+                </svg>
+            {% elif game.game_type == 'quiz' %}
+                {# Question mark in circle #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="40" fill="#fff" opacity="0.95"/>
+                    <text x="50" y="68" font-family="Inter,sans-serif" font-size="56" font-weight="900" text-anchor="middle" fill="#be123c">?</text>
+                </svg>
+            {% else %}
+                <i class="bi {{ game.icon }} cover-art" style="font-size: 4.5rem;"></i>
+            {% endif %}
+        </div>
+
+        <div class="game-body">
+            <h3>{{ game.title }}</h3>
+            <div class="game-meta-row">
+                <span class="meta-pill"><i class="bi bi-people"></i> Multiplayer</span>
+                {% if game.slug == 'shashka' or game.slug == 'shaxmat' %}
+                    <span class="meta-pill"><i class="bi bi-robot"></i> AI</span>
+                    <span class="meta-pill"><i class="bi bi-coin"></i> Coin</span>
+                {% endif %}
+            </div>
+            <p>{{ game.description|truncatewords:18|default:"O'yinni boshlang va eng yuqori ballni qo'lga kiriting!" }}</p>
+            <div class="game-actions">
+                {% if game.game_type == 'external' %}
+                    <a href="{% url 'games:game_launch' game.slug %}" class="btn-play">
+                        <i class="bi bi-play-circle-fill"></i> O'ynash
+                    </a>
+                {% else %}
+                    <a href="{% url 'games:game_detail' game.slug %}" class="btn-play">
+                        <i class="bi bi-play-circle-fill"></i> O'ynash
+                    </a>
+                    <a href="{% url 'games:game_detail' game.slug %}" class="btn-details">
+                        <i class="bi bi-info-circle"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

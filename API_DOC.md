@@ -846,6 +846,95 @@ Faqat `status=pending` va yetkazilmagan buyurtmalar uchun.
 
 ---
 
+---
+
+### 🎮 External Games — Tashqi o'yinlar integratsiyasi
+
+LMS tashqi (alohida serverda joylashgan) o'yinlarni qo'llab-quvvatlaydi:
+**SSO (Single Sign-On)** + **natija saqlash** + **iframe/redirect embed**.
+
+> Tafsilotlar: [`external_games/shashka/README.md`](external_games/shashka/README.md)
+
+#### `POST /api/v1/games/external/verify/` — Token tekshirish
+
+Tashqi o'yin LMS'dan kelgan launch tokenni tekshiradi va foydalanuvchi ma'lumotlarini oladi.
+
+**So'rov (no auth header — token o'zida HMAC bilan imzolangan):**
+
+```json
+{
+    "token": "eyJ1aWQiOjV9.abc123...",
+    "game": "shashka"
+}
+```
+
+**Javob (Response) — 200 OK:**
+
+```json
+{
+    "ok": true,
+    "user": {
+        "id": 5,
+        "username": "ali",
+        "name": "Ali Valiyev",
+        "group": "Frontend Development"
+    },
+    "game": {"slug": "shashka", "title": "Shashka"},
+    "exp": 1735649200
+}
+```
+
+**Xatolar:**
+
+| Status | Tavsif |
+|--------|--------|
+| 403 | Yaroqsiz yoki muddati o'tgan token |
+| 404 | O'yin topilmadi |
+
+---
+
+#### `POST /api/v1/games/external/result/` — Natijani saqlash
+
+Tashqi o'yin tugagach natijani LMS'ga yuboradi.
+
+**So'rov:**
+
+```json
+{
+    "token": "eyJ1aWQiOjV9.abc123...",
+    "game": "shashka",
+    "result": "win",
+    "score": 175,
+    "time_spent": 120,
+    "meta": {"moves": 22, "final_board": {"white": 8, "black": 0}}
+}
+```
+
+**`result` qiymatlari:** `win` | `lose` | `draw`
+
+**Javob — 200 OK:**
+
+```json
+{"ok": true, "attempt_id": 1234, "message": "Natija saqlandi"}
+```
+
+**Xatolar:**
+
+| Status | Tavsif |
+|--------|--------|
+| 403 | Yaroqsiz token yoki anti-cheat (juda tez o'yin) |
+| 409 | Replay — bitta token bilan ikkinchi marta natija yuborilgan |
+
+**Launch URL (LMS tomondan generatsiya qilinadi):**
+
+```
+https://your-game-server.uz/?token=...&game=shashka&api_base=https://lms.uz/api/v1/games/external&return_url=https://lms.uz/games/
+```
+
+Tashqi o'yin shu URL'dan `token`, `api_base`, `return_url`'larni o'qib oladi va yuqoridagi endpointlar bilan integratsiya qiladi.
+
+---
+
 ## ⚠️ Xato javoblari (Error Responses)
 
 Barcha endpointlar standart HTTP status kodlarini qaytaradi:

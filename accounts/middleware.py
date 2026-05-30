@@ -1,4 +1,6 @@
 import threading
+import os
+from functools import lru_cache
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.urls import resolve
@@ -12,6 +14,18 @@ from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, 
 _SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/')
 # API ni ham o'tkazib yuboradigan middleware lar uchun
 _SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
+
+
+@lru_cache(maxsize=1)
+def _external_games_frame_src() -> str:
+    """CSP frame-src uchun tashqi o'yin URL'larini qaytaradi.
+    .env'dan EXTERNAL_GAME_FRAME_SRC (vergul bilan ajratilgan) o'qiydi.
+
+    Misol:  EXTERNAL_GAME_FRAME_SRC=https://game.itc-academy.uz,https://shashka.example.uz
+    """
+    raw = os.getenv('EXTERNAL_GAME_FRAME_SRC', '')
+    parts = [p.strip() for p in raw.split(',') if p.strip()]
+    return ' '.join(parts)
 
 
 class BirthdayCheckMiddleware:
@@ -468,7 +482,7 @@ class SecurityHeadersMiddleware:
             "img-src 'self' data: https: blob:",
             "connect-src 'self' https://cdn.jsdelivr.net https://www.youtube.com https://player.vimeo.com https://vimeo.com",
             "worker-src 'self' blob:",
-            "frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
+            f"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com { _external_games_frame_src() }".strip(),
             "frame-ancestors 'none'",
             "base-uri 'self'",
             "form-action 'self'",

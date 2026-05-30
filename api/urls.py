@@ -1,6 +1,7 @@
 from django.urls import path, include
 from rest_framework.authtoken.views import obtain_auth_token
 from . import views
+from games import external_api as games_external_api
 
 app_name = 'api'
 
@@ -35,4 +36,14 @@ urlpatterns = [
 
     # Yordamchi admin (assistant_admin) boshqaruv API
     path('assistant/', include('api.assistant.urls')),
+
+    # External Games (tashqi o'yinlar uchun SSO + result API)
+    path('games/external/verify/', games_external_api.verify, name='external_game_verify'),
+    path('games/external/result/', games_external_api.submit_result, name='external_game_result'),
+
+    # Multiplayer (Shashka uchun)
+    path('games/external/mp/find/',   games_external_api.mp_find,   name='external_game_mp_find'),
+    path('games/external/mp/state/',  games_external_api.mp_state,  name='external_game_mp_state'),
+    path('games/external/mp/move/',   games_external_api.mp_move,   name='external_game_mp_move'),
+    path('games/external/mp/resign/', games_external_api.mp_resign, name='external_game_mp_resign'),
 ]
