@@ -314,7 +314,8 @@ function startGame(initialState = null) {
     showScreen('game');
 
     if (MODE === 'mp') {
-        if (PLAYER_COLOR === 'black') $('wait-overlay').classList.remove('hidden');
+        // wait-overlay olib tashlandi
+        $('wait-overlay').classList.add('hidden');
         clearInterval(pollInterval);
         pollInterval = setInterval(pollMatchState, 2000);
         lastSeenMoveCount = 0;
@@ -388,7 +389,8 @@ function updateTurnUI() {
         const pre = MODE === 'ai' ? '<i class="bi bi-robot"></i> AI' : '<i class="bi bi-person-fill"></i> Raqib';
         turn.innerHTML = pre + ' yurmoqda' + (inCheck ? ' (SHOX!)' : '');
         turn.className = 'turn-pill opp-turn';
-        if (MODE === 'mp') $('wait-overlay').classList.remove('hidden');
+        // wait-overlay olib tashlandi — turn-pill o'zi raqibning yurishini ko'rsatadi
+        $('wait-overlay').classList.add('hidden');
     }
     $('move-counter').textContent = moveHistory.length;
 }

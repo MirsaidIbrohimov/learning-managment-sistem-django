@@ -358,10 +358,8 @@ function updateTurnUI() {
         indicator.classList.add('opponent');
         $('player-self').classList.remove('active');
         $('player-opp').classList.add('active');
-        if (MODE === 'mp') {
-            $('wait-text').textContent = `${OPPONENT.name} yurishini kutmoqda...`;
-            $('wait-overlay').classList.remove('hidden');
-        }
+        // wait-overlay olib tashlandi — turn-pill o'zi raqibning yurishini ko'rsatadi
+        $('wait-overlay').classList.add('hidden');
     }
     $('move-counter').textContent = moveHistory.length;
 }
