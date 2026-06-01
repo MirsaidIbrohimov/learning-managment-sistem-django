@@ -467,6 +467,15 @@
                         {% if profession.daily_section_limit %}Kunlik cheklov ✓{% else %}Kunlik cheklov ✗{% endif %}
                     </button>
                 </form>
+                <form method="POST" action="{% url 'admin_profession_toggle_certificate' profession.pk %}" style="display:inline;"
+                      onsubmit="return confirm('{% if profession.has_certificate %}{{ profession.name }} kursi uchun sertifikatni olib tashlaysizmi? Endi o\'quvchilar sertifikat so\'rovi yubora olmaydi.{% else %}{{ profession.name }} kursi uchun sertifikat joriy qilinsinmi? O\'quvchilar sertifikat so\'rovi yubora oladi.{% endif %}')">
+                    {% csrf_token %}
+                    <button type="submit" class="c-action {% if profession.has_certificate %}success{% else %}warning{% endif %}"
+                            title="{% if profession.has_certificate %}Sertifikat joriy qilingan — o'chirish{% else %}Sertifikat joriy qilinmagan — yoqish{% endif %}">
+                        <i class="bi {% if profession.has_certificate %}bi-patch-check-fill{% else %}bi-patch-exclamation{% endif %}"></i>
+                        {% if profession.has_certificate %}Sertifikat ON{% else %}Sertifikat OFF{% endif %}
+                    </button>
+                </form>
                 <button type="button" class="c-action {% if profession.is_blocked %}success{% else %}danger{% endif %}"
                         data-bs-toggle="modal" data-bs-target="#blockModal{{ profession.pk }}">
                     <i class="bi {% if profession.is_blocked %}bi-unlock{% else %}bi-lock{% endif %}"></i>

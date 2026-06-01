@@ -487,13 +487,16 @@ function doMove(fromR, fromC, move, isRemote = false) {
     renderBoard();
     updateTurnUI();
 
+    // O'yin tugaganini aniqlash (lokal — endGame ham chaqirilishi mumkin)
     const ended = checkGameEnd();
-    if (ended) return;
 
-    // Multiplayer: send move to server
+    // Multiplayer: serverga yurishni HAR DOIM yuborish (hatto o'yin tugagan bo'lsa ham,
+    // shunda server coin transferini va match holatini yopadi)
     if (MODE === 'mp' && !isRemote) {
-        sendMpMove();
+        sendMpMove(ended);
     }
+
+    if (ended) return;
 
     // AI move
     if (MODE === 'ai' && currentTurn !== PLAYER_COLOR) {
@@ -1103,6 +1106,48 @@ function cancelMatchmaking() {
     showScreen('menu');
 }
 
+// ============== END-GAME 30s PAUSE OVERLAY ==============
+let _endPauseStarted = false;
+let _endPauseTimer = null;
+function scheduleEndGameDisplay(winner, seconds = 30) {
+    if (resultSubmitted || _endPauseStarted) return;
+    _endPauseStarted = true;
+    // Polling va timer'larni to'xtatamiz — taxta holati o'zgarmaydi
+    if (pollInterval) clearInterval(pollInterval);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'end-pause-overlay';
+    overlay.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.95);color:#fff;padding:0.85rem 1.2rem;border-radius:14px;z-index:9999;backdrop-filter:blur(12px);display:flex;align-items:center;gap:0.85rem;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:92vw;';
+    let remaining = seconds;
+    const isWin = winner === PLAYER_COLOR;
+    const isDraw = winner === 'draw';
+    const wIcon = isWin ? 'bi-trophy-fill' : (isDraw ? 'bi-handshake' : 'bi-emoji-frown');
+    const wColor = isWin ? '#10b981' : (isDraw ? '#f59e0b' : '#ef4444');
+    overlay.innerHTML = `
+        <i class="bi ${wIcon}" style="color:${wColor};font-size:1.4rem"></i>
+        <div style="line-height:1.3">
+            <div style="font-weight:700;font-size:0.95rem">O'yin tugadi</div>
+            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurishni ko'rib chiqing — <span id="end-pause-timer">${remaining}</span>s</div>
+        </div>
+        <button id="end-pause-skip" style="background:#6366f1;border:0;color:#fff;padding:0.5rem 0.85rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;white-space:nowrap">
+            <i class="bi bi-fast-forward-fill"></i> O'tkazib yuborish
+        </button>`;
+    document.body.appendChild(overlay);
+
+    const timerEl = overlay.querySelector('#end-pause-timer');
+    const finalize = () => {
+        if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
+        if (overlay.parentNode) overlay.remove();
+        endGame(winner);
+    };
+    _endPauseTimer = setInterval(() => {
+        remaining--;
+        if (timerEl) timerEl.textContent = remaining;
+        if (remaining <= 0) finalize();
+    }, 1000);
+    overlay.querySelector('#end-pause-skip').onclick = finalize;
+}
+
 let lastSeenMoveCount = 0;
 async function pollMatchState() {
     if (!MATCH_ID || resultSubmitted) return;
@@ -1132,29 +1177,47 @@ async function pollMatchState() {
             updateTurnUI();
         }
         if (m.status === 'ended') {
-            endGame(m.winner);
+            // Raqibning oxirgi yurishini ko'rsatish uchun 30s pauza, keyin natija
+            scheduleEndGameDisplay(m.winner, 30);
         }
     } catch (e) {}
 }
 
-async function sendMpMove() {
+async function sendMpMove(endedHint = false) {
     if (!MATCH_ID) return;
     const last = moveHistory[moveHistory.length - 1];
     const sym = last.color === 'white' ? 'O' : 'X';
     const notation = `${sym}: ${String.fromCharCode(97 + last.from[1])}${8 - last.from[0]}${last.capture ? 'x' : '-'}${String.fromCharCode(97 + last.to[1])}${8 - last.to[0]}${last.king ? ' [Damka]' : ''}`;
+
+    // O'yin tugagan bo'lsa — server uchun winner ni ham yuboramiz
+    // (toshlar tugashi serverda avtomatik aniqlanadi, lekin "yurish yo'q" holati uchun ham aniq yuboramiz)
+    let winner = null;
+    if (endedHint) {
+        const { w, b } = countPieces();
+        if (w === 0) winner = 'black';
+        else if (b === 0) winner = 'white';
+        else {
+            // 50-yurish durang yoki yurish yo'q — yurish yo'q tomon yutqazadi (taxminiy)
+            winner = currentTurn === 'white' ? 'black' : 'white';
+        }
+    }
+
     try {
         const res = await fetch(URLS.mpMove, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 token: TOKEN, game: GAME, match_id: MATCH_ID,
                 board: board,
-                last_move: { ...last, notation }
+                last_move: { ...last, notation },
+                game_over: !!endedHint,
+                winner: winner,
             })
         });
         const data = await res.json();
         if (data.ok) {
             lastSeenMoveCount = data.match.move_count;
             if (data.match.status === 'ended') {
+                // endGame allaqachon checkGameEnd ichida chaqirilgan bo'lishi mumkin (resultSubmitted=true) — bu xavfsiz no-op
                 endGame(data.match.winner);
             }
         }

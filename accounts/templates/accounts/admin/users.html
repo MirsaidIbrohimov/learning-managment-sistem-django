@@ -224,6 +224,11 @@
 .au-page .au-act.a-block:hover { background: rgba(245,158,11,0.06); color: #f59e0b; }
 .au-page .au-act.a-delete { color: #ef4444; border-color: rgba(239,68,68,0.3); }
 .au-page .au-act.a-delete:hover { background: rgba(239,68,68,0.06); color: #ef4444; }
+.au-page .au-act.a-finish { color: #10b981; border-color: rgba(16,185,129,0.3); }
+.au-page .au-act.a-finish:hover { background: rgba(16,185,129,0.06); color: #10b981; }
+.au-page .au-act.a-finish.is-on { background: linear-gradient(135deg,#10b981,#059669); color:#fff; border-color: transparent; }
+.au-page .au-act.a-finish.is-on:hover { background: linear-gradient(135deg,#059669,#047857); color:#fff; }
+.au-page .au-badge-finished { display:inline-flex; align-items:center; gap:0.25rem; background: rgba(16,185,129,0.12); color:#059669; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; margin-left:0.4rem; }
 
 /* Empty */
 .au-page .au-empty { text-align: center; padding: 3rem 1rem; }
@@ -445,6 +450,7 @@
                     <span class="au-status-dot"></span>
                     {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
                 </span>
+                {% if u.is_finished %}<span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i> Tugatgan</span>{% endif %}
                 {% if u.last_activity %}
                 <div style="font-size:0.72rem; color:var(--bs-secondary-color, #6c757d); margin-top:2px;">
                     {{ u.last_activity|timesince }} oldin
@@ -459,6 +465,14 @@
                 <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
                     <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                 </a>
+                {% if u.role == 'student' %}
+                <a href="{% url 'admin_user_finished' u.pk %}"
+                   class="au-act a-finish {% if u.is_finished %}is-on{% endif %}"
+                   title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash (yangi kurslarga yozila olmaydi va to'lovlarda ko'rinmaydi){% endif %}"
+                   onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib tashlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi? U yangi kurslarga yozila olmaydi va to\'lovlarda ko\'rinmaydi.{% endif %}')">
+                    <i class="bi bi-mortarboard{% if u.is_finished %}-fill{% endif %}"></i>
+                </a>
+                {% endif %}
                 <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
                 {% endif %}
             </div>
@@ -491,6 +505,7 @@
                         <span class="au-status-dot"></span>
                         {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
                     </span>
+                    {% if u.is_finished %}<span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i> Tugatgan</span>{% endif %}
                     {% if u.last_activity %}
                     <span style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">
                         <i class="bi bi-clock me-1"></i>{{ u.last_activity|timesince }}
@@ -504,6 +519,14 @@
                     <a href="{% url 'admin_user_block' u.pk %}" class="au-act a-block" title="{% if u.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}">
                         <i class="bi bi-{% if u.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                     </a>
+                    {% if u.role == 'student' %}
+                    <a href="{% url 'admin_user_finished' u.pk %}"
+                       class="au-act a-finish {% if u.is_finished %}is-on{% endif %}"
+                       title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash{% endif %}"
+                       onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib tashlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi?{% endif %}')">
+                        <i class="bi bi-mortarboard{% if u.is_finished %}-fill{% endif %}"></i>
+                    </a>
+                    {% endif %}
                     <a href="{% url 'admin_user_delete' u.pk %}" class="au-act a-delete" title="O'chirish"><i class="bi bi-trash3"></i></a>
                     {% endif %}
                 </div>

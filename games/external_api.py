@@ -278,6 +278,15 @@ def submit_result(request):
         except (TypeError, ValueError):
             competition = None
 
+    # Musobaqada urinishlar tugagan bo'lsa — natijani musobaqaga biriktirmaymiz
+    # (urinish hisoblanmasligi uchun va max_attempts cheklovini chetlab o'tmaslik uchun)
+    if competition and not competition.can_user_play(user):
+        used = competition.user_attempts_count(user)
+        return _cors_headers(JsonResponse({
+            'ok': False,
+            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Natija saqlanmadi."
+        }, status=403), request)
+
     # ===== AI bilan o'ynalganda g'alaba uchun COIN MUKOFOTI =====
     coins_awarded = 0
     coin_reason = ''
@@ -475,6 +484,14 @@ def mp_find(request):
             competition = Competition.objects.filter(pk=int(comp_id), game=game).first()
         except (TypeError, ValueError):
             competition = None
+
+    # Musobaqada urinishlar tugaganini tekshirish
+    if competition and not competition.can_user_play(user):
+        used = competition.user_attempts_count(user)
+        return _cors_headers(JsonResponse({
+            'ok': False,
+            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Yangi o'yin boshlay olmaysiz."
+        }, status=403), request)
 
     # Rejim va wager
     mode = str(data.get('mode', 'casual')).lower()

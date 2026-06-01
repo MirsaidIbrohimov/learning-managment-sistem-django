@@ -1592,6 +1592,11 @@ def enroll_course(request, pk):
         messages.error(request, "Faqat o'quvchilar kursga yozilishi mumkin!")
         return redirect('professions')
     
+    # Kursni tugatgan o'quvchilar yangi kurslarga yozila olmaydi
+    if request.user.is_finished:
+        messages.warning(request, "Siz kursni tugatgan o'quvchi sifatida belgilangansiz. Yangi kurslarga yozila olmaysiz. Iltimos, admin bilan bog'laning.")
+        return redirect('profession_detail', pk=pk)
+    
     profession = get_object_or_404(Profession, pk=pk)
     
     # Majburiy kurs — avtomatik yozilgan bo'lishi kerak
@@ -1712,6 +1717,12 @@ def request_certificate(request, pk):
         return redirect('profession_detail', pk=pk)
     
     profession = get_object_or_404(Profession, pk=pk)
+    
+    # Bu kurs uchun sertifikat joriy qilinmagan bo'lsa
+    if not profession.has_certificate:
+        messages.error(request, "Bu kurs uchun sertifikat joriy qilinmagan.")
+        return redirect('profession_detail', pk=pk)
+    
     enrollment = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
     if not enrollment and request.user.profession != profession:
         messages.warning(request, "Siz bu kursga yozilmagansiz!")
@@ -4801,17 +4812,18 @@ def admin_payments(request):
     search_query = request.GET.get('q', '').strip()
     filter_status = request.GET.get('status', '')
 
-    qs = CustomUser.objects.filter(role='student').select_related('payment_status')
+    # Tugatgan o'quvchilarni to'lovlar sahifasida ko'rsatmaymiz
+    qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
 
     # Har bir studentga PaymentStatus yaratish
-    existing_ids = set(PaymentStatus.objects.filter(user__role='student').values_list('user_id', flat=True))
+    existing_ids = set(PaymentStatus.objects.filter(user__role='student', user__is_finished=False).values_list('user_id', flat=True))
     all_student_ids = set(qs.values_list('id', flat=True))
     missing = all_student_ids - existing_ids
     if missing:
         PaymentStatus.objects.bulk_create([
             PaymentStatus(user_id=uid) for uid in missing
         ], ignore_conflicts=True)
-        qs = CustomUser.objects.filter(role='student').select_related('payment_status')
+        qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
 
     # PaymentRecord yaratish (tanlangan oy uchun)
     existing_record_ids = set(
@@ -4854,14 +4866,15 @@ def admin_payments(request):
     paginator = Paginator(students_list, 30)
     students = paginator.get_page(request.GET.get('page'))
 
-    # Stats
-    all_records = PaymentRecord.objects.filter(month=selected_month, year=selected_year)
-    total_students = CustomUser.objects.filter(role='student').count()
+    # Stats — tugatgan o'quvchilar to'lovlarda ko'rinmasligi uchun ularning recordlari ham hisobga kirmaydi
+    active_student_ids = list(CustomUser.objects.filter(role='student', is_finished=False).values_list('id', flat=True))
+    all_records = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_student_ids)
+    total_students = len(active_student_ids)
     total_expected = all_records.aggregate(t=Sum('amount'))['t'] or 0
     total_paid_sum = all_records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
     total_paid_count = all_records.filter(is_paid=True).count()
     total_unpaid = all_records.filter(is_paid=False).count()
-    blocked_count = CustomUser.objects.filter(role='student', is_blocked=True).count()
+    blocked_count = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
     total_debt = max(0, total_expected - total_paid_sum)
 
     # Oylik tarix (6 oy)
@@ -7410,6 +7423,25 @@ def admin_profession_toggle_block(request, pk):
 
 
 @login_required
+def admin_profession_toggle_certificate(request, pk):
+    """Kursga sertifikat joriy qilish / olib tashlash"""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    profession = get_object_or_404(Profession, pk=pk)
+
+    if request.method == 'POST':
+        profession.has_certificate = not profession.has_certificate
+        profession.save(update_fields=['has_certificate'])
+        if profession.has_certificate:
+            messages.success(request, f"'{profession.name}' uchun sertifikat joriy qilindi! 🎓 Endi o'quvchilar sertifikat so'rovi yubora oladi.")
+        else:
+            messages.warning(request, f"'{profession.name}' uchun sertifikat olib tashlandi. Endi o'quvchilar sertifikat so'rovi yubora olmaydi.")
+
+    return redirect('admin_professions')
+
+
+@login_required
 def admin_profession_toggle_daily_limit(request, pk):
     """Kunlik bo'lim cheklovini yoqish/o'chirish"""
     if not request.user.is_admin:
@@ -7489,7 +7521,7 @@ def admin_users(request):
     
     users = CustomUser.objects.only(
         'id', 'username', 'first_name', 'last_name', 'phone', 'photo',
-        'role', 'is_blocked', 'is_premium', 'last_activity', 'date_joined',
+        'role', 'is_blocked', 'is_finished', 'is_premium', 'last_activity', 'date_joined',
         'is_superuser',
     )
     
@@ -8044,6 +8076,41 @@ def admin_user_block(request, pk):
             )
     
     messages.success(request, f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!")
+    return redirect('admin_users')
+
+
+@login_required
+def admin_user_finished(request, pk):
+    """O'quvchini 'tugatgan' deb belgilash/qaytarish.
+    Tugatgan o'quvchilar yangi kurslarga yozila olmaydi va to'lovlar sahifasida ko'rinmaydi.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    user = get_object_or_404(
+        CustomUser.objects.only('id', 'first_name', 'last_name', 'role', 'is_finished', 'telegram_id'),
+        pk=pk
+    )
+
+    if user.role != 'student':
+        messages.error(request, "Faqat o'quvchini tugatgan deb belgilash mumkin!")
+        return redirect('admin_users')
+
+    user.is_finished = not user.is_finished
+    user.save(update_fields=['is_finished'])
+
+    if user.is_finished:
+        messages.success(request, f"{user.full_name} 'kursni tugatgan' deb belgilandi. Endi yangi kurslarga yozila olmaydi va to'lovlar ro'yxatida ko'rinmaydi.")
+        if user.telegram_id:
+            notify_user(
+                user.telegram_id,
+                f"🎓 <b>Kursni tugatgan deb belgilandingiz!</b>\n\n"
+                f"👤 {user.full_name}\n\n"
+                f"✅ Tabriklaymiz! Endi siz yangi kurslarga yozila olmaysiz va to'lovlar ro'yxatidan chiqarildingiz."
+            )
+    else:
+        messages.success(request, f"{user.full_name} 'tugatgan' belgisi olib tashlandi. Endi yana yangi kurslarga yozilishi va to'lovlar sahifasida ko'rinishi mumkin.")
+
     return redirect('admin_users')
 
 

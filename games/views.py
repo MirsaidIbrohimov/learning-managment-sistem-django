@@ -163,6 +163,29 @@ def game_launch(request, slug):
 
     # Musobaqa (ixtiyoriy) — ?competition_id=... orqali
     competition_id = request.GET.get('competition_id', '').strip()
+
+    # Musobaqada urinishlar tugaganini tekshirish
+    if competition_id:
+        try:
+            comp_check = game.competitions.filter(pk=int(competition_id), is_active=True).first()
+        except (TypeError, ValueError):
+            comp_check = None
+        if comp_check:
+            used = comp_check.user_attempts_count(request.user)
+            if comp_check.status == 'ended':
+                messages.info(request, f"'{comp_check.title}' musobaqasi tugagan.")
+                return redirect('games:game_detail', slug=slug)
+            if comp_check.status == 'upcoming':
+                messages.info(request, f"'{comp_check.title}' musobaqasi hali boshlanmagan.")
+                return redirect('games:game_detail', slug=slug)
+            if not comp_check.can_user_play(request.user):
+                messages.warning(
+                    request,
+                    f"'{comp_check.title}' musobaqasida urinishlar tugadi "
+                    f"({used}/{comp_check.max_attempts})."
+                )
+                return redirect('games:game_detail', slug=slug)
+
     sep = '&' if '?' in external_url else '?'
     launch_url = (
         f"{external_url}{sep}token={token}"

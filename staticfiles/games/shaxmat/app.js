@@ -995,6 +995,47 @@ function cancelMatchmaking() {
     showScreen('menu');
 }
 
+// ============== END-GAME 30s PAUSE OVERLAY ==============
+let _endPauseStarted = false;
+let _endPauseTimer = null;
+function scheduleEndGameDisplay(winner, seconds = 30) {
+    if (resultSubmitted || _endPauseStarted) return;
+    _endPauseStarted = true;
+    if (pollInterval) clearInterval(pollInterval);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'end-pause-overlay';
+    overlay.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.95);color:#fff;padding:0.85rem 1.2rem;border-radius:14px;z-index:9999;backdrop-filter:blur(12px);display:flex;align-items:center;gap:0.85rem;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:92vw;';
+    let remaining = seconds;
+    const isWin = winner === PLAYER_COLOR;
+    const isDraw = winner === 'draw';
+    const wIcon = isWin ? 'bi-trophy-fill' : (isDraw ? 'bi-handshake' : 'bi-emoji-frown');
+    const wColor = isWin ? '#10b981' : (isDraw ? '#f59e0b' : '#ef4444');
+    overlay.innerHTML = `
+        <i class="bi ${wIcon}" style="color:${wColor};font-size:1.4rem"></i>
+        <div style="line-height:1.3">
+            <div style="font-weight:700;font-size:0.95rem">O'yin tugadi</div>
+            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurishni ko'rib chiqing — <span id="end-pause-timer">${remaining}</span>s</div>
+        </div>
+        <button id="end-pause-skip" style="background:#6366f1;border:0;color:#fff;padding:0.5rem 0.85rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;white-space:nowrap">
+            <i class="bi bi-fast-forward-fill"></i> O'tkazib yuborish
+        </button>`;
+    document.body.appendChild(overlay);
+
+    const timerEl = overlay.querySelector('#end-pause-timer');
+    const finalize = () => {
+        if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
+        if (overlay.parentNode) overlay.remove();
+        endGame(winner);
+    };
+    _endPauseTimer = setInterval(() => {
+        remaining--;
+        if (timerEl) timerEl.textContent = remaining;
+        if (remaining <= 0) finalize();
+    }, 1000);
+    overlay.querySelector('#end-pause-skip').onclick = finalize;
+}
+
 async function pollMatchState() {
     if (!MATCH_ID || resultSubmitted) return;
     if (currentTurn === PLAYER_COLOR) return;
@@ -1023,7 +1064,10 @@ async function pollMatchState() {
             renderBoard();
             updateTurnUI();
         }
-        if (m.status === 'ended') endGame(m.winner);
+        if (m.status === 'ended') {
+            // Raqibning oxirgi yurishini ko'rsatish uchun 30s pauza, keyin natija
+            scheduleEndGameDisplay(m.winner, 30);
+        }
     } catch (e) {}
 }
 

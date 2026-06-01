@@ -1365,7 +1365,16 @@
 {% if is_enrolled and user.is_student %}
 <div class="glass-card mt-3">
     <div class="p-4">
-        {% if certificate %}
+        {% if not profession.has_certificate %}
+        <!-- Bu kurs uchun sertifikat joriy qilinmagan -->
+        <div class="text-center">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#94a3b8,#64748b);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
+                <i class="bi bi-patch-exclamation" style="font-size:2.5rem;color:#fff;"></i>
+            </div>
+            <h5 class="fw-bold mb-1" style="color:#64748b;">Bu kurs uchun sertifikat joriy qilinmagan</h5>
+            <p class="text-muted mb-0">Hozircha bu kurs uchun sertifikat berilmaydi. Qo'shimcha ma'lumot uchun admin bilan bog'laning.</p>
+        </div>
+        {% elif certificate %}
         <!-- Sertifikat berilgan -->
         <div class="text-center">
             <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);display:inline-flex;align-items:center;justify-content:center;margin-bottom:1rem;">
