@@ -5,14 +5,81 @@ from django.conf import settings
 from django.db import migrations, models
 
 
+SHASHKA_CFG = {
+    'engine': 'checkers',
+    'ai_coin_rewards': {'easy': 25, 'medium': 35, 'hard': 50},
+    'min_wager': 5,
+    'max_wager': 5000,
+    'allow_coin_matches': True,
+    'allow_casual_matches': True,
+    'embed_mode': 'iframe',
+    'max_score': 5000,
+    'min_time_seconds': 5,
+}
+
+SHAXMAT_CFG = {
+    'engine': 'chess',
+    'ai_coin_rewards': {'easy': 25, 'medium': 35, 'hard': 50},
+    'min_wager': 5,
+    'max_wager': 5000,
+    'allow_coin_matches': True,
+    'allow_casual_matches': True,
+    'embed_mode': 'iframe',
+    'max_score': 5000,
+    'min_time_seconds': 5,
+}
+
+
+def seed_board_games(apps, schema_editor):
+    Game = apps.get_model('games', 'Game')
+    Game.objects.update_or_create(
+        slug='shashka',
+        defaults={
+            'title': 'Shashka',
+            'description': "Klassik shashka o'yini. AI bilan yoki LMS o'quvchilari bilan o'ynang.",
+            'game_type': 'external',
+            'icon': 'bi-circle-half',
+            'is_active': True,
+            'config': SHASHKA_CFG,
+        },
+    )
+    Game.objects.update_or_create(
+        slug='shaxmat',
+        defaults={
+            'title': 'Shaxmat',
+            'description': "Klassik shaxmat o'yini. AI bilan yoki LMS o'quvchilari bilan o'ynang.",
+            'game_type': 'external',
+            'icon': 'bi-grid-3x3-gap-fill',
+            'is_active': True,
+            'config': SHAXMAT_CFG,
+        },
+    )
+
+
+def unseed_board_games(apps, schema_editor):
+    Game = apps.get_model('games', 'Game')
+    Game.objects.filter(slug__in=['shashka', 'shaxmat']).delete()
+
+
+def drop_legacy_shashka_table(apps, schema_editor):
+    table_name = 'games_shashkamatch'
+    existing = set(schema_editor.connection.introspection.table_names())
+    if table_name in existing:
+        schema_editor.execute(
+            schema_editor.sql_delete_table
+            % {'table': schema_editor.quote_name(table_name)}
+        )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('games', '0008_shashkamatch'),
+        ('games', '0007_alter_game_game_type'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
+        migrations.RunPython(drop_legacy_shashka_table, migrations.RunPython.noop),
         migrations.CreateModel(
             name='BoardMatch',
             fields=[
@@ -41,9 +108,6 @@ class Migration(migrations.Migration):
                 'ordering': ['-created_at'],
             },
         ),
-        migrations.DeleteModel(
-            name='ShashkaMatch',
-        ),
         migrations.AddIndex(
             model_name='boardmatch',
             index=models.Index(fields=['status', '-created_at'], name='games_board_status_4f15b7_idx'),
@@ -56,4 +120,5 @@ class Migration(migrations.Migration):
             model_name='boardmatch',
             index=models.Index(fields=['game', 'status', 'mode', 'wager_coins'], name='games_board_game_id_fb0a39_idx'),
         ),
+        migrations.RunPython(seed_board_games, unseed_board_games),
     ]
