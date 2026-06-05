@@ -8037,7 +8037,11 @@ def admin_user_block(request, pk):
         pk=pk
     )
     
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
     if user.is_admin:
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': "Admin foydalanuvchini bloklash mumkin emas!"}, status=403)
         messages.error(request, "Admin foydalanuvchini bloklash mumkin emas!")
         return redirect('admin_users')
     
@@ -8075,6 +8079,13 @@ def admin_user_block(request, pk):
                 f"🎉 Hisobingiz ochildi. Endi tizimdan foydalanishingiz mumkin."
             )
     
+    if is_ajax:
+        return JsonResponse({
+            'success': True,
+            'is_blocked': user.is_blocked,
+            'message': f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!",
+        })
+
     messages.success(request, f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!")
     return redirect('admin_users')
 
