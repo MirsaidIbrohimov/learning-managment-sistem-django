@@ -1073,11 +1073,14 @@ async function pollMatchState() {
         const data = await res.json();
         if (!data.ok) return;
         const m = data.match;
-        if (m.move_count > lastSeenMoveCount) {
-            lastSeenMoveCount = m.move_count;
+        const hasNewMove = m.move_count > lastSeenMoveCount;
+        const isEnded = m.status === 'ended';
+        // MUHIM: o'yin tugaganda ham server taxtasini majburan ko'rsatamiz —
+        // shunda yutqazgan o'yinchi raqibning oxirgi (mag'lub etuvchi) yurishini ko'radi.
+        if (hasNewMove || isEnded) {
             board = m.board;
             currentTurn = m.current_turn;
-            if (m.last_move?.notation) {
+            if (hasNewMove && m.last_move?.notation) {
                 const li = document.createElement('li');
                 li.classList.add('opp');
                 li.textContent = m.last_move.notation;
@@ -1085,14 +1088,17 @@ async function pollMatchState() {
                 $('moves-list').scrollTop = $('moves-list').scrollHeight;
                 moveHistory.push({ ...m.last_move });
             }
+            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
             // En passant target reconstruction not critical client-side after server roundtrip
             enPassantTarget = null;
+            selected = null;
+            possibleMoves = [];
             renderBoard();
             updateTurnUI();
         }
-        if (m.status === 'ended') {
-            // Raqibning oxirgi yurishini ko'rsatish uchun 30s pauza, keyin natija
-            scheduleEndGameDisplay(m.winner, 30);
+        if (isEnded) {
+            // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi chiqsin
+            requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
         }
     } catch (e) {}
 }
