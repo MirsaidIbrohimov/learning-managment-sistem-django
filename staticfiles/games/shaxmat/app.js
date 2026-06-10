@@ -732,6 +732,7 @@ function _orderMoves(b, moves) {
 
 // Quiescence search: faqat captures/promotions chuqurroq baholanadi
 function _quiescence(b, alpha, beta, sideToMove, ep, qDepth) {
+    if (_searchAborted) return alpha;
     const sign = sideToMove === 'white' ? 1 : -1;
     const standPat = sign * evaluate(b);
     if (standPat >= beta) return beta;
@@ -754,9 +755,17 @@ function _quiescence(b, alpha, beta, sideToMove, ep, qDepth) {
     return alpha;
 }
 
+// Vaqt byudjeti bilan to'xtatish (iterative deepening uchun)
+let _searchDeadline = 0;
+let _searchAborted = false;
+let _nodeCount = 0;
+
 // Negamax + alpha-beta
 function _negamax(b, depth, alpha, beta, sideToMove, ep) {
-    if (depth === 0) return _quiescence(b, alpha, beta, sideToMove, ep, 3);
+    // Har 1024 tugunda bir marta vaqtni tekshiramiz (overhead kam bo'lishi uchun)
+    if ((++_nodeCount & 1023) === 0 && Date.now() > _searchDeadline) _searchAborted = true;
+    if (_searchAborted) return 0;
+    if (depth === 0) return _quiescence(b, alpha, beta, sideToMove, ep, 4);
 
     const moves = allLegalMoves(b, sideToMove, ep);
     if (moves.length === 0) {
@@ -800,35 +809,66 @@ function aiMove() {
             }
         }
     } else {
-        // medium: depth 2 alpha-beta; hard: depth 3 + quiescence
-        const depth = DIFFICULTY === 'medium' ? 2 : 3;
-        const ordered = _orderMoves(board, moves);
-        const oppColor = color === 'white' ? 'black' : 'white';
-
-        let bestScore = -Infinity;
-        const candidates = [];
-        let alpha = -Infinity;
-        const beta = Infinity;
-
-        for (const m of ordered) {
-            const nb = simulateMove(board, m);
-            const newEp = m.doublePawn ? { r: (m.from.r + m.to.r) / 2, c: m.to.c } : null;
-            const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp);
-            if (v > bestScore) {
-                bestScore = v;
-                candidates.length = 0;
-                candidates.push(m);
-            } else if (v >= bestScore - 8) {
-                // Bir xil kuchli yurishlar orasidan tasodifiy tanlash (variativlik uchun)
-                candidates.push(m);
-            }
-            if (bestScore > alpha) alpha = bestScore;
-        }
-        chosen = candidates[Math.floor(Math.random() * candidates.length)] || ordered[0];
+        // medium/hard: vaqt byudjeti bilan iterative deepening alpha-beta + quiescence.
+        // Chuqurroq o'ylaydi va kuchliroq o'ynaydi.
+        const cfg = DIFFICULTY === 'medium'
+            ? { maxDepth: 4, timeMs: 1200, window: 12 }   // o'rta
+            : { maxDepth: 6, timeMs: 2600, window: 0 };    // qiyin: eng kuchli, deyarli optimal yurish
+        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
     }
 
     if (chosen.promotion) chosen.promoTo = 'q';
     applyMove(chosen);
+}
+
+// Iterative deepening: vaqt tugaguncha tobora chuqurroq qidiradi.
+// Oldingi chuqurlikdagi eng yaxshi yurishni birinchi sinab, kesishni (alpha-beta) yaxshilaydi.
+function _searchBestMove(b, color, ep, cfg) {
+    const rootMoves = _orderMoves(b, allLegalMoves(b, color, ep));
+    if (rootMoves.length === 0) return null;
+    if (rootMoves.length === 1) return rootMoves[0];
+
+    const oppColor = color === 'white' ? 'black' : 'white';
+    _searchDeadline = Date.now() + cfg.timeMs;
+    _searchAborted = false;
+    _nodeCount = 0;
+
+    let bestMove = rootMoves[0];
+    let bestCandidates = [bestMove];
+
+    for (let depth = 1; depth <= cfg.maxDepth; depth++) {
+        // Oldingi iteratsiyaning eng yaxshi yurishini oldinga qo'yamiz
+        const ordered = [bestMove, ...rootMoves.filter(m => m !== bestMove)];
+        let alpha = -Infinity;
+        const beta = Infinity;
+        let localBest = -Infinity;
+        const candidates = [];
+        let completed = true;
+
+        for (const m of ordered) {
+            const nb = simulateMove(b, m);
+            const newEp = m.doublePawn ? { r: (m.from.r + m.to.r) / 2, c: m.to.c } : null;
+            const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp);
+            if (_searchAborted) { completed = false; break; }
+            if (v > localBest) {
+                localBest = v;
+                candidates.length = 0;
+                candidates.push(m);
+            } else if (v >= localBest - cfg.window) {
+                candidates.push(m);
+            }
+            if (localBest > alpha) alpha = localBest;
+        }
+
+        // Faqat to'liq tugagan iteratsiya natijasini qabul qilamiz
+        if (completed && candidates.length) {
+            bestCandidates = candidates;
+            bestMove = candidates[0];
+        }
+        if (!completed || Date.now() > _searchDeadline) break;
+    }
+
+    return bestCandidates[Math.floor(Math.random() * bestCandidates.length)] || bestMove;
 }
 
 // ============== END GAME ==============
