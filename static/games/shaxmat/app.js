@@ -680,9 +680,9 @@ function checkGameEnd() {
         if (!recent.some(m => m.capture || m.piece === 'p')) winner = 'draw';
     }
     if (!winner) return null;
-    // AI/lokal o'yinda darhol tugatamiz; multiplayerda esa avval yurish
-    // serverga yuboriladi, keyin 30s ko'rish oynasi ko'rsatiladi.
-    if (MODE !== 'mp') endGame(winner);
+    // AI/lokal o'yinda ham (mot/pat) oxirgi yurishni 30s ko'rsatamiz,
+    // shashka kabi; multiplayerda sendMpMove/pollMatchState schedule qiladi.
+    if (MODE !== 'mp') scheduleEndGameDisplay(winner, 30);
     return winner;
 }
 
