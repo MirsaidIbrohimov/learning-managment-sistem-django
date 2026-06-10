@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Phone, Mail, MapPin, Send, MessageCircle, Instagram, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -100,7 +100,7 @@ const Contact = () => {
               {[
                 { Icon: MessageCircle, href: "https://t.me/husanbek_coder", label: "Telegram" },
                 { Icon: Send, href: "https://t.me/husanbek_coder", label: "Telegram channel" },
-                { Icon: Instagram, href: "https://instagram.com/it_shaxarcha_zomin", label: "Instagram" },
+                { Icon: Instagram, href: "https://instagram.com/it_Shaharcha_zomin", label: "Instagram" },
               ].map((s) => (
                 <a
                   key={s.label}

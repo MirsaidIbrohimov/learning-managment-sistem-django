@@ -48,6 +48,7 @@ let DIFFICULTY = 'medium';
 let PLAYER_COLOR = 'white';    // mp: 'white' or 'black'
 let OPPONENT = { name: 'AI', meta: 'Kompyuter raqib' };
 let MATCH_ID = null;
+let COMP_INFO = null;     // musobaqa urinishlari holati
 let board = [];
 let selected = null;
 let possibleMoves = [];
@@ -63,6 +64,19 @@ let capturedByWhite = [];   // black pieces eaten by white
 let capturedByBlack = [];
 
 // ============== AUTH ==============
+function updateCompetitionReplay(data) {
+    if (!COMPETITION_ID) return;
+    const used = data.attempts_used, max = data.max_attempts, left = data.attempts_left;
+    const allowRetry = COMP_INFO && COMP_INFO.allow_retry;
+    const exhausted = (data.can_play === false) || (!allowRetry && typeof left === 'number' && left <= 0);
+    const st = $('submit-status');
+    if (exhausted) {
+        st.innerHTML += `<br><i class="bi bi-trophy-fill"></i> Musobaqa urinishlari tugadi (${used}/${max}).`;
+    } else if (typeof left === 'number') {
+        st.innerHTML += `<br><i class="bi bi-info-circle"></i> Qolgan urinishlar: ${left}/${max}. Yangi urinish uchun o'yinlar sahifasidan qayta kiring.`;
+    }
+}
+
 async function authenticate() {
     if (!TOKEN || !URLS.verify) {
         return showAuthError('<i class="bi bi-lock-fill"></i> Tashqi token topilmadi. LMS orqali kiring.');
@@ -71,7 +85,7 @@ async function authenticate() {
         const res = await fetch(URLS.verify, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: TOKEN, game: GAME })
+            body: JSON.stringify({ token: TOKEN, game: GAME, competition_id: COMPETITION_ID })
         });
         const data = await res.json();
         if (!res.ok || !data.ok) {
@@ -81,6 +95,10 @@ async function authenticate() {
         renderUserHeader();
         // Musobaqa rejimi: avtomatik AI Qiyin bilan boshlanadi
         if (COMPETITION_ID) {
+            COMP_INFO = data.competition || null;
+            if (COMP_INFO && COMP_INFO.can_play === false) {
+                return showAuthError(`<i class="bi bi-trophy-fill"></i> Musobaqada urinishlar tugadi (${COMP_INFO.attempts_used}/${COMP_INFO.max_attempts}).`);
+            }
             MODE = 'ai';
             DIFFICULTY = 'hard';
             OPPONENT = { name: 'AI', meta: "Qiyin (Musobaqa)" };
@@ -231,6 +249,10 @@ function startGame(initialState = null) {
     capturedByBlack = [];
     captureChainPiece = null;
     resultSubmitted = false;
+    _endPauseStarted = false;
+    if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
+    const _ovl = document.getElementById('end-pause-overlay'); if (_ovl) _ovl.remove();
+    lastSeenMoveCount = 0;
     gameStartTs = Date.now();
 
     // Mode-specific header
@@ -238,6 +260,8 @@ function startGame(initialState = null) {
         $('mode-pill').innerHTML = `<i class="bi bi-trophy-fill"></i> Musobaqa — AI Qiyin`;
         $('mode-pill').classList.add('competition-mode');
         $('btn-menu').style.display = 'none';
+        const _again = $('btn-play-again'); if (_again) _again.style.display = 'none';
+        const _rmenu = $('btn-result-menu'); if (_rmenu) _rmenu.style.display = 'none';
     } else if (MODE === 'ai') {
         $('mode-pill').innerHTML = `<i class="bi bi-robot"></i> AI (${OPPONENT.meta})`;
     } else {
@@ -419,7 +443,7 @@ function getLegalMovesForPiece(r, c) {
 }
 
 function onCellClick(r, c) {
-    if (resultSubmitted) return;
+    if (resultSubmitted || _endPauseStarted) return;
     if (currentTurn !== PLAYER_COLOR) return;  // not your turn
 
     if (captureChainPiece) {
@@ -488,15 +512,16 @@ function doMove(fromR, fromC, move, isRemote = false) {
     updateTurnUI();
 
     // O'yin tugaganini aniqlash (lokal — endGame ham chaqirilishi mumkin)
-    const ended = checkGameEnd();
+    const winner = checkGameEnd();
 
-    // Multiplayer: serverga yurishni HAR DOIM yuborish (hatto o'yin tugagan bo'lsa ham,
-    // shunda server coin transferini va match holatini yopadi)
+    // Multiplayer: yurishni serverga yuboramiz (o'yin tugagan bo'lsa winner bilan),
+    // so'ng 30s ko'rib chiqish oynasini ikkala tomon uchun ko'rsatamiz.
     if (MODE === 'mp' && !isRemote) {
-        sendMpMove(ended);
+        sendMpMove(winner);
+        if (winner) { scheduleEndGameDisplay(winner, 30); return; }
     }
 
-    if (ended) return;
+    if (winner) return;
 
     // AI move
     if (MODE === 'ai' && currentTurn !== PLAYER_COLOR) {
@@ -871,23 +896,27 @@ function aiMove() {
 }
 
 function checkGameEnd() {
+    // Qaytaradi: 'white' | 'black' | 'draw' | null (o'yin davom etadi)
     const { w, b } = countPieces();
-    if (w === 0) { endGame('black'); return true; }
-    if (b === 0) { endGame('white'); return true; }
-    let canMove = false;
-    const must = hasAnyCaptureFor(currentTurn);
-    for (let r = 0; r < 8 && !canMove; r++)
-        for (let c = 0; c < 8 && !canMove; c++)
-            if (board[r][c]?.color === currentTurn && getMovesForPiece(r, c, must).length) canMove = true;
-    if (!canMove) {
-        endGame(currentTurn === 'white' ? 'black' : 'white');
-        return true;
+    let winner = null;
+    if (w === 0) winner = 'black';
+    else if (b === 0) winner = 'white';
+    else {
+        let canMove = false;
+        const must = hasAnyCaptureFor(currentTurn);
+        for (let r = 0; r < 8 && !canMove; r++)
+            for (let c = 0; c < 8 && !canMove; c++)
+                if (board[r][c]?.color === currentTurn && getMovesForPiece(r, c, must).length) canMove = true;
+        if (!canMove) winner = currentTurn === 'white' ? 'black' : 'white';
+        else if (moveHistory.length >= 80) {
+            const last80 = moveHistory.slice(-80);
+            if (!last80.some(m => m.capture)) winner = 'draw';
+        }
     }
-    if (moveHistory.length >= 80) {
-        const last80 = moveHistory.slice(-80);
-        if (!last80.some(m => m.capture)) { endGame('draw'); return true; }
-    }
-    return false;
+    if (!winner) return null;
+    // AI/lokal: darhol tugatamiz; multiplayer: avval serverga yuborib, 30s ko'rsatamiz.
+    if (MODE !== 'mp') endGame(winner);
+    return winner;
 }
 
 // ============== END GAME ==============
@@ -981,9 +1010,11 @@ async function submitAiResult(result, score, time) {
             $('submit-status').className = 'submit-status success';
             const coinMsg = data.coins_awarded ? `  +${data.coins_awarded} coin` : '';
             $('submit-status').innerHTML = `<i class="bi bi-check-circle-fill"></i> Saqlandi (ID: ${data.attempt_id})${coinMsg}`;
+            updateCompetitionReplay(data);
         } else {
             $('submit-status').className = 'submit-status error';
             $('submit-status').innerHTML = '<i class="bi bi-exclamation-triangle"></i> Xato: ' + (data.error || 'Noma\'lum');
+            updateCompetitionReplay(data);
         }
     } catch (e) {
         $('submit-status').className = 'submit-status error';
@@ -992,6 +1023,7 @@ async function submitAiResult(result, score, time) {
 }
 
 async function resignGame() {
+    if (resultSubmitted || _endPauseStarted) return;
     const ok = await showConfirm({
         icon: "bi-flag-fill", title: "Taslim bo'lasizmi?",
         text: "Bu mag'lubiyat sifatida yoziladi. Rostan ham taslim bo'lmoqchimisiz?",
@@ -1010,7 +1042,7 @@ async function resignGame() {
 function leaveGame() {
     clearInterval(timerInterval);
     clearInterval(pollInterval);
-    if (MODE === 'mp' && MATCH_ID && !resultSubmitted) {
+    if (MODE === 'mp' && MATCH_ID && !resultSubmitted && !_endPauseStarted) {
         fetch(URLS.mpResign, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
@@ -1112,6 +1144,7 @@ let _endPauseTimer = null;
 function scheduleEndGameDisplay(winner, seconds = 30) {
     if (resultSubmitted || _endPauseStarted) return;
     _endPauseStarted = true;
+    selected = null; possibleMoves = []; captureChainPiece = null;
     // Polling va timer'larni to'xtatamiz — taxta holati o'zgarmaydi
     if (pollInterval) clearInterval(pollInterval);
 
@@ -1150,8 +1183,9 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
 
 let lastSeenMoveCount = 0;
 async function pollMatchState() {
-    if (!MATCH_ID || resultSubmitted) return;
-    if (currentTurn === PLAYER_COLOR) return;  // only poll while waiting
+    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
+    // Eslatma: navbat o'zimizda bo'lsa ham so'rab turamiz — raqib taslim bo'lsa
+    // yoki match yopilsa tugashni aniqlash uchun (taxta move_count bilan himoyalangan).
     try {
         const res = await fetch(URLS.mpState, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1183,24 +1217,11 @@ async function pollMatchState() {
     } catch (e) {}
 }
 
-async function sendMpMove(endedHint = false) {
-    if (!MATCH_ID) return;
+async function sendMpMove(winner = null) {
+    if (!MATCH_ID) return null;
     const last = moveHistory[moveHistory.length - 1];
     const sym = last.color === 'white' ? 'O' : 'X';
     const notation = `${sym}: ${String.fromCharCode(97 + last.from[1])}${8 - last.from[0]}${last.capture ? 'x' : '-'}${String.fromCharCode(97 + last.to[1])}${8 - last.to[0]}${last.king ? ' [Damka]' : ''}`;
-
-    // O'yin tugagan bo'lsa — server uchun winner ni ham yuboramiz
-    // (toshlar tugashi serverda avtomatik aniqlanadi, lekin "yurish yo'q" holati uchun ham aniq yuboramiz)
-    let winner = null;
-    if (endedHint) {
-        const { w, b } = countPieces();
-        if (w === 0) winner = 'black';
-        else if (b === 0) winner = 'white';
-        else {
-            // 50-yurish durang yoki yurish yo'q — yurish yo'q tomon yutqazadi (taxminiy)
-            winner = currentTurn === 'white' ? 'black' : 'white';
-        }
-    }
 
     try {
         const res = await fetch(URLS.mpMove, {
@@ -1209,19 +1230,18 @@ async function sendMpMove(endedHint = false) {
                 token: TOKEN, game: GAME, match_id: MATCH_ID,
                 board: board,
                 last_move: { ...last, notation },
-                game_over: !!endedHint,
-                winner: winner,
+                game_over: !!winner,
+                winner: winner || null,
             })
         });
         const data = await res.json();
         if (data.ok) {
             lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') {
-                // endGame allaqachon checkGameEnd ichida chaqirilgan bo'lishi mumkin (resultSubmitted=true) — bu xavfsiz no-op
-                endGame(data.match.winner);
-            }
+            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+            return data.match;
         }
     } catch (e) {}
+    return null;
 }
 
 // ============== INIT ==============

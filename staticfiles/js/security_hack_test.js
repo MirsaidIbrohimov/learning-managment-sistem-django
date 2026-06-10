@@ -1,4 +1,4 @@
-/*
+﻿/*
  ██╗  ██╗ █████╗  ██████╗██╗  ██╗    ████████╗███████╗███████╗████████╗
  ██║  ██║██╔══██╗██╔════╝██║ ██╔╝    ╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝
  ███████║███████║██║     █████╔╝        ██║   █████╗  ███████╗   ██║   
@@ -6,7 +6,7 @@
  ██║  ██║██║  ██║╚██████╗██║  ██╗       ██║   ███████╗███████║   ██║   
  ╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝       ╚═╝   ╚══════╝╚══════╝   ╚═╝   
 
- 🛡️ IT SHAXARCHA — Xavfsizlik Hujum Simulyatsiyasi
+ 🛡️ IT Shaharcha — Xavfsizlik Hujum Simulyatsiyasi
  
  Login sahifasini oching → F12 → Console → shu kodni paste qiling → Enter
 

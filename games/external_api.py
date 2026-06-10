@@ -170,6 +170,31 @@ def verify(request):
     except Exception:
         user_coins = 0
 
+    # Musobaqa (ixtiyoriy) — urinishlar holatini qaytaramiz, shunda klient
+    # urinishlar tugagan bo'lsa o'yinni boshlamaydi.
+    competition_info = None
+    comp_id = data.get('competition_id')
+    if comp_id:
+        try:
+            from .models import Competition
+            from accounts.models import CustomUser
+            comp = Competition.objects.filter(pk=int(comp_id), game=game).first()
+            user = CustomUser.objects.filter(pk=payload['uid']).first()
+            if comp and user:
+                used = comp.user_attempts_count(user)
+                competition_info = {
+                    'id': comp.id,
+                    'title': comp.title,
+                    'status': comp.status,
+                    'can_play': comp.can_user_play(user),
+                    'attempts_used': used,
+                    'attempts_left': max(0, comp.max_attempts - used),
+                    'max_attempts': comp.max_attempts,
+                    'allow_retry': comp.allow_retry,
+                }
+        except (TypeError, ValueError):
+            competition_info = None
+
     cfg = game.config or {}
     return _cors_headers(JsonResponse({
         'ok': True,
@@ -187,6 +212,7 @@ def verify(request):
             'max_wager': int(cfg.get('max_wager', 5000)),
             'ai_coin_rewards': cfg.get('ai_coin_rewards') or {'easy': 25, 'medium': 35, 'hard': 50},
         },
+        'competition': competition_info,
         'exp': payload['exp'],
     }), request)
 
@@ -284,7 +310,11 @@ def submit_result(request):
         used = competition.user_attempts_count(user)
         return _cors_headers(JsonResponse({
             'ok': False,
-            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Natija saqlanmadi."
+            'error': f"Musobaqada urinishlar tugadi ({used}/{competition.max_attempts}). Natija saqlanmadi.",
+            'attempts_used': used,
+            'attempts_left': 0,
+            'max_attempts': competition.max_attempts,
+            'can_play': False,
         }, status=403), request)
 
     # ===== AI bilan o'ynalganda g'alaba uchun COIN MUKOFOTI =====
@@ -345,13 +375,22 @@ def submit_result(request):
     ttl = max(60, int(payload.get('exp', 0)) - int(time.time()) + 60)
     cache.set(cache_key, 1, ttl)
 
-    return _cors_headers(JsonResponse({
+    resp = {
         'ok': True,
         'attempt_id': attempt.id,
         'coins_awarded': coins_awarded,
         'coin_reason': coin_reason,
         'message': "Natija saqlandi",
-    }), request)
+    }
+    if competition:
+        used = competition.user_attempts_count(user)
+        resp.update({
+            'attempts_used': used,
+            'attempts_left': max(0, competition.max_attempts - used),
+            'max_attempts': competition.max_attempts,
+            'can_play': competition.can_user_play(user),
+        })
+    return _cors_headers(JsonResponse(resp), request)
 
 
 # ============== MULTIPLAYER (Shashka) ENDPOINTS ==============
