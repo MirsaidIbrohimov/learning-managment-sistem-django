@@ -687,28 +687,91 @@ function checkGameEnd() {
 }
 
 // ============== AI ==============
-// Material + PST + mobility + king-safety (oddiy)
+// Material + PST + pawn structure + passed pawns + rook files + king safety
 function evaluate(b) {
     let s = 0;
-    let mobW = 0, mobB = 0;
     let bishopsW = 0, bishopsB = 0;
+
+    // Pawn counts per file for structure analysis
+    const whitePawns = Array(8).fill(0);
+    const blackPawns = Array(8).fill(0);
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const pc = b[r][c];
+        if (pc && pc.type === 'p') {
+            if (pc.color === 'white') whitePawns[c]++;
+            else blackPawns[c]++;
+        }
+    }
+
     for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
         const pc = b[r][c];
         if (!pc) continue;
         const pstRow = pc.color === 'white' ? 7 - r : r;
         const pstVal = PST[pc.type][pstRow][c];
         const matVal = CVAL[pc.type];
-        if (pc.color === 'white') {
-            s += matVal + pstVal;
-            if (pc.type === 'b') bishopsW++;
-        } else {
-            s -= matVal + pstVal;
-            if (pc.type === 'b') bishopsB++;
+        const sign = pc.color === 'white' ? 1 : -1;
+        s += sign * (matVal + pstVal);
+
+        if (pc.type === 'b') {
+            if (pc.color === 'white') bishopsW++;
+            else bishopsB++;
+        }
+
+        if (pc.type === 'p') {
+            const myPawns  = pc.color === 'white' ? whitePawns : blackPawns;
+            const oppPawns = pc.color === 'white' ? blackPawns : whitePawns;
+
+            // Doubled pawn penalty
+            if (myPawns[c] > 1) s -= sign * 20;
+
+            // Isolated pawn penalty
+            const noLeft  = c === 0 || myPawns[c - 1] === 0;
+            const noRight = c === 7 || myPawns[c + 1] === 0;
+            if (noLeft && noRight) s -= sign * 25;
+
+            // Passed pawn bonus (no opposing pawn on same/adjacent files ahead)
+            let passed = true;
+            for (let fc = Math.max(0, c - 1); fc <= Math.min(7, c + 1) && passed; fc++) {
+                for (let fr = 0; fr < 8; fr++) {
+                    const op = b[fr][fc];
+                    if (op && op.type === 'p' && op.color !== pc.color) {
+                        const ahead = pc.color === 'white' ? fr < r : fr > r;
+                        if (ahead) { passed = false; break; }
+                    }
+                }
+            }
+            if (passed) {
+                // Bonus scales with how far advanced the pawn is
+                const advance = pc.color === 'white' ? (7 - r) : r; // 0=start, 6=7th rank
+                s += sign * (15 + advance * 12);
+            }
+        }
+
+        if (pc.type === 'r') {
+            const myPawns  = pc.color === 'white' ? whitePawns : blackPawns;
+            const oppPawns = pc.color === 'white' ? blackPawns : whitePawns;
+            if (myPawns[c] === 0 && oppPawns[c] === 0) s += sign * 20; // open file
+            else if (myPawns[c] === 0)                  s += sign * 10; // semi-open file
+        }
+
+        // King safety: penalize exposed king (no pawns nearby)
+        if (pc.type === 'k') {
+            let shieldCount = 0;
+            const shieldRow = pc.color === 'white' ? r - 1 : r + 1;
+            if (shieldRow >= 0 && shieldRow < 8) {
+                for (let fc = Math.max(0, c - 1); fc <= Math.min(7, c + 1); fc++) {
+                    const sh = b[shieldRow][fc];
+                    if (sh && sh.type === 'p' && sh.color === pc.color) shieldCount++;
+                }
+            }
+            s += sign * (shieldCount * 8); // +8 per shield pawn
         }
     }
+
     // Bishop pair bonus
     if (bishopsW >= 2) s += 30;
     if (bishopsB >= 2) s -= 30;
+
     return s; // > 0 = oq foydali
 }
 
@@ -759,32 +822,118 @@ function _quiescence(b, alpha, beta, sideToMove, ep, qDepth) {
 let _searchDeadline = 0;
 let _searchAborted = false;
 let _nodeCount = 0;
+let _qSearchDepth = 4; // quiescence chuqurligi (qiyinlik bo'yicha o'zgaradi)
 
-// Negamax + alpha-beta
-function _negamax(b, depth, alpha, beta, sideToMove, ep) {
-    // Har 1024 tugunda bir marta vaqtni tekshiramiz (overhead kam bo'lishi uchun)
+// ===== Transposition Table (TT) =====
+// Bir xil pozitsiyani qayta hisoblamaslik uchun
+const _TT = new Map();
+const _TT_MAX = 400000; // Xotira chegarasi
+const TT_EXACT = 0, TT_LOWER = 1, TT_UPPER = 2;
+
+function _ttKey(b, color, ep) {
+    // Tez compact board key: ~66 belgi
+    let k = color[0];
+    k += ep ? String.fromCharCode(65 + ep.r * 8 + ep.c) : '_';
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = b[r][c];
+        if (!p) { k += '.'; continue; }
+        // color+type+moved — castling rights ham saqlanadi
+        k += (p.color === 'white' ? p.type.toUpperCase() : p.type) + (p.moved ? '1' : '0');
+    }
+    return k;
+}
+
+// ===== Killer moves =====
+// Alpha-beta kesishini keltirib chiqargan "qotil" yurishlarni saqlaymiz
+const _killers = Array.from({ length: 32 }, () => [null, null]);
+
+function _sameMove(a, b) {
+    return a && b &&
+        a.from.r === b.from.r && a.from.c === b.from.c &&
+        a.to.r   === b.to.r   && a.to.c   === b.to.c;
+}
+
+function _orderMovesAdvanced(b, moves, ttBest, ply) {
+    return moves.map(m => {
+        let s = _moveScore(b, m);
+        if (ttBest && _sameMove(m, ttBest)) s += 20000;          // TT eng yaxshi yurish
+        else if (!m.capture && ply < _killers.length) {
+            if (_sameMove(m, _killers[ply][0])) s += 900;        // birinchi killer
+            else if (_sameMove(m, _killers[ply][1])) s += 800;   // ikkinchi killer
+        }
+        return { m, s };
+    }).sort((a, x) => x.s - a.s).map(x => x.m);
+}
+
+// Negamax + alpha-beta + TT + killer moves + null-move pruning
+function _negamax(b, depth, alpha, beta, sideToMove, ep, ply) {
     if ((++_nodeCount & 1023) === 0 && Date.now() > _searchDeadline) _searchAborted = true;
     if (_searchAborted) return 0;
-    if (depth === 0) return _quiescence(b, alpha, beta, sideToMove, ep, 4);
 
-    const moves = allLegalMoves(b, sideToMove, ep);
-    if (moves.length === 0) {
-        // Mat yoki pat
-        if (isInCheck(b, sideToMove)) return -100000 + (10 - depth); // tezroq mat → afzalroq
-        return 0;
+    const origAlpha = alpha;
+    const oppColor  = sideToMove === 'white' ? 'black' : 'white';
+
+    // --- Transposition table lookup ---
+    const ttKey = _ttKey(b, sideToMove, ep);
+    const tte = _TT.get(ttKey);
+    if (tte && tte.depth >= depth) {
+        if (tte.flag === TT_EXACT) return tte.score;
+        if (tte.flag === TT_LOWER && tte.score > alpha) alpha = tte.score;
+        if (tte.flag === TT_UPPER && tte.score < beta)  beta  = tte.score;
+        if (alpha >= beta) return tte.score;
     }
 
-    const ordered = _orderMoves(b, moves);
-    const oppColor = sideToMove === 'white' ? 'black' : 'white';
-    let best = -Infinity;
+    if (depth === 0) return _quiescence(b, alpha, beta, sideToMove, ep, _qSearchDepth);
+
+    const moves = allLegalMoves(b, sideToMove, ep);
+    if (moves.length === 0)
+        return isInCheck(b, sideToMove) ? -100000 + (10 - depth) : 0;
+
+    // --- Null-move pruning ---
+    // Agar navbatimizni o'tkazib yuborsak ham beta'dan yuqori bo'lsa — budaqni kesamiz.
+    // Shartlar: depth >= 3, shoh ostida emas, endgame emas (material bo'lishi kerak)
+    if (depth >= 3 && !isInCheck(b, sideToMove)) {
+        let pieces = 0;
+        for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+            const p = b[r][c];
+            if (p && p.color === sideToMove && p.type !== 'p' && p.type !== 'k') pieces++;
+        }
+        if (pieces >= 2) {
+            const R = depth >= 6 ? 3 : 2;
+            const v = -_negamax(b, depth - 1 - R, -beta, -beta + 1, oppColor, null, ply + 1);
+            if (!_searchAborted && v >= beta) return beta;
+        }
+    }
+
+    // --- Move ordering: TT best → killers → MVV-LVA ---
+    const ordered = _orderMovesAdvanced(b, moves, tte?.bestMove, ply);
+
+    let best = -Infinity, bestMove = null;
     for (const m of ordered) {
         const nb = simulateMove(b, m);
         const newEp = m.doublePawn ? { r: (m.from.r + m.to.r) / 2, c: m.to.c } : null;
-        const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp);
-        if (v > best) best = v;
+        const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp, ply + 1);
+        if (_searchAborted) break;
+        if (v > best) { best = v; bestMove = m; }
         if (best > alpha) alpha = best;
-        if (alpha >= beta) break;
+        if (alpha >= beta) {
+            // Killer yozamiz (faqat quiet moves uchun)
+            if (!m.capture && ply < _killers.length) {
+                if (!_sameMove(_killers[ply][0], m)) {
+                    _killers[ply][1] = _killers[ply][0];
+                    _killers[ply][0] = m;
+                }
+            }
+            break;
+        }
     }
+
+    // --- TT yozish ---
+    if (!_searchAborted && _TT.size < _TT_MAX) {
+        const flag = best <= origAlpha ? TT_UPPER : best >= beta ? TT_LOWER : TT_EXACT;
+        _TT.set(ttKey, { depth, score: best, flag, bestMove });
+    }
+
     return best;
 }
 
@@ -797,8 +946,8 @@ function aiMove() {
     let chosen;
 
     if (DIFFICULTY === 'easy') {
-        // Tasodifiy + ozgina material e'tibor
-        if (Math.random() < 0.65) {
+        // 70% tasodifiy, 30% greedy — yangi o'yinchi ham yutishi mumkin
+        if (Math.random() < 0.70) {
             chosen = moves[Math.floor(Math.random() * moves.length)];
         } else {
             const sign = color === 'white' ? 1 : -1;
@@ -809,12 +958,18 @@ function aiMove() {
             }
         }
     } else {
-        // medium/hard: vaqt byudjeti bilan iterative deepening alpha-beta + quiescence.
-        // Chuqurroq o'ylaydi va kuchliroq o'ynaydi.
-        const cfg = DIFFICULTY === 'medium'
-            ? { maxDepth: 4, timeMs: 1200, window: 12 }   // o'rta
-            : { maxDepth: 6, timeMs: 2600, window: 0 };    // qiyin: eng kuchli, deyarli optimal yurish
-        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
+        // medium/hard: iterative deepening alpha-beta + quiescence
+        if (DIFFICULTY === 'medium') {
+            _qSearchDepth = 4;
+            const cfg = { maxDepth: 5, timeMs: 2000, window: 3 };
+            chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
+        } else {
+            // hard: professional darajadagi kuch
+            // TT + killers + null-move + depth 12 + quiescence 8 = deyarli yengilmas
+            _qSearchDepth = 8;
+            const cfg = { maxDepth: 12, timeMs: 8000, window: 0 };
+            chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
+        }
     }
 
     if (chosen.promotion) chosen.promoTo = 'q';
@@ -822,7 +977,7 @@ function aiMove() {
 }
 
 // Iterative deepening: vaqt tugaguncha tobora chuqurroq qidiradi.
-// Oldingi chuqurlikdagi eng yaxshi yurishni birinchi sinab, kesishni (alpha-beta) yaxshilaydi.
+// TT + killer moves + null-move pruning bilan kuchaytirilgan.
 function _searchBestMove(b, color, ep, cfg) {
     const rootMoves = _orderMoves(b, allLegalMoves(b, color, ep));
     if (rootMoves.length === 0) return null;
@@ -833,11 +988,15 @@ function _searchBestMove(b, color, ep, cfg) {
     _searchAborted = false;
     _nodeCount = 0;
 
+    // Har yangi yurish uchun TT va killer'larni tozalaymiz
+    if (_TT.size > _TT_MAX * 0.9) _TT.clear();
+    _killers.forEach(k => { k[0] = null; k[1] = null; });
+
     let bestMove = rootMoves[0];
     let bestCandidates = [bestMove];
 
     for (let depth = 1; depth <= cfg.maxDepth; depth++) {
-        // Oldingi iteratsiyaning eng yaxshi yurishini oldinga qo'yamiz
+        // Oldingi iteratsiya eng yaxshi yurishi birinchi (TT ham shu ishni qiladi)
         const ordered = [bestMove, ...rootMoves.filter(m => m !== bestMove)];
         let alpha = -Infinity;
         const beta = Infinity;
@@ -848,19 +1007,19 @@ function _searchBestMove(b, color, ep, cfg) {
         for (const m of ordered) {
             const nb = simulateMove(b, m);
             const newEp = m.doublePawn ? { r: (m.from.r + m.to.r) / 2, c: m.to.c } : null;
-            const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp);
+            // ply=1 (root=0, bu qatlam=1)
+            const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, newEp, 1);
             if (_searchAborted) { completed = false; break; }
             if (v > localBest) {
                 localBest = v;
                 candidates.length = 0;
                 candidates.push(m);
-            } else if (v >= localBest - cfg.window) {
-                candidates.push(m);
+            } else if (cfg.window > 0 && v >= localBest - cfg.window) {
+                candidates.push(m); // kichik tasodifiylik (medium uchun)
             }
             if (localBest > alpha) alpha = localBest;
         }
 
-        // Faqat to'liq tugagan iteratsiya natijasini qabul qilamiz
         if (completed && candidates.length) {
             bestCandidates = candidates;
             bestMove = candidates[0];
@@ -1159,6 +1318,158 @@ async function sendMpMove(winner = null) {
             body: JSON.stringify({
                 token: TOKEN, game: GAME, match_id: MATCH_ID,
                 board: board,
+                last_move: { ...last, notation },
+                game_over: !!winner,
+                winner: winner || null,
+            })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            lastSeenMoveCount = data.match.move_count;
+            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+            return data.match;
+        }
+    } catch (e) {}
+    return null;
+}
+
+// ============== INIT ==============
+authenticate();
+                    clearInterval(mmPoll);
+                    clearInterval(mmInterval);
+                    const opp = PLAYER_COLOR === 'white' ? data.match.black_player : data.match.white_player;
+                    OPPONENT = { name: opp.name, meta: '@' + opp.username };
+                    startGame(data.match.board);
+                }
+            } catch (e) {}
+        } else tryFind();
+    }, 3000);
+}
+
+function cancelMatchmaking() {
+    clearInterval(mmInterval);
+    if (MATCH_ID) {
+        fetch(URLS.mpResign, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
+        }).catch(()=>{});
+        MATCH_ID = null;
+    }
+    showScreen('menu');
+}
+
+// ============== END-GAME 30s PAUSE OVERLAY ==============
+let _endPauseStarted = false;
+let _endPauseTimer = null;
+function scheduleEndGameDisplay(winner, seconds = 30) {
+    if (resultSubmitted || _endPauseStarted) return;
+    _endPauseStarted = true;
+    selected = null; possibleMoves = [];
+    if (pollInterval) clearInterval(pollInterval);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'end-pause-overlay';
+    overlay.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.95);color:#fff;padding:0.85rem 1.2rem;border-radius:14px;z-index:9999;backdrop-filter:blur(12px);display:flex;align-items:center;gap:0.85rem;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:92vw;';
+    let remaining = seconds;
+    const isWin = winner === PLAYER_COLOR;
+    const isDraw = winner === 'draw';
+    const wIcon = isWin ? 'bi-trophy-fill' : (isDraw ? 'bi-handshake' : 'bi-emoji-frown');
+    const wColor = isWin ? '#10b981' : (isDraw ? '#f59e0b' : '#ef4444');
+    overlay.innerHTML = `
+        <i class="bi ${wIcon}" style="color:${wColor};font-size:1.4rem"></i>
+        <div style="line-height:1.3">
+            <div style="font-weight:700;font-size:0.95rem">O'yin tugadi</div>
+            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurishni ko'rib chiqing — <span id="end-pause-timer">${remaining}</span>s</div>
+        </div>
+        <button id="end-pause-skip" style="background:#6366f1;border:0;color:#fff;padding:0.5rem 0.85rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;white-space:nowrap">
+            <i class="bi bi-fast-forward-fill"></i> O'tkazib yuborish
+        </button>`;
+    document.body.appendChild(overlay);
+
+    const timerEl = overlay.querySelector('#end-pause-timer');
+    const finalize = () => {
+        if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
+        if (overlay.parentNode) overlay.remove();
+        endGame(winner);
+    };
+    _endPauseTimer = setInterval(() => {
+        remaining--;
+        if (timerEl) timerEl.textContent = remaining;
+        if (remaining <= 0) finalize();
+    }, 1000);
+    overlay.querySelector('#end-pause-skip').onclick = finalize;
+}
+
+async function pollMatchState() {
+    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
+    try {
+        const res = await fetch(URLS.mpState, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
+        });
+        const data = await res.json();
+        if (!data.ok) return;
+        const m = data.match;
+        const hasNewMove = m.move_count > lastSeenMoveCount;
+        const isEnded = m.status === 'ended';
+        if (hasNewMove || isEnded) {
+            board = m.board;
+            currentTurn = m.current_turn;
+            if (hasNewMove && m.last_move?.notation) {
+                const li = document.createElement('li');
+                li.classList.add('opp');
+                li.textContent = m.last_move.notation;
+                $('moves-list').appendChild(li);
+                $('moves-list').scrollTop = $('moves-list').scrollHeight;
+                moveHistory.push({ ...m.last_move });
+            }
+            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
+            enPassantTarget = null;
+            selected = null;
+            possibleMoves = [];
+            renderBoard();
+            updateTurnUI();
+        }
+        if (isEnded) {
+            requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
+        }
+    } catch (e) {}
+}
+
+async function sendMpMove(winner = null) {
+    if (!MATCH_ID) return null;
+    const last = moveHistory[moveHistory.length - 1];
+    const file = ['a','b','c','d','e','f','g','h'];
+    const sym = last.color === 'white' ? 'O' : 'X';
+    const pieceLetter = last.piece === 'p' ? '' : last.piece.toUpperCase();
+    let notation;
+    if (last.castle) notation = (last.color === 'white' ? 'O: ' : 'X: ') + (last.castle === 'k' ? 'O-O' : 'O-O-O');
+    else notation = `${sym} ${pieceLetter}${file[last.from.c]}${8-last.from.r}${last.capture ? 'x' : '-'}${file[last.to.c]}${8-last.to.r}${last.promotion ? '='+(last.promoTo||'q').toUpperCase() : ''}`;
+
+    try {
+        const res = await fetch(URLS.mpMove, {
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({
+                token: TOKEN, game: GAME, match_id: MATCH_ID,
+                board: board,
+                last_move: { ...last, notation },
+                game_over: !!winner,
+                winner: winner || null,
+            })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            lastSeenMoveCount = data.match.move_count;
+            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+            return data.match;
+        }
+    } catch (e) {}
+    return null;
+}
+
+// ============== INIT ==============
+authenticate();
+
                 last_move: { ...last, notation },
                 game_over: !!winner,
                 winner: winner || null,
