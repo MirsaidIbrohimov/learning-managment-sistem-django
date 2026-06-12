@@ -1,69 +1,713 @@
 {% load static %}
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uz">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ITC Academy — IT shaharcha | Dasturlash kurslari</title>
-    <meta name="description" content="ITC Academy — zamonaviy IT va dasturlash o'quv markazi. Frontend, Backend, UI/UX, Mobile, AI yo'nalishlari. Suyunov Husan boshchiligida amaliy ta'lim." />
-    <meta name="keywords" content="ITC Academy, dasturlash kurslari, IT kurslar, frontend, backend, UI/UX, mobil dasturlash, AI kursi, dasturlash o'rganish O'zbekiston" />
-    <meta name="author" content="ITC Academy — Suyunov Husan" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://itc-academy.uz/" />
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IT Shaharcha — Kelajak Kodlanadi</title>
+<meta name="description" content="IT Shaharcha — O'zbekistonning eng zamonaviy IT ta'lim platformasi. Frontend, Backend, UI/UX, Mobile, AI yo'nalishlari. Real loyihalar bilan o'rganish."/>
+<link rel="icon" type="image/x-icon" href="{% static 'images/fav.ico' %}">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"/>
+<style>
+:root{
+  --c-bg:#050810;--c-bg2:#090d1a;
+  --c-panel:rgba(255,255,255,0.035);--c-border:rgba(255,255,255,0.07);
+  --c-blue:#3b82f6;--c-indigo:#6366f1;--c-purple:#8b5cf6;--c-cyan:#06b6d4;
+  --c-green:#10b981;--c-text:#e2e8f0;--c-muted:#64748b;--c-white:#ffffff;
+  --grad-main:linear-gradient(135deg,#3b82f6 0%,#8b5cf6 100%);
+  --radius:16px;--font:'Space Grotesk',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--c-bg)}
+::-webkit-scrollbar-thumb{background:var(--c-indigo);border-radius:3px}
 
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://itc-academy.uz/" />
-    <meta property="og:locale" content="uz_UZ" />
-    <meta property="og:site_name" content="ITC Academy" />
-    <meta property="og:title" content="ITC Academy — Dasturlash kurslari" />
-    <meta property="og:description" content="Zamonaviy IT o'quv markaz. Frontend, Backend, UI/UX, Mobile, AI kurslari." />
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+.section{padding:110px 0}
+.s-label{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:100px;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);color:#a5b4fc;font-size:.78rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
+.h1{font-size:clamp(2.6rem,5.5vw,4.2rem);font-weight:700;line-height:1.1;letter-spacing:-.02em}
+.h2{font-size:clamp(2rem,4vw,2.9rem);font-weight:700;line-height:1.15;letter-spacing:-.02em}
+.h3{font-size:1.25rem;font-weight:600;line-height:1.3}
+.gradient-text{background:var(--grad-main);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EducationalOrganization",
-      "name": "ITC Academy",
-      "url": "https://itc-academy.uz",
-      "description": "Zamonaviy IT va dasturlash o'quv markazi",
-      "founder": {
-        "@type": "Person",
-        "name": "Suyunov Husan"
-      },
-      "address": {
-        "@type": "PostalAddress",
-        "addressCountry": "UZ"
-      }
-    }
-    </script>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/fav.ico' %}">
-    <link rel="stylesheet" crossorigin href="{% static 'home/assets/index-BF5slwdD.css' %}">
-  </head>
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:12px;font-size:.95rem;font-weight:600;transition:all .22s ease;white-space:nowrap}
+.btn-primary{background:var(--grad-main);color:#fff;box-shadow:0 8px 32px rgba(99,102,241,.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 40px rgba(99,102,241,.5)}
+.btn-ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--c-text)}
+.btn-ghost:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2)}
+.btn-lg{padding:17px 36px;font-size:1.05rem;border-radius:14px}
 
-  <body>
-    <div id="root"></div>
+.card{background:var(--c-panel);border:1px solid var(--c-border);border-radius:var(--radius);backdrop-filter:blur(12px);transition:all .3s ease}
+.card:hover{border-color:rgba(99,102,241,.3);box-shadow:0 0 0 1px rgba(99,102,241,.15),0 20px 60px rgba(0,0,0,.4);transform:translateY(-4px)}
 
-    <script>
-      // Django URL larini React app ga uzatish
-      window.__DJANGO_URLS__ = {
-        login: "{% url 'login' %}",
-        register: "{% url 'register' %}",
-        ariza: "{% url 'ariza' %}",
-        csrf: "{{ csrf_token }}",
-      };
-      window.__DJANGO_POSTS__ = [
-        {% for post in posts %}
-        {
-          "id": {{ post.pk }},
-          "title": "{{ post.title|escapejs }}",
-          "excerpt": "{{ post.content|truncatewords:20|escapejs }}",
-          "image": "{% if post.image %}{{ post.image.url }}{% endif %}",
-          "tag": "{{ post.get_post_type_display|escapejs }}",
-          "date": "{{ post.created_at|date:'d M, Y' }}",
-          "url": "{% url 'blog:post_detail' post.pk %}"
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-      ];
-    </script>
-    <script type="module" crossorigin src="{% static 'home/assets/index-CCeLlUPM.js' %}"></script>
-  </body>
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:18px 0;transition:all .3s ease}
+#nav.scrolled{background:rgba(5,8,16,.88);backdrop-filter:blur(24px);border-bottom:1px solid var(--c-border);padding:12px 0}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.nav-logo{display:flex;align-items:center;gap:10px;font-size:1.2rem;font-weight:700}
+.nav-logo-badge{width:36px;height:36px;border-radius:10px;background:var(--grad-main);display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 6px 18px rgba(99,102,241,.4)}
+.nav-links{display:flex;align-items:center;gap:6px;list-style:none}
+.nav-links a{padding:8px 14px;border-radius:9px;font-size:.9rem;color:#94a3b8;transition:all .2s}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.nav-cta{display:flex;align-items:center;gap:10px}
+.nav-cta .btn{padding:10px 20px;font-size:.88rem;border-radius:10px}
+#nav-toggle{display:none;background:none;border:1px solid var(--c-border);border-radius:8px;padding:8px 10px;color:var(--c-text);font-size:1.2rem}
+#nav-mobile{display:none}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 0 80px;position:relative;overflow:hidden;text-align:center}
+#hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(99,102,241,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.06) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);animation:gridMove 20s linear infinite}
+@keyframes gridMove{to{transform:translateY(-60px)}}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+.hero-orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);top:-200px;left:50%;transform:translateX(-50%)}
+.hero-orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(59,130,246,.15),transparent 70%);bottom:-100px;left:10%;animation:orbP 6s ease-in-out -3s infinite}
+.hero-orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(139,92,246,.15),transparent 70%);top:20%;right:5%;animation:orbP 6s ease-in-out -1.5s infinite}
+@keyframes orbP{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.hero-content{position:relative;z-index:1;max-width:820px;margin:0 auto}
+.hero-announce{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;margin-bottom:36px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);border-radius:100px;font-size:.82rem;color:#93c5fd;animation:slideDown .8s ease}
+.hero-announce .dot{width:6px;height:6px;border-radius:50%;background:#3b82f6;box-shadow:0 0 8px #3b82f6;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-title{margin-bottom:24px;animation:slideUp .8s .1s both ease}
+.hero-sub{font-size:1.15rem;color:#94a3b8;line-height:1.7;max-width:620px;margin:0 auto 40px;animation:slideUp .8s .2s both ease}
+.hero-btns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;animation:slideUp .8s .3s both ease}
+.hero-code{position:relative;z-index:1;margin:72px auto 0;max-width:680px;animation:slideUp .9s .4s both ease}
+.code-window{background:rgba(15,20,35,.9);border:1px solid rgba(99,102,241,.25);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(99,102,241,.1);text-align:left}
+.code-topbar{display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.02)}
+.code-dot{width:10px;height:10px;border-radius:50%}
+.code-dot.r{background:#ff5f57}.code-dot.y{background:#febc2e}.code-dot.g{background:#28c840}
+.code-filename{margin-left:auto;font-family:var(--mono);font-size:.75rem;color:#475569}
+.code-body{padding:20px 24px;font-family:var(--mono);font-size:.85rem;line-height:1.8}
+.code-ln{color:#334155;user-select:none;margin-right:20px;display:inline-block;width:16px;text-align:right}
+.kw{color:#818cf8}.fn{color:#34d399}.str{color:#fbbf24}.cm{color:#475569}.var{color:#f472b6}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+
+/* STATS */
+#stats{border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border);background:rgba(255,255,255,.018)}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.stat-block{padding:36px 24px;text-align:center;border-right:1px solid var(--c-border);transition:background .3s}
+.stat-block:last-child{border-right:none}
+.stat-block:hover{background:rgba(99,102,241,.06)}
+.stat-num{font-size:2.6rem;font-weight:700;background:var(--grad-main);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:6px}
+.stat-label{font-size:.82rem;color:var(--c-muted);font-weight:500}
+
+/* COURSES */
+.courses-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:56px;gap:20px;flex-wrap:wrap}
+.courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.course-card{padding:28px;position:relative;overflow:hidden}
+.course-img{width:100%;height:140px;object-fit:cover;border-radius:10px;margin-bottom:18px;border:1px solid var(--c-border)}
+.course-img-placeholder{width:100%;height:140px;border-radius:10px;margin-bottom:18px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.12));border:1px solid var(--c-border)}
+.course-card p{font-size:.88rem;color:#94a3b8;line-height:1.6;margin:10px 0 18px}
+.course-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.course-tag{padding:4px 12px;border-radius:8px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.07);color:#94a3b8}
+.course-tag.free{background:rgba(16,185,129,.12);color:#34d399}
+.course-tag.cert{background:rgba(251,191,36,.1);color:#fbbf24}
+
+/* FEATURES */
+#features{background:var(--c-bg2)}
+.features-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.features-visual-card{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.18);border-radius:20px;padding:32px;position:relative;overflow:hidden}
+.feature-list{display:flex;flex-direction:column;gap:14px;margin-top:24px}
+.feature-item{display:flex;align-items:flex-start;gap:16px;padding:16px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);transition:all .25s}
+.feature-item:hover{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.2)}
+.feature-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.fi-blue{background:rgba(59,130,246,.15);color:#60a5fa}
+.fi-purple{background:rgba(139,92,246,.15);color:#a78bfa}
+.fi-green{background:rgba(16,185,129,.15);color:#34d399}
+.fi-orange{background:rgba(249,115,22,.15);color:#fb923c}
+.feature-text h4{font-size:.95rem;font-weight:600;margin-bottom:4px}
+.feature-text p{font-size:.82rem;color:#64748b;line-height:1.5}
+.features-side-sub{color:#64748b;font-size:.95rem;line-height:1.7;margin:14px 0 32px}
+.usp-card{display:flex;align-items:center;gap:16px;padding:18px;border-radius:14px;margin-bottom:14px}
+.usp-card.blue{background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15)}
+.usp-card.green{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.15)}
+.usp-card.purple{background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15)}
+.usp-icon{font-size:2rem}
+.usp-card h4{font-size:.95rem;font-weight:600;margin-bottom:3px}
+.usp-card p{font-size:.83rem;color:#64748b}
+
+/* PROCESS */
+#process{background:var(--c-bg)}
+.process-header{text-align:center;margin-bottom:72px}
+.process-header p{color:#64748b;font-size:1rem;margin-top:14px}
+.process-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.step-card{padding:32px 24px;text-align:center}
+.step-num{width:56px;height:56px;border-radius:50%;background:var(--grad-main);display:flex;align-items:center;justify-content:center;font-size:1.25rem;font-weight:700;color:#fff;margin:0 auto 22px;box-shadow:0 10px 28px rgba(99,102,241,.45)}
+.step-card h3{margin-bottom:10px}
+.step-card p{font-size:.88rem;color:#64748b;line-height:1.65}
+
+/* TECH STACK */
+#tools{background:var(--c-bg2);overflow:hidden;padding:72px 0}
+.tools-header{text-align:center;margin-bottom:48px}
+.tools-scroll-wrap{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 15%,black 85%,transparent)}
+.tools-row{display:flex;gap:16px;width:max-content;animation:scrollLeft 28s linear infinite}
+.tools-row.r2{animation-direction:reverse;animation-duration:22s;margin-top:14px}
+@keyframes scrollLeft{to{transform:translateX(-50%)}}
+.tool-pill{display:flex;align-items:center;gap:10px;padding:10px 20px;border-radius:100px;background:rgba(255,255,255,.045);border:1px solid var(--c-border);white-space:nowrap;font-size:.85rem;font-weight:500;color:#cbd5e1;flex-shrink:0}
+
+/* BLOG */
+.blog-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:48px;gap:20px;flex-wrap:wrap}
+.posts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}
+.post-card{padding:0;overflow:hidden}
+.post-img-wrap{width:100%;height:180px;overflow:hidden;background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));display:flex;align-items:center;justify-content:center;color:#6366f1;font-size:2.5rem}
+.post-img-wrap img{width:100%;height:100%;object-fit:cover}
+.post-body{padding:22px}
+.post-tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:600;margin-bottom:10px;background:rgba(99,102,241,.12);color:#a5b4fc}
+.post-body h3{font-size:1.05rem;margin-bottom:8px;line-height:1.4}
+.post-body p{font-size:.83rem;color:#64748b;line-height:1.6;margin-bottom:14px}
+.post-footer{display:flex;align-items:center;justify-content:space-between;font-size:.78rem;color:#475569}
+
+/* CTA/FORM */
+#cta{background:var(--c-bg2);position:relative;overflow:hidden}
+#cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 20% 50%,rgba(59,130,246,.12),transparent),radial-gradient(ellipse 70% 60% at 80% 50%,rgba(139,92,246,.12),transparent);pointer-events:none}
+.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;position:relative;z-index:1}
+.cta-left p{color:#64748b;line-height:1.7;margin:16px 0 32px}
+.cta-perks{display:flex;flex-direction:column;gap:12px}
+.cta-perk{display:flex;align-items:center;gap:12px;font-size:.9rem;color:#94a3b8}
+.cta-perk i{color:#34d399;font-size:1rem}
+.cta-form{background:rgba(255,255,255,.04);border:1px solid var(--c-border);border-radius:20px;padding:36px;backdrop-filter:blur(16px)}
+.cta-form .form-sub{font-size:.85rem;color:#64748b;margin:6px 0 28px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.82rem;font-weight:500;color:#94a3b8;margin-bottom:6px}
+.form-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#f1f5f9;font-family:var(--font);font-size:.9rem;transition:all .2s}
+.form-input:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+.form-input::placeholder{color:#334155}
+.form-select{width:100%;padding:13px 16px;background:rgba(15,20,35,.9);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#94a3b8;font-family:var(--font);font-size:.9rem;transition:all .2s;appearance:none}
+.form-select:focus{outline:none;border-color:#6366f1}
+.form-select option{background:#0f1428}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-submit{width:100%;margin-top:8px}
+.success-msg{text-align:center;padding:32px 16px}
+.success-icon{font-size:3rem;color:#34d399;margin-bottom:16px;animation:bounceIn .5s ease}
+@keyframes bounceIn{0%{transform:scale(0)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+/* FOOTER */
+#footer{background:var(--c-bg);border-top:1px solid var(--c-border);padding:64px 0 32px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:56px;margin-bottom:56px}
+.footer-brand p{font-size:.88rem;color:#475569;line-height:1.7;margin:14px 0 24px}
+.footer-socials{display:flex;gap:10px}
+.social-btn{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;color:#64748b;font-size:1rem;transition:all .2s}
+.social-btn:hover{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:#818cf8}
+.footer-col h4{font-size:.85rem;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:18px}
+.footer-links{display:flex;flex-direction:column;gap:10px;list-style:none}
+.footer-links a{font-size:.88rem;color:#475569;transition:color .2s}
+.footer-links a:hover{color:#818cf8}
+.footer-bottom{border-top:1px solid var(--c-border);padding-top:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-bottom p{font-size:.8rem;color:#334155}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(30px);transition:all .7s ease}
+.reveal.visible{opacity:1;transform:none}
+.reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .features-grid{grid-template-columns:1fr;gap:40px}
+  .cta-grid{grid-template-columns:1fr;gap:40px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:36px}
+  .process-steps{grid-template-columns:1fr;gap:20px}
+}
+@media(max-width:768px){
+  .section{padding:72px 0}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat-block:nth-child(2){border-right:none}
+  .stat-block:nth-child(3){border-top:1px solid var(--c-border)}
+  .nav-links,.nav-cta{display:none}
+  #nav-toggle{display:block}
+  #nav-mobile.open{display:flex;flex-direction:column;gap:4px;position:fixed;top:70px;left:0;right:0;background:rgba(5,8,16,.97);border-bottom:1px solid var(--c-border);padding:16px 24px 24px}
+  #nav-mobile a{padding:12px 16px;border-radius:10px;font-size:.95rem;display:block;color:#94a3b8;border:1px solid transparent}
+  #nav-mobile a:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .courses-header,.blog-header{flex-direction:column;align-items:flex-start}
+  .form-row{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr;gap:36px}
+  .footer-bottom{flex-direction:column;text-align:center}
+}
+.cursor-blink::after{content:'|';animation:blink2 1s infinite;color:#6366f1}
+@keyframes blink2{0%,100%{opacity:1}50%{opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <div class="nav-logo-badge"><i class="bi bi-code-slash"></i></div>
+        <span>IT <strong>Shaharcha</strong></span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#courses">Kurslar</a></li>
+        <li><a href="#features">Afzalliklar</a></li>
+        <li><a href="#process">Jarayon</a></li>
+        <li><a href="#blog">Blog</a></li>
+        <li><a href="#cta">Ariza</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="{% url 'login' %}" class="btn btn-ghost">Kirish</a>
+        <a href="#cta" class="btn btn-primary">Boshlash <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <button id="nav-toggle" onclick="toggleMobile()"><i class="bi bi-list"></i></button>
+    </div>
+  </div>
+</nav>
+<div id="nav-mobile">
+  <a href="#courses" onclick="toggleMobile()">Kurslar</a>
+  <a href="#features" onclick="toggleMobile()">Afzalliklar</a>
+  <a href="#process" onclick="toggleMobile()">Jarayon</a>
+  <a href="#blog" onclick="toggleMobile()">Blog</a>
+  <a href="{% url 'login' %}" onclick="toggleMobile()">Kirish</a>
+  <a href="#cta" onclick="toggleMobile()" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border-color:transparent;margin-top:6px">Ariza topshirish</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-orb hero-orb-1"></div>
+  <div class="hero-orb hero-orb-2"></div>
+  <div class="hero-orb hero-orb-3"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-announce">
+        <span class="dot"></span>
+        O'zbekistoning №1 IT ta'lim platformasi
+        <i class="bi bi-arrow-right" style="font-size:.75rem"></i>
+      </div>
+      <h1 class="h1 hero-title">
+        <span class="gradient-text">Kelajak</span> kodlanadi —<br/>
+        siz uni <span id="typed-word" class="cursor-blink gradient-text">yaratishni</span> o'rganing
+      </h1>
+      <p class="hero-sub">Real loyihalar, AI yordamchi va sertifikatlar bilan IT sohasida karyerangizni boshlang. Frontend, Backend, UI/UX, Mobile, AI — barchasi bir platformada.</p>
+      <div class="hero-btns">
+        <a href="#cta" class="btn btn-primary btn-lg"><i class="bi bi-rocket-takeoff-fill"></i> Bepul boshlash</a>
+        <a href="#courses" class="btn btn-ghost btn-lg"><i class="bi bi-play-circle-fill"></i> Kurslarni ko'rish</a>
+      </div>
+    </div>
+    <div class="hero-code">
+      <div class="code-window">
+        <div class="code-topbar">
+          <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
+          <span class="code-filename">your-future.js</span>
+        </div>
+        <div class="code-body">
+          <div><span class="code-ln">1</span><span class="cm">// IT Shaharcha — kelajagingizni kod bilan yozing</span></div>
+          <div><span class="code-ln">2</span></div>
+          <div><span class="code-ln">3</span><span class="kw">const</span> <span class="var">student</span> = {</div>
+          <div><span class="code-ln">4</span>&nbsp;&nbsp;<span class="fn">ism</span>: <span class="str">"Sizning ismingiz"</span>,</div>
+          <div><span class="code-ln">5</span>&nbsp;&nbsp;<span class="fn">maqsad</span>: <span class="str">"IT mutaxassisi bo'lish"</span>,</div>
+          <div><span class="code-ln">6</span>&nbsp;&nbsp;<span class="fn">skills</span>: [<span class="str">"HTML"</span>, <span class="str">"CSS"</span>, <span class="str">"JavaScript"</span>],</div>
+          <div><span class="code-ln">7</span>};</div>
+          <div><span class="code-ln">8</span></div>
+          <div><span class="code-ln">9</span><span class="kw">async function</span> <span class="fn">startJourney</span>() {</div>
+          <div><span class="code-ln">10</span>&nbsp;&nbsp;<span class="kw">await</span> <span class="fn">ITShaharcha</span>.<span class="fn">enroll</span>(student);</div>
+          <div><span class="code-ln">11</span>&nbsp;&nbsp;<span class="kw">return</span> <span class="str">"🚀 Karyerangiz boshlandi!"</span>;</div>
+          <div><span class="code-ln">12</span>}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-block reveal">
+        <div class="stat-num" data-target="{{ total_students|default:500 }}" data-suffix="+">0+</div>
+        <div class="stat-label">Faol o'quvchi</div>
+      </div>
+      <div class="stat-block reveal reveal-d1">
+        <div class="stat-num" data-target="{{ total_courses|default:12 }}" data-suffix="+">0+</div>
+        <div class="stat-label">Yo'nalish kursi</div>
+      </div>
+      <div class="stat-block reveal reveal-d2">
+        <div class="stat-num" data-target="98" data-suffix="%">0%</div>
+        <div class="stat-label">Qoniqish darajasi</div>
+      </div>
+      <div class="stat-block reveal reveal-d3">
+        <div class="stat-num" data-target="24" data-suffix="/7">0/7</div>
+        <div class="stat-label">AI Yordamchi</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COURSES -->
+<section id="courses" class="section">
+  <div class="container">
+    <div class="courses-header">
+      <div>
+        <div class="s-label"><i class="bi bi-mortarboard-fill"></i> Yo'nalishlar</div>
+        <h2 class="h2 reveal">IT sohasining barcha<br/><span class="gradient-text">yo'nalishlari</span></h2>
+      </div>
+      <a href="{% url 'login' %}" class="btn btn-ghost reveal">Barchasini ko'rish <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="courses-grid">
+      {% for prof in professions %}
+      <div class="card course-card reveal reveal-d{{ forloop.counter }}">
+        {% if prof.photo %}
+        <img class="course-img" src="{{ prof.photo.url }}" alt="{{ prof.name }}" loading="lazy"/>
+        {% else %}
+        <div class="course-img-placeholder">
+          <i class="bi {% cycle 'bi-braces' 'bi-server' 'bi-phone' 'bi-palette' 'bi-robot' 'bi-bar-chart-fill' %}" style="color:#6366f1"></i>
+        </div>
+        {% endif %}
+        <h3 class="h3">{{ prof.name }}</h3>
+        <p>{{ prof.description|truncatewords:18 }}</p>
+        <div class="course-meta">
+          {% if not prof.is_paid %}<span class="course-tag free"><i class="bi bi-unlock-fill"></i> Bepul</span>{% else %}<span class="course-tag"><i class="bi bi-lock-fill"></i> Pullik</span>{% endif %}
+          {% if prof.has_certificate %}<span class="course-tag cert"><i class="bi bi-award-fill"></i> Sertifikat</span>{% endif %}
+          <span class="course-tag"><i class="bi bi-people-fill"></i> {{ prof.student_count }} o'quvchi</span>
+        </div>
+      </div>
+      {% empty %}
+      {% for item in "123456" %}
+      <div class="card course-card reveal">
+        <div class="course-img-placeholder">
+          <i class="bi {% cycle 'bi-braces' 'bi-server' 'bi-phone' 'bi-palette' 'bi-robot' 'bi-bar-chart-fill' %}" style="color:#6366f1"></i>
+        </div>
+        <h3 class="h3">{% cycle 'Frontend Development' 'Backend Development' 'Mobile Development' 'UI/UX Design' 'AI & Machine Learning' 'Data Science' %}</h3>
+        <p>Zamonaviy texnologiyalar bilan real loyihalar yarating va professional darajaga eting.</p>
+        <div class="course-meta">
+          <span class="course-tag cert"><i class="bi bi-award-fill"></i> Sertifikat</span>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="section">
+  <div class="container">
+    <div class="features-grid">
+      <div class="reveal">
+        <div class="features-visual-card">
+          <div class="s-label"><i class="bi bi-stars"></i> Platforma imkoniyatlari</div>
+          <div class="feature-list">
+            <div class="feature-item">
+              <div class="feature-icon fi-blue"><i class="bi bi-robot"></i></div>
+              <div class="feature-text">
+                <h4>AI Yordamchi 24/7</h4>
+                <p>Istalgan vaqt savollaringizga AI javob beradi va topshiriqlaringizni tekshiradi</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon fi-green"><i class="bi bi-award-fill"></i></div>
+              <div class="feature-text">
+                <h4>Rasmiy Sertifikat</h4>
+                <p>Kursni tugatgach ish topishga yordam beradigan sertifikat olasiz</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon fi-purple"><i class="bi bi-controller"></i></div>
+              <div class="feature-text">
+                <h4>O'quv O'yinlari</h4>
+                <p>Bilimlaringizni shaxmat, shashka va viktorina o'yinlari orqali sinab ko'ring</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon fi-orange"><i class="bi bi-lightning-fill"></i></div>
+              <div class="feature-text">
+                <h4>Real Loyihalar</h4>
+                <p>Nazariyani emas — amaliy loyihalar bilan kasbiy ko'nikma hosil qiling</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal reveal-d2">
+        <div class="s-label"><i class="bi bi-shield-check-fill"></i> Nima uchun biz?</div>
+        <h2 class="h2" style="margin-bottom:0">IT ta'limda <span class="gradient-text">yangi standart</span></h2>
+        <p class="features-side-sub">IT Shaharcha — oddiy kurslar platformasi emas. Bu — sizning kelajagingizni shakllantiruvchi ekotizim. AI, gamifikatsiya, mentor qo'llab-quvvatlash va real loyihalar bilan.</p>
+        <div class="usp-card blue"><span class="usp-icon">🎯</span><div><h4>Maqsadga yo'naltirilgan</h4><p>Har bir dars sizni ish bozoriga yaqinlashtiradi</p></div></div>
+        <div class="usp-card green"><span class="usp-icon">🤝</span><div><h4>Jamoa ko'magi</h4><p>Mentorlar va o'rtoqlaringiz doim yoningizda</p></div></div>
+        <div class="usp-card purple"><span class="usp-icon">📱</span><div><h4>Istalgan qurilmadan</h4><p>Telefon, planshet yoki kompyuter — farqi yo'q</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process" class="section">
+  <div class="container">
+    <div class="process-header reveal">
+      <div class="s-label" style="margin:0 auto 16px"><i class="bi bi-map-fill"></i> Jarayon</div>
+      <h2 class="h2">3 qadamda <span class="gradient-text">IT mutaxassisi</span></h2>
+      <p>Ro'yxatdan o'tishdan sertifikat olishgacha — to'liq yo'l xaritasi</p>
+    </div>
+    <div class="process-steps">
+      <div class="card step-card reveal">
+        <div class="step-num">1</div>
+        <h3>Yo'nalish tanlang</h3>
+        <p>Frontend, Backend, Mobile, AI yoki Design — sizga mos yo'nalishni tanlang va bugundan boshlang.</p>
+      </div>
+      <div class="card step-card reveal reveal-d1">
+        <div class="step-num">2</div>
+        <h3>O'rganing va Amaliyot</h3>
+        <p>Video darslar, testlar, AI yordamchi va real loyihalar bilan bilimingizni mustahkamlang.</p>
+      </div>
+      <div class="card step-card reveal reveal-d2">
+        <div class="step-num">3</div>
+        <h3>Sertifikat oling</h3>
+        <p>Kursni muvaffaqiyatli tugatgach rasmiy sertifikat oling va IT bozorida o'z o'rningizni toping.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tools">
+  <div class="container">
+    <div class="tools-header reveal">
+      <div class="s-label" style="margin:0 auto 16px"><i class="bi bi-cpu-fill"></i> Texnologiyalar</div>
+      <h2 class="h2" style="text-align:center">O'rganadigan <span class="gradient-text">vositalar</span></h2>
+    </div>
+  </div>
+  <div style="margin-top:48px">
+    <div class="tools-scroll-wrap">
+      <div class="tools-row">
+        <div class="tool-pill"><i class="bi bi-filetype-html" style="color:#e34c26"></i> HTML5</div>
+        <div class="tool-pill"><i class="bi bi-filetype-css" style="color:#264de4"></i> CSS3</div>
+        <div class="tool-pill"><i class="bi bi-filetype-js" style="color:#f7df1e"></i> JavaScript</div>
+        <div class="tool-pill"><i class="bi bi-filetype-tsx" style="color:#61dafb"></i> React</div>
+        <div class="tool-pill"><i class="bi bi-filetype-py" style="color:#3776ab"></i> Python</div>
+        <div class="tool-pill"><i class="bi bi-database-fill" style="color:#336791"></i> PostgreSQL</div>
+        <div class="tool-pill"><i class="bi bi-phone-fill" style="color:#0175c2"></i> Flutter</div>
+        <div class="tool-pill"><i class="bi bi-palette-fill" style="color:#ff7262"></i> Figma</div>
+        <div class="tool-pill"><i class="bi bi-robot" style="color:#10b981"></i> AI/ML</div>
+        <div class="tool-pill"><i class="bi bi-git" style="color:#f05032"></i> Git</div>
+        <div class="tool-pill"><i class="bi bi-filetype-html" style="color:#e34c26"></i> HTML5</div>
+        <div class="tool-pill"><i class="bi bi-filetype-css" style="color:#264de4"></i> CSS3</div>
+        <div class="tool-pill"><i class="bi bi-filetype-js" style="color:#f7df1e"></i> JavaScript</div>
+        <div class="tool-pill"><i class="bi bi-filetype-tsx" style="color:#61dafb"></i> React</div>
+        <div class="tool-pill"><i class="bi bi-filetype-py" style="color:#3776ab"></i> Python</div>
+        <div class="tool-pill"><i class="bi bi-database-fill" style="color:#336791"></i> PostgreSQL</div>
+        <div class="tool-pill"><i class="bi bi-phone-fill" style="color:#0175c2"></i> Flutter</div>
+        <div class="tool-pill"><i class="bi bi-palette-fill" style="color:#ff7262"></i> Figma</div>
+        <div class="tool-pill"><i class="bi bi-robot" style="color:#10b981"></i> AI/ML</div>
+        <div class="tool-pill"><i class="bi bi-git" style="color:#f05032"></i> Git</div>
+      </div>
+      <div class="tools-row r2">
+        <div class="tool-pill"><i class="bi bi-node-plus-fill" style="color:#68a063"></i> Node.js</div>
+        <div class="tool-pill"><i class="bi bi-server" style="color:#6366f1"></i> Django</div>
+        <div class="tool-pill"><i class="bi bi-boxes" style="color:#06b6d4"></i> Docker</div>
+        <div class="tool-pill"><i class="bi bi-cloud-fill" style="color:#ff9900"></i> AWS</div>
+        <div class="tool-pill"><i class="bi bi-phone" style="color:#a2c539"></i> Android</div>
+        <div class="tool-pill"><i class="bi bi-bar-chart-fill" style="color:#e97627"></i> Data Science</div>
+        <div class="tool-pill"><i class="bi bi-shield-lock-fill" style="color:#ef4444"></i> Cybersecurity</div>
+        <div class="tool-pill"><i class="bi bi-diagram-3-fill" style="color:#8b5cf6"></i> UI/UX</div>
+        <div class="tool-pill"><i class="bi bi-lightning-fill" style="color:#fbbf24"></i> Vue.js</div>
+        <div class="tool-pill"><i class="bi bi-cpu" style="color:#06b6d4"></i> TypeScript</div>
+        <div class="tool-pill"><i class="bi bi-node-plus-fill" style="color:#68a063"></i> Node.js</div>
+        <div class="tool-pill"><i class="bi bi-server" style="color:#6366f1"></i> Django</div>
+        <div class="tool-pill"><i class="bi bi-boxes" style="color:#06b6d4"></i> Docker</div>
+        <div class="tool-pill"><i class="bi bi-cloud-fill" style="color:#ff9900"></i> AWS</div>
+        <div class="tool-pill"><i class="bi bi-phone" style="color:#a2c539"></i> Android</div>
+        <div class="tool-pill"><i class="bi bi-bar-chart-fill" style="color:#e97627"></i> Data Science</div>
+        <div class="tool-pill"><i class="bi bi-shield-lock-fill" style="color:#ef4444"></i> Cybersecurity</div>
+        <div class="tool-pill"><i class="bi bi-diagram-3-fill" style="color:#8b5cf6"></i> UI/UX</div>
+        <div class="tool-pill"><i class="bi bi-lightning-fill" style="color:#fbbf24"></i> Vue.js</div>
+        <div class="tool-pill"><i class="bi bi-cpu" style="color:#06b6d4"></i> TypeScript</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BLOG -->
+{% if posts %}
+<section id="blog" class="section">
+  <div class="container">
+    <div class="blog-header">
+      <div>
+        <div class="s-label"><i class="bi bi-newspaper"></i> Blog</div>
+        <h2 class="h2 reveal">IT dunyosidan <span class="gradient-text">yangiliklar</span></h2>
+      </div>
+    </div>
+    <div class="posts-grid">
+      {% for post in posts %}
+      <div class="card post-card reveal reveal-d{{ forloop.counter }}">
+        <div class="post-img-wrap">
+          {% if post.image %}<img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy"/>
+          {% else %}<i class="bi bi-journal-richtext"></i>{% endif %}
+        </div>
+        <div class="post-body">
+          <span class="post-tag">Blog</span>
+          <h3>{{ post.title }}</h3>
+          {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+          <div class="post-footer">
+            <span style="color:#6366f1">O'qish <i class="bi bi-arrow-right"></i></span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- CTA/FORM -->
+<section id="cta" class="section">
+  <div class="container">
+    <div class="cta-grid">
+      <div class="cta-left reveal">
+        <div class="s-label"><i class="bi bi-send-fill"></i> Ariza</div>
+        <h2 class="h2">IT karyerangizni<br/><span class="gradient-text">bugun boshlang</span></h2>
+        <p>Hoziroq ariza topshiring — mutaxassislarimiz 24 soat ichida siz bilan bog'lanadi va yo'nalishni tanlashda yordam beradi.</p>
+        <div class="cta-perks">
+          <div class="cta-perk"><i class="bi bi-check-circle-fill"></i> Bepul konsultatsiya</div>
+          <div class="cta-perk"><i class="bi bi-check-circle-fill"></i> Individual o'quv rejasi</div>
+          <div class="cta-perk"><i class="bi bi-check-circle-fill"></i> AI yordamchiga kirish</div>
+          <div class="cta-perk"><i class="bi bi-check-circle-fill"></i> Rasmiy sertifikat</div>
+        </div>
+      </div>
+      <div class="reveal reveal-d2">
+        <div class="cta-form">
+          {% if success %}
+          <div class="success-msg">
+            <div class="success-icon"><i class="bi bi-check-circle-fill"></i></div>
+            <h3 style="margin-bottom:8px">Arizangiz qabul qilindi! 🎉</h3>
+            <p style="color:#64748b">24 soat ichida mutaxassislarimiz siz bilan bog'lanadi.</p>
+          </div>
+          {% else %}
+          <h3>Ariza topshirish</h3>
+          <p class="form-sub">To'ldiring — biz siz bilan bog'lanamiz</p>
+          <form method="POST" action="{% url 'ariza' %}">
+            {% csrf_token %}
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Ismingiz</label>
+                <input type="text" name="first_name" class="form-input" placeholder="Ism" required/>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Familiyangiz</label>
+                <input type="text" name="last_name" class="form-input" placeholder="Familiya" required/>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Telefon raqam</label>
+              <input type="tel" name="phone" class="form-input" placeholder="+998 90 123 45 67" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Qaysi yo'nalish qiziqtiradi?</label>
+              <select name="course_interest" class="form-select">
+                <option value="">Tanlang...</option>
+                {% for prof in professions %}
+                <option value="{{ prof.name }}">{{ prof.name }}</option>
+                {% empty %}
+                <option value="Frontend">Frontend Development</option>
+                <option value="Backend">Backend Development</option>
+                <option value="Mobile">Mobile Development</option>
+                <option value="UIUX">UI/UX Design</option>
+                <option value="AI">AI & Machine Learning</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg form-submit">
+              <i class="bi bi-send-fill"></i> Ariza yuborish
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="nav-logo" style="margin-bottom:14px">
+          <div class="nav-logo-badge"><i class="bi bi-code-slash"></i></div>
+          <span style="font-size:1.1rem">IT <strong>Shaharcha</strong></span>
+        </div>
+        <p>O'zbekistonning zamonaviy IT ta'lim platformasi. Frontend, Backend, Mobile, AI va boshqa yo'nalishlar bo'yicha professional ta'lim.</p>
+        <div class="footer-socials">
+          <a href="#" class="social-btn"><i class="bi bi-telegram"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-youtube"></i></a>
+          <a href="#" class="social-btn"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Platforma</h4>
+        <ul class="footer-links">
+          <li><a href="#courses">Kurslar</a></li>
+          <li><a href="#features">Afzalliklar</a></li>
+          <li><a href="#process">Jarayon</a></li>
+          <li><a href="{% url 'login' %}">Kirish</a></li>
+          <li><a href="#cta">Ariza topshirish</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Yo'nalishlar</h4>
+        <ul class="footer-links">
+          {% for prof in professions %}
+          <li><a href="#courses">{{ prof.name }}</a></li>
+          {% empty %}
+          <li><a href="#courses">Frontend Dev</a></li>
+          <li><a href="#courses">Backend Dev</a></li>
+          <li><a href="#courses">Mobile Dev</a></li>
+          <li><a href="#courses">UI/UX Design</a></li>
+          <li><a href="#courses">AI & ML</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 IT Shaharcha. Barcha huquqlar himoyalangan.</p>
+      <p>Sevgi bilan O'zbekistonda yaratildi 🇺🇿</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// NAV scroll
+window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40));
+
+// Mobile nav
+function toggleMobile(){document.getElementById('nav-mobile').classList.toggle('open')}
+
+// Typing effect
+const words=['yaratishni',"o'rganishni",'sevishni','boshlashni'];
+let wi=0,ci=0,del=false;
+const el=document.getElementById('typed-word');
+function type(){
+  const word=words[wi];
+  if(!del){el.textContent=word.slice(0,++ci);if(ci===word.length){del=true;setTimeout(type,1800);return}}
+  else{el.textContent=word.slice(0,--ci);if(ci===0){del=false;wi=(wi+1)%words.length}}
+  setTimeout(type,del?60:90);
+}
+setTimeout(type,1200);
+
+// Scroll reveal
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target)}});
+},{threshold:0.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// Counter animation
+function animateCounter(el){
+  const target=parseInt(el.dataset.target);
+  const suffix=el.dataset.suffix||'+';
+  const dur=1800,step=16,inc=target/(dur/step);
+  let cur=0;
+  const t=setInterval(()=>{cur=Math.min(cur+inc,target);el.textContent=Math.floor(cur)+suffix;if(cur>=target)clearInterval(t)},step);
+}
+const statObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.querySelectorAll('.stat-num[data-target]').forEach(animateCounter);statObs.unobserve(e.target)}});
+},{threshold:0.5});
+const statsSection=document.getElementById('stats');
+if(statsSection)statObs.observe(statsSection);
+</script>
+</body>
 </html>

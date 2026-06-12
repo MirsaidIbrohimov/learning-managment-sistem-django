@@ -24,6 +24,35 @@ const URLS = {
 };
 
 let LMS_USER = null;
+let SERVICE_FEE_PCT = 15;   // coin tikilganda g'oliblikdan ushlanadigan xizmat haqi (%)
+
+// ============== TEMA TIZIMI ==============
+const THEME_KEY = 'shashka_theme';
+const THEMES = ['emerald', 'classic', 'ocean', 'galaxy', 'fire'];
+
+function applyTheme(theme) {
+    if (!THEMES.includes(theme)) theme = 'emerald';
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    // Faol swatch belgilash
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+}
+
+function initThemePicker() {
+    const saved = localStorage.getItem(THEME_KEY) || 'emerald';
+    applyTheme(saved);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+        btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+    });
+}
+
+// Sahifa yuklanganda darhol tema qo'llanilsin (flash oldini olish)
+(function() {
+    const t = localStorage.getItem(THEME_KEY) || 'emerald';
+    document.body.setAttribute('data-theme', t);
+})();
 
 // ============== STATE ==============
 const $ = (id) => document.getElementById(id);
@@ -92,6 +121,7 @@ async function authenticate() {
             return showAuthError('<i class="bi bi-x-octagon-fill"></i> Autentifikatsiya xatosi: ' + (data.error || 'Noma\'lum'));
         }
         LMS_USER = data.user;
+        if (data.game && data.game.service_fee_percent != null) SERVICE_FEE_PCT = data.game.service_fee_percent;
         renderUserHeader();
         // Musobaqa rejimi: avtomatik AI Qiyin bilan boshlanadi
         if (COMPETITION_ID) {
@@ -106,6 +136,7 @@ async function authenticate() {
             startGame();
         } else {
             showScreen('menu');
+            initThemePicker();
         }
     } catch (e) {
         showAuthError('<i class="bi bi-wifi-off"></i> Tarmoq xatosi: ' + e.message);
@@ -175,11 +206,31 @@ function askWager() {
         const modal = $('wager-modal');
         const input = $('wager-input');
         $('wager-balance').textContent = (LMS_USER && LMS_USER.coins != null) ? LMS_USER.coins : '—';
-        input.value = '';
         modal.classList.remove('hidden');
 
         const presets = document.querySelectorAll('.wager-preset');
-        presets.forEach(b => b.onclick = () => { input.value = b.dataset.amount; });
+
+        // 15% xizmat haqi hisob-kitobini ko'rsatuvchi funksiya
+        function updateFeeInfo() {
+            const n = parseInt(input.value, 10);
+            const feeBox = $('wager-fee-info');
+            if (!n || n < 1) { feeBox.style.display = 'none'; return; }
+            const pot = n * 2;
+            const fee = Math.floor(pot * SERVICE_FEE_PCT / 100);
+            const payout = pot - fee;
+            const netWin = payout - n;
+            $('fee-pot').textContent = pot + ' coin';
+            $('fee-amount').textContent = '-' + fee + ' coin';
+            $('fee-payout').textContent = payout + ' coin';
+            $('fee-net').textContent = '+' + netWin + ' coin sof yutuq';
+            feeBox.style.display = 'block';
+        }
+
+        presets.forEach(b => b.onclick = () => { input.value = b.dataset.amount; updateFeeInfo(); });
+        input.oninput = updateFeeInfo;
+        // fee boxni reset qilish
+        $('wager-fee-info').style.display = 'none';
+        input.value = '';
 
         const cleanup = (v) => {
             modal.classList.add('hidden');
@@ -958,7 +1009,10 @@ function endGame(winner) {
         $('submit-status').className = 'submit-status success';
         let coinMsg = '';
         if (MP_MODE === 'coin' && MP_WAGER > 0) {
-            if (result === 'win')      coinMsg = `  +${MP_WAGER} coin (yutuq)`;
+            const pot = MP_WAGER * 2;
+            const fee = Math.floor(pot * SERVICE_FEE_PCT / 100);
+            const netWin = pot - fee - MP_WAGER;   // xizmat haqidan keyingi sof yutuq
+            if (result === 'win')      coinMsg = `  +${netWin} coin (yutuq, ${SERVICE_FEE_PCT}% xizmat haqi: -${fee})`;
             else if (result === 'lose') coinMsg = `  -${MP_WAGER} coin (tikilish yo'qoldi)`;
             else                        coinMsg = `  ${MP_WAGER} coin qaytarildi (durang)`;
         }
@@ -1204,51 +1258,4 @@ async function pollMatchState() {
             // Apply server board state
             board = m.board;
             currentTurn = m.current_turn;
-            if (hasNewMove && m.last_move?.notation) {
-                const li = document.createElement('li');
-                li.classList.add('opp');
-                li.textContent = m.last_move.notation;
-                $('moves-list').appendChild(li);
-                $('moves-list').scrollTop = $('moves-list').scrollHeight;
-                moveHistory.push({ ...m.last_move, color: m.last_move.color });
-            }
-            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
-            renderBoard();
-            updateTurnUI();
-        }
-        if (isEnded) {
-            // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi chiqsin
-            requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
-        }
-    } catch (e) {}
-}
-
-async function sendMpMove(winner = null) {
-    if (!MATCH_ID) return null;
-    const last = moveHistory[moveHistory.length - 1];
-    const sym = last.color === 'white' ? 'O' : 'X';
-    const notation = `${sym}: ${String.fromCharCode(97 + last.from[1])}${8 - last.from[0]}${last.capture ? 'x' : '-'}${String.fromCharCode(97 + last.to[1])}${8 - last.to[0]}${last.king ? ' [Damka]' : ''}`;
-
-    try {
-        const res = await fetch(URLS.mpMove, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                token: TOKEN, game: GAME, match_id: MATCH_ID,
-                board: board,
-                last_move: { ...last, notation },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-    } catch (e) {}
-    return null;
-}
-
-// ============== INIT ==============
-authenticate();
+            if (hasNewMove && m.last_move?.n

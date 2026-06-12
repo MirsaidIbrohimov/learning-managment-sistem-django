@@ -1,1132 +1,826 @@
-﻿{% extends 'accounts/base.html' %}
-
-{% block title %}IT Shaharcha Zomin - Dasturlash Kurslari | O'quv Markazi{% endblock %}
-
+{% extends 'accounts/base.html' %}
+{% block title %}Dashboard — IT Shaharcha{% endblock %}
 {% block content %}
 {% load static %}
 
 <style>
-/* ==================== CSS VARIABLES ==================== */
+/* ═══════════════════════════════════════════
+   IT SHAHARCHA — PREMIUM DASHBOARD
+   ═══════════════════════════════════════════ */
+/* Dashboard sahifasida ob-havo effektini o'chirish */
+#weather_effect { display: none !important; }
+
+/* ── .main-container dan chiqib to'liq kenglikka o'tish ── */
+.db {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  margin-left: -50vw;
+  margin-top: -1.25rem;   /* main-container top margin ni bekor qilish */
+}
+
 :root {
-    --primary: #6366f1;
-    --primary-light: #818cf8;
-    --primary-dark: #4f46e5;
-    --secondary: #8b5cf6;
-    --accent: #06b6d4;
-    --success: #10b981;
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --neon: #00f0ff;
-    --neon-purple: #bf5af2;
-    --neon-green: #30d158;
-
-    --bg-primary: #f8fafc;
-    --bg-secondary: #f1f5f9;
-    --bg-card: rgba(255, 255, 255, 0.72);
-    --bg-card-solid: #ffffff;
-    --bg-dark: #0f172a;
-    --border: rgba(99, 102, 241, 0.12);
-    --text-primary: #0f172a;
-    --text-secondary: #475569;
-    --text-muted: #94a3b8;
-
-    --glass: rgba(255,255,255,0.6);
-    --glass-border: rgba(255,255,255,0.3);
-
-    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow: 0 4px 6px -1px rgba(0,0,0,0.07);
-    --shadow-lg: 0 10px 25px -3px rgba(0,0,0,0.08);
-    --shadow-xl: 0 20px 40px -5px rgba(0,0,0,0.1);
-
-    --radius-sm: 8px;
-    --radius: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
-
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    --hero-float-bg: rgba(255, 255, 255, 0.88);
-    --hero-float-border: rgba(255, 255, 255, 0.25);
-    --hero-float-text: #0f172a;
-    --hero-float-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
-
-    --code-bg: #1e1e2e;
-    --code-line: rgba(255,255,255,0.05);
-    --code-keyword: #c678dd;
-    --code-string: #98c379;
-    --code-func: #61afef;
-    --code-var: #e5c07b;
-    --code-comment: #5c6370;
-    --code-num: #d19a66;
+  --db-bg:      #07090f;
+  --db-bg2:     #0c1018;
+  --db-panel:   rgba(255,255,255,0.04);
+  --db-border:  rgba(255,255,255,0.07);
+  --db-indigo:  #6366f1;
+  --db-blue:    #3b82f6;
+  --db-purple:  #8b5cf6;
+  --db-cyan:    #06b6d4;
+  --db-green:   #10b981;
+  --db-amber:   #f59e0b;
+  --db-red:     #ef4444;
+  --db-pink:    #ec4899;
+  --db-text:    #e2e8f0;
+  --db-muted:   #64748b;
+  --db-grad:    linear-gradient(135deg,#6366f1,#8b5cf6);
+  --db-r:       14px;
+  --db-font:    'Space Grotesk','Inter',system-ui,sans-serif;
+  --db-mono:    'JetBrains Mono',monospace;
+}
+[data-bs-theme="light"] {
+  --db-bg:      #f0f2f8;
+  --db-bg2:     #e8eaf4;
+  --db-panel:   rgba(255,255,255,0.85);
+  --db-border:  rgba(99,102,241,0.12);
+  --db-text:    #0f172a;
+  --db-muted:   #64748b;
 }
 
-[data-bs-theme="dark"] {
-    --primary: #818cf8;
-    --primary-light: #a5b4fc;
-    --primary-dark: #6366f1;
-    --secondary: #a78bfa;
-    --accent: #22d3ee;
-    --success: #34d399;
-    --warning: #fbbf24;
-    --danger: #f87171;
+/* ── LAYOUT ─────────────────────────────── */
+.db { background:var(--db-bg); min-height:100vh; font-family:var(--db-font); color:var(--db-text); padding-bottom:64px; }
+.db-wrap { max-width:1300px; margin:0 auto; padding:0 20px; }
 
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #111827;
-    --bg-card: rgba(17, 24, 39, 0.7);
-    --bg-card-solid: #111827;
-    --bg-dark: #020617;
-    --border: rgba(99, 102, 241, 0.15);
-    --text-primary: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
+/* ── HERO STRIP ─────────────────────────── */
+.db-hero {
+  position:relative; overflow:hidden;
+  background:linear-gradient(135deg,#07090f 0%,#120a2a 50%,#08111e 100%);
+  padding:48px 0 100px;
+}
+[data-bs-theme="light"] .db-hero { background:linear-gradient(135deg,#1e1040 0%,#0d1f3c 100%); }
+.db-hero-canvas { position:absolute;inset:0;pointer-events:none; }
+.db-hero-grid {
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(99,102,241,.06) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(99,102,241,.06) 1px,transparent 1px);
+  background-size:48px 48px;
+  mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 40%,transparent 100%);
+}
+.db-hero-glow-1 { position:absolute;top:-120px;left:30%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);filter:blur(80px);pointer-events:none; }
+.db-hero-glow-2 { position:absolute;bottom:-100px;right:15%;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.18),transparent 70%);filter:blur(80px);pointer-events:none; }
 
-    --glass: rgba(15, 23, 42, 0.6);
-    --glass-border: rgba(99, 102, 241, 0.2);
-
-    --hero-float-bg: rgba(10, 14, 26, 0.75);
-    --hero-float-border: rgba(99, 102, 241, 0.2);
-    --hero-float-text: #e2e8f0;
-    --hero-float-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+.db-hero-inner { position:relative;z-index:2; }
+.db-hero-top {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:24px;flex-wrap:wrap;margin-bottom:40px;
 }
 
-/* ==================== BASE ==================== */
-main.main-container { max-width: 100%; margin: 0; padding: 0; }
-.lms-home { background: transparent; min-height: 100vh; overflow-x: hidden; }
-.container-main { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
+/* Greeting */
+.db-greeting { flex:1;min-width:0; }
+.db-greeting-time {
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.75rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(165,180,252,.7);margin-bottom:10px;
+}
+.db-greeting-time .dot { width:6px;height:6px;border-radius:50%;background:#6366f1;box-shadow:0 0 8px #6366f1;animation:dotPulse 2s infinite; }
+@keyframes dotPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.db-greeting h1 {
+  font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:800;color:#fff;
+  line-height:1.15;letter-spacing:-.02em;margin:0;
+}
+.db-greeting h1 span { background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+.db-greeting p { font-size:.92rem;color:rgba(255,255,255,.45);margin-top:8px; }
 
-/* ==================== 3D CANVAS ==================== */
-#hero3d {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-    pointer-events: none;
+/* Quick stats */
+.db-quick-stats { display:flex;gap:14px;flex-wrap:wrap; }
+.db-qs {
+  padding:14px 20px;border-radius:14px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  backdrop-filter:blur(10px);
+  display:flex;align-items:center;gap:12px;
+  min-width:130px;
+}
+.db-qs-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0; }
+.db-qs-icon.coin  { background:rgba(245,158,11,.15);color:#fbbf24; }
+.db-qs-icon.ball  { background:rgba(99,102,241,.15);color:#818cf8; }
+.db-qs-icon.fire  { background:rgba(239,68,68,.15);color:#f87171; }
+.db-qs-icon.star  { background:rgba(16,185,129,.15);color:#34d399; }
+.db-qs-val { font-family:var(--db-mono);font-size:1.3rem;font-weight:700;color:#fff;line-height:1; }
+.db-qs-lab { font-size:.7rem;color:rgba(255,255,255,.4);margin-top:2px;font-weight:500; }
+
+/* ── FLOAT CARDS (overlap hero) ─────────── */
+.db-float-row {
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;
+  margin-top:-60px;position:relative;z-index:10;
 }
 
-/* ==================== HERO ==================== */
-.hero {
-    position: relative;
-    overflow: hidden;
-    padding: 5rem 0 9rem;
-    background: linear-gradient(135deg, #0a0e1a 0%, #1a1040 40%, #0d1f3c 100%);
-    border-bottom-left-radius: 48px;
-    border-bottom-right-radius: 48px;
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
+/* ── PANEL BASE ──────────────────────────── */
+.db-panel {
+  background:var(--db-panel);
+  border:1px solid var(--db-border);
+  border-radius:var(--db-r);
+  backdrop-filter:blur(16px);
+  transition:border-color .25s,box-shadow .25s,transform .25s;
 }
+.db-panel:hover { border-color:rgba(99,102,241,.22); }
 
-.hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(ellipse 600px 400px at 20% 50%, rgba(99,102,241,0.15), transparent),
-        radial-gradient(ellipse 500px 500px at 80% 30%, rgba(139,92,246,0.1), transparent);
-    pointer-events: none;
-    z-index: 1;
+/* ── STAT CARDS ─────────────────────────── */
+.db-stat-card { padding:22px; }
+.db-stat-card .sc-top { display:flex;align-items:center;justify-content:space-between;margin-bottom:14px; }
+.db-stat-card .sc-icon { width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem; }
+.db-stat-card .sc-icon.indigo { background:rgba(99,102,241,.15);color:#818cf8; }
+.db-stat-card .sc-icon.green  { background:rgba(16,185,129,.15);color:#34d399; }
+.db-stat-card .sc-icon.amber  { background:rgba(245,158,11,.15);color:#fbbf24; }
+.db-stat-card .sc-icon.cyan   { background:rgba(6,182,212,.15);color:#22d3ee; }
+.db-stat-card .sc-trend { font-size:.72rem;font-weight:600;padding:3px 8px;border-radius:20px; }
+.db-stat-card .sc-trend.up { background:rgba(16,185,129,.12);color:#34d399; }
+.db-stat-card .sc-trend.info { background:rgba(99,102,241,.12);color:#818cf8; }
+.sc-val { font-size:2rem;font-weight:800;color:var(--db-text);line-height:1;font-family:var(--db-mono); }
+.sc-lab { font-size:.8rem;color:var(--db-muted);margin-top:4px; }
+.sc-bar { height:3px;background:rgba(99,102,241,.1);border-radius:2px;margin-top:14px;overflow:hidden; }
+.sc-bar-fill { height:100%;border-radius:2px;transition:width 1s cubic-bezier(.4,0,.2,1); }
+
+/* ── MAIN CONTENT ────────────────────────── */
+.db-main { margin-top:32px; }
+.db-grid-2 { display:grid;grid-template-columns:1fr 1fr;gap:24px; }
+.db-grid-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px; }
+.db-section-head { display:flex;align-items:center;justify-content:space-between;margin-bottom:18px; }
+.db-section-title { font-size:1.05rem;font-weight:700;color:var(--db-text);display:flex;align-items:center;gap:8px; }
+.db-section-title i { color:var(--db-indigo); }
+.db-section-link { font-size:.82rem;color:var(--db-indigo);font-weight:600;text-decoration:none;display:flex;align-items:center;gap:4px;transition:gap .2s; }
+.db-section-link:hover { gap:8px;color:var(--db-purple); }
+
+/* ── QUICK ACTIONS ───────────────────────── */
+.db-actions-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px; }
+.db-action {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:22px 12px;border-radius:14px;text-decoration:none;
+  background:var(--db-panel);border:1px solid var(--db-border);
+  color:var(--db-text);transition:all .25s;text-align:center;
+  position:relative;overflow:hidden;
 }
+.db-action::before { content:'';position:absolute;inset:0;background:var(--action-grad,rgba(99,102,241,.06));opacity:0;transition:opacity .25s; }
+.db-action:hover { color:var(--db-text);border-color:rgba(99,102,241,.28);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.25); }
+.db-action:hover::before { opacity:1; }
+.db-action-icon { width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0; }
+.db-action-label { font-size:.8rem;font-weight:600;line-height:1.3; }
+.db-action-sub { font-size:.7rem;color:var(--db-muted);margin-top:2px; }
 
-.hero-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    position: relative;
-    z-index: 2;
+/* Action colors */
+.act-indigo .db-action-icon { background:rgba(99,102,241,.15);color:#818cf8; }
+.act-indigo { --action-grad:rgba(99,102,241,.06); }
+.act-cyan .db-action-icon   { background:rgba(6,182,212,.15);color:#22d3ee; }
+.act-cyan { --action-grad:rgba(6,182,212,.06); }
+.act-amber .db-action-icon  { background:rgba(245,158,11,.15);color:#fbbf24; }
+.act-amber { --action-grad:rgba(245,158,11,.06); }
+.act-green .db-action-icon  { background:rgba(16,185,129,.15);color:#34d399; }
+.act-green { --action-grad:rgba(16,185,129,.06); }
+.act-purple .db-action-icon { background:rgba(139,92,246,.15);color:#a78bfa; }
+.act-purple { --action-grad:rgba(139,92,246,.06); }
+.act-pink .db-action-icon   { background:rgba(236,72,153,.15);color:#f472b6; }
+.act-pink { --action-grad:rgba(236,72,153,.06); }
+
+/* ── COURSES ─────────────────────────────── */
+.db-course { padding:18px;display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--db-border);transition:background .2s; }
+.db-course:last-child { border-bottom:none; }
+.db-course:hover { background:rgba(99,102,241,.04); }
+.db-course-icon { width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;color:#fff; }
+.db-course-body { flex:1;min-width:0; }
+.db-course-name { font-size:.9rem;font-weight:600;color:var(--db-text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.db-course-meta { font-size:.74rem;color:var(--db-muted);margin-bottom:8px; }
+.db-progress { height:5px;background:rgba(99,102,241,.1);border-radius:3px;overflow:hidden; }
+.db-progress-fill { height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+.db-course-pct { font-size:.72rem;font-weight:700;font-family:var(--db-mono);color:var(--db-indigo);flex-shrink:0; }
+.db-course-empty { padding:32px;text-align:center; }
+.db-course-empty i { font-size:2rem;color:rgba(99,102,241,.3);display:block;margin-bottom:10px; }
+.db-course-empty p { font-size:.85rem;color:var(--db-muted);margin-bottom:14px; }
+.db-course-empty a { display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:100px;background:var(--db-grad);color:#fff;font-size:.82rem;font-weight:600;text-decoration:none; }
+
+/* ── LEADERBOARD PREVIEW ─────────────────── */
+.db-lb-row { display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--db-border);transition:background .2s; }
+.db-lb-row:last-child { border-bottom:none; }
+.db-lb-row:hover { background:rgba(99,102,241,.04); }
+.db-lb-rank { width:26px;font-size:.75rem;font-weight:700;font-family:var(--db-mono);text-align:center;flex-shrink:0; }
+.db-lb-rank.gold   { color:#fbbf24; }
+.db-lb-rank.silver { color:#94a3b8; }
+.db-lb-rank.bronze { color:#d97706; }
+.db-lb-rank.me     { color:#818cf8; }
+.db-lb-avatar { width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem; }
+.db-lb-name { flex:1;font-size:.88rem;font-weight:600;color:var(--db-text); }
+.db-lb-points { font-size:.78rem;font-weight:700;font-family:var(--db-mono);color:var(--db-indigo); }
+
+/* ── GAMIFICATION ────────────────────────── */
+.db-coin-card { padding:24px;text-align:center; }
+.db-coin-big { font-size:3.5rem;line-height:1;margin-bottom:6px;filter:drop-shadow(0 0 12px rgba(251,191,36,.4));animation:coinFloat 3s ease-in-out infinite; }
+@keyframes coinFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.db-coin-val { font-size:2.4rem;font-weight:800;color:#fbbf24;font-family:var(--db-mono); }
+.db-coin-lab { font-size:.82rem;color:var(--db-muted);margin:4px 0 18px; }
+.db-coin-btns { display:flex;gap:10px; }
+.db-coin-btn { flex:1;padding:10px;border-radius:10px;font-size:.8rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s; }
+.db-coin-btn.primary { background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,.25); }
+.db-coin-btn.primary:hover { transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,158,11,.35); }
+.db-coin-btn.ghost { background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);color:#fbbf24; }
+.db-coin-btn.ghost:hover { background:rgba(245,158,11,.14); }
+
+/* Streak */
+.db-streak { padding:20px 24px;display:flex;align-items:center;gap:16px;border-top:1px solid var(--db-border); }
+.db-streak-fire { font-size:2.2rem;animation:firePulse 1.5s ease-in-out infinite; }
+@keyframes firePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.db-streak-num { font-size:2rem;font-weight:800;font-family:var(--db-mono);color:#f87171;line-height:1; }
+.db-streak-lab { font-size:.75rem;color:var(--db-muted); }
+.db-streak-days { display:flex;gap:5px;margin-top:10px; }
+.db-streak-day { width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;border:1px solid var(--db-border);color:var(--db-muted); }
+.db-streak-day.done { background:linear-gradient(135deg,#ef4444,#f97316);border-color:transparent;color:#fff; }
+.db-streak-day.today { border-color:#ef4444;color:#f87171; }
+
+/* Activity dots */
+.db-activity { padding:20px 24px;border-top:1px solid var(--db-border); }
+.db-activity h4 { font-size:.82rem;font-weight:600;color:var(--db-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em; }
+.db-activity-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:4px; }
+.db-act-cell { aspect-ratio:1;border-radius:3px;background:rgba(99,102,241,.07);transition:background .2s; }
+.db-act-cell.l1 { background:rgba(99,102,241,.2); }
+.db-act-cell.l2 { background:rgba(99,102,241,.4); }
+.db-act-cell.l3 { background:rgba(99,102,241,.6); }
+.db-act-cell.l4 { background:rgba(99,102,241,.85); }
+
+/* ── BLOG CARD ───────────────────────────── */
+.db-post { padding:16px 18px;border-bottom:1px solid var(--db-border);display:flex;gap:14px;align-items:flex-start;transition:background .2s; }
+.db-post:last-child { border-bottom:none; }
+.db-post:hover { background:rgba(99,102,241,.04); }
+.db-post-idx { width:28px;height:28px;border-radius:8px;background:rgba(99,102,241,.12);color:#818cf8;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--db-mono); }
+.db-post-title { font-size:.88rem;font-weight:600;color:var(--db-text);margin-bottom:4px;line-height:1.4; }
+.db-post-meta { font-size:.73rem;color:var(--db-muted); }
+.db-post-img { width:56px;height:56px;border-radius:10px;object-fit:cover;border:1px solid var(--db-border);flex-shrink:0; }
+
+/* ── AI PROMO ────────────────────────────── */
+.db-ai-card {
+  padding:28px;text-align:center;
+  background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.08));
+  border:1px solid rgba(99,102,241,.2);
+  border-radius:var(--db-r);
+  position:relative;overflow:hidden;
 }
+.db-ai-card::before { content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.3),transparent 70%);filter:blur(20px); }
+.db-ai-icon { font-size:2.8rem;margin-bottom:12px;display:block; }
+.db-ai-card h3 { font-size:1rem;font-weight:700;margin-bottom:6px;color:var(--db-text); }
+.db-ai-card p { font-size:.82rem;color:var(--db-muted);margin-bottom:16px;line-height:1.5; }
+.db-ai-btn { display:inline-flex;align-items:center;gap:6px;padding:10px 22px;border-radius:100px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:.84rem;font-weight:600;text-decoration:none;box-shadow:0 6px 20px rgba(99,102,241,.3);transition:all .2s; }
+.db-ai-btn:hover { color:#fff;transform:translateY(-2px);box-shadow:0 10px 28px rgba(99,102,241,.4); }
 
-/* Hero left */
-.hero-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(99,102,241,0.15);
-    backdrop-filter: blur(12px);
-    color: var(--neon);
-    padding: 0.5rem 1.25rem;
-    border-radius: 50px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(99,102,241,0.25);
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
+/* ── CERTIFICATE CARD ────────────────────── */
+.db-cert-card {
+  padding:24px;
+  background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(6,182,212,.06));
+  border:1px solid rgba(16,185,129,.18);
+  border-radius:var(--db-r);
+  display:flex;align-items:center;gap:18px;
 }
+.db-cert-icon { width:54px;height:54px;border-radius:14px;background:rgba(16,185,129,.15);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#34d399;flex-shrink:0; }
+.db-cert-card h4 { font-size:.92rem;font-weight:700;margin-bottom:4px;color:var(--db-text); }
+.db-cert-card p { font-size:.78rem;color:var(--db-muted);margin-bottom:10px; }
+.db-cert-link { display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:600;color:#34d399;text-decoration:none;transition:gap .2s; }
+.db-cert-link:hover { gap:9px;color:#10b981; }
 
-.hero-badge i { color: #fbbf24; }
+/* ── FOOTER ──────────────────────────────── */
+.db-footer { background:#04060c;border-top:1px solid rgba(99,102,241,.1);padding:48px 0 24px;margin-top:64px; }
+.db-footer-grid { display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:40px; }
+.db-footer-brand p { font-size:.85rem;color:rgba(255,255,255,.3);line-height:1.7;margin:12px 0 20px; }
+.db-footer-logo { display:flex;align-items:center;gap:10px; }
+.db-footer-logo-badge { width:34px;height:34px;border-radius:9px;background:var(--db-grad);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:#fff; }
+.db-footer-logo span { font-size:1rem;font-weight:700;color:#fff; }
+.db-footer-socials { display:flex;gap:8px; }
+.db-footer-social-btn { width:36px;height:36px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.4);font-size:.95rem;text-decoration:none;transition:all .2s; }
+.db-footer-social-btn:hover { background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:#818cf8; }
+.db-footer-col h5 { font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.25);margin-bottom:16px; }
+.db-footer-links { list-style:none;padding:0;margin:0; }
+.db-footer-links li { margin-bottom:10px; }
+.db-footer-links a { font-size:.85rem;color:rgba(255,255,255,.35);text-decoration:none;transition:color .2s; }
+.db-footer-links a:hover { color:#818cf8; }
+.db-footer-bottom { border-top:1px solid rgba(255,255,255,.05);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px; }
+.db-footer-bottom p { font-size:.78rem;color:rgba(255,255,255,.18); }
 
-.hero-title {
-    color: #fff;
-    font-size: clamp(2.25rem, 4.5vw, 3.75rem);
-    font-weight: 800;
-    line-height: 1.08;
-    margin-bottom: 1.25rem;
-    letter-spacing: -0.03em;
+/* ── SECTION LABEL ───────────────────────── */
+.db-label { display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.2);color:#a5b4fc;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase; }
+
+/* ── SCROLL REVEAL ───────────────────────── */
+.db-reveal { opacity:0;transform:translateY(20px);transition:all .6s ease; }
+.db-reveal.vis { opacity:1;transform:none; }
+.db-delay-1 { transition-delay:.08s; }
+.db-delay-2 { transition-delay:.16s; }
+.db-delay-3 { transition-delay:.24s; }
+.db-delay-4 { transition-delay:.32s; }
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:1100px) {
+  .db-float-row { grid-template-columns:repeat(2,1fr); }
+  .db-grid-2,.db-grid-3 { grid-template-columns:1fr; }
 }
-
-.hero-title .gradient-text {
-    background: linear-gradient(135deg, #00f0ff 0%, #818cf8 40%, #bf5af2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+@media(max-width:700px) {
+  .db-hero { padding:32px 0 80px; }
+  .db-hero-top { flex-direction:column;align-items:flex-start; }
+  .db-quick-stats { flex-direction:row;overflow-x:auto;padding-bottom:4px; }
+  .db-qs { min-width:110px;flex-shrink:0; }
+  .db-float-row { grid-template-columns:repeat(2,1fr);margin-top:-40px; }
+  .db-actions-grid { grid-template-columns:repeat(3,1fr); }
+  .db-footer-grid { grid-template-columns:1fr;gap:28px; }
+  .db-footer-bottom { flex-direction:column;text-align:center; }
 }
-
-.hero-desc {
-    color: rgba(255,255,255,0.65);
-    font-size: 1.1rem;
-    line-height: 1.75;
-    margin-bottom: 2rem;
-    max-width: 480px;
-}
-
-.hero-buttons { display: flex; flex-wrap: wrap; gap: 0.875rem; margin-bottom: 2.5rem; }
-
-.btn-hero-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: linear-gradient(135deg, var(--neon) 0%, #818cf8 100%);
-    color: #0a0e1a;
-    padding: 0.875rem 1.75rem;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    text-decoration: none;
-    transition: var(--transition);
-    box-shadow: 0 0 24px rgba(0,240,255,0.25);
-}
-
-.btn-hero-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 40px rgba(0,240,255,0.4);
-    color: #0a0e1a;
-}
-
-.btn-hero-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(12px);
-    color: #fff;
-    padding: 0.875rem 1.75rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    text-decoration: none;
-    border: 1px solid rgba(255,255,255,0.15);
-    transition: var(--transition);
-}
-
-.btn-hero-secondary:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #fff; }
-
-.hero-stats { display: flex; gap: 2.5rem; }
-.hero-stat-num { font-size: 1.75rem; font-weight: 800; color: #fff; line-height: 1; font-variant-numeric: tabular-nums; }
-.hero-stat-label { font-size: 0.8rem; color: rgba(255,255,255,0.45); margin-top: 0.25rem; font-weight: 500; }
-
-/* ==================== HERO CODE CARD (IDE style) ==================== */
-.hero-visual { position: relative; display: flex; justify-content: center; align-items: center; }
-
-.hero-code-card {
-    width: 100%;
-    max-width: 440px;
-    background: var(--code-bg);
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.08);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 40px rgba(99,102,241,0.1);
-    position: relative;
-}
-
-.code-titlebar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: rgba(255,255,255,0.03);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.code-dots { display: flex; gap: 6px; }
-.code-dots span { width: 10px; height: 10px; border-radius: 50%; }
-.code-dots span:nth-child(1) { background: #ff5f57; }
-.code-dots span:nth-child(2) { background: #febc2e; }
-.code-dots span:nth-child(3) { background: #28c840; }
-
-.code-tabs { display: flex; gap: 0; margin-left: 12px; }
-.code-tab {
-    font-size: 0.72rem;
-    padding: 5px 14px;
-    color: rgba(255,255,255,0.4);
-    border-bottom: 2px solid transparent;
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-}
-.code-tab.active { color: rgba(255,255,255,0.9); border-bottom-color: var(--primary); background: rgba(255,255,255,0.03); }
-
-.code-body { padding: 16px; font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace; font-size: 0.78rem; line-height: 1.75; }
-
-.code-line {
-    display: flex;
-    gap: 16px;
-    transition: background 0.2s;
-    padding: 0 8px;
-    border-radius: 4px;
-}
-
-.code-line:hover { background: rgba(255,255,255,0.03); }
-.code-ln { color: rgba(255,255,255,0.15); user-select: none; min-width: 20px; text-align: right; font-size: 0.7rem; }
-.code-content { white-space: pre; }
-
-.c-keyword { color: #c678dd; font-weight: 600; }
-.c-func { color: #61afef; }
-.c-string { color: #98c379; }
-.c-var { color: #e5c07b; }
-.c-comment { color: #5c6370; font-style: italic; }
-.c-num { color: #d19a66; }
-.c-punct { color: rgba(255,255,255,0.5); }
-.c-self { color: #e06c75; font-style: italic; }
-.c-bool { color: #d19a66; }
-.c-decorator { color: #c678dd; }
-
-/* User info inside code card */
-.code-user-section {
-    padding: 16px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.02);
-}
-
-.code-user-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-
-.code-user-avatar {
-    width: 42px; height: 42px; min-width: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, var(--primary), var(--neon-purple));
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; color: #fff; overflow: hidden;
-}
-
-.code-user-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
-.code-user-info h4 { color: #e2e8f0; font-size: 0.9rem; font-weight: 700; margin: 0 0 2px; }
-.code-user-info span { color: rgba(255,255,255,0.4); font-size: 0.72rem; font-family: 'JetBrains Mono', monospace; }
-
-.code-user-status {
-    display: inline-flex; align-items: center; gap: 5px;
-    margin-left: auto;
-    font-size: 0.7rem; color: var(--neon-green);
-    font-family: monospace;
-}
-
-.code-user-status::before {
-    content: '';
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--neon-green);
-    box-shadow: 0 0 8px var(--neon-green);
-    animation: statusPulse 2s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-}
-
-/* Progress bars inside code card */
-.code-progress-list { display: flex; flex-direction: column; gap: 10px; }
-.code-progress-item { padding: 0; }
-.code-progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-.code-progress-name { color: #cbd5e1; font-weight: 600; font-size: 0.78rem; font-family: 'JetBrains Mono', monospace; }
-.code-progress-pct { font-weight: 700; font-size: 0.72rem; font-family: monospace; }
-.code-progress-pct.clr-cyan { color: var(--neon); }
-.code-progress-pct.clr-purple { color: var(--neon-purple); }
-.code-progress-pct.clr-green { color: var(--neon-green); }
-.code-progress-pct.clr-pink { color: #f472b6; }
-
-.code-progress-bar { height: 6px; background: rgba(255,255,255,0.06); border-radius: 50px; overflow: hidden; }
-.code-progress-fill { height: 100%; border-radius: 50px; transition: width 1.5s cubic-bezier(.4,0,.2,1); }
-.code-progress-fill.cyan { background: linear-gradient(90deg, var(--neon), #818cf8); box-shadow: 0 0 10px rgba(0,240,255,0.3); }
-.code-progress-fill.purple { background: linear-gradient(90deg, #8b5cf6, var(--neon-purple)); box-shadow: 0 0 10px rgba(191,90,242,0.3); }
-.code-progress-fill.green { background: linear-gradient(90deg, #10b981, var(--neon-green)); box-shadow: 0 0 10px rgba(48,209,88,0.3); }
-.code-progress-fill.pink { background: linear-gradient(90deg, #ec4899, #f472b6); box-shadow: 0 0 10px rgba(244,114,182,0.3); }
-
-/* Quick course links (teacher/admin) */
-.code-quick-link {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px; border-radius: 8px;
-    background: rgba(255,255,255,0.04); text-decoration: none;
-    transition: all .25s ease; border: 1px solid transparent;
-}
-.code-quick-link:hover { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.2); transform: translateX(3px); }
-.code-quick-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; color: #fff; flex-shrink: 0; }
-.code-quick-icon.purple { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
-.code-quick-icon.cyan { background: linear-gradient(135deg, #06b6d4, #22d3ee); }
-.code-quick-icon.pink { background: linear-gradient(135deg, #ec4899, #f472b6); }
-.code-quick-name { font-weight: 600; font-size: .78rem; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.code-quick-sub { font-size: .65rem; color: rgba(255,255,255,0.35); margin-top: 1px; font-family: monospace; }
-.code-quick-arrow { font-size: .75rem; color: rgba(255,255,255,0.2); margin-left: auto; transition: all .25s; }
-.code-quick-link:hover .code-quick-arrow { color: var(--neon); transform: translateX(3px); }
-
-/* Empty state */
-.code-empty { text-align: center; padding: 1.5rem 0 0.5rem; }
-.code-empty-icon { width: 56px; height: 56px; margin: 0 auto 12px; border-radius: 16px; background: rgba(99,102,241,0.12); display: flex; align-items: center; justify-content: center; }
-.code-empty-icon i { font-size: 1.5rem; color: var(--primary); }
-.code-empty-title { font-size: .85rem; font-weight: 700; color: #e2e8f0; margin-bottom: 6px; }
-.code-empty-desc { font-size: .72rem; color: rgba(255,255,255,0.4); margin: 0 0 16px; line-height: 1.5; }
-.code-empty-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 20px; border-radius: 50px;
-    background: linear-gradient(135deg, var(--primary), var(--neon-purple));
-    color: #fff; font-size: .78rem; font-weight: 600; text-decoration: none;
-    transition: all .3s; box-shadow: 0 4px 16px rgba(99,102,241,0.3);
-}
-.code-empty-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); color: #fff; }
-
-/* Floating badges */
-.hero-floating-badge {
-    position: absolute;
-    background: var(--hero-float-bg);
-    padding: 10px 16px;
-    border-radius: 12px;
-    box-shadow: var(--hero-float-shadow);
-    border: 1px solid var(--hero-float-border);
-    display: flex; align-items: center; gap: 8px;
-    animation: heroFloat 4s ease-in-out infinite;
-    backdrop-filter: blur(16px);
-    z-index: 3;
-}
-.hero-floating-badge.top-left { top: -15px; left: -30px; }
-.hero-floating-badge.bottom-right { bottom: 30px; right: -25px; animation-delay: 2s; }
-.hero-floating-badge i { font-size: 1.1rem; }
-.hero-floating-badge span { font-weight: 700; color: var(--hero-float-text); font-size: 0.8rem; }
-
-@keyframes heroFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-/* Mobile dashboard */
-.hero-mobile-dashboard {
-    display: none;
-    margin-top: -3rem;
-    position: relative;
-    z-index: 2;
-    padding: 0 1rem;
-}
-.hero-mobile-dashboard .hero-code-card { max-width: 100%; margin: 0 auto; }
-@media (max-width: 1199px) { .hero-mobile-dashboard { display: block; } }
-@media (min-width: 1200px) { .hero-mobile-dashboard { display: none; } }
-
-/* ==================== STATS ==================== */
-.stats-section { margin-top: -4.5rem; position: relative; z-index: 10; padding: 0 1.5rem; }
-
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
-
-.stat-card {
-    background: var(--glass);
-    backdrop-filter: blur(16px);
-    border-radius: var(--radius-lg);
-    padding: 1.75rem;
-    text-align: center;
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    transition: var(--transition);
-    position: relative;
-    overflow: hidden;
-}
-
-[data-bs-theme="dark"] .stat-card {
-    background: rgba(17, 24, 39, 0.6);
-    border-color: rgba(99, 102, 241, 0.12);
-}
-
-.stat-card::after {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, var(--primary), var(--neon));
-    opacity: 0; transition: opacity 0.3s;
-}
-
-.stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-xl); }
-.stat-card:hover::after { opacity: 1; }
-
-.stat-icon {
-    width: 56px; height: 56px; border-radius: var(--radius);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 1rem; font-size: 1.5rem;
-}
-
-.stat-icon.blue { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(0,240,255,0.08)); color: var(--primary); }
-.stat-icon.green { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(48,209,88,0.08)); color: var(--success); }
-.stat-icon.orange { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.08)); color: var(--warning); }
-.stat-icon.cyan { background: linear-gradient(135deg, rgba(6,182,212,0.12), rgba(0,240,255,0.08)); color: var(--accent); }
-
-.stat-number { font-size: 2.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.25rem; line-height: 1; font-variant-numeric: tabular-nums; }
-.stat-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
-
-/* ==================== FOOTER ==================== */
-.footer {
-    background: #060a14;
-    padding: 4rem 0 2rem;
-    color: #fff;
-    margin-top: 4rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.footer::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--primary), var(--neon), var(--primary), transparent);
-}
-
-.footer-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 3rem;
-    padding-bottom: 2.5rem;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.footer-brand h3 {
-    font-size: 1.5rem; font-weight: 800; margin-bottom: 1rem;
-    display: flex; align-items: center; gap: 0.75rem;
-}
-.footer-brand h3 i { color: var(--neon); }
-.footer-brand p { color: rgba(255,255,255,0.45); line-height: 1.7; margin-bottom: 1.5rem; font-size: 0.9rem; }
-
-.footer-social { display: flex; gap: 0.625rem; }
-.footer-social a {
-    width: 40px; height: 40px; border-radius: 10px;
-    background: rgba(255,255,255,0.06);
-    display: flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.5); font-size: 1.1rem;
-    transition: var(--transition); border: 1px solid rgba(255,255,255,0.06);
-}
-.footer-social a:hover { background: var(--primary); color: #fff; transform: translateY(-3px); border-color: var(--primary); }
-
-.footer-col h4 { font-size: 1rem; font-weight: 700; margin-bottom: 1.25rem; color: #fff; }
-.footer-links { list-style: none; padding: 0; margin: 0; }
-.footer-links li { margin-bottom: 0.75rem; }
-.footer-links a {
-    color: rgba(255,255,255,0.45); text-decoration: none; font-size: 0.88rem;
-    transition: var(--transition); display: flex; align-items: center; gap: 0.4rem;
-}
-.footer-links a:hover { color: var(--neon); padding-left: 4px; }
-.footer-links a i { font-size: 0.65rem; }
-
-.footer-bottom {
-    padding-top: 1.5rem; display: flex;
-    justify-content: space-between; align-items: center;
-    flex-wrap: wrap; gap: 1rem;
-}
-
-.footer-copyright { color: rgba(255,255,255,0.3); font-size: 0.82rem; }
-.footer-license { display: flex; align-items: center; gap: 0.4rem; color: rgba(255,255,255,0.3); font-size: 0.82rem; }
-.footer-license i { color: var(--neon-green); }
-
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 1199px) {
-    .hero-grid { grid-template-columns: 1fr; text-align: center; }
-    .hero-desc { margin: 0 auto 2rem; }
-    .hero-buttons { justify-content: center; }
-    .hero-stats { justify-content: center; }
-    .hero-visual { display: none; }
-    .footer-grid { grid-template-columns: 1fr 1fr; }
-}
-
-@media (max-width: 991px) {
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 767px) {
-    .hero { padding: 3.5rem 0 7rem; }
-    .hero-buttons { flex-direction: column; width: 100%; }
-    .btn-hero-primary, .btn-hero-secondary { width: 100%; justify-content: center; }
-    .hero-stats { flex-direction: column; gap: 0.75rem; }
-    .hero-stat { text-align: center; }
-    .stats-section { margin-top: -3.5rem; }
-    .stats-grid { gap: 0.75rem; }
-    .stat-card { padding: 1.25rem; }
-    .stat-number { font-size: 1.75rem; }
-    .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .footer-bottom { flex-direction: column; text-align: center; }
-}
-
-@media (max-width: 480px) {
-    .stats-grid { grid-template-columns: 1fr; }
-}
-
-/* ==================== TYPING CURSOR ==================== */
-.typing-cursor {
-    display: inline-block;
-    width: 2px; height: 1em;
-    background: var(--neon);
-    animation: blink 1s step-end infinite;
-    vertical-align: text-bottom;
-    margin-left: 2px;
-    box-shadow: 0 0 4px var(--neon);
-}
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-/* ==================== GLOW LINE (section separator) ==================== */
-.glow-line {
-    width: 120px; height: 3px; margin: 0 auto 2rem;
-    background: linear-gradient(90deg, transparent, var(--primary), var(--neon), var(--primary), transparent);
-    border-radius: 4px;
+@media(max-width:400px) {
+  .db-actions-grid { grid-template-columns:repeat(2,1fr); }
 }
 </style>
 
-<div class="lms-home">
-    <!-- ====== TELEGRAM ULASH TAVSIYASI ====== -->
-    {% if show_telegram_prompt %}
-    <div class="tg-prompt-overlay" id="tgPromptOverlay" style="display:none;">
-        <div class="tg-prompt-modal">
-            <div class="tg-prompt-icon">
-                <i class="bi bi-telegram"></i>
+<div class="db">
+
+  <!-- ══════════════════════════════════════
+       HERO
+  ══════════════════════════════════════ -->
+  <div class="db-hero">
+    <canvas class="db-hero-canvas" id="dbCanvas"></canvas>
+    <div class="db-hero-grid"></div>
+    <div class="db-hero-glow-1"></div>
+    <div class="db-hero-glow-2"></div>
+
+    <div class="db-wrap">
+      <div class="db-hero-inner">
+        <div class="db-hero-top">
+          <!-- Greeting -->
+          <div class="db-greeting db-reveal">
+            <div class="db-greeting-time">
+              <span class="dot"></span>
+              <span id="db-time-label">Salom</span>
             </div>
-            <h3 class="tg-prompt-title">Telegramni ulang!</h3>
-            <p class="tg-prompt-desc">
-                Telegram hisobingizni ulang va muhim bildirishnomalarni, dars eslatmalarini va yangilanishlarni bevosita Telegram orqali oling.
-            </p>
-            <div class="tg-prompt-benefits">
-                <div class="tg-benefit"><i class="bi bi-bell-fill"></i> Dars eslatmalari</div>
-                <div class="tg-benefit"><i class="bi bi-chat-dots-fill"></i> Tez aloqa</div>
-                <div class="tg-benefit"><i class="bi bi-shield-check"></i> Xavfsiz kirish</div>
+            <h1>Xush kelibsiz,<br/><span>{{ user.first_name|default:user.username }}! 👋</span></h1>
+            <p>Bugun ham bir qadam oldinga — kod yozing, test o'ting, yulduzing osinoqda!</p>
+          </div>
+
+          <!-- Quick stats -->
+          <div class="db-quick-stats db-reveal db-delay-1">
+            <div class="db-qs">
+              <div class="db-qs-icon coin"><i class="bi bi-coin"></i></div>
+              <div>
+                <div class="db-qs-val">{{ user.coins|default:0 }}</div>
+                <div class="db-qs-lab">Coinlar</div>
+              </div>
             </div>
-            <div class="tg-prompt-buttons">
-                <a href="{% url 'telegram_bot:link_telegram' %}" class="tg-btn-connect">
-                    <i class="bi bi-telegram"></i> Telegramni ulash
-                </a>
-                <button type="button" class="tg-btn-later" id="tgPromptLater">
-                    <i class="bi bi-clock"></i> Keyinroq
-                </button>
+            <div class="db-qs">
+              <div class="db-qs-icon ball"><i class="bi bi-bullseye"></i></div>
+              <div>
+                <div class="db-qs-val">{{ user.total_score|default:0 }}</div>
+                <div class="db-qs-lab">Ball</div>
+              </div>
             </div>
+            <div class="db-qs">
+              <div class="db-qs-icon fire"><i class="bi bi-fire"></i></div>
+              <div>
+                <div class="db-qs-val">{{ user.streak_days|default:0 }}</div>
+                <div class="db-qs-lab">Streak</div>
+              </div>
+            </div>
+            <div class="db-qs">
+              <div class="db-qs-icon star"><i class="bi bi-trophy-fill"></i></div>
+              <div>
+                <div class="db-qs-val">#{{ user.rank|default:"—" }}</div>
+                <div class="db-qs-lab">Reyting</div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Floating stat cards -->
+        <div class="db-float-row">
+          <div class="db-panel db-stat-card db-reveal">
+            <div class="sc-top">
+              <div class="sc-icon indigo"><i class="bi bi-people-fill"></i></div>
+              <span class="sc-trend up">Faol</span>
+            </div>
+            <div class="sc-val" data-count="{{ total_students|default:0 }}">0</div>
+            <div class="sc-lab">Jami o'quvchilar</div>
+            <div class="sc-bar"><div class="sc-bar-fill" style="width:75%;background:linear-gradient(90deg,#6366f1,#06b6d4)"></div></div>
+          </div>
+          <div class="db-panel db-stat-card db-reveal db-delay-1">
+            <div class="sc-top">
+              <div class="sc-icon green"><i class="bi bi-book-fill"></i></div>
+              <span class="sc-trend up">+2 yangi</span>
+            </div>
+            <div class="sc-val" data-count="{{ total_courses|default:0 }}">0</div>
+            <div class="sc-lab">Faol kurslar</div>
+            <div class="sc-bar"><div class="sc-bar-fill" style="width:60%;background:linear-gradient(90deg,#10b981,#34d399)"></div></div>
+          </div>
+          <div class="db-panel db-stat-card db-reveal db-delay-2">
+            <div class="sc-top">
+              <div class="sc-icon amber"><i class="bi bi-play-btn-fill"></i></div>
+              <span class="sc-trend info">Video</span>
+            </div>
+            <div class="sc-val" data-count="{{ total_lessons|default:0 }}">0</div>
+            <div class="sc-lab">Video darslar</div>
+            <div class="sc-bar"><div class="sc-bar-fill" style="width:85%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div></div>
+          </div>
+          <div class="db-panel db-stat-card db-reveal db-delay-3">
+            <div class="sc-top">
+              <div class="sc-icon cyan"><i class="bi bi-robot"></i></div>
+              <span class="sc-trend up">24/7</span>
+            </div>
+            <div class="sc-val">AI</div>
+            <div class="sc-lab">Yordamchi — har doim</div>
+            <div class="sc-bar"><div class="sc-bar-fill" style="width:100%;background:linear-gradient(90deg,#06b6d4,#22d3ee)"></div></div>
+          </div>
+        </div>
+      </div>
     </div>
-    <style>
-    .tg-prompt-overlay {
-        position: fixed; inset: 0; z-index: 9999;
-        background: rgba(0,0,0,0.5); backdrop-filter: blur(6px);
-        display: flex; align-items: center; justify-content: center;
-        animation: tgFadeIn 0.3s ease;
-    }
-    @keyframes tgFadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .tg-prompt-modal {
-        background: var(--bg-card-solid, #fff); border-radius: 20px;
-        padding: 2.5rem 2rem; max-width: 420px; width: 90%; text-align: center;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: tgSlideUp 0.4s ease;
-    }
-    @keyframes tgSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    .tg-prompt-icon {
-        width: 72px; height: 72px; border-radius: 50%;
-        background: linear-gradient(135deg, #0088cc, #00bfff);
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1.25rem; font-size: 2rem; color: #fff;
-        box-shadow: 0 8px 24px rgba(0,136,204,0.35);
-    }
-    .tg-prompt-title {
-        font-size: 1.4rem; font-weight: 700; color: var(--text-primary, #0f172a); margin-bottom: 0.5rem;
-    }
-    .tg-prompt-desc {
-        color: var(--text-secondary, #475569); font-size: 0.92rem; line-height: 1.6; margin-bottom: 1.25rem;
-    }
-    .tg-prompt-benefits {
-        display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;
-    }
-    .tg-benefit {
-        display: inline-flex; align-items: center; gap: 0.3rem;
-        background: rgba(0,136,204,0.08); color: #0088cc;
-        padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
-    }
-    [data-bs-theme="dark"] .tg-benefit { background: rgba(0,191,255,0.12); color: #00bfff; }
-    .tg-prompt-buttons { display: flex; flex-direction: column; gap: 0.65rem; }
-    .tg-btn-connect {
-        display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-        background: linear-gradient(135deg, #0088cc, #00bfff); color: #fff;
-        padding: 0.85rem 1.5rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem;
-        text-decoration: none; transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(0,136,204,0.3);
-    }
-    .tg-btn-connect:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,136,204,0.45); color: #fff; }
-    .tg-btn-later {
-        background: transparent; border: 1.5px solid var(--border, #e2e8f0);
-        color: var(--text-secondary, #475569); padding: 0.7rem 1.5rem;
-        border-radius: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
-        display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-        transition: all 0.3s ease;
-    }
-    .tg-btn-later:hover { background: var(--bg-secondary, #f1f5f9); }
-    </style>
-    <script>
-    (function() {
-        var KEY = 'tg_prompt_later_{{ user.id }}';
-        var stored = localStorage.getItem(KEY);
-        if (stored) {
-            var diff = Date.now() - parseInt(stored, 10);
-            // 3 kun o'tganda qayta ko'rsatish (3 * 24 * 60 * 60 * 1000 = 259200000)
-            if (diff < 259200000) return;
-        }
-        var overlay = document.getElementById('tgPromptOverlay');
-        if (overlay) overlay.style.display = 'flex';
-        var laterBtn = document.getElementById('tgPromptLater');
-        if (laterBtn) {
-            laterBtn.addEventListener('click', function() {
-                localStorage.setItem(KEY, Date.now().toString());
-                overlay.style.display = 'none';
-            });
-        }
-        // Overlay bosilganda yopish
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                localStorage.setItem(KEY, Date.now().toString());
-                overlay.style.display = 'none';
-            }
-        });
-    })();
-    </script>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       MAIN GRID
+  ══════════════════════════════════════ -->
+  <div class="db-wrap db-main">
+
+    <!-- Row 1: Quick Actions + Courses -->
+    <div class="db-grid-2" style="margin-bottom:24px">
+
+      <!-- Quick Actions -->
+      <div class="db-reveal">
+        <div class="db-section-head">
+          <div class="db-section-title"><i class="bi bi-grid-fill"></i> Tezkor kirish</div>
+        </div>
+        <div class="db-panel" style="padding:16px">
+          <div class="db-actions-grid">
+            <a href="{% url 'professions' %}" class="db-action act-indigo">
+              <div class="db-action-icon"><i class="bi bi-book-fill"></i></div>
+              <div>
+                <div class="db-action-label">Kurslar</div>
+                <div class="db-action-sub">Barcha yo'nalishlar</div>
+              </div>
+            </a>
+            <a href="{% url 'leaderboard' %}" class="db-action act-amber">
+              <div class="db-action-icon"><i class="bi bi-trophy-fill"></i></div>
+              <div>
+                <div class="db-action-label">Reyting</div>
+                <div class="db-action-sub">Top o'quvchilar</div>
+              </div>
+            </a>
+            <a href="{% url 'ai_yordamchi:chat_home' %}" class="db-action act-cyan">
+              <div class="db-action-icon"><i class="bi bi-robot"></i></div>
+              <div>
+                <div class="db-action-label">AI Chat</div>
+                <div class="db-action-sub">Savolingizni bering</div>
+              </div>
+            </a>
+            <a href="{% url 'games:games_list' %}" class="db-action act-purple">
+              <div class="db-action-icon"><i class="bi bi-controller"></i></div>
+              <div>
+                <div class="db-action-label">O'yinlar</div>
+                <div class="db-action-sub">Coin yuting</div>
+              </div>
+            </a>
+            <a href="{% url 'coin:market_list' %}" class="db-action act-green">
+              <div class="db-action-icon"><i class="bi bi-shop"></i></div>
+              <div>
+                <div class="db-action-label">Market</div>
+                <div class="db-action-sub">Coin sarflash</div>
+              </div>
+            </a>
+            <a href="{% url 'blog:post_list' %}" class="db-action act-pink">
+              <div class="db-action-icon"><i class="bi bi-newspaper"></i></div>
+              <div>
+                <div class="db-action-label">Blog</div>
+                <div class="db-action-sub">Yangiliklar</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Courses -->
+      <div class="db-reveal db-delay-1">
+        <div class="db-section-head">
+          <div class="db-section-title"><i class="bi bi-mortarboard-fill"></i> Kurslarim</div>
+          <a href="{% url 'professions' %}" class="db-section-link">Ko'rish <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="db-panel">
+          {% if dashboard_courses %}
+            {% for course in dashboard_courses %}
+            <div class="db-course">
+              <div class="db-course-icon" style="background:linear-gradient(135deg,{% cycle '#6366f1,#818cf8' '#10b981,#34d399' '#06b6d4,#22d3ee' '#f59e0b,#fbbf24' '#8b5cf6,#a78bfa' %})">
+                <i class="bi {% cycle 'bi-braces' 'bi-server' 'bi-phone' 'bi-palette' 'bi-code-slash' %}"></i>
+              </div>
+              <div class="db-course-body">
+                <div class="db-course-name">{{ course.name }}</div>
+                <div class="db-course-meta">{{ course.progress }}% bajarildi</div>
+                <div class="db-progress"><div class="db-progress-fill" style="width:{{ course.progress }}%;background:linear-gradient(90deg,#6366f1,#06b6d4)"></div></div>
+              </div>
+              <div class="db-course-pct">{{ course.progress }}%</div>
+            </div>
+            {% endfor %}
+          {% elif quick_courses %}
+            {% for course in quick_courses %}
+            <a href="{% url 'profession_detail' pk=course.pk %}" style="text-decoration:none">
+            <div class="db-course">
+              <div class="db-course-icon" style="background:linear-gradient(135deg,{% cycle '#6366f1,#818cf8' '#10b981,#34d399' '#06b6d4,#22d3ee' %})">
+                <i class="bi {% cycle 'bi-braces' 'bi-server' 'bi-phone' %}"></i>
+              </div>
+              <div class="db-course-body">
+                <div class="db-course-name">{{ course.name }}</div>
+                <div class="db-course-meta">{% if user.is_teacher %}Dars bermoqda{% else %}Boshqarish{% endif %}</div>
+              </div>
+              <i class="bi bi-chevron-right" style="color:var(--db-muted);font-size:.85rem"></i>
+            </div>
+            </a>
+            {% endfor %}
+          {% else %}
+          <div class="db-course-empty">
+            <i class="bi bi-mortarboard-fill"></i>
+            <p>Hali hech qaysi kursga yozilmagansiz</p>
+            <a href="{% url 'professions' %}"><i class="bi bi-plus-circle-fill"></i> Kursga yozilish</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Gamification + Leaderboard + AI -->
+    <div class="db-grid-3" style="margin-bottom:24px">
+
+      <!-- Coin & Streak -->
+      <div class="db-reveal">
+        <div class="db-section-head">
+          <div class="db-section-title"><i class="bi bi-coin"></i> Coinlarim</div>
+        </div>
+        <div class="db-panel">
+          <div class="db-coin-card">
+            <div class="db-coin-big">🪙</div>
+            <div class="db-coin-val">{{ user.coins|default:0 }}</div>
+            <div class="db-coin-lab">Mavjud coin</div>
+            <div class="db-coin-btns">
+              <a href="{% url 'coin:coin_history' %}" class="db-coin-btn primary"><i class="bi bi-clock-history"></i> Tarix</a>
+              <a href="{% url 'coin:coin_transfer' %}" class="db-coin-btn ghost"><i class="bi bi-send-fill"></i> O'tkazma</a>
+            </div>
+          </div>
+          <div class="db-streak">
+            <div>
+              <div class="db-streak-fire">🔥</div>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:baseline;gap:6px">
+                <div class="db-streak-num">{{ user.streak_days|default:0 }}</div>
+                <div class="db-streak-lab">kun streak</div>
+              </div>
+              <div class="db-streak-days" id="streakDays"></div>
+            </div>
+          </div>
+          <div class="db-activity" style="padding-bottom:20px">
+            <h4>Faollik (so'nggi 28 kun)</h4>
+            <div class="db-activity-grid" id="activityGrid"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="db-reveal db-delay-1">
+        <div class="db-section-head">
+          <div class="db-section-title"><i class="bi bi-trophy-fill"></i> Top o'quvchilar</div>
+          <a href="{% url 'leaderboard' %}" class="db-section-link">Hammasi <i class="bi bi-arrow-right"></i></a>
+        </div>
+        <div class="db-panel">
+          {% for lb in top_students %}
+          <div class="db-lb-row">
+            <div class="db-lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% elif lb.is_me %}me{% endif %}">
+              {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+            </div>
+            <div class="db-lb-avatar">
+              {% if lb.photo %}
+              <img src="{{ lb.photo.url }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" alt="{{ lb.name }}">
+              {% else %}
+              {{ lb.name|slice:":1"|upper }}
+              {% endif %}
+            </div>
+            <div class="db-lb-name">{{ lb.name|truncatechars:18 }}{% if lb.is_me %} <span style="font-size:.65rem;color:#818cf8">(siz)</span>{% endif %}</div>
+            <div class="db-lb-points">{{ lb.points }} ball</div>
+          </div>
+          {% empty %}
+          <!-- Placeholder rows -->
+          {% for i in "12345" %}
+          <div class="db-lb-row" style="opacity:{{ forloop.counter|add:0 }}">
+            <div class="db-lb-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+              {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}
+            </div>
+            <div class="db-lb-avatar">—</div>
+            <div class="db-lb-name" style="color:var(--db-muted)">O'quvchi {{ forloop.counter }}</div>
+            <div class="db-lb-points" style="color:var(--db-muted)">— ball</div>
+          </div>
+          {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- AI + Certificate -->
+      <div class="db-reveal db-delay-2" style="display:flex;flex-direction:column;gap:16px">
+        <div class="db-section-head">
+          <div class="db-section-title"><i class="bi bi-stars"></i> Vositalar</div>
+        </div>
+        <div class="db-ai-card">
+          <span class="db-ai-icon">🤖</span>
+          <h3>AI Yordamchi</h3>
+          <p>Dasturlash savollaringizni bering — AI 24/7 javob beradi, kodingizni tekshiradi</p>
+          <a href="{% url 'ai_yordamchi:chat_home' %}" class="db-ai-btn"><i class="bi bi-chat-dots-fill"></i> Suhbatni boshlash</a>
+        </div>
+        <div class="db-cert-card">
+          <div class="db-cert-icon"><i class="bi bi-patch-check-fill"></i></div>
+          <div>
+            <h4>Sertifikat</h4>
+            <p>Kursni tugatgach rasmiy sertifikat oling</p>
+            <a href="{% url 'verify_certificate' %}" class="db-cert-link">Tekshirish <i class="bi bi-arrow-right"></i></a>
+          </div>
+        </div>
+        <a href="{% url 'my_deploys' %}" class="db-panel" style="padding:18px;display:flex;align-items:center;gap:14px;text-decoration:none;">
+          <div style="width:42px;height:42px;border-radius:12px;background:rgba(6,182,212,.12);display:flex;align-items:center;justify-content:center;color:#22d3ee;font-size:1.1rem;flex-shrink:0"><i class="bi bi-terminal-fill"></i></div>
+          <div>
+            <div style="font-size:.88rem;font-weight:700;color:var(--db-text)">Coding Lab</div>
+            <div style="font-size:.76rem;color:var(--db-muted)">Kod yozing, deploy qiling</div>
+          </div>
+          <i class="bi bi-arrow-right" style="color:var(--db-muted);margin-left:auto;font-size:.85rem"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Row 3: Blog -->
+    {% if recent_posts %}
+    <div class="db-reveal" style="margin-bottom:24px">
+      <div class="db-section-head">
+        <div class="db-section-title"><i class="bi bi-newspaper"></i> So'nggi postlar</div>
+        <a href="{% url 'blog:post_list' %}" class="db-section-link">Hammasi <i class="bi bi-arrow-right"></i></a>
+      </div>
+      <div class="db-panel">
+        {% for post in recent_posts %}
+        <div class="db-post">
+          <div class="db-post-idx">{{ forloop.counter }}</div>
+          <div style="flex:1">
+            <div class="db-post-title">{{ post.title }}</div>
+            <div class="db-post-meta">{{ post.created_at|date:"d.m.Y" }} &mdash; {{ post.author|default:"IT Shaharcha" }}</div>
+          </div>
+          {% if post.image %}<img src="{{ post.image.url }}" class="db-post-img" alt="">{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
     {% endif %}
 
-    <!-- ====== HERO ====== -->
-    <section class="hero">
-        <canvas id="hero3d"></canvas>
-        <div class="container-main">
-            <div class="hero-grid">
-                <div class="hero-content">
-                    <div class="hero-badge">
-                        <i class="bi bi-braces-asterisk"></i>
-                        IT Shaharcha Zomin — Coding Platform
-                    </div>
-                    <h1 class="hero-title">
-                        Kelajak <span class="gradient-text">IT Shaharcha Zomin</span><br>bilan yorqinroq!<span class="typing-cursor"></span>
-                    </h1>
-                    <p class="hero-desc">
-                        Zamonaviy texnologiyalarni o'rganing, real loyihalar yarating va IT sohasida professional bo'ling.
-                        Tajribali mentorlar + AI yordamchi.
-                    </p>
-                    <div class="hero-buttons">
-                        <a href="{% url 'professions' %}" class="btn-hero-primary">
-                            <i class="bi bi-rocket-takeoff-fill"></i>
-                            Kurslarni ko'rish
-                        </a>
-                        <a href="{% url 'register' %}" class="btn-hero-secondary">
-                            <i class="bi bi-terminal-fill"></i>
-                            Bepul boshlash
-                        </a>
-                    </div>
-                    <div class="hero-stats">
-                        <div class="hero-stat">
-                            <div class="hero-stat-num">{{ total_students|default:"1000" }}+</div>
-                            <div class="hero-stat-label">Talabalar</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-num">{{ total_courses|default:"12" }}</div>
-                            <div class="hero-stat-label">Kurslar</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="hero-stat-num">95%</div>
-                            <div class="hero-stat-label">Mamnunlik</div>
-                        </div>
-                    </div>
-                </div>
+  </div><!-- /db-wrap -->
 
-                <div class="hero-visual">
-                    <div class="hero-code-card">
-                        <!-- IDE Title Bar -->
-                        <div class="code-titlebar">
-                            <div class="code-dots"><span></span><span></span><span></span></div>
-                            <div class="code-tabs">
-                                <div class="code-tab active"><i class="bi bi-filetype-py" style="margin-right:4px;"></i>main.py</div>
-                                <div class="code-tab"><i class="bi bi-filetype-html" style="margin-right:4px;"></i>index.html</div>
-                            </div>
-                        </div>
-
-                        <!-- Code content -->
-                        <div class="code-body">
-                            <div class="code-line"><span class="code-ln">1</span><span class="code-content"><span class="c-keyword">class</span> <span class="c-func">Student</span><span class="c-punct">:</span></span></div>
-                            <div class="code-line"><span class="code-ln">2</span><span class="code-content">    <span class="c-keyword">def</span> <span class="c-func">__init__</span><span class="c-punct">(</span><span class="c-self">self</span><span class="c-punct">,</span> <span class="c-var">name</span><span class="c-punct">):</span></span></div>
-                            <div class="code-line"><span class="code-ln">3</span><span class="code-content">        <span class="c-self">self</span><span class="c-punct">.</span><span class="c-var">name</span> <span class="c-punct">=</span> <span class="c-var">name</span></span></div>
-                            <div class="code-line"><span class="code-ln">4</span><span class="code-content">        <span class="c-self">self</span><span class="c-punct">.</span><span class="c-var">skills</span> <span class="c-punct">=</span> <span class="c-punct">[]</span></span></div>
-                            <div class="code-line"><span class="code-ln">5</span><span class="code-content"></span></div>
-                            <div class="code-line"><span class="code-ln">6</span><span class="code-content">    <span class="c-keyword">def</span> <span class="c-func">learn</span><span class="c-punct">(</span><span class="c-self">self</span><span class="c-punct">,</span> <span class="c-var">topic</span><span class="c-punct">):</span></span></div>
-                            <div class="code-line"><span class="code-ln">7</span><span class="code-content">        <span class="c-self">self</span><span class="c-punct">.</span><span class="c-var">skills</span><span class="c-punct">.</span><span class="c-func">append</span><span class="c-punct">(</span><span class="c-var">topic</span><span class="c-punct">)</span></span></div>
-                            <div class="code-line"><span class="code-ln">8</span><span class="code-content">        <span class="c-keyword">return</span> <span class="c-string">"✅ Learned!"</span></span></div>
-                            <div class="code-line"><span class="code-ln">9</span><span class="code-content"></span></div>
-                            <div class="code-line"><span class="code-ln">10</span><span class="code-content"><span class="c-comment"># Start your journey 🚀</span></span></div>
-                            <div class="code-line"><span class="code-ln">11</span><span class="code-content"><span class="c-var">dev</span> <span class="c-punct">=</span> <span class="c-func">Student</span><span class="c-punct">(</span><span class="c-string">"{{ user.first_name|default:'Siz' }}"</span><span class="c-punct">)</span></span></div>
-                            <div class="code-line"><span class="code-ln">12</span><span class="code-content"><span class="c-var">dev</span><span class="c-punct">.</span><span class="c-func">learn</span><span class="c-punct">(</span><span class="c-string">"Python"</span><span class="c-punct">)</span><span class="typing-cursor"></span></span></div>
-                        </div>
-
-                        <!-- User Section -->
-                        <div class="code-user-section">
-                            <div class="code-user-header">
-                                <div class="code-user-avatar">
-                                    {% if user.photo %}
-                                    <img src="{{ user.photo.url }}" alt="{{ user.get_full_name }}">
-                                    {% else %}
-                                    <i class="bi bi-code-slash"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="code-user-info">
-                                    <h4>{{ user.get_full_name|default:user.username }}</h4>
-                                    <span>{% if user.is_admin %}admin{% elif user.is_teacher %}teacher{% else %}student{% endif %} @ itc-academy</span>
-                                </div>
-                                <div class="code-user-status">online</div>
-                            </div>
-
-                            <div class="code-progress-list">
-                                {% if dashboard_courses %}
-                                    {% for course in dashboard_courses %}
-                                    <div class="code-progress-item">
-                                        <div class="code-progress-top">
-                                            <span class="code-progress-name">{{ course.name }}</span>
-                                            <span class="code-progress-pct clr-{% cycle 'cyan' 'purple' 'green' 'pink' %}">{{ course.progress }}%</span>
-                                        </div>
-                                        <div class="code-progress-bar">
-                                            <div class="code-progress-fill {% cycle 'cyan' 'purple' 'green' 'pink' %}" style="width: {{ course.progress }}%;"></div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                {% elif quick_courses %}
-                                    {% for course in quick_courses %}
-                                    <a href="{% url 'profession_detail' pk=course.pk %}" class="code-quick-link">
-                                        <div class="code-quick-icon {% cycle 'purple' 'cyan' 'pink' %}">
-                                            <i class="bi bi-{% cycle 'braces' 'code-square' 'terminal' %}"></i>
-                                        </div>
-                                        <div>
-                                            <div class="code-quick-name">{{ course.name }}</div>
-                                            <div class="code-quick-sub">{% if user.is_teacher %}teaching{% else %}manage{% endif %}</div>
-                                        </div>
-                                        <i class="bi bi-chevron-right code-quick-arrow"></i>
-                                    </a>
-                                    {% endfor %}
-                                {% else %}
-                                    <div class="code-empty">
-                                        <div class="code-empty-icon"><i class="bi bi-mortarboard-fill"></i></div>
-                                        <div class="code-empty-title">Hali kursga yozilmagansiz</div>
-                                        <p class="code-empty-desc">O'zingizga mos yo'nalishni tanlang</p>
-                                        <a href="{% url 'professions' %}" class="code-empty-btn">
-                                            <i class="bi bi-plus-circle-fill"></i> Kursga yozilish
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="hero-floating-badge top-left">
-                        <i class="bi bi-patch-check-fill" style="color: var(--neon-green);"></i>
-                        <span>Sertifikat oling</span>
-                    </div>
-                    <div class="hero-floating-badge bottom-right">
-                        <i class="bi bi-trophy-fill" style="color: var(--warning);"></i>
-                        <span>Reyting tizimi</span>
-                    </div>
-                </div>
-            </div>
+  <!-- ══════════════════════════════════════
+       FOOTER
+  ══════════════════════════════════════ -->
+  <footer class="db-footer">
+    <div class="db-wrap">
+      <div class="db-footer-grid">
+        <div class="db-footer-brand">
+          <div class="db-footer-logo">
+            <div class="db-footer-logo-badge"><i class="bi bi-code-slash"></i></div>
+            <span>IT Shaharcha</span>
+          </div>
+          <p>Zamonaviy IT ta'lim platformasi. Biz bilan eng qisqa vaqtda professional IT mutaxassisi bo'ling.</p>
+          <div class="db-footer-socials">
+            <a href="https://t.me/IT_Creative" class="db-footer-social-btn" target="_blank"><i class="bi bi-telegram"></i></a>
+            <a href="https://instagram.com/ITC_Zomin" class="db-footer-social-btn" target="_blank"><i class="bi bi-instagram"></i></a>
+            <a href="https://youtube.com/@IT_Creative" class="db-footer-social-btn" target="_blank"><i class="bi bi-youtube"></i></a>
+          </div>
         </div>
-    </section>
-
-    <!-- Mobile dashboard -->
-    <div class="hero-mobile-dashboard">
-        <div class="hero-code-card">
-            <div class="code-titlebar">
-                <div class="code-dots"><span></span><span></span><span></span></div>
-                <div class="code-tabs"><div class="code-tab active"><i class="bi bi-terminal-fill" style="margin-right:4px;"></i>dashboard</div></div>
-            </div>
-            <div class="code-user-section">
-                <div class="code-user-header">
-                    <div class="code-user-avatar">
-                        {% if user.photo %}
-                        <img src="{{ user.photo.url }}" alt="{{ user.get_full_name }}">
-                        {% else %}<i class="bi bi-code-slash"></i>{% endif %}
-                    </div>
-                    <div class="code-user-info">
-                        <h4>{{ user.get_full_name|default:user.username }}</h4>
-                        <span>{% if user.is_admin %}admin{% elif user.is_teacher %}teacher{% else %}student{% endif %}</span>
-                    </div>
-                    <div class="code-user-status">online</div>
-                </div>
-                <div class="code-progress-list">
-                    {% if dashboard_courses %}
-                        {% for course in dashboard_courses %}
-                        <div class="code-progress-item">
-                            <div class="code-progress-top">
-                                <span class="code-progress-name">{{ course.name }}</span>
-                                <span class="code-progress-pct clr-{% cycle 'cyan' 'purple' 'green' %}">{{ course.progress }}%</span>
-                            </div>
-                            <div class="code-progress-bar">
-                                <div class="code-progress-fill {% cycle 'cyan' 'purple' 'green' %}" style="width: {{ course.progress }}%;"></div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% elif quick_courses %}
-                        {% for course in quick_courses %}
-                        <a href="{% url 'profession_detail' pk=course.pk %}" class="code-quick-link">
-                            <div class="code-quick-icon {% cycle 'purple' 'cyan' 'pink' %}"><i class="bi bi-braces"></i></div>
-                            <div><div class="code-quick-name">{{ course.name }}</div></div>
-                            <i class="bi bi-chevron-right code-quick-arrow"></i>
-                        </a>
-                        {% endfor %}
-                    {% else %}
-                        <div class="code-empty">
-                            <div class="code-empty-icon"><i class="bi bi-mortarboard-fill"></i></div>
-                            <div class="code-empty-title">Hali kursga yozilmagansiz</div>
-                            <a href="{% url 'professions' %}" class="code-empty-btn"><i class="bi bi-plus-circle-fill"></i> Kursga yozilish</a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="db-footer-col">
+          <h5>Havolalar</h5>
+          <ul class="db-footer-links">
+            <li><a href="{% url 'professions' %}">Kurslar</a></li>
+            <li><a href="{% url 'leaderboard' %}">Reyting</a></li>
+            <li><a href="{% url 'coin:market_list' %}">Market</a></li>
+            <li><a href="{% url 'games:games_list' %}">O'yinlar</a></li>
+            <li><a href="{% url 'blog:post_list' %}">Blog</a></li>
+          </ul>
         </div>
+        <div class="db-footer-col">
+          <h5>Hisobim</h5>
+          <ul class="db-footer-links">
+            <li><a href="{% url 'profile' %}">Profil</a></li>
+            <li><a href="{% url 'coin:coin_history' %}">Coin tarixi</a></li>
+            <li><a href="{% url 'my_homework_list' %}">Vazifalarim</a></li>
+            <li><a href="{% url 'verify_certificate' %}">Sertifikat</a></li>
+            <li><a href="{% url 'ai_yordamchi:chat_home' %}">AI Yordamchi</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="db-footer-bottom">
+        <p>© 2025 IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</p>
+        <p>❤️ O'zbekistonda yaratildi</p>
+      </div>
     </div>
+  </footer>
+</div><!-- /db -->
 
-    <!-- ====== STATS ====== -->
-    <section class="stats-section">
-        <div class="container-main">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon blue"><i class="bi bi-people-fill"></i></div>
-                    <div class="stat-number">{{ total_students|default:"1000" }}+</div>
-                    <div class="stat-label">Faol talabalar</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon green"><i class="bi bi-book-fill"></i></div>
-                    <div class="stat-number">{{ total_courses|default:"12" }}</div>
-                    <div class="stat-label">Professional kurslar</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon orange"><i class="bi bi-play-btn-fill"></i></div>
-                    <div class="stat-number">{{ total_lessons|default:"500" }}+</div>
-                    <div class="stat-label">Video darslar</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon cyan"><i class="bi bi-cpu-fill"></i></div>
-<div class="stat-number">24</div>
-                    <div class="stat-label">AI yordamchi</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ====== FOOTER ====== -->
-    <footer class="footer">
-        <div class="container-main">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <h3><i class="bi bi-braces-asterisk"></i> IT Shaharcha Zomin</h3>
-                    <p>Zamonaviy IT ta'lim platformasi. Biz bilan eng qisqa vaqtda professional IT mutaxassisi bo'ling.</p>
-                    <div class="footer-social">
-                        <a href="https://t.me/ITC_Zomin" title="Telegram"><i class="bi bi-telegram"></i></a>
-                        <a href="https://instagram.com/IT_Shaharcha_Zomin" title="Instagram"><i class="bi bi-instagram"></i></a>
-                        <a href="https://youtube.com/@It_Creative" title="YouTube"><i class="bi bi-youtube"></i></a>
-                    </div>
-                </div>
-                <div class="footer-col">
-                    <h4>Havolalar</h4>
-                    <ul class="footer-links">
-                        <li><a href="{% url 'professions' %}"><i class="bi bi-chevron-right"></i> Kurslar</a></li>
-                        <li><a href="{% url 'leaderboard' %}"><i class="bi bi-chevron-right"></i> Reyting</a></li>
-                        <li><a href="{% url 'help_page' %}"><i class="bi bi-chevron-right"></i> Yordam</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Kurslar</h4>
-                    <ul class="footer-links">
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Python</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Web dasturlash</a></li>
-                        <li><a href="#"><i class="bi bi-chevron-right"></i> Mobile</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Bog'lanish</h4>
-                    <ul class="footer-links">
-                        <li><a href="https://t.me/ITC_Zomin"><i class="bi bi-telegram"></i> @ITC_Zomin</a></li>
-                        <li><a href="https://instagram.com/IT_Shaharcha_Zomin"><i class="bi bi-instagram"></i> @IT_Shaharcha_Zomin</a></li>
-                        <li><a href="https://youtube.com/@It_Creative"><i class="bi bi-youtube"></i> @It_Creative</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p class="footer-copyright">© 2024-2026 IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</p>
-                <div class="footer-license">
-                    <i class="bi bi-patch-check-fill"></i>
-                    IT Shaharcha Zomin
-                </div>
-            </div>
-        </div>
-    </footer>
-</div>
-
-<!-- Three.js 3D Background -->
+<!-- Three.js particles -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
-    const canvas = document.getElementById('hero3d');
-    if (!canvas) return;
+  var canvas = document.getElementById('dbCanvas');
+  if (!canvas || typeof THREE === 'undefined') return;
+  var renderer = new THREE.WebGLRenderer({canvas:canvas, alpha:true, antialias:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(60,1,.1,1000);
+  camera.position.z = 28;
+  function resize(){
+    var h=canvas.parentElement;
+    renderer.setSize(h.clientWidth, h.clientHeight);
+    camera.aspect = h.clientWidth/h.clientHeight;
+    camera.updateProjectionMatrix();
+  }
+  resize(); window.addEventListener('resize',resize);
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
-    camera.position.z = 30;
-
-    let mouse = { x: 0, y: 0 };
-
-    function resize() {
-        const hero = canvas.parentElement;
-        const w = hero.clientWidth, h = hero.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-    }
-    resize();
-    window.addEventListener('resize', resize);
-
-    // Wireframe shapes
-    const shapes = [];
-    const geos = [
-        new THREE.IcosahedronGeometry(1.8, 0),
-        new THREE.OctahedronGeometry(1.5, 0),
-        new THREE.TetrahedronGeometry(1.4, 0),
-        new THREE.TorusGeometry(1.2, 0.4, 8, 16),
-        new THREE.DodecahedronGeometry(1.3, 0),
-        new THREE.TorusKnotGeometry(1, 0.35, 48, 8),
-    ];
-
-    const colors = [0x6366f1, 0x818cf8, 0x06b6d4, 0xbf5af2, 0x00f0ff, 0xa78bfa];
-
-    for (let i = 0; i < 10; i++) {
-        const geo = geos[i % geos.length];
-        const mat = new THREE.MeshBasicMaterial({
-            color: colors[i % colors.length],
-            wireframe: true,
-            transparent: true,
-            opacity: 0.12 + Math.random() * 0.08,
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(
-            (Math.random() - 0.5) * 50,
-            (Math.random() - 0.5) * 30,
-            (Math.random() - 0.5) * 20 - 5
-        );
-        mesh.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
-        mesh.userData = {
-            rotSpeed: { x: (Math.random() - 0.5) * 0.008, y: (Math.random() - 0.5) * 0.008 },
-            floatSpeed: 0.3 + Math.random() * 0.5,
-            floatAmp: 0.5 + Math.random() * 1,
-            baseY: mesh.position.y,
-        };
-        shapes.push(mesh);
-        scene.add(mesh);
-    }
-
-    // Particles
-    const particleCount = 800;
-    const pGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    for (let i = 0; i < particleCount * 3; i += 3) {
-        positions[i] = (Math.random() - 0.5) * 60;
-        positions[i + 1] = (Math.random() - 0.5) * 40;
-        positions[i + 2] = (Math.random() - 0.5) * 30 - 5;
-    }
-    pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const pMat = new THREE.PointsMaterial({ color: 0x818cf8, size: 0.08, transparent: true, opacity: 0.4 });
-    const particles = new THREE.Points(pGeo, pMat);
-    scene.add(particles);
-
-    // Grid plane
-    const gridGeo = new THREE.PlaneGeometry(80, 80, 40, 40);
-    const gridMat = new THREE.MeshBasicMaterial({ color: 0x6366f1, wireframe: true, transparent: true, opacity: 0.03 });
-    const grid = new THREE.Mesh(gridGeo, gridMat);
-    grid.rotation.x = -Math.PI / 2.5;
-    grid.position.y = -12;
-    grid.position.z = -10;
-    scene.add(grid);
-
-    // Mouse tracking
-    document.addEventListener('mousemove', e => {
-        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    });
-
-    // Animation
-    let time = 0;
-    function animate() {
-        requestAnimationFrame(animate);
-        time += 0.01;
-
-        shapes.forEach(s => {
-            s.rotation.x += s.userData.rotSpeed.x;
-            s.rotation.y += s.userData.rotSpeed.y;
-            s.position.y = s.userData.baseY + Math.sin(time * s.userData.floatSpeed) * s.userData.floatAmp;
-        });
-
-        particles.rotation.y += 0.0003;
-        particles.rotation.x += 0.0001;
-
-        // Parallax
-        camera.position.x += (mouse.x * 2 - camera.position.x) * 0.02;
-        camera.position.y += (mouse.y * 1.5 - camera.position.y) * 0.02;
-        camera.lookAt(scene.position);
-
-        renderer.render(scene, camera);
-    }
-    animate();
+  var shapes=[], colors=[0x6366f1,0x8b5cf6,0x06b6d4,0x818cf8,0xa78bfa];
+  var geos=[new THREE.IcosahedronGeometry(1.5,0),new THREE.OctahedronGeometry(1.2,0),new THREE.TetrahedronGeometry(1.3,0),new THREE.TorusGeometry(1,0.35,8,12)];
+  for(var i=0;i<8;i++){
+    var m=new THREE.MeshBasicMaterial({color:colors[i%colors.length],wireframe:true,transparent:true,opacity:.08+Math.random()*.07});
+    var s=new THREE.Mesh(geos[i%geos.length],m);
+    s.position.set((Math.random()-.5)*40,(Math.random()-.5)*24,(Math.random()-.5)*15-5);
+    s.userData={rx:(Math.random()-.5)*.007,ry:(Math.random()-.5)*.007,fs:.3+Math.random()*.5,fa:.4+Math.random()*.8,by:s.position.y};
+    shapes.push(s); scene.add(s);
+  }
+  var pg=new THREE.BufferGeometry(), pa=new Float32Array(600*3);
+  for(var i=0;i<600*3;i+=3){pa[i]=(Math.random()-.5)*50;pa[i+1]=(Math.random()-.5)*30;pa[i+2]=(Math.random()-.5)*20-5;}
+  pg.setAttribute('position',new THREE.BufferAttribute(pa,3));
+  scene.add(new THREE.Points(pg,new THREE.PointsMaterial({color:0x818cf8,size:.07,transparent:true,opacity:.3})));
+  var mouse={x:0,y:0};
+  document.addEventListener('mousemove',function(e){mouse.x=(e.clientX/window.innerWidth)*2-1;mouse.y=-(e.clientY/window.innerHeight)*2+1;});
+  var t=0;
+  (function animate(){requestAnimationFrame(animate);t+=.012;
+    shapes.forEach(function(s){s.rotation.x+=s.userData.rx;s.rotation.y+=s.userData.ry;s.position.y=s.userData.by+Math.sin(t*s.userData.fs)*s.userData.fa;});
+    camera.position.x+=(mouse.x*1.5-camera.position.x)*.02;
+    camera.position.y+=(mouse.y*1-camera.position.y)*.02;
+    camera.lookAt(scene.position);renderer.render(scene,camera);
+  })();
 })();
 </script>
 
 <script>
-// Scroll animations
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-        if (e.isIntersecting) {
-            e.target.style.opacity = '1';
-            e.target.style.transform = 'translateY(0)';
-        }
-    });
-}, { threshold: 0.1 });
+// Time greeting
+(function(){
+  var h=new Date().getHours();
+  var el=document.getElementById('db-time-label');
+  if(!el)return;
+  if(h<5)el.textContent='Tungi ish 🌙';
+  else if(h<12)el.textContent='Xayrli tong ☀️';
+  else if(h<17)el.textContent='Xayrli kun 🌤️';
+  else if(h<21)el.textContent='Xayrli kech 🌆';
+  else el.textContent='Kechqurun 🌙';
+})();
 
-document.querySelectorAll('.stat-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(24px)';
-    el.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-    observer.observe(el);
-});
+// Scroll reveal
+var dbObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('vis');dbObs.unobserve(e.target);}});
+},{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.db-reveal').forEach(function(el){dbObs.observe(el);});
 
 // Counter animation
-function animateCounter(el, target) {
-    let current = 0;
-    const increment = target / 40;
-    const timer = setInterval(() => {
-        current += increment;
-        if (current >= target) {
-            el.textContent = target + (el.dataset.suffix || '');
-            clearInterval(timer);
-        } else {
-            el.textContent = Math.floor(current) + (el.dataset.suffix || '');
-        }
-    }, 30);
-}
+var countObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      e.target.querySelectorAll('[data-count]').forEach(function(el){
+        var target=parseInt(el.dataset.count)||0;
+        if(!target||el.dataset.done)return;
+        el.dataset.done='1';
+        var start=0,dur=1600,step=16,inc=target/(dur/step);
+        var t=setInterval(function(){start=Math.min(start+inc,target);el.textContent=Math.floor(start)+(target>99?'+':'');if(start>=target)clearInterval(t);},step);
+      });
+    }
+  });
+},{threshold:.4});
+document.querySelectorAll('.db-float-row').forEach(function(el){countObs.observe(el);});
 
-const statsObserver = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-        if (e.isIntersecting) {
-            e.target.querySelectorAll('.stat-number').forEach(n => {
-                const text = n.textContent;
-                const num = parseInt(text.replace(/\D/g, ''));
-                if (num && !n.dataset.animated) {
-                    n.dataset.suffix = text.includes('+') ? '+' : '';
-                    n.dataset.animated = 'true';
-                    animateCounter(n, num);
-                }
-            });
-        }
-    });
-}, { threshold: 0.5 });
+// Streak days
+(function(){
+  var el=document.getElementById('streakDays');
+  if(!el)return;
+  var days=['D','S','Ch','P','J','Sh','Y'];
+  var today=new Date().getDay();
+  var html='';
+  days.forEach(function(d,i){
+    var cls=i<today?'done':i===today?'today':'';
+    html+='<div class="db-streak-day '+cls+'">'+d+'</div>';
+  });
+  el.innerHTML=html;
+})();
 
-document.querySelectorAll('.stats-section').forEach(s => statsObserver.observe(s));
+// Activity grid
+(function(){
+  var el=document.getElementById('activityGrid');
+  if(!el)return;
+  var html='';
+  for(var i=0;i<28;i++){
+    var r=Math.random();
+    var l=r>.8?'l4':r>.6?'l3':r>.4?'l2':r>.2?'l1':'';
+    html+='<div class="db-act-cell '+l+'" title="'+Math.floor(r*5)+' ta faollik"></div>';
+  }
+  el.innerHTML=html;
+})();
 </script>
+
 {% endblock %}

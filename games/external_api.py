@@ -34,6 +34,10 @@ LAUNCH_TOKEN_TTL = 60 * 30  # 30 daqiqa
 # Replay attack himoyasi uchun used nonce cache prefiksi
 NONCE_CACHE_PREFIX = 'ext_game_used_nonce:'
 
+# Coin tikib o'ynalganda g'oliblikdan ushlab qolinadigan xizmat haqi (foizda).
+# Har bir o'yin uchun config.service_fee_percent orqali o'zgartirilishi mumkin.
+SERVICE_FEE_PERCENT = 15
+
 
 def _get_secret(game: Game) -> bytes:
     """O'yin uchun HMAC kalit. Game.config'da 'secret' bo'lsa undan, aks holda
@@ -211,6 +215,7 @@ def verify(request):
             'min_wager': int(cfg.get('min_wager', 5)),
             'max_wager': int(cfg.get('max_wager', 5000)),
             'ai_coin_rewards': cfg.get('ai_coin_rewards') or {'easy': 25, 'medium': 35, 'hard': 50},
+            'service_fee_percent': int(cfg.get('service_fee_percent', SERVICE_FEE_PERCENT)),
         },
         'competition': competition_info,
         'exp': payload['exp'],
@@ -540,11 +545,6 @@ def mp_find(request):
         wager = int(data.get('wager', 0))
     except (TypeError, ValueError):
         wager = 0
-    # Shashka (checkers)da coin rejimi taqiqlangan — coin umuman berilmaydi
-    engine = str((game.config or {}).get('engine', '')).lower()
-    if engine == 'checkers':
-        mode = 'casual'
-        wager = 0
     if mode != 'coin':
         wager = 0
     if wager < 0:
@@ -820,13 +820,18 @@ def _save_mp_attempts(match: BoardMatch):
     coin_delta = {'white': 0, 'black': 0}
     if match.mode == 'coin' and match.wager_coins > 0:
         wager = match.wager_coins
+        pot = wager * 2
+        # Xizmat haqi (service fee): g'oliblikdan ushlab qolinadi (default 15%)
+        fee_percent = int((match.game.config or {}).get('service_fee_percent', SERVICE_FEE_PERCENT))
+        fee = (pot * fee_percent) // 100
+        payout = pot - fee  # g'olibga beriladigan summa (o'z tikilishi + yutuq - xizmat haqi)
         if match.winner == 'white':
-            # Black'ning tikilishi white'ga o'tadi (white o'zinikini ham qaytarib oladi)
-            match.white_player.add_coins(wager * 2, f"Match #{match.id} g'olibi (tikilish: {wager})")
-            coin_delta = {'white': +wager, 'black': -wager}
+            # Black'ning tikilishi white'ga o'tadi, lekin {fee_percent}% xizmat haqi ushlab qolinadi
+            match.white_player.add_coins(payout, f"Match #{match.id} g'olibi (tikilish: {wager}, xizmat haqi {fee_percent}%: -{fee})")
+            coin_delta = {'white': payout - wager, 'black': -wager}
         elif match.winner == 'black':
-            match.black_player.add_coins(wager * 2, f"Match #{match.id} g'olibi (tikilish: {wager})")
-            coin_delta = {'white': -wager, 'black': +wager}
+            match.black_player.add_coins(payout, f"Match #{match.id} g'olibi (tikilish: {wager}, xizmat haqi {fee_percent}%: -{fee})")
+            coin_delta = {'white': -wager, 'black': payout - wager}
         else:
             # Durang yoki abandoned — ikkalasiga qaytariladi
             match.white_player.add_coins(wager, f"Match #{match.id} durang — tikilish qaytarildi")

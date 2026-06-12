@@ -98,6 +98,26 @@
                     <span class="stat-label">Eng yuqori ball</span>
                 </div>
             </div>
+
+            <!-- ============ TEMA TANLASH ============ -->
+            <div class="theme-picker">
+                <span class="theme-picker-label"><i class="bi bi-palette-fill"></i> Dizayn:</span>
+                <button class="theme-swatch active" data-theme="navy" aria-label="Royal Navy">
+                    <span class="theme-swatch-tip">🔵 Royal Navy</span>
+                </button>
+                <button class="theme-swatch" data-theme="classic" aria-label="Classic Wood">
+                    <span class="theme-swatch-tip">🟤 Klassik</span>
+                </button>
+                <button class="theme-swatch" data-theme="emerald" aria-label="Emerald">
+                    <span class="theme-swatch-tip">🟢 Emerald</span>
+                </button>
+                <button class="theme-swatch" data-theme="slate" aria-label="Slate">
+                    <span class="theme-swatch-tip">⚫ Slate</span>
+                </button>
+                <button class="theme-swatch" data-theme="crimson" aria-label="Crimson">
+                    <span class="theme-swatch-tip">🔴 Crimson</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -198,6 +218,13 @@
             <button class="ghost-btn wager-preset" data-amount="100">100</button>
         </div>
         <input type="number" id="wager-input" min="1" placeholder="Yoki o'zingiz kiriting..." style="width:100%; padding:12px; margin:12px 0; border-radius:8px; border:1px solid #4b5563; background:#1f2937; color:#fff; font-size:1.1em; text-align:center;">
+        <!-- 15% xizmat haqi hisob-kitobi -->
+        <div id="wager-fee-info" class="wager-fee-box" style="display:none;">
+            <div class="fee-row"><span>Jami bank:</span><span id="fee-pot">—</span></div>
+            <div class="fee-row fee-highlight"><span>✂️ Xizmat haqi (15%):</span><span id="fee-amount" style="color:#f87171;">—</span></div>
+            <div class="fee-row fee-win"><span>🏆 G'olib oladi:</span><span id="fee-payout" style="color:#4ade80; font-weight:700;">—</span></div>
+            <div class="fee-row fee-net"><span>📈 Sof yutuq:</span><span id="fee-net" style="color:#c084fc;">—</span></div>
+        </div>
         <div class="modal-actions">
             <button class="primary-btn" id="wager-confirm"><i class="bi bi-check-lg"></i> Tikish</button>
             <button class="ghost-btn" id="wager-cancel">Bekor</button>
@@ -224,46 +251,4 @@
         <div class="modal-icon"><i class="bi bi-star-fill"></i></div>
         <h3>Piyodani aylantiring</h3>
         <p>Qaysi figuraga aylantirmoqchisiz?</p>
-        <div class="promo-choices" id="promo-choices"></div>
-    </div>
-</div>
-
-<!-- ============== RESULT SCREEN ============== -->
-<div id="result-screen" class="screen hidden">
-    <div class="result-bg" id="result-bg"></div>
-    <div class="card result-card">
-        <div class="result-emoji" id="result-emoji"><i class="bi bi-trophy-fill"></i></div>
-        <h1 id="result-title">G'alaba!</h1>
-        <p id="result-subtitle">Ajoyib o'yin!</p>
-
-        <div class="result-stats-grid">
-            <div class="result-stat">
-                <div class="rs-icon"><i class="bi bi-bullseye"></i></div>
-                <div class="rs-value" id="result-score">0</div>
-                <div class="rs-label">Ball</div>
-            </div>
-            <div class="result-stat">
-                <div class="rs-icon"><i class="bi bi-stopwatch"></i></div>
-                <div class="rs-value" id="result-time">0s</div>
-                <div class="rs-label">Vaqt</div>
-            </div>
-            <div class="result-stat">
-                <div class="rs-icon"><i class="bi bi-controller"></i></div>
-                <div class="rs-value" id="result-moves">0</div>
-                <div class="rs-label">Yurishlar</div>
-            </div>
-        </div>
-
-        <div id="submit-status" class="submit-status"><i class="bi bi-broadcast"></i> Natija LMS'ga yuborilmoqda...</div>
-
-        <div class="result-actions">
-            <button class="primary-btn" id="btn-play-again"><i class="bi bi-arrow-clockwise"></i> Yana o'ynash</button>
-            <button class="ghost-btn" id="btn-result-menu"><i class="bi bi-list"></i> Menyuga</button>
-            <a class="ghost-btn" id="btn-back" href="#" target="_top"><i class="bi bi-arrow-left-circle"></i> O'yinlarga</a>
-        </div>
-    </div>
-</div>
-
-<script src="app.js?v=8"></script>
-</body>
-</html>
+        <div class="promo-choices

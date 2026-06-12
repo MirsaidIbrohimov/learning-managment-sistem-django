@@ -21,6 +21,33 @@ const URLS = {
 
 let LMS_USER = null;
 
+// ============== TEMA TIZIMI ==============
+const THEME_KEY = 'shaxmat_theme';
+const THEMES = ['navy', 'classic', 'emerald', 'slate', 'crimson'];
+
+function applyTheme(theme) {
+    if (!THEMES.includes(theme)) theme = 'navy';
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === theme);
+    });
+}
+
+function initThemePicker() {
+    const saved = localStorage.getItem(THEME_KEY) || 'navy';
+    applyTheme(saved);
+    document.querySelectorAll('.theme-swatch').forEach(btn => {
+        btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
+    });
+}
+
+// Sahifa yuklanganda darhol tema qo'llanilsin (flash oldini olish)
+(function() {
+    const t = localStorage.getItem(THEME_KEY) || 'navy';
+    document.body.setAttribute('data-theme', t);
+})();
+
 const $ = (id) => document.getElementById(id);
 
 const screens = {
@@ -41,6 +68,7 @@ let DIFFICULTY = 'medium';
 let PLAYER_COLOR = 'white';
 let MP_MODE = 'casual';
 let MP_WAGER = 0;
+let SERVICE_FEE_PCT = 15;   // coin tikilganda g'oliblikdan ushlanadigan xizmat haqi (%)
 let OPPONENT = { name: 'AI', meta: 'Kompyuter' };
 let MATCH_ID = null;
 let COMP_INFO = null;     // musobaqa urinishlari holati
@@ -158,6 +186,7 @@ async function authenticate() {
         const data = await res.json();
         if (!res.ok || !data.ok) return showAuthError('<i class="bi bi-x-octagon-fill"></i> Auth xatosi: ' + (data.error || ''));
         LMS_USER = data.user;
+        if (data.game && data.game.service_fee_percent != null) SERVICE_FEE_PCT = data.game.service_fee_percent;
         renderUserHeader();
         // Musobaqa rejimi: avtomatik AI Qiyin bilan boshlanadi
         if (COMPETITION_ID) {
@@ -172,6 +201,7 @@ async function authenticate() {
             startGame();
         } else {
             showScreen('menu');
+            initThemePicker();
         }
     } catch (e) { showAuthError('<i class="bi bi-wifi-off"></i> Tarmoq xatosi: ' + e.message); }
 }
@@ -250,10 +280,30 @@ function askWager() {
         const modal = $('wager-modal');
         const input = $('wager-input');
         $('wager-balance').textContent = (LMS_USER && LMS_USER.coins != null) ? LMS_USER.coins : '—';
-        input.value = '';
         modal.classList.remove('hidden');
         const presets = document.querySelectorAll('.wager-preset');
-        presets.forEach(b => b.onclick = () => { input.value = b.dataset.amount; });
+
+        // 15% xizmat haqi hisob-kitobini ko'rsatuvchi funksiya
+        function updateFeeInfo() {
+            const n = parseInt(input.value, 10);
+            const feeBox = $('wager-fee-info');
+            if (!n || n < 1) { feeBox.style.display = 'none'; return; }
+            const pot = n * 2;
+            const fee = Math.floor(pot * SERVICE_FEE_PCT / 100);
+            const payout = pot - fee;
+            const netWin = payout - n;
+            $('fee-pot').textContent = pot + ' coin';
+            $('fee-amount').textContent = '-' + fee + ' coin';
+            $('fee-payout').textContent = payout + ' coin';
+            $('fee-net').textContent = '+' + netWin + ' coin sof yutuq';
+            feeBox.style.display = 'block';
+        }
+
+        presets.forEach(b => b.onclick = () => { input.value = b.dataset.amount; updateFeeInfo(); });
+        input.oninput = updateFeeInfo;
+        $('wager-fee-info').style.display = 'none';
+        input.value = '';
+
         const cleanup = (v) => {
             modal.classList.add('hidden');
             $('wager-confirm').onclick = null;
@@ -496,26 +546,65 @@ function pseudoMoves(b, r, c, epTarget) {
 }
 
 function squareAttacked(b, r, c, byColor) {
-    // Generate pseudo-moves for byColor and check if any targets (r,c)
-    for (let rr = 0; rr < 8; rr++) {
-        for (let cc = 0; cc < 8; cc++) {
-            const pc = b[rr][cc];
-            if (!pc || pc.color !== byColor) continue;
-            // For king attacks ignore castling (recursive risk) — only king step attacks
-            if (pc.type === 'k') {
-                for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]])
-                    if (rr+dr === r && cc+dc === c) return true;
-                continue;
-            }
-            if (pc.type === 'p') {
-                const dir = byColor === 'white' ? -1 : 1;
-                if (rr + dir === r && (cc - 1 === c || cc + 1 === c)) return true;
-                continue;
-            }
-            const moves = pseudoMoves(b, rr, cc, null);
-            if (moves.some(m => m.to.r === r && m.to.c === c)) return true;
+    // Tezkor "hujum ostidami?" tekshiruvi: har bir donadan to'g'ridan-to'g'ri
+    // nurlar (ray) bo'yicha, pseudoMoves generatsiyasisiz. Bu eng issiq funksiya,
+    // tezligi AI ning chuqurroq qidirishiga bevosita ta'sir qiladi.
+
+    // --- Piyoda hujumi ---
+    const pawnRow = byColor === 'white' ? r + 1 : r - 1;
+    if (pawnRow >= 0 && pawnRow < 8) {
+        for (const dc of [-1, 1]) {
+            const pcc = c + dc;
+            if (pcc < 0 || pcc > 7) continue;
+            const t = b[pawnRow][pcc];
+            if (t && t.color === byColor && t.type === 'p') return true;
         }
     }
+
+    // --- Ot (knight) hujumi ---
+    const KN = [[1,2],[2,1],[-1,2],[2,-1],[-1,-2],[-2,-1],[1,-2],[-2,1]];
+    for (const [dr, dc] of KN) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr > 7 || nc < 0 || nc > 7) continue;
+        const t = b[nr][nc];
+        if (t && t.color === byColor && t.type === 'n') return true;
+    }
+
+    // --- Shoh (king) hujumi ---
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        if (!dr && !dc) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr > 7 || nc < 0 || nc > 7) continue;
+        const t = b[nr][nc];
+        if (t && t.color === byColor && t.type === 'k') return true;
+    }
+
+    // --- Diagonal nurlar: fil (bishop) yoki farzin (queen) ---
+    for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
+        let nr = r + dr, nc = c + dc;
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            const t = b[nr][nc];
+            if (t) {
+                if (t.color === byColor && (t.type === 'b' || t.type === 'q')) return true;
+                break;
+            }
+            nr += dr; nc += dc;
+        }
+    }
+
+    // --- To'g'ri nurlar: rux (rook) yoki farzin (queen) ---
+    for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+        let nr = r + dr, nc = c + dc;
+        while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+            const t = b[nr][nc];
+            if (t) {
+                if (t.color === byColor && (t.type === 'r' || t.type === 'q')) return true;
+                break;
+            }
+            nr += dr; nc += dc;
+        }
+    }
+
     return false;
 }
 
@@ -946,30 +1035,23 @@ function aiMove() {
     let chosen;
 
     if (DIFFICULTY === 'easy') {
-        // 70% tasodifiy, 30% greedy — yangi o'yinchi ham yutishi mumkin
-        if (Math.random() < 0.70) {
-            chosen = moves[Math.floor(Math.random() * moves.length)];
-        } else {
-            const sign = color === 'white' ? 1 : -1;
-            let best = -Infinity;
-            for (const m of moves) {
-                const e = sign * evaluate(simulateMove(board, m));
-                if (e > best) { best = e; chosen = m; }
-            }
-        }
+        // Oson: sayoz qidiruv (chuqurlik 2) + qisqa quiescence.
+        // Dona behuda berib qo'ymaydi, lekin keng window tufayli bir nechta
+        // maqbul yurishdan tasodifiy tanlaydi (yangi o'yinchi yutishi mumkin).
+        _qSearchDepth = 2;
+        const cfg = { maxDepth: 2, timeMs: 700, window: 60 };
+        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
+    } else if (DIFFICULTY === 'medium') {
+        // O'rta: kuchli klub darajasi (chuqurlik 8, 3.5s, quiescence 6).
+        _qSearchDepth = 6;
+        const cfg = { maxDepth: 8, timeMs: 3500, window: 0 };
+        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
     } else {
-        // medium/hard: iterative deepening alpha-beta + quiescence
-        if (DIFFICULTY === 'medium') {
-            _qSearchDepth = 4;
-            const cfg = { maxDepth: 5, timeMs: 2000, window: 3 };
-            chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
-        } else {
-            // hard: professional darajadagi kuch
-            // TT + killers + null-move + depth 12 + quiescence 8 = deyarli yengilmas
-            _qSearchDepth = 8;
-            const cfg = { maxDepth: 12, timeMs: 8000, window: 0 };
-            chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
-        }
+        // Qiyin: professional kuch (chuqurlik 22, vaqt bilan cheklangan, 9s, quiescence 10).
+        // TT + killers + null-move bilan deyarli yengilmas.
+        _qSearchDepth = 10;
+        const cfg = { maxDepth: 22, timeMs: 9000, window: 0 };
+        chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
     }
 
     if (chosen.promotion) chosen.promoTo = 'q';
@@ -1063,7 +1145,10 @@ function endGame(winner) {
         $('submit-status').className = 'submit-status success';
         let coinMsg = '';
         if (MP_MODE === 'coin' && MP_WAGER > 0) {
-            if (result === 'win')       coinMsg = `  +${MP_WAGER} coin (yutuq)`;
+            const pot = MP_WAGER * 2;
+            const fee = Math.floor(pot * SERVICE_FEE_PCT / 100);
+            const netWin = pot - fee - MP_WAGER;   // xizmat haqidan keyingi sof yutuq
+            if (result === 'win')       coinMsg = `  +${netWin} coin (yutuq, ${SERVICE_FEE_PCT}% xizmat haqi: -${fee})`;
             else if (result === 'lose') coinMsg = `  -${MP_WAGER} coin (tikilish yo'qoldi)`;
             else                        coinMsg = `  ${MP_WAGER} coin qaytarildi (durang)`;
         }
@@ -1318,158 +1403,6 @@ async function sendMpMove(winner = null) {
             body: JSON.stringify({
                 token: TOKEN, game: GAME, match_id: MATCH_ID,
                 board: board,
-                last_move: { ...last, notation },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-    } catch (e) {}
-    return null;
-}
-
-// ============== INIT ==============
-authenticate();
-                    clearInterval(mmPoll);
-                    clearInterval(mmInterval);
-                    const opp = PLAYER_COLOR === 'white' ? data.match.black_player : data.match.white_player;
-                    OPPONENT = { name: opp.name, meta: '@' + opp.username };
-                    startGame(data.match.board);
-                }
-            } catch (e) {}
-        } else tryFind();
-    }, 3000);
-}
-
-function cancelMatchmaking() {
-    clearInterval(mmInterval);
-    if (MATCH_ID) {
-        fetch(URLS.mpResign, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
-        }).catch(()=>{});
-        MATCH_ID = null;
-    }
-    showScreen('menu');
-}
-
-// ============== END-GAME 30s PAUSE OVERLAY ==============
-let _endPauseStarted = false;
-let _endPauseTimer = null;
-function scheduleEndGameDisplay(winner, seconds = 30) {
-    if (resultSubmitted || _endPauseStarted) return;
-    _endPauseStarted = true;
-    selected = null; possibleMoves = [];
-    if (pollInterval) clearInterval(pollInterval);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'end-pause-overlay';
-    overlay.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.95);color:#fff;padding:0.85rem 1.2rem;border-radius:14px;z-index:9999;backdrop-filter:blur(12px);display:flex;align-items:center;gap:0.85rem;box-shadow:0 12px 32px rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;max-width:92vw;';
-    let remaining = seconds;
-    const isWin = winner === PLAYER_COLOR;
-    const isDraw = winner === 'draw';
-    const wIcon = isWin ? 'bi-trophy-fill' : (isDraw ? 'bi-handshake' : 'bi-emoji-frown');
-    const wColor = isWin ? '#10b981' : (isDraw ? '#f59e0b' : '#ef4444');
-    overlay.innerHTML = `
-        <i class="bi ${wIcon}" style="color:${wColor};font-size:1.4rem"></i>
-        <div style="line-height:1.3">
-            <div style="font-weight:700;font-size:0.95rem">O'yin tugadi</div>
-            <div style="font-size:0.78rem;opacity:0.85">Oxirgi yurishni ko'rib chiqing — <span id="end-pause-timer">${remaining}</span>s</div>
-        </div>
-        <button id="end-pause-skip" style="background:#6366f1;border:0;color:#fff;padding:0.5rem 0.85rem;border-radius:10px;cursor:pointer;font-weight:600;font-size:0.82rem;white-space:nowrap">
-            <i class="bi bi-fast-forward-fill"></i> O'tkazib yuborish
-        </button>`;
-    document.body.appendChild(overlay);
-
-    const timerEl = overlay.querySelector('#end-pause-timer');
-    const finalize = () => {
-        if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
-        if (overlay.parentNode) overlay.remove();
-        endGame(winner);
-    };
-    _endPauseTimer = setInterval(() => {
-        remaining--;
-        if (timerEl) timerEl.textContent = remaining;
-        if (remaining <= 0) finalize();
-    }, 1000);
-    overlay.querySelector('#end-pause-skip').onclick = finalize;
-}
-
-async function pollMatchState() {
-    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
-    try {
-        const res = await fetch(URLS.mpState, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
-        });
-        const data = await res.json();
-        if (!data.ok) return;
-        const m = data.match;
-        const hasNewMove = m.move_count > lastSeenMoveCount;
-        const isEnded = m.status === 'ended';
-        if (hasNewMove || isEnded) {
-            board = m.board;
-            currentTurn = m.current_turn;
-            if (hasNewMove && m.last_move?.notation) {
-                const li = document.createElement('li');
-                li.classList.add('opp');
-                li.textContent = m.last_move.notation;
-                $('moves-list').appendChild(li);
-                $('moves-list').scrollTop = $('moves-list').scrollHeight;
-                moveHistory.push({ ...m.last_move });
-            }
-            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
-            enPassantTarget = null;
-            selected = null;
-            possibleMoves = [];
-            renderBoard();
-            updateTurnUI();
-        }
-        if (isEnded) {
-            requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
-        }
-    } catch (e) {}
-}
-
-async function sendMpMove(winner = null) {
-    if (!MATCH_ID) return null;
-    const last = moveHistory[moveHistory.length - 1];
-    const file = ['a','b','c','d','e','f','g','h'];
-    const sym = last.color === 'white' ? 'O' : 'X';
-    const pieceLetter = last.piece === 'p' ? '' : last.piece.toUpperCase();
-    let notation;
-    if (last.castle) notation = (last.color === 'white' ? 'O: ' : 'X: ') + (last.castle === 'k' ? 'O-O' : 'O-O-O');
-    else notation = `${sym} ${pieceLetter}${file[last.from.c]}${8-last.from.r}${last.capture ? 'x' : '-'}${file[last.to.c]}${8-last.to.r}${last.promotion ? '='+(last.promoTo||'q').toUpperCase() : ''}`;
-
-    try {
-        const res = await fetch(URLS.mpMove, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({
-                token: TOKEN, game: GAME, match_id: MATCH_ID,
-                board: board,
-                last_move: { ...last, notation },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-    } catch (e) {}
-    return null;
-}
-
-// ============== INIT ==============
-authenticate();
-
                 last_move: { ...last, notation },
                 game_over: !!winner,
                 winner: winner || null,

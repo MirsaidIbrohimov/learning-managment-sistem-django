@@ -1,128 +1,137 @@
 /* Shaxmat — shashka style.css'ni qayta ishlatadi, faqat o'ziga xos qismlar */
 
-/* Chess board ranglari — klassik issiq palitra */
-#board .cell.light {
-    background: linear-gradient(135deg, #f5e6c5, #e8d4a8);
-}
-#board .cell.dark {
-    background: linear-gradient(135deg, #a67d5a, #8b6443);
+/* =====================================================
+ * SHAXMAT — 5 ta tanlash mumkin dizayn (tema)
+ * Tema body[data-theme="X"] orqali belgilanadi
+ * ===================================================== */
+
+/* ---- 1. NAVY (Royal Navy & Ivory) — standart ---- */
+:root, body[data-theme="navy"] {
+    --bg-1: #0c0e1a;
+    --bg-2: #111427;
+    --bg-3: #080b18;
+    --accent: #818cf8;
+    --accent-2: #c084fc;
+    --accent-3: #f472b6;
+    --board-light: #f0ede0;
+    --board-dark: #3730a3;
+    --board-dark-hover: #4338ca;
+    --board-frame-1: #1e1b4b;
+    --board-frame-ring: #c9a227;
+    --selected-bg: linear-gradient(135deg,#c9a227,#f5cc4e);
+    --last-move-glow: rgba(201,162,39,0.8);
+    --hint-color: rgba(99,202,143,0.9);
+    --menu-glow-1: rgba(129,140,248,0.2);
+    --menu-glow-2: rgba(192,132,252,0.2);
 }
 
-/* Donachalar uchun maxsus wrapper (shashka piece styling'ni override qilamiz) */
+/* ---- 2. CLASSIC (Klassik Yog'och) ---- */
+body[data-theme="classic"] {
+    --bg-1: #1a0e05;
+    --bg-2: #2d1a0a;
+    --bg-3: #120a02;
+    --accent: #d97706;
+    --accent-2: #f59e0b;
+    --accent-3: #fcd34d;
+    --board-light: #f0d9b5;
+    --board-dark: #b58863;
+    --board-dark-hover: #c9a076;
+    --board-frame-1: #5c3a1e;
+    --board-frame-ring: #c9a227;
+    --selected-bg: linear-gradient(135deg,#fbbf24,#f59e0b);
+    --last-move-glow: rgba(245,158,11,0.8);
+    --hint-color: rgba(132,204,22,0.9);
+    --menu-glow-1: rgba(217,119,6,0.2);
+    --menu-glow-2: rgba(180,83,9,0.2);
+}
+
+/* ---- 3. EMERALD (Yashil Izza) ---- */
+body[data-theme="emerald"] {
+    --bg-1: #0d1f1a;
+    --bg-2: #0f2d24;
+    --bg-3: #071a14;
+    --accent: #10b981;
+    --accent-2: #34d399;
+    --accent-3: #6ee7b7;
+    --board-light: #d4f5e4;
+    --board-dark: #1a6641;
+    --board-dark-hover: #237a4e;
+    --board-frame-1: #0a3d26;
+    --board-frame-ring: #c9a227;
+    --selected-bg: linear-gradient(135deg,#c9a227,#f5cc4e);
+    --last-move-glow: rgba(16,185,129,0.8);
+    --hint-color: rgba(52,211,153,0.9);
+    --menu-glow-1: rgba(16,185,129,0.2);
+    --menu-glow-2: rgba(5,150,105,0.2);
+}
+
+/* ---- 4. SLATE (Zamonaviy Kulrang) ---- */
+body[data-theme="slate"] {
+    --bg-1: #0f172a;
+    --bg-2: #1e293b;
+    --bg-3: #0a0f1e;
+    --accent: #64748b;
+    --accent-2: #94a3b8;
+    --accent-3: #cbd5e1;
+    --board-light: #f8fafc;
+    --board-dark: #334155;
+    --board-dark-hover: #475569;
+    --board-frame-1: #1e293b;
+    --board-frame-ring: #64748b;
+    --selected-bg: linear-gradient(135deg,#f59e0b,#d97706);
+    --last-move-glow: rgba(148,163,184,0.8);
+    --hint-color: rgba(52,211,153,0.9);
+    --menu-glow-1: rgba(100,116,139,0.2);
+    --menu-glow-2: rgba(71,85,105,0.2);
+}
+
+/* ---- 5. CRIMSON (Qirmizi Shoh) ---- */
+body[data-theme="crimson"] {
+    --bg-1: #1a0007;
+    --bg-2: #2d0010;
+    --bg-3: #0f0003;
+    --accent: #f43f5e;
+    --accent-2: #fb7185;
+    --accent-3: #fda4af;
+    --board-light: #fff1f2;
+    --board-dark: #9f1239;
+    --board-dark-hover: #be123c;
+    --board-frame-1: #500724;
+    --board-frame-ring: #f43f5e;
+    --selected-bg: linear-gradient(135deg,#f59e0b,#d97706);
+    --last-move-glow: rgba(244,63,94,0.8);
+    --hint-color: rgba(52,211,153,0.9);
+    --menu-glow-1: rgba(244,63,94,0.2);
+    --menu-glow-2: rgba(190,18,60,0.2);
+}
+
+/* ===== BOARD FRAME — CSS variable bilan ===== */
+#board {
+    transition: box-shadow 0.4s ease;
+    box-shadow:
+        0 0 0 6px var(--board-frame-1, #1e1b4b),
+        0 0 0 10px var(--board-frame-ring, #c9a227),
+        0 0 0 14px var(--board-frame-1, #1e1b4b),
+        0 35px 90px rgba(0,0,0,0.8);
+    border-radius: 6px;
+}
+
+/* Chess board ranglari — variable bilan */
+#board .cell.light {
+    background: var(--board-light, #f0ede0);
+    transition: background 0.3s;
+}
+#board .cell.dark {
+    background: var(--board-dark, #3730a3);
+    transition: background 0.3s;
+}
+#board .cell.dark:hover:not(.selected):not(.in-check) {
+    background: var(--board-dark-hover, #4338ca);
+}
+
+/* Donachalar uchun maxsus wrapper */
 #board .cell .piece-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: 3em;
-    line-height: 1;
-    user-select: none;
-    cursor: grab;
-    transition: transform 0.15s ease, filter 0.15s ease;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
-    font-weight: 400;
-}
-#board .cell .piece-wrap:hover {
-    transform: scale(1.08);
-}
-
-/* Oq donalar — porlovchi kumush effekti */
-#board .cell .piece-wrap.white {
-    color: #fafafa;
-    text-shadow:
-        0 0 1px #000,
-        1px 1px 0 #444,
-        -1px -1px 0 #888,
-        2px 2px 4px rgba(0, 0, 0, 0.55),
-        0 0 8px rgba(255, 255, 255, 0.35);
-    filter: drop-shadow(0 2px 1px rgba(0, 0, 0, 0.4));
-}
-
-/* Qora donalar — chuqur grafit effekti */
-#board .cell .piece-wrap.black {
-    color: #1a1a1a;
-    text-shadow:
-        0 0 1px #fff,
-        1px 1px 0 #555,
-        -1px -1px 0 #000,
-        2px 2px 4px rgba(255, 255, 255, 0.25),
-        0 0 6px rgba(0, 0, 0, 0.7);
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.55));
-}
-
-/* Hover/select effektlari board uchun */
-#board .cell.selected { box-shadow: inset 0 0 0 4px #f59e0b; }
-#board .cell.hint::after {
-    content: '';
-    position: absolute;
-    width: 28%;
-    height: 28%;
-    border-radius: 50%;
-    background: radial-gradient(circle, #16a34a 0%, #14532d 100%);
-    box-shadow: 0 0 10px rgba(22, 163, 74, 0.6);
-    pointer-events: none;
-}
-#board .cell.hint.has-piece::after {
-    width: 95%;
-    height: 95%;
-    background: transparent;
-    border: 4px solid #dc2626;
-    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
-}
-
-/* SHOX cellini qizil bilan belgilash */
-#board .cell.in-check {
-    box-shadow: inset 0 0 0 4px #ef4444;
-    animation: pulse-red 1s infinite;
-}
-@keyframes pulse-red {
-    0%, 100% { box-shadow: inset 0 0 0 4px #ef4444; }
-    50%      { box-shadow: inset 0 0 0 6px #f87171, 0 0 18px #ef4444; }
-}
-
-/* Last-move highlight */
-#board .cell.last-move {
-    box-shadow: inset 0 0 0 3px rgba(255, 235, 59, 0.7);
-}
-
-/* Promotion modal */
-.promo-choices {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    margin-top: 14px;
-}
-.promo-choices button {
-    font-size: 2.4em;
-    background: linear-gradient(135deg, #374151, #1f2937);
-    border: 2px solid #4b5563;
-    border-radius: 12px;
-    padding: 10px 18px;
-    cursor: pointer;
-    color: #fff;
-    transition: all 0.15s ease;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-}
-.promo-choices button:hover {
-    border-color: #f59e0b;
-    transform: scale(1.12);
-    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.45);
-}
-
-/* Captured pieces */
-.captured-display .cap-pc {
-    font-size: 1.4em;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-    margin: 0 2px;
-}
-
-/* Logo animatsiyasi shaxmat figuralari uchun */
-.logo-animated .piece-anim {
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-}
-
-/* Auth screen big logo */
-.logo-big {
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-}
+    width:
