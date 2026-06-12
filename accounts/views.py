@@ -1087,6 +1087,20 @@ def home_view(request):
             role='student', coins__gt=request.user.coins
         ).count() + 1
 
+    # Top 5 o'quvchi (coinlar bo'yicha)
+    top_students_qs = CustomUser.objects.filter(
+        role='student'
+    ).order_by('-coins')[:5]
+    top_students = []
+    for i, s in enumerate(top_students_qs):
+        top_students.append({
+            'rank': i + 1,
+            'is_me': s.pk == request.user.pk,
+            'photo': s.photo if s.photo else None,
+            'name': s.get_full_name() or s.username,
+            'points': s.coins,
+        })
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -1097,6 +1111,7 @@ def home_view(request):
         'quick_courses': quick_courses,
         'show_telegram_prompt': show_telegram_prompt,
         'user_rank': user_rank,
+        'top_students': top_students,
     }
 
     return render(request, 'accounts/home.html', context)
