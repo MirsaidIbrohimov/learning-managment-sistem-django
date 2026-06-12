@@ -1,1156 +1,718 @@
 {% extends 'accounts/base.html' %}
 {% load custom_filters %}
 
-{% block title %}Kasblar - LMS{% endblock %}
+{% block title %}Kasblar — IT Shaharcha{% endblock %}
 
 {% block content %}
 <style>
-/* ===== iOS GLASSMORPHISM DESIGN SYSTEM ===== */
+/* ═══════════════════════════════════════════
+   KASBLAR — PREMIUM DARK UI
+   ═══════════════════════════════════════════ */
 :root {
-    --glass-bg: rgba(255,255,255,0.55);
-    --glass-bg-heavy: rgba(255,255,255,0.72);
-    --glass-border: rgba(255,255,255,0.45);
-    --glass-shadow: 0 8px 32px rgba(0,0,0,0.08);
-    --glass-blur: 20px;
-    --card-bg: rgba(255,255,255,0.65);
-    --card-border: rgba(255,255,255,0.5);
-    --card-hover-shadow: 0 20px 60px rgba(99,102,241,0.15);
-    --accent: #6366f1;
-    --accent-light: rgba(99,102,241,0.12);
-    --accent-glow: rgba(99,102,241,0.25);
-    --green: #34c759;
-    --green-bg: rgba(52,199,89,0.12);
-    --orange: #ff9500;
-    --orange-bg: rgba(255,149,0,0.12);
-    --red: #ff3b30;
-    --text-primary: #1c1c1e;
-    --text-secondary: #8e8e93;
-    --text-tertiary: #aeaeb2;
-    --surface: rgba(242,242,247,0.8);
-    --divider: rgba(60,60,67,0.08);
-    --page-bg: linear-gradient(145deg, #f2f2f7 0%, #e8e0f0 35%, #dde8f8 65%, #f2f2f7 100%);
+  --kp-bg:      #07090f;
+  --kp-bg2:     #0c1018;
+  --kp-panel:   rgba(255,255,255,.04);
+  --kp-border:  rgba(255,255,255,.07);
+  --kp-indigo:  #6366f1;
+  --kp-purple:  #8b5cf6;
+  --kp-cyan:    #06b6d4;
+  --kp-green:   #10b981;
+  --kp-amber:   #f59e0b;
+  --kp-red:     #ef4444;
+  --kp-text:    #e2e8f0;
+  --kp-muted:   #64748b;
+  --kp-grad:    linear-gradient(135deg,#6366f1,#8b5cf6);
+  --kp-r:       16px;
+}
+[data-bs-theme="light"] {
+  --kp-bg:     #f0f2f8;
+  --kp-bg2:    #e8eaf4;
+  --kp-panel:  rgba(255,255,255,.85);
+  --kp-border: rgba(99,102,241,.12);
+  --kp-text:   #0f172a;
+  --kp-muted:  #64748b;
 }
 
-[data-bs-theme="dark"] {
-    --glass-bg: rgba(44,44,46,0.55);
-    --glass-bg-heavy: rgba(44,44,46,0.72);
-    --glass-border: rgba(255,255,255,0.08);
-    --glass-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    --card-bg: rgba(44,44,46,0.6);
-    --card-border: rgba(255,255,255,0.06);
-    --card-hover-shadow: 0 20px 60px rgba(99,102,241,0.2);
-    --accent-light: rgba(99,102,241,0.18);
-    --accent-glow: rgba(99,102,241,0.35);
-    --green-bg: rgba(52,199,89,0.18);
-    --orange-bg: rgba(255,149,0,0.18);
-    --text-primary: #f5f5f7;
-    --text-secondary: #98989d;
-    --text-tertiary: #636366;
-    --surface: rgba(28,28,30,0.8);
-    --divider: rgba(255,255,255,0.06);
-    --page-bg: linear-gradient(145deg, #000000 0%, #1a1028 35%, #0d1a2d 65%, #000000 100%);
+/* ── Full-bleed (main-container dan chiqish) ── */
+#weather_effect { display:none!important; }
+.kp {
+  width:100vw;position:relative;left:50%;margin-left:-50vw;
+  margin-top:-1.25rem;
+  background:var(--kp-bg);min-height:100vh;
+  color:var(--kp-text);font-family:'Space Grotesk','Inter',system-ui,sans-serif;
+  padding-bottom:80px;
+}
+.kp-wrap { max-width:1300px;margin:0 auto;padding:0 24px; }
+
+/* ── HERO ── */
+.kp-hero {
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#07090f 0%,#120a2a 50%,#08111e 100%);
+  padding:52px 0 110px;
+}
+[data-bs-theme="light"] .kp-hero { background:linear-gradient(135deg,#1e1040 0%,#0d1f3c 100%); }
+.kp-hero-grid {
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(99,102,241,.055) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(99,102,241,.055) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 90% 90% at 50% 50%,black 40%,transparent 100%);
+}
+.kp-hero-glow-a { position:absolute;top:-80px;left:25%;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.18),transparent 70%);filter:blur(80px);pointer-events:none; }
+.kp-hero-glow-b { position:absolute;bottom:-100px;right:10%;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.14),transparent 70%);filter:blur(80px);pointer-events:none; }
+
+.kp-hero-inner { position:relative;z-index:2; }
+.kp-hero-top { display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap; }
+
+.kp-hero-label {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 12px;border-radius:100px;
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.22);
+  color:#a5b4fc;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  margin-bottom:10px;
+}
+.kp-hero-label .dot { width:6px;height:6px;border-radius:50%;background:#6366f1;box-shadow:0 0 8px #6366f1;animation:heroDot 2s infinite; }
+@keyframes heroDot{0%,100%{opacity:1}50%{opacity:.3}}
+
+.kp-hero-title { font-size:clamp(2rem,4vw,3.2rem);font-weight:800;color:#fff;line-height:1.1;letter-spacing:-.03em;margin:0; }
+.kp-hero-title span { background:linear-gradient(135deg,#a5b4fc,#c084fc);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent; }
+.kp-hero-sub { font-size:.92rem;color:rgba(255,255,255,.4);margin-top:10px; }
+
+.kp-hero-stats { display:flex;gap:14px;flex-wrap:wrap; }
+.kp-hs { padding:14px 20px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px);display:flex;align-items:center;gap:12px;min-width:120px; }
+.kp-hs-icon { width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0; }
+.kp-hs-icon.ind { background:rgba(99,102,241,.15);color:#818cf8; }
+.kp-hs-icon.grn { background:rgba(16,185,129,.15);color:#34d399; }
+.kp-hs-val { font-size:1.3rem;font-weight:800;color:#fff;line-height:1;font-family:'JetBrains Mono',monospace; }
+.kp-hs-lab { font-size:.68rem;color:rgba(255,255,255,.35);margin-top:2px;font-weight:500; }
+
+/* ── FLOAT SEARCH BAR ── */
+.kp-search-float {
+  position:relative;z-index:10;
+  margin-top:-34px;padding:0 24px;
+  max-width:1300px;margin-left:auto;margin-right:auto;
+}
+.kp-search-box {
+  display:flex;gap:12px;align-items:center;
+  background:rgba(12,16,24,.92);
+  border:1px solid rgba(99,102,241,.2);
+  border-radius:18px;padding:10px 16px;
+  backdrop-filter:blur(20px);
+  box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(99,102,241,.06);
+}
+[data-bs-theme="light"] .kp-search-box { background:rgba(255,255,255,.95); }
+.kp-search-box i { color:var(--kp-muted);font-size:1rem;flex-shrink:0; }
+.kp-search-input {
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--kp-text);font-size:.95rem;font-weight:500;
+}
+.kp-search-input::placeholder { color:var(--kp-muted); }
+.kp-search-clear {
+  width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;
+  background:rgba(99,102,241,.1);color:#818cf8;display:none;align-items:center;justify-content:center;font-size:.8rem;
+  transition:background .2s;flex-shrink:0;
+}
+.kp-search-clear.show { display:flex; }
+.kp-search-clear:hover { background:rgba(239,68,68,.12);color:#f87171; }
+
+/* Admin button in search bar */
+.kp-admin-btn {
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:10px;
+  background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.2);
+  color:#818cf8;font-size:.82rem;font-weight:600;text-decoration:none;
+  transition:all .2s;flex-shrink:0;white-space:nowrap;
+}
+.kp-admin-btn:hover { background:rgba(99,102,241,.2);color:#a5b4fc; }
+
+/* ── TOOLBAR ── */
+.kp-toolbar { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0 16px; }
+.kp-filters { display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0; }
+.kp-filters::-webkit-scrollbar { display:none; }
+.kp-tab {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:.45rem 1rem;border-radius:100px;
+  font-size:.82rem;font-weight:600;cursor:pointer;
+  border:1px solid var(--kp-border);
+  background:var(--kp-panel);
+  color:var(--kp-muted);
+  transition:all .25s;white-space:nowrap;flex-shrink:0;
+  backdrop-filter:blur(8px);
+}
+.kp-tab:hover { border-color:rgba(99,102,241,.3);color:#818cf8; }
+.kp-tab.active { background:var(--kp-grad);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(99,102,241,.25); }
+.kp-tab .cnt { background:rgba(255,255,255,.15);padding:1px 7px;border-radius:100px;font-size:.68rem;font-weight:700; }
+.kp-tab:not(.active) .cnt { background:rgba(99,102,241,.1);color:#818cf8; }
+
+.kp-toolbar-right { display:flex;align-items:center;gap:8px;flex-shrink:0; }
+
+/* Sort */
+.kp-sort { position:relative; }
+.kp-sort-btn {
+  display:flex;align-items:center;gap:5px;
+  padding:.45rem .9rem;border-radius:10px;
+  border:1px solid var(--kp-border);background:var(--kp-panel);
+  color:var(--kp-muted);font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;
+}
+.kp-sort-btn:hover { border-color:rgba(99,102,241,.25);color:#818cf8; }
+.kp-sort-menu {
+  position:absolute;top:calc(100% + 8px);right:0;
+  background:rgba(12,16,26,.95);backdrop-filter:blur(24px);
+  border:1px solid rgba(99,102,241,.15);border-radius:14px;padding:6px;min-width:200px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:100;display:none;
+  animation:kpMenuPop .2s ease;
+}
+[data-bs-theme="light"] .kp-sort-menu { background:rgba(255,255,255,.97); }
+@keyframes kpMenuPop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.kp-sort-menu.show { display:block; }
+.kp-sort-item {
+  display:flex;align-items:center;gap:8px;
+  padding:.5rem .75rem;border-radius:9px;border:none;background:transparent;
+  color:var(--kp-text);font-size:.84rem;font-weight:500;cursor:pointer;width:100%;text-align:left;transition:all .15s;
+}
+.kp-sort-item:hover { background:rgba(99,102,241,.08);color:#818cf8; }
+.kp-sort-item.active { background:rgba(99,102,241,.1);color:#818cf8;font-weight:700; }
+
+/* View switch */
+.kp-view-sw { display:flex;background:var(--kp-panel);border:1px solid var(--kp-border);border-radius:10px;overflow:hidden; }
+.kp-view-btn {
+  width:36px;height:34px;display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;color:var(--kp-muted);cursor:pointer;transition:all .2s;font-size:.9rem;
+}
+.kp-view-btn:hover { color:#818cf8;background:rgba(99,102,241,.08); }
+.kp-view-btn.active { background:var(--kp-grad);color:#fff; }
+.kp-view-btn+.kp-view-btn { border-left:1px solid var(--kp-border); }
+
+/* Results info */
+.kp-results { font-size:.8rem;color:var(--kp-muted);margin-bottom:16px;display:flex;align-items:center;gap:6px; }
+.kp-results strong { color:var(--kp-indigo);font-size:.95rem;font-weight:800; }
+
+/* ── GRID ── */
+.kp-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:20px;transition:grid-template-columns .3s; }
+.kp-grid.view-list { grid-template-columns:1fr;gap:14px; }
+.kp-grid.view-compact { grid-template-columns:repeat(4,1fr);gap:14px; }
+
+/* ── CARD ── */
+.kp-card {
+  background:var(--kp-panel);border:1px solid var(--kp-border);
+  border-radius:var(--kp-r);overflow:hidden;
+  display:flex;flex-direction:column;
+  text-decoration:none;color:var(--kp-text);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  opacity:0;animation:kpCardIn .5s ease forwards;
+  position:relative;
+}
+@keyframes kpCardIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.kp-card:nth-child(1){animation-delay:.04s}.kp-card:nth-child(2){animation-delay:.08s}
+.kp-card:nth-child(3){animation-delay:.12s}.kp-card:nth-child(4){animation-delay:.16s}
+.kp-card:nth-child(5){animation-delay:.20s}.kp-card:nth-child(6){animation-delay:.24s}
+.kp-card:nth-child(7){animation-delay:.28s}.kp-card:nth-child(8){animation-delay:.32s}
+.kp-card:nth-child(9){animation-delay:.36s}
+
+.kp-card:hover {
+  transform:translateY(-5px) scale(1.01);
+  border-color:rgba(99,102,241,.28);
+  box-shadow:0 16px 48px rgba(0,0,0,.3),0 0 0 1px rgba(99,102,241,.1);
+  color:var(--kp-text);
+}
+.kp-card.enrolled { border-color:rgba(16,185,129,.2); }
+.kp-card.enrolled:hover { border-color:rgba(16,185,129,.4);box-shadow:0 16px 48px rgba(16,185,129,.1); }
+.kp-card.hidden { display:none!important; }
+
+/* Image */
+.kp-img { position:relative;height:185px;overflow:hidden;flex-shrink:0; }
+.kp-img img { width:100%;height:100%;object-fit:cover;transition:transform .6s ease; }
+.kp-card:hover .kp-img img { transform:scale(1.07); }
+.kp-img-overlay {
+  position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(7,9,15,.7) 0%,transparent 55%);
+  pointer-events:none;
 }
 
-/* ===== PAGE ===== */
-.prof-page {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 1.5rem 1.25rem 3rem;
-    position: relative;
-    min-height: 80vh;
+/* Top badges */
+.kp-badges { position:absolute;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;align-items:flex-start;z-index:2; }
+.kp-badge {
+  padding:.28rem .7rem;border-radius:100px;
+  font-size:.69rem;font-weight:700;
+  display:inline-flex;align-items:center;gap:4px;
+  backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);
+}
+.kp-badge.free    { background:rgba(16,185,129,.8);color:#fff; }
+.kp-badge.paid    { background:rgba(245,158,11,.8);color:#fff; }
+.kp-badge.active  { background:rgba(16,185,129,.85);color:#fff;animation:kpBadgePulse 2.5s ease infinite; }
+.kp-badge.blocked { background:rgba(239,68,68,.8);color:#fff; }
+@keyframes kpBadgePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+
+/* Students count */
+.kp-students {
+  position:absolute;bottom:10px;right:10px;z-index:2;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(10px);
+  color:#fff;padding:.25rem .65rem;border-radius:100px;
+  font-size:.7rem;font-weight:600;display:flex;align-items:center;gap:4px;
+  border:1px solid rgba(255,255,255,.1);
 }
 
-/* Animated background orbs */
-.prof-page::before,
-.prof-page::after {
-    content: '';
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: -1;
-    filter: blur(80px);
-    animation: orbFloat 20s ease-in-out infinite;
-}
-.prof-page::before {
-    width: 400px; height: 400px;
-    top: -5%; left: -5%;
-    background: radial-gradient(circle, rgba(99,102,241,0.15), transparent 70%);
-}
-.prof-page::after {
-    width: 350px; height: 350px;
-    bottom: 10%; right: -5%;
-    background: radial-gradient(circle, rgba(52,199,89,0.12), transparent 70%);
-    animation-delay: -10s;
-    animation-direction: reverse;
-}
-@keyframes orbFloat {
-    0%,100% { transform: translate(0,0) scale(1); }
-    25% { transform: translate(30px,-20px) scale(1.1); }
-    50% { transform: translate(-20px,30px) scale(0.9); }
-    75% { transform: translate(15px,15px) scale(1.05); }
-}
+/* Blocked overlay */
+.kp-blocked { position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;z-index:3; }
+.kp-blocked i { font-size:2.2rem;opacity:.9; }
+.kp-blocked span { font-size:.85rem;font-weight:700;margin-top:6px; }
 
-/* ===== HERO (iOS Widget Style) ===== */
-.prof-hero {
-    background: var(--glass-bg-heavy);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    padding: 2rem 2.25rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-    position: relative;
-    overflow: hidden;
-    animation: heroSlide 0.7s cubic-bezier(0.2,0.8,0.2,1) forwards;
-    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.15);
-}
-@keyframes heroSlide {
-    from { opacity: 0; transform: translateY(-20px) scale(0.97); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
+/* Progress bar */
+.kp-prog { padding:0 16px 4px; }
+.kp-prog-head { display:flex;justify-content:space-between;margin-bottom:5px; }
+.kp-prog-lab { font-size:.68rem;font-weight:600;color:var(--kp-muted);text-transform:uppercase;letter-spacing:.04em; }
+.kp-prog-pct { font-size:.75rem;font-weight:800;color:#34d399;font-family:'JetBrains Mono',monospace; }
+.kp-prog-track { height:4px;background:rgba(99,102,241,.1);border-radius:2px;overflow:hidden; }
+.kp-prog-fill { height:100%;border-radius:2px;background:linear-gradient(90deg,#6366f1,#06b6d4);transition:width 1.2s ease;position:relative;overflow:hidden; }
+.kp-prog-fill::after { content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:kpShimmer 2s infinite; }
+@keyframes kpShimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
-/* Inner glow */
-.prof-hero::before {
-    content: '';
-    position: absolute;
-    top: -50%; right: -20%;
-    width: 350px; height: 350px;
-    background: radial-gradient(circle, var(--accent-glow), transparent 70%);
-    border-radius: 50%;
-    pointer-events: none;
-    animation: heroGlow 6s ease-in-out infinite;
-}
-@keyframes heroGlow {
-    0%,100% { opacity: 0.4; transform: scale(1) rotate(0deg); }
-    50% { opacity: 0.7; transform: scale(1.2) rotate(10deg); }
-}
+/* Card body */
+.kp-body { padding:14px 16px;flex:1;display:flex;flex-direction:column; }
+.kp-name { font-size:1rem;font-weight:700;color:var(--kp-text);margin-bottom:5px;line-height:1.3;letter-spacing:-.01em;transition:color .2s; }
+.kp-card:hover .kp-name { color:#a5b4fc; }
+.kp-desc { font-size:.8rem;color:var(--kp-muted);line-height:1.6;flex:1;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:10px; }
 
-.prof-hero-left { display: flex; align-items: center; gap: 1rem; position: relative; z-index: 1; }
-.prof-hero-icon {
-    width: 54px; height: 54px; border-radius: 16px;
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.4rem; color: #fff; flex-shrink: 0;
-    box-shadow: 0 6px 20px var(--accent-glow);
-    animation: iconBreathe 4s ease-in-out infinite;
+/* Footer */
+.kp-footer { display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--kp-border);margin-top:auto; }
+.kp-status {
+  display:inline-flex;align-items:center;gap:5px;
+  padding:.28rem .7rem;border-radius:9px;font-size:.73rem;font-weight:600;
 }
-@keyframes iconBreathe {
-    0%,100% { transform: scale(1); box-shadow: 0 6px 20px var(--accent-glow); }
-    50% { transform: scale(1.05); box-shadow: 0 8px 28px var(--accent-glow); }
+.kp-status.enrolled { background:rgba(16,185,129,.1);color:#34d399; }
+.kp-status.new { background:rgba(99,102,241,.1);color:#818cf8; }
+.kp-arrow {
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(99,102,241,.1);color:#818cf8;
+  display:flex;align-items:center;justify-content:center;font-size:.8rem;
+  transition:all .3s;
 }
-.prof-hero-text h2 {
-    font-size: 1.5rem; font-weight: 800; margin: 0 0 0.15rem;
-    color: var(--text-primary);
-    letter-spacing: -0.02em;
-}
-.prof-hero-text p {
-    font-size: 0.82rem; color: var(--text-secondary); margin: 0;
-    font-weight: 500;
-}
-.prof-hero-stats { display: flex; gap: 2rem; position: relative; z-index: 1; }
-.prof-hero-stat { text-align: center; }
-.prof-hero-stat .stat-num {
-    font-size: 1.6rem; font-weight: 800; color: var(--accent);
-    line-height: 1; letter-spacing: -0.02em;
-}
-.prof-hero-stat .stat-label {
-    font-size: 0.68rem; font-weight: 700; color: var(--text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.25rem;
-}
+.kp-card:hover .kp-arrow { background:var(--kp-grad);color:#fff;transform:translateX(3px);box-shadow:0 4px 14px rgba(99,102,241,.3); }
 
-/* ===== SEARCH (iOS Style) ===== */
-.prof-search-bar {
-    position: relative;
-    margin-bottom: 1rem;
-    animation: fadeSlide 0.5s 0.1s cubic-bezier(0.2,0.8,0.2,1) backwards;
-}
-@keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-.prof-search-bar input {
-    width: 100%;
-    padding: 0.9rem 1.25rem 0.9rem 3rem;
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    color: var(--text-primary);
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
-    outline: none;
-    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-.prof-search-bar input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-light), var(--glass-shadow);
-    background: var(--glass-bg-heavy);
-    transform: scale(1.005);
-}
-.prof-search-bar input::placeholder { color: var(--text-tertiary); font-weight: 500; }
-.prof-search-bar .search-icon {
-    position: absolute; left: 1.1rem; top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-tertiary);
-    font-size: 1rem; pointer-events: none;
-    transition: all 0.3s;
-}
-.prof-search-bar input:focus ~ .search-icon { color: var(--accent); transform: translateY(-50%) scale(1.1); }
-.prof-search-clear {
-    position: absolute; right: 0.9rem; top: 50%;
-    transform: translateY(-50%);
-    background: var(--divider); border: none;
-    color: var(--text-secondary);
-    width: 28px; height: 28px; border-radius: 50%;
-    display: none; align-items: center; justify-content: center;
-    font-size: 0.75rem; cursor: pointer;
-    transition: all 0.2s;
-}
-.prof-search-clear:hover { background: rgba(255,59,48,0.15); color: var(--red); }
-.prof-search-clear.show { display: flex; }
+/* Teacher */
+.kp-teacher { display:flex;align-items:center;gap:6px;padding-top:8px;border-top:1px solid var(--kp-border);margin-top:8px;font-size:.72rem;color:var(--kp-muted); }
+.kp-t-av { width:20px;height:20px;border-radius:50%;object-fit:cover;flex-shrink:0; }
+.kp-t-init { width:20px;height:20px;border-radius:50%;background:var(--kp-grad);color:#fff;font-size:.5rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.kp-t-name { font-weight:600;color:var(--kp-text); }
 
-/* ===== TOOLBAR ===== */
-.prof-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-    animation: fadeSlide 0.5s 0.15s cubic-bezier(0.2,0.8,0.2,1) backwards;
-}
+/* ── LIST VIEW ── */
+.kp-grid.view-list .kp-card { flex-direction:row;flex-wrap:wrap; }
+.kp-grid.view-list .kp-img { width:200px;height:auto;min-height:140px; }
+.kp-grid.view-list .kp-body { padding:14px;flex:1;min-width:0; }
+.kp-grid.view-list .kp-prog { width:100%;order:3;padding:.4rem 14px; }
+.kp-grid.view-list .kp-badges { top:8px;left:8px;right:8px; }
+.kp-grid.view-list .kp-students { bottom:8px;right:8px; }
 
-/* Filter Pills */
-.prof-filters {
-    display: flex; gap: 0.4rem;
-    overflow-x: auto; padding-bottom: 0.2rem;
-    scrollbar-width: none; flex: 1; min-width: 0;
-    -ms-overflow-style: none;
-}
-.prof-filters::-webkit-scrollbar { display: none; }
+/* ── COMPACT VIEW ── */
+.kp-grid.view-compact .kp-img { height:110px; }
+.kp-grid.view-compact .kp-body { padding:10px 12px; }
+.kp-grid.view-compact .kp-name { font-size:.88rem; }
+.kp-grid.view-compact .kp-desc { font-size:.72rem;-webkit-line-clamp:1;margin-bottom:6px; }
+.kp-grid.view-compact .kp-footer { padding-top:6px; }
+.kp-grid.view-compact .kp-status,.kp-grid.view-compact .kp-badge { font-size:.65rem;padding:.2rem .5rem; }
+.kp-grid.view-compact .kp-arrow { width:24px;height:24px;font-size:.72rem; }
+.kp-grid.view-compact .kp-prog { padding:0 12px 2px; }
 
-.prof-tab {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    padding: 0.5rem 1rem; border-radius: 50px;
-    font-size: 0.82rem; font-weight: 600; cursor: pointer;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: var(--text-secondary);
-    transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
-    white-space: nowrap; flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.prof-tab:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px var(--accent-light);
-}
-.prof-tab.active {
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: #fff; border-color: transparent;
-    box-shadow: 0 4px 18px var(--accent-glow);
-    transform: translateY(-2px);
-}
-.prof-tab:active { transform: translateY(0) scale(0.96); }
-.prof-tab .cnt {
-    background: rgba(0,0,0,0.08); padding: 0.1rem 0.45rem;
-    border-radius: 50px; font-size: 0.66rem;
-    font-weight: 700; min-width: 1.4em; text-align: center;
-}
-.prof-tab.active .cnt { background: rgba(255,255,255,0.25); }
+/* ── EMPTY / NO RESULTS ── */
+.kp-empty { text-align:center;padding:56px 24px; }
+.kp-empty i { font-size:3rem;color:rgba(99,102,241,.25);display:block;margin-bottom:14px; }
+.kp-empty h4 { font-size:1rem;font-weight:700;color:var(--kp-muted);margin-bottom:8px; }
+.kp-empty p { font-size:.85rem;color:rgba(100,116,139,.6); }
+.kp-no-results { display:none;text-align:center;padding:48px 24px; }
+.kp-no-results.show { display:block; }
+.kp-no-results i { font-size:2.5rem;color:rgba(99,102,241,.2);display:block;margin-bottom:12px; }
+.kp-no-results h5 { font-weight:700;color:var(--kp-muted); }
+.kp-no-results p { font-size:.84rem;color:rgba(100,116,139,.6); }
 
-/* ===== SORT DROPDOWN ===== */
-.prof-sort { position: relative; flex-shrink: 0; }
-.prof-sort-btn {
-    display: flex; align-items: center; gap: 0.4rem;
-    padding: 0.5rem 0.9rem; border-radius: 12px;
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: var(--text-secondary);
-    font-size: 0.82rem; font-weight: 600; cursor: pointer;
-    transition: all 0.25s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+/* ── PAGINATION ── */
+.kp-pag-wrap { display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:48px; }
+.kp-pag { display:flex;align-items:center;gap:4px;flex-wrap:wrap;justify-content:center; }
+.pg {
+  display:inline-flex;align-items:center;justify-content:center;
+  min-width:40px;height:40px;padding:0 10px;border-radius:11px;
+  font-size:.85rem;font-weight:700;text-decoration:none;border:1px solid var(--kp-border);
+  background:var(--kp-panel);color:var(--kp-text);cursor:pointer;
+  transition:all .25s;
 }
-.prof-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
-.prof-sort-menu {
-    position: absolute; top: calc(100% + 8px); right: 0;
-    background: var(--glass-bg-heavy);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px; padding: 6px; min-width: 200px;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.15);
-    z-index: 100; display: none;
-    animation: menuPop 0.25s cubic-bezier(0.2,0.8,0.2,1);
-}
-@keyframes menuPop {
-    from { opacity: 0; transform: translateY(-8px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.prof-sort-menu.show { display: block; }
-.prof-sort-item {
-    display: flex; align-items: center; gap: 0.5rem;
-    padding: 0.55rem 0.8rem; border-radius: 10px;
-    border: none; background: transparent;
-    color: var(--text-primary);
-    font-size: 0.84rem; font-weight: 500; cursor: pointer;
-    width: 100%; text-align: left; transition: all 0.2s;
-}
-.prof-sort-item:hover { background: var(--accent-light); color: var(--accent); }
-.prof-sort-item.active { background: var(--accent-light); color: var(--accent); font-weight: 700; }
+.pg:hover { border-color:rgba(99,102,241,.28);color:#818cf8;background:rgba(99,102,241,.06); }
+.pg.cur { background:var(--kp-grad);color:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(99,102,241,.3); }
+.pg.off { opacity:.3;pointer-events:none; }
+.pg.dots { border:none;background:transparent;color:var(--kp-muted);cursor:default; }
+.pg.dots:hover { background:transparent;color:var(--kp-muted); }
+.kp-pag-info { font-size:.76rem;color:var(--kp-muted);font-weight:600; }
 
-/* ===== VIEW SWITCHER ===== */
-.view-switcher {
-    display: flex;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 12px; overflow: hidden; flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .kp-grid { grid-template-columns:repeat(2,1fr); }
+  .kp-grid.view-compact { grid-template-columns:repeat(3,1fr); }
 }
-.view-btn {
-    width: 38px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
-    border: none; background: transparent;
-    color: var(--text-tertiary); cursor: pointer;
-    transition: all 0.25s; font-size: 0.9rem;
+@media(max-width:768px){
+  .kp-hero { padding:36px 0 80px; }
+  .kp-hero-top { flex-direction:column;align-items:flex-start; }
+  .kp-hero-stats { flex-direction:row;overflow-x:auto;padding-bottom:4px; }
+  .kp-search-float { padding:0 14px; }
+  .kp-grid.view-compact { grid-template-columns:repeat(2,1fr); }
+  .kp-grid.view-list .kp-card { flex-direction:column; }
+  .kp-grid.view-list .kp-img { width:100%;height:155px; }
 }
-.view-btn:hover { color: var(--accent); background: var(--accent-light); }
-.view-btn.active { background: var(--accent); color: #fff; }
-.view-btn + .view-btn { border-left: 1px solid var(--divider); }
-.view-btn.active + .view-btn,
-.view-btn + .view-btn.active { border-left-color: transparent; }
-
-/* ===== RESULTS INFO ===== */
-.prof-results-info {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1rem; font-size: 0.8rem;
-    color: var(--text-tertiary); font-weight: 600;
-    animation: fadeSlide 0.5s 0.2s cubic-bezier(0.2,0.8,0.2,1) backwards;
-}
-.prof-results-count { display: flex; align-items: center; gap: 0.4rem; }
-.prof-results-count .count-num { color: var(--accent); font-weight: 800; font-size: 0.95rem; }
-
-/* ===== GRID ===== */
-.prof-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-    transition: all 0.3s ease;
-}
-
-/* ===== CARD (iOS Glass Card) ===== */
-.prof-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--card-border);
-    border-radius: 22px;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.2,0.8,0.2,1);
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    opacity: 0;
-    animation: cardReveal 0.6s cubic-bezier(0.2,0.8,0.2,1) forwards;
-    box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.1);
-}
-@keyframes cardReveal {
-    from { opacity: 0; transform: translateY(24px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-.prof-card:nth-child(1) { animation-delay: 0.05s; }
-.prof-card:nth-child(2) { animation-delay: 0.1s; }
-.prof-card:nth-child(3) { animation-delay: 0.15s; }
-.prof-card:nth-child(4) { animation-delay: 0.2s; }
-.prof-card:nth-child(5) { animation-delay: 0.25s; }
-.prof-card:nth-child(6) { animation-delay: 0.3s; }
-.prof-card:nth-child(7) { animation-delay: 0.35s; }
-.prof-card:nth-child(8) { animation-delay: 0.4s; }
-.prof-card:nth-child(9) { animation-delay: 0.45s; }
-
-.prof-card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: var(--card-hover-shadow), inset 0 1px 0 rgba(255,255,255,0.15);
-    border-color: rgba(99,102,241,0.3);
-    color: inherit;
-}
-.prof-card.enrolled {
-    border-color: rgba(52,199,89,0.3);
-    box-shadow: var(--glass-shadow), 0 0 0 1px rgba(52,199,89,0.1);
-}
-.prof-card.enrolled:hover {
-    border-color: var(--green);
-    box-shadow: 0 20px 60px rgba(52,199,89,0.15);
-}
-.prof-card.card-hidden { display: none !important; }
-
-/* IMAGE */
-.prof-img {
-    position: relative; height: 180px; overflow: hidden; flex-shrink: 0;
-}
-.prof-img img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.2,0.8,0.2,1);
-}
-.prof-card:hover .prof-img img { transform: scale(1.08); }
-.prof-img::after {
-    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
-    background: linear-gradient(to top, rgba(0,0,0,0.2), transparent);
-    pointer-events: none;
-}
-
-/* BADGES */
-.prof-badges-top {
-    position: absolute; top: 0.75rem; left: 0.75rem; right: 0.75rem;
-    display: flex; justify-content: space-between; align-items: flex-start; z-index: 2;
-}
-.prof-badge {
-    padding: 0.3rem 0.75rem; border-radius: 50px;
-    font-size: 0.72rem; font-weight: 700;
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
-    border: 1px solid rgba(255,255,255,0.2);
-}
-.prof-card:hover .prof-badge { transform: translateY(-3px); }
-.prof-badge.free { background: rgba(52,199,89,0.85); color: #fff; }
-.prof-badge.paid { background: rgba(255,149,0,0.85); color: #fff; }
-.prof-badge.active-badge {
-    background: rgba(52,199,89,0.9); color: #fff;
-    animation: badgePulse 2.5s ease-in-out infinite;
-}
-@keyframes badgePulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(52,199,89,0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(52,199,89,0); }
-}
-.prof-badge.blocked-badge { background: rgba(255,59,48,0.85); color: #fff; }
-
-.prof-students {
-    position: absolute; bottom: 0.75rem; right: 0.75rem;
-    background: rgba(0,0,0,0.45);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-    color: #fff; padding: 0.3rem 0.7rem; border-radius: 50px;
-    font-size: 0.72rem; font-weight: 600;
-    display: flex; align-items: center; gap: 0.3rem; z-index: 2;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.prof-blocked-overlay {
-    position: absolute; inset: 0;
-    background: rgba(0,0,0,0.55);
-    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #fff; z-index: 3;
-}
-.prof-blocked-overlay i { font-size: 2.5rem; opacity: 0.9; }
-.prof-blocked-overlay span { font-weight: 700; margin-top: 0.5rem; font-size: 0.9rem; }
-
-/* BODY */
-.prof-body {
-    padding: 1.15rem; flex: 1;
-    display: flex; flex-direction: column;
-}
-.prof-name {
-    font-size: 1.05rem; font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.3rem; line-height: 1.3;
-    transition: color 0.3s; letter-spacing: -0.01em;
-}
-.prof-card:hover .prof-name { color: var(--accent); }
-.prof-desc {
-    font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6;
-    flex: 1;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-    overflow: hidden; margin-bottom: 0.7rem;
-}
-
-/* PROGRESS */
-.prof-progress { padding: 0 1.15rem 0.25rem; }
-.prof-progress-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 0.35rem;
-}
-.prof-progress-label {
-    font-size: 0.7rem; font-weight: 600; color: var(--text-tertiary);
-    text-transform: uppercase; letter-spacing: 0.05em;
-}
-.prof-progress-pct { font-size: 0.78rem; font-weight: 800; color: var(--green); }
-.prof-progress-pct.mid { color: var(--orange); }
-.prof-progress-pct.low { color: var(--accent); }
-.prof-progress-track {
-    width: 100%; height: 5px;
-    background: var(--divider);
-    border-radius: 50px; overflow: hidden;
-}
-.prof-progress-bar {
-    height: 100%; border-radius: 50px;
-    background: linear-gradient(90deg, var(--accent), var(--green));
-    transition: width 1.2s cubic-bezier(0.16,1,0.3,1);
-    position: relative;
-}
-.prof-progress-bar::after {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
-    animation: shimmer 2.5s infinite;
-}
-@keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
-.prof-progress-bar.mid { background: linear-gradient(90deg, var(--orange), var(--green)); }
-.prof-progress-bar.complete { background: linear-gradient(90deg, var(--green), #059669); }
-
-/* FOOTER */
-.prof-footer {
-    display: flex; align-items: center; justify-content: space-between;
-    padding-top: 0.7rem;
-    border-top: 1px solid var(--divider);
-}
-.prof-status {
-    display: inline-flex; align-items: center; gap: 0.35rem;
-    font-size: 0.76rem; font-weight: 600;
-    padding: 0.3rem 0.7rem; border-radius: 10px;
-}
-.prof-status.enrolled-status { background: var(--green-bg); color: var(--green); }
-.prof-status.not-enrolled { background: var(--accent-light); color: var(--accent); }
-
-.prof-arrow {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--accent-light); color: var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.35s cubic-bezier(0.2,0.8,0.2,1);
-    font-size: 0.85rem;
-}
-.prof-card:hover .prof-arrow {
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: #fff;
-    transform: translateX(4px) scale(1.05);
-    box-shadow: 0 4px 14px var(--accent-glow);
-}
-
-/* TEACHER ROW */
-.prof-teacher-row {
-    display: flex; align-items: center; gap: 6px;
-    padding: 0.5rem 0 0;
-    font-size: 0.74rem; color: var(--text-secondary);
-    border-top: 1px solid var(--divider);
-    margin-top: 0.5rem; flex-wrap: wrap;
-}
-.prof-teacher-avatar {
-    width: 22px; height: 22px; border-radius: 50%;
-    object-fit: cover; border: 2px solid var(--glass-border);
-    flex-shrink: 0; transition: transform 0.3s;
-}
-.prof-card:hover .prof-teacher-avatar { transform: scale(1.12); }
-.prof-teacher-placeholder {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: #fff; font-size: 0.55rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.prof-teacher-name { font-weight: 600; color: var(--text-primary); }
-
-/* EMPTY */
-.prof-empty {
-    text-align: center; padding: 4rem 2rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 24px;
-    animation: fadeSlide 0.5s ease forwards;
-    box-shadow: var(--glass-shadow);
-}
-.prof-empty i { font-size: 3.5rem; color: var(--text-tertiary); opacity: 0.4; }
-
-/* NO RESULTS */
-.prof-no-results {
-    text-align: center; padding: 3.5rem 2rem;
-    display: none;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    animation: fadeSlide 0.35s ease;
-}
-.prof-no-results.show { display: block; }
-.prof-no-results i { font-size: 3rem; color: var(--text-tertiary); opacity: 0.35; }
-.prof-no-results h5 { margin-top: 0.75rem; font-weight: 700; color: var(--text-primary); }
-.prof-no-results p { color: var(--text-secondary); font-size: 0.86rem; }
-
-/* ===== VIEW: LIST ===== */
-.prof-grid.view-list { grid-template-columns: 1fr; gap: 0.9rem; }
-.prof-grid.view-list .prof-card {
-    flex-direction: row; flex-wrap: wrap; border-radius: 18px;
-}
-.prof-grid.view-list .prof-img { width: 200px; height: auto; min-height: 150px; }
-.prof-grid.view-list .prof-body { padding: 1rem 1.15rem; flex: 1; min-width: 0; }
-.prof-grid.view-list .prof-name { font-size: 1.05rem; }
-.prof-grid.view-list .prof-desc { -webkit-line-clamp: 2; margin-bottom: 0.5rem; }
-.prof-grid.view-list .prof-progress { width: 100%; order: 3; padding: 0.4rem 1.15rem; }
-.prof-grid.view-list .prof-badges-top { top: 0.5rem; left: 0.5rem; right: 0.5rem; }
-.prof-grid.view-list .prof-students { bottom: 0.5rem; right: 0.5rem; }
-
-/* ===== VIEW: COMPACT ===== */
-.prof-grid.view-compact { grid-template-columns: repeat(4, 1fr); gap: 0.9rem; }
-.prof-grid.view-compact .prof-card { border-radius: 16px; }
-.prof-grid.view-compact .prof-img { height: 115px; }
-.prof-grid.view-compact .prof-body { padding: 0.8rem; }
-.prof-grid.view-compact .prof-name { font-size: 0.9rem; margin-bottom: 0.2rem; }
-.prof-grid.view-compact .prof-desc { font-size: 0.74rem; -webkit-line-clamp: 1; margin-bottom: 0.4rem; }
-.prof-grid.view-compact .prof-footer { padding-top: 0.4rem; }
-.prof-grid.view-compact .prof-status { font-size: 0.68rem; padding: 0.2rem 0.5rem; }
-.prof-grid.view-compact .prof-arrow { width: 26px; height: 26px; font-size: 0.78rem; }
-.prof-grid.view-compact .prof-badge { font-size: 0.62rem; padding: 0.18rem 0.45rem; }
-.prof-grid.view-compact .prof-students { font-size: 0.62rem; padding: 0.18rem 0.45rem; }
-.prof-grid.view-compact .prof-teacher-row { font-size: 0.68rem; gap: 4px; }
-.prof-grid.view-compact .prof-teacher-avatar,
-.prof-grid.view-compact .prof-teacher-placeholder { width: 16px; height: 16px; font-size: 0.45rem; }
-.prof-grid.view-compact .prof-progress { padding: 0 0.8rem 0.15rem; }
-.prof-grid.view-compact .prof-progress-track { height: 4px; }
-
-/* ===== PAGINATION ===== */
-.prof-pagination-wrap {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 0.75rem; margin-top: 2.5rem;
-    animation: fadeSlide 0.5s 0.4s cubic-bezier(0.2,0.8,0.2,1) backwards;
-}
-.prof-pagination {
-    display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center;
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-    border-radius: 16px; padding: 5px;
-    box-shadow: var(--glass-shadow);
-}
-.pg-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 40px; height: 40px; padding: 0 10px; border-radius: 12px;
-    font-size: 0.85rem; font-weight: 700; text-decoration: none;
-    border: none; background: transparent;
-    color: var(--text-primary); cursor: pointer;
-    position: relative; overflow: hidden;
-    transition: all 0.3s cubic-bezier(0.2,0.8,0.2,1);
-}
-.pg-btn:hover {
-    color: var(--accent); background: var(--accent-light);
-    transform: translateY(-2px);
-}
-.pg-btn:active { transform: translateY(0) scale(0.95); }
-.pg-btn.pg-active {
-    background: linear-gradient(135deg, var(--accent), #8b5cf6);
-    color: #fff;
-    box-shadow: 0 4px 16px var(--accent-glow);
-    transform: scale(1.05);
-}
-.pg-btn.pg-active:hover { transform: scale(1.05) translateY(-1px); }
-.pg-btn.disabled { opacity: 0.3; pointer-events: none; }
-.pg-btn.pg-dots {
-    min-width: 28px; color: var(--text-tertiary); cursor: default;
-    letter-spacing: 2px; font-size: 1rem;
-}
-.pg-btn.pg-dots:hover { transform: none; background: none; color: var(--text-tertiary); }
-.pg-btn.pg-prev, .pg-btn.pg-next { font-size: 1.1rem; min-width: 40px; }
-.pg-info {
-    font-size: 0.76rem; font-weight: 600; color: var(--text-tertiary);
-    letter-spacing: 0.02em; display: flex; align-items: center; gap: 0.5rem;
-}
-.pg-info .pg-divider {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--text-tertiary); opacity: 0.4;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1100px) {
-    .prof-grid { grid-template-columns: repeat(2, 1fr); }
-    .prof-grid.view-compact { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 767px) {
-    .prof-grid.view-compact { grid-template-columns: repeat(2, 1fr); }
-    .prof-grid.view-list .prof-card { flex-direction: column; flex-wrap: nowrap; }
-    .prof-grid.view-list .prof-img { width: 100%; height: 160px; }
-    .prof-grid.view-list .prof-progress { width: auto; order: unset; }
-    .prof-toolbar { gap: 0.5rem; }
-    .prof-hero { padding: 1.5rem; border-radius: 20px; }
-    .prof-hero-stats { gap: 1.25rem; }
-    .prof-hero-stat .stat-num { font-size: 1.3rem; }
-    .prof-sort-menu { right: auto; left: 0; }
-}
-@media (max-width: 575px) {
-    .prof-page { padding: 1rem 0.65rem 2rem; }
-    .prof-grid { grid-template-columns: 1fr; gap: 1rem; }
-    .prof-grid.view-compact { grid-template-columns: repeat(2, 1fr); }
-    .prof-grid.view-compact .prof-img { height: 100px; }
-    .prof-img { height: 155px; }
-    .prof-hero {
-        flex-direction: column; align-items: flex-start;
-        padding: 1.25rem; border-radius: 18px;
-    }
-    .prof-hero-icon { width: 44px; height: 44px; font-size: 1.15rem; border-radius: 13px; }
-    .prof-hero-text h2 { font-size: 1.25rem; }
-    .prof-hero-stats { width: 100%; justify-content: space-around; }
-    .prof-card { border-radius: 18px; }
-    .pg-btn {
-        min-width: 35px; height: 35px; padding: 0 8px;
-        border-radius: 10px; font-size: 0.78rem;
-    }
-    .pg-btn.pg-active { transform: scale(1.02); }
-    .prof-pagination { gap: 4px; padding: 4px; border-radius: 12px; }
-    .pg-info { font-size: 0.72rem; }
-    .prof-search-bar input { padding: 0.8rem 1rem 0.8rem 2.8rem; font-size: 0.9rem; border-radius: 14px; }
-    .prof-tab { padding: 0.42rem 0.85rem; font-size: 0.78rem; }
-}
-@media (max-width: 380px) {
-    .prof-page { padding: 0.75rem 0.5rem 2rem; }
-    .prof-hero { padding: 1rem; }
-    .prof-hero-text h2 { font-size: 1.15rem; }
-    .prof-grid.view-compact { grid-template-columns: 1fr; }
+@media(max-width:575px){
+  .kp-wrap { padding:0 14px; }
+  .kp-grid { grid-template-columns:1fr;gap:14px; }
+  .kp-grid.view-compact { grid-template-columns:repeat(2,1fr);gap:10px; }
+  .kp-img { height:155px; }
+  .kp-toolbar { flex-direction:column;align-items:flex-start; }
 }
 </style>
 
-<div class="prof-page">
-    <!-- HERO -->
-    <div class="prof-hero">
-        <div class="prof-hero-left">
-            <div class="prof-hero-icon"><i class="bi bi-briefcase-fill"></i></div>
-            <div class="prof-hero-text">
-                <h2>Kasblar</h2>
-                <p>O'zingizga mos yo'nalishni tanlang va o'qishni boshlang</p>
-            </div>
+<div class="kp">
+
+  <!-- ══ HERO ══ -->
+  <div class="kp-hero">
+    <div class="kp-hero-grid"></div>
+    <div class="kp-hero-glow-a"></div>
+    <div class="kp-hero-glow-b"></div>
+    <div class="kp-wrap kp-hero-inner">
+      <div class="kp-hero-top">
+        <div>
+          <div class="kp-hero-label"><span class="dot"></span> IT Shaharcha</div>
+          <h1 class="kp-hero-title">Kasblar &amp; <span>Kurslar</span></h1>
+          <p class="kp-hero-sub">O'zingizga mos yo'nalishni tanlang va professional bo'lish yo'lini boshlang</p>
         </div>
-        <div class="prof-hero-stats">
-            <div class="prof-hero-stat">
-                <div class="stat-num">{{ professions.paginator.count }}</div>
-                <div class="stat-label">Kurslar</div>
+        <div class="kp-hero-stats">
+          <div class="kp-hs">
+            <div class="kp-hs-icon ind"><i class="bi bi-book-fill"></i></div>
+            <div>
+              <div class="kp-hs-val">{{ professions.paginator.count }}</div>
+              <div class="kp-hs-lab">Kurslar</div>
             </div>
-            {% if enrolled_ids %}
-            <div class="prof-hero-stat">
-                <div class="stat-num" style="color:var(--green)">{{ enrolled_ids|length }}</div>
-                <div class="stat-label">Faol</div>
+          </div>
+          {% if enrolled_ids %}
+          <div class="kp-hs">
+            <div class="kp-hs-icon grn"><i class="bi bi-check-circle-fill"></i></div>
+            <div>
+              <div class="kp-hs-val">{{ enrolled_ids|length }}</div>
+              <div class="kp-hs-lab">Faol</div>
             </div>
-            {% endif %}
+          </div>
+          {% endif %}
         </div>
-        {% if user.is_admin %}
-        <a href="{% url 'admin_professions' %}" class="btn btn-primary rounded-pill px-4" style="position:relative;z-index:1;">
-            <i class="bi bi-gear me-2"></i>Boshqarish
-        </a>
-        {% endif %}
+      </div>
     </div>
+  </div>
+
+  <!-- ══ FLOATING SEARCH ══ -->
+  <div class="kp-search-float">
+    <div class="kp-search-box">
+      <i class="bi bi-search"></i>
+      <input class="kp-search-input" id="kpSearch" type="text" placeholder="Kurs nomi yoki tavsifi bo'yicha qidirish…" autocomplete="off">
+      <button class="kp-search-clear" id="kpClear" type="button"><i class="bi bi-x-lg"></i></button>
+      {% if user.is_admin %}
+      <a href="{% url 'admin_professions' %}" class="kp-admin-btn"><i class="bi bi-gear-fill"></i> Boshqarish</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ══ MAIN ══ -->
+  <div class="kp-wrap" style="margin-top:28px">
 
     {% if professions %}
-    <!-- SEARCH -->
-    <div class="prof-search-bar">
-        <input type="text" id="profSearch" placeholder="Kurs nomi yoki tavsifi bo'yicha qidirish..." autocomplete="off">
-        <i class="bi bi-search search-icon"></i>
-        <button class="prof-search-clear" id="searchClear" type="button"><i class="bi bi-x-lg"></i></button>
-    </div>
-
     <!-- TOOLBAR -->
-    <div class="prof-toolbar">
-        <div class="prof-filters">
-            <button class="prof-tab active" data-filter="all">
-                <i class="bi bi-grid-3x3-gap"></i> Barchasi
-                <span class="cnt" id="cntAll">{{ professions.paginator.count }}</span>
-            </button>
-            {% if user.is_authenticated and user.is_student and enrolled_ids %}
-            <button class="prof-tab" data-filter="my_courses">
-                <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
-                <span class="cnt">{{ enrolled_ids|length }}</span>
-            </button>
-            {% endif %}
-            <button class="prof-tab" data-filter="free">
-                <i class="bi bi-gift-fill"></i> Bepul
-            </button>
-            <button class="prof-tab" data-filter="paid">
-                <i class="bi bi-currency-dollar"></i> Pullik
-            </button>
+    <div class="kp-toolbar">
+      <div class="kp-filters">
+        <button class="kp-tab active" data-filter="all">
+          <i class="bi bi-grid-3x3-gap"></i> Barchasi
+          <span class="cnt" id="cntAll">{{ professions.paginator.count }}</span>
+        </button>
+        {% if user.is_authenticated and user.is_student and enrolled_ids %}
+        <button class="kp-tab" data-filter="my">
+          <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
+          <span class="cnt">{{ enrolled_ids|length }}</span>
+        </button>
+        {% endif %}
+        <button class="kp-tab" data-filter="free">
+          <i class="bi bi-gift-fill"></i> Bepul
+        </button>
+        <button class="kp-tab" data-filter="paid">
+          <i class="bi bi-currency-dollar"></i> Pullik
+        </button>
+      </div>
+      <div class="kp-toolbar-right">
+        <!-- Sort -->
+        <div class="kp-sort">
+          <button class="kp-sort-btn" id="kpSortBtn">
+            <i class="bi bi-sort-down"></i>
+            <span id="kpSortLab">Saralash</span>
+            <i class="bi bi-chevron-down" style="font-size:.65rem"></i>
+          </button>
+          <div class="kp-sort-menu" id="kpSortMenu">
+            <button class="kp-sort-item active" data-sort="default"><i class="bi bi-arrow-down-up"></i> Standart</button>
+            <button class="kp-sort-item" data-sort="name-asc"><i class="bi bi-sort-alpha-down"></i> Nomi (A-Z)</button>
+            <button class="kp-sort-item" data-sort="name-desc"><i class="bi bi-sort-alpha-up"></i> Nomi (Z-A)</button>
+            <button class="kp-sort-item" data-sort="st-desc"><i class="bi bi-people-fill"></i> Ko'p o'quvchi</button>
+            <button class="kp-sort-item" data-sort="st-asc"><i class="bi bi-person"></i> Kam o'quvchi</button>
+          </div>
         </div>
-
-        <div class="d-flex align-items-center gap-2">
-            <!-- SORT -->
-            <div class="prof-sort">
-                <button class="prof-sort-btn" id="sortToggle">
-                    <i class="bi bi-sort-down"></i>
-                    <span id="sortLabel">Saralash</span>
-                    <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i>
-                </button>
-                <div class="prof-sort-menu" id="sortMenu">
-                    <button class="prof-sort-item active" data-sort="default">
-                        <i class="bi bi-arrow-down-up"></i> Standart
-                    </button>
-                    <button class="prof-sort-item" data-sort="name-asc">
-                        <i class="bi bi-sort-alpha-down"></i> Nomi (A-Z)
-                    </button>
-                    <button class="prof-sort-item" data-sort="name-desc">
-                        <i class="bi bi-sort-alpha-up"></i> Nomi (Z-A)
-                    </button>
-                    <button class="prof-sort-item" data-sort="students-desc">
-                        <i class="bi bi-people-fill"></i> Eng ko'p o'quvchi
-                    </button>
-                    <button class="prof-sort-item" data-sort="students-asc">
-                        <i class="bi bi-person"></i> Eng kam o'quvchi
-                    </button>
-                </div>
-            </div>
-
-            <!-- VIEW SWITCH -->
-            <div class="view-switcher" id="viewSwitcher">
-                <button class="view-btn active" data-view="grid" title="Katta kartalar">
-                    <i class="bi bi-grid-3x3-gap-fill"></i>
-                </button>
-                <button class="view-btn" data-view="list" title="Ro'yxat">
-                    <i class="bi bi-list-ul"></i>
-                </button>
-                <button class="view-btn" data-view="compact" title="Ixcham">
-                    <i class="bi bi-grid-fill"></i>
-                </button>
-            </div>
+        <!-- View -->
+        <div class="kp-view-sw">
+          <button class="kp-view-btn active" data-view="grid" title="Grid"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+          <button class="kp-view-btn" data-view="list" title="Ro'yxat"><i class="bi bi-list-ul"></i></button>
+          <button class="kp-view-btn" data-view="compact" title="Ixcham"><i class="bi bi-grid-fill"></i></button>
         </div>
+      </div>
     </div>
 
-    <!-- RESULTS INFO -->
-    <div class="prof-results-info">
-        <div class="prof-results-count">
-            <span>Natijalar:</span>
-            <span class="count-num" id="visibleCount">{{ professions.paginator.count }}</span>
-            <span>ta kurs</span>
-        </div>
-    </div>
+    <!-- Results -->
+    <div class="kp-results">Natijalar: <strong id="kpCount">{{ professions.paginator.count }}</strong> ta kurs</div>
 
     <!-- GRID -->
-    <div class="prof-grid" id="profGrid">
-        {% for profession in professions %}
-        <a href="{% with ct=course_token_map|get_course_token:profession.pk %}{% if ct %}{% url 'student_course_view' ct %}{% else %}{% url 'profession_detail' profession.pk %}{% endif %}{% endwith %}"
-           class="prof-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
-           data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
-           data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}"
-           data-name="{{ profession.name }}"
-           data-desc="{{ profession.description|striptags|truncatewords:30 }}"
-           data-students="{{ profession.student_count }}">
+    <div class="kp-grid" id="kpGrid">
+      {% for profession in professions %}
+      <a href="{% with ct=course_token_map|get_course_token:profession.pk %}{% if ct %}{% url 'student_course_view' ct %}{% else %}{% url 'profession_detail' profession.pk %}{% endif %}{% endwith %}"
+         class="kp-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
+         data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
+         data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}"
+         data-name="{{ profession.name }}"
+         data-desc="{{ profession.description|striptags|truncatewords:30 }}"
+         data-students="{{ profession.student_count }}">
 
-            <div class="prof-img">
-                <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" loading="lazy">
-                <div class="prof-badges-top">
-                    <div>
-                        {% if not profession.is_paid %}
-                        <span class="prof-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
-                        {% else %}
-                        <span class="prof-badge paid"><i class="bi bi-cash-stack"></i> Pullik</span>
-                        {% endif %}
-                    </div>
-                    <div>
-                        {% if profession.pk in enrolled_ids %}
-                        <span class="prof-badge active-badge"><i class="bi bi-play-fill"></i> Faol</span>
-                        {% endif %}
-                        {% if profession.is_blocked %}
-                        <span class="prof-badge blocked-badge"><i class="bi bi-lock-fill"></i></span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="prof-students">
-                    <i class="bi bi-people-fill"></i> {{ profession.student_count }}
-                </div>
-                {% if profession.is_blocked %}
-                <div class="prof-blocked-overlay">
-                    <i class="bi bi-lock-fill"></i>
-                    <span>Vaqtincha bloklangan</span>
-                </div>
-                {% endif %}
+        <div class="kp-img">
+          <img src="{{ profession.photo.url }}" alt="{{ profession.name }}" loading="lazy">
+          <div class="kp-img-overlay"></div>
+          <div class="kp-badges">
+            <div>
+              {% if not profession.is_paid %}
+              <span class="kp-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
+              {% else %}
+              <span class="kp-badge paid"><i class="bi bi-cash-stack"></i> Pullik</span>
+              {% endif %}
             </div>
+            <div style="display:flex;gap:4px">
+              {% if profession.pk in enrolled_ids %}
+              <span class="kp-badge active"><i class="bi bi-play-fill"></i> Faol</span>
+              {% endif %}
+              {% if profession.is_blocked %}
+              <span class="kp-badge blocked"><i class="bi bi-lock-fill"></i></span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="kp-students"><i class="bi bi-people-fill"></i> {{ profession.student_count }}</div>
+          {% if profession.is_blocked %}
+          <div class="kp-blocked">
+            <i class="bi bi-lock-fill"></i>
+            <span>Vaqtincha bloklangan</span>
+          </div>
+          {% endif %}
+        </div>
 
-            {% if profession.progress is not None %}
-            <div class="prof-progress">
-                <div class="prof-progress-header">
-                    <span class="prof-progress-label">Ko'rsatgich</span>
-                    <span class="prof-progress-pct {% if profession.progress < 30 %}low{% elif profession.progress < 70 %}mid{% endif %}">
-                        {{ profession.progress }}%
-                    </span>
-                </div>
-                <div class="prof-progress-track">
-                    <div class="prof-progress-bar {% if profession.progress >= 100 %}complete{% elif profession.progress >= 50 %}mid{% endif %}"
-                         style="width:0%" data-progress="{{ profession.progress }}"></div>
-                </div>
-            </div>
+        {% if profession.progress is not None %}
+        <div class="kp-prog">
+          <div class="kp-prog-head">
+            <span class="kp-prog-lab">Taraqqiyot</span>
+            <span class="kp-prog-pct">{{ profession.progress }}%</span>
+          </div>
+          <div class="kp-prog-track">
+            <div class="kp-prog-fill" style="width:0%" data-progress="{{ profession.progress }}"></div>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="kp-body">
+          <h5 class="kp-name">{{ profession.name }}</h5>
+          <p class="kp-desc">{{ profession.description|striptags|truncatewords:18 }}</p>
+          <div class="kp-footer">
+            {% if profession.pk in enrolled_ids %}
+            <span class="kp-status enrolled"><i class="bi bi-check-circle-fill"></i> O'qiyapsiz</span>
+            {% else %}
+            <span class="kp-status new"><i class="bi bi-arrow-right-circle"></i> Batafsil</span>
             {% endif %}
-
-            <div class="prof-body">
-                <h5 class="prof-name">{{ profession.name }}</h5>
-                <p class="prof-desc">{{ profession.description|striptags|truncatewords:18 }}</p>
-                <div class="prof-footer">
-                    {% if profession.pk in enrolled_ids %}
-                    <span class="prof-status enrolled-status">
-                        <i class="bi bi-check-circle-fill"></i> O'qiyapsiz
-                    </span>
-                    {% else %}
-                    <span class="prof-status not-enrolled">
-                        <i class="bi bi-arrow-right-circle"></i> Batafsil
-                    </span>
-                    {% endif %}
-                    <div class="prof-arrow"><i class="bi bi-arrow-right"></i></div>
-                </div>
-
-                {% if profession.teachers.all %}
-                <div class="prof-teacher-row">
-                    <i class="bi bi-person-video3"></i>
-                    {% for t in profession.teachers.all %}
-                    {% if t.photo %}
-                    <img src="{{ t.photo.url }}" alt="{{ t.full_name }}" class="prof-teacher-avatar">
-                    {% else %}
-                    <span class="prof-teacher-placeholder">{{ t.first_name|first }}</span>
-                    {% endif %}
-                    <span class="prof-teacher-name">{{ t.full_name }}{% if not forloop.last %},{% endif %}</span>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
+            <div class="kp-arrow"><i class="bi bi-arrow-right"></i></div>
+          </div>
+          {% if profession.teachers.all %}
+          <div class="kp-teacher">
+            <i class="bi bi-person-video3"></i>
+            {% for t in profession.teachers.all %}
+              {% if t.photo %}<img src="{{ t.photo.url }}" class="kp-t-av" alt="">
+              {% else %}<span class="kp-t-init">{{ t.first_name|first }}</span>{% endif %}
+              <span class="kp-t-name">{{ t.full_name }}{% if not forloop.last %},{% endif %}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
     </div>
 
-    <!-- NO RESULTS -->
-    <div class="prof-no-results" id="noResults">
-        <i class="bi bi-search"></i>
-        <h5>Natija topilmadi</h5>
-        <p>Qidiruv so'zini o'zgartirib ko'ring yoki filtrni tanlang</p>
+    <!-- No results -->
+    <div class="kp-no-results" id="kpNoResults">
+      <i class="bi bi-search"></i>
+      <h5>Natija topilmadi</h5>
+      <p>Qidiruv so'zini o'zgartiring yoki boshqa filtr tanlang</p>
     </div>
 
     <!-- PAGINATION -->
     {% if professions.has_other_pages %}
-    <nav class="prof-pagination-wrap" id="paginationWrap" aria-label="Sahifalar">
-        <div class="prof-pagination">
-            {% if professions.has_previous %}
-            <a href="?page={{ professions.previous_page_number }}" class="pg-btn pg-prev" aria-label="Oldingi">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-            {% else %}
-            <span class="pg-btn pg-prev disabled" aria-disabled="true"><i class="bi bi-chevron-left"></i></span>
-            {% endif %}
+    <nav class="kp-pag-wrap" id="kpPag">
+      <div class="kp-pag">
+        {% if professions.has_previous %}
+        <a href="?page={{ professions.previous_page_number }}" class="pg"><i class="bi bi-chevron-left"></i></a>
+        {% else %}
+        <span class="pg off"><i class="bi bi-chevron-left"></i></span>
+        {% endif %}
 
-            {% for num in professions.paginator.page_range %}
-                {% if professions.number == num %}
-                <span class="pg-btn pg-active">{{ num }}</span>
-                {% elif num > professions.number|add:'-3' and num < professions.number|add:'3' %}
-                <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
-                {% elif num == 1 or num == professions.paginator.num_pages %}
-                <a href="?page={{ num }}" class="pg-btn">{{ num }}</a>
-                {% elif num == professions.number|add:'-3' or num == professions.number|add:'3' %}
-                <span class="pg-btn pg-dots">&hellip;</span>
-                {% endif %}
-            {% endfor %}
+        {% for num in professions.paginator.page_range %}
+          {% if professions.number == num %}
+          <span class="pg cur">{{ num }}</span>
+          {% elif num > professions.number|add:'-3' and num < professions.number|add:'3' %}
+          <a href="?page={{ num }}" class="pg">{{ num }}</a>
+          {% elif num == 1 or num == professions.paginator.num_pages %}
+          <a href="?page={{ num }}" class="pg">{{ num }}</a>
+          {% elif num == professions.number|add:'-3' or num == professions.number|add:'3' %}
+          <span class="pg dots">&hellip;</span>
+          {% endif %}
+        {% endfor %}
 
-            {% if professions.has_next %}
-            <a href="?page={{ professions.next_page_number }}" class="pg-btn pg-next" aria-label="Keyingi">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-            {% else %}
-            <span class="pg-btn pg-next disabled" aria-disabled="true"><i class="bi bi-chevron-right"></i></span>
-            {% endif %}
-        </div>
-        <div class="pg-info">
-            <span>Sahifa {{ professions.number }} / {{ professions.paginator.num_pages }}</span>
-            <span class="pg-divider"></span>
-            <span>{{ professions.start_index }}-{{ professions.end_index }} / {{ professions.paginator.count }} ta kurs</span>
-        </div>
+        {% if professions.has_next %}
+        <a href="?page={{ professions.next_page_number }}" class="pg"><i class="bi bi-chevron-right"></i></a>
+        {% else %}
+        <span class="pg off"><i class="bi bi-chevron-right"></i></span>
+        {% endif %}
+      </div>
+      <div class="kp-pag-info">
+        Sahifa {{ professions.number }} / {{ professions.paginator.num_pages }}
+        &nbsp;·&nbsp; {{ professions.start_index }}–{{ professions.end_index }} / {{ professions.paginator.count }} ta
+      </div>
     </nav>
     {% endif %}
 
     {% else %}
-    <div class="prof-empty">
-        <i class="bi bi-inbox"></i>
-        <h4 class="mt-3">Hozircha kasblar mavjud emas</h4>
+    <div class="kp-panel kp-empty" style="border-radius:var(--kp-r);border:1px solid var(--kp-border)">
+      <i class="bi bi-inbox"></i>
+      <h4>Hozircha kasblar mavjud emas</h4>
+      <p>Tez orada yangi kurslar qo'shiladi</p>
     </div>
     {% endif %}
-</div>
+  </div><!-- /kp-wrap -->
+</div><!-- /kp -->
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var grid = document.getElementById('profGrid');
-    var cards = Array.from(document.querySelectorAll('.prof-card'));
-    var tabs = document.querySelectorAll('.prof-tab');
-    var viewBtns = document.querySelectorAll('.view-btn');
-    var searchInput = document.getElementById('profSearch');
-    var searchClear = document.getElementById('searchClear');
-    var noResults = document.getElementById('noResults');
-    var visibleCount = document.getElementById('visibleCount');
-    var paginationWrap = document.getElementById('paginationWrap');
-    var sortToggle = document.getElementById('sortToggle');
-    var sortMenu = document.getElementById('sortMenu');
-    var sortItems = document.querySelectorAll('.prof-sort-item');
-    var sortLabel = document.getElementById('sortLabel');
+document.addEventListener('DOMContentLoaded', function () {
+  var grid      = document.getElementById('kpGrid');
+  if (!grid) return;
+  var cards     = Array.from(document.querySelectorAll('.kp-card'));
+  var tabs      = document.querySelectorAll('.kp-tab');
+  var viewBtns  = document.querySelectorAll('.kp-view-btn');
+  var searchIn  = document.getElementById('kpSearch');
+  var clearBtn  = document.getElementById('kpClear');
+  var noRes     = document.getElementById('kpNoResults');
+  var countEl   = document.getElementById('kpCount');
+  var pagWrap   = document.getElementById('kpPag');
+  var sortBtn   = document.getElementById('kpSortBtn');
+  var sortMenu  = document.getElementById('kpSortMenu');
+  var sortItems = document.querySelectorAll('.kp-sort-item');
+  var sortLab   = document.getElementById('kpSortLab');
 
-    var currentFilter = 'all';
-    var currentSearch = '';
-    var currentSort = 'default';
-    var originalOrder = cards.map(function(c) { return c; });
+  var filter = 'all', search = '', sort = 'default';
+  var origOrder = cards.slice();
 
-    // Progress bars animation
-    document.querySelectorAll('.prof-progress-bar[data-progress]').forEach(function(bar) {
-        setTimeout(function() { bar.style.width = bar.dataset.progress + '%'; }, 400);
+  // Progress bars
+  document.querySelectorAll('.kp-prog-fill[data-progress]').forEach(function (b) {
+    setTimeout(function () { b.style.width = b.dataset.progress + '%'; }, 300);
+  });
+
+  // Search
+  var st;
+  if (searchIn) {
+    searchIn.addEventListener('input', function () {
+      clearTimeout(st);
+      st = setTimeout(function () {
+        search = searchIn.value.trim().toLowerCase();
+        clearBtn.classList.toggle('show', !!search);
+        apply();
+      }, 200);
     });
-
-    // ====== SEARCH ======
-    var searchTimer = null;
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(function() {
-            currentSearch = searchInput.value.trim().toLowerCase();
-            searchClear.classList.toggle('show', currentSearch.length > 0);
-            applyFilters();
-        }, 200);
+  }
+  if (clearBtn) {
+    clearBtn.addEventListener('click', function () {
+      searchIn.value = ''; search = '';
+      clearBtn.classList.remove('show'); apply(); searchIn.focus();
     });
+  }
 
-    searchClear.addEventListener('click', function() {
-        searchInput.value = '';
-        currentSearch = '';
-        searchClear.classList.remove('show');
-        applyFilters();
-        searchInput.focus();
+  // Filter tabs
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('active'); });
+      this.classList.add('active'); filter = this.dataset.filter; apply();
     });
+  });
 
-    // ====== FILTER TABS ======
-    tabs.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            tabs.forEach(function(t) { t.classList.remove('active'); });
-            this.classList.add('active');
-            currentFilter = this.dataset.filter;
-            applyFilters();
-        });
+  // Sort
+  if (sortBtn) {
+    sortBtn.addEventListener('click', function (e) { e.stopPropagation(); sortMenu.classList.toggle('show'); });
+    document.addEventListener('click', function (e) {
+      if (!sortMenu.contains(e.target) && e.target !== sortBtn) sortMenu.classList.remove('show');
     });
-
-    // ====== SORT ======
-    sortToggle.addEventListener('click', function(e) {
-        e.stopPropagation();
-        sortMenu.classList.toggle('show');
+    sortItems.forEach(function (s) {
+      s.addEventListener('click', function () {
+        sortItems.forEach(function (x) { x.classList.remove('active'); });
+        this.classList.add('active'); sort = this.dataset.sort;
+        sortLab.textContent = this.textContent.trim();
+        sortMenu.classList.remove('show'); apply();
+      });
     });
+  }
 
-    document.addEventListener('click', function(e) {
-        if (!sortMenu.contains(e.target) && e.target !== sortToggle) {
-            sortMenu.classList.remove('show');
-        }
+  // View
+  var VK = 'kp-view';
+  function setView(v) {
+    grid.classList.remove('view-list','view-compact');
+    if (v === 'list') grid.classList.add('view-list');
+    if (v === 'compact') grid.classList.add('view-compact');
+    viewBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.view === v); });
+    localStorage.setItem(VK, v);
+  }
+  viewBtns.forEach(function (b) { b.addEventListener('click', function () { setView(this.dataset.view); }); });
+  var sv = localStorage.getItem(VK);
+  if (sv && ['grid','list','compact'].indexOf(sv) !== -1) setView(sv);
+
+  // Apply
+  function apply() {
+    var sorted = doSort(cards.slice());
+    var shown = 0;
+    sorted.forEach(function (c, i) {
+      var mf = filter === 'all' ? true : filter === 'my' ? c.dataset.enrolled === 'true' : c.dataset.type === filter;
+      var ms = !search || (c.dataset.name||'').toLowerCase().includes(search) || (c.dataset.desc||'').toLowerCase().includes(search);
+      if (mf && ms) {
+        c.classList.remove('hidden');
+        c.style.animation = 'none'; c.offsetHeight;
+        c.style.animation = 'kpCardIn .4s ' + (shown * .05) + 's ease forwards';
+        shown++;
+      } else { c.classList.add('hidden'); }
     });
+    sorted.forEach(function (c) { grid.appendChild(c); });
+    if (countEl) countEl.textContent = shown;
+    if (noRes) noRes.classList.toggle('show', shown === 0);
+    if (pagWrap) pagWrap.style.display = (filter === 'all' && !search && sort === 'default') ? '' : 'none';
+  }
 
-    sortItems.forEach(function(item) {
-        item.addEventListener('click', function() {
-            sortItems.forEach(function(s) { s.classList.remove('active'); });
-            this.classList.add('active');
-            currentSort = this.dataset.sort;
-            sortLabel.textContent = this.textContent.trim();
-            sortMenu.classList.remove('show');
-            applyFilters();
-        });
+  function doSort(arr) {
+    if (sort === 'default') return origOrder.slice();
+    return arr.sort(function (a, b) {
+      if (sort === 'name-asc')  return (a.dataset.name||'').localeCompare(b.dataset.name||'','uz');
+      if (sort === 'name-desc') return (b.dataset.name||'').localeCompare(a.dataset.name||'','uz');
+      if (sort === 'st-desc') return parseInt(b.dataset.students||0) - parseInt(a.dataset.students||0);
+      if (sort === 'st-asc')  return parseInt(a.dataset.students||0) - parseInt(b.dataset.students||0);
+      return 0;
     });
+  }
 
-    // ====== APPLY FILTERS ======
-    function applyFilters() {
-        var sorted = sortCards(cards.slice());
-        var shown = 0;
-        var isFiltering = currentFilter !== 'all' || currentSearch || currentSort !== 'default';
+  // Keyboard shortcut
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== searchIn) { e.preventDefault(); searchIn && searchIn.focus(); }
+    if (e.key === 'Escape' && document.activeElement === searchIn) { searchIn.blur(); }
+  });
 
-        sorted.forEach(function(card, i) {
-            var matchFilter = true;
-            var matchSearch = true;
-
-            if (currentFilter === 'my_courses') {
-                matchFilter = card.dataset.enrolled === 'true';
-            } else if (currentFilter === 'free' || currentFilter === 'paid') {
-                matchFilter = card.dataset.type === currentFilter;
-            }
-
-            if (currentSearch) {
-                var name = (card.dataset.name || '').toLowerCase();
-                var desc = (card.dataset.desc || '').toLowerCase();
-                matchSearch = name.indexOf(currentSearch) !== -1 || desc.indexOf(currentSearch) !== -1;
-            }
-
-            if (matchFilter && matchSearch) {
-                card.classList.remove('card-hidden');
-                card.style.animation = 'none';
-                card.offsetHeight;
-                card.style.animation = 'cardReveal 0.4s ' + (shown * 0.05) + 's cubic-bezier(0.2,0.8,0.2,1) forwards';
-                shown++;
-            } else {
-                card.classList.add('card-hidden');
-            }
-        });
-
-        sorted.forEach(function(card) { grid.appendChild(card); });
-
-        var displayedCount = shown;
-        visibleCount.textContent = displayedCount;
-        noResults.classList.toggle('show', shown === 0);
-
-        if (paginationWrap) {
-            var isDefault = currentFilter === 'all' && !currentSearch && currentSort === 'default';
-            paginationWrap.style.display = isDefault ? '' : 'none';
-        }
-    }
-
-    function sortCards(arr) {
-        if (currentSort === 'default') return originalOrder.slice();
-        return arr.sort(function(a, b) {
-            if (currentSort === 'name-asc') return (a.dataset.name || '').localeCompare(b.dataset.name || '', 'uz');
-            if (currentSort === 'name-desc') return (b.dataset.name || '').localeCompare(a.dataset.name || '', 'uz');
-            if (currentSort === 'students-desc') return parseInt(b.dataset.students || 0) - parseInt(a.dataset.students || 0);
-            if (currentSort === 'students-asc') return parseInt(a.dataset.students || 0) - parseInt(b.dataset.students || 0);
-            return 0;
-        });
-    }
-
-    // ====== VIEW SWITCHER ======
-    var VIEW_KEY = 'prof-view-mode';
-    var currentView = 'grid';
-
-
-    function setView(mode) {
-        currentView = mode;
-        grid.classList.remove('view-list', 'view-compact');
-        if (mode === 'list') grid.classList.add('view-list');
-        if (mode === 'compact') grid.classList.add('view-compact');
-        viewBtns.forEach(function(b) { b.classList.toggle('active', b.dataset.view === mode); });
-        localStorage.setItem(VIEW_KEY, mode);
-        applyFilters();
-    }
-    viewBtns.forEach(function(btn) {
-        btn.addEventListener('click', function() { setView(this.dataset.view); });
-    });
-    var savedView = localStorage.getItem(VIEW_KEY);
-    if (savedView && ['grid','list','compact'].indexOf(savedView) !== -1) {
-        setView(savedView);
-    } else {
-        applyFilters();
-    }
-
-    // ====== KEYBOARD SHORTCUT ======
-    document.addEventListener('keydown', function(e) {
-        if (e.key === '/' && document.activeElement !== searchInput) {
-            e.preventDefault();
-            searchInput.focus();
-        }
-        if (e.key === 'Escape' && document.activeElement === searchInput) {
-            searchInput.blur();
-            if (currentSearch) {
-                searchInput.value = '';
-                currentSearch = '';
-                searchClear.classList.remove('show');
-                applyFilters();
-            }
-        }
-    });
+  apply();
 });
 </script>
 {% endblock %}
