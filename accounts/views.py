@@ -1080,6 +1080,13 @@ def home_view(request):
     # Telegram ulash tavsiyasi
     show_telegram_prompt = not request.user.telegram_id
 
+    # Foydalanuvchi reytingdagi o'rni (coinlar bo'yicha)
+    user_rank = None
+    if request.user.is_student:
+        user_rank = CustomUser.objects.filter(
+            role='student', coins__gt=request.user.coins
+        ).count() + 1
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -1089,6 +1096,7 @@ def home_view(request):
         'dashboard_courses': dashboard_courses,
         'quick_courses': quick_courses,
         'show_telegram_prompt': show_telegram_prompt,
+        'user_rank': user_rank,
     }
 
     return render(request, 'accounts/home.html', context)
