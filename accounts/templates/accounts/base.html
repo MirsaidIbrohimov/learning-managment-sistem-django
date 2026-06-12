@@ -1894,4 +1894,748 @@
                 el.style.left = Math.random() * 100 + '%';
                 el.style.top = '-10px';
                 el.style.background = colors[Math.floor(Math.random() * colors.length)];
-                el.style.opacity 
+                el.style.opacity = Math.random() * 0.9 + 0.3;
+                el.style.transition = 'transform 2.5s linear, opacity 2.5s linear';
+                container.appendChild(el);
+                setTimeout(() => {
+                    el.style.transform = `translateY(${window.innerHeight + 200}px) rotate(${Math.random() * 720}deg)`;
+                    el.style.opacity = 0;
+                }, 40 + Math.random() * 300);
+                setTimeout(() => el.remove(), 3000);
+            }
+        }
+
+        // Avatar fallback: if image fails to load replace with initials element
+        function avatarError(img) {
+            try {
+                const alt = img.getAttribute('alt') || '';
+                const name = alt.trim() || img.dataset.username || 'U';
+                const initials = getInitials(name);
+                const size = img.width || img.clientWidth || 44;
+                const span = document.createElement('div');
+                span.className = 'avatar avatar-initials rounded';
+                span.style.width = size + 'px';
+                span.style.height = size + 'px';
+                span.style.fontSize = Math.max(12, Math.floor(size / 2.8)) + 'px';
+                span.textContent = initials;
+                img.replaceWith(span);
+            } catch (e) {
+                // graceful noop
+            }
+        }
+
+        function getInitials(name) {
+            const parts = name.split(/\s+/).filter(Boolean);
+            if (parts.length === 0) return 'U';
+            if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+            return (parts[0][0] + parts[1][0]).toUpperCase();
+        }
+
+        // Optional: automatically initialize any images that are in the DOM with broken src
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('img.avatar').forEach(img => {
+                if (!img.complete || img.naturalWidth === 0) {
+                    // try to test: if image not loaded, set error handler
+                    img.onerror = function () { avatarError(this); };
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'effects/weather_effect.js' %}?v=3"></script>
+
+    <!-- Bayramlar va E'lonlar -->
+    <script>
+    (function() {
+        const holidays = [
+            { month: 1, day: 14, name: "Vatan himoyachilari kuni", icon: "bi-shield-check", message: "Barcha o'g'il bollarni Vatan himoyachilari bayram bilan tabriklaymiz! 🎖️" },
+            { month: 3, day: 8, name: "Xalqaro xotin-qizlar bayrami", icon: "bi-flower1", message: "Barcha ayol va qizlarni  8-Mart bayrami bilan tabriklaymiz! 💐" },
+            { month: 3, day: 21, name: "Navro'z bayrami", icon: "bi-sun", message: "Navro'z bayrami muborak bo'lsin! 🌸" },
+            { month: 10, day: 1, name: "Ustoz va murabbiylar kuni", icon: "bi-person-workspace", message: "Barcha ustozlarni kasbiy bayrami bilan tabriklaymiz! 📚" },
+            { month: 12, day: 31, name: "Yangi yil", icon: "bi-stars", message: "Yangi yilingiz bilan! Baxt va omad tilaymiz! 🎄" },
+            { month: 1, day: 1, name: "Yangi yil", icon: "bi-stars", message: "Yangi yilingiz muborak! 🎉" },
+        ];
+        
+        const today = new Date();
+        const month = today.getMonth() + 1;
+        const day = today.getDate();
+        
+        let message = '';
+        let isHoliday = false;
+        
+        for (const h of holidays) {
+            const diff = (month === h.month) ? (day - h.day) : -999;
+            if (diff >= -1 && diff <= 1) {
+                message = `<i class="bi ${h.icon}"></i> ${h.message}`;
+                isHoliday = true;
+                break;
+            }
+        }
+        
+        if (!message) {
+            message = `<i class="bi bi-info-circle"></i> Sayt sinov rejimida ishlamoqda. Xatolik topsangiz <strong>Alt+Enter</strong> tugmasini bosing va bizga xabar bering! Ushbu saytdan foydalanish vaqtida coice fayllar tizimga xar soniyada yuklab boriladi!`;
+        }
+        
+        const bar = document.getElementById('announcementBar');
+        const text1 = document.getElementById('announcementText');
+        const text2 = document.getElementById('announcementText2');
+        
+        if (text1 && text2) {
+            text1.innerHTML = message;
+            text2.innerHTML = message;
+        }
+        
+        if (isHoliday && bar) {
+            bar.classList.add('holiday');
+        }
+    })();
+    </script>
+
+    {% if user.is_authenticated %}
+    <!-- Yordam Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--border);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title"><i class="bi bi-question-circle text-primary me-2"></i>Yordam so'rash</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="helpForm" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <div class="text-center mb-3">
+                            <small class="text-muted">{{ user.first_name }} {{ user.last_name }} sifatida yuboriladi</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mavzu <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="subject" id="helpSubject" placeholder="Xatolik yoki savol mavzusi" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Xabar <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="message" id="helpMessage" rows="4" placeholder="Batafsil yozing..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Rasm (ixtiyoriy)</label>
+                            <input type="file" class="form-control" name="image" id="helpImage" accept="image/*">
+                            <div class="form-text">Xatolik skrinshotini yuklashingiz mumkin</div>
+                        </div>
+                        <div id="helpAlert" class="alert d-none"></div>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                        <button type="submit" class="btn btn-primary" id="helpSubmitBtn">
+                            <i class="bi bi-send me-1"></i>Yuborish
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Alt+Enter -> Yordam sahifasi
+    document.addEventListener('keydown', function(e) {
+        if (e.altKey && e.key === 'Enter') {
+            e.preventDefault();
+            window.location.href = '{% url "help_page" %}';
+        }
+    });
+    
+    // Yordam formasi
+    document.getElementById('helpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const btn = document.getElementById('helpSubmitBtn');
+        const alert = document.getElementById('helpAlert');
+        const formData = new FormData(this);
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Yuborilmoqda...';
+        
+        fetch('{% url "submit_help_request" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            alert.classList.remove('d-none', 'alert-danger', 'alert-success');
+            if (data.success) {
+                alert.classList.add('alert-success');
+                alert.innerHTML = '<i class="bi bi-check-circle me-1"></i>' + data.message;
+                document.getElementById('helpForm').reset();
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('helpModal')).hide();
+                    alert.classList.add('d-none');
+                }, 2000);
+            } else {
+                alert.classList.add('alert-danger');
+                alert.innerHTML = '<i class="bi bi-x-circle me-1"></i>' + data.error;
+            }
+        })
+        .catch(() => {
+            alert.classList.remove('d-none', 'alert-success');
+            alert.classList.add('alert-danger');
+            alert.innerHTML = 'Xatolik yuz berdi!';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send me-1"></i>Yuborish';
+        });
+    });
+    </script>
+    {% endif %}
+
+    <!-- Language Translation System -->
+<script>
+(function(){
+    var T = {
+        uz: {
+            'nav.home': 'Bosh sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
+            'nav.posts': 'Postlar', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.help': 'Yordam', 'nav.tasks': 'Vazifalar', 'nav.balance': 'Balans',
+            'menu.profile': 'Profil', 'menu.messages': 'Xabarlar', 'menu.ai_chat': 'AI suhbat',
+            'menu.games': "O'yinlar", 'menu.my_homework': 'Vazifalarim',
+            'menu.my_books': 'Ijaradagi kitoblarim', 'menu.devices': 'Qurilmalar',
+            'menu.settings': 'Sozlamalar', 'menu.teacher_panel': "O'qituvchi paneli",
+            'menu.admin_panel': 'Panel', 'menu.logout': 'Chiqish',
+        },
+        ru: {
+            'nav.home': 'Главная', 'nav.courses': 'Курсы', 'nav.rating': 'Рейтинг',
+            'nav.posts': 'Посты', 'nav.market': 'Магазин', 'nav.coding': 'Кодинг',
+            'nav.help': 'Помощь', 'nav.tasks': 'Задания', 'nav.balance': 'Баланс',
+            'menu.profile': 'Профиль', 'menu.messages': 'Сообщения', 'menu.ai_chat': 'AI чат',
+            'menu.games': 'Игры', 'menu.my_homework': 'Мои задания',
+            'menu.my_books': 'Арендованные книги', 'menu.devices': 'Устройства',
+            'menu.settings': 'Настройки', 'menu.teacher_panel': 'Панель учителя',
+            'menu.admin_panel': 'Панель', 'menu.logout': 'Выход',
+        },
+        en: {
+            'nav.home': 'Home', 'nav.courses': 'Courses', 'nav.rating': 'Rating',
+            'nav.posts': 'Posts', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.help': 'Help', 'nav.tasks': 'Tasks', 'nav.balance': 'Balance',
+            'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Chat',
+            'menu.games': 'Games', 'menu.my_homework': 'My Homework',
+            'menu.my_books': 'Rented Books', 'menu.devices': 'Devices',
+            'menu.settings': 'Settings', 'menu.teacher_panel': 'Teacher Panel',
+            'menu.admin_panel': 'Panel', 'menu.logout': 'Log out',
+        }
+    };
+    function applyLang(lang) {
+        if (!T[lang]) lang = 'uz';
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            if (T[lang][key]) el.textContent = T[lang][key];
+        });
+        document.documentElement.setAttribute('lang', lang);
+    }
+    var lang = localStorage.getItem('siteLang') || 'uz';
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function(){ applyLang(lang); });
+    } else {
+        applyLang(lang);
+    }
+    window.applySiteLang = applyLang;
+})();
+</script>
+{% block extra_js %}{% endblock %}
+
+    <!-- Global Toast Notifications -->
+    {% if messages %}
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+        {% for message in messages %}
+        <div class="toast align-items-center text-white 
+            {% if message.tags == 'success' %}bg-success
+            {% elif message.tags == 'error' or message.tags == 'danger' %}bg-danger
+            {% elif message.tags == 'warning' %}bg-warning text-dark
+            {% elif message.tags == 'info' %}bg-info text-dark
+            {% else %}bg-primary{% endif %}" 
+            role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body">
+                    {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-x-circle-fill me-2"></i>
+                    {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    {% elif message.tags == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>
+                    {% else %}<i class="bi bi-bell-fill me-2"></i>{% endif %}
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function(toastEl) {
+                var toast = new bootstrap.Toast(toastEl);
+                toast.show();
+            });
+        });
+    </script>
+    {% endif %}
+
+    {% if request.session.show_premium_ad %}
+    <!-- Premium reklama popup (login paytida) -->
+    <style>
+    .login-premium-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: lpFadeIn 0.5s ease;
+    }
+    @keyframes lpFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .login-premium-overlay.lp-hiding {
+        animation: lpFadeOut 0.5s ease forwards;
+    }
+    @keyframes lpFadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .lp-card {
+        background: linear-gradient(150deg, #0f0c29, #302b63, #24243e);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        animation: lpCardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(102,51,238,0.2);
+    }
+    @keyframes lpCardPop {
+        from { opacity: 0; transform: scale(0.7) translateY(40px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .lp-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -30%;
+        width: 160%; height: 160%;
+        background: radial-gradient(ellipse, rgba(139,92,246,0.12) 0%, transparent 60%);
+        animation: lpFloat 5s ease-in-out infinite;
+    }
+    @keyframes lpFloat {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-15px) rotate(2deg); }
+    }
+    .lp-card > * { position: relative; z-index: 1; }
+    .lp-close {
+        position: absolute;
+        top: 14px; right: 16px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: rgba(255,255,255,0.6);
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .lp-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .lp-crown {
+        width: 80px; height: 80px;
+        margin: 0 auto 1.2rem;
+        position: relative;
+    }
+    .lp-crown-inner {
+        width: 80px; height: 80px;
+        background: linear-gradient(135deg, #f59e0b, #f97316, #ef4444);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        animation: lpCrownBounce 2s ease-in-out infinite;
+        box-shadow: 0 8px 30px rgba(245,158,11,0.4);
+    }
+    @keyframes lpCrownBounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-8px) scale(1.05); }
+    }
+    .lp-crown-ring {
+        position: absolute;
+        top: -8px; left: -8px; right: -8px; bottom: -8px;
+        border: 2px solid rgba(245,158,11,0.3);
+        border-radius: 30px;
+        animation: lpRingPulse 2s ease-in-out infinite;
+    }
+    @keyframes lpRingPulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0; }
+    }
+    .lp-card h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+        background: linear-gradient(90deg, #fbbf24, #fff, #fbbf24);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: lpShimmer 3s linear infinite;
+    }
+    @keyframes lpShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .lp-subtitle {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .lp-benefits {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+    .lp-benefit {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.86rem;
+        color: rgba(255,255,255,0.85);
+        opacity: 0;
+        transform: translateX(-20px);
+        animation: lpSlideIn 0.4s ease forwards;
+    }
+    .lp-benefit:nth-child(1) { animation-delay: 0.4s; }
+    .lp-benefit:nth-child(2) { animation-delay: 0.5s; }
+    .lp-benefit:nth-child(3) { animation-delay: 0.6s; }
+    .lp-benefit:nth-child(4) { animation-delay: 0.7s; }
+    .lp-benefit:nth-child(5) { animation-delay: 0.8s; }
+    @keyframes lpSlideIn {
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .lp-benefit i {
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+    .lp-benefit:nth-child(1) i { color: #fbbf24; }
+    .lp-benefit:nth-child(2) i { color: #a78bfa; }
+    .lp-benefit:nth-child(3) i { color: #34d399; }
+    .lp-benefit:nth-child(4) i { color: #60a5fa; }
+    .lp-benefit:nth-child(5) i { color: #f472b6; }
+    .lp-btn-buy {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        margin-bottom: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 25px rgba(245,158,11,0.4);
+        opacity: 0;
+        animation: lpFadeUp 0.4s ease 0.9s forwards;
+    }
+    @keyframes lpFadeUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .lp-btn-buy:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(245,158,11,0.5);
+        color: #fff;
+    }
+    .lp-btn-skip {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.45);
+        font-size: 0.82rem;
+        cursor: pointer;
+        padding: 8px;
+        transition: 0.2s;
+        opacity: 0;
+        animation: lpFadeUp 0.4s ease 1s forwards;
+    }
+    .lp-btn-skip:hover { color: rgba(255,255,255,0.7); }
+    .lp-sparkle {
+        position: absolute;
+        width: 3px; height: 3px;
+        background: #fbbf24;
+        border-radius: 50%;
+        opacity: 0;
+    }
+    .lp-sparkle:nth-child(1) { top: 12%; left: 8%; animation: lpSparkle 2.5s ease infinite 0s; }
+    .lp-sparkle:nth-child(2) { top: 20%; right: 12%; animation: lpSparkle 2.5s ease infinite 0.6s; }
+    .lp-sparkle:nth-child(3) { bottom: 35%; left: 15%; animation: lpSparkle 2.5s ease infinite 1.2s; }
+    .lp-sparkle:nth-child(4) { bottom: 25%; right: 8%; animation: lpSparkle 2.5s ease infinite 1.8s; }
+    @keyframes lpSparkle {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(1.5); }
+    }
+    </style>
+
+    <script>
+    // Session flagini tozalash (faqat bir marta ko'rsatish)
+    fetch('{% url "clear_premium_ad" %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    });
+    function closeLoginPremium() {
+        var ov = document.getElementById('loginPremiumOverlay');
+        if (ov) {
+            ov.classList.add('lp-hiding');
+            setTimeout(function(){ ov.remove(); }, 500);
+        }
+    }
+    </script>
+    
+    {% endif %}
+
+    {% if request.session.show_ai_ad %}
+    <!-- Creative AI reklama popup (login paytida) -->
+    <style>
+    .ai-ad-overlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        z-index: 99998;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: aiFadeIn 0.5s ease;
+    }
+    @keyframes aiFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .ai-ad-overlay.ai-hiding {
+        animation: aiFadeOut 0.5s ease forwards;
+    }
+    @keyframes aiFadeOut { from { opacity: 1; } to { opacity: 0; } }
+    .ai-card {
+        background: linear-gradient(150deg, #0a192f, #112240, #1a365d);
+        border-radius: 28px;
+        padding: 2.5rem 2rem;
+        max-width: 420px;
+        width: 100%;
+        text-align: center;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        animation: aiCardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+        box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(16,185,129,0.15);
+    }
+    @keyframes aiCardPop {
+        from { opacity: 0; transform: scale(0.7) translateY(40px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .ai-card::before {
+        content: '';
+        position: absolute;
+        top: -50%; left: -30%;
+        width: 160%; height: 160%;
+        background: radial-gradient(ellipse, rgba(16,185,129,0.1) 0%, transparent 60%);
+        animation: aiFloat 5s ease-in-out infinite;
+    }
+    @keyframes aiFloat {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-15px) rotate(2deg); }
+    }
+    .ai-card > * { position: relative; z-index: 1; }
+    .ai-close {
+        position: absolute;
+        top: 14px; right: 16px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        color: rgba(255,255,255,0.6);
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .ai-close:hover { background: rgba(255,255,255,0.2); color: #fff; }
+    .ai-logo-wrap {
+        width: 80px; height: 80px;
+        margin: 0 auto 1.2rem;
+        position: relative;
+    }
+    .ai-logo-inner {
+        width: 80px; height: 80px;
+        background: linear-gradient(135deg, #10b981, #059669, #047857);
+        border-radius: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        animation: aiBounce 2s ease-in-out infinite;
+        box-shadow: 0 8px 30px rgba(16,185,129,0.4);
+    }
+    @keyframes aiBounce {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-8px) scale(1.05); }
+    }
+    .ai-logo-ring {
+        position: absolute;
+        top: -8px; left: -8px; right: -8px; bottom: -8px;
+        border: 2px solid rgba(16,185,129,0.3);
+        border-radius: 30px;
+        animation: aiRingPulse 2s ease-in-out infinite;
+    }
+    @keyframes aiRingPulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0; }
+    }
+    .ai-card h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 0.4rem;
+        background: linear-gradient(90deg, #34d399, #fff, #34d399);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        animation: aiShimmer 3s linear infinite;
+    }
+    @keyframes aiShimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .ai-subtitle {
+        color: rgba(255,255,255,0.65);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .ai-features {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 1.5rem;
+        text-align: left;
+    }
+    .ai-feature {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.06);
+        font-size: 0.86rem;
+        color: rgba(255,255,255,0.85);
+        opacity: 0;
+        transform: translateX(-20px);
+        animation: aiSlideIn 0.4s ease forwards;
+    }
+    .ai-feature:nth-child(1) { animation-delay: 0.4s; }
+    .ai-feature:nth-child(2) { animation-delay: 0.5s; }
+    .ai-feature:nth-child(3) { animation-delay: 0.6s; }
+    .ai-feature:nth-child(4) { animation-delay: 0.7s; }
+    @keyframes aiSlideIn {
+        to { opacity: 1; transform: translateX(0); }
+    }
+    .ai-feature:nth-child(1) i { color: #34d399; }
+    .ai-feature:nth-child(2) i { color: #60a5fa; }
+    .ai-feature:nth-child(3) i { color: #fbbf24; }
+    .ai-feature:nth-child(4) i { color: #a78bfa; }
+    .ai-feature i { font-size: 1.1rem; flex-shrink: 0; }
+    .ai-btn-try {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #10b981, #059669);
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 700;
+        text-decoration: none;
+        text-align: center;
+        margin-bottom: 10px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+        opacity: 0;
+        animation: aiBtnUp 0.4s ease 0.85s forwards;
+    }
+    @keyframes aiBtnUp {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .ai-btn-try:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(16,185,129,0.5);
+        color: #fff;
+    }
+    .ai-btn-skip {
+        background: none;
+        border: none;
+        color: rgba(255,255,255,0.45);
+        font-size: 0.82rem;
+        cursor: pointer;
+        padding: 8px;
+        transition: 0.2s;
+        opacity: 0;
+        animation: aiBtnUp 0.4s ease 0.95s forwards;
+    }
+    .ai-btn-skip:hover { color: rgba(255,255,255,0.7); }
+    .ai-dot-glow {
+        position: absolute;
+        width: 4px; height: 4px;
+        background: #34d399;
+        border-radius: 50%;
+        opacity: 0;
+    }
+    .ai-dot-glow:nth-child(1) { top: 10%; left: 10%; animation: aiDotGlow 3s ease infinite 0s; }
+    .ai-dot-glow:nth-child(2) { top: 18%; right: 10%; animation: aiDotGlow 3s ease infinite 0.7s; }
+    .ai-dot-glow:nth-child(3) { bottom: 30%; left: 12%; animation: aiDotGlow 3s ease infinite 1.4s; }
+    @keyframes aiDotGlow {
+        0%, 100% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(2); }
+    }
+    @media (max-width: 480px) {
+        .ai-card { padding: 2rem 1.5rem; border-radius: 22px; }
+        .ai-card h2 { font-size: 1.3rem; }
+    }
+    </style>
+
+
+
+    <script>
+    fetch('{% url "clear_ai_ad" %}', {
+        method: 'POST',
+        headers: {'X-CSRFToken': '{{ csrf_token }}'}
+    });
+    function closeAiAd() {
+        var ov = document.getElementById('aiAdOverlay');
+        if (ov) {
+            ov.classList.add('ai-hiding');
+            setTimeout(function(){ ov.remove(); }, 500);
+        }
+    }
+    </script>
+    {% endif %}
+
+
+</body>
+
+</html>
