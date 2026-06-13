@@ -1,0 +1,402 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Tomosha: {{ match.game.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ===== LAYOUT ===== */
+.sp-page { max-width: 1050px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.sp-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+@media(max-width:820px){ .sp-layout { grid-template-columns: 1fr; } }
+
+/* ===== HEADER ===== */
+.sp-header { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.sp-back { color: var(--text-muted); text-decoration: none; font-size: .85rem; display: flex; align-items: center; gap: .3rem; transition: .15s; }
+.sp-back:hover { color: var(--primary,#6366f1); }
+.sp-title { font-size: 1.3rem; font-weight: 800; margin: 0; }
+.sp-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #ef4444; animation: pulse-dot 1.4s ease infinite; display: inline-block; margin-right: .3rem; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+.sp-ended-badge { background: rgba(100,116,139,.2); color: #94a3b8; border: 1px solid rgba(100,116,139,.3); border-radius: 20px; padding: .2rem .75rem; font-size: .8rem; font-weight: 700; }
+.sp-live-badge { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.3); border-radius: 20px; padding: .2rem .75rem; font-size: .8rem; font-weight: 700; }
+
+/* ===== PLAYERS BANNER ===== */
+.sp-players { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: .75rem; }
+.sp-pl { display: flex; align-items: center; gap: .6rem; flex: 1; min-width: 0; }
+.sp-pl.black-side { flex-direction: row-reverse; text-align: right; }
+.sp-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; color: #fff; flex-shrink: 0; }
+.sp-avatar.w { background: linear-gradient(135deg,#e2e8f0,#cbd5e1); color: #334155; box-shadow: 0 0 0 3px rgba(226,232,240,.3); }
+.sp-avatar.b { background: linear-gradient(135deg,#1e293b,#334155); box-shadow: 0 0 0 3px rgba(30,41,59,.5); }
+.sp-pl-name { font-weight: 700; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-pl-role { font-size: .72rem; color: var(--text-muted); }
+.sp-vs-col { text-align: center; flex-shrink: 0; }
+.sp-vs { font-size: .8rem; font-weight: 800; color: var(--text-muted); display: block; }
+.sp-turn-info { font-size: .7rem; color: var(--primary,#6366f1); margin-top: .15rem; white-space: nowrap; }
+.sp-pl.active-turn .sp-pl-name { color: var(--primary,#6366f1); }
+.sp-pl.active-turn .sp-avatar.w { box-shadow: 0 0 0 3px #6366f1; }
+.sp-pl.active-turn .sp-avatar.b { box-shadow: 0 0 0 3px #6366f1; }
+
+/* ===== BOARD (shashka — CSS rendered) ===== */
+.sp-board-wrap { position: relative; }
+.sp-board {
+    display: grid; grid-template-columns: repeat(8, 1fr);
+    aspect-ratio: 1; width: 100%;
+    border: 3px solid rgba(99,102,241,.4); border-radius: 12px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,.3);
+}
+.sp-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    position: relative; font-size: 1.8vw;
+}
+.sp-cell.light { background: #f0d9b5; }
+.sp-cell.dark  { background: #b58863; }
+.sp-cell.last-move-from { background: rgba(255,255,100,.35) !important; }
+.sp-cell.last-move-to   { background: rgba(255,255,100,.55) !important; }
+
+/* Shashka pieces */
+.sp-piece {
+    width: 72%; height: 72%; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .55em; font-weight: 900;
+    position: relative; box-sizing: border-box;
+}
+.sp-piece.white { background: radial-gradient(circle at 35% 35%, #fff, #c8c8c8); border: 2.5px solid #888; box-shadow: inset 0 2px 4px rgba(255,255,255,.8), 0 2px 6px rgba(0,0,0,.35); color: #555; }
+.sp-piece.black { background: radial-gradient(circle at 35% 35%, #555, #111); border: 2.5px solid #000; box-shadow: inset 0 2px 4px rgba(255,255,255,.2), 0 2px 6px rgba(0,0,0,.5); color: #ddd; }
+
+/* Chess pieces */
+.sp-chess-piece {
+    font-size: 3vw; line-height: 1; user-select: none;
+    text-shadow: 0 1px 3px rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center;
+    width: 85%; height: 85%;
+}
+@media(max-width:600px){ .sp-chess-piece { font-size: 5vw; } }
+@media(min-width:1200px){ .sp-chess-piece { font-size: 2.2vw; } }
+
+/* ===== SIDE PANEL ===== */
+.sp-panel { display: flex; flex-direction: column; gap: 1rem; }
+.sp-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem 1.25rem; }
+.sp-card-title { font-size: .75rem; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .75rem; font-weight: 700; }
+.sp-stat-row { display: flex; justify-content: space-between; align-items: center; padding: .35rem 0; border-bottom: 1px solid var(--border-color); font-size: .88rem; }
+.sp-stat-row:last-child { border-bottom: none; }
+.sp-stat-val { font-weight: 700; }
+
+/* Spectators count */
+.sp-viewers { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--text-muted); }
+.sp-viewers i { color: #6366f1; }
+
+/* Result overlay */
+.sp-result-overlay {
+    position: absolute; inset: 0; display: none;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(8px);
+    align-items: center; justify-content: center; border-radius: 10px; z-index: 10;
+}
+.sp-result-overlay.show { display: flex; }
+.sp-result-box { text-align: center; color: #fff; }
+.sp-result-icon { font-size: 3rem; margin-bottom: .5rem; display: block; }
+.sp-result-title { font-size: 1.6rem; font-weight: 900; margin-bottom: .25rem; }
+.sp-result-sub { font-size: .95rem; opacity: .75; }
+
+/* Polling indicator */
+.sp-poll-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; display: inline-block; animation: pulse-dot 2s ease infinite; margin-right: .3rem; }
+.sp-poll-dot.paused { background: #64748b; animation: none; }
+
+/* Move log */
+#sp-move-log { max-height: 220px; overflow-y: auto; font-size: .8rem; }
+.sp-move-entry { padding: .2rem 0; border-bottom: 1px solid var(--border-color); display: flex; gap: .4rem; }
+.sp-move-entry:last-child { border-bottom: none; }
+.sp-move-num { color: var(--text-muted); width: 24px; flex-shrink: 0; }
+.sp-move-text { flex: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sp-page">
+
+    <!-- Header -->
+    <div class="sp-header">
+        <a href="{% url 'games:live_games' %}" class="sp-back">
+            <i class="bi bi-arrow-left"></i> Jonli o'yinlar
+        </a>
+        <h1 class="sp-title">{{ match.game.title }}</h1>
+        <span id="sp-status-badge" class="sp-live-badge">
+            <span class="sp-live-dot"></span> Jonli
+        </span>
+        {% if match.mode == 'coin' %}
+        <span style="background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.25);border-radius:20px;padding:.2rem .75rem;font-size:.8rem;font-weight:700;">
+            <i class="bi bi-coin"></i> {{ match.wager_coins }} coin
+        </span>
+        {% endif %}
+        {% if is_player %}
+        <a href="{% url 'games:game_launch' match.game.slug %}" style="color:var(--primary,#6366f1);font-size:.85rem;text-decoration:none;margin-left:auto;">
+            <i class="bi bi-joystick"></i> O'yinga qaytish
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Players banner -->
+    <div class="sp-players" id="sp-players-banner">
+        <div class="sp-pl {% if match.current_turn == 'white' %}active-turn{% endif %}" id="sp-white-side">
+            <div class="sp-avatar w" id="sp-white-avatar">{{ match.white_player.first_name|first|upper }}</div>
+            <div>
+                <div class="sp-pl-name">{{ match.white_player.get_full_name }}</div>
+                <div class="sp-pl-role">Oq ⬜</div>
+            </div>
+        </div>
+        <div class="sp-vs-col">
+            <span class="sp-vs">VS</span>
+            <span class="sp-turn-info" id="sp-turn-info">
+                {% if match.current_turn == 'white' %}⬜ Oq yuryapti{% else %}⬛ Qora yuryapti{% endif %}
+            </span>
+        </div>
+        {% if match.black_player %}
+        <div class="sp-pl black-side {% if match.current_turn == 'black' %}active-turn{% endif %}" id="sp-black-side">
+            <div>
+                <div class="sp-pl-name">{{ match.black_player.get_full_name }}</div>
+                <div class="sp-pl-role">⬛ Qora</div>
+            </div>
+            <div class="sp-avatar b" id="sp-black-avatar">{{ match.black_player.first_name|first|upper }}</div>
+        </div>
+        {% else %}
+        <div class="sp-pl black-side" id="sp-black-side">
+            <div><div class="sp-pl-name" style="color:var(--text-muted);">Raqib yo'q</div></div>
+            <div class="sp-avatar b" style="opacity:.4;">?</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main layout -->
+    <div class="sp-layout">
+        <!-- Board -->
+        <div class="sp-board-wrap">
+            <div class="sp-board" id="sp-board"></div>
+            <div class="sp-result-overlay" id="sp-result-overlay">
+                <div class="sp-result-box">
+                    <span class="sp-result-icon" id="sp-result-icon">🏆</span>
+                    <div class="sp-result-title" id="sp-result-title">Tugadi</div>
+                    <div class="sp-result-sub" id="sp-result-sub"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side panel -->
+        <div class="sp-panel">
+            <!-- Status card -->
+            <div class="sp-card">
+                <div class="sp-card-title">O'yin holati</div>
+                <div class="sp-stat-row">
+                    <span>Yurishlar</span>
+                    <span class="sp-stat-val" id="sp-move-count">{{ match.move_count }}</span>
+                </div>
+                <div class="sp-stat-row">
+                    <span>Rejim</span>
+                    <span class="sp-stat-val">{% if match.mode == 'coin' %}Coin 🪙{% else %}Casual{% endif %}</span>
+                </div>
+                <div class="sp-stat-row">
+                    <span>Holat</span>
+                    <span class="sp-stat-val" id="sp-game-status">
+                        {% if match.status == 'active' %}Faol{% elif match.status == 'ended' %}Tugadi{% else %}{{ match.status }}{% endif %}
+                    </span>
+                </div>
+                <div class="sp-stat-row" style="border-bottom:none;margin-top:.5rem;">
+                    <span class="sp-viewers"><span class="sp-poll-dot" id="sp-poll-dot"></span> Yangilanmoqda</span>
+                    <a href="{% url 'games:live_games' %}" class="sp-back" style="font-size:.78rem;">↩ Barcha o'yinlar</a>
+                </div>
+            </div>
+
+            <!-- Move log -->
+            <div class="sp-card">
+                <div class="sp-card-title">Yurishlar</div>
+                <div id="sp-move-log">
+                    <div style="color:var(--text-muted);font-size:.8rem;">Yurishlar yuklanmoqda...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const MATCH_ID   = {{ match.id }};
+const GAME_SLUG  = "{{ match.game.slug }}";
+const STATE_URL  = "{% url 'games:spectate_state' match.id %}";
+const IS_CHESS   = GAME_SLUG.includes('shaxmat');
+
+// Unicode chess pieces: white pieces = filled, black pieces = outline
+const CHESS_UNICODE = {
+    white: { k:'♔', q:'♕', r:'♖', b:'♗', n:'♘', p:'♙' },
+    black: { k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟' },
+};
+
+let lastMoveCount = -1;
+let moveLog = [];
+let polling = true;
+
+// ── Build initial board from server render ──────────────────────────
+const INITIAL_BOARD = {{ board_state_json|safe }};
+renderBoard(INITIAL_BOARD, {{ last_move_json|safe }});
+
+// ── Polling ──────────────────────────────────────────────────────────
+function poll() {
+    if (!polling) return;
+    fetch(STATE_URL)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.ok) return;
+
+            renderBoard(data.board, data.last_move);
+            updatePlayers(data);
+            updateStatus(data);
+
+            if (data.move_count !== lastMoveCount) {
+                lastMoveCount = data.move_count;
+                addMoveToLog(data);
+            }
+
+            if (data.status === 'ended' || data.status === 'abandoned') {
+                showResult(data);
+                polling = false;
+                document.getElementById('sp-poll-dot').classList.add('paused');
+            }
+        })
+        .catch(() => {});
+}
+
+// Poll every 2 seconds while game is active
+{% if match.status == 'active' %}
+setInterval(poll, 2000);
+{% else %}
+// Game already ended — just render once
+document.getElementById('sp-poll-dot').classList.add('paused');
+{% if match.status == 'ended' %}
+showResult({ status: 'ended', winner: '{{ match.winner|default:"" }}', white_player: {name:'{{ match.white_player.get_full_name|escapejs }}'}, black_player: {% if match.black_player %}{name:'{{ match.black_player.get_full_name|escapejs }}'}{% else %}null{% endif %} });
+{% endif %}
+{% endif %}
+
+// ── Board Render ──────────────────────────────────────────────────────
+function renderBoard(board, lastMove) {
+    const el = document.getElementById('sp-board');
+    if (!board || !board.length) return;
+    el.innerHTML = '';
+
+    // Figure out last move cells
+    let fromCell = null, toCell = null;
+    if (lastMove && lastMove.from && lastMove.to) {
+        fromCell = `${lastMove.from.r}-${lastMove.from.c}`;
+        toCell   = `${lastMove.to.r}-${lastMove.to.c}`;
+    } else if (lastMove && lastMove.fromR !== undefined) {
+        fromCell = `${lastMove.fromR}-${lastMove.fromC}`;
+        toCell   = `${lastMove.r}-${lastMove.c}`;
+    }
+
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const cell = document.createElement('div');
+            const isLight = (r + c) % 2 === 0;
+            cell.className = 'sp-cell ' + (isLight ? 'light' : 'dark');
+            const key = `${r}-${c}`;
+            if (key === fromCell) cell.classList.add('last-move-from');
+            if (key === toCell)   cell.classList.add('last-move-to');
+
+            const piece = board[r][c];
+            if (piece) {
+                if (IS_CHESS) {
+                    const span = document.createElement('span');
+                    span.className = 'sp-chess-piece';
+                    span.style.color = piece.color === 'white' ? '#fff' : '#1a1a2e';
+                    span.style.textShadow = piece.color === 'white'
+                        ? '0 1px 3px rgba(0,0,0,.7), 0 0 1px #333'
+                        : '0 1px 3px rgba(255,255,255,.3)';
+                    span.textContent = CHESS_UNICODE[piece.color][piece.type] || '?';
+                    cell.appendChild(span);
+                } else {
+                    // Shashka
+                    const p = document.createElement('div');
+                    p.className = 'sp-piece ' + piece.color;
+                    if (piece.king) p.textContent = '★';
+                    cell.appendChild(p);
+                }
+            }
+            el.appendChild(cell);
+        }
+    }
+}
+
+function updatePlayers(data) {
+    const moveCountEl = document.getElementById('sp-move-count');
+    if (moveCountEl) moveCountEl.textContent = data.move_count;
+
+    const turnInfo = document.getElementById('sp-turn-info');
+    if (turnInfo && data.status === 'active') {
+        turnInfo.textContent = data.current_turn === 'white' ? '⬜ Oq yuryapti' : '⬛ Qora yuryapti';
+    }
+
+    const wSide = document.getElementById('sp-white-side');
+    const bSide = document.getElementById('sp-black-side');
+    if (wSide && bSide) {
+        wSide.classList.toggle('active-turn', data.current_turn === 'white' && data.status === 'active');
+        bSide.classList.toggle('active-turn', data.current_turn === 'black' && data.status === 'active');
+    }
+}
+
+function updateStatus(data) {
+    const el = document.getElementById('sp-game-status');
+    if (el) {
+        const map = { active: 'Faol', ended: 'Tugadi', abandoned: 'Tashlab ketildi', waiting: 'Kutilmoqda' };
+        el.textContent = map[data.status] || data.status;
+    }
+    const badge = document.getElementById('sp-status-badge');
+    if (badge && data.status !== 'active') {
+        badge.className = 'sp-ended-badge';
+        badge.textContent = data.status === 'ended' ? 'Tugadi' : 'Tashlab ketildi';
+    }
+}
+
+function addMoveToLog(data) {
+    const log = document.getElementById('sp-move-log');
+    if (!log || !data.move_count) return;
+    const entry = document.createElement('div');
+    entry.className = 'sp-move-entry';
+    const lm = data.last_move;
+    let notation = '—';
+    if (lm) {
+        if (IS_CHESS && lm.from && lm.to) {
+            const files = ['a','b','c','d','e','f','g','h'];
+            notation = `${files[lm.from.c]}${8-lm.from.r}→${files[lm.to.c]}${8-lm.to.r}`;
+        } else if (!IS_CHESS && lm.r !== undefined) {
+            notation = `(${lm.fromR},${lm.fromC})→(${lm.r},${lm.c})`;
+        }
+    }
+    entry.innerHTML = `<span class="sp-move-num">${data.move_count}.</span><span class="sp-move-text">${notation}</span>`;
+    log.insertBefore(entry, log.firstChild);
+    // Keep last 40
+    while (log.children.length > 40) log.removeChild(log.lastChild);
+}
+
+function showResult(data) {
+    const overlay = document.getElementById('sp-result-overlay');
+    const icon    = document.getElementById('sp-result-icon');
+    const title   = document.getElementById('sp-result-title');
+    const sub     = document.getElementById('sp-result-sub');
+    if (!overlay) return;
+
+    if (data.winner === 'draw') {
+        icon.textContent  = '🤝';
+        title.textContent = 'Durang!';
+        sub.textContent   = 'Ikki o\'yinchi kelishdi';
+    } else if (data.winner === 'white') {
+        icon.textContent  = '🏆';
+        title.textContent = 'Oq g\'olib!';
+        sub.textContent   = (data.white_player?.name || 'Oq') + ' yutdi';
+    } else if (data.winner === 'black') {
+        icon.textContent  = '🏆';
+        title.textContent = 'Qora g\'olib!';
+        sub.textContent   = (data.black_player?.name || 'Qora') + ' yutdi';
+    } else {
+        icon.textContent  = '🏁';
+        title.textContent = 'O\'yin tugadi';
+        sub.textContent   = '';
+    }
+    overlay.classList.add('show');
+    // Hide overlay after 6 seconds so board is still visible
+    setTimeout(() => overlay.classList.remove('show'), 6000);
+}
+</script>
+{% endblock %}

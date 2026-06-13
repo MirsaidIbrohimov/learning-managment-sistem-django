@@ -180,6 +180,14 @@
             <i class="bi bi-clipboard"></i> <span>Arizalar</span>
         </a>
 
+        <div class="yo-nav-label">Moliya</div>
+        <a href="{% url 'yordamchi_balance_management' %}" class="yo-nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}">
+            <i class="bi bi-wallet2"></i> <span>Balans boshqaruvi</span>
+        </a>
+        <a href="{% url 'yordamchi_payments' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_payments' %}active{% endif %}">
+            <i class="bi bi-calendar-check"></i> <span>Oylik to'lovlar</span>
+        </a>
+
         <div class="yo-nav-label">Hisob</div>
         <a href="{% url 'yordamchi_audit_log' %}" class="yo-nav-link {% if request.resolver_match.url_name == 'yordamchi_audit_log' %}active{% endif %}">
             <i class="bi bi-clock-history"></i> <span>Mening harakatlarim</span>

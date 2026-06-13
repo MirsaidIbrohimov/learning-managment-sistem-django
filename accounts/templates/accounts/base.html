@@ -32,8 +32,6 @@
     <!-- Additional SEO -->
     <link rel="canonical" href="{% block canonical %}{% endblock %}">
     <meta name="theme-color" content="#0d6efd">
-    
-    <link rel="stylesheet" href="{% static 'effects/weather_effect.css' %}">
     <link rel="icon" href="{% static 'img/fav.ico' %}">
 
 
@@ -307,10 +305,88 @@
     background: linear-gradient(90deg, #198754, #20c997, #0dcaf0, #20c997, #198754);
     background-size: 300% 100%;
 }
+
+/* ===== PAGE LOADER ===== */
+#pageLoader {
+    position: fixed; inset: 0; z-index: 99999;
+    background: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .4s ease, visibility .4s ease;
+}
+#pageLoader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.loader-card {
+    display: flex; flex-direction: column; align-items: center; gap: 1.25rem;
+}
+
+.ldr-terminal {
+    background: #1e1e2e; border: 1px solid rgba(99,102,241,.35);
+    border-radius: 12px; width: 340px; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    font-family: 'Courier New', Consolas, monospace; font-size: .88rem;
+}
+
+.ldr-titlebar {
+    background: #2a2a3e; padding: .45rem .75rem;
+    display: flex; align-items: center; gap: .4rem;
+    border-bottom: 1px solid rgba(99,102,241,.2);
+}
+.ldr-dot {
+    width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+}
+.ldr-dot--red    { background: #ff5f57; }
+.ldr-dot--yellow { background: #febc2e; }
+.ldr-dot--green  { background: #28c840; }
+.ldr-titlebar-text {
+    margin-left: .5rem; font-size: .75rem;
+    color: rgba(255,255,255,.35); letter-spacing: .04em;
+}
+
+.ldr-body { padding: .85rem 1rem; display: flex; flex-direction: column; gap: .45rem; }
+
+.ldr-line { display: flex; align-items: center; gap: .4rem; opacity: 0; animation: ldr-fadein .3s forwards; }
+.ldr-line--1 { animation-delay: .1s; }
+.ldr-line--2 { animation-delay: .55s; }
+.ldr-line--3 { animation-delay: 1s; }
+.ldr-line--4 { animation-delay: 1.4s; }
+
+@keyframes ldr-fadein { to { opacity: 1; } }
+
+.ldr-prompt { color: #6366f1; font-weight: 700; }
+.ldr-cmd    { color: #38bdf8; }
+.ldr-arg    { color: #a5b4fc; }
+.ldr-flag   { color: #34d399; }
+.ldr-muted  { color: rgba(255,255,255,.45); }
+.ldr-success { color: #34d399; font-weight: 700; }
+
+.ldr-dots-anim::after {
+    content: ''; animation: ldr-dots 1.2s steps(4, end) infinite;
+}
+@keyframes ldr-dots {
+    0%  { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+}
+
+.ldr-cursor {
+    display: inline-block; width: 8px; height: 1em;
+    background: #6366f1; border-radius: 1px;
+    animation: ldr-blink .7s step-end infinite;
+    vertical-align: middle;
+}
+@keyframes ldr-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.loader-text {
+    color: rgba(255,255,255,.35); font-size: .8rem;
+    letter-spacing: .08em; text-transform: uppercase;
+    animation: ldr-pulse 1.5s ease infinite;
+}
+@keyframes ldr-pulse { 0%,100%{opacity:.35} 50%{opacity:.7} }
+/* ===== END PAGE LOADER ===== */
 </style>
 
 <!-- 🌦 Weather Effect -->
-<div id="weather_effect"></div>
 
 <!-- ⏳ Page Loading — Code Terminal -->
 <div id="pageLoader">
@@ -346,6 +422,18 @@
     <div class="loader-text">Yuklanmoqda...</div>
   </div>
 </div>
+<script>
+(function(){
+  function hideLoader(){
+    var el = document.getElementById('pageLoader');
+    if(el){ el.classList.add('hidden'); setTimeout(function(){ el.style.display='none'; }, 450); }
+  }
+  if(document.readyState === 'complete'){ hideLoader(); }
+  else { window.addEventListener('load', hideLoader); }
+  // Fallback: 4 soniyadan keyin majburan yashirin
+  setTimeout(hideLoader, 4000);
+})();
+</script>
 
     <!-- Coin Celebration -->
     <div class="coin-celebration" id="coinCelebration" aria-hidden="true">
@@ -897,6 +985,7 @@
               <li><a class="dropdown-item" href="{% url 'messages' %}"><i class="bi bi-envelope me-2"></i>Xabarlar{% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto" style="font-size:.6rem;">{{ unread_messages_count }}</span>{% endif %}</a></li>
               <li><a class="dropdown-item" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot me-2"></i>AI suhbat</a></li>
               <li><a class="dropdown-item" href="{% url 'games:games_list' %}"><i class="bi bi-controller me-2"></i>O'yinlar</a></li>
+              <li><a class="dropdown-item" href="{% url 'games:live_games' %}"><i class="bi bi-broadcast me-2" style="color:#ef4444;"></i>Jonli o'yinlar</a></li>
               <li><a class="dropdown-item" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-text me-2"></i>Vazifalarim</a></li>
               <li><a class="dropdown-item" href="{% url 'my_book_rentals' %}"><i class="bi bi-book-half me-2"></i>Ijaradagi kitoblarim</a></li>
               <li><a class="dropdown-item" href="{% url 'my_devices' %}"><i class="bi bi-laptop me-2"></i>Qurilmalar</a></li>
@@ -1694,7 +1783,6 @@
             });
         });
     </script>
-    <script src="{% static 'effects/weather_effect.js' %}?v=3"></script>
 
     <!-- Bayramlar va E'lonlar -->
     <script>

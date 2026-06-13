@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="uz" data-bs-theme="dark">
 <head>
@@ -366,7 +367,7 @@ body {
                 </div>
                 <div class="pw-info-row">
                     <span class="pw-info-label"><i class="bi bi-calendar-month me-1"></i>Oylik to'lov</span>
-                    <span class="pw-info-value" style="color:#fbbf24;">{{ ps.monthly_fee|floatformat:0 }} so'm</span>
+                    <span class="pw-info-value" style="color:#fbbf24;">{{ ps.monthly_fee|space_num }} so'm</span>
                 </div>
 
                 <!-- To'lovlar tarixi (oxirgi 6 oy) -->
@@ -380,7 +381,7 @@ body {
                     <span class="pw-pay-dot {% if rec.is_paid %}paid{% else %}unpaid{% endif %}"></span>
                     <span class="pw-pay-month">{{ rec.month_name }} {{ rec.year }}</span>
                     {% if rec.is_paid %}
-                    <span class="pw-pay-status-paid">✓ {{ rec.paid_amount|floatformat:0 }} so'm</span>
+                    <span class="pw-pay-status-paid">✓ {{ rec.paid_amount|space_num }} so'm</span>
                     {% else %}
                     <span class="pw-pay-status-unpaid">✗ To'lanmagan</span>
                     {% endif %}
@@ -402,14 +403,20 @@ body {
                     </div>
                     <div>
                         <span class="pw-balance-amount {% if can_pay %}sufficient{% else %}insufficient{% endif %}">
-                            {{ balance.amount|floatformat:0 }}
+                            {{ balance.amount|space_num }}
                         </span>
                         <span class="pw-balance-currency">so'm</span>
                     </div>
                     <div class="pw-balance-monthly">
                         <i class="bi bi-arrow-down-circle"></i>
-                        Oylik to'lov: <strong style="color:#fbbf24;margin-left:0.3rem;">{{ ps.monthly_fee|floatformat:0 }} so'm</strong>
+                        Oylik to'lov: <strong style="color:#fbbf24;margin-left:0.3rem;">{{ ps.monthly_fee|space_num }} so'm</strong>
                     </div>
+                    {% if balance.next_payment_date %}
+                    <div class="pw-balance-monthly" style="margin-top:4px;">
+                        <i class="bi bi-calendar-check"></i>
+                        Keyingi to'lov sanasi: <strong style="color:#2dd4bf;margin-left:0.3rem;">{{ balance.next_payment_date|date:"d.m.Y" }}</strong>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <!-- Pay action -->
@@ -437,7 +444,7 @@ body {
                         Balans yetarli emas
                     </button>
                     <div class="pw-shortage">
-                        Yetishmayotgan miqdor: <strong>{{ shortage|floatformat:0 }} so'm</strong>
+                        Yetishmayotgan miqdor: <strong>{{ shortage|space_num }} so'm</strong>
                     </div>
                     {% endif %}
                 </div>
@@ -452,7 +459,7 @@ body {
                 {% for t in topups %}
                 <div class="pw-topup-row">
                     <div>
-                        <div class="pw-topup-amount">+{{ t.amount|floatformat:0 }} so'm</div>
+                        <div class="pw-topup-amount">+{{ t.amount|space_num }} so'm</div>
                         <div class="pw-topup-meta">
                             {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
                             {% if t.note %} · {{ t.note }}{% endif %}

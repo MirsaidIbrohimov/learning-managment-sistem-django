@@ -393,25 +393,37 @@ body[data-theme="crimson"] #board .cell .piece-wrap.black {
     box-shadow: 0 4px 20px rgba(201,162,39,0.4);
     color: #0f0e00;
 }
-40,248,0.3) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 100%, rgba(59,130,246,0.2) 0%, transparent 55%),
-                linear-gradient(160deg, #07091a 0%, #0f1128 40%, #0b0d22 100%);
+
+/* ╔══════════════════════════════════════════════════════╗
+ * ║  SHAXMAT — Draw override (gold-silver mix)          ║
+ * ╚══════════════════════════════════════════════════════╝ */
+
+/* Chess draw: gold+silver aurora */
+.result-bg.draw {
+    background:
+        radial-gradient(ellipse at 25% 15%, rgba(201,162,39,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 75% 85%, rgba(148,163,184,0.20) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 30%, rgba(20,184,166,0.10) 0%, transparent 45%),
+        linear-gradient(160deg, #08090c 0%, #0f0e14 40%, #0a0c10 100%);
 }
-.result-bg::before, .result-bg::after {
-    content: '';
-    position: absolute;
-    border-radius: 50%;
-    animation: float-orb 8s ease-in-out infinite;
-    pointer-events: none;
+.result-bg.draw ~ .result-card::before {
+    background: linear-gradient(90deg, transparent, #c9a227, #e2e8f0, #94a3b8, #c9a227, transparent);
+    background-size: 200%;
+    animation: shimmer-bar 2.5s linear infinite;
 }
-.result-bg.win::before  { width:300px; height:300px; top:-70px; left:-50px; background: radial-gradient(circle, rgba(201,162,39,0.2) 0%, transparent 70%); animation-delay:0s; }
-.result-bg.win::after   { width:250px; height:250px; bottom:-50px; right:-40px; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%); animation-delay:-3s; }
-.result-bg.lose::before { width:300px; height:300px; top:-70px; right:-50px; background: radial-gradient(circle, rgba(239,68,68,0.2) 0%, transparent 70%); animation-delay:-1s; }
-.result-bg.lose::after  { width:240px; height:240px; bottom:-50px; left:-40px; background: radial-gradient(circle, rgba(185,28,28,0.15) 0%, transparent 70%); animation-delay:-4s; }
-.result-bg.draw::before { width:300px; height:300px; top:-70px; left:-50px; background: radial-gradient(circle, rgba(129,140,248,0.18) 0%, transparent 70%); animation-delay:-2s; }
-.result-bg.draw::after  { width:250px; height:250px; bottom:-50px; right:-50px; background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%); animation-delay:-5s; }
-@keyframes float-orb {
-    0%,100% { transform: translate(0,0) scale(1); }
+.result-bg.draw ~ .result-card #result-title {
+    background: linear-gradient(135deg, #c9a227 0%, #e2e8f0 40%, #94a3b8 70%, #c9a227 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.result-bg.draw ~ .result-card .result-actions .primary-btn {
+    background: linear-gradient(135deg, #64748b, #94a3b8) !important;
+    color: #f8fafc !important;
+    box-shadow: 0 4px 18px rgba(148,163,184,0.35) !important;
+}
+
+form: translate(0,0) scale(1); }
     33%     { transform: translate(30px,-40px) scale(1.08); }
     66%     { transform: translate(-20px,20px) scale(0.95); }
 }

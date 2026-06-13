@@ -1,0 +1,126 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Jonli O'yinlar{% endblock %}
+
+{% block extra_css %}
+<style>
+.lg-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
+.lg-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+.lg-title { font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; gap: .6rem; }
+.lg-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: pulse-dot 1.4s ease infinite; display: inline-block; }
+@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+.lg-badge { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.3); border-radius: 20px; padding: .2rem .7rem; font-size: .8rem; font-weight: 700; }
+
+.lg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
+
+.lg-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 20px; overflow: hidden; transition: .2s;
+    cursor: pointer; text-decoration: none; display: block;
+    position: relative;
+}
+.lg-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.18); border-color: rgba(99,102,241,.4); }
+.lg-card-top { padding: 1.25rem 1.25rem .75rem; }
+.lg-card-game { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: .5rem; display: flex; align-items: center; gap: .4rem; }
+.lg-card-game i { font-size: .9rem; color: var(--primary,#6366f1); }
+.lg-players { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; }
+.lg-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; color: #fff; flex-shrink: 0; }
+.lg-avatar.white { background: linear-gradient(135deg,#e2e8f0,#cbd5e1); color: #334155; }
+.lg-avatar.black { background: linear-gradient(135deg,#1e293b,#334155); }
+.lg-vs { font-size: .75rem; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
+.lg-player-name { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lg-player-meta { font-size: .7rem; color: var(--text-muted); }
+.lg-player-info { min-width: 0; }
+
+.lg-card-bottom { background: rgba(0,0,0,.12); padding: .6rem 1.25rem; display: flex; align-items: center; justify-content: space-between; font-size: .78rem; }
+.lg-moves { color: var(--text-muted); }
+.lg-wager { color: #f59e0b; font-weight: 700; display: flex; align-items: center; gap: .3rem; }
+.lg-watch-btn { background: rgba(99,102,241,.15); color: var(--primary,#6366f1); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: .25rem .9rem; font-size: .78rem; font-weight: 700; transition: .15s; }
+.lg-card:hover .lg-watch-btn { background: var(--primary,#6366f1); color: #fff; }
+
+.lg-turn-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: .3rem; }
+.lg-turn-dot.white { background: #e2e8f0; border: 1px solid #94a3b8; }
+.lg-turn-dot.black { background: #1e293b; border: 1px solid #475569; }
+
+.lg-empty { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
+.lg-empty i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .3; }
+.lg-empty p { font-size: 1rem; margin-bottom: 1.5rem; }
+
+.lg-refresh { font-size: .8rem; color: var(--text-muted); margin-left: auto; }
+.lg-refresh-btn { background: none; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-muted); padding: .3rem .8rem; font-size: .8rem; cursor: pointer; transition: .15s; }
+.lg-refresh-btn:hover { color: var(--primary,#6366f1); border-color: var(--primary,#6366f1); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="lg-page">
+    <div class="lg-header">
+        <div class="lg-title">
+            <span class="lg-live-dot"></span>
+            Jonli O'yinlar
+        </div>
+        <span class="lg-badge">{{ matches|length }} ta faol</span>
+        <button class="lg-refresh-btn ms-auto" onclick="location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Yangilash
+        </button>
+    </div>
+
+    {% if matches %}
+    <div class="lg-grid">
+        {% for match in matches %}
+        <a href="{% url 'games:spectate_match' match.id %}" class="lg-card">
+            <div class="lg-card-top">
+                <div class="lg-card-game">
+                    <i class="bi {% if 'shaxmat' in match.game.slug %}bi-diagram-3{% else %}bi-grid-3x3{% endif %}"></i>
+                    {{ match.game.title }}
+                    {% if match.mode == 'coin' %}
+                    <span style="color:#f59e0b;margin-left:.3rem;"><i class="bi bi-coin"></i> Coin</span>
+                    {% endif %}
+                </div>
+                <div class="lg-players">
+                    <div class="lg-avatar white">{{ match.white_player.first_name|first|upper }}</div>
+                    <div class="lg-player-info">
+                        <div class="lg-player-name">{{ match.white_player.get_full_name }}</div>
+                        <div class="lg-player-meta">Oq</div>
+                    </div>
+                    <div class="lg-vs">VS</div>
+                    {% if match.black_player %}
+                    <div class="lg-avatar black">{{ match.black_player.first_name|first|upper }}</div>
+                    <div class="lg-player-info">
+                        <div class="lg-player-name">{{ match.black_player.get_full_name }}</div>
+                        <div class="lg-player-meta">Qora</div>
+                    </div>
+                    {% else %}
+                    <div class="lg-avatar black" style="opacity:.4;">?</div>
+                    <div class="lg-player-info"><div class="lg-player-name" style="color:var(--text-muted);">Raqib kutilmoqda</div></div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="lg-card-bottom">
+                <span class="lg-moves">
+                    <span class="lg-turn-dot {{ match.current_turn }}"></span>
+                    {{ match.move_count }} ta yurish
+                </span>
+                {% if match.mode == 'coin' and match.wager_coins %}
+                <span class="lg-wager"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin</span>
+                {% endif %}
+                <span class="lg-watch-btn"><i class="bi bi-eye"></i> Tomosha</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="lg-empty">
+        <i class="bi bi-controller"></i>
+        <p>Hozirda faol o'yinlar yo'q</p>
+        <a href="{% url 'games:games_list' %}" style="color:var(--primary,#6366f1);text-decoration:none;font-weight:600;">
+            <i class="bi bi-play-circle"></i> O'yin boshlash
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// 30 soniyada bir avtomatik yangilash
+setTimeout(() => location.reload(), 30000);
+</script>
+{% endblock %}

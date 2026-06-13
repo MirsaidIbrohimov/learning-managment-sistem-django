@@ -632,39 +632,69 @@ def _record_successful_login(ip_address, username='', user_agent='', login_token
     LoginAttempt.clear_token_attempts(login_token)
 
 
+def _add_one_month(d):
+    """Sanaga 1 oy qo'shadi, kunni saqlab (kerak bo'lsa oy oxiriga qisqartirib).
+    Masalan: 13-iyun -> 13-iyul, 31-yanvar -> 28/29-fevral. dateutil talab qilmaydi.
+    """
+    import calendar
+    year = d.year + (1 if d.month == 12 else 0)
+    month = 1 if d.month == 12 else d.month + 1
+    day = min(d.day, calendar.monthrange(year, month)[1])
+    return d.replace(year=year, month=month, day=day)
+
+
 def _auto_deduct_and_unblock(user):
     """
     O'quvchi balansidan oylik to'lovni yechib, unblock qilishga urinadi.
-    True → muvaffaqiyatli yechildi va unblock bo'ldi.
+    True  → muvaffaqiyatli yechildi va unblock bo'ldi.
     False → balans yetarli emas, foydalanuvchi hali ham blokli.
+    Shartnoma rejimida bo'lsa — to'lov olinmaydi, to'g'ridan to'g'ri unblock.
     """
     from django.utils import timezone
     from .models import StudentBalance, PaymentStatus, PaymentRecord
+
     try:
         balance = StudentBalance.objects.select_for_update().get(user=user)
         ps = PaymentStatus.objects.get(user=user)
+        today = timezone.now().date()
+
+        # Shartnoma rejimi — to'lov olinmaydi, shunchaki unblock
+        if balance.is_contract:
+            user.is_blocked = False
+            user.save(update_fields=['is_blocked'])
+            ps.is_paid = True
+            ps.last_payment_date = today
+            ps.auto_blocked = False
+            # next_payment_date belgilanmaydi (shartnoma abonent)
+            balance.next_payment_date = None
+            balance.save(update_fields=['next_payment_date', 'updated_at'])
+            ps.save()
+            return True
+
         monthly_fee = ps.monthly_fee or 200000
         if balance.amount < monthly_fee:
             return False
+
         # Balansdan yechish
         balance.amount -= monthly_fee
-        balance.save(update_fields=['amount', 'updated_at'])
+
+        # Keyingi to'lov sanasi = bugun + 1 oy (xuddi shu kun)
+        next_date = _add_one_month(today)
+
+        balance.next_payment_date = next_date
+        balance.save(update_fields=['amount', 'next_payment_date', 'updated_at'])
+
         # Unblock
         user.is_blocked = False
         user.save(update_fields=['is_blocked'])
+
         # PaymentStatus yangilash
-        today = timezone.now().date()
-        import dateutil.relativedelta
         ps.is_paid = True
         ps.last_payment_date = today
         ps.auto_blocked = False
-        try:
-            from dateutil.relativedelta import relativedelta
-            ps.paid_until = today + relativedelta(months=1)
-        except ImportError:
-            import datetime
-            ps.paid_until = today + datetime.timedelta(days=30)
+        ps.paid_until = next_date
         ps.save()
+
         # PaymentRecord — joriy oy uchun yozuv
         PaymentRecord.objects.update_or_create(
             user=user, month=today.month, year=today.year,
@@ -672,7 +702,7 @@ def _auto_deduct_and_unblock(user):
                 'is_paid': True,
                 'paid_date': today,
                 'paid_amount': monthly_fee,
-                'notes': 'Balansdan avtomatik yechildi',
+                'notes': f'Balansdan avtomatik yechildi. Keyingi to\'lov: {next_date}',
             }
         )
         return True
@@ -4152,6 +4182,12 @@ def profile_view(request):
     # Deploy qilgan loyihalar
     deploys = HTMLDeploy.objects.filter(user=request.user, is_active=True).order_by('-created_at')[:6]
     
+    # Student balansi
+    student_balance = None
+    if request.user.role == 'student':
+        from .models import StudentBalance
+        student_balance, _ = StudentBalance.objects.get_or_create(user=request.user)
+
     # Coin statistika
     from coin.models import CoinTransaction
     total_earned_coins = CoinTransaction.objects.filter(user=request.user, action='add').aggregate(total=Sum('amount'))['total'] or 0
@@ -4178,6 +4214,7 @@ def profile_view(request):
         'avg_test_score': avg_test_score,
         'total_homeworks_submitted': total_homeworks_submitted,
         'avg_homework_grade': avg_homework_grade,
+        'student_balance': student_balance,
     })
 
 
@@ -4883,7 +4920,7 @@ from django.core.paginator import Paginator
 # Admin: Payment management
 @login_required
 def admin_payments(request):
-    if not request.user.is_admin:
+    if not request.user.is_admin_or_assistant:
         return redirect('home')
 
     from datetime import date
@@ -5002,7 +5039,7 @@ def admin_payments(request):
 
 @login_required
 def admin_mark_paid(request, pk):
-    if not request.user.is_admin:
+    if not request.user.is_admin_or_assistant:
         return redirect('home')
 
     from datetime import date
@@ -5048,7 +5085,7 @@ def admin_mark_paid(request, pk):
 
 @login_required
 def admin_mark_unpaid(request, pk):
-    if not request.user.is_admin:
+    if not request.user.is_admin_or_assistant:
         return redirect('home')
 
     from datetime import date
@@ -13457,6 +13494,7 @@ def payment_wall(request):
 def admin_balance_management(request):
     """
     Admin / yordamchi admin — o'quvchilarga balans qo'shish va tarix ko'rish.
+    Shartnoma rejimidagi va kursni tugatgan o'quvchilar ko'rinmaydi.
     """
     if not request.user.is_admin_or_assistant:
         return redirect('home')
@@ -13466,9 +13504,13 @@ def admin_balance_management(request):
 
     search = request.GET.get('q', '').strip()
 
+    # is_finished=False va shartnoma emas studentlar
     students_qs = CustomUser.objects.filter(
         role='student', is_finished=False
     ).select_related('student_balance', 'payment_status').order_by('first_name', 'last_name')
+
+    # Shartnoma rejimidagilarni exclude — student_balance mavjud bo'lsa
+    students_qs = students_qs.exclude(student_balance__is_contract=True)
 
     if search:
         students_qs = students_qs.filter(
@@ -13486,20 +13528,21 @@ def admin_balance_management(request):
         StudentBalance.objects.bulk_create(
             [StudentBalance(user=s) for s in missing_bal], ignore_conflicts=True
         )
-        # Refresh queryset
         students_qs = students_qs.all()
 
     paginator = Paginator(students_qs, 25)
     students = paginator.get_page(request.GET.get('page'))
 
-    # Statistics
-    total_balance = StudentBalance.objects.aggregate(t=Sum('amount'))['t'] or 0
+    # Statistics (faqat faol/shartnoma emas studentlar)
+    total_balance = StudentBalance.objects.filter(is_contract=False).aggregate(t=Sum('amount'))['t'] or 0
     topup_today = BalanceTopUp.objects.filter(
         created_at__date=timezone.now().date()
     ).aggregate(t=Sum('amount'))['t'] or 0
-    blocked_count = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
+    blocked_count = CustomUser.objects.filter(
+        role='student', is_finished=False, is_blocked=True
+    ).exclude(student_balance__is_contract=True).count()
+    contract_count = StudentBalance.objects.filter(is_contract=True).count()
 
-    # Recent top-ups across all students
     recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
 
     return render(request, 'accounts/admin/balance_management.html', {
@@ -13508,6 +13551,69 @@ def admin_balance_management(request):
         'total_balance': total_balance,
         'topup_today': topup_today,
         'blocked_count': blocked_count,
+        'contract_count': contract_count,
+        'recent_topups': recent_topups,
+    })
+
+
+@login_required
+def yordamchi_balance_management(request):
+    """
+    Yordamchi admin uchun alohida Balans Boshqaruvi sahifasi.
+    Xuddi admin_balance_management mantiqini bajaradi, lekin yordamchi panelida ochiladi.
+    """
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+
+    from .models import StudentBalance, BalanceTopUp, PaymentStatus
+    from django.db.models import Sum
+
+    search = request.GET.get('q', '').strip()
+
+    students_qs = CustomUser.objects.filter(
+        role='student', is_finished=False
+    ).select_related('student_balance', 'payment_status').order_by('first_name', 'last_name')
+
+    students_qs = students_qs.exclude(student_balance__is_contract=True)
+
+    if search:
+        students_qs = students_qs.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(username__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(student_id__icontains=search)
+        )
+
+    existing_bal_ids = set(StudentBalance.objects.values_list('user_id', flat=True))
+    missing_bal = [s for s in students_qs if s.pk not in existing_bal_ids]
+    if missing_bal:
+        StudentBalance.objects.bulk_create(
+            [StudentBalance(user=s) for s in missing_bal], ignore_conflicts=True
+        )
+        students_qs = students_qs.all()
+
+    paginator = Paginator(students_qs, 25)
+    students = paginator.get_page(request.GET.get('page'))
+
+    total_balance = StudentBalance.objects.filter(is_contract=False).aggregate(t=Sum('amount'))['t'] or 0
+    topup_today = BalanceTopUp.objects.filter(
+        created_at__date=timezone.now().date()
+    ).aggregate(t=Sum('amount'))['t'] or 0
+    blocked_count = CustomUser.objects.filter(
+        role='student', is_finished=False, is_blocked=True
+    ).exclude(student_balance__is_contract=True).count()
+    contract_count = StudentBalance.objects.filter(is_contract=True).count()
+
+    recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
+
+    return render(request, 'accounts/yordamchi/balance_management.html', {
+        'students': students,
+        'search': search,
+        'total_balance': total_balance,
+        'topup_today': topup_today,
+        'blocked_count': blocked_count,
+        'contract_count': contract_count,
         'recent_topups': recent_topups,
     })
 
@@ -13542,7 +13648,7 @@ def admin_balance_topup(request, student_id):
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 from django.http import JsonResponse
                 return JsonResponse({'error': str(e)}, status=400)
-            messages.error(request, f"Xatolik: {e}")
+            messages.error(request, f'Xatolik: {e}')
             return redirect('admin_balance_management')
 
         with transaction.atomic():
@@ -13558,14 +13664,18 @@ def admin_balance_topup(request, student_id):
                 ip_address=ip[:45] if ip else None,
             )
 
-            # Agar bloklangan bo'lsa va balans yetarli bo'lsa → unblock
+            # Bloklangan bo'lsa → unblock + fee yechish + next_payment_date o'rnatish
+            # Bloklanmagan lekin next_payment_date yo'q bo'lsa ham → birinchi aktivatsiya
             auto_unblocked = False
+            balance.refresh_from_db()
             if student.is_blocked:
                 auto_unblocked = _auto_deduct_and_unblock(student)
+            elif not balance.is_contract and not balance.next_payment_date:
+                # Birinchi marta balans to'ldirildi — oylik to'lovni yechib, sanani belgilaymiz
+                _auto_deduct_and_unblock(student)
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
-            # Balance refresh
             balance.refresh_from_db()
             return JsonResponse({
                 'success': True,
@@ -13578,7 +13688,7 @@ def admin_balance_topup(request, student_id):
             })
 
         if auto_unblocked:
-            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi va avtomatik unblock bo'ldi!")
+            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi va unblock bo'ldi!")
         else:
             messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi.")
         return redirect('admin_balance_management')
@@ -13589,20 +13699,36 @@ def admin_balance_topup(request, student_id):
 
 @login_required
 def admin_balance_history(request, student_id):
-    """O'quvchining balans tarixini ko'rish (AJAX)."""
+    """O'quvchining balans to'ldirish va oylik to'lov tarixini ko'rish (AJAX)."""
+    from django.http import JsonResponse
     if not request.user.is_admin_or_assistant:
-        from django.http import JsonResponse
-        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+        return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
+    from .models import BalanceTopUp, StudentBalance, PaymentRecord, PaymentStatus
 
-    from .models import BalanceTopUp, StudentBalance
     student = get_object_or_404(CustomUser, pk=student_id)
-    topups = BalanceTopUp.objects.filter(student=student).select_related('added_by').order_by('-created_at')[:50]
     balance, _ = StudentBalance.objects.get_or_create(user=student)
+    ps, _ = PaymentStatus.objects.get_or_create(user=student, defaults={'monthly_fee': 200000})
+
+    # Balans to'ldirishlar (oxirgi 50 ta)
+    topups = BalanceTopUp.objects.filter(student=student).select_related('added_by').order_by('-created_at')[:50]
+
+    # Oylik to'lovlar (PaymentRecord)
+    records = PaymentRecord.objects.filter(user=student).order_by('-year', '-month')[:24]
+
+    MONTH_NAMES = {
+        1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
+        5: 'May', 6: 'Iyun', 7: 'Iyul', 8: 'Avgust',
+        9: 'Sentyabr', 10: 'Oktyabr', 11: 'Noyabr', 12: 'Dekabr'
+    }
 
     data = {
         'student': student.full_name,
         'balance': int(balance.amount),
         'balance_fmt': f"{int(balance.amount):,}".replace(',', ' '),
+        'monthly_fee': int(ps.monthly_fee or 0),
+        'monthly_fee_fmt': f"{int(ps.monthly_fee or 0):,}".replace(',', ' '),
+        'is_contract': balance.is_contract,
+        'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
         'topups': [
             {
                 'amount': int(t.amount),
@@ -13613,7 +13739,100 @@ def admin_balance_history(request, student_id):
                 'ip': t.ip_address or '',
             }
             for t in topups
-        ]
+        ],
+        'payment_records': [
+            {
+                'month': r.month,
+                'year': r.year,
+                'month_name': MONTH_NAMES.get(r.month, ''),
+                'amount': int(r.amount),
+                'amount_fmt': f"{int(r.amount):,}".replace(',', ' '),
+                'is_paid': r.is_paid,
+                'paid_amount': int(r.paid_amount) if r.paid_amount else 0,
+                'paid_amount_fmt': f"{int(r.paid_amount):,}".replace(',', ' ') if r.paid_amount else '0',
+                'paid_at': r.paid_at.strftime('%d.%m.%Y') if r.paid_at else None,
+            }
+            for r in records
+        ],
     }
-    from django.http import JsonResponse
     return JsonResponse(data)
+
+
+@login_required
+def admin_balance_set_fee(request, student_id):
+    """O'quvchining oylik tolov miqdori, rejim va keyingi tolov sanasini ozgartirish (AJAX POST)."""
+    from django.http import JsonResponse
+    from django.views.decorators.http import require_POST
+    if not request.user.is_admin_or_assistant:
+        return JsonResponse({'error': "Ruxsat yoq"}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST kerak'}, status=405)
+
+    from .models import StudentBalance, PaymentStatus
+    student = get_object_or_404(CustomUser, pk=student_id)
+    balance, _ = StudentBalance.objects.get_or_create(user=student)
+    ps, _ = PaymentStatus.objects.get_or_create(user=student, defaults={'monthly_fee': 200000})
+
+    mode = request.POST.get('mode', 'amount')
+
+    if mode == 'contract':
+        balance.is_contract = True
+        balance.next_payment_date = None
+        balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
+        return JsonResponse({
+            'ok': True,
+            'is_contract': True,
+            'monthly_fee': int(ps.monthly_fee or 0),
+            'next_payment_date': None,
+        })
+
+    if mode == 'date_only':
+        new_date_str = request.POST.get('next_payment_date', '').strip()
+        if new_date_str:
+            try:
+                from datetime import date as date_cls
+                parts = new_date_str.split('-')
+                new_npd = date_cls(int(parts[0]), int(parts[1]), int(parts[2]))
+                balance.next_payment_date = new_npd
+                balance.save(update_fields=['next_payment_date', 'updated_at'])
+            except Exception:
+                return JsonResponse({'error': 'Sana formati xato (YYYY-MM-DD)'}, status=400)
+        return JsonResponse({
+            'ok': True,
+            'is_contract': balance.is_contract,
+            'monthly_fee': int(ps.monthly_fee or 0),
+            'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
+        })
+
+    # mode == 'amount' (default)
+    fee_str = request.POST.get('monthly_fee', '').strip()
+    if not fee_str:
+        return JsonResponse({'error': 'monthly_fee kiritilmadi'}, status=400)
+    try:
+        new_fee = int(fee_str)
+        if new_fee < 0:
+            raise ValueError
+    except ValueError:
+        return JsonResponse({"error": "Tolov miqdori noto'g'ri"}, status=400)
+
+    ps.monthly_fee = new_fee
+    ps.save(update_fields=['monthly_fee'])
+
+    balance.is_contract = False
+    new_date_str = request.POST.get('next_payment_date', '').strip()
+    if new_date_str:
+        try:
+            from datetime import date as date_cls
+            parts = new_date_str.split('-')
+            balance.next_payment_date = date_cls(int(parts[0]), int(parts[1]), int(parts[2]))
+        except Exception:
+            pass
+    balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
+
+    return JsonResponse({
+        'ok': True,
+        'is_contract': False,
+        'monthly_fee': new_fee,
+        'monthly_fee_fmt': f"{new_fee:,}".replace(",", " "),
+        'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
+    })

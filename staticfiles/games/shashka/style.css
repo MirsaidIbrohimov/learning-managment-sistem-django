@@ -1267,3 +1267,434 @@ body {
     60%  { opacity: 0.8; }
         100% { opacity: 0; transform: translate(var(--tx, 60px), var(--ty, -80px)) scale(0.3) rotate(360deg); }
 }
+
+/* ╔══════════════════════════════════════════════════════╗
+ * ║       WAGER MODAL — Premium Glassmorphism UI        ║
+ * ╚══════════════════════════════════════════════════════╝ */
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    /* Animated gradient backdrop */
+    background: radial-gradient(ellipse at 30% 40%, rgba(99,102,241,0.18) 0%, transparent 55%),
+                radial-gradient(ellipse at 70% 70%, rgba(168,85,247,0.14) 0%, transparent 50%),
+                rgba(6, 6, 18, 0.82);
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    animation: bd-in 0.25s ease both;
+}
+@keyframes bd-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.modal-box {
+    position: relative;
+    background: linear-gradient(145deg, rgba(22,22,40,0.97) 0%, rgba(18,18,32,0.99) 100%);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 28px;
+    padding: 0;
+    max-width: 420px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow:
+        0 32px 80px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(99,102,241,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+    animation: modal-pop 0.38s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes modal-pop {
+    from { opacity: 0; transform: scale(0.88) translateY(20px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Glowing top border accent */
+.modal-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #6366f1, #a78bfa, #6366f1, transparent);
+    background-size: 200%;
+    animation: shimmer-top 2.5s linear infinite;
+    z-index: 1;
+}
+@keyframes shimmer-top {
+    0%   { background-position: 0% 0%; }
+    100% { background-position: 200% 0%; }
+}
+
+/* ── Modal Header ──────────────────────────────────── */
+.modal-header {
+    padding: 28px 28px 0;
+    text-align: center;
+}
+
+.modal-icon {
+    width: 64px;
+    height: 64px;
+    margin: 28px auto 14px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(168,85,247,0.2));
+    border: 1px solid rgba(99,102,241,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #a78bfa;
+    box-shadow: 0 8px 24px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: icon-pulse 2.4s ease-in-out infinite;
+}
+@keyframes icon-pulse {
+    0%, 100% { box-shadow: 0 8px 24px rgba(99,102,241,0.2), inset 0 1px 0 rgba(255,255,255,0.08); }
+    50%       { box-shadow: 0 8px 32px rgba(99,102,241,0.4), 0 0 0 6px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.08); }
+}
+
+.modal-box h3 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+}
+.modal-box > p,
+.modal-box h3 + p {
+    font-size: 0.88rem;
+    color: #64748b;
+    margin-bottom: 0;
+}
+.modal-box > p strong,
+.modal-box h3 + p strong {
+    color: #a78bfa;
+    font-weight: 700;
+}
+
+/* ── Modal Body ─────────────────────────────────────── */
+.modal-body {
+    padding: 20px 28px 0;
+}
+
+/* Preset buttons */
+.wager-presets {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 18px 0 14px;
+    padding: 0 28px;
+}
+.wager-preset {
+    padding: 10px 6px !important;
+    border-radius: 12px !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    background: rgba(99,102,241,0.1) !important;
+    border: 1px solid rgba(99,102,241,0.2) !important;
+    color: #a5b4fc !important;
+    transition: all 0.18s ease !important;
+    position: relative;
+    overflow: hidden;
+}
+.wager-preset::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(168,85,247,0.1));
+    opacity: 0;
+    transition: opacity 0.18s;
+}
+.wager-preset:hover {
+    background: rgba(99,102,241,0.22) !important;
+    border-color: rgba(99,102,241,0.5) !important;
+    color: #fff !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(99,102,241,0.25) !important;
+}
+.wager-preset:hover::before { opacity: 1; }
+.wager-preset.active,
+.wager-preset:active {
+    background: rgba(99,102,241,0.35) !important;
+    border-color: #6366f1 !important;
+    color: #fff !important;
+    transform: translateY(0) scale(0.97) !important;
+}
+
+/* Input field */
+#wager-input {
+    width: 100% !important;
+    padding: 14px 18px !important;
+    margin: 0 0 14px !important;
+    border-radius: 14px !important;
+    border: 1.5px solid rgba(99,102,241,0.25) !important;
+    background: rgba(15,15,28,0.8) !important;
+    color: #f1f5f9 !important;
+    font-size: 1.15rem !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    outline: none !important;
+    display: block !important;
+}
+#wager-input:focus {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.15) !important;
+}
+#wager-input::placeholder { color: #475569 !important; font-weight: 400 !important; font-size: 0.9rem !important; }
+
+/* ── Fee Info Box ────────────────────────────────────── */
+.wager-fee-box {
+    background: rgba(8, 8, 22, 0.7) !important;
+    border: 1px solid rgba(99,102,241,0.2) !important;
+    border-radius: 16px !important;
+    padding: 4px 0 !important;
+    margin-bottom: 18px !important;
+    overflow: hidden;
+}
+.fee-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 16px !important;
+    font-size: 0.86rem !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+    transition: background 0.15s;
+}
+.fee-row:hover { background: rgba(99,102,241,0.05); }
+.fee-row:last-child { border-bottom: none !important; }
+.fee-row span:first-child {
+    color: #64748b !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.fee-row span:last-child { font-weight: 600; }
+
+/* Bank row */
+.fee-row:first-child span:last-child { color: #94a3b8; font-weight: 700; }
+/* Fee row */
+.fee-highlight span:last-child { color: #f87171 !important; font-weight: 700 !important; }
+/* Winner row */
+.fee-win {
+    background: rgba(74,222,128,0.04);
+    font-size: 0.9rem !important;
+}
+.fee-win span:last-child { color: #4ade80 !important; font-weight: 800 !important; font-size: 1rem !important; }
+/* Net row */
+.fee-net span:last-child { color: #a78bfa !important; font-weight: 700 !important; }
+
+/* ── Modal Actions ───────────────────────────────────── */
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 28px 28px;
+    margin-top: 6px;
+}
+.modal-actions .primary-btn {
+    flex: 1 !important;
+    width: auto !important;
+    padding: 14px 18px !important;
+    border-radius: 16px !important;
+    font-size: 0.95rem !important;
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    box-shadow: 0 6px 20px rgba(99,102,241,0.4) !important;
+    border: none !important;
+    color: #fff !important;
+    cursor: pointer !important;
+    transition: all 0.22s !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    letter-spacing: 0.2px !important;
+    position: relative;
+    overflow: hidden;
+}
+.modal-actions .primary-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left 0.4s ease;
+}
+.modal-actions .primary-btn:hover::after { left: 150%; }
+.modal-actions .primary-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 28px rgba(99,102,241,0.55) !important;
+}
+.modal-actions .primary-btn:active { transform: translateY(0) scale(0.98) !important; }
+
+.modal-actions .ghost-btn {
+    padding: 14px 20px !important;
+    border-radius: 16px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid rgba(255,255,255,0.09) !important;
+    color: #64748b !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    white-space: nowrap;
+}
+.modal-actions .ghost-btn:hover {
+    background: rgba(255,255,255,0.1) !important;
+    color: #94a3b8 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ── Wager preset & input wrapper spacing ─────────── */
+.modal-box > h3,
+.modal-box > p {
+    padding: 0 28px;
+}
+.modal-box > h3 { padding-top: 0; }
+.modal-box > p  { padding-bottom: 0; margin-bottom: 0; }
+
+/* wager-fee-box padding when not in .modal-body */
+#wager-fee-info {
+    margin: 0 28px 4px !important;
+}
+#wager-input {
+    margin: 0 28px 14px !important;
+    width: calc(100% - 56px) !important;
+}
+
+/* ── Confirm modal variant ───────────────────────────── */
+#confirm-modal .modal-box::before {
+    background: linear-gradient(90deg, transparent, #f59e0b, #fbbf24, #f59e0b, transparent);
+    background-size: 200%;
+}
+#confirm-modal .modal-icon {
+    background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(251,191,36,0.15));
+    border-color: rgba(245,158,11,0.35);
+    color: #fbbf24;
+}
+#confirm-modal .modal-actions .primary-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    box-shadow: 0 6px 20px rgba(245,158,11,0.4) !important;
+}
+#confirm-modal .modal-actions .warn-btn {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    box-shadow: 0 6px 20px rgba(239,68,68,0.4) !important;
+}
+
+
+/* ╔══════════════════════════════════════════════════════╗
+ * ║     DRAW / DURANG — Aurora Silver Result Screen     ║
+ * ╚══════════════════════════════════════════════════════╝ */
+
+/* Override draw background with aurora silver/teal theme */
+.result-bg.draw {
+    background:
+        radial-gradient(ellipse at 20% 10%,  rgba(148,163,184,0.30) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%,  rgba(100,116,139,0.22) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 30%,  rgba(20,184,166,0.16) 0%, transparent 45%),
+        radial-gradient(ellipse at 10% 80%,  rgba(167,139,250,0.14) 0%, transparent 45%),
+        linear-gradient(160deg, #080a12 0%, #0c1020 40%, #0a0e1a 100%);
+}
+.result-bg.draw::before {
+    background: radial-gradient(circle at 35% 40%, rgba(148,163,184,0.20) 0%, transparent 60%);
+    animation: aurora-draw-1 6s ease-in-out infinite alternate;
+}
+.result-bg.draw::after {
+    background: radial-gradient(circle at 65% 60%, rgba(20,184,166,0.15) 0%, transparent 55%);
+    animation: aurora-draw-2 8s ease-in-out infinite alternate-reverse;
+}
+@keyframes aurora-draw-1 {
+    from { transform: translate(-15%, -10%) scale(1);   opacity: 0.6; }
+    to   { transform: translate( 10%,  15%) scale(1.3); opacity: 1;   }
+}
+@keyframes aurora-draw-2 {
+    from { transform: translate( 10%,  10%) scale(1.2); opacity: 0.5; }
+    to   { transform: translate(-12%, -12%) scale(0.9); opacity: 1;   }
+}
+
+/* Draw card top-border: silver shimmer */
+.result-bg.draw ~ .result-card::before {
+    background: linear-gradient(90deg, transparent, #94a3b8, #e2e8f0, #14b8a6, #94a3b8, transparent);
+    background-size: 200%;
+    animation: shimmer-bar 2.5s linear infinite;
+}
+
+/* Draw title: silver-to-teal gradient */
+.result-bg.draw ~ .result-card #result-title {
+    background: linear-gradient(135deg, #94a3b8 0%, #e2e8f0 35%, #14b8a6 65%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200%;
+    animation: title-shimmer 3s ease-in-out infinite alternate;
+}
+@keyframes title-shimmer {
+    from { background-position: 0% 50%;   }
+    to   { background-position: 100% 50%; }
+}
+
+/* Draw subtitle */
+.result-bg.draw ~ .result-card #result-subtitle {
+    color: #64748b;
+}
+
+/* Draw emoji: silver glow */
+.result-bg.draw ~ .result-card .result-emoji {
+    filter: drop-shadow(0 0 18px rgba(148,163,184,0.7));
+    animation: emoji-float-draw 3s ease-in-out infinite;
+}
+@keyframes emoji-float-draw {
+    0%, 100% { transform: translateY(0)   scale(1);    filter: drop-shadow(0 0 16px rgba(148,163,184,0.6)); }
+    50%       { transform: translateY(-8px) scale(1.05); filter: drop-shadow(0 0 28px rgba(20,184,166,0.8)); }
+}
+
+/* Draw stat icons & values */
+.result-bg.draw ~ .result-card .result-stat .rs-icon  { color: #94a3b8; }
+.result-bg.draw ~ .result-card .result-stat .rs-value { color: #cbd5e1; }
+
+/* Draw stat card background */
+.result-bg.draw ~ .result-card .result-stat {
+    background: rgba(148,163,184,0.06);
+    border-color: rgba(148,163,184,0.12);
+}
+.result-bg.draw ~ .result-card .result-stat:hover {
+    background: rgba(20,184,166,0.08);
+    border-color: rgba(20,184,166,0.2);
+    box-shadow: 0 4px 16px rgba(20,184,166,0.12);
+}
+
+/* Draw primary button: teal gradient */
+.result-bg.draw ~ .result-card .result-actions .primary-btn,
+.result-bg.draw ~ .result-card .btn-result-primary {
+    background: linear-gradient(135deg, #0f766e, #14b8a6) !important;
+    color: #f0fdfa !important;
+    box-shadow: 0 4px 18px rgba(20,184,166,0.35) !important;
+}
+.result-bg.draw ~ .result-card .result-actions .primary-btn:hover,
+.result-bg.draw ~ .result-card .btn-result-primary:hover {
+    box-shadow: 0 8px 28px rgba(20,184,166,0.5) !important;
+}
+
+/* Draw divider: teal */
+.result-bg.draw ~ .result-card .result-divider {
+    background: linear-gradient(90deg, transparent, rgba(20,184,166,0.4), rgba(148,163,184,0.4), transparent);
+}
+
+/* Draw submit status */
+.result-bg.draw ~ .result-card .submit-status.success {
+    border-color: rgba(20,184,166,0.3);
+    background: rgba(20,184,166,0.07);
+    color: #5eead4;
+}
+
+/* Draw floating orbs (snowflake/stardust particles) */
+.result-bg.draw ~ .result-card .result-stars span {
+    background: linear-gradient(135deg, #94a3b8, #e2e8f0) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 6px rgba(148,163,184,0.6);
+}
+

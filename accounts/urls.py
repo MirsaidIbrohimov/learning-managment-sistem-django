@@ -148,16 +148,6 @@ urlpatterns = [
     path('dashboard/export-pdf/', views.export_system_pdf, name='export_system_pdf'),
     path('dashboard/messages/', views.admin_messages, name='admin_messages'),
     path('dashboard/messages/send/', views.admin_send_message, name='admin_send_message'),
-    path('dashboard/payments/', views.admin_payments, name='admin_payments'),
-    path('dashboard/payments/<int:pk>/paid/', views.admin_mark_paid, name='admin_mark_paid'),
-    path('dashboard/payments/<int:pk>/unpaid/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
-    path('dashboard/payments/<int:pk>/remind/', views.send_payment_reminder, name='send_payment_reminder'),
-    path('dashboard/payments/remind-all/', views.send_bulk_payment_reminders, name='send_bulk_payment_reminders'),
-    path('dashboard/payments/bulk-action/', views.bulk_payment_action, name='bulk_payment_action'),
-    path('dashboard/payments/<int:pk>/toggle-block/', views.admin_toggle_block_payment, name='admin_toggle_block_payment'),
-    path('dashboard/payments/<int:pk>/history/', views.admin_payment_history, name='admin_payment_history'),
-    path('dashboard/payments/<int:pk>/set-fee/', views.admin_set_monthly_fee, name='admin_set_monthly_fee'),
-    path('dashboard/payments/export-pdf/', views.export_payments_pdf, name='export_payments_pdf'),
     
     # Admin: Sections
     path('dashboard/sections/', views.admin_sections, name='admin_sections'),
@@ -307,4 +297,12 @@ urlpatterns = [
     path('dashboard/balans/', views.admin_balance_management, name='admin_balance_management'),
     path('dashboard/balans/<int:student_id>/topup/', views.admin_balance_topup, name='admin_balance_topup'),
     path('dashboard/balans/<int:student_id>/history/', views.admin_balance_history, name='admin_balance_history'),
+    path('dashboard/balans/<int:student_id>/set-fee/', views.admin_balance_set_fee, name='admin_balance_set_fee'),
+    path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
+
+    # ── Oylik to'lovlar ──────────────────────────────────────────
+    path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
+    path('dashboard/tolovlar/<int:pk>/pay/', views.admin_mark_paid, name='admin_mark_paid'),
+    path('dashboard/tolovlar/<int:pk>/unpay/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
+    path('yordamchi/tolovlar/', views.admin_payments, name='yordamchi_payments'),
 ]

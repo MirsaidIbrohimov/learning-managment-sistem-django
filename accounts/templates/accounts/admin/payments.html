@@ -1,640 +1,332 @@
-﻿{% extends 'accounts/admin/base_admin.html' %}
-
-{% block title %}To'lovlar - Admin Panel | IT Shaharcha{% endblock %}
-
-{% block extra_css %}
-<style>
-.pay-page{
-    --p-card: rgba(255,255,255,.82);
-    --p-border: rgba(0,0,0,.08);
-    --p-text: #111;
-    --p-muted: #6c757d;
-    --p-soft: rgba(0,0,0,.03);
-    --p-hover: rgba(0,0,0,.05);
-}
-[data-bs-theme="dark"] .pay-page{
-    --p-card: rgba(26,26,46,.85);
-    --p-border: rgba(255,255,255,.08);
-    --p-text: #f1f1f1;
-    --p-muted: #9ca3af;
-    --p-soft: rgba(255,255,255,.04);
-    --p-hover: rgba(255,255,255,.06);
-}
-.p-stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
-@media(max-width:1200px){.p-stat-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:576px){.p-stat-grid{grid-template-columns:repeat(2,1fr)}}
-.p-stat{
-    background:var(--p-card);border:1px solid var(--p-border);
-    border-radius:18px;padding:20px;backdrop-filter:blur(12px);
-    transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden
-}
-.p-stat:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(0,0,0,.10)}
-.p-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.p-stat.c-blue::before{background:linear-gradient(90deg,#0d6efd,#6ea8fe)}
-.p-stat.c-green::before{background:linear-gradient(90deg,#198754,#75b798)}
-.p-stat.c-red::before{background:linear-gradient(90deg,#dc3545,#ea868f)}
-.p-stat.c-dark::before{background:linear-gradient(90deg,#343a40,#6c757d)}
-.p-stat.c-purple::before{background:linear-gradient(90deg,#6f42c1,#a98eda)}
-.p-stat.c-teal::before{background:linear-gradient(90deg,#0dcaf0,#6edff6)}
-.p-si{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;margin-bottom:10px}
-.p-si.c-blue{background:linear-gradient(135deg,#0d6efd,#0a58ca)}
-.p-si.c-green{background:linear-gradient(135deg,#198754,#157347)}
-.p-si.c-red{background:linear-gradient(135deg,#dc3545,#b02a37)}
-.p-si.c-dark{background:linear-gradient(135deg,#343a40,#212529)}
-.p-si.c-purple{background:linear-gradient(135deg,#6f42c1,#59359a)}
-.p-si.c-teal{background:linear-gradient(135deg,#0dcaf0,#0aa2c0)}
-.p-sn{font-size:1.3rem;font-weight:700;color:var(--p-text);line-height:1.2}
-.p-sl{font-size:.78rem;color:var(--p-muted);margin-top:2px}
-.p-card{background:var(--p-card);backdrop-filter:blur(16px);border:1px solid var(--p-border);border-radius:20px;box-shadow:0 6px 24px rgba(0,0,0,.06);margin-bottom:20px}
-.p-card-head{padding:16px 22px;border-bottom:1px solid var(--p-border);font-weight:600;color:var(--p-text);display:flex;align-items:center;justify-content:space-between}
-.p-chart-bars{display:flex;align-items:flex-end;gap:14px;height:130px;padding:18px 22px}
-@media(max-width:576px){.p-chart-bars{height:100px;gap:8px;padding:14px}}
-.p-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.p-bar-wrap{width:100%;display:flex;gap:3px;align-items:flex-end;height:90px;justify-content:center}
-@media(max-width:576px){.p-bar-wrap{height:65px}}
-.p-bar{width:18px;border-radius:6px 6px 0 0;min-height:4px;transition:height .4s}
-@media(max-width:576px){.p-bar{width:12px}}
-.p-bar.exp{background:linear-gradient(180deg,#6f42c1,#a98eda);opacity:.4}
-.p-bar.pd{background:linear-gradient(180deg,#198754,#75b798)}
-.p-bar-lbl{font-size:.72rem;color:var(--p-muted);font-weight:600}
-.p-bar-cnt{font-size:.65rem;color:var(--p-muted)}
-.p-pill{padding:7px 18px;border-radius:50px;font-size:.84rem;font-weight:500;border:1px solid var(--p-border);background:var(--p-card);color:var(--p-text);text-decoration:none;transition:.2s}
-.p-pill:hover{background:var(--p-hover);color:var(--p-text)}
-.p-pill.active{background:#0d6efd;color:#fff;border-color:#0d6efd}
-.p-tbl{width:100%;border-collapse:collapse}
-.p-tbl thead th{padding:12px 14px;font-size:.78rem;font-weight:600;color:var(--p-muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--p-border);white-space:nowrap}
-.p-tbl tbody tr{border-bottom:1px solid var(--p-border);transition:background .15s}
-.p-tbl tbody tr:last-child{border-bottom:none}
-.p-tbl tbody tr:hover{background:var(--p-hover)}
-.p-tbl tbody tr.rp{background:rgba(25,135,84,.06)}
-.p-tbl tbody tr.ru{background:rgba(255,193,7,.05)}
-.p-tbl tbody tr.rb{background:rgba(220,53,69,.06)}
-[data-bs-theme="dark"] .p-tbl tbody tr.rp{background:rgba(25,135,84,.12)}
-[data-bs-theme="dark"] .p-tbl tbody tr.ru{background:rgba(255,193,7,.08)}
-[data-bs-theme="dark"] .p-tbl tbody tr.rb{background:rgba(220,53,69,.12)}
-.p-tbl tbody td{padding:11px 14px;font-size:.87rem;color:var(--p-text);vertical-align:middle}
-.bp{display:inline-block;padding:4px 12px;border-radius:50px;font-size:.76rem;font-weight:600}
-.bp.paid{background:rgba(25,135,84,.14);color:#198754}
-.bp.unpaid{background:rgba(220,53,69,.12);color:#dc3545}
-.bp.blocked{background:rgba(220,53,69,.14);color:#dc3545}
-.bp.active-s{background:rgba(25,135,84,.12);color:#198754}
-.pn{font-weight:600;color:var(--p-text);font-size:.88rem}
-.pu{font-size:.74rem;color:var(--p-muted)}
-.pm{font-weight:600;font-family:'Courier New',monospace;font-size:.87rem}
-.pm.g{color:#198754}
-.pm.r{color:#dc3545}
-.pa .dropdown-toggle{padding:5px 11px;border-radius:10px;font-size:.82rem;background:var(--p-soft);border:1px solid var(--p-border);color:var(--p-text)}
-.pa .dropdown-toggle:hover{background:var(--p-hover)}
-.pa .dropdown-menu{border-radius:14px;border:1px solid var(--p-border);background:var(--p-card);box-shadow:0 10px 36px rgba(0,0,0,.14);padding:5px;min-width:220px;z-index:1050}
-.pa .dropdown-item{border-radius:9px;padding:8px 14px;font-size:.84rem;color:var(--p-text);transition:.15s}
-.pa .dropdown-item:hover{background:var(--p-hover)}
-.pa .dropdown-item i{width:20px;text-align:center;margin-right:8px}
-.p-summary{display:flex;gap:20px;flex-wrap:wrap;padding:14px 22px;background:var(--p-soft);border-top:1px solid var(--p-border);font-size:.86rem}
-.p-sum{display:flex;align-items:center;gap:6px}
-.p-sum .l{color:var(--p-muted);font-weight:500}
-.p-sum .v{font-weight:700;color:var(--p-text)}
-.pay-page .pf select,.pay-page .pf .ps{
-    background:var(--p-card)!important;border:1px solid var(--p-border)!important;
-    color:var(--p-text)!important;border-radius:12px!important;padding:8px 14px!important;
-    font-size:.87rem!important;height:auto!important;
-}
-.pay-page .pf select:focus,.pay-page .pf .ps:focus{border-color:#0d6efd!important;box-shadow:0 0 0 3px rgba(13,110,253,.15)!important}
-.p-pag .page-link{border-radius:10px!important;border:1px solid var(--p-border)!important;background:var(--p-card)!important;color:var(--p-text)!important;margin:0 2px;padding:7px 13px;font-size:.84rem}
-.p-pag .page-item.active .page-link{background:#0d6efd!important;border-color:#0d6efd!important;color:#fff!important}
-.p-empty{padding:50px 20px;text-align:center}
-.p-empty i{font-size:3rem;color:var(--p-muted)}
-
-/* Modal styles */
-.pay-modal .modal-content{border-radius:20px!important;border:1px solid rgba(0,0,0,.08);background:#fff!important;box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.pay-modal .modal-header{border-bottom:1px solid rgba(0,0,0,.08);padding:18px 22px}
-.pay-modal .modal-body{padding:22px}
-.pay-modal .modal-footer{border-top:1px solid rgba(0,0,0,.08);padding:14px 22px}
-.pay-modal .form-control{border-radius:12px!important;border:1px solid rgba(0,0,0,.12)!important;background:rgba(0,0,0,.02)!important;color:#111!important;padding:10px 14px!important}
-.pay-modal .form-label{font-weight:600;font-size:.86rem;color:#111}
-.pay-modal .modal-title{font-weight:700;color:#111}
-.pay-modal .modal-body p{color:#6c757d}
-.pay-modal .modal-body p strong{color:#111}
-[data-bs-theme="dark"] .pay-modal .modal-content{background:rgba(26,26,46,.97)!important;border-color:rgba(255,255,255,.1)}
-[data-bs-theme="dark"] .pay-modal .modal-header{border-color:rgba(255,255,255,.08)}
-[data-bs-theme="dark"] .pay-modal .modal-footer{border-color:rgba(255,255,255,.08)}
-[data-bs-theme="dark"] .pay-modal .form-control{background:rgba(255,255,255,.06)!important;border-color:rgba(255,255,255,.1)!important;color:#f1f1f1!important}
-[data-bs-theme="dark"] .pay-modal .form-label{color:#f1f1f1}
-[data-bs-theme="dark"] .pay-modal .modal-title{color:#f1f1f1}
-[data-bs-theme="dark"] .pay-modal .modal-body p{color:#9ca3af}
-[data-bs-theme="dark"] .pay-modal .modal-body p strong{color:#f1f1f1}
-
-/* Bulk bar */
-.p-bulk-bar{
-    background:linear-gradient(135deg,#0d6efd,#6610f2);
-    border-radius:16px;padding:14px 20px;margin-bottom:16px;
-    box-shadow:0 8px 24px rgba(13,110,253,.2);
-    animation:bulkSlide .3s ease;
-}
-@keyframes bulkSlide{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
-.p-bulk-bar .bulk-label{color:#fff;font-weight:600;font-size:.9rem}
-.p-bulk-bar .bulk-count{background:rgba(255,255,255,.2);color:#fff;padding:2px 10px;border-radius:20px;font-weight:700;font-size:.85rem;margin-left:6px}
-.p-bulk-bar .btn{font-size:.8rem;padding:6px 14px;border-radius:50px;font-weight:600;border:1px solid rgba(255,255,255,.3);color:#fff;background:rgba(255,255,255,.12);transition:.2s}
-.p-bulk-bar .btn:hover{background:rgba(255,255,255,.25);color:#fff}
-.p-bulk-bar .btn-bulk-danger{background:rgba(220,53,69,.8);border-color:rgba(220,53,69,.6)}
-.p-bulk-bar .btn-bulk-danger:hover{background:rgba(220,53,69,1)}
-.p-bulk-bar .btn-bulk-success{background:rgba(25,135,84,.8);border-color:rgba(25,135,84,.6)}
-.p-bulk-bar .btn-bulk-success:hover{background:rgba(25,135,84,1)}
-.p-bulk-bar .btn-bulk-primary{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3)}
-.p-bulk-bar .btn-bulk-primary:hover{background:rgba(255,255,255,.35)}
-.p-bulk-bar .btn-bulk-warning{background:rgba(255,193,7,.8);border-color:rgba(255,193,7,.6);color:#000}
-.p-bulk-bar .btn-bulk-warning:hover{background:rgba(255,193,7,1);color:#000}
-
-/* Checkbox */
-.p-check{width:18px;height:18px;cursor:pointer;accent-color:#0d6efd;border-radius:4px}
-
-@media(max-width:992px){
-.p-tbl thead{display:none}
-.p-tbl tbody tr{display:block;border:1px solid var(--p-border);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--p-card)!important}
-.p-tbl tbody td{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border:none}
-.p-tbl tbody td::before{content:attr(data-label);font-weight:600;color:var(--p-muted);font-size:.78rem;min-width:110px}
-.p-tbl tbody td.td-check{justify-content:flex-start}
-.p-tbl tbody td.td-check::before{display:none}
-}
-</style>
-{% endblock %}
+{% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
+{% block title %}Oylik To'lovlar — Admin Panel{% endblock %}
 
 {% block admin_content %}
-<div class="pay-page">
+<style>
+.pm-page { max-width: 1280px; margin: 0 auto; padding: 1.5rem 1rem; }
 
-<!-- HEADER -->
-<div class="top-bar" style="border-radius:18px;flex-wrap:wrap;gap:12px">
-    <h1 class="page-title" style="font-size:1.35rem"><i class="bi bi-credit-card me-2"></i>To'lovlar boshqaruvi</h1>
-    <div class="d-flex gap-2 align-items-center flex-wrap pf">
-        <form method="get" action="{% url 'admin_payments' %}" class="d-flex gap-2 align-items-center flex-wrap" id="filterForm">
-            <input type="text" name="q" value="{{ search_query }}" placeholder="Qidirish..." class="ps" style="max-width:180px">
-            <select name="month" onchange="document.getElementById('filterForm').submit()">
-                {% for m_val, m_name in months %}
-                <option value="{{ m_val }}" {% if m_val == selected_month %}selected{% endif %}>{{ m_name }}</option>
+/* Header */
+.pm-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; }
+.pm-title { font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; }
+.pm-title i { color: var(--primary, #6366f1); }
+
+/* Stats */
+.pm-stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+@media(max-width:900px){ .pm-stats { grid-template-columns: repeat(3,1fr); } }
+@media(max-width:600px){ .pm-stats { grid-template-columns: 1fr 1fr; } }
+.pm-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 16px; padding: 1rem 1.25rem;
+    position: relative; overflow: hidden; transition: .2s;
+}
+.pm-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.pm-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.pm-stat.c-indigo::before { background: linear-gradient(90deg,#6366f1,#a5b4fc); }
+.pm-stat.c-green::before  { background: linear-gradient(90deg,#22c55e,#86efac); }
+.pm-stat.c-red::before    { background: linear-gradient(90deg,#ef4444,#fca5a5); }
+.pm-stat.c-yellow::before { background: linear-gradient(90deg,#f59e0b,#fcd34d); }
+.pm-stat.c-teal::before   { background: linear-gradient(90deg,#14b8a6,#5eead4); }
+.pm-stat-label { font-size: .75rem; color: var(--text-muted); margin-bottom: .3rem; text-transform: uppercase; letter-spacing: .05em; }
+.pm-stat-value { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.pm-stat-sub { font-size: .75rem; color: var(--text-muted); margin-top: .25rem; }
+
+/* History bar */
+.pm-history { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1.25rem; margin-bottom: 1.5rem; }
+.pm-history-title { font-size: .85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: .06em; }
+.pm-history-bars { display: flex; gap: .75rem; align-items: flex-end; height: 80px; }
+.pm-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: .3rem; }
+.pm-bar-track { width: 100%; background: var(--border-color); border-radius: 6px; overflow: hidden; flex: 1; display: flex; align-items: flex-end; }
+.pm-bar-fill { width: 100%; background: linear-gradient(0deg,#6366f1,#a5b4fc); border-radius: 6px; transition: height .4s; }
+.pm-bar-label { font-size: .7rem; color: var(--text-muted); white-space: nowrap; }
+.pm-bar-pct { font-size: .7rem; font-weight: 700; color: var(--primary,#6366f1); }
+
+/* Filters */
+.pm-filters { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: flex-end; }
+.pm-filter-group { display: flex; flex-direction: column; gap: .3rem; }
+.pm-filter-group label { font-size: .75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.pm-filter-group select,
+.pm-filter-group input { background: var(--bg-secondary,#1e293b); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 10px; padding: .45rem .8rem; font-size: .9rem; min-width: 130px; }
+.pm-filter-btns { display: flex; gap: .5rem; align-items: flex-end; flex-wrap: wrap; }
+.pm-filter-btns .btn-sm { padding: .45rem 1rem; border-radius: 10px; font-size: .85rem; }
+.pm-tab-btns { display: flex; gap: .5rem; margin-left: auto; flex-wrap: wrap; }
+.pm-tab { padding: .4rem .9rem; border-radius: 20px; font-size: .8rem; font-weight: 600; border: 1.5px solid var(--border-color); background: transparent; color: var(--text-muted); cursor: pointer; transition: .2s; text-decoration: none; display: inline-flex; align-items: center; gap: .3rem; }
+.pm-tab.active, .pm-tab:hover { background: var(--primary, #6366f1); border-color: var(--primary, #6366f1); color: #fff; }
+.pm-tab.green.active, .pm-tab.green:hover { background: #22c55e; border-color: #22c55e; color: #fff; }
+.pm-tab.red.active, .pm-tab.red:hover { background: #ef4444; border-color: #ef4444; color: #fff; }
+.pm-tab.orange.active, .pm-tab.orange:hover { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+
+/* Table */
+.pm-table-wrap { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden; }
+.pm-table-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: .5rem; }
+.pm-table-header h3 { font-size: 1rem; font-weight: 600; margin: 0; }
+table.pm-table { width: 100%; border-collapse: collapse; }
+table.pm-table th { padding: .75rem 1rem; text-align: left; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); background: rgba(0,0,0,.15); font-weight: 600; }
+table.pm-table td { padding: .7rem 1rem; border-bottom: 1px solid var(--border-color); font-size: .9rem; vertical-align: middle; }
+table.pm-table tbody tr:last-child td { border-bottom: none; }
+table.pm-table tbody tr:hover { background: rgba(99,102,241,.04); }
+
+.pm-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#14b8a6); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: .85rem; flex-shrink: 0; }
+.pm-student-info { display: flex; align-items: center; gap: .75rem; }
+.pm-student-name { font-weight: 600; font-size: .9rem; }
+.pm-student-meta { font-size: .75rem; color: var(--text-muted); }
+
+.pm-badge { display: inline-flex; align-items: center; gap: .25rem; padding: .2rem .6rem; border-radius: 20px; font-size: .75rem; font-weight: 600; }
+.pm-badge.paid { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+.pm-badge.unpaid { background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+.pm-badge.blocked { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
+
+.pm-amount { font-weight: 700; font-size: .95rem; }
+.pm-amount.green { color: #22c55e; }
+.pm-amount.muted { color: var(--text-muted); }
+
+.pm-action-btn { padding: .3rem .8rem; border-radius: 8px; font-size: .8rem; font-weight: 600; border: none; cursor: pointer; transition: .15s; }
+.pm-action-btn.pay { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+.pm-action-btn.pay:hover { background: #22c55e; color: #fff; }
+.pm-action-btn.unpay { background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+.pm-action-btn.unpay:hover { background: #ef4444; color: #fff; }
+
+/* Pagination */
+.pm-pagination { display: flex; justify-content: center; gap: .4rem; padding: 1rem; flex-wrap: wrap; }
+.pm-pagination a, .pm-pagination span { padding: .4rem .75rem; border-radius: 8px; font-size: .85rem; font-weight: 600; border: 1px solid var(--border-color); color: var(--text-color); text-decoration: none; transition: .15s; }
+.pm-pagination a:hover { background: var(--primary,#6366f1); color: #fff; border-color: var(--primary,#6366f1); }
+.pm-pagination span.current { background: var(--primary,#6366f1); color: #fff; border-color: var(--primary,#6366f1); }
+
+.pm-empty { text-align: center; padding: 3rem; color: var(--text-muted); }
+.pm-empty i { font-size: 2.5rem; display: block; margin-bottom: .75rem; opacity: .4; }
+
+/* Mobile */
+@media(max-width:768px){
+    table.pm-table th:nth-child(3),
+    table.pm-table td:nth-child(3) { display: none; }
+}
+@media(max-width:600px){
+    table.pm-table th:nth-child(4),
+    table.pm-table td:nth-child(4) { display: none; }
+}
+</style>
+
+<div class="pm-page">
+
+    <!-- Header -->
+    <div class="pm-header">
+        <div class="pm-title">
+            <i class="bi bi-calendar-check-fill"></i>
+            Oylik To'lovlar
+        </div>
+        <form method="get" style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+            <input type="hidden" name="status" value="{{ filter_status }}">
+            <input type="hidden" name="q" value="{{ search_query }}">
+            <select name="month" onchange="this.form.submit()" style="background:var(--bg-secondary,#1e293b);border:1px solid var(--border-color);color:var(--text-color);border-radius:10px;padding:.4rem .8rem;font-size:.85rem;">
+                {% for num, name in months %}
+                <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
                 {% endfor %}
             </select>
-            <select name="year" onchange="document.getElementById('filterForm').submit()">
+            <select name="year" onchange="this.form.submit()" style="background:var(--bg-secondary,#1e293b);border:1px solid var(--border-color);color:var(--text-color);border-radius:10px;padding:.4rem .8rem;font-size:.85rem;">
                 {% for y in years %}
                 <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
             </select>
-            {% if filter_status %}<input type="hidden" name="status" value="{{ filter_status }}">{% endif %}
-            <button type="submit" class="btn btn-primary rounded-pill px-3" style="font-size:.84rem">
-                <i class="bi bi-search me-1"></i>Izlash
-            </button>
         </form>
-        <a href="{% url 'export_payments_pdf' %}?month={{ selected_month }}&year={{ selected_year }}" class="btn btn-danger rounded-pill px-3" style="font-size:.84rem">
-            <i class="bi bi-file-earmark-pdf me-1"></i>PDF yuklash
-        </a>
     </div>
-</div>
 
-<!-- STATS -->
-<div class="p-stat-grid">
-    <div class="p-stat c-blue">
-        <div class="p-si c-blue"><i class="bi bi-people-fill"></i></div>
-        <div class="p-sn">{{ total_students }}</div>
-        <div class="p-sl">Jami o'quvchilar</div>
-    </div>
-    <div class="p-stat c-green">
-        <div class="p-si c-green"><i class="bi bi-check-circle-fill"></i></div>
-        <div class="p-sn">{{ total_paid_count }}</div>
-        <div class="p-sl">To'langan</div>
-    </div>
-    <div class="p-stat c-red">
-        <div class="p-si c-red"><i class="bi bi-x-circle-fill"></i></div>
-        <div class="p-sn">{{ total_unpaid }}</div>
-        <div class="p-sl">To'lanmagan</div>
-    </div>
-    <div class="p-stat c-dark">
-        <div class="p-si c-dark"><i class="bi bi-lock-fill"></i></div>
-        <div class="p-sn">{{ blocked_count }}</div>
-        <div class="p-sl">Bloklangan</div>
-    </div>
-    <div class="p-stat c-purple">
-        <div class="p-si c-purple"><i class="bi bi-cash-stack"></i></div>
-        <div class="p-sn" style="font-size:1.05rem">{{ total_expected|floatformat:0 }}</div>
-        <div class="p-sl">Kutilgan summa</div>
-    </div>
-    <div class="p-stat c-teal">
-        <div class="p-si c-teal"><i class="bi bi-wallet2"></i></div>
-        <div class="p-sn" style="font-size:1.05rem">{{ total_paid_sum|floatformat:0 }}</div>
-        <div class="p-sl">Yig'ilgan summa</div>
-    </div>
-</div>
-
-<!-- CHART -->
-<div class="p-card">
-    <div class="p-card-head">
-        <span><i class="bi bi-bar-chart-line me-2"></i>Oylik to'lov tarixchasi</span>
-        <span class="d-flex align-items-center gap-3" style="font-size:.76rem;color:var(--p-muted)">
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#198754;margin-right:4px"></span>To'langan</span>
-            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#6f42c1;opacity:.4;margin-right:4px"></span>Kutilgan</span>
-        </span>
-    </div>
-    <div class="p-chart-bars" id="chartBars">
-        {% for h in monthly_history %}
-        <div class="p-bar-group">
-            <div class="p-bar-wrap">
-                <div class="p-bar exp" data-value="{{ h.expected }}" title="Kutilgan: {{ h.expected|floatformat:0 }}"></div>
-                <div class="p-bar pd" data-value="{{ h.paid }}" title="To'langan: {{ h.paid|floatformat:0 }}"></div>
-            </div>
-            <div class="p-bar-lbl">{{ h.name }}</div>
-            <div class="p-bar-cnt">{{ h.paid_count }}/{{ h.total_count }}</div>
+    <!-- Stats -->
+    <div class="pm-stats">
+        <div class="pm-stat c-indigo">
+            <div class="pm-stat-label">Jami talabalar</div>
+            <div class="pm-stat-value">{{ total_students }}</div>
+            <div class="pm-stat-sub">Faol o'quvchilar</div>
         </div>
-        {% endfor %}
-    </div>
-</div>
-
-<!-- FILTER + BULK -->
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-    <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'admin_payments' %}?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}" class="p-pill {% if not filter_status %}active{% endif %}">
-            <i class="bi bi-grid me-1"></i>Barchasi
-        </a>
-        <a href="{% url 'admin_payments' %}?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=paid" class="p-pill {% if filter_status == 'paid' %}active{% endif %}">
-            <i class="bi bi-check-circle me-1"></i>To'langan
-        </a>
-        <a href="{% url 'admin_payments' %}?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=unpaid" class="p-pill {% if filter_status == 'unpaid' %}active{% endif %}">
-            <i class="bi bi-x-circle me-1"></i>To'lanmagan
-        </a>
-        <a href="{% url 'admin_payments' %}?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=blocked" class="p-pill {% if filter_status == 'blocked' %}active{% endif %}">
-            <i class="bi bi-lock me-1"></i>Bloklangan
-        </a>
-    </div>
-    <form method="post" action="{% url 'send_bulk_payment_reminders' %}">
-        {% csrf_token %}
-        <input type="hidden" name="month" value="{{ selected_month }}">
-        <input type="hidden" name="year" value="{{ selected_year }}">
-        <button type="submit" class="btn btn-warning rounded-pill px-3" style="font-size:.84rem" onclick="return confirm('Barcha tolanmagan oquvchilarga eslatma yuborilsinmi?')">
-            <i class="bi bi-bell-fill me-1"></i>Barchaga eslatma
-        </button>
-    </form>
-</div>
-
-<!-- BULK ACTIONS BAR -->
-<div id="bulkBar" style="display:none;">
-    <div class="p-bulk-bar">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <span class="bulk-label"><i class="bi bi-check2-square me-2"></i>Tanlandi: <span class="bulk-count" id="bulkCount">0</span></span>
-            <div class="d-flex gap-2 flex-wrap">
-                <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkForm">
-                    {% csrf_token %}
-                    <input type="hidden" name="month" value="{{ selected_month }}">
-                    <input type="hidden" name="year" value="{{ selected_year }}">
-                    <input type="hidden" name="selected_ids" id="bulkIds">
-                    <div class="d-flex gap-2 flex-wrap">
-                        <button type="submit" name="action" value="block" class="btn btn-bulk-danger" onclick="return confirm('Tanlangan o\'quvchilarni bloklashni xohlaysizmi?')"><i class="bi bi-lock-fill me-1"></i>Bloklash</button>
-                        <button type="submit" name="action" value="unblock" class="btn btn-bulk-success" onclick="return confirm('Tanlangan o\'quvchilarni blokdan chiqarishni xohlaysizmi?')"><i class="bi bi-unlock-fill me-1"></i>Blokdan chiqarish</button>
-                        <button type="button" class="btn btn-bulk-primary" onclick="openBulkFeeModal()"><i class="bi bi-gear me-1"></i>Oylik belgilash</button>
-                        <button type="submit" name="action" value="remind" class="btn btn-bulk-warning" onclick="return confirm('Tanlangan o\'quvchilarga eslatma yuborilsinmi?')"><i class="bi bi-bell-fill me-1"></i>Eslatma</button>
-                    </div>
-                </form>
-            </div>
+        <div class="pm-stat c-green">
+            <div class="pm-stat-label">To'lagan</div>
+            <div class="pm-stat-value">{{ total_paid_count }}</div>
+            <div class="pm-stat-sub">{{ total_paid_sum|space_num }} so'm</div>
+        </div>
+        <div class="pm-stat c-red">
+            <div class="pm-stat-label">To'lamagan</div>
+            <div class="pm-stat-value">{{ total_unpaid }}</div>
+            <div class="pm-stat-sub">Kutilayotgan</div>
+        </div>
+        <div class="pm-stat c-yellow">
+            <div class="pm-stat-label">Bloklangan</div>
+            <div class="pm-stat-value">{{ blocked_count }}</div>
+            <div class="pm-stat-sub">Kirish cheklangan</div>
+        </div>
+        <div class="pm-stat c-teal">
+            <div class="pm-stat-label">Qarzdorlik</div>
+            <div class="pm-stat-value" style="font-size:1.1rem;">{{ total_debt|space_num }}</div>
+            <div class="pm-stat-sub">so'm</div>
         </div>
     </div>
-</div>
 
-<!-- TABLE -->
-<div class="p-card" style="overflow:visible">
-    <div class="p-card-head">
-        <span><i class="bi bi-table me-2"></i>O'quvchilar to'lov holati</span>
-        <span style="font-size:.82rem;color:var(--p-muted)">
-            {% for m_val, m_name in months %}{% if m_val == selected_month %}{{ m_name }}{% endif %}{% endfor %} {{ selected_year }}
-        </span>
+    <!-- 6-month history chart -->
+    {% if monthly_history %}
+    <div class="pm-history">
+        <div class="pm-history-title"><i class="bi bi-bar-chart-line me-1"></i> 6 oylik tarix</div>
+        <div class="pm-history-bars">
+            {% for h in monthly_history %}
+            {% with pct=h.paid|floatformat:0 %}
+            <div class="pm-bar-wrap">
+                <div class="pm-bar-pct">{% if h.expected > 0 %}{% widthratio h.paid h.expected 100 %}%{% else %}0%{% endif %}</div>
+                <div class="pm-bar-track">
+                    <div class="pm-bar-fill" style="height:{% if h.expected > 0 %}{% widthratio h.paid h.expected 100 %}%{% else %}0%{% endif %};min-height:2px;"></div>
+                </div>
+                <div class="pm-bar-label">{{ h.name }}</div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters -->
+    <div class="pm-filters">
+        <form method="get" style="display:flex;flex-wrap:wrap;gap:.75rem;align-items:flex-end;width:100%;">
+            <input type="hidden" name="month" value="{{ selected_month }}">
+            <input type="hidden" name="year" value="{{ selected_year }}">
+            <div class="pm-filter-group">
+                <label>Qidirish</label>
+                <input type="text" name="q" value="{{ search_query }}" placeholder="Ism, username, telefon...">
+            </div>
+            <div class="pm-filter-btns">
+                <button type="submit" class="btn-sm" style="background:var(--primary,#6366f1);color:#fff;border:none;cursor:pointer;border-radius:10px;padding:.45rem 1.1rem;font-size:.85rem;">
+                    <i class="bi bi-search"></i> Qidirish
+                </button>
+                {% if search_query %}
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&status={{ filter_status }}" class="btn-sm" style="background:var(--border-color);color:var(--text-color);text-decoration:none;border-radius:10px;padding:.45rem 1rem;font-size:.85rem;">✕ Tozalash</a>
+                {% endif %}
+            </div>
+            <div class="pm-tab-btns">
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}" class="pm-tab {% if not filter_status %}active{% endif %}">Hammasi</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=paid" class="pm-tab green {% if filter_status == 'paid' %}active{% endif %}"><i class="bi bi-check-circle"></i> To'lagan</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=unpaid" class="pm-tab red {% if filter_status == 'unpaid' %}active{% endif %}"><i class="bi bi-x-circle"></i> To'lamagan</a>
+                <a href="?month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status=blocked" class="pm-tab orange {% if filter_status == 'blocked' %}active{% endif %}"><i class="bi bi-lock"></i> Bloklangan</a>
+            </div>
+        </form>
     </div>
 
-    {% if students %}
-    <div class="table-responsive" style="overflow:visible">
-        <table class="p-tbl">
+    <!-- Table -->
+    <div class="pm-table-wrap">
+        <div class="pm-table-header">
+            <h3>
+                {% for num, name in months %}{% if num == selected_month %}{{ name }}{% endif %}{% endfor %}
+                {{ selected_year }} — To'lovlar
+            </h3>
+            <span style="font-size:.8rem;color:var(--text-muted);">{{ students.paginator.count }} ta talaba</span>
+        </div>
+
+        {% if students %}
+        <div style="overflow-x:auto;">
+        <table class="pm-table">
             <thead>
                 <tr>
-                    <th style="width:40px"><input type="checkbox" class="p-check" id="selectAll" onclick="toggleAll(this)"></th>
                     <th>#</th>
-                    <th>O'quvchi</th>
-                    <th>Telefon</th>
-                    <th class="text-end">Oylik</th>
-                    <th class="text-end">To'langan</th>
-                    <th class="text-end">Qarz</th>
-                    <th class="text-center">To'lov</th>
-                    <th class="text-center">Holat</th>
-                    <th class="text-center">Amallar</th>
+                    <th>Talaba</th>
+                    <th>Summa</th>
+                    <th>To'langan</th>
+                    <th>Holat</th>
+                    <th>Amal</th>
                 </tr>
             </thead>
             <tbody>
                 {% for student in students %}
-                <tr class="{% if student.current_record and student.current_record.is_paid %}rp{% elif student.is_blocked %}rb{% else %}ru{% endif %}" data-student="{{ student.pk }}">
-
-                    <td data-label="" class="td-check"><input type="checkbox" class="p-check bulk-check" value="{{ student.pk }}" onclick="updateBulk()"></td>
-                    <td data-label="#">{{ forloop.counter0|add:students.start_index }}</td>
-
-                    <td data-label="O'quvchi">
-                        <div class="pn">{{ student.full_name }}</div>
-                        <div class="pu">@{{ student.username }}</div>
+                {% with rec=student.current_record %}
+                <tr id="row-{{ student.pk }}">
+                    <td style="color:var(--text-muted);font-size:.8rem;">
+                        {{ forloop.counter0|add:students.start_index }}
                     </td>
-
-                    <td data-label="Telefon">{{ student.phone }}</td>
-
-                    <td data-label="Oylik" class="text-end">
-                        <span class="pm">{% if student.current_record %}{{ student.current_record.amount|floatformat:0 }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee|floatformat:0 }}{% else %}200000{% endif %}</span>
-                    </td>
-
-                    <td data-label="To'langan" class="text-end td-paid-amount">
-                        <span class="pm g">{% if student.current_record %}{{ student.current_record.paid_amount|floatformat:0 }}{% else %}0{% endif %}</span>
-                    </td>
-
-                    <td data-label="Qarz" class="text-end td-debt">
-                        <span class="pm r">{% if student.current_record %}{{ student.current_record.debt|floatformat:0 }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee|floatformat:0 }}{% else %}200000{% endif %}</span>
-                    </td>
-
-                    <td data-label="To'lov" class="text-center td-pay">
-                        {% if student.current_record and student.current_record.is_paid %}
-                        <span class="bp paid"><i class="bi bi-check-circle-fill me-1"></i>To'langan</span>
-                        {% else %}
-                        <span class="bp unpaid"><i class="bi bi-x-circle-fill me-1"></i>To'lanmagan</span>
-                        {% endif %}
-                    </td>
-
-                    <td data-label="Holat" class="text-center">
-                        {% if student.is_blocked %}
-                        <span class="bp blocked"><i class="bi bi-lock-fill me-1"></i>Bloklangan</span>
-                        {% else %}
-                        <span class="bp active-s"><i class="bi bi-unlock-fill me-1"></i>Faol</span>
-                        {% endif %}
-                    </td>
-
-                    <td data-label="Amallar" class="text-center">
-                        <div class="pa dropdown">
-                            <button class="dropdown-toggle" data-bs-toggle="dropdown" data-bs-boundary="viewport"><i class="bi bi-three-dots"></i></button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                {% if not student.current_record or not student.current_record.is_paid %}
-                                <li><a class="dropdown-item text-success" href="#" onclick="event.preventDefault();openPayModal({{ student.pk }},this.dataset.name,{% if student.current_record %}{{ student.current_record.amount }}{% elif student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})" data-name="{{ student.full_name }}"><i class="bi bi-check-circle"></i>To'landi belgilash</a></li>
-                                {% else %}
-                                <li>
-                                    <form method="post" action="{% url 'admin_mark_unpaid' student.pk %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="month" value="{{ selected_month }}">
-                                        <input type="hidden" name="year" value="{{ selected_year }}">
-                                        <button type="submit" class="dropdown-item text-warning" onclick="return confirm('{{ student.full_name }} tolovini bekor qilishni xohlaysizmi?')"><i class="bi bi-arrow-counterclockwise"></i>To'lovni bekor qilish</button>
-                                    </form>
-                                </li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider" style="margin:4px 0"></li>
-                                <li><a class="dropdown-item" href="{% url 'send_payment_reminder' student.pk %}?month={{ selected_month }}&year={{ selected_year }}" onclick="return confirm('{{ student.full_name }}ga eslatma yuborilsinmi?')"><i class="bi bi-bell"></i>Eslatma yuborish</a></li>
-                                <li><a class="dropdown-item {% if student.is_blocked %}text-success{% else %}text-danger{% endif %}" href="{% url 'admin_toggle_block_payment' student.pk %}?month={{ selected_month }}&year={{ selected_year }}" onclick="return confirm('{{ student.full_name }}ni {% if student.is_blocked %}blokdan chiqarishni{% else %}bloklashni{% endif %} xohlaysizmi?')"><i class="bi bi-{% if student.is_blocked %}unlock{% else %}lock{% endif %}"></i>{% if student.is_blocked %}Blokdan chiqarish{% else %}Bloklash{% endif %}</a></li>
-                                <li><hr class="dropdown-divider" style="margin:4px 0"></li>
-                                <li><a class="dropdown-item" href="{% url 'admin_payment_history' student.pk %}"><i class="bi bi-clock-history"></i>To'lov tarixi</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="event.preventDefault();openFeeModal({{ student.pk }},this.dataset.name,{% if student.payment_status %}{{ student.payment_status.monthly_fee }}{% else %}200000{% endif %})" data-name="{{ student.full_name }}"><i class="bi bi-gear"></i>Oylik to'lovni belgilash</a></li>
-                            </ul>
+                    <td>
+                        <div class="pm-student-info">
+                            <div class="pm-avatar">{{ student.first_name|first|upper }}</div>
+                            <div>
+                                <div class="pm-student-name">{{ student.get_full_name }}</div>
+                                <div class="pm-student-meta">
+                                    @{{ student.username }}
+                                    {% if student.is_blocked %} &bull; <span style="color:#f59e0b;">Bloklangan</span>{% endif %}
+                                </div>
+                            </div>
                         </div>
                     </td>
+                    <td>
+                        <span class="pm-amount">
+                            {% if rec %}{{ rec.amount|space_num }}{% else %}—{% endif %} so'm
+                        </span>
+                    </td>
+                    <td>
+                        {% if rec and rec.is_paid %}
+                        <span class="pm-amount green">{{ rec.paid_amount|space_num }} so'm</span>
+                        {% else %}
+                        <span class="pm-amount muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if rec %}
+                            {% if rec.is_paid %}
+                            <span class="pm-badge paid"><i class="bi bi-check-circle-fill"></i> To'langan</span>
+                            {% else %}
+                            <span class="pm-badge unpaid"><i class="bi bi-x-circle-fill"></i> To'lanmagan</span>
+                            {% endif %}
+                        {% else %}
+                        <span class="pm-badge" style="color:var(--text-muted);">Ma'lumot yo'q</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if rec %}
+                            {% if not rec.is_paid %}
+                            <form method="post" action="{% url 'admin_mark_paid' student.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="month" value="{{ selected_month }}">
+                                <input type="hidden" name="year" value="{{ selected_year }}">
+                                <input type="hidden" name="amount" value="{% if rec %}{{ rec.amount }}{% else %}200000{% endif %}">
+                                <button type="submit" class="pm-action-btn pay">
+                                    <i class="bi bi-check"></i> To'landi
+                                </button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'admin_mark_unpaid' student.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="month" value="{{ selected_month }}">
+                                <input type="hidden" name="year" value="{{ selected_year }}">
+                                <button type="submit" class="pm-action-btn unpay">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Bekor
+                                </button>
+                            </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
                 </tr>
+                {% endwith %}
                 {% endfor %}
             </tbody>
         </table>
-    </div>
+        </div>
 
-    <!-- SUMMARY -->
-    <div class="p-summary">
-        <div class="p-sum"><i class="bi bi-cash-stack text-primary me-1"></i><span class="l">Kutilgan:</span><span class="v">{{ total_expected|floatformat:0 }} so'm</span></div>
-        <div class="p-sum"><i class="bi bi-wallet2 text-success me-1"></i><span class="l">Yig'ilgan:</span><span class="v text-success">{{ total_paid_sum|floatformat:0 }} so'm</span></div>
-        <div class="p-sum"><i class="bi bi-exclamation-triangle text-danger me-1"></i><span class="l">Qarz:</span><span class="v text-danger">{{ total_debt|floatformat:0 }} so'm</span></div>
-    </div>
-
-    <!-- PAGINATION -->
-    {% if students.has_other_pages %}
-    <div class="p-3 d-flex justify-content-center">
-        <nav>
-            <ul class="pagination p-pag mb-0 gap-1">
-                {% if students.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page=1&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}"><i class="bi bi-chevron-double-left"></i></a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ students.previous_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}"><i class="bi bi-chevron-left"></i></a></li>
+        <!-- Pagination -->
+        {% if students.has_other_pages %}
+        <div class="pm-pagination">
+            {% if students.has_previous %}
+            <a href="?page={{ students.previous_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">&laquo;</a>
+            {% endif %}
+            {% for num in students.paginator.page_range %}
+                {% if students.number == num %}
+                <span class="current">{{ num }}</span>
+                {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
+                <a href="?page={{ num }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">{{ num }}</a>
                 {% endif %}
-                {% for num in students.paginator.page_range %}
-                    {% if students.number == num %}
-                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                    {% elif num > students.number|add:'-3' and num < students.number|add:'3' %}
-                    <li class="page-item"><a class="page-link" href="?page={{ num }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">{{ num }}</a></li>
-                    {% endif %}
-                {% endfor %}
-                {% if students.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ students.next_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}"><i class="bi bi-chevron-right"></i></a></li>
-                <li class="page-item"><a class="page-link" href="?page={{ students.paginator.num_pages }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}"><i class="bi bi-chevron-double-right"></i></a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-    <p class="text-center pb-3 mb-0" style="font-size:.8rem;color:var(--p-muted)">{{ students.paginator.count }} ta o'quvchidan {{ students.start_index }}-{{ students.end_index }} ko'rsatilmoqda</p>
-    {% endif %}
-
-    {% else %}
-    <div class="p-empty">
-        <i class="bi bi-inbox d-block mb-2"></i>
-        <h5 style="color:var(--p-text);font-weight:600">O'quvchilar topilmadi</h5>
-        <p style="color:var(--p-muted);font-size:.88rem">Hozircha hech qanday o'quvchi yo'q yoki qidiruv natijasi bo'sh.</p>
-    </div>
-    {% endif %}
-</div>
-
-</div><!-- /pay-page -->
-
-<!-- ===== MODALS (outside .pay-page to avoid stacking context issues) ===== -->
-
-<!-- PAYMENT MODAL -->
-<div class="modal fade pay-modal" id="payModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="post" id="payForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-check-circle text-success me-2"></i>To'lovni tasdiqlash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
-                </div>
-                <div class="modal-body">
-                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="payStudentName"></strong> uchun to'lovni belgilang</p>
-                    <input type="hidden" name="month" value="{{ selected_month }}">
-                    <input type="hidden" name="year" value="{{ selected_year }}">
-                    <div class="mb-3">
-                        <label class="form-label">To'langan summa (so'm)</label>
-                        <input type="number" name="paid_amount" id="payAmount" class="form-control" required>
-                    </div>
-                    <div class="mb-0">
-                        <label class="form-label">Izoh (ixtiyoriy)</label>
-                        <input type="text" name="notes" class="form-control" placeholder="Masalan: Naqd pul orqali...">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-success rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>To'landi</button>
-                </div>
-            </form>
+            {% endfor %}
+            {% if students.has_next %}
+            <a href="?page={{ students.next_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">&raquo;</a>
+            {% endif %}
         </div>
-    </div>
-</div>
+        {% endif %}
 
-<!-- FEE MODAL -->
-<div class="modal fade pay-modal" id="feeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="post" id="feeForm">
-                {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-gear text-primary me-2"></i>Oylik to'lovni belgilash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
-                </div>
-                <div class="modal-body">
-                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="feeStudentName"></strong> uchun oylik to'lov</p>
-                    <div class="mb-0">
-                        <label class="form-label">Oylik to'lov (so'm)</label>
-                        <input type="number" name="monthly_fee" id="feeAmount" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Saqlash</button>
-                </div>
-            </form>
+        {% else %}
+        <div class="pm-empty">
+            <i class="bi bi-calendar-x"></i>
+            Bu oy uchun talabalar topilmadi
         </div>
+        {% endif %}
     </div>
+
 </div>
-
-<!-- BULK FEE MODAL -->
-<div class="modal fade pay-modal" id="bulkFeeModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <form method="post" action="{% url 'bulk_payment_action' %}" id="bulkFeeForm">
-                {% csrf_token %}
-                <input type="hidden" name="month" value="{{ selected_month }}">
-                <input type="hidden" name="year" value="{{ selected_year }}">
-                <input type="hidden" name="action" value="set_fee">
-                <input type="hidden" name="selected_ids" id="bulkFeeIds">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-gear text-primary me-2"></i>Ommaviy oylik to'lov belgilash</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
-                </div>
-                <div class="modal-body">
-                    <p style="font-size:.9rem;margin-bottom:16px"><strong id="bulkFeeCount">0</strong> ta o'quvchi uchun oylik to'lov</p>
-                    <div class="mb-0">
-                        <label class="form-label">Oylik to'lov (so'm)</label>
-                        <input type="number" name="monthly_fee" id="bulkFeeAmount" class="form-control" value="200000" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4"><i class="bi bi-check-lg me-1"></i>Saqlash</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-var payModalInstance = null;
-function openPayModal(pk,name,fee){
-    document.getElementById('payForm').dataset.pk = pk;
-    document.getElementById('payForm').action='/dashboard/payments/'+pk+'/paid/';
-    document.getElementById('payStudentName').textContent=name;
-    document.getElementById('payAmount').value=fee;
-    payModalInstance = new bootstrap.Modal(document.getElementById('payModal'));
-    payModalInstance.show();
-}
-
-// AJAX to'lov belgilash
-document.getElementById('payForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    var form = this;
-    var pk = form.dataset.pk;
-    var btn = form.querySelector('button[type="submit"]');
-    var origText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saqlanmoqda...';
-
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form),
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            // Qatorni yangilash
-            var row = document.querySelector('tr[data-student="'+pk+'"]');
-            if (row) {
-                row.className = 'rp';
-                // To'lov badge
-                var payTd = row.querySelector('.td-pay');
-                if (payTd) payTd.innerHTML = '<span class="bp paid"><i class="bi bi-check-circle-fill me-1"></i>To\'langan</span>';
-                // To'langan summa
-                var paidTd = row.querySelector('.td-paid-amount');
-                if (paidTd) paidTd.innerHTML = '<span class="pm g">'+Number(data.paid_amount).toLocaleString('uz')+'</span>';
-                // Qarz
-                var debtTd = row.querySelector('.td-debt');
-                if (debtTd) debtTd.innerHTML = '<span class="pm r">'+Number(data.debt).toLocaleString('uz')+'</span>';
-                // Flash animatsiya
-                row.style.transition = 'background 0.5s ease';
-                row.style.background = 'rgba(25,135,84,0.15)';
-                setTimeout(function(){ row.style.background = ''; }, 1500);
-            }
-            // Toast
-            showPayToast('✅ ' + data.name + ' to\'lovi belgilandi!', 'success');
-            payModalInstance.hide();
-        }
-    })
-    .catch(function() {
-        showPayToast('Xatolik yuz berdi!', 'danger');
-    })
-    .finally(function() {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-    });
-});
-
-function showPayToast(msg, type) {
-    var container = document.getElementById('payToastContainer');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'payToastContainer';
-        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;';
-        document.body.appendChild(container);
-    }
-    var toast = document.createElement('div');
-    toast.style.cssText = 'padding:14px 22px;border-radius:14px;font-weight:600;font-size:.9rem;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transform:translateX(30px);transition:all .3s ease;background:'+(type==='success'?'linear-gradient(135deg,#198754,#157347)':'linear-gradient(135deg,#dc3545,#b02a37)')+';';
-    toast.textContent = msg;
-    container.appendChild(toast);
-    requestAnimationFrame(function(){ toast.style.opacity='1'; toast.style.transform='translateX(0)'; });
-    setTimeout(function(){
-        toast.style.opacity='0'; toast.style.transform='translateX(30px)';
-        setTimeout(function(){ toast.remove(); }, 300);
-    }, 3000);
-}
-
-function openFeeModal(pk,name,f){
-    document.getElementById('feeForm').action='/dashboard/payments/'+pk+'/set-fee/?month={{ selected_month }}&year={{ selected_year }}';
-    document.getElementById('feeStudentName').textContent=name;
-    document.getElementById('feeAmount').value=f;
-    new bootstrap.Modal(document.getElementById('feeModal')).show();
-}
-function toggleAll(el){
-    document.querySelectorAll('.bulk-check').forEach(function(c){c.checked=el.checked});
-    updateBulk();
-}
-function updateBulk(){
-    var checks=document.querySelectorAll('.bulk-check:checked');
-    var ids=Array.from(checks).map(function(c){return c.value});
-    document.getElementById('bulkBar').style.display=ids.length?'block':'none';
-    document.getElementById('bulkCount').textContent=ids.length;
-    document.getElementById('bulkIds').value=ids.join(',');
-}
-function openBulkFeeModal(){
-    var checks=document.querySelectorAll('.bulk-check:checked');
-    var ids=Array.from(checks).map(function(c){return c.value});
-    document.getElementById('bulkFeeIds').value=ids.join(',');
-    document.getElementById('bulkFeeCount').textContent=ids.length;
-    new bootstrap.Modal(document.getElementById('bulkFeeModal')).show();
-}
-(function(){
-    var bars=document.querySelectorAll('#chartBars .p-bar'),max=0;
-    bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;if(v>max)max=v});
-    if(max>0)bars.forEach(function(b){var v=parseFloat(b.dataset.value)||0;b.style.height=Math.max(4,Math.round(v/max*90))+'px'});
-})();
-</script>
 {% endblock %}

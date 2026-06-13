@@ -137,6 +137,16 @@ def render_code(text):
 
 
 @register.filter
+def space_num(value):
+    """Format number with space thousands separator: 100000 → 100 000"""
+    try:
+        n = int(float(str(value).replace(' ', '').replace(',', '.')))
+        return f"{n:,}".replace(',', ' ')
+    except (ValueError, TypeError):
+        return value
+
+
+@register.filter
 def abs_value(value):
     """Return absolute value of number."""
     if value is None:
@@ -158,7 +168,6 @@ def premium_name(user):
     if hasattr(user, 'is_premium') and user.is_premium:
         return mark_safe(f'{name} <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>')
     return name
-
 
 @register.filter
 def chr(value):

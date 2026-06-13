@@ -1799,3 +1799,70 @@ def admin_word_round_delete(request, pk):
         return redirect('games:admin_word_rounds', game_pk=game_pk)
 
     return render(request, 'games/admin/word_round_delete.html', {'word_round': word_round})
+
+
+# ============== SPECTATING VIEWS ==============
+
+@login_required
+def live_games(request):
+    """Hozir o'ynalayotgan barcha taxta o'yinlarini (shaxmat + shashka) ko'rsatadi."""
+    from .models import BoardMatch
+    active_matches = (
+        BoardMatch.objects
+        .filter(status='active')
+        .select_related('white_player', 'black_player', 'game')
+        .order_by('-last_activity_at')
+    )
+    return render(request, 'games/student/live_games.html', {
+        'matches': active_matches,
+    })
+
+
+@login_required
+def spectate_match(request, match_id):
+    """Bitta o'yinni tomosha qilish sahifasi (read-only, polling)."""
+    import json as _json
+    from .models import BoardMatch
+    match = get_object_or_404(BoardMatch, pk=match_id)
+    return render(request, 'games/student/spectate.html', {
+        'match': match,
+        'is_player': (
+            request.user == match.white_player or
+            request.user == match.black_player
+        ),
+        'board_state_json': _json.dumps(match.board_state or []),
+        'last_move_json': _json.dumps(match.last_move or None),
+    })
+
+
+@login_required
+def spectate_state(request, match_id):
+    """AJAX polling endpoint — match holati (board_state, turn, status)."""
+    from .models import BoardMatch
+    try:
+        match = BoardMatch.objects.select_related('white_player', 'black_player', 'game').get(pk=match_id)
+    except BoardMatch.DoesNotExist:
+        return JsonResponse({'ok': False, 'error': 'Match topilmadi'}, status=404)
+
+    return JsonResponse({
+        'ok': True,
+        'status': match.status,
+        'current_turn': match.current_turn,
+        'winner': match.winner,
+        'move_count': match.move_count,
+        'board': match.board_state,
+        'last_move': match.last_move or None,
+        'game_slug': match.game.slug,
+        'white_player': {
+            'id': match.white_player_id,
+            'username': match.white_player.username,
+            'name': match.white_player.get_full_name() or match.white_player.username,
+        } if match.white_player_id else None,
+        'black_player': {
+            'id': match.black_player_id,
+            'username': match.black_player.username,
+            'name': match.black_player.get_full_name() or match.black_player.username,
+        } if match.black_player_id else None,
+        'mode': match.mode,
+        'wager_coins': match.wager_coins,
+    })

@@ -121,21 +121,51 @@ class BlockedUserMiddleware:
             return self.get_response(request)
         if request.user.is_authenticated:
             user = request.user
+            # Student bo'lsa va hozircha bloklanmagan bo'lsa — next_payment_date tekshir
+            if user.role == 'student' and not user.is_blocked:
+                self._check_auto_block(user)
+                # Agar hozirgina bloklangan bo'lsa, cache flag orqali bilamiz
+                if cache.get(f'auto_blocked_{user.id}'):
+                    cache.delete(f'auto_blocked_{user.id}')
+                    user.is_blocked = True
+
             if hasattr(user, 'is_blocked') and user.is_blocked:
-                # API so'rovlari
                 if request.path.startswith('/api/'):
                     from django.http import JsonResponse
                     return JsonResponse(
-                        {'detail': 'Akkaunt bloklangan. To\'lov sahifasiga o\'ting.'},
+                        {'detail': "Akkaunt bloklangan. To'lov sahifasiga o'ting."},
                         status=403
                     )
-                # Ruxsat etilgan URL lar (payment wall, logout, games API)
                 for allowed in self.ALLOWED_PATHS:
                     if request.path.startswith(allowed):
                         return self.get_response(request)
-                # Qolgan barcha sahifalar → to'lov devori
                 return redirect('payment_wall')
         return self.get_response(request)
+
+    @staticmethod
+    def _check_auto_block(user):
+        """
+        next_payment_date o'tgan bo'lsa va shartnoma emas bo'lsa → avtomatik bloklash.
+        Saytga har kirganida emas, cache orqali soatiga 1 marta tekshiriladi.
+        """
+        cache_key = f'payment_check_{user.id}'
+        if cache.get(cache_key):
+            return
+        cache.set(cache_key, True, 3600)
+        try:
+            bal = StudentBalance.objects.get(user=user)
+            if bal.is_contract or not bal.next_payment_date:
+                return
+            today = timezone.now().date()
+            if bal.next_payment_date <= today:
+                CustomUser.objects.filter(pk=user.pk).update(is_blocked=True)
+                cache.set(f'auto_blocked_{user.id}', True, 10)
+                from .models import PaymentStatus
+                PaymentStatus.objects.filter(user=user).update(
+                    is_paid=False, auto_blocked=True
+                )
+        except Exception:
+            pass
 
 
 class PaymentCheckMiddleware:
@@ -494,32 +524,26 @@ class SecurityHeadersMiddleware:
 class ProfileCompletionMiddleware:
     """
     Profil to'ldirilmagan studentlarni complete_profile sahifasiga yo'naltiradi.
-    Login qilgandan keyin majburiy profil to'ldirish.
     """
-    
     EXEMPT_URLS = [
         'complete_profile', 'logout', 'login', 'register', 'admin',
-        'device_limit', 'force_logout_device',
+        'device_limit', 'force_logout_device', 'payment_wall',
     ]
-    
+
     def __init__(self, get_response):
         self.get_response = get_response
-    
+
     def __call__(self, request):
         if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         if request.user.is_authenticated and request.user.role == 'student':
-            # Admin va teacher uchun tekshirish kerak emas
             if not request.user.is_profile_completed:
-                # Static/media fayllar uchun tekshirmaslik
                 if request.path.startswith('/admin/'):
                     return self.get_response(request)
-                
                 try:
                     resolved = resolve(request.path)
                     if resolved.url_name not in self.EXEMPT_URLS:
-                                                return redirect('complete_profile')
+                        return redirect('complete_profile')
                 except Exception:
                     pass
-        
         return self.get_response(request)

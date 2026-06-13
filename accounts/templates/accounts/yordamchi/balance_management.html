@@ -1,0 +1,697 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% load custom_filters %}
+{% block title %}Balans Boshqaruvi — Yordamchi Panel{% endblock %}
+{% block page_title %}Balans Boshqaruvi{% endblock %}
+
+{% block content %}
+<style>
+.bm-page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+/* Stats */
+.bm-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+@media(max-width:600px){ .bm-stats { grid-template-columns: 1fr; } }
+.bm-stat {
+    background: var(--yo-card-bg); border: 1px solid var(--yo-border);
+    border-radius: 18px; padding: 1.25rem;
+    position: relative; overflow: hidden; transition: .2s;
+}
+.bm-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.bm-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.bm-stat.c-indigo::before { background: linear-gradient(90deg,#6366f1,#a5b4fc); }
+.bm-stat.c-green::before  { background: linear-gradient(90deg,#22c55e,#86efac); }
+.bm-stat.c-red::before    { background: linear-gradient(90deg,#ef4444,#fca5a5); }
+.bm-si { width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;margin-bottom:.75rem; }
+.bm-si.c-indigo { background:linear-gradient(135deg,#6366f1,#4f46e5); }
+.bm-si.c-green  { background:linear-gradient(135deg,#22c55e,#16a34a); }
+.bm-si.c-red    { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.bm-sn { font-size:1.5rem;font-weight:800;color:var(--yo-input-text);line-height:1.2; }
+.bm-sl { font-size:.78rem;color:var(--yo-text-muted);margin-top:2px; }
+
+/* Table card */
+.bm-card {
+    background: var(--yo-card-bg); border: 1px solid var(--yo-border);
+    border-radius: 20px; overflow: hidden; margin-bottom: 1.5rem;
+}
+.bm-card-head {
+    padding: 1rem 1.5rem; border-bottom: 1px solid var(--yo-border);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.bm-card-title {
+    font-weight: 700; font-size: .92rem;
+    display: flex; align-items: center; gap: .5rem; color: var(--yo-input-text);
+}
+.bm-search {
+    position: relative; min-width: 260px;
+}
+.bm-search i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--yo-text-muted); }
+.bm-search input {
+    width: 100%; padding: .5rem .85rem .5rem 2.3rem;
+    border-radius: 12px; border: 2px solid var(--yo-border);
+    background: var(--yo-input-bg); color: var(--yo-input-text);
+    font-size: .85rem; transition: .2s;
+}
+.bm-search input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+
+/* Table */
+.bm-tbl { width: 100%; border-collapse: collapse; }
+.bm-tbl thead th {
+    padding: .75rem 1.25rem; font-size: .75rem; font-weight: 700;
+    color: var(--yo-text-muted); text-transform: uppercase; letter-spacing: .3px;
+    border-bottom: 1px solid var(--yo-border); white-space: nowrap;
+    background: rgba(0,0,0,.02);
+}
+.bm-tbl tbody tr {
+    border-bottom: 1px solid var(--yo-border); transition: background .15s;
+}
+.bm-tbl tbody tr:last-child { border-bottom: none; }
+.bm-tbl tbody tr:hover { background: rgba(0,0,0,.02); }
+.bm-tbl tbody td { padding: .85rem 1.25rem; font-size: .87rem; vertical-align: middle; color: var(--yo-input-text); }
+
+/* User cell */
+.bm-user { display: flex; align-items: center; gap: .65rem; }
+.bm-avatar { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.bm-avatar-ph {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .75rem; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+.bm-name { font-weight: 700; font-size: .88rem; }
+.bm-uname { font-size: .74rem; color: var(--yo-text-muted); }
+.bm-id-badge {
+    background: #1e1b4b; color: #c4b5fd;
+    padding: 1px 6px; border-radius: 5px;
+    font-weight: 700; font-size: .65em; font-family: monospace; letter-spacing: 1px;
+}
+
+/* Balance */
+.bm-balance { font-size: .9rem; font-weight: 700; }
+.bm-balance.low  { color: #ef4444; }
+.bm-balance.ok   { color: #22c55e; }
+.bm-balance.zero { color: var(--yo-text-muted); }
+
+/* Status badges */
+.bm-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: .2rem .65rem; border-radius: 20px; font-size: .72rem; font-weight: 700;
+}
+.bm-status.active   { background: rgba(34,197,94,.1);  color: #22c55e; }
+.bm-status.blocked  { background: rgba(239,68,68,.1);  color: #ef4444; }
+
+/* Buttons */
+.bm-topup-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: .35rem .75rem; border-radius: 10px; border: none; cursor: pointer;
+    font-size: .8rem; font-weight: 600; transition: .15s;
+    background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+}
+.bm-topup-btn:hover { opacity: .9; }
+.bm-hist-btn {
+    padding: .35rem .6rem; border-radius: 10px; border: 1px solid var(--yo-border);
+    background: transparent; color: var(--yo-text-muted); cursor: pointer; transition: .15s;
+}
+.bm-hist-btn:hover { background: rgba(99,102,241,.08); color: #a5b4fc; }
+.bm-fee-btn {
+    padding: .2rem .5rem; border-radius: 7px; border: 1px solid var(--yo-border);
+    background: transparent; color: var(--yo-text-muted); cursor: pointer; font-size: .75rem; transition: .15s;
+}
+.bm-fee-btn:hover { background: rgba(99,102,241,.08); color: #a5b4fc; }
+
+/* Modal */
+.bm-modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+}
+.bm-modal-backdrop.show { display: flex; }
+.bm-modal {
+    background: var(--yo-card-bg); border: 1px solid var(--yo-border);
+    border-radius: 20px; padding: 1.5rem; width: 100%; max-width: 420px; margin: 1rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.bm-modal h4 { font-weight: 800; font-size: 1.05rem; margin-bottom: .25rem; color: var(--yo-input-text); }
+.bm-modal-sub { font-size: .85rem; color: var(--yo-text-muted); margin-bottom: 1rem; }
+.bm-modal label { font-size: .82rem; font-weight: 600; color: var(--yo-text-muted); margin-bottom: .35rem; display: block; }
+.bm-modal input, .bm-modal textarea {
+    width: 100%; padding: .55rem .9rem;
+    border: 2px solid var(--yo-border); border-radius: 12px;
+    background: var(--yo-input-bg); color: var(--yo-input-text);
+    font-size: .9rem; transition: .2s; outline: none; margin-bottom: .75rem;
+}
+.bm-modal input:focus, .bm-modal textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.bm-modal textarea { resize: vertical; min-height: 70px; }
+.bm-modal-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: .5rem; }
+.bm-btn-cancel {
+    padding: .5rem 1rem; border-radius: 10px; border: 1px solid var(--yo-border);
+    background: transparent; color: var(--yo-text-muted); cursor: pointer; font-size: .85rem; font-weight: 600;
+}
+.bm-btn-confirm {
+    padding: .5rem 1.25rem; border-radius: 10px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    font-size: .85rem; font-weight: 700;
+}
+.bm-presets { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .75rem; }
+.bm-preset {
+    padding: .3rem .7rem; border-radius: 8px; border: 2px solid var(--yo-border);
+    background: transparent; color: var(--yo-text-muted); cursor: pointer; font-size: .8rem; font-weight: 700; transition: .15s;
+}
+.bm-preset:hover, .bm-preset.active { border-color: #6366f1; background: rgba(99,102,241,.08); color: #a5b4fc; }
+
+/* History rows */
+.bm-hist-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: .6rem 0; border-bottom: 1px solid var(--yo-border); font-size: .84rem;
+}
+.bm-hist-item:last-child { border-bottom: none; }
+.bm-hist-lft { flex: 1; }
+.bm-hist-amt { font-weight: 700; color: #86efac; white-space: nowrap; }
+
+/* Topup rows */
+.bm-topup-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: .75rem 1.5rem; border-bottom: 1px solid var(--yo-border); font-size: .84rem;
+}
+.bm-topup-row:last-child { border-bottom: none; }
+.bm-topup-who { font-weight: 700; color: var(--yo-input-text); }
+.bm-topup-by  { font-size: .75rem; color: var(--yo-text-muted); margin-top: 1px; }
+.bm-topup-amt { font-weight: 800; color: #22c55e; white-space: nowrap; }
+.bm-topup-date { font-size: .75rem; color: var(--yo-text-muted); white-space: nowrap; }
+
+/* Toast */
+.bm-toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 10000;
+    background: var(--yo-card-bg); border: 1px solid var(--yo-border);
+    border-left: 4px solid #22c55e; border-radius: 14px;
+    padding: .9rem 1.25rem; display: flex; align-items: center; gap: .65rem;
+    font-size: .88rem; font-weight: 600; max-width: 360px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.2);
+    transform: translateX(110%); transition: transform .3s ease;
+}
+.bm-toast.show { transform: translateX(0); }
+
+/* Fee tabs */
+.fee-tab { background: transparent; color: #64748b; }
+.fee-tab.active { background: rgba(99,102,241,.9); color: #fff; }
+</style>
+
+<div class="bm-page">
+
+    <!-- Stats -->
+    <div class="bm-stats">
+        <div class="bm-stat c-indigo">
+            <div class="bm-si c-indigo"><i class="bi bi-wallet2"></i></div>
+            <div class="bm-sn">{{ total_balance|space_num }}</div>
+            <div class="bm-sl">Umumiy balans (so'm)</div>
+        </div>
+        <div class="bm-stat c-green">
+            <div class="bm-si c-green"><i class="bi bi-plus-circle"></i></div>
+            <div class="bm-sn">{{ topup_today|space_num }}</div>
+            <div class="bm-sl">Bugun qo'shildi (so'm)</div>
+        </div>
+        <div class="bm-stat c-red">
+            <div class="bm-si c-red"><i class="bi bi-lock-fill"></i></div>
+            <div class="bm-sn">{{ blocked_count }}</div>
+            <div class="bm-sl">Bloklangan o'quvchilar</div>
+        </div>
+    </div>
+
+    <!-- Table card -->
+    <div class="bm-card">
+        <div class="bm-card-head">
+            <div class="bm-card-title"><i class="bi bi-people-fill"></i> O'quvchilar balansi</div>
+            <form class="bm-search" method="get" action="">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ search }}" placeholder="Ism, username, telefon...">
+            </form>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="bm-tbl">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Balans</th>
+                        <th>Oylik to'lov</th>
+                        <th>Keyingi to'lov</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr id="row-{{ student.pk }}">
+                        <td>
+                            <div class="bm-user">
+                                {% if student.photo %}
+                                <img src="{{ student.photo.url }}" class="bm-avatar" alt="">
+                                {% else %}
+                                <div class="bm-avatar-ph">{{ student.get_initials }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="bm-name">
+                                        {{ student.full_name }}
+                                        {% if student.student_id %}
+                                        <span class="bm-id-badge">#{{ student.student_id }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="bm-uname">@{{ student.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if student.student_balance %}
+                            <span class="bm-balance {% if student.student_balance.amount == 0 %}zero{% elif student.student_balance.amount < student.payment_status.monthly_fee %}low{% else %}ok{% endif %}"
+                                  id="bal-{{ student.pk }}">
+                                {{ student.student_balance.amount|space_num }} so'm
+                            </span>
+                            {% else %}
+                            <span class="bm-balance zero">0 so'm</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:var(--yo-text-muted);" id="fee-cell-{{ student.pk }}">
+                            <span id="fee-{{ student.pk }}">
+                                {% if student.student_balance.is_contract %}Shartnoma{% elif student.payment_status %}{{ student.payment_status.monthly_fee|space_num }} so'm{% else %}200 000 so'm{% endif %}
+                            </span>
+                            <button class="bm-fee-btn ms-1" title="To'lov sozla"
+                                onclick="openFeeModal({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }}, '{% if student.student_balance.next_payment_date %}{{ student.student_balance.next_payment_date|date:"Y-m-d" }}{% endif %}')">
+                                <i class="bi bi-pencil-fill"></i>
+                            </button>
+                        </td>
+                        <td style="font-size:.78rem;color:var(--yo-text-muted);" id="date-{{ student.pk }}">
+                            {% if student.student_balance.next_payment_date %}
+                                {{ student.student_balance.next_payment_date|date:"d.m.Y" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <span class="bm-status {% if student.is_blocked %}blocked{% else %}active{% endif %}">
+                                <i class="bi bi-{% if student.is_blocked %}lock-fill{% else %}unlock-fill{% endif %}"></i>
+                                {% if student.is_blocked %}Bloklangan{% else %}Faol{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <div style="display:inline-flex;gap:.4rem;">
+                                <button class="bm-hist-btn" onclick="showHistory({{ student.pk }}, '{{ student.full_name }}')">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <button class="bm-topup-btn" onclick="openTopup({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }})">
+                                    <i class="bi bi-plus-lg"></i> Balans qo'sh
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--yo-text-muted);">
+                        <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        O'quvchilar topilmadi
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% with page_obj=students %}{% include 'accounts/yordamchi/_pagination.html' %}{% endwith %}
+    </div>
+
+    {% if recent_topups %}
+    <div class="bm-card">
+        <div class="bm-card-head">
+            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans to'ldirishlar</div>
+        </div>
+        {% for t in recent_topups %}
+        <div class="bm-topup-row">
+            <div>
+                <div class="bm-topup-who">{{ t.student.full_name }}</div>
+                <div class="bm-topup-by">
+                    Qo'shdi: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
+                    {% if t.note %} · <em>{{ t.note }}</em>{% endif %}
+                    {% if t.ip_address %} · IP: {{ t.ip_address }}{% endif %}
+                </div>
+            </div>
+            <div class="bm-topup-amt">+{{ t.amount|space_num }} so'm</div>
+            <div class="bm-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ====== TOP-UP MODAL ====== -->
+<div class="bm-modal-backdrop" id="topupModal">
+    <div class="bm-modal">
+        <h4><i class="bi bi-wallet-fill text-success me-2"></i>Balans qo'shish</h4>
+        <p class="bm-modal-sub" id="topupStudentName">O'quvchi</p>
+        <form id="topupForm">
+            {% csrf_token %}
+            <label>Miqdor (so'm)</label>
+            <div class="bm-presets">
+                <button type="button" class="bm-preset" onclick="setAmount(100000)">100 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(200000)">200 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(300000)">300 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(500000)">500 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(1000000)">1 000 000</button>
+            </div>
+            <input type="number" id="topupAmount" name="amount" placeholder="Miqdorni kiriting..." min="1000" max="50000000">
+            <label>Izoh (ixtiyoriy)</label>
+            <textarea id="topupNote" name="note" placeholder="Masalan: Naqd to'lov, bank o'tkazmasi..."></textarea>
+            <div class="bm-modal-actions">
+                <button type="button" class="bm-btn-cancel" onclick="closeTopup()">Bekor</button>
+                <button type="submit" class="bm-btn-confirm" id="topupSubmitBtn">
+                    <i class="bi bi-check-lg me-1"></i>Qo'shish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ====== HISTORY MODAL ====== -->
+<div class="bm-modal-backdrop" id="histModal">
+    <div class="bm-modal" style="max-width:540px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+            <h4><i class="bi bi-clock-history me-2" style="color:#6366f1;"></i>To'lov tarixi</h4>
+            <button class="bm-btn-cancel" style="padding:.35rem .75rem;" onclick="closeHistory()">✕</button>
+        </div>
+        <p class="bm-modal-sub" id="histStudentName"></p>
+        <div id="histInfoStrip" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+            <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:10px;padding:.6rem .8rem;font-size:.8rem;">
+                <div style="color:#64748b;margin-bottom:2px;">Joriy balans</div>
+                <div style="font-weight:800;color:#a5b4fc;" id="histBalanceAmt">—</div>
+            </div>
+            <div style="background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.15);border-radius:10px;padding:.6rem .8rem;font-size:.8rem;">
+                <div style="color:#64748b;margin-bottom:2px;">Oylik to'lov</div>
+                <div style="font-weight:800;color:#fbbf24;" id="histMonthlyFee">—</div>
+            </div>
+            <div style="background:rgba(20,184,166,.07);border:1px solid rgba(20,184,166,.15);border-radius:10px;padding:.6rem .8rem;font-size:.8rem;">
+                <div style="color:#64748b;margin-bottom:2px;">Keyingi to'lov</div>
+                <div style="font-weight:800;color:#2dd4bf;" id="histNextDate">—</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:4px;margin-bottom:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px;">
+            <button id="tabBtnTopup" onclick="switchHistTab('topup')"
+                style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:rgba(99,102,241,.9);color:#fff;">
+                <i class="bi bi-plus-circle me-1"></i>Balans to'ldirish
+            </button>
+            <button id="tabBtnMonthly" onclick="switchHistTab('monthly')"
+                style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#64748b;">
+                <i class="bi bi-calendar3 me-1"></i>Oylik to'lovlar
+            </button>
+        </div>
+        <div id="histTabTopup" style="max-height:300px;overflow-y:auto;">
+            <div style="text-align:center;color:var(--yo-text-muted);padding:2rem;">
+                <i class="bi bi-hourglass-split"></i> Yuklanmoqda...
+            </div>
+        </div>
+        <div id="histTabMonthly" style="max-height:300px;overflow-y:auto;display:none;"></div>
+    </div>
+</div>
+
+<!-- ====== FEE MODAL ====== -->
+<div class="bm-modal-backdrop" id="feeModal">
+    <div class="bm-modal" style="max-width:460px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem;">
+            <h4><i class="bi bi-sliders me-2" style="color:#6366f1;"></i>To'lov sozlash</h4>
+            <button class="bm-btn-cancel" style="padding:.35rem .75rem;" onclick="closeFeeModal()">✕</button>
+        </div>
+        <p class="bm-modal-sub" id="feeStudentName">O'quvchi</p>
+        <div style="display:flex;gap:4px;margin-bottom:14px;background:rgba(0,0,0,.15);border-radius:10px;padding:4px;">
+            <button class="fee-tab active" data-mode="amount" onclick="toggleFeeMode('amount')"
+                style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;">
+                <i class="bi bi-cash-coin me-1"></i>Summa
+            </button>
+            <button class="fee-tab" data-mode="contract" onclick="toggleFeeMode('contract')"
+                style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;">
+                <i class="bi bi-file-earmark-text me-1"></i>Shartnoma
+            </button>
+        </div>
+        <form id="feeForm">
+            {% csrf_token %}
+            <input type="hidden" id="feeModeInput" name="mode" value="amount">
+            <div id="feeModeAmount">
+                <label>Oylik to'lov summasi (so'm)</label>
+                <input type="number" id="feeInput" name="fee" placeholder="Masalan: 400000" min="0">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px;">
+                    <button type="button" onclick="setFeePreset(200000)" style="padding:.3rem .65rem;border:2px solid rgba(99,102,241,.3);border-radius:8px;background:rgba(99,102,241,.08);color:#a5b4fc;font-size:.78rem;font-weight:700;cursor:pointer;">200 000</button>
+                    <button type="button" onclick="setFeePreset(300000)" style="padding:.3rem .65rem;border:2px solid rgba(99,102,241,.3);border-radius:8px;background:rgba(99,102,241,.08);color:#a5b4fc;font-size:.78rem;font-weight:700;cursor:pointer;">300 000</button>
+                    <button type="button" onclick="setFeePreset(400000)" style="padding:.3rem .65rem;border:2px solid rgba(99,102,241,.3);border-radius:8px;background:rgba(99,102,241,.08);color:#a5b4fc;font-size:.78rem;font-weight:700;cursor:pointer;">400 000</button>
+                    <button type="button" onclick="setFeePreset(500000)" style="padding:.3rem .65rem;border:2px solid rgba(99,102,241,.3);border-radius:8px;background:rgba(99,102,241,.08);color:#a5b4fc;font-size:.78rem;font-weight:700;cursor:pointer;">500 000</button>
+                </div>
+            </div>
+            <div id="feeModeContract" style="display:none;">
+                <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:1rem;margin-bottom:12px;font-size:.86rem;color:#86efac;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Shartnoma rejimida oylik to'lov yechilmaydi va Balans Boshqaruvi sahifasida ko'rinmaydi.
+                </div>
+            </div>
+            <div id="feeDateSection">
+                <label style="margin-top:4px;">Keyingi to'lov sanasi (ixtiyoriy)</label>
+                <input type="date" id="feeDateInput" name="next_payment_date"
+                    style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;transition:.2s;outline:none;">
+                <div style="font-size:.74rem;color:var(--yo-text-muted);margin-top:3px;">
+                    Bo'sh qoldirsangiz, hozirgi sana o'zgarmaydi
+                </div>
+            </div>
+            <div class="bm-modal-actions" style="margin-top:14px;">
+                <button type="button" class="bm-btn-cancel" onclick="closeFeeModal()">Bekor</button>
+                <button type="submit" class="bm-btn-confirm" id="feeSubmitBtn">
+                    <i class="bi bi-check-lg me-1"></i>Saqlash
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="bm-toast" id="bmToast">
+    <i class="bi bi-check-circle-fill" id="bmToastIcon"></i>
+    <span id="bmToastMsg"></span>
+</div>
+
+<script>
+function fmtNum(n) {
+    return String(parseInt(n) || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+let currentStudentId = null;
+const TOPUP_URL_TPL = '/dashboard/balans/';
+const HIST_URL_TPL  = '/dashboard/balans/';
+
+/* TOP-UP */
+function openTopup(id, name) {
+    currentStudentId = id;
+    document.getElementById('topupStudentName').textContent = name;
+    document.getElementById('topupAmount').value = '';
+    document.getElementById('topupNote').value = '';
+    document.querySelectorAll('.bm-preset').forEach(b => b.classList.remove('active'));
+    document.getElementById('topupModal').classList.add('show');
+}
+function closeTopup() {
+    document.getElementById('topupModal').classList.remove('show');
+    currentStudentId = null;
+}
+function setAmount(v) {
+    document.getElementById('topupAmount').value = v;
+    document.querySelectorAll('.bm-preset').forEach(b => {
+        b.classList.toggle('active', parseInt(b.textContent.replace(/\s/g,'')) === v);
+    });
+}
+document.getElementById('topupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentStudentId) return;
+    const btn = document.getElementById('topupSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+    const fd = new FormData(this);
+    try {
+        const res = await fetch(TOPUP_URL_TPL + currentStudentId + '/topup/', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd,
+        });
+        const data = await res.json();
+        if (data.success) {
+            const balEl = document.getElementById('bal-' + currentStudentId);
+            if (balEl) {
+                balEl.textContent = fmtNum(data.new_balance) + ' so\'m';
+                balEl.className = 'bm-balance ' + (data.new_balance === 0 ? 'zero' : 'ok');
+            }
+            if (data.auto_unblocked) {
+                const row = document.getElementById('row-' + currentStudentId);
+                if (row) {
+                    const sb = row.querySelector('.bm-status');
+                    if (sb) { sb.className = 'bm-status active'; sb.innerHTML = '<i class="bi bi-unlock-fill"></i> Faol'; }
+                }
+            }
+            closeTopup();
+            showToast('success', `✅ ${data.student_name} ga +${data.amount_fmt} so'm qo'shildi` + (data.auto_unblocked ? ' va unblock bo\'ldi!' : '.'));
+        } else {
+            showToast('error', data.error || 'Xatolik yuz berdi');
+        }
+    } catch(err) {
+        showToast('error', 'Tarmoq xatosi');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Qo\'shish';
+    }
+});
+
+/* HISTORY */
+let _histActiveTab = 'topup';
+function switchHistTab(tab) {
+    _histActiveTab = tab;
+    const isTopup = tab === 'topup';
+    document.getElementById('histTabTopup').style.display   = isTopup ? '' : 'none';
+    document.getElementById('histTabMonthly').style.display = isTopup ? 'none' : '';
+    document.getElementById('tabBtnTopup').style.background   = isTopup ? 'rgba(99,102,241,.9)' : 'transparent';
+    document.getElementById('tabBtnTopup').style.color        = isTopup ? '#fff' : '#64748b';
+    document.getElementById('tabBtnMonthly').style.background = isTopup ? 'transparent' : 'rgba(99,102,241,.9)';
+    document.getElementById('tabBtnMonthly').style.color      = isTopup ? '#64748b' : '#fff';
+}
+async function showHistory(id, name) {
+    _histActiveTab = 'topup';
+    switchHistTab('topup');
+    document.getElementById('histStudentName').textContent = name;
+    document.getElementById('histBalanceAmt').textContent = '—';
+    document.getElementById('histMonthlyFee').textContent = '—';
+    document.getElementById('histNextDate').textContent = '—';
+    document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>';
+    document.getElementById('histTabMonthly').innerHTML = '';
+    document.getElementById('histModal').classList.add('show');
+    try {
+        const res = await fetch(HIST_URL_TPL + id + '/history/', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+        document.getElementById('histBalanceAmt').textContent = data.balance_fmt + ' so\'m';
+        document.getElementById('histMonthlyFee').textContent = data.is_contract ? 'Shartnoma' : data.monthly_fee_fmt + ' so\'m';
+        document.getElementById('histNextDate').textContent   = data.next_payment_date || '—';
+        if (!data.topups.length) {
+            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-inbox"></i><br>Hali to\'ldirish yo\'q</div>';
+        } else {
+            document.getElementById('histTabTopup').innerHTML = data.topups.map(t => `
+                <div class="bm-hist-item">
+                    <div class="bm-hist-lft">
+                        <div style="font-weight:600;">${t.added_by}</div>
+                        <div style="font-size:.74rem;opacity:.6;">${t.date}${t.note ? ' · ' + t.note : ''}</div>
+                    </div>
+                    <div class="bm-hist-amt">+${t.amount_fmt} so'm</div>
+                </div>
+            `).join('');
+        }
+        if (!data.payment_records.length) {
+            document.getElementById('histTabMonthly').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-calendar-x"></i><br>Oylik to\'lov yozuvlari yo\'q</div>';
+        } else {
+            document.getElementById('histTabMonthly').innerHTML = data.payment_records.map(r => `
+                <div class="bm-hist-item" style="align-items:center;">
+                    <div class="bm-hist-lft" style="display:flex;align-items:center;gap:10px;">
+                        <div style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;
+                            background:${r.is_paid ? 'rgba(34,197,94,.12)' : 'rgba(239,68,68,.1)'};
+                            color:${r.is_paid ? '#4ade80' : '#f87171'};">
+                            <i class="bi ${r.is_paid ? 'bi-check-circle-fill' : 'bi-x-circle-fill'}"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:700;">${r.month_name} ${r.year}</div>
+                            <div style="font-size:.74rem;opacity:.6;">${r.is_paid ? 'To\'langan' : 'To\'lanmagan'}</div>
+                        </div>
+                    </div>
+                    <div style="font-weight:700;white-space:nowrap;color:${r.is_paid ? '#4ade80' : '#f87171'};">
+                        ${r.is_paid ? '' : '−'}${r.amount_fmt} so'm
+                    </div>
+                </div>
+            `).join('');
+        }
+    } catch(err) {
+        document.getElementById('histTabTopup').innerHTML = '<div style="color:#ef4444;padding:1rem;text-align:center;">Xatolik yuz berdi</div>';
+    }
+}
+function closeHistory() {
+    document.getElementById('histModal').classList.remove('show');
+}
+
+document.querySelectorAll('.bm-modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+});
+
+/* TOAST */
+function showToast(type, msg) {
+    const t = document.getElementById('bmToast');
+    const icon = document.getElementById('bmToastIcon');
+    const msgEl = document.getElementById('bmToastMsg');
+    icon.className = type === 'success' ? 'bi bi-check-circle-fill' : 'bi bi-exclamation-triangle-fill';
+    t.style.borderLeftColor = type === 'success' ? '#22c55e' : '#ef4444';
+    msgEl.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* FEE MODAL */
+const FEE_URL_TPL = '/dashboard/balans/';
+let feeStudentId = null;
+
+function _updateFeeTabStyles(activeMode) {
+    document.querySelectorAll('.fee-tab').forEach(b => {
+        const isActive = b.dataset.mode === activeMode;
+        b.style.background = isActive ? 'rgba(99,102,241,.9)' : 'transparent';
+        b.style.color      = isActive ? '#fff' : '#64748b';
+    });
+}
+function openFeeModal(id, name, currentFee, currentDate) {
+    feeStudentId = id;
+    document.getElementById('feeStudentName').textContent = name;
+    document.getElementById('feeInput').value = currentFee || 200000;
+    document.getElementById('feeDateInput').value = currentDate || '';
+    toggleFeeMode('amount');
+    document.getElementById('feeModal').classList.add('show');
+}
+function closeFeeModal() {
+    document.getElementById('feeModal').classList.remove('show');
+    feeStudentId = null;
+}
+function toggleFeeMode(mode) {
+    document.getElementById('feeModeAmount').style.display   = mode === 'amount'   ? 'block' : 'none';
+    document.getElementById('feeModeContract').style.display = mode === 'contract' ? 'block' : 'none';
+    document.getElementById('feeDateSection').style.display  = mode === 'amount'   ? 'block' : 'none';
+    document.getElementById('feeModeInput').value = mode;
+    _updateFeeTabStyles(mode);
+}
+function setFeePreset(v) {
+    document.getElementById('feeInput').value = v;
+}
+document.getElementById('feeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!feeStudentId) return;
+    const btn = document.getElementById('feeSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+    const fd = new FormData(this);
+    try {
+        const res = await fetch(FEE_URL_TPL + feeStudentId + '/set-fee/', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd,
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeFeeModal();
+            const feeEl  = document.getElementById('fee-'  + feeStudentId);
+            const dateEl = document.getElementById('date-' + feeStudentId);
+            if (data.mode === 'contract') {
+                if (feeEl)  feeEl.textContent = 'Shartnoma';
+                if (dateEl) dateEl.textContent = '—';
+                showToast('success', '✅ Shartnoma rejimi belgilandi');
+            } else {
+                if (feeEl)  feeEl.textContent = fmtNum(data.fee) + ' so\'m';
+                if (dateEl && data.next_payment_date) dateEl.textContent = data.next_payment_date;
+                let msg = `✅ Oylik to'lov ${fmtNum(data.fee)} so'm qilib belgilandi`;
+                if (data.next_payment_date) msg += ` · Keyingi to'lov: ${data.next_payment_date}`;
+                showToast('success', msg);
+            }
+        } else {
+            showToast('error', data.error || 'Xatolik');
+        }
+    } catch(err) {
+        showToast('error', 'Tarmoq xatosi');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Saqlash';
+    }
+});
+</script>
+{% endblock %}

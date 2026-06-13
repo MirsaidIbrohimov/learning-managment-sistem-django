@@ -393,3 +393,33 @@ body[data-theme="crimson"] #board .cell .piece-wrap.black {
     box-shadow: 0 4px 20px rgba(201,162,39,0.4);
     color: #0f0e00;
 }
+
+/* ╔══════════════════════════════════════════════════════╗
+ * ║  SHAXMAT — Draw override (gold-silver mix)          ║
+ * ╚══════════════════════════════════════════════════════╝ */
+
+/* Chess draw: gold+silver aurora */
+.result-bg.draw {
+    background:
+        radial-gradient(ellipse at 25% 15%, rgba(201,162,39,0.18) 0%, transparent 50%),
+        radial-gradient(ellipse at 75% 85%, rgba(148,163,184,0.20) 0%, transparent 50%),
+        radial-gradient(ellipse at 60% 30%, rgba(20,184,166,0.10) 0%, transparent 45%),
+        linear-gradient(160deg, #08090c 0%, #0f0e14 40%, #0a0c10 100%);
+}
+.result-bg.draw ~ .result-card::before {
+    background: linear-gradient(90deg, transparent, #c9a227, #e2e8f0, #94a3b8, #c9a227, transparent);
+    background-size: 200%;
+    animation: shimmer-bar 2.5s linear infinite;
+}
+.result-bg.draw ~ .result-card #result-title {
+    background: linear-gradient(135deg, #c9a227 0%, #e2e8f0 40%, #94a3b8 70%, #c9a227 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.result-bg.draw ~ .result-card .result-actions .primary-btn {
+    background: linear-gradient(135deg, #64748b, #94a3b8) !important;
+    color: #f8fafc !important;
+    box-shadow: 0 4px 18px rgba(148,163,184,0.35) !important;
+}
+

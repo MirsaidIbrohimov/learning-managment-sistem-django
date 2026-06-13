@@ -14,7 +14,6 @@
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
     
     <link rel="stylesheet" href="{% static 'css/base_admin.css' %}">
-    <link rel="stylesheet" href="{% static 'effects/weather_effect.css' %}">
     <link rel="icon" href="{% static 'img/fav.ico' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -309,7 +308,6 @@
 </head>
 
 <body>
-    <div id="weather_effect"></div>
 
     <!-- Sidebar Overlay (mobile) -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -449,15 +447,15 @@
 
             <div class="sidebar-group-label">Moliya & Market</div>
 
-            <a href="{% url 'admin_payments' %}"
-                class="nav-link {% if 'payment' in request.resolver_match.url_name and 'balance' not in request.resolver_match.url_name %}active{% endif %}" data-title="To'lovlar">
-                <i class="bi bi-credit-card"></i>
-                <span>To'lovlar</span>
-            </a>
             <a href="{% url 'admin_balance_management' %}"
                 class="nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}" data-title="Balans">
                 <i class="bi bi-wallet2"></i>
                 <span>Balans</span>
+            </a>
+            <a href="{% url 'admin_payments' %}"
+                class="nav-link {% if request.resolver_match.url_name == 'admin_payments' %}active{% endif %}" data-title="Oylik to'lovlar">
+                <i class="bi bi-calendar-check"></i>
+                <span>Oylik to'lovlar</span>
             </a>
             <a href="{% url 'coin:admin_products' %}"
                 class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}" data-title="Mahsulotlar">
@@ -713,7 +711,6 @@
             });
         });
     </script>
-    <script src="{% static 'effects/weather_effect.js' %}?v=3"></script>
 
     {% block extra_js %}{% endblock %}
 

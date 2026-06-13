@@ -380,9 +380,30 @@
                 <i class="bi bi-coin ib" style="background:var(--warn-bg);color:var(--warn);"></i>
                 Coin statistika
             </div>
+            {% if user.role == 'student' and student_balance %}
+            <div class="pf-row" style="border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.05));border:1px solid rgba(99,102,241,.15);margin-bottom:.5rem;padding:.65rem .85rem;">
+                <div class="pf-row-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                    <div class="pf-row-label">Hisob balansi</div>
+                    <div class="pf-row-val" style="font-size:1.05rem;font-weight:800;color:#a5b4fc;">
+                        {{ student_balance.amount|space_num }} so'm
+                    </div>
+                    {% if student_balance.next_payment_date %}
+                    <div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">
+                        <i class="bi bi-calendar3 me-1"></i>Keyingi to'lov: {{ student_balance.next_payment_date|date:"d.m.Y" }}
+                    </div>
+                    {% endif %}
+                    {% if student_balance.is_contract %}
+                    <div style="font-size:.72rem;color:#fbbf24;margin-top:2px;">
+                        <i class="bi bi-file-earmark-check me-1"></i>Shartnoma rejimi
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
             <div class="pf-row">
                 <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-wallet2"></i></div>
-                <div><div class="pf-row-label">Joriy balans</div><div class="pf-row-val">{{ user.coins }} coin</div></div>
+                <div><div class="pf-row-label">Joriy coin</div><div class="pf-row-val">{{ user.coins }} coin</div></div>
             </div>
             <div class="pf-row">
                 <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-plus-circle-fill"></i></div>

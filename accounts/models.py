@@ -2095,6 +2095,16 @@ class StudentBalance(models.Model):
         max_digits=14, decimal_places=0, default=0,
         verbose_name="Balans (so'm)"
     )
+    # Shartnoma rejimi: True bo'lsa oylik yechilmaydi va balans sahifasida ko'rinmaydi
+    is_contract = models.BooleanField(
+        default=False,
+        verbose_name="Shartnoma rejimi"
+    )
+    # Keyingi to'lov sanasi — shu sana kelganda user avtomatik bloklanadi
+    next_payment_date = models.DateField(
+        null=True, blank=True,
+        verbose_name="Keyingi to'lov sanasi"
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -2174,14 +2184,20 @@ def create_student_balance_and_payment_status(sender, instance, created, **kwarg
         # StudentBalance
         StudentBalance.objects.get_or_create(user=instance)
         # PaymentStatus
-        ps, _ = PaymentStatus.objects.get_or_create(user=instance)
+        PaymentStatus.objects.get_or_create(
+            user=instance,
+            defaults={'monthly_fee': 200000}
+        )
         # Joriy oy uchun PaymentRecord
-        today = timezone.now().date()
+        now = timezone.now()
         PaymentRecord.objects.get_or_create(
             user=instance,
-            month=today.month,
-            year=today.year,
-            defaults={'amount': ps.monthly_fee}
+            month=now.month,
+            year=now.year,
+            defaults={
+                'amount': 200000,
+                'is_paid': False,
+            }
         )
     except Exception:
         pass
