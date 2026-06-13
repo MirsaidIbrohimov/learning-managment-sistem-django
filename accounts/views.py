@@ -632,6 +632,56 @@ def _record_successful_login(ip_address, username='', user_agent='', login_token
     LoginAttempt.clear_token_attempts(login_token)
 
 
+def _auto_deduct_and_unblock(user):
+    """
+    O'quvchi balansidan oylik to'lovni yechib, unblock qilishga urinadi.
+    True → muvaffaqiyatli yechildi va unblock bo'ldi.
+    False → balans yetarli emas, foydalanuvchi hali ham blokli.
+    """
+    from django.utils import timezone
+    from .models import StudentBalance, PaymentStatus, PaymentRecord
+    try:
+        balance = StudentBalance.objects.select_for_update().get(user=user)
+        ps = PaymentStatus.objects.get(user=user)
+        monthly_fee = ps.monthly_fee or 200000
+        if balance.amount < monthly_fee:
+            return False
+        # Balansdan yechish
+        balance.amount -= monthly_fee
+        balance.save(update_fields=['amount', 'updated_at'])
+        # Unblock
+        user.is_blocked = False
+        user.save(update_fields=['is_blocked'])
+        # PaymentStatus yangilash
+        today = timezone.now().date()
+        import dateutil.relativedelta
+        ps.is_paid = True
+        ps.last_payment_date = today
+        ps.auto_blocked = False
+        try:
+            from dateutil.relativedelta import relativedelta
+            ps.paid_until = today + relativedelta(months=1)
+        except ImportError:
+            import datetime
+            ps.paid_until = today + datetime.timedelta(days=30)
+        ps.save()
+        # PaymentRecord — joriy oy uchun yozuv
+        PaymentRecord.objects.update_or_create(
+            user=user, month=today.month, year=today.year,
+            defaults={
+                'is_paid': True,
+                'paid_date': today,
+                'paid_amount': monthly_fee,
+                'notes': 'Balansdan avtomatik yechildi',
+            }
+        )
+        return True
+    except (StudentBalance.DoesNotExist, PaymentStatus.DoesNotExist):
+        return False
+    except Exception:
+        return False
+
+
 def login_view(request):
     from django.conf import settings as django_settings
 
@@ -762,10 +812,18 @@ def login_view(request):
             messages.error(request, "Iltimos, barcha maydonlarni to'g'ri to'ldiring ⚠️")
             return _login_render(request, form, login_mode)
 
-        # ⛔ Bloklangan user
+        # ⛔ Bloklangan user — avval balansdan avtomatik to'lov sinab ko'riladi
         if hasattr(user, "is_blocked") and user.is_blocked:
-            messages.error(request, "Sizning akkauntingiz bloklangan 🚫")
-            return _login_render(request, form, login_mode)
+            if not _auto_deduct_and_unblock(user):
+                # Balans yetarli emas → login qilinadi, to'lov sahifasiga yo'naltiriladi
+                _record_successful_login(ip_address, user.username, user_agent, login_token)
+                request.session.pop('login_token', None)
+                request.session.pop('brute_notified', None)
+                login(request, user)
+                user.last_activity = timezone.now()
+                user.save(update_fields=["last_activity"])
+                return redirect('payment_wall')
+            # Unblock bo'ldi — oddiy login davom etadi
 
         # ✅ Login successful — urinishlarni tozalash
         _record_successful_login(ip_address, user.username, user_agent, login_token)
@@ -13286,72 +13344,276 @@ def admin_survey_delete(request, pk):
 
 @login_required
 def admin_survey_responses(request, pk):
-    if request.user.role != 'admin':
+    if not request.user.is_admin_or_assistant:
         return redirect('home')
-    
+    from .models import SurveyForm, SurveyResponse
     survey = get_object_or_404(SurveyForm, pk=pk)
-    responses = survey.responses.select_related('user').prefetch_related('answers__question').all()
-    questions = survey.questions.all()
-    
-    context = {
-        'survey': survey,
-        'responses': responses,
-        'questions': questions,
-    }
-    return render(request, 'accounts/admin/surveys/survey_responses.html', context)
+    responses = SurveyResponse.objects.filter(survey=survey).select_related('user').prefetch_related('answers__question').order_by('-submitted_at')
+    return render(request, 'accounts/admin/surveys/survey_responses.html', {
+        'survey': survey, 'responses': responses,
+    })
 
 
 @login_required
 def admin_survey_toggle(request, pk):
     if request.user.role != 'admin':
         return redirect('home')
-    
+    from .models import SurveyForm
     survey = get_object_or_404(SurveyForm, pk=pk)
     survey.is_active = not survey.is_active
     survey.save(update_fields=['is_active'])
-    
-    status = "faollashtirildi ✅" if survey.is_active else "o'chirildi ⛔"
-    messages.success(request, f"'{survey.title}' {status}")
+    state = "faollashtirildi" if survey.is_active else "to'xtatildi"
+    messages.success(request, f"'{survey.title}' {state}!")
     return redirect('admin_surveys')
 
 
-# ============================================
-# SO'ROVNOMANI TO'LDIRISH (USER)
-# ============================================
-
 @login_required
 def fill_survey(request, pk):
+    from .models import SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer
     survey = get_object_or_404(SurveyForm, pk=pk, is_active=True)
-    
-    # Allaqachon javob berganmi?
-    if SurveyResponse.objects.filter(survey=survey, user=request.user).exists():
-        messages.info(request, "Siz bu so'rovnomani allaqachon to'ldirdingiz! ℹ️")
-        return redirect('home')
-    
-    questions = survey.questions.all()
-    
-    if request.method == 'POST':
-        response = SurveyResponse.objects.create(survey=survey, user=request.user)
-        
-        for question in questions:
-            if question.question_type == 'checkbox':
-                selected = request.POST.getlist(f'question_{question.id}')
-                answer_text = ', '.join(selected)
-            else:
-                answer_text = request.POST.get(f'question_{question.id}', '').strip()
-            
-            SurveyAnswer.objects.create(
-                response=response,
-                question=question,
-                answer_text=answer_text,
-            )
-        
-        messages.success(request, "So'rovnomani to'ldirganingiz uchun rahmat! 🎉")
-        return redirect('home')
-    
-    context = {
-        'survey': survey,
-        'questions': questions,
-    }
-    return render(request, 'accounts/fill_survey.html', context)
 
+    # Allaqachon to'ldirilgan bo'lsa
+    if SurveyResponse.objects.filter(survey=survey, user=request.user).exists():
+        messages.info(request, "Siz bu so'rovnomani allaqachon to'ldirgansiz.")
+        return redirect('home')
+
+    questions = survey.questions.all()
+
+    if request.method == 'POST':
+        from django.db import transaction
+        with transaction.atomic():
+            response = SurveyResponse.objects.create(survey=survey, user=request.user)
+            for question in questions:
+                field_name = f'question_{question.id}'
+                if question.question_type == 'checkbox':
+                    values = request.POST.getlist(field_name)
+                    answer_text = ', '.join(values)
+                else:
+                    answer_text = request.POST.get(field_name, '').strip()
+                SurveyAnswer.objects.create(
+                    response=response,
+                    question=question,
+                    answer_text=answer_text or None,
+                )
+        messages.success(request, "Javoblaringiz uchun rahmat! ✅")
+        return redirect('home')
+
+    return render(request, 'accounts/fill_survey.html', {
+        'survey': survey, 'questions': questions,
+    })
+
+
+# ════════════════════════════════════════════════
+#  BALANS TIZIMI VIEWS
+# ════════════════════════════════════════════════
+
+@login_required
+def payment_wall(request):
+    """
+    Bloklangan o'quvchi ko'radigan to'lov devori sahifasi.
+    Balans yetarli bo'lsa → avtomatik unblock va home ga redirect.
+    """
+    from .models import StudentBalance, PaymentStatus, BalanceTopUp
+    user = request.user
+
+    # Agar bloklanmagan bo'lsa (yoki admin) → home
+    if not user.is_blocked and not request.GET.get('preview'):
+        return redirect('home')
+
+    # Balans va to'lov holati
+    balance, _ = StudentBalance.objects.get_or_create(user=user)
+    ps, _ = PaymentStatus.objects.get_or_create(user=user)
+
+    # To'liq to'lov urinishi — POST orqali yoki avtomatik
+    if request.method == 'POST' and request.POST.get('action') == 'pay':
+        from django.db import transaction
+        with transaction.atomic():
+            if _auto_deduct_and_unblock(user):
+                messages.success(request, "✅ To'lov muvaffaqiyatli amalga oshirildi! Akkauntingiz faollashtirildi.")
+                return redirect('home')
+            else:
+                messages.error(request, f"❌ Balans yetarli emas. Kerakli summa: {int(ps.monthly_fee):,} so'm".replace(',', ' '))
+
+    # Top-up tarixi (oxirgi 10)
+    topups = BalanceTopUp.objects.filter(student=user).select_related('added_by')[:10]
+
+    # Oylik to'lov tarixi
+    from .models import PaymentRecord
+    pay_records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')[:12]
+
+    shortage = max(0, int(ps.monthly_fee) - int(balance.amount))
+
+    return render(request, 'accounts/payment_wall.html', {
+        'balance': balance,
+        'ps': ps,
+        'topups': topups,
+        'pay_records': pay_records,
+        'shortage': shortage,
+        'can_pay': balance.amount >= ps.monthly_fee,
+    })
+
+
+@login_required
+def admin_balance_management(request):
+    """
+    Admin / yordamchi admin — o'quvchilarga balans qo'shish va tarix ko'rish.
+    """
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+
+    from .models import StudentBalance, BalanceTopUp, PaymentStatus
+    from django.db.models import Sum
+
+    search = request.GET.get('q', '').strip()
+
+    students_qs = CustomUser.objects.filter(
+        role='student', is_finished=False
+    ).select_related('student_balance', 'payment_status').order_by('first_name', 'last_name')
+
+    if search:
+        students_qs = students_qs.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(username__icontains=search) |
+            Q(phone__icontains=search) |
+            Q(student_id__icontains=search)
+        )
+
+    # Ensure StudentBalance exists for all students
+    existing_bal_ids = set(StudentBalance.objects.values_list('user_id', flat=True))
+    missing_bal = [s for s in students_qs if s.pk not in existing_bal_ids]
+    if missing_bal:
+        StudentBalance.objects.bulk_create(
+            [StudentBalance(user=s) for s in missing_bal], ignore_conflicts=True
+        )
+        # Refresh queryset
+        students_qs = students_qs.all()
+
+    paginator = Paginator(students_qs, 25)
+    students = paginator.get_page(request.GET.get('page'))
+
+    # Statistics
+    total_balance = StudentBalance.objects.aggregate(t=Sum('amount'))['t'] or 0
+    topup_today = BalanceTopUp.objects.filter(
+        created_at__date=timezone.now().date()
+    ).aggregate(t=Sum('amount'))['t'] or 0
+    blocked_count = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
+
+    # Recent top-ups across all students
+    recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
+
+    return render(request, 'accounts/admin/balance_management.html', {
+        'students': students,
+        'search': search,
+        'total_balance': total_balance,
+        'topup_today': topup_today,
+        'blocked_count': blocked_count,
+        'recent_topups': recent_topups,
+    })
+
+
+@login_required
+def admin_balance_topup(request, student_id):
+    """
+    Bitta o'quvchiga balans qo'shish (AJAX yoki oddiy POST).
+    """
+    if not request.user.is_admin_or_assistant:
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    from .models import StudentBalance, BalanceTopUp
+    from django.db import transaction
+
+    student = get_object_or_404(CustomUser, pk=student_id, role='student')
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+    if ',' in ip:
+        ip = ip.split(',')[0].strip()
+
+    if request.method == 'POST':
+        try:
+            amount_raw = request.POST.get('amount', '0').replace(' ', '').replace(',', '')
+            amount = int(float(amount_raw))
+            if amount <= 0:
+                raise ValueError("Noto'g'ri miqdor")
+            if amount > 50_000_000:
+                raise ValueError("Maksimal miqdor 50,000,000 so'm")
+            note = request.POST.get('note', '').strip()[:500]
+        except (ValueError, TypeError) as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                from django.http import JsonResponse
+                return JsonResponse({'error': str(e)}, status=400)
+            messages.error(request, f"Xatolik: {e}")
+            return redirect('admin_balance_management')
+
+        with transaction.atomic():
+            balance, _ = StudentBalance.objects.select_for_update().get_or_create(user=student)
+            balance.amount += amount
+            balance.save(update_fields=['amount', 'updated_at'])
+
+            BalanceTopUp.objects.create(
+                student=student,
+                amount=amount,
+                added_by=request.user,
+                note=note,
+                ip_address=ip[:45] if ip else None,
+            )
+
+            # Agar bloklangan bo'lsa va balans yetarli bo'lsa → unblock
+            auto_unblocked = False
+            if student.is_blocked:
+                auto_unblocked = _auto_deduct_and_unblock(student)
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            # Balance refresh
+            balance.refresh_from_db()
+            return JsonResponse({
+                'success': True,
+                'new_balance': int(balance.amount),
+                'new_balance_fmt': f"{int(balance.amount):,}".replace(',', ' '),
+                'auto_unblocked': auto_unblocked,
+                'student_name': student.full_name,
+                'amount': amount,
+                'amount_fmt': f"{amount:,}".replace(',', ' '),
+            })
+
+        if auto_unblocked:
+            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi va avtomatik unblock bo'ldi!")
+        else:
+            messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi.")
+        return redirect('admin_balance_management')
+
+    from django.http import JsonResponse
+    return JsonResponse({'error': 'Faqat POST'}, status=405)
+
+
+@login_required
+def admin_balance_history(request, student_id):
+    """O'quvchining balans tarixini ko'rish (AJAX)."""
+    if not request.user.is_admin_or_assistant:
+        from django.http import JsonResponse
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    from .models import BalanceTopUp, StudentBalance
+    student = get_object_or_404(CustomUser, pk=student_id)
+    topups = BalanceTopUp.objects.filter(student=student).select_related('added_by').order_by('-created_at')[:50]
+    balance, _ = StudentBalance.objects.get_or_create(user=student)
+
+    data = {
+        'student': student.full_name,
+        'balance': int(balance.amount),
+        'balance_fmt': f"{int(balance.amount):,}".replace(',', ' '),
+        'topups': [
+            {
+                'amount': int(t.amount),
+                'amount_fmt': f"{int(t.amount):,}".replace(',', ' '),
+                'added_by': t.added_by.full_name if t.added_by else 'Tizim',
+                'note': t.note or '',
+                'date': t.created_at.strftime('%d.%m.%Y %H:%M'),
+                'ip': t.ip_address or '',
+            }
+            for t in topups
+        ]
+    }
+    from django.http import JsonResponse
+    return JsonResponse(data)

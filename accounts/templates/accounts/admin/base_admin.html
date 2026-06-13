@@ -450,9 +450,14 @@
             <div class="sidebar-group-label">Moliya & Market</div>
 
             <a href="{% url 'admin_payments' %}"
-                class="nav-link {% if 'payment' in request.resolver_match.url_name %}active{% endif %}" data-title="To'lovlar">
+                class="nav-link {% if 'payment' in request.resolver_match.url_name and 'balance' not in request.resolver_match.url_name %}active{% endif %}" data-title="To'lovlar">
                 <i class="bi bi-credit-card"></i>
                 <span>To'lovlar</span>
+            </a>
+            <a href="{% url 'admin_balance_management' %}"
+                class="nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}" data-title="Balans">
+                <i class="bi bi-wallet2"></i>
+                <span>Balans</span>
             </a>
             <a href="{% url 'coin:admin_products' %}"
                 class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}" data-title="Mahsulotlar">

@@ -2012,15 +2012,15 @@ class PaymeTransaction(models.Model):
         (STATE_CANCELLED_AFTER_COMPLETE, "Qaytarilgan"),
     )
 
-    payme_id    = models.CharField(max_length=255, unique=True, verbose_name="Payme tranzaksiya ID")
+    payme_id    = models.CharField(max_length=255, unique=True, default='', verbose_name="Payme tranzaksiya ID")
     student     = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='payme_transactions', verbose_name="O'quvchi"
     )
-    amount      = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Summa (tiyin)")
+    amount      = models.DecimalField(max_digits=14, decimal_places=0, default=0, verbose_name="Summa (tiyin)")
     state       = models.IntegerField(choices=STATE_CHOICES, default=STATE_CREATED, verbose_name="Holat")
     # Unix timestamps (milliseconds) — Payme API standart
-    time        = models.BigIntegerField(verbose_name="Yaratilish vaqti (ms)")
+    time        = models.BigIntegerField(default=0, verbose_name="Yaratilish vaqti (ms)")
     create_time = models.BigIntegerField(null=True, blank=True, verbose_name="Server create vaqti (ms)")
     perform_time= models.BigIntegerField(null=True, blank=True, verbose_name="Perform vaqti (ms)")
     cancel_time = models.BigIntegerField(null=True, blank=True, verbose_name="Bekor etish vaqti (ms)")
@@ -2045,14 +2045,14 @@ class ClickTransaction(models.Model):
     ACTION_PREPARE  = 0
     ACTION_COMPLETE = 1
 
-    click_trans_id  = models.BigIntegerField(unique=True, verbose_name="Click tranzaksiya ID")
+    click_trans_id  = models.BigIntegerField(unique=True, default=0, verbose_name="Click tranzaksiya ID")
     click_paydoc_id = models.BigIntegerField(null=True, blank=True, verbose_name="Click paydoc ID")
     student         = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='click_transactions', verbose_name="O'quvchi"
     )
     merchant_trans_id = models.CharField(max_length=200, blank=True, verbose_name="Merchant trans ID (student_id)")
-    amount          = models.DecimalField(max_digits=14, decimal_places=2, verbose_name="Summa (so'm)")
+    amount          = models.DecimalField(max_digits=14, decimal_places=2, default=0, verbose_name="Summa (so'm)")
     is_confirmed    = models.BooleanField(default=False, verbose_name="Tasdiqlangan")
     error           = models.IntegerField(default=0, verbose_name="Xato kodi")
     error_note      = models.CharField(max_length=500, blank=True, verbose_name="Xato matni")
@@ -2074,3 +2074,114 @@ class ClickTransaction(models.Model):
         who = self.user.username if self.user else 'system'
         return f"{who} - {self.action_code} ({self.created_at:%Y-%m-%d %H:%M})"
 
+
+
+# ─────────────────────────────────────────────
+#  BALANS TIZIMI
+# ─────────────────────────────────────────────
+
+class StudentBalance(models.Model):
+    """
+    Har bir o'quvchining naqd pul balansi (so'mda).
+    Admin/yordamchi admin tomonidan to'ldiriladi.
+    Oylik to'lov kelganda avtomatik chegiriladi va unblock bo'ladi.
+    """
+    user = models.OneToOneField(
+        'CustomUser', on_delete=models.CASCADE,
+        related_name='student_balance',
+        verbose_name="O'quvchi"
+    )
+    amount = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Balans (so'm)"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "O'quvchi balansi"
+        verbose_name_plural = "O'quvchilar balanslari"
+
+    def __str__(self):
+        return f"{self.user.full_name} — {self.amount:,.0f} so'm"
+
+    def formatted(self):
+        return f"{int(self.amount):,} so'm".replace(",", " ")
+
+
+class BalanceTopUp(models.Model):
+    """
+    Balans to'ldirish tarixi.
+    Kim, qachon, qancha, kim tomonidan to'ldirilgani yoziladi.
+    """
+    student = models.ForeignKey(
+        'CustomUser', on_delete=models.CASCADE,
+        related_name='balance_topups',
+        verbose_name="O'quvchi"
+    )
+    amount = models.DecimalField(
+        max_digits=14, decimal_places=0,
+        verbose_name="Miqdor (so'm)"
+    )
+    added_by = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='topups_performed',
+        verbose_name="Kim tomonidan"
+    )
+    note = models.CharField(
+        max_length=500, blank=True,
+        verbose_name="Izoh"
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True, blank=True,
+        verbose_name="IP manzil"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Balans to'ldirish"
+        verbose_name_plural = "Balans to'ldirish tarixi"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        performer = self.added_by.username if self.added_by else 'tizim'
+        return f"{self.student.full_name} +{self.amount:,.0f} so'm ({performer})"
+
+    def formatted_amount(self):
+        return f"{int(self.amount):,} so'm".replace(",", " ")
+
+
+# ─────────────────────────────────────────────
+#  SIGNAL: Yangi student qo'shilganda avtomatik balans va to'lov holati yaratish
+# ─────────────────────────────────────────────
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender='accounts.CustomUser')
+def create_student_balance_and_payment_status(sender, instance, created, **kwargs):
+    """
+    Yangi o'quvchi qo'shilganda:
+    1. StudentBalance yaratiladi (0 so'm)
+    2. PaymentStatus yaratiladi
+    3. Joriy oy uchun PaymentRecord yaratiladi
+    """
+    if not created:
+        return
+    if instance.role != 'student':
+        return
+    try:
+        from django.utils import timezone
+        # StudentBalance
+        StudentBalance.objects.get_or_create(user=instance)
+        # PaymentStatus
+        ps, _ = PaymentStatus.objects.get_or_create(user=instance)
+        # Joriy oy uchun PaymentRecord
+        today = timezone.now().date()
+        PaymentRecord.objects.get_or_create(
+            user=instance,
+            month=today.month,
+            year=today.year,
+            defaults={'amount': ps.monthly_fee}
+        )
+    except Exception:
+        pass

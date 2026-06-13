@@ -300,4 +300,11 @@ urlpatterns = [
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
     path('click/prepare/', payment_views.click_prepare, name='click_prepare'),
     path('click/complete/', payment_views.click_complete, name='click_complete'),
+
+ 
+    # ── Balans tizimi ─────────────────────────────────────────────
+    path('tolov/', views.payment_wall, name='payment_wall'),
+    path('dashboard/balans/', views.admin_balance_management, name='admin_balance_management'),
+    path('dashboard/balans/<int:student_id>/topup/', views.admin_balance_topup, name='admin_balance_topup'),
+    path('dashboard/balans/<int:student_id>/history/', views.admin_balance_history, name='admin_balance_history'),
 ]

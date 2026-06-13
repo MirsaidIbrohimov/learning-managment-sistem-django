@@ -362,54 +362,38 @@ body[data-theme="crimson"] #board .cell .piece-wrap.black {
 .fee-win { font-size: 0.95rem; margin-top: 4px; }
 .fee-net { font-size: 0.82rem; }
 
-/* ===== SUBMIT STATUS (shaxmat) ===== */
-.submit-status {
-    margin: 14px 0 0;
-    padding: 10px 16px;
-    border-radius: 12px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    background: rgba(255,255,255,0.06);
-    color: #94a3b8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.3s;
-}
-.submit-status.success { background: rgba(34, 197, 94, 0.15); color: #86efac; }
-.submit-status.error   { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+/* ===================================================
+ * SHAXMAT — Natija ekrani chess gold override
+ * =================================================== */
 
-/* ===== RESULT SCREEN (shaxmat) — shashka style.css'dagi result CSS ishlatiladi ===== */
-/* Shaxmat o'ziga xos: result-bg.win da asosiy rang oltin/indigo */
-#result-screen {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow: hidden;
-}
-#result-screen.hidden { display: none; }
-.result-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-}
+/* Win screen: chess uses gold (#c9a227) instead of amber */
 .result-bg.win {
-    background: radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.4) 0%, transparent 65%),
-                radial-gradient(ellipse at 80% 100%, rgba(99,102,241,0.2) 0%, transparent 60%),
-                linear-gradient(160deg, #080b18 0%, #0c0e20 40%, #0a0b1a 100%);
+    background: radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.38) 0%, transparent 65%),
+                radial-gradient(ellipse at 80% 100%, rgba(245,204,78,0.22) 0%, transparent 60%),
+                linear-gradient(160deg, #0c0e00 0%, #1a1600 40%, #191400 100%);
 }
-.result-bg.lose {
-    background: radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.3) 0%, transparent 60%),
-                radial-gradient(ellipse at 20% 100%, rgba(185,28,28,0.2) 0%, transparent 55%),
-                linear-gradient(160deg, #0f0505 0%, #1a0808 40%, #180a0a 100%);
+.result-bg.win::before  { background: radial-gradient(circle, rgba(201,162,39,0.22) 0%, transparent 70%); }
+.result-bg.win::after   { background: radial-gradient(circle, rgba(245,204,78,0.16) 0%, transparent 70%); }
+
+.result-bg.win ~ .result-card::before {
+    background: linear-gradient(90deg, #c9a227, #f5cc4e, #ffffff80, #f5cc4e, #c9a227);
+    background-size: 200%;
+    animation: shimmer-bar 2s linear infinite;
 }
-.result-bg.draw {
-    background: radial-gradient(ellipse at 50% 0%, rgba(129,140,248,0.3) 0%, transparent 60%),
+.result-bg.win ~ .result-card #result-title {
+    background: linear-gradient(135deg, #c9a227 0%, #f5cc4e 45%, #ffffff 70%, #f5cc4e 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.result-bg.win ~ .result-card .result-emoji { color: #c9a227; }
+.result-bg.win ~ .result-card .result-stat-value,
+.result-bg.win ~ .result-card .result-stat .rs-value { color: #f5cc4e; }
+.result-bg.win ~ .result-card .result-stat .rs-icon   { color: #c9a227; }
+.result-bg.win ~ .result-card .result-actions .primary-btn {
+    background: linear-gradient(135deg, #c9a227, #f5cc4e);
+    box-shadow: 0 4px 20px rgba(201,162,39,0.4);
+    color: #0f0e00;
+}
+40,248,0.3) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 100%, rgba(59,130,246,0.2) 0%, transparent 55%),
                 linear-gradient(160deg, #07091a 0%, #0f1128 40%, #0b0d22 100%);
 }

@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from django.db import models
 from datetime import timedelta
-from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message
+from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message, StudentBalance
 
 # Static/media so'rovlarini tezkor o'tkazish uchun (BlockedUserMiddleware va boshqalar)
 _SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/')
@@ -107,35 +107,34 @@ class UpdateLastActivityMiddleware:
 
 class BlockedUserMiddleware:
     """
-    Bloklangan foydalanuvchilar saytga kira olmaydi
+    Bloklangan foydalanuvchilar faqat /tolov/ sahifasiga yo'naltiriladi.
+    API so'rovlari 403 qaytaradi.
     """
-    
+    # Bu URL larga bloklangan user ham kira oladi
+    ALLOWED_PATHS = ('/tolov/', '/logout/', '/static/', '/media/', '/api/v1/games/')
+
     def __init__(self, get_response):
         self.get_response = get_response
-    
+
     def __call__(self, request):
         if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         if request.user.is_authenticated:
             user = request.user
-            # Agar is_blocked maydoni mavjud bo'lsa tekshir
             if hasattr(user, 'is_blocked') and user.is_blocked:
+                # API so'rovlari
                 if request.path.startswith('/api/'):
                     from django.http import JsonResponse
                     return JsonResponse(
-                        {'detail': 'Sizning akkauntingiz bloklangan.'},
+                        {'detail': 'Akkaunt bloklangan. To\'lov sahifasiga o\'ting.'},
                         status=403
                     )
-                try:
-                    return render(
-                        request,
-                        'accounts/user_blocked.html',
-                        {'message': 'Sizning akkauntingiz bloklangan'},
-                        status=403
-                    )
-                except Exception:
-                    return HttpResponse('Akkaunt bloklangan', status=403)
-        
+                # Ruxsat etilgan URL lar (payment wall, logout, games API)
+                for allowed in self.ALLOWED_PATHS:
+                    if request.path.startswith(allowed):
+                        return self.get_response(request)
+                # Qolgan barcha sahifalar → to'lov devori
+                return redirect('payment_wall')
         return self.get_response(request)
 
 
@@ -519,7 +518,7 @@ class ProfileCompletionMiddleware:
                 try:
                     resolved = resolve(request.path)
                     if resolved.url_name not in self.EXEMPT_URLS:
-                        return redirect('complete_profile')
+                                                return redirect('complete_profile')
                 except Exception:
                     pass
         

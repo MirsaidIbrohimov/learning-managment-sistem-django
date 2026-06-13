@@ -1,0 +1,537 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% block title %}Balans Boshqaruvi — Admin Panel{% endblock %}
+
+{% block admin_content %}
+<style>
+.bm-page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+/* Stats */
+.bm-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+@media(max-width:600px){ .bm-stats { grid-template-columns: 1fr; } }
+.bm-stat {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 18px; padding: 1.25rem;
+    position: relative; overflow: hidden; transition: .2s;
+}
+.bm-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+.bm-stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.bm-stat.c-indigo::before { background: linear-gradient(90deg,#6366f1,#a5b4fc); }
+.bm-stat.c-green::before  { background: linear-gradient(90deg,#22c55e,#86efac); }
+.bm-stat.c-red::before    { background: linear-gradient(90deg,#ef4444,#fca5a5); }
+.bm-si { width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;margin-bottom:.75rem; }
+.bm-si.c-indigo { background:linear-gradient(135deg,#6366f1,#4f46e5); }
+.bm-si.c-green  { background:linear-gradient(135deg,#22c55e,#16a34a); }
+.bm-si.c-red    { background:linear-gradient(135deg,#ef4444,#dc2626); }
+.bm-sn { font-size:1.5rem;font-weight:800;color:var(--text-color);line-height:1.2; }
+.bm-sl { font-size:.78rem;color:var(--bs-secondary-color, #6c757d);margin-top:2px; }
+
+/* Table card */
+.bm-card {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 20px; overflow: hidden; margin-bottom: 1.5rem;
+}
+.bm-card-head {
+    padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+}
+.bm-card-title {
+    font-weight: 700; font-size: .92rem;
+    display: flex; align-items: center; gap: .5rem; color: var(--text-color);
+}
+.bm-search {
+    position: relative; min-width: 260px;
+}
+.bm-search i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: var(--bs-secondary-color); }
+.bm-search input {
+    width: 100%; padding: .5rem .85rem .5rem 2.3rem;
+    border-radius: 12px; border: 2px solid var(--border-color);
+    background: var(--bg-color, #f0f2f5); color: var(--text-color);
+    font-size: .85rem; transition: .2s;
+}
+.bm-search input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+
+/* Table */
+.bm-tbl { width: 100%; border-collapse: collapse; }
+.bm-tbl thead th {
+    padding: .75rem 1.25rem; font-size: .75rem; font-weight: 700;
+    color: var(--bs-secondary-color, #6c757d); text-transform: uppercase; letter-spacing: .3px;
+    border-bottom: 1px solid var(--border-color); white-space: nowrap;
+    background: var(--bg-color, #f8f9fa);
+}
+.bm-tbl tbody tr {
+    border-bottom: 1px solid var(--border-color); transition: background .15s;
+}
+.bm-tbl tbody tr:last-child { border-bottom: none; }
+.bm-tbl tbody tr:hover { background: var(--bs-tertiary-bg, rgba(0,0,0,.02)); }
+.bm-tbl tbody td { padding: .85rem 1.25rem; font-size: .87rem; vertical-align: middle; color: var(--text-color); }
+
+/* User cell */
+.bm-user { display: flex; align-items: center; gap: .65rem; }
+.bm-avatar {
+    width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex-shrink: 0;
+}
+.bm-avatar-ph {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .75rem; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+}
+.bm-name { font-weight: 700; font-size: .88rem; }
+.bm-uname { font-size: .74rem; color: var(--bs-secondary-color, #6c757d); }
+.bm-id-badge {
+    background: #1e1b4b; color: #c4b5fd;
+    padding: 1px 6px; border-radius: 5px;
+    font-weight: 700; font-size: .65em; font-family: monospace; letter-spacing: 1px;
+}
+
+/* Balance pill */
+.bm-balance {
+    font-size: .9rem; font-weight: 700;
+}
+.bm-balance.low { color: #ef4444; }
+.bm-balance.ok  { color: #22c55e; }
+.bm-balance.zero { color: var(--bs-secondary-color, #6c757d); }
+
+/* Status badges */
+.bm-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: .2rem .65rem; border-radius: 20px; font-size: .72rem; font-weight: 700;
+}
+.bm-status.blocked { background: rgba(239,68,68,.1); color: #ef4444; }
+.bm-status.active  { background: rgba(34,197,94,.1); color: #22c55e; }
+
+/* Top-up button */
+.bm-topup-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .75rem; border-radius: 8px; font-size: .78rem; font-weight: 700;
+    background: linear-gradient(135deg,#6366f1,#4f46e5); color: #fff;
+    border: none; cursor: pointer; transition: .2s; text-decoration: none;
+}
+.bm-topup-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,.3); color: #fff; }
+
+.bm-hist-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .65rem; border-radius: 8px; font-size: .75rem; font-weight: 600;
+    background: transparent; color: var(--bs-secondary-color); border: 1px solid var(--border-color);
+    cursor: pointer; transition: .2s;
+}
+.bm-hist-btn:hover { border-color: #6366f1; color: #6366f1; }
+
+/* Recent topups */
+.bm-topup-row {
+    display: grid; grid-template-columns: 1fr auto auto;
+    gap: 1rem; align-items: center;
+    padding: .75rem 1.25rem; border-bottom: 1px solid var(--border-color);
+    font-size: .84rem;
+}
+.bm-topup-row:last-child { border-bottom: none; }
+.bm-topup-who { font-weight: 600; color: var(--text-color); }
+.bm-topup-by  { font-size: .75rem; color: var(--bs-secondary-color); margin-top: 1px; }
+.bm-topup-amt { font-weight: 700; color: #22c55e; white-space: nowrap; }
+.bm-topup-date { font-size: .75rem; color: var(--bs-secondary-color); white-space: nowrap; }
+
+/* Modal */
+.bm-modal-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 1050;
+    background: rgba(0,0,0,.65); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+}
+.bm-modal-backdrop.show { display: flex; }
+.bm-modal {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 20px; padding: 2rem; max-width: 420px; width: 90%;
+    animation: modalIn .25s ease;
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+.bm-modal h4 { font-weight: 800; margin-bottom: .25rem; font-size: 1.05rem; }
+.bm-modal .bm-modal-sub { font-size: .82rem; color: var(--bs-secondary-color); margin-bottom: 1.25rem; }
+.bm-modal label { font-size: .78rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .3px; margin-bottom: .4rem; display: block; }
+.bm-modal input, .bm-modal textarea {
+    width: 100%; padding: .65rem .9rem; border-radius: 12px;
+    border: 2px solid var(--border-color); background: var(--bg-color, #f8f9fa);
+    color: var(--text-color); font-size: .9rem; margin-bottom: 1rem; transition: .2s;
+}
+.bm-modal input:focus, .bm-modal textarea:focus {
+    outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.1);
+}
+.bm-modal textarea { resize: vertical; min-height: 60px; }
+.bm-presets { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.bm-preset {
+    padding: .35rem .75rem; border-radius: 8px; font-size: .8rem; font-weight: 700;
+    border: 1.5px solid var(--border-color); background: var(--bg-color, #f8f9fa);
+    color: var(--text-color); cursor: pointer; transition: .2s;
+}
+.bm-preset:hover, .bm-preset.active {
+    border-color: #6366f1; background: rgba(99,102,241,.08); color: #6366f1;
+}
+.bm-modal-actions { display: flex; gap: .75rem; }
+.bm-btn-confirm {
+    flex: 1; padding: .65rem; border-radius: 12px; border: none; cursor: pointer;
+    background: linear-gradient(135deg,#22c55e,#16a34a); color: #fff;
+    font-weight: 700; font-size: .9rem; transition: .2s;
+}
+.bm-btn-confirm:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(34,197,94,.3); }
+.bm-btn-cancel {
+    padding: .65rem 1.25rem; border-radius: 12px;
+    border: 1.5px solid var(--border-color); background: transparent;
+    color: var(--text-color); font-weight: 600; font-size: .9rem; cursor: pointer; transition: .2s;
+}
+.bm-btn-cancel:hover { background: var(--bs-tertiary-bg); }
+
+/* History modal */
+.bm-hist-item {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: .6rem 0; border-bottom: 1px solid var(--border-color); font-size: .83rem; gap: 1rem;
+}
+.bm-hist-item:last-child { border-bottom: none; }
+.bm-hist-lft { flex: 1; min-width: 0; }
+.bm-hist-amt { font-weight: 700; color: #22c55e; white-space: nowrap; }
+
+/* Toast */
+.bm-toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: .85rem 1.25rem;
+    display: flex; align-items: center; gap: .75rem; font-size: .88rem; font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0,0,0,.2); transition: all .3s;
+    transform: translateY(100px); opacity: 0;
+}
+.bm-toast.show { transform: translateY(0); opacity: 1; }
+.bm-toast.success { border-left: 4px solid #22c55e; }
+.bm-toast.success i { color: #22c55e; font-size: 1.2rem; }
+.bm-toast.error { border-left: 4px solid #ef4444; }
+.bm-toast.error i { color: #ef4444; font-size: 1.2rem; }
+</style>
+
+<div class="bm-page">
+
+    <!-- Header -->
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem;margin-bottom:1.5rem;">
+        <div>
+            <h1 style="font-size:1.55rem;font-weight:800;margin:0;display:flex;align-items:center;gap:.6rem;">
+                <i class="bi bi-wallet2" style="color:#6366f1;"></i> Balans Boshqaruvi
+            </h1>
+            <p style="color:var(--bs-secondary-color);font-size:.88rem;margin:.2rem 0 0;">O'quvchilarga balans qo'shish va to'lov tarixini ko'rish</p>
+        </div>
+        <a href="{% url 'admin_payments' %}" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;">
+            <i class="bi bi-arrow-left me-1"></i> To'lovlar
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="bm-stats">
+        <div class="bm-stat c-indigo">
+            <div class="bm-si c-indigo"><i class="bi bi-wallet2"></i></div>
+            <div class="bm-sn">{{ total_balance|floatformat:0 }} so'm</div>
+            <div class="bm-sl">Umumiy balanslar yig'indisi</div>
+        </div>
+        <div class="bm-stat c-green">
+            <div class="bm-si c-green"><i class="bi bi-arrow-up-circle"></i></div>
+            <div class="bm-sn">{{ topup_today|floatformat:0 }} so'm</div>
+            <div class="bm-sl">Bugun qo'shilgan</div>
+        </div>
+        <div class="bm-stat c-red">
+            <div class="bm-si c-red"><i class="bi bi-lock"></i></div>
+            <div class="bm-sn">{{ blocked_count }}</div>
+            <div class="bm-sl">Hozir bloklangan o'quvchilar</div>
+        </div>
+    </div>
+
+    <!-- Students table -->
+    <div class="bm-card">
+        <div class="bm-card-head">
+            <div class="bm-card-title"><i class="bi bi-people"></i> O'quvchilar balanslari</div>
+            <form method="GET" class="bm-search">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" placeholder="Ism, username, ID..." value="{{ search }}" id="bmSearchInput">
+            </form>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="bm-tbl">
+                <thead>
+                    <tr>
+                        <th>O'quvchi</th>
+                        <th>Balans</th>
+                        <th>Oylik to'lov</th>
+                        <th>Status</th>
+                        <th style="text-align:right;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="bmTableBody">
+                    {% for student in students %}
+                    <tr id="row-{{ student.pk }}">
+                        <td>
+                            <div class="bm-user">
+                                {% if student.photo %}
+                                <img src="{{ student.photo.url }}" class="bm-avatar" alt="">
+                                {% else %}
+                                <div class="bm-avatar-ph">{{ student.get_initials }}</div>
+                                {% endif %}
+                                <div>
+                                    <div class="bm-name">
+                                        {{ student.full_name }}
+                                        {% if student.student_id %}
+                                        <span class="bm-id-badge">#{{ student.student_id }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="bm-uname">@{{ student.username }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if student.student_balance %}
+                            <span class="bm-balance {% if student.student_balance.amount == 0 %}zero{% elif student.student_balance.amount < student.payment_status.monthly_fee %}low{% else %}ok{% endif %}"
+                                  id="bal-{{ student.pk }}">
+                                {{ student.student_balance.amount|floatformat:0 }} so'm
+                            </span>
+                            {% else %}
+                            <span class="bm-balance zero">0 so'm</span>
+                            {% endif %}
+                        </td>
+                        <td style="color:var(--bs-secondary-color);">
+                            {% if student.payment_status %}
+                                {{ student.payment_status.monthly_fee|floatformat:0 }} so'm
+                            {% else %}200 000 so'm{% endif %}
+                        </td>
+                        <td>
+                            <span class="bm-status {% if student.is_blocked %}blocked{% else %}active{% endif %}">
+                                <i class="bi bi-{% if student.is_blocked %}lock-fill{% else %}unlock-fill{% endif %}"></i>
+                                {% if student.is_blocked %}Bloklangan{% else %}Faol{% endif %}
+                            </span>
+                        </td>
+                        <td style="text-align:right;">
+                            <div style="display:inline-flex;gap:.4rem;">
+                                <button class="bm-hist-btn" onclick="showHistory({{ student.pk }}, '{{ student.full_name }}')">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+                                <button class="bm-topup-btn" onclick="openTopup({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }})">
+                                    <i class="bi bi-plus-lg"></i> Balans qo'sh
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--bs-secondary-color);">
+                        <i class="bi bi-people" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+                        O'quvchilar topilmadi
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% with page_obj=students %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
+    </div>
+
+    <!-- Recent top-ups -->
+    {% if recent_topups %}
+    <div class="bm-card">
+        <div class="bm-card-head">
+            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans to'ldirishlar</div>
+        </div>
+        {% for t in recent_topups %}
+        <div class="bm-topup-row">
+            <div>
+                <div class="bm-topup-who">{{ t.student.full_name }}</div>
+                <div class="bm-topup-by">
+                    Qo'shdi: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
+                    {% if t.note %} · <em>{{ t.note }}</em>{% endif %}
+                    {% if t.ip_address %} · IP: {{ t.ip_address }}{% endif %}
+                </div>
+            </div>
+            <div class="bm-topup-amt">+{{ t.amount|floatformat:0 }} so'm</div>
+            <div class="bm-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ====== TOP-UP MODAL ====== -->
+<div class="bm-modal-backdrop" id="topupModal">
+    <div class="bm-modal">
+        <h4><i class="bi bi-wallet-fill text-success me-2"></i>Balans qo'shish</h4>
+        <p class="bm-modal-sub" id="topupStudentName">O'quvchi</p>
+        <form id="topupForm">
+            {% csrf_token %}
+            <label>Miqdor (so'm)</label>
+            <div class="bm-presets">
+                <button type="button" class="bm-preset" onclick="setAmount(100000)">100 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(200000)">200 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(300000)">300 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(500000)">500 000</button>
+                <button type="button" class="bm-preset" onclick="setAmount(1000000)">1 000 000</button>
+            </div>
+            <input type="number" id="topupAmount" name="amount" placeholder="Miqdorni kiriting..." min="1000" max="50000000">
+            <label>Izoh (ixtiyoriy)</label>
+            <textarea id="topupNote" name="note" placeholder="Masalan: Naqd to'lov, bank o'tkazmasi..."></textarea>
+            <div class="bm-modal-actions">
+                <button type="button" class="bm-btn-cancel" onclick="closeTopup()">Bekor</button>
+                <button type="submit" class="bm-btn-confirm" id="topupSubmitBtn">
+                    <i class="bi bi-check-lg me-1"></i>Qo'shish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ====== HISTORY MODAL ====== -->
+<div class="bm-modal-backdrop" id="histModal">
+    <div class="bm-modal" style="max-width:500px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;">
+            <h4><i class="bi bi-clock-history me-2" style="color:#6366f1;"></i>To'ldirish tarixi</h4>
+            <button class="bm-btn-cancel" style="padding:.35rem .75rem;" onclick="closeHistory()">✕</button>
+        </div>
+        <p class="bm-modal-sub" id="histStudentName"></p>
+        <div id="histBalance" style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:12px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.88rem;">
+            <i class="bi bi-wallet2 me-1" style="color:#a5b4fc;"></i>
+            Joriy balans: <strong id="histBalanceAmt" style="color:#a5b4fc;">—</strong>
+        </div>
+        <div id="histList" style="max-height:320px;overflow-y:auto;">
+            <div style="text-align:center;color:var(--bs-secondary-color);padding:2rem;">
+                <i class="bi bi-hourglass-split"></i> Yuklanmoqda...
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="bm-toast" id="bmToast">
+    <i class="bi bi-check-circle-fill" id="bmToastIcon"></i>
+    <span id="bmToastMsg"></span>
+</div>
+
+<script>
+let currentStudentId = null;
+const TOPUP_URL_TPL = "{% url 'admin_balance_topup' 0 %}".replace('/0/', '/');
+const HIST_URL_TPL  = "{% url 'admin_balance_history' 0 %}".replace('/0/', '/');
+
+/* ── TOP-UP ── */
+function openTopup(id, name, monthlyFee) {
+    currentStudentId = id;
+    document.getElementById('topupStudentName').textContent = name;
+    document.getElementById('topupAmount').value = '';
+    document.getElementById('topupNote').value = '';
+    document.querySelectorAll('.bm-preset').forEach(b => b.classList.remove('active'));
+    document.getElementById('topupModal').classList.add('show');
+}
+function closeTopup() {
+    document.getElementById('topupModal').classList.remove('show');
+    currentStudentId = null;
+}
+function setAmount(v) {
+    document.getElementById('topupAmount').value = v;
+    document.querySelectorAll('.bm-preset').forEach(b => {
+        b.classList.toggle('active', parseInt(b.textContent.replace(/\s/g,'')) === v);
+    });
+}
+document.getElementById('topupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!currentStudentId) return;
+    const btn = document.getElementById('topupSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+    const fd = new FormData(this);
+    try {
+        const res = await fetch(TOPUP_URL_TPL + currentStudentId + '/', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd,
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Update balance in table
+            const balEl = document.getElementById('bal-' + currentStudentId);
+            if (balEl) {
+                balEl.textContent = data.new_balance_fmt + ' so\'m';
+                balEl.className = 'bm-balance ' + (data.new_balance === 0 ? 'zero' : 'ok');
+            }
+            // Update status badge if auto-unblocked
+            if (data.auto_unblocked) {
+                const row = document.getElementById('row-' + currentStudentId);
+                if (row) {
+                    const sb = row.querySelector('.bm-status');
+                    if (sb) { sb.className = 'bm-status active'; sb.innerHTML = '<i class="bi bi-unlock-fill"></i> Faol'; }
+                }
+            }
+            closeTopup();
+            showToast('success', `✅ ${data.student_name} ga +${data.amount_fmt} so'm qo'shildi` + (data.auto_unblocked ? ' va unblock bo\'ldi!' : '.'));
+        } else {
+            showToast('error', data.error || 'Xatolik yuz berdi');
+        }
+    } catch(err) {
+        showToast('error', 'Tarmoq xatosi');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Qo\'shish';
+    }
+});
+
+/* ── HISTORY ── */
+async function showHistory(id, name) {
+    document.getElementById('histStudentName').textContent = name;
+    document.getElementById('histList').innerHTML = '<div style="text-align:center;color:var(--bs-secondary-color);padding:2rem;"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>';
+    document.getElementById('histBalanceAmt').textContent = '—';
+    document.getElementById('histModal').classList.add('show');
+    try {
+        const res = await fetch(HIST_URL_TPL + id + '/', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const data = await res.json();
+        document.getElementById('histBalanceAmt').textContent = data.balance_fmt + ' so\'m';
+        if (!data.topups.length) {
+            document.getElementById('histList').innerHTML = '<div style="text-align:center;color:var(--bs-secondary-color);padding:2rem;">Hali to\'ldirish yo\'q</div>';
+            return;
+        }
+        document.getElementById('histList').innerHTML = data.topups.map(t => `
+            <div class="bm-hist-item">
+                <div class="bm-hist-lft">
+                    <div style="font-weight:600;">${t.added_by}</div>
+                    <div style="font-size:.74rem;color:var(--bs-secondary-color);">
+                        ${t.date}${t.note ? ' · ' + t.note : ''}${t.ip ? ' · ' + t.ip : ''}
+                    </div>
+                </div>
+                <div class="bm-hist-amt">+${t.amount_fmt} so'm</div>
+            </div>
+        `).join('');
+    } catch(err) {
+        document.getElementById('histList').innerHTML = '<div style="color:#ef4444;padding:1rem;">Xatolik yuz berdi</div>';
+    }
+}
+function closeHistory() {
+    document.getElementById('histModal').classList.remove('show');
+}
+
+/* Close modals on backdrop click */
+document.querySelectorAll('.bm-modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('show');
+        }
+    });
+});
+
+/* ── TOAST ── */
+function showToast(type, msg) {
+    const t = document.getElementById('bmToast');
+    const icon = document.getElementById('bmToastIcon');
+    const msgEl = document.getElementById('bmToastMsg');
+    t.className = 'bm-toast ' + type;
+    icon.className = 'bi bi-' + (type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill');
+    msgEl.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+/* Search debounce */
+let searchTimer;
+document.getElementById('bmSearchInput').addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+        const url = new URL(window.location);
+        url.searchParams.set('q', this.value);
+        url.searchParams.delete('page');
+        window.location = url.toString();
+    }, 600);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>To'lov — IT Shaharcha LMS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<style>
+:root {
+    --pw-bg: #0b0d17;
+    --pw-card: rgba(20,22,40,0.92);
+    --pw-border: rgba(99,102,241,0.18);
+    --pw-muted: #94a3b8;
+    --pw-text: #f1f5f9;
+    --pw-accent: #6366f1;
+    --pw-green: #22c55e;
+    --pw-red: #ef4444;
+    --pw-yellow: #f59e0b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--pw-bg);
+    color: var(--pw-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Animated background */
+.pw-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(239,68,68,0.08) 0%, transparent 60%),
+        linear-gradient(180deg, #0b0d17 0%, #080a14 100%);
+}
+.pw-bg-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.15; animation: orbFloat 12s ease-in-out infinite;
+}
+.pw-bg-orb:nth-child(1) { width: 400px; height: 400px; background: #6366f1; top: -10%; left: -5%; animation-delay: 0s; }
+.pw-bg-orb:nth-child(2) { width: 300px; height: 300px; background: #ef4444; bottom: -5%; right: -5%; animation-delay: 4s; }
+.pw-bg-orb:nth-child(3) { width: 250px; height: 250px; background: #f59e0b; top: 40%; left: 60%; animation-delay: 8s; }
+@keyframes orbFloat {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33% { transform: translate(30px,-20px) scale(1.05); }
+    66% { transform: translate(-20px,30px) scale(0.95); }
+}
+
+/* Layout */
+.pw-wrap {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    padding: 1.5rem 1rem;
+}
+
+/* Top bar */
+.pw-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 2rem;
+}
+.pw-logo {
+    font-size: 1rem; font-weight: 800;
+    color: var(--pw-text); text-decoration: none;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.pw-logo-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+}
+.pw-logout {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.4rem 0.9rem; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
+    border: 1px solid rgba(239,68,68,0.3); color: #fca5a5;
+    background: rgba(239,68,68,0.06); text-decoration: none;
+    transition: all 0.2s;
+}
+.pw-logout:hover { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+/* Main grid */
+.pw-grid {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    width: 100%;
+}
+@media (max-width: 768px) {
+    .pw-grid { grid-template-columns: 1fr; }
+}
+
+/* Cards */
+.pw-card {
+    background: var(--pw-card);
+    border: 1px solid var(--pw-border);
+    border-radius: 20px;
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+}
+
+/* Profile card */
+.pw-profile-head {
+    padding: 2rem 1.5rem 1.5rem;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(99,102,241,0.1) 0%, transparent 100%);
+    border-bottom: 1px solid var(--pw-border);
+    position: relative;
+}
+.pw-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    object-fit: cover; border: 3px solid rgba(99,102,241,0.4);
+    margin-bottom: 0.75rem;
+}
+.pw-avatar-ph {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; font-weight: 700;
+    border: 3px solid rgba(99,102,241,0.4);
+    margin: 0 auto 0.75rem;
+}
+.pw-username {
+    font-size: 1.1rem; font-weight: 800; margin-bottom: 0.25rem;
+}
+.pw-handle {
+    font-size: 0.8rem; color: var(--pw-muted); margin-bottom: 0.75rem;
+}
+.pw-student-id-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3);
+    color: #a5b4fc; padding: 0.3rem 0.8rem; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 700; font-family: monospace; letter-spacing: 1.5px;
+    margin-bottom: 0.5rem;
+}
+.pw-blocked-badge {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25);
+    color: #fca5a5; padding: 0.3rem 0.8rem; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700;
+}
+
+.pw-profile-body {
+    padding: 1.25rem 1.5rem;
+}
+.pw-info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.84rem;
+}
+.pw-info-row:last-child { border-bottom: none; }
+.pw-info-label { color: var(--pw-muted); }
+.pw-info-value { font-weight: 600; color: var(--pw-text); }
+
+/* Balance card */
+.pw-balance-section {
+    display: flex; flex-direction: column; gap: 1rem;
+}
+
+/* Big balance display */
+.pw-balance-big {
+    padding: 1.75rem 1.5rem;
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04));
+    border-bottom: 1px solid var(--pw-border);
+}
+.pw-balance-label {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--pw-muted); margin-bottom: 0.5rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.pw-balance-amount {
+    font-size: 2.4rem; font-weight: 900; line-height: 1;
+    color: #a5b4fc;
+}
+.pw-balance-amount.sufficient { color: #86efac; }
+.pw-balance-amount.insufficient { color: #fca5a5; }
+.pw-balance-currency { font-size: 1rem; font-weight: 600; opacity: 0.7; margin-left: 0.3rem; }
+.pw-balance-monthly {
+    margin-top: 0.5rem; font-size: 0.8rem; color: var(--pw-muted);
+    display: flex; align-items: center; gap: 0.4rem;
+}
+
+/* Pay action */
+.pw-pay-section {
+    padding: 1.5rem;
+}
+.pw-pay-info {
+    border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem;
+}
+.pw-pay-info.can-pay {
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);
+    color: #86efac;
+}
+.pw-pay-info.cant-pay {
+    background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
+    color: #fca5a5;
+}
+.pw-pay-info i { font-size: 1.2rem; flex-shrink: 0; }
+.pw-pay-btn {
+    width: 100%; padding: 0.9rem;
+    border-radius: 14px; border: none; cursor: pointer;
+    font-size: 1rem; font-weight: 700; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.pw-pay-btn.enabled {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff; box-shadow: 0 4px 20px rgba(34,197,94,0.3);
+}
+.pw-pay-btn.enabled:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,197,94,0.4); }
+.pw-pay-btn.disabled {
+    background: rgba(255,255,255,0.06); color: #64748b;
+    cursor: not-allowed;
+}
+.pw-shortage {
+    text-align: center; margin-top: 0.75rem;
+    font-size: 0.8rem; color: var(--pw-muted);
+}
+.pw-shortage strong { color: #fbbf24; }
+
+/* History section */
+.pw-history-section {
+    padding: 0 1.5rem 1.5rem;
+    flex: 1;
+}
+.pw-section-title {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--pw-muted); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.pw-empty {
+    text-align: center; padding: 2rem 0; color: var(--pw-muted); font-size: 0.85rem;
+}
+
+/* Topup rows */
+.pw-topup-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.82rem;
+}
+.pw-topup-row:last-child { border-bottom: none; }
+.pw-topup-amount { font-weight: 700; color: #86efac; }
+.pw-topup-meta { color: var(--pw-muted); font-size: 0.75rem; margin-top: 1px; }
+.pw-topup-date { color: var(--pw-muted); font-size: 0.75rem; white-space: nowrap; }
+
+/* Pay record rows */
+.pw-pay-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 0.82rem;
+}
+.pw-pay-row:last-child { border-bottom: none; }
+.pw-pay-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.pw-pay-dot.paid { background: #22c55e; }
+.pw-pay-dot.unpaid { background: #ef4444; }
+.pw-pay-month { flex: 1; }
+.pw-pay-status-paid { color: #86efac; font-weight: 700; font-size: 0.75rem; }
+.pw-pay-status-unpaid { color: #fca5a5; font-weight: 700; font-size: 0.75rem; }
+
+/* Alert messages */
+.pw-alert {
+    border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1rem;
+    font-size: 0.85rem; display: flex; align-items: center; gap: 0.6rem;
+}
+.pw-alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
+.pw-alert.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+
+/* Info box bottom */
+.pw-info-box {
+    margin-top: 1.5rem; padding: 1rem 1.25rem; border-radius: 14px;
+    background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15);
+    font-size: 0.82rem; color: var(--pw-muted); line-height: 1.6;
+    max-width: 1000px; margin-left: auto; margin-right: auto;
+}
+.pw-info-box i { color: #a5b4fc; }
+
+/* Divider */
+.pw-divider {
+    height: 1px; background: var(--pw-border); margin: 1rem 0;
+}
+</style>
+</head>
+<body>
+<div class="pw-bg">
+    <div class="pw-bg-orb"></div>
+    <div class="pw-bg-orb"></div>
+    <div class="pw-bg-orb"></div>
+</div>
+
+<div class="pw-wrap">
+
+    <!-- Top bar -->
+    <div class="pw-topbar">
+        <a href="/" class="pw-logo">
+            <div class="pw-logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
+            IT Shaharcha LMS
+        </a>
+        <a href="{% url 'logout' %}" class="pw-logout">
+            <i class="bi bi-box-arrow-right"></i> Chiqish
+        </a>
+    </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div style="max-width:1000px;margin:0 auto 1rem;width:100%;">
+        {% for msg in messages %}
+        <div class="pw-alert {% if 'muvaffaqiyatli' in msg.message %}success{% else %}error{% endif %}">
+            <i class="bi bi-{% if 'muvaffaqiyatli' in msg.message %}check-circle-fill{% else %}exclamation-triangle-fill{% endif %}"></i>
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main grid -->
+    <div class="pw-grid">
+
+        <!-- LEFT: Profile card -->
+        <div class="pw-card">
+            <div class="pw-profile-head">
+                {% if request.user.photo %}
+                <img src="{{ request.user.photo.url }}" class="pw-avatar" alt="">
+                {% else %}
+                <div class="pw-avatar-ph">{{ request.user.get_initials }}</div>
+                {% endif %}
+                <div class="pw-username">{{ request.user.full_name }}</div>
+                <div class="pw-handle">@{{ request.user.username }}</div>
+                {% if request.user.student_id %}
+                <div class="pw-student-id-badge">
+                    <i class="bi bi-person-badge"></i> #{{ request.user.student_id }}
+                </div>
+                {% endif %}
+                <div style="margin-top:0.5rem;">
+                    <span class="pw-blocked-badge">
+                        <i class="bi bi-lock-fill"></i> Akkaunt bloklangan
+                    </span>
+                </div>
+            </div>
+            <div class="pw-profile-body">
+                {% if request.user.phone %}
+                <div class="pw-info-row">
+                    <span class="pw-info-label"><i class="bi bi-telephone me-1"></i>Telefon</span>
+                    <span class="pw-info-value">{{ request.user.phone }}</span>
+                </div>
+                {% endif %}
+                {% if request.user.profession %}
+                <div class="pw-info-row">
+                    <span class="pw-info-label"><i class="bi bi-mortarboard me-1"></i>Yo'nalish</span>
+                    <span class="pw-info-value">{{ request.user.profession.name }}</span>
+                </div>
+                {% endif %}
+                <div class="pw-info-row">
+                    <span class="pw-info-label"><i class="bi bi-calendar me-1"></i>Ro'yxat</span>
+                    <span class="pw-info-value">{{ request.user.date_joined|date:"d.m.Y" }}</span>
+                </div>
+                <div class="pw-info-row">
+                    <span class="pw-info-label"><i class="bi bi-coin me-1"></i>Coin</span>
+                    <span class="pw-info-value">{{ request.user.coins }}</span>
+                </div>
+                <div class="pw-info-row">
+                    <span class="pw-info-label"><i class="bi bi-calendar-month me-1"></i>Oylik to'lov</span>
+                    <span class="pw-info-value" style="color:#fbbf24;">{{ ps.monthly_fee|floatformat:0 }} so'm</span>
+                </div>
+
+                <!-- To'lovlar tarixi (oxirgi 6 oy) -->
+                {% if pay_records %}
+                <div class="pw-divider"></div>
+                <div class="pw-section-title" style="margin-bottom:0.6rem;">
+                    <i class="bi bi-receipt"></i> To'lovlar tarixi
+                </div>
+                {% for rec in pay_records|slice:":6" %}
+                <div class="pw-pay-row">
+                    <span class="pw-pay-dot {% if rec.is_paid %}paid{% else %}unpaid{% endif %}"></span>
+                    <span class="pw-pay-month">{{ rec.month_name }} {{ rec.year }}</span>
+                    {% if rec.is_paid %}
+                    <span class="pw-pay-status-paid">✓ {{ rec.paid_amount|floatformat:0 }} so'm</span>
+                    {% else %}
+                    <span class="pw-pay-status-unpaid">✗ To'lanmagan</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- RIGHT: Balance + Pay + History -->
+        <div style="display:flex;flex-direction:column;gap:1rem;">
+
+            <!-- Balance + Pay card -->
+            <div class="pw-card">
+                <!-- Big balance -->
+                <div class="pw-balance-big">
+                    <div class="pw-balance-label">
+                        <i class="bi bi-wallet2"></i> Joriy balans
+                    </div>
+                    <div>
+                        <span class="pw-balance-amount {% if can_pay %}sufficient{% else %}insufficient{% endif %}">
+                            {{ balance.amount|floatformat:0 }}
+                        </span>
+                        <span class="pw-balance-currency">so'm</span>
+                    </div>
+                    <div class="pw-balance-monthly">
+                        <i class="bi bi-arrow-down-circle"></i>
+                        Oylik to'lov: <strong style="color:#fbbf24;margin-left:0.3rem;">{{ ps.monthly_fee|floatformat:0 }} so'm</strong>
+                    </div>
+                </div>
+
+                <!-- Pay action -->
+                <div class="pw-pay-section">
+                    {% if can_pay %}
+                    <div class="pw-pay-info can-pay">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Balansda yetarli mablag' bor. Tugmani bosing va akkauntingiz darhol faollashadi.</span>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="pay">
+                        <button type="submit" class="pw-pay-btn enabled">
+                            <i class="bi bi-unlock-fill"></i>
+                            Balansdan to'lab, akkauntni ochish
+                        </button>
+                    </form>
+                    {% else %}
+                    <div class="pw-pay-info cant-pay">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>Balans yetarli emas. Admin yoki yordamchi adminga murojaat qiling.</span>
+                    </div>
+                    <button class="pw-pay-btn disabled" disabled>
+                        <i class="bi bi-lock-fill"></i>
+                        Balans yetarli emas
+                    </button>
+                    <div class="pw-shortage">
+                        Yetishmayotgan miqdor: <strong>{{ shortage|floatformat:0 }} so'm</strong>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Top-up history card -->
+            {% if topups %}
+            <div class="pw-card" style="padding:1.25rem 1.5rem;">
+                <div class="pw-section-title">
+                    <i class="bi bi-clock-history"></i> Balans to'ldirish tarixi
+                </div>
+                {% for t in topups %}
+                <div class="pw-topup-row">
+                    <div>
+                        <div class="pw-topup-amount">+{{ t.amount|floatformat:0 }} so'm</div>
+                        <div class="pw-topup-meta">
+                            {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
+                            {% if t.note %} · {{ t.note }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="pw-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- Info box -->
+    <div class="pw-info-box" style="margin-top:1.5rem;">
+        <i class="bi bi-info-circle-fill"></i>
+        <strong>Qanday to'lash mumkin?</strong> — Admin yoki yordamchi adminga murojaat qiling va naqd to'lov amalga oshiring.
+        To'lov kiritilgandan so'ng balansiz avtomatik yangilanadi va siz "Balansdan to'lab, akkauntni ochish" tugmasini bosib tizimga kirishingiz mumkin.
+        Savollar uchun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
