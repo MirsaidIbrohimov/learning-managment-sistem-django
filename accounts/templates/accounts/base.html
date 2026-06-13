@@ -1895,39 +1895,191 @@
 
     <!-- Global Toast Notifications -->
     {% if messages %}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+    <!-- iOS Liquid Glass Notifications -->
+    <style>
+    .ios-notif-wrap {
+        position: fixed;
+        top: 70px;
+        right: 16px;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+        max-width: min(380px, calc(100vw - 32px));
+    }
+    .ios-notif {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        pointer-events: auto;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        /* iOS glass */
+        background: rgba(18, 20, 36, 0.82);
+        backdrop-filter: blur(28px) saturate(180%);
+        -webkit-backdrop-filter: blur(28px) saturate(180%);
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow:
+            0 16px 48px rgba(0,0,0,0.35),
+            0 4px 12px rgba(0,0,0,0.20),
+            0 1px 0 rgba(255,255,255,0.06) inset;
+        /* Enter animation */
+        animation: notifSlideIn 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        min-width: 280px;
+    }
+    [data-bs-theme="light"] .ios-notif {
+        background: rgba(255,255,255,0.88);
+        border-color: rgba(0,0,0,0.07);
+        box-shadow:
+            0 16px 48px rgba(0,0,0,0.10),
+            0 4px 12px rgba(0,0,0,0.06),
+            0 1px 0 rgba(255,255,255,0.90) inset;
+    }
+    @keyframes notifSlideIn {
+        from { opacity: 0; transform: translateX(calc(100% + 24px)) scale(0.88); }
+        to   { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    .ios-notif.notif-hiding {
+        animation: notifSlideOut 0.32s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+    }
+    @keyframes notifSlideOut {
+        from { opacity: 1; transform: translateX(0) scale(1); max-height: 120px; margin-bottom: 0; }
+        to   { opacity: 0; transform: translateX(calc(100% + 24px)) scale(0.88); max-height: 0; margin-bottom: -10px; }
+    }
+
+    /* Progress bar */
+    .ios-notif::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2.5px;
+        border-radius: 0 0 18px 18px;
+        transform-origin: left;
+        animation: notifTimer 5s linear forwards;
+    }
+    @keyframes notifTimer {
+        from { transform: scaleX(1); }
+        to   { transform: scaleX(0); }
+    }
+
+    /* Icon circle */
+    .ios-notif-icon {
+        width: 38px; height: 38px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem; flex-shrink: 0;
+        position: relative; overflow: hidden;
+    }
+    .ios-notif-icon::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+        background-size: 200% 200%;
+        animation: notifShimmer 2.5s ease-in-out infinite;
+    }
+    @keyframes notifShimmer {
+        0%,100% { background-position: 200% 200%; }
+        50%      { background-position: -100% -100%; }
+    }
+
+    .ios-notif-body { flex: 1; min-width: 0; }
+    .ios-notif-title {
+        font-weight: 700; font-size: 0.82rem; margin-bottom: 2px;
+        letter-spacing: 0.02em;
+    }
+    .ios-notif-msg {
+        font-size: 0.87rem; font-weight: 450;
+        line-height: 1.4; word-break: break-word;
+    }
+
+    /* Close btn */
+    .ios-notif-close {
+        width: 22px; height: 22px; border-radius: 50%;
+        background: rgba(255,255,255,0.10);
+        border: none; cursor: pointer; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(255,255,255,0.55); font-size: 0.65rem;
+        transition: all 0.18s; margin-top: 1px;
+    }
+    [data-bs-theme="light"] .ios-notif-close {
+        background: rgba(0,0,0,0.07); color: rgba(0,0,0,0.45);
+    }
+    .ios-notif-close:hover { background: rgba(255,255,255,0.18); color: #fff; transform: scale(1.1); }
+    [data-bs-theme="light"] .ios-notif-close:hover { background: rgba(0,0,0,0.14); color: #000; }
+
+    /* Type variants */
+    .ios-notif.n-success .ios-notif-icon { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+    .ios-notif.n-success::after { background: linear-gradient(90deg, #10b981, #34d399); }
+    .ios-notif.n-success .ios-notif-title { color: #10b981; }
+
+    .ios-notif.n-error .ios-notif-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .ios-notif.n-error::after { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .ios-notif.n-error .ios-notif-title { color: #ef4444; }
+
+    .ios-notif.n-warning .ios-notif-icon { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+    .ios-notif.n-warning::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .ios-notif.n-warning .ios-notif-title { color: #f59e0b; }
+
+    .ios-notif.n-info .ios-notif-icon { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+    .ios-notif.n-info::after { background: linear-gradient(90deg, #6366f1, #a78bfa); }
+    .ios-notif.n-info .ios-notif-title { color: #818cf8; }
+
+    .ios-notif.n-default .ios-notif-icon { background: linear-gradient(135deg, #64748b, #475569); color: #fff; }
+    .ios-notif.n-default::after { background: linear-gradient(90deg, #64748b, #94a3b8); }
+    .ios-notif.n-default .ios-notif-title { color: #94a3b8; }
+
+    [data-bs-theme="light"] .ios-notif-msg { color: #1e293b; }
+    [data-bs-theme="light"] .ios-notif-title { filter: brightness(0.8); }
+
+    @media (max-width: 480px) {
+        .ios-notif-wrap { top: 60px; right: 10px; left: 10px; max-width: 100%; }
+        .ios-notif { min-width: unset; }
+    }
+    </style>
+
+    <div class="ios-notif-wrap" id="iosNotifWrap">
         {% for message in messages %}
-        <div class="toast align-items-center text-white 
-            {% if message.tags == 'success' %}bg-success
-            {% elif message.tags == 'error' or message.tags == 'danger' %}bg-danger
-            {% elif message.tags == 'warning' %}bg-warning text-dark
-            {% elif message.tags == 'info' %}bg-info text-dark
-            {% else %}bg-primary{% endif %}" 
-            role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
-            <div class="d-flex">
-                <div class="toast-body">
-                    {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill me-2"></i>
-                    {% elif message.tags == 'error' or message.tags == 'danger' %}<i class="bi bi-x-circle-fill me-2"></i>
-                    {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    {% elif message.tags == 'info' %}<i class="bi bi-info-circle-fill me-2"></i>
-                    {% else %}<i class="bi bi-bell-fill me-2"></i>{% endif %}
-                    {{ message }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <div class="ios-notif {% if message.tags == 'success' %}n-success{% elif message.tags == 'error' or message.tags == 'danger' %}n-error{% elif message.tags == 'warning' %}n-warning{% elif message.tags == 'info' %}n-info{% else %}n-default{% endif %}"
+             role="alert"
+             onclick="this.classList.add('notif-hiding');setTimeout(()=>this.remove(),320);">
+            <div class="ios-notif-icon">
+                <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' or message.tags == 'danger' %}bi-x-circle-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% elif message.tags == 'info' %}bi-info-circle-fill{% else %}bi-bell-fill{% endif %}"></i>
             </div>
+            <div class="ios-notif-body">
+                <div class="ios-notif-title">
+                    {% if message.tags == 'success' %}Muvaffaqiyat
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}Xatolik
+                    {% elif message.tags == 'warning' %}Diqqat
+                    {% elif message.tags == 'info' %}Ma'lumot
+                    {% else %}Xabar{% endif %}
+                </div>
+                <div class="ios-notif-msg">{{ message }}</div>
+            </div>
+            <button class="ios-notif-close"
+                    onclick="event.stopPropagation();var n=this.closest('.ios-notif');n.classList.add('notif-hiding');setTimeout(()=>n.remove(),320);">
+                <i class="bi bi-x"></i>
+            </button>
         </div>
         {% endfor %}
     </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-            toastElList.forEach(function(toastEl) {
-                var toast = new bootstrap.Toast(toastEl);
-                toast.show();
-            });
+    (function(){
+        var delay = 5000;
+        document.querySelectorAll('.ios-notif').forEach(function(el, i){
+            setTimeout(function(){
+                if(el.parentNode){
+                    el.classList.add('notif-hiding');
+                    setTimeout(function(){ if(el.parentNode) el.remove(); }, 320);
+                }
+            }, delay + i * 400);
         });
+    })();
     </script>
     {% endif %}
+
 
     {% if request.session.show_premium_ad %}
     <!-- Premium reklama popup (login paytida) -->
