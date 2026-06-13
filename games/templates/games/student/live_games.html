@@ -3,124 +3,455 @@
 
 {% block extra_css %}
 <style>
-.lg-page { max-width: 1100px; margin: 0 auto; padding: 2rem 1rem; }
-.lg-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-.lg-title { font-size: 1.6rem; font-weight: 800; display: flex; align-items: center; gap: .6rem; }
-.lg-live-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: pulse-dot 1.4s ease infinite; display: inline-block; }
-@keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
-.lg-badge { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.3); border-radius: 20px; padding: .2rem .7rem; font-size: .8rem; font-weight: 700; }
-
-.lg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; }
-
-.lg-card {
-    background: var(--card-bg); border: 1px solid var(--border-color);
-    border-radius: 20px; overflow: hidden; transition: .2s;
-    cursor: pointer; text-decoration: none; display: block;
-    position: relative;
+:root {
+  --lg-accent: #6366f1;
+  --lg-accent2: #8b5cf6;
+  --lg-red: #ef4444;
+  --lg-gold: #f59e0b;
+  --lg-green: #10b981;
+  --lg-card-bg: rgba(18, 18, 35, 0.85);
+  --lg-border: rgba(255,255,255,0.08);
 }
-.lg-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,.18); border-color: rgba(99,102,241,.4); }
-.lg-card-top { padding: 1.25rem 1.25rem .75rem; }
-.lg-card-game { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-bottom: .5rem; display: flex; align-items: center; gap: .4rem; }
-.lg-card-game i { font-size: .9rem; color: var(--primary,#6366f1); }
-.lg-players { display: flex; align-items: center; gap: .6rem; margin-bottom: .75rem; }
-.lg-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; color: #fff; flex-shrink: 0; }
-.lg-avatar.white { background: linear-gradient(135deg,#e2e8f0,#cbd5e1); color: #334155; }
-.lg-avatar.black { background: linear-gradient(135deg,#1e293b,#334155); }
-.lg-vs { font-size: .75rem; color: var(--text-muted); font-weight: 700; flex-shrink: 0; }
-.lg-player-name { font-size: .85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lg-player-meta { font-size: .7rem; color: var(--text-muted); }
+
+/* ── PAGE ── */
+.lg-page { max-width: 1200px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+
+/* ── HERO HEADER ── */
+.lg-hero {
+  position: relative;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 50%, rgba(0,0,0,0) 100%);
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 24px;
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.lg-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(99,102,241,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 30%, rgba(168,85,247,0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+.lg-hero-left { position: relative; z-index: 1; }
+.lg-hero-eyebrow {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .12em; color: rgba(99,102,241,.8);
+  margin-bottom: .6rem;
+}
+.lg-live-ring {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--lg-red);
+  box-shadow: 0 0 0 0 rgba(239,68,68,.5);
+  animation: live-ring 1.8s ease infinite;
+  display: inline-block; flex-shrink: 0;
+}
+@keyframes live-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.lg-hero-title {
+  font-size: 2rem; font-weight: 900; line-height: 1.15;
+  background: linear-gradient(135deg, #e0e7ff, #a5b4fc, #c4b5fd);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.lg-hero-sub { font-size: .88rem; color: rgba(255,255,255,.5); margin-top: .4rem; }
+.lg-hero-right { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 1; }
+.lg-stat-pill {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,.05); border: 1px solid var(--lg-border);
+  border-radius: 16px; padding: .75rem 1.25rem; min-width: 90px;
+}
+.lg-stat-pill .val { font-size: 1.6rem; font-weight: 900; line-height: 1; color: #e0e7ff; }
+.lg-stat-pill .lbl { font-size: .68rem; color: rgba(255,255,255,.45); margin-top: .2rem; text-transform: uppercase; letter-spacing: .08em; }
+.lg-stat-pill.red .val { color: #fca5a5; }
+.lg-stat-pill.gold .val { color: #fde68a; }
+.lg-refresh-btn {
+  background: rgba(99,102,241,.15); border: 1px solid rgba(99,102,241,.3);
+  color: #a5b4fc; border-radius: 14px; padding: .6rem 1.2rem;
+  font-size: .82rem; font-weight: 700; cursor: pointer; transition: .2s;
+  display: flex; align-items: center; gap: .4rem;
+}
+.lg-refresh-btn:hover { background: rgba(99,102,241,.3); color: #e0e7ff; transform: scale(1.04); }
+#refresh-icon { transition: transform .5s ease; }
+.lg-refresh-btn:active #refresh-icon { transform: rotate(360deg); }
+
+/* ── SECTION LABEL ── */
+.lg-section-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: rgba(255,255,255,.35);
+  margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .5rem;
+}
+.lg-section-label::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.07);
+}
+
+/* ── GRID ── */
+.lg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
+
+/* ── CARD ── */
+.lg-card {
+  display: block; text-decoration: none;
+  background: var(--lg-card-bg);
+  border: 1px solid var(--lg-border);
+  border-radius: 22px;
+  overflow: hidden;
+  transition: transform .22s, box-shadow .22s, border-color .22s;
+  position: relative;
+  backdrop-filter: blur(12px);
+}
+.lg-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(99,102,241,.35);
+  border-color: rgba(99,102,241,.3);
+}
+.lg-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(99,102,241,.06) 0%, transparent 60%);
+  pointer-events: none;
+  opacity: 0; transition: opacity .22s;
+}
+.lg-card:hover::before { opacity: 1; }
+
+/* Card type strip */
+.lg-card-type {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .85rem 1.25rem .5rem;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.lg-game-name {
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .73rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .09em; color: rgba(255,255,255,.45);
+}
+.lg-game-icon {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: linear-gradient(135deg, rgba(99,102,241,.3), rgba(139,92,246,.2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: .85rem; color: #a5b4fc;
+}
+.lg-badges { display: flex; align-items: center; gap: .4rem; }
+.lg-badge {
+  font-size: .68rem; font-weight: 700; border-radius: 20px;
+  padding: .2rem .65rem; border: 1px solid;
+}
+.lg-badge.live { background: rgba(239,68,68,.12); color: #fca5a5; border-color: rgba(239,68,68,.3); }
+.lg-badge.coin { background: rgba(245,158,11,.12); color: #fde68a; border-color: rgba(245,158,11,.3); }
+
+/* Players section */
+.lg-players-row {
+  display: flex; align-items: center; gap: .75rem;
+  padding: 1.1rem 1.25rem;
+}
+.lg-player {
+  flex: 1; display: flex; align-items: center; gap: .65rem; min-width: 0;
+}
+.lg-player.right { flex-direction: row-reverse; text-align: right; }
 .lg-player-info { min-width: 0; }
+.lg-player-name {
+  font-size: .9rem; font-weight: 700;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  color: #e0e7ff;
+}
+.lg-player-color {
+  font-size: .7rem; color: rgba(255,255,255,.4); margin-top: .1rem;
+  display: flex; align-items: center; gap: .3rem;
+}
+.lg-player.right .lg-player-color { justify-content: flex-end; }
+.lg-avatar {
+  width: 44px; height: 44px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.05rem;
+  flex-shrink: 0; position: relative;
+}
+.lg-avatar.white-av {
+  background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+  color: #1e293b;
+  box-shadow: 0 4px 14px rgba(226,232,240,.2);
+}
+.lg-avatar.black-av {
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: #e2e8f0; border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 4px 14px rgba(0,0,0,.4);
+}
+.lg-avatar.active-turn::after {
+  content: '';
+  position: absolute; bottom: -3px; right: -3px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--lg-green);
+  border: 2px solid var(--lg-card-bg);
+  animation: turn-pulse 1.2s ease infinite;
+}
+@keyframes turn-pulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16,185,129,.6); }
+  50% { transform: scale(1.1); box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+}
+.lg-vs-divider {
+  display: flex; flex-direction: column; align-items: center; gap: .25rem;
+  flex-shrink: 0;
+}
+.lg-vs-text {
+  font-size: .7rem; font-weight: 900; color: rgba(255,255,255,.25);
+  letter-spacing: .05em;
+}
+.lg-vs-line { width: 1px; height: 22px; background: rgba(255,255,255,.07); }
 
-.lg-card-bottom { background: rgba(0,0,0,.12); padding: .6rem 1.25rem; display: flex; align-items: center; justify-content: space-between; font-size: .78rem; }
-.lg-moves { color: var(--text-muted); }
-.lg-wager { color: #f59e0b; font-weight: 700; display: flex; align-items: center; gap: .3rem; }
-.lg-watch-btn { background: rgba(99,102,241,.15); color: var(--primary,#6366f1); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: .25rem .9rem; font-size: .78rem; font-weight: 700; transition: .15s; }
-.lg-card:hover .lg-watch-btn { background: var(--primary,#6366f1); color: #fff; }
+/* Card footer */
+.lg-card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .75rem 1.25rem;
+  background: rgba(0,0,0,.2);
+  border-top: 1px solid rgba(255,255,255,.04);
+  gap: .5rem;
+}
+.lg-footer-stat {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .75rem; color: rgba(255,255,255,.4);
+}
+.lg-footer-stat i { font-size: .85rem; }
+.lg-footer-stat.gold { color: var(--lg-gold); }
+.lg-watch-btn {
+  display: flex; align-items: center; gap: .4rem;
+  background: linear-gradient(135deg, rgba(99,102,241,.2), rgba(139,92,246,.15));
+  border: 1px solid rgba(99,102,241,.3);
+  color: #a5b4fc; border-radius: 20px;
+  padding: .35rem 1rem; font-size: .78rem; font-weight: 700;
+  transition: .2s;
+}
+.lg-card:hover .lg-watch-btn {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  border-color: #6366f1; color: #fff;
+  box-shadow: 0 4px 14px rgba(99,102,241,.4);
+}
 
-.lg-turn-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: .3rem; }
-.lg-turn-dot.white { background: #e2e8f0; border: 1px solid #94a3b8; }
-.lg-turn-dot.black { background: #1e293b; border: 1px solid #475569; }
+/* Progress bar (move count visual) */
+.lg-move-bar {
+  height: 3px; background: rgba(255,255,255,.05);
+  overflow: hidden;
+}
+.lg-move-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  transition: width .5s ease;
+  min-width: 5%;
+}
 
-.lg-empty { text-align: center; padding: 5rem 2rem; color: var(--text-muted); }
-.lg-empty i { font-size: 3rem; display: block; margin-bottom: 1rem; opacity: .3; }
-.lg-empty p { font-size: 1rem; margin-bottom: 1.5rem; }
+/* ── EMPTY STATE ── */
+.lg-empty {
+  grid-column: 1 / -1;
+  text-align: center; padding: 5rem 2rem;
+  background: var(--lg-card-bg);
+  border: 1px dashed rgba(255,255,255,.1);
+  border-radius: 22px;
+}
+.lg-empty-icon {
+  width: 80px; height: 80px; border-radius: 24px; margin: 0 auto 1.25rem;
+  background: linear-gradient(135deg, rgba(99,102,241,.15), rgba(139,92,246,.1));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.2rem; color: rgba(99,102,241,.6);
+}
+.lg-empty h3 { font-size: 1.15rem; font-weight: 700; color: rgba(255,255,255,.6); margin-bottom: .4rem; }
+.lg-empty p { font-size: .85rem; color: rgba(255,255,255,.3); margin-bottom: 1.5rem; }
+.lg-empty-btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  color: #fff; text-decoration: none;
+  padding: .65rem 1.5rem; border-radius: 14px;
+  font-size: .85rem; font-weight: 700;
+  box-shadow: 0 6px 20px rgba(99,102,241,.35);
+  transition: .2s;
+}
+.lg-empty-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(99,102,241,.5); color: #fff; }
 
-.lg-refresh { font-size: .8rem; color: var(--text-muted); margin-left: auto; }
-.lg-refresh-btn { background: none; border: 1px solid var(--border-color); border-radius: 10px; color: var(--text-muted); padding: .3rem .8rem; font-size: .8rem; cursor: pointer; transition: .15s; }
-.lg-refresh-btn:hover { color: var(--primary,#6366f1); border-color: var(--primary,#6366f1); }
+/* ── COUNTDOWN ── */
+.lg-countdown {
+  font-size: .72rem; color: rgba(255,255,255,.3);
+  text-align: right; margin-top: .75rem;
+  display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+}
+#countdown-bar {
+  width: 120px; height: 3px; background: rgba(255,255,255,.07);
+  border-radius: 2px; overflow: hidden;
+}
+#countdown-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6);
+  transition: width 1s linear;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="lg-page">
-    <div class="lg-header">
-        <div class="lg-title">
-            <span class="lg-live-dot"></span>
-            Jonli O'yinlar
-        </div>
-        <span class="lg-badge">{{ matches|length }} ta faol</span>
-        <button class="lg-refresh-btn ms-auto" onclick="location.reload()">
-            <i class="bi bi-arrow-clockwise"></i> Yangilash
-        </button>
-    </div>
 
-    {% if matches %}
-    <div class="lg-grid">
-        {% for match in matches %}
-        <a href="{% url 'games:spectate_match' match.id %}" class="lg-card">
-            <div class="lg-card-top">
-                <div class="lg-card-game">
-                    <i class="bi {% if 'shaxmat' in match.game.slug %}bi-diagram-3{% else %}bi-grid-3x3{% endif %}"></i>
-                    {{ match.game.title }}
-                    {% if match.mode == 'coin' %}
-                    <span style="color:#f59e0b;margin-left:.3rem;"><i class="bi bi-coin"></i> Coin</span>
-                    {% endif %}
-                </div>
-                <div class="lg-players">
-                    <div class="lg-avatar white">{{ match.white_player.first_name|first|upper }}</div>
-                    <div class="lg-player-info">
-                        <div class="lg-player-name">{{ match.white_player.get_full_name }}</div>
-                        <div class="lg-player-meta">Oq</div>
-                    </div>
-                    <div class="lg-vs">VS</div>
-                    {% if match.black_player %}
-                    <div class="lg-avatar black">{{ match.black_player.first_name|first|upper }}</div>
-                    <div class="lg-player-info">
-                        <div class="lg-player-name">{{ match.black_player.get_full_name }}</div>
-                        <div class="lg-player-meta">Qora</div>
-                    </div>
-                    {% else %}
-                    <div class="lg-avatar black" style="opacity:.4;">?</div>
-                    <div class="lg-player-info"><div class="lg-player-name" style="color:var(--text-muted);">Raqib kutilmoqda</div></div>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="lg-card-bottom">
-                <span class="lg-moves">
-                    <span class="lg-turn-dot {{ match.current_turn }}"></span>
-                    {{ match.move_count }} ta yurish
-                </span>
-                {% if match.mode == 'coin' and match.wager_coins %}
-                <span class="lg-wager"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin</span>
-                {% endif %}
-                <span class="lg-watch-btn"><i class="bi bi-eye"></i> Tomosha</span>
-            </div>
-        </a>
-        {% endfor %}
+  <!-- HERO -->
+  <div class="lg-hero">
+    <div class="lg-hero-left">
+      <div class="lg-hero-eyebrow">
+        <span class="lg-live-ring"></span>
+        Hozir efirda
+      </div>
+      <div class="lg-hero-title">Jonli O'yinlar</div>
+      <div class="lg-hero-sub">Real vaqtda bo'layotgan shaxmat va shashka o'yinlarini tomosha qiling</div>
     </div>
-    {% else %}
+    <div class="lg-hero-right">
+      <div class="lg-stat-pill red">
+        <span class="val">{{ matches|length }}</span>
+        <span class="lbl">Faol</span>
+      </div>
+      <div class="lg-stat-pill gold">
+        <span class="val">
+          {% for m in matches %}{% if m.mode == 'coin' %}+{% endif %}{% endfor %}{{ matches|length }}
+        </span>
+        <span class="lbl">Coin o'yinlar</span>
+      </div>
+      <button class="lg-refresh-btn" onclick="refreshPage(this)">
+        <i class="bi bi-arrow-clockwise" id="refresh-icon"></i> Yangilash
+      </button>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  {% if matches %}
+  <div class="lg-section-label">
+    <i class="bi bi-controller"></i>
+    {{ matches|length }} ta o'yin davom etmoqda
+  </div>
+  <div class="lg-grid">
+    {% for match in matches %}
+    
+    <a href="{% url 'games:spectate_match' match.id %}" class="lg-card">
+
+      <!-- move progress bar -->
+      <div class="lg-move-bar">
+        <div class="lg-move-bar-fill" style="width: {% widthratio match.move_count 100 100 %}%"></div>
+      </div>
+
+      <!-- type strip -->
+      <div class="lg-card-type">
+        <div class="lg-game-name">
+          <div class="lg-game-icon">
+            <i class="bi {% if "shaxmat" in match.game.slug %}bi-grid-3x3-gap-fill{% else %}bi-circle-fill{% endif %}"></i>
+          </div>
+          {{ match.game.title }}
+        </div>
+        <div class="lg-badges">
+          <span class="lg-badge live"><i class="bi bi-broadcast"></i> Jonli</span>
+          {% if match.mode == 'coin' and match.wager_coins %}
+          <span class="lg-badge coin"><i class="bi bi-coin"></i> {{ match.wager_coins }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- players -->
+      <div class="lg-players-row">
+        <!-- White player -->
+        <div class="lg-player">
+          <div class="lg-avatar white-av {% if match.current_turn == 'white' %}active-turn{% endif %}">
+            {{ match.white_player.first_name|first|upper }}
+          </div>
+          <div class="lg-player-info">
+            <div class="lg-player-name">{{ match.white_player.get_full_name }}</div>
+            <div class="lg-player-color">
+              <i class="bi bi-square"></i> Oq
+              {% if match.current_turn == 'white' %}<span style="color:#10b981;font-weight:700;">• Yurayapti</span>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="lg-vs-divider">
+          <div class="lg-vs-line"></div>
+          <div class="lg-vs-text">VS</div>
+          <div class="lg-vs-line"></div>
+        </div>
+
+        <!-- Black player -->
+        {% if match.black_player %}
+        <div class="lg-player right">
+          <div class="lg-avatar black-av {% if match.current_turn == 'black' %}active-turn{% endif %}">
+            {{ match.black_player.first_name|first|upper }}
+          </div>
+          <div class="lg-player-info">
+            <div class="lg-player-name">{{ match.black_player.get_full_name }}</div>
+            <div class="lg-player-color">
+              <i class="bi bi-square-fill"></i> Qora
+              {% if match.current_turn == 'black' %}<span style="color:#10b981;font-weight:700;">• Yurayapti</span>{% endif %}
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="lg-player right" style="opacity:.4;">
+          <div class="lg-avatar black-av">?</div>
+          <div class="lg-player-info">
+            <div class="lg-player-name" style="color:rgba(255,255,255,.4);">Kutilmoqda</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- footer -->
+      <div class="lg-card-footer">
+        <span class="lg-footer-stat"><i class="bi bi-arrow-left-right"></i> {{ match.move_count }} yurish</span>
+        {% if match.mode == 'coin' and match.wager_coins %}
+        <span class="lg-footer-stat gold"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin tikilgan</span>
+        {% else %}
+        <span class="lg-footer-stat"><i class="bi bi-controller"></i> Shunchaki</span>
+        {% endif %}
+        <span class="lg-watch-btn"><i class="bi bi-eye-fill"></i> Tomosha</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="lg-grid">
     <div class="lg-empty">
-        <i class="bi bi-controller"></i>
-        <p>Hozirda faol o'yinlar yo'q</p>
-        <a href="{% url 'games:games_list' %}" style="color:var(--primary,#6366f1);text-decoration:none;font-weight:600;">
-            <i class="bi bi-play-circle"></i> O'yin boshlash
-        </a>
+      <div class="lg-empty-icon"><i class="bi bi-broadcast"></i></div>
+      <h3>Hozirda faol o'yinlar yo'q</h3>
+      <p>Biror o'yinchi o'yin boshlaganida u yerda ko'rinadi</p>
+      <a href="{% url 'games:games_list' %}" class="lg-empty-btn">
+        <i class="bi bi-play-circle-fill"></i> O'yin boshlash
+      </a>
     </div>
-    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- auto-refresh countdown -->
+  <div class="lg-countdown">
+    <span id="countdown-text">30s da yangilanadi</span>
+    <div id="countdown-bar"><div id="countdown-fill"></div></div>
+  </div>
+
 </div>
 
 <script>
-// 30 soniyada bir avtomatik yangilash
-setTimeout(() => location.reload(), 30000);
+let _remaining = 30;
+const fillEl = document.getElementById('countdown-fill');
+const textEl = document.getElementById('countdown-text');
+
+const tick = setInterval(() => {
+  _remaining--;
+  if (fillEl) fillEl.style.width = (_remaining / 30 * 100) + '%';
+  if (textEl) textEl.textContent = _remaining + 's da yangilanadi';
+  if (_remaining <= 0) { clearInterval(tick); location.reload(); }
+}, 1000);
+
+function refreshPage(btn) {
+  const icon = btn.querySelector('#refresh-icon');
+  if (icon) icon.style.transform = 'rotate(360deg)';
+  setTimeout(() => location.reload(), 300);
+}
 </script>
 {% endblock %}
