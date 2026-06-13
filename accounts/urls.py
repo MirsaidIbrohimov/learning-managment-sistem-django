@@ -1,5 +1,6 @@
 from django.urls import path, re_path
 from . import views
+from . import payment_views
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -294,4 +295,9 @@ urlpatterns = [
     
     # So'rovnomani to'ldirish
     path('survey/<int:pk>/fill/', views.fill_survey, name='fill_survey'),
+
+    # ── Online to'lov (Payme & Click) ──────────────────────────────
+    path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
+    path('click/prepare/', payment_views.click_prepare, name='click_prepare'),
+    path('click/complete/', payment_views.click_complete, name='click_complete'),
 ]

@@ -27,9 +27,9 @@ class TeacherAttendanceInline(admin.TabularInline):
 
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['username', 'full_name', 'phone', 'role', 'coins', 'is_blocked', 'is_online_display', 'date_joined']
+    list_display = ['student_id_display', 'username', 'full_name', 'phone', 'role', 'coins', 'is_blocked', 'is_online_display', 'date_joined']
     list_filter = ['role', 'is_blocked', 'profession', 'date_joined']
-    search_fields = ['username', 'first_name', 'last_name', 'phone']
+    search_fields = ['username', 'first_name', 'last_name', 'phone', 'student_id']
     ordering = ['-date_joined']
     list_editable = ['is_blocked']
     list_per_page = 25
@@ -56,6 +56,10 @@ class CustomUserAdmin(UserAdmin):
                 'gender', 'birth_date', 'nationality', 'address',
             ),
             'description': 'Foydalanuvchining asosiy shaxsiy ma\'lumotlari',
+        }),
+        ("O'quvchi ID", {
+            'fields': ('student_id',),
+            'description': "Avtomatik berilgan o'zgarmas 5 xonali ID raqam (Payme/Click to'lovlari uchun)",
         }),
         ('Rol va yo\'nalish', {
             'fields': (
@@ -106,17 +110,32 @@ class CustomUserAdmin(UserAdmin):
         }),
     )
     
-    readonly_fields = ['last_login', 'date_joined', 'last_activity', 'last_daily_login', 'total_online_time']
-    
+    readonly_fields = ['last_login', 'date_joined', 'last_activity', 'last_daily_login', 'total_online_time', 'student_id']
+
     def full_name(self, obj):
         return obj.full_name
     full_name.short_description = 'Ism Familiya'
-    
+
     def is_online_display(self, obj):
         if obj.is_online:
             return format_html('<span style="color: #28a745;">●</span> Online')
         return format_html('<span style="color: #6c757d;">●</span> Offline')
     is_online_display.short_description = 'Status'
+
+    def student_id_display(self, obj):
+        if obj.student_id:
+            return format_html(
+                '<span style="'
+                'background:#1e1b4b;color:#c4b5fd;'
+                'padding:2px 8px;border-radius:6px;'
+                'font-weight:700;font-size:0.85em;'
+                'font-family:monospace;letter-spacing:1px;">'
+                '#{}</span>',
+                obj.student_id
+            )
+        return format_html('<span style="color:#9ca3af;">—</span>')
+    student_id_display.short_description = 'ID'
+    student_id_display.admin_order_field = 'student_id'
 
 
 @admin.register(Profession)

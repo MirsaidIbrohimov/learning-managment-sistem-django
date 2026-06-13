@@ -371,7 +371,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # XSS himoya (SecurityHeadersMiddleware da boshqariladi — dublikat bo'lmasligi uchun)
 SECURE_BROWSER_XSS_FILTER = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Clickjacking himoya (SecurityHeadersMiddleware da boshqariladi)
 X_FRAME_OPTIONS = 'DENY'
@@ -411,7 +411,7 @@ SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_SSL_REDIRECT = not DEBUG
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Referrer va COOP — SecurityHeadersMiddleware da boshqariladi (dublikat oldini olish)
-SECURE_REFERRER_POLICY = None
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # Fayl yuklash xavfsizligi
@@ -430,6 +430,24 @@ GAME_MAX_SCORE_MULTIPLIER = 2.0
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
 TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")
+
+# ── Online to'lov: Payme ─────────────────────────────────────────
+# .env faylda quyidagilarni to'ldiring:
+#   PAYME_KEY  = Payme merchant cabinet -> Kassa -> Secret Key
+#   PAYME_ID   = Payme merchant cabinet -> Kassa ID
+PAYME_KEY = os.getenv("PAYME_KEY", "")
+PAYME_ID  = os.getenv("PAYME_ID", "")
+
+# ── Online to'lov: Click ─────────────────────────────────────────
+# .env faylda quyidagilarni to'ldiring:
+#   CLICK_SERVICE_ID        = Click -> Do'kon -> Service ID
+#   CLICK_MERCHANT_ID       = Click -> Do'kon -> Merchant ID
+#   CLICK_MERCHANT_USER_ID  = Click -> Do'kon -> Merchant User ID
+#   CLICK_SECRET_KEY        = Click -> Do'kon -> Secret Key
+CLICK_SERVICE_ID       = int(os.getenv("CLICK_SERVICE_ID", "0"))
+CLICK_MERCHANT_ID      = int(os.getenv("CLICK_MERCHANT_ID", "0"))
+CLICK_MERCHANT_USER_ID = int(os.getenv("CLICK_MERCHANT_USER_ID", "0"))
+CLICK_SECRET_KEY       = os.getenv("CLICK_SECRET_KEY", "")
 SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
 
 # ============ LOGIN XAVFSIZLIGI ============

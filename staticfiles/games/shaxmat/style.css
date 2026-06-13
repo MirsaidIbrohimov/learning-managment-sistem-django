@@ -134,4 +134,230 @@ body[data-theme="crimson"] {
     display: flex;
     align-items: center;
     justify-content: center;
-    width:
+    width: 100%;
+    height: 100%;
+    font-size: 3em;
+    line-height: 1;
+    user-select: none;
+    cursor: grab;
+    transition: transform 0.15s ease, filter 0.15s ease;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
+    font-weight: 400;
+}
+#board .cell .piece-wrap:hover { transform: scale(1.08); }
+
+/* Oq donalar — oltin/ivory effekti */
+#board .cell .piece-wrap.white {
+    color: #fdf8e1;
+    text-shadow:
+        0 0 1px #b8960c,
+        1px 2px 0 #8a6e00,
+        -1px -1px 0 #ffd700,
+        2px 3px 6px rgba(0,0,0,0.65),
+        0 0 12px rgba(255,220,50,0.3);
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.5));
+}
+
+/* Qora donalar — midnight indigo effekti */
+#board .cell .piece-wrap.black {
+    color: #1e1b4b;
+    text-shadow:
+        0 0 1px #818cf8,
+        1px 2px 0 #4338ca,
+        -1px -1px 0 #2d2580,
+        2px 3px 6px rgba(255,255,255,0.2),
+        0 0 10px rgba(99,102,241,0.4);
+    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.6));
+}
+
+/* Classic temada qora donalar brown rang */
+body[data-theme="classic"] #board .cell .piece-wrap.black {
+    color: #1c0a00;
+    text-shadow:
+        0 0 1px #d97706,
+        1px 2px 0 #92400e,
+        2px 3px 5px rgba(0,0,0,0.7);
+}
+
+/* Emerald temada qora donalar yashil rang */
+body[data-theme="emerald"] #board .cell .piece-wrap.black {
+    color: #052e16;
+    text-shadow:
+        0 0 1px #10b981,
+        1px 2px 0 #065f46,
+        2px 3px 5px rgba(0,0,0,0.7);
+}
+
+/* Crimson temada qora donalar qizil rang */
+body[data-theme="crimson"] #board .cell .piece-wrap.black {
+    color: #4c0519;
+    text-shadow:
+        0 0 1px #f43f5e,
+        1px 2px 0 #9f1239,
+        2px 3px 5px rgba(0,0,0,0.7);
+}
+
+/* Hover/select effektlari */
+#board .cell.selected {
+    background: var(--selected-bg, linear-gradient(135deg,#c9a227,#f5cc4e)) !important;
+    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.3), inset 0 0 15px rgba(255,255,255,0.1);
+}
+#board .cell.hint::after {
+    content: '';
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--hint-color, rgba(99,202,143,0.9)) 0%, transparent 100%);
+    box-shadow: 0 0 14px var(--hint-color, rgba(52,211,153,0.8));
+    pointer-events: none;
+}
+#board .cell.hint.has-piece::after {
+    width: 95%;
+    height: 95%;
+    background: transparent;
+    border: 4px solid #f87171;
+    box-shadow: inset 0 0 10px rgba(239,68,68,0.3), 0 0 14px rgba(239,68,68,0.5);
+}
+
+/* SHOX cellini qizil bilan belgilash */
+#board .cell.in-check {
+    background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
+    box-shadow: inset 0 0 0 3px #ef4444, 0 0 20px rgba(239,68,68,0.6);
+    animation: pulse-red 1s infinite;
+}
+@keyframes pulse-red {
+    0%, 100% { box-shadow: inset 0 0 0 3px #ef4444, 0 0 18px rgba(239,68,68,0.5); }
+    50%      { box-shadow: inset 0 0 0 5px #f87171, 0 0 30px rgba(239,68,68,0.8); }
+}
+
+/* Last-move highlight */
+#board .cell.last-move {
+    box-shadow: inset 0 0 0 3px var(--last-move-glow, rgba(201,162,39,0.8)),
+                inset 0 0 12px rgba(255,255,255,0.05);
+}
+
+/* Promotion modal */
+.promo-choices {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 14px;
+}
+.promo-choices button {
+    font-size: 2.4em;
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    border: 2px solid #4338ca;
+    border-radius: 12px;
+    padding: 10px 18px;
+    cursor: pointer;
+    color: #fdf8e1;
+    transition: all 0.15s ease;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
+}
+.promo-choices button:hover {
+    border-color: var(--board-frame-ring, #c9a227);
+    transform: scale(1.12);
+    box-shadow: 0 4px 20px rgba(201,162,39,0.45);
+}
+
+/* Captured pieces */
+.captured-display .cap-pc {
+    font-size: 1.4em;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
+    margin: 0 2px;
+}
+
+/* Logo animatsiyasi shaxmat figuralari uchun */
+.logo-animated .piece-anim {
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
+}
+.logo-big {
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
+}
+
+/* ===== TEMA TANLASH UI ===== */
+.theme-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+.theme-picker-label {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+.theme-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.theme-swatch:hover { transform: scale(1.18); }
+.theme-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 4px 14px rgba(0,0,0,0.5);
+    transform: scale(1.15);
+}
+/* Shaxmat swatchlari */
+.theme-swatch[data-theme="navy"]    { background: linear-gradient(135deg, #818cf8, #3730a3); }
+.theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #d97706, #b58863); }
+.theme-swatch[data-theme="emerald"] { background: linear-gradient(135deg, #10b981, #1a6641); }
+.theme-swatch[data-theme="slate"]   { background: linear-gradient(135deg, #94a3b8, #334155); }
+.theme-swatch[data-theme="crimson"] { background: linear-gradient(135deg, #f43f5e, #9f1239); }
+.theme-swatch-tip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.85);
+    color: #f1f5f9;
+    font-size: 0.72rem;
+    white-space: nowrap;
+    padding: 4px 8px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 50;
+}
+.theme-swatch:hover .theme-swatch-tip { opacity: 1; }
+
+/* ===== WAGER FEE INFO BOX ===== */
+.wager-fee-box {
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    animation: cardIn 0.3s;
+}
+.fee-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 0.88rem;
+    color: #cbd5e1;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.fee-row:last-child { border-bottom: none; padding-bottom: 0; }
+.fee-row span:first-child { color: #94a3b8; }
+.fee-win { font-size: 0.95rem; margin-top: 4px; }
+.fee-net { font-size: 0.82rem; }

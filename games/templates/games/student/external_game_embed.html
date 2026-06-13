@@ -407,14 +407,26 @@
     {% endif %}
 
     <div class="ext-frame-box">
+        {% if launch_url|slice:":4" == "http" %}
+        {# Tashqi (boshqa domen) URL — allow-same-origin ni olib tashlaymiz (xavfsizlik ogohlantirishi) #}
         <iframe
             src="{{ launch_url }}"
             title="{{ game.title }}"
             allow="fullscreen; autoplay; clipboard-write"
             allowfullscreen
             referrerpolicy="no-referrer-when-downgrade"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation">
+            sandbox="allow-scripts allow-forms allow-popups allow-modals allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation">
         </iframe>
+        {% else %}
+        {# O'zimizning static faylar (xavfsiz, ishonchli manba) — sandbox kerak emas #}
+        <iframe
+            src="{{ launch_url }}"
+            title="{{ game.title }}"
+            allow="fullscreen; autoplay; clipboard-write; storage-access"
+            allowfullscreen
+            referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        {% endif %}
     </div>
 
     <div class="ext-results">

@@ -244,7 +244,12 @@
 
         <div class="uv-hero-info">
             <h1>{{ user_obj.full_name }}</h1>
-            <p>@{{ user_obj.username }} &bull; {{ user_obj.phone }}</p>
+            <p>
+                @{{ user_obj.username }} &bull; {{ user_obj.phone }}
+                {% if user_obj.student_id %}
+                &bull; <span style="background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);color:#e9d5ff;padding:2px 9px;border-radius:7px;font-weight:700;font-size:0.78em;font-family:monospace;letter-spacing:1px;">#{{ user_obj.student_id }}</span>
+                {% endif %}
+            </p>
             <div class="uv-hero-badges">
                 <span class="uv-badge {% if user_obj.role == 'admin' %}r-admin{% elif user_obj.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
                     {% if user_obj.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin
@@ -314,6 +319,15 @@
             </div>
             <div class="uv-card-body">
                 <div class="uv-info-grid">
+                    <div class="uv-info-item" style="grid-column:1/-1;border-right:none!important;padding-right:0!important;">
+                        <div class="uv-info-label"><i class="bi bi-person-badge"></i> O'quvchi ID</div>
+                        <div class="uv-info-value">
+                            {% if user_obj.student_id %}
+                            <span style="background:#1e1b4b;color:#c4b5fd;padding:3px 12px;border-radius:8px;font-weight:700;font-size:1rem;font-family:monospace;letter-spacing:2px;">#{{ user_obj.student_id }}</span>
+                            <span style="font-size:0.75rem;color:var(--bs-secondary-color,#6c757d);margin-left:0.5rem;">Payme/Click to'lovlari uchun</span>
+                            {% else %}—{% endif %}
+                        </div>
+                    </div>
                     <div class="uv-info-item">
                         <div class="uv-info-label"><i class="bi bi-person"></i> Ism</div>
                         <div class="uv-info-value">{{ user_obj.first_name|default:"—" }}</div>

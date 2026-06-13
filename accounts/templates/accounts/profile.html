@@ -79,6 +79,53 @@
 .pf-btns .btn{border-radius:50px;font-weight:600;font-size:.85rem;transition:all .3s}
 .pf-btns .btn:hover{transform:translateY(-2px)}
 
+/* ===== STUDENT ID CARD ===== */
+.sid-card{
+  position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0f0c1e 0%,#1a1040 50%,#0d1829 100%);
+  border:1px solid rgba(99,102,241,.35);
+  border-radius:18px;padding:1.1rem 1.25rem;cursor:pointer;
+  text-align:left;
+  box-shadow:0 8px 28px rgba(99,102,241,.18),inset 0 0 0 1px rgba(255,255,255,.04);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  user-select:none;
+}
+.sid-card::before{
+  content:'';position:absolute;top:-40px;right:-40px;
+  width:130px;height:130px;border-radius:50%;
+  background:rgba(99,102,241,.12);filter:blur(30px);pointer-events:none;
+}
+.sid-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 40px rgba(99,102,241,.28),inset 0 0 0 1px rgba(99,102,241,.2);
+  border-color:rgba(99,102,241,.55);
+}
+.sid-card.copied{
+  border-color:#34c759;
+  box-shadow:0 0 0 3px rgba(52,199,89,.25),0 12px 32px rgba(52,199,89,.15);
+}
+.sid-label{
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(165,180,252,.7);margin-bottom:.35rem;
+  display:flex;align-items:center;gap:.35rem;
+}
+.sid-number{
+  font-size:2.1rem;font-weight:900;letter-spacing:.18em;
+  background:linear-gradient(135deg,#e0e7ff,#818cf8 40%,#a78bfa);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;line-height:1.1;margin-bottom:.5rem;
+  font-variant-numeric:tabular-nums;
+}
+.sid-copy-hint{font-size:.68rem;color:rgba(148,163,184,.6);display:flex;align-items:center;gap:.3rem;margin-bottom:.75rem;}
+.sid-logos{display:flex;gap:.5rem;align-items:center;}
+.sid-logo{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:.22rem .65rem;border-radius:7px;font-size:.7rem;font-weight:800;
+  letter-spacing:.02em;
+}
+.sid-logo.payme{background:#00c2ff;color:#fff;}
+.sid-logo.click{background:#f15a2b;color:#fff;}
+
 /* ===== MINI ITEM ===== */
 .pf-mini{background:var(--bs-tertiary-bg);border-radius:16px;padding:.85rem;transition:all .3s cubic-bezier(.4,0,.2,1)}
 .pf-mini:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
@@ -243,6 +290,19 @@
         <div class="pf-coin {% if user.is_premium %}pm-coin{% endif %}">
             <i class="bi bi-coin"></i> {{ user.coins }} coin
         </div>
+
+        {% if user.student_id %}
+        <!-- Student ID card -->
+        <div class="sid-card mt-3" id="sidCard" title="Nusxa olish uchun bosing" onclick="copySid()">
+            <div class="sid-label"><i class="bi bi-person-badge-fill"></i> ID Raqam</div>
+            <div class="sid-number" id="sidNumber">{{ user.student_id }}</div>
+            <div class="sid-copy-hint"><i class="bi bi-clipboard"></i> Bosib nusxa oling</div>
+            <div class="sid-logos">
+                <span class="sid-logo payme">Payme</span>
+                <span class="sid-logo click">Click</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Buttons -->
@@ -691,5 +751,39 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape'){var lb=docu
     });
 })();
 {% endif %}
+
+// ── Student ID copy ──────────────────────────────────────────────
+function copySid(){
+  var card = document.getElementById('sidCard');
+  var sid  = document.getElementById('sidNumber');
+  if (!card || !sid) return;
+  var text = sid.textContent.trim();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){
+      _sidCopied(card);
+    }).catch(function(){
+      _sidFallback(text, card);
+    });
+  } else {
+    _sidFallback(text, card);
+  }
+}
+function _sidCopied(card){
+  card.classList.add('copied');
+  var hint = card.querySelector('.sid-copy-hint');
+  var orig = hint ? hint.innerHTML : '';
+  if (hint) hint.innerHTML = '<i class="bi bi-check-lg" style="color:#34c759;"></i> Nusxalandi!';
+  setTimeout(function(){
+    card.classList.remove('copied');
+    if (hint) hint.innerHTML = orig;
+  }, 2000);
+}
+function _sidFallback(text, card){
+  var ta = document.createElement('textarea');
+  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); _sidCopied(card); } catch(e){}
+  document.body.removeChild(ta);
+}
 </script>
 {% endblock %}

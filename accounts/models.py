@@ -66,6 +66,16 @@ class CustomUser(AbstractUser):
         ('student', "O'quvchi"),
     )
 
+    # ─── Unique student ID (5-digit, immutable) ───
+    student_id = models.IntegerField(
+        unique=True,
+        null=True,
+        blank=True,
+        editable=False,
+        verbose_name="O'quvchi ID raqami",
+        db_index=True,
+    )
+
     # Basic info
     first_name = models.CharField(max_length=100, verbose_name="Ism")
     last_name = models.CharField(max_length=100, verbose_name="Familiya")
@@ -313,6 +323,14 @@ class CustomUser(AbstractUser):
             self.first_name = self._clean_name(self.first_name)
         if self.last_name:
             self.last_name = self._clean_name(self.last_name)
+        # Auto-generate unique 5-digit student_id on first creation
+        if not self.student_id:
+            import random
+            while True:
+                sid = random.randint(10000, 99999)
+                if not CustomUser.objects.filter(student_id=sid).exists():
+                    self.student_id = sid
+                    break
         super().save(*args, **kwargs)
 
     @staticmethod
@@ -1973,6 +1991,84 @@ class AssistantActionLog(models.Model):
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['action_code', '-created_at']),
         ]
+
+
+# ════════════════════════════════════════════════════════════════
+#  ONLINE PAYMENT — Payme & Click
+# ════════════════════════════════════════════════════════════════
+
+class PaymeTransaction(models.Model):
+    """Payme merchant API tranzaksiyalari"""
+
+    STATE_CREATED   =  1   # Yaratilgan, hali to'lanmagan
+    STATE_COMPLETED =  2   # To'langan (perform qilingan)
+    STATE_CANCELLED = -1   # Bekor qilingan (perform dan oldin)
+    STATE_CANCELLED_AFTER_COMPLETE = -2  # Bekor qilingan (perform dan keyin)
+
+    STATE_CHOICES = (
+        (STATE_CREATED,   "Yaratilgan"),
+        (STATE_COMPLETED, "To'langan"),
+        (STATE_CANCELLED, "Bekor qilingan"),
+        (STATE_CANCELLED_AFTER_COMPLETE, "Qaytarilgan"),
+    )
+
+    payme_id    = models.CharField(max_length=255, unique=True, verbose_name="Payme tranzaksiya ID")
+    student     = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='payme_transactions', verbose_name="O'quvchi"
+    )
+    amount      = models.DecimalField(max_digits=14, decimal_places=0, verbose_name="Summa (tiyin)")
+    state       = models.IntegerField(choices=STATE_CHOICES, default=STATE_CREATED, verbose_name="Holat")
+    # Unix timestamps (milliseconds) — Payme API standart
+    time        = models.BigIntegerField(verbose_name="Yaratilish vaqti (ms)")
+    create_time = models.BigIntegerField(null=True, blank=True, verbose_name="Server create vaqti (ms)")
+    perform_time= models.BigIntegerField(null=True, blank=True, verbose_name="Perform vaqti (ms)")
+    cancel_time = models.BigIntegerField(null=True, blank=True, verbose_name="Bekor etish vaqti (ms)")
+    reason      = models.IntegerField(null=True, blank=True, verbose_name="Bekor etish sababi")
+
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Payme tranzaksiyasi"
+        verbose_name_plural = "Payme tranzaksiyalari"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        student_str = self.student.get_full_name() if self.student else "—"
+        return f"Payme #{self.payme_id[:8]}… | {student_str} | {self.amount} tiyin"
+
+
+class ClickTransaction(models.Model):
+    """Click SHOP API tranzaksiyalari"""
+
+    ACTION_PREPARE  = 0
+    ACTION_COMPLETE = 1
+
+    click_trans_id  = models.BigIntegerField(unique=True, verbose_name="Click tranzaksiya ID")
+    click_paydoc_id = models.BigIntegerField(null=True, blank=True, verbose_name="Click paydoc ID")
+    student         = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='click_transactions', verbose_name="O'quvchi"
+    )
+    merchant_trans_id = models.CharField(max_length=200, blank=True, verbose_name="Merchant trans ID (student_id)")
+    amount          = models.DecimalField(max_digits=14, decimal_places=2, verbose_name="Summa (so'm)")
+    is_confirmed    = models.BooleanField(default=False, verbose_name="Tasdiqlangan")
+    error           = models.IntegerField(default=0, verbose_name="Xato kodi")
+    error_note      = models.CharField(max_length=500, blank=True, verbose_name="Xato matni")
+    sign_time       = models.CharField(max_length=30, blank=True, verbose_name="Imzo vaqti")
+
+    created_at      = models.DateTimeField(auto_now_add=True)
+    updated_at      = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Click tranzaksiyasi"
+        verbose_name_plural = "Click tranzaksiyalari"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        student_str = self.student.get_full_name() if self.student else "—"
+        return f"Click #{self.click_trans_id} | {student_str} | {self.amount} so'm"
 
     def __str__(self):
         who = self.user.username if self.user else 'system'

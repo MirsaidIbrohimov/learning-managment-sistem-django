@@ -1022,7 +1022,7 @@ function endGame(winner) {
 
 function showResult(result, score, elapsed) {
     $('result-bg').className = `result-bg ${result}`;
-    const icons = { win: 'bi-trophy-fill', lose: 'bi-emoji-frown', draw: 'bi-handshake' };
+    const icons  = { win: 'bi-trophy-fill', lose: 'bi-emoji-frown', draw: 'bi-handshake' };
     const titles = { win: "G'alaba!", lose: "Mag'lubiyat", draw: "Durang" };
     const subs   = {
         win:  MODE === 'mp' ? `${OPPONENT.name}'ni mag'lub etdingiz!` : `AI (${OPPONENT.meta})ni mag'lub etdingiz!`,
@@ -1035,6 +1035,22 @@ function showResult(result, score, elapsed) {
     $('result-score').textContent = score;
     $('result-time').textContent = Math.floor(elapsed) + 's';
     $('result-moves').textContent = moveHistory.length;
+    const starsEl = $('result-stars');
+    if (starsEl) {
+        starsEl.innerHTML = '';
+        if (result === 'win') {
+            const colors = ['#fbbf24','#c9a227','#4ade80','#fde68a','#f472b6'];
+            for (let i = 0; i < 22; i++) {
+                const s = document.createElement('span');
+                const angle = (i / 22) * 360;
+                const dist = 80 + Math.random() * 120;
+                const tx = Math.cos(angle * Math.PI/180) * dist + 'px';
+                const ty = Math.sin(angle * Math.PI/180) * dist - 60 + 'px';
+                s.style.cssText = `left:${20+Math.random()*60}%;top:${20+Math.random()*60}%;background:${colors[i%colors.length]};width:${3+Math.random()*4}px;height:${3+Math.random()*4}px;--tx:${tx};--ty:${ty};animation-delay:${Math.random()*0.6}s;animation-duration:${1.5+Math.random()}s`;
+                starsEl.appendChild(s);
+            }
+        }
+    }
     showScreen('result');
 }
 

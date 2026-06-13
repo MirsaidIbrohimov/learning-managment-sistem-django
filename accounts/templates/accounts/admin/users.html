@@ -433,7 +433,12 @@
                         {% if u.is_premium %}<i class="bi bi-patch-check-fill au-premium"></i>{% endif %}
                         {% if u.is_online %}<span class="au-online"></span>{% endif %}
                     </div>
-                    <div class="au-uname">@{{ u.username }}</div>
+                    <div class="au-uname" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+                        @{{ u.username }}
+                        {% if u.student_id %}
+                        <span style="background:#1e1b4b;color:#c4b5fd;padding:1px 7px;border-radius:6px;font-weight:700;font-size:0.7em;font-family:monospace;letter-spacing:1px;flex-shrink:0;">#{{ u.student_id }}</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -492,7 +497,12 @@
                                 {% if u.is_premium %}<i class="bi bi-patch-check-fill au-premium"></i>{% endif %}
                                 {% if u.is_online %}<span class="au-online"></span>{% endif %}
                             </div>
-                            <div class="au-uname">@{{ u.username }}</div>
+                            <div class="au-uname" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+                                @{{ u.username }}
+                                {% if u.student_id %}
+                                <span style="background:#1e1b4b;color:#c4b5fd;padding:1px 7px;border-radius:6px;font-weight:700;font-size:0.7em;font-family:monospace;letter-spacing:1px;flex-shrink:0;">#{{ u.student_id }}</span>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
