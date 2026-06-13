@@ -1,573 +1,419 @@
 {% extends 'accounts/base.html' %}
 {% load widget_tweaks %}
 
-{% block title %}{{ post.title }} - Blog{% endblock %}
-
-{% block extra_css %}
-<style>
-:root {
-    --p-card: #ffffff;
-    --p-border: rgba(0, 0, 0, 0.06);
-    --p-text: #1e293b;
-    --p-text-muted: #64748b;
-    --p-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-    --p-radius: 20px;
-    --p-radius-md: 14px;
-    --p-primary: #6366f1;
-}
-
-[data-bs-theme="dark"] {
-    --p-card: #1e1e1e;
-    --p-border: rgba(255, 255, 255, 0.08);
-    --p-text: #f1f5f9;
-    --p-text-muted: #94a3b8;
-    --p-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.post-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-}
-
-/* Back Button */
-.back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--p-text-muted);
-    text-decoration: none;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    transition: all 0.3s;
-}
-
-.back-btn:hover {
-    color: var(--p-primary);
-    transform: translateX(-4px);
-}
-
-/* Post Card */
-.post-card {
-    background: var(--p-card);
-    border-radius: var(--p-radius);
-    overflow: hidden;
-    box-shadow: var(--p-shadow);
-    margin-bottom: 2rem;
-    animation: fadeIn 0.5s ease;
-}
-
-.post-image {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
-}
-
-.post-content-wrapper {
-    padding: 2rem;
-}
-
-/* Post Meta */
-.post-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.post-type-badge {
-    background: var(--p-primary);
-    color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.post-date {
-    color: var(--p-text-muted);
-    font-size: 0.875rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-/* Post Title */
-.post-title {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--p-text);
-    margin-bottom: 1.5rem;
-    line-height: 1.3;
-}
-
-/* Author Section */
-.author-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-bottom: 1.5rem;
-    margin-bottom: 2rem;
-    border-bottom: 1px solid var(--p-border);
-}
-
-.author-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.author-avatar-placeholder {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--p-primary), #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.author-info h4 {
-    font-weight: 700;
-    color: var(--p-text);
-    margin: 0;
-}
-
-.author-info span {
-    font-size: 0.875rem;
-    color: var(--p-text-muted);
-}
-
-/* Post Body */
-.post-body {
-    color: var(--p-text);
-    line-height: 1.8;
-    font-size: 1.05rem;
-}
-
-.post-body p {
-    margin-bottom: 1.25rem;
-}
-
-.post-body img {
-    max-width: 100%;
-    border-radius: var(--p-radius-md);
-    margin: 1.5rem 0;
-}
-
-/* Actions Bar */
-.actions-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 1rem;
-    padding-top: 2rem;
-    margin-top: 2rem;
-    border-top: 1px solid var(--p-border);
-}
-
-.like-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.65rem 1.25rem;
-    border-radius: 25px;
-    font-weight: 700;
-    text-decoration: none;
-    transition: all 0.3s;
-    border: 2px solid transparent;
-}
-
-.like-btn.not-liked {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border-color: rgba(239, 68, 68, 0.2);
-}
-
-.like-btn.not-liked:hover {
-    background: rgba(239, 68, 68, 0.15);
-}
-
-.like-btn.liked {
-    background: #ef4444;
-    color: white;
-}
-
-.comments-count {
-    color: var(--p-text-muted);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-/* Comments Section */
-.comments-section {
-    background: var(--p-card);
-    border-radius: var(--p-radius);
-    padding: 2rem;
-    box-shadow: var(--p-shadow);
-    animation: fadeIn 0.5s ease 0.2s both;
-}
-
-.comments-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.comments-header h3 {
-    font-weight: 700;
-    color: var(--p-text);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.comment-count-badge {
-    background: var(--p-primary);
-    color: white;
-    padding: 0.3rem 0.7rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-/* Comment Form */
-.comment-form {
-    margin-bottom: 2rem;
-}
-
-.comment-textarea {
-    width: 100%;
-    padding: 1rem;
-    border: 2px solid var(--p-border);
-    border-radius: var(--p-radius-md);
-    background: var(--p-card);
-    color: var(--p-text);
-    font-size: 1rem;
-    resize: none;
-    transition: all 0.3s;
-    min-height: 100px;
-}
-
-.comment-textarea:focus {
-    outline: none;
-    border-color: var(--p-primary);
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-}
-
-.comment-textarea::placeholder {
-    color: var(--p-text-muted);
-}
-
-.form-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 1rem;
-}
-
-.submit-btn {
-    background: var(--p-primary);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.submit-btn:hover {
-    background: #4f46e5;
-    transform: translateY(-2px);
-}
-
-/* Comment List */
-.comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.comment-item {
-    display: flex;
-    gap: 1rem;
-    animation: slideIn 0.4s ease both;
-}
-
-.comment-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.comment-avatar-placeholder {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--p-primary), #8b5cf6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.comment-body {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    background: rgba(99, 102, 241, 0.05);
-    border-radius: var(--p-radius-md);
-    padding: 1rem;
-    border: 1px solid var(--p-border);
-}
-
-[data-bs-theme="dark"] .comment-body {
-    background: rgba(99, 102, 241, 0.1);
-}
-
-.comment-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.comment-author {
-    font-weight: 700;
-    color: var(--p-text);
-}
-
-.comment-time {
-    font-size: 0.8rem;
-    color: var(--p-text-muted);
-}
-
-.comment-text {
-    color: var(--p-text);
-    line-height: 1.6;
-    margin: 0;
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-
-/* Empty Comments */
-.empty-comments {
-    text-align: center;
-    padding: 3rem;
-    color: var(--p-text-muted);
-}
-
-.empty-comments i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-    display: block;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .post-container {
-        padding: 1rem 0.75rem;
-    }
-    
-    .post-content-wrapper {
-        padding: 1.5rem;
-    }
-    
-    .post-title {
-        font-size: 1.5rem;
-    }
-    
-    .author-section {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .comments-section {
-        padding: 1.5rem;
-    }
-    
-    .comment-item {
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    
-    .comment-avatar,
-    .comment-avatar-placeholder {
-        width: 40px;
-        height: 40px;
-    }
-}
-
-@media (max-width: 480px) {
-    .post-image {
-        max-height: 250px;
-    }
-    
-    .post-meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .actions-bar {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .form-footer {
-        justify-content: stretch;
-    }
-    
-    .submit-btn {
-        width: 100%;
-        justify-content: center;
-    }
-}
-</style>
-{% endblock %}
+{% block title %}{{ post.title }} — IT Shaharcha{% endblock %}
 
 {% block content %}
-<div class="post-container">
+<style>
+#weather_effect { display:none!important; }
 
-    <!-- Back Button -->
-    <a href="{% url 'blog:post_list' %}" class="back-btn">
-        <i class="bi bi-arrow-left"></i>
-        Postlarga qaytish
-    </a>
+/* ── Full-bleed wrapper ── */
+.pd {
+  width:100vw; position:relative; left:50%; margin-left:-50vw;
+  margin-top:-1.25rem;
+  background: linear-gradient(170deg,#07080f 0%,#0d0f1e 40%,#070c18 100%);
+  min-height:100vh;
+  --pd-primary:#6366f1; --pd-accent:#8b5cf6;
+  --pd-card:rgba(255,255,255,0.04); --pd-border:rgba(255,255,255,0.08);
+  --pd-text:#f1f5f9; --pd-muted:#94a3b8;
+}
 
-    <!-- Post Card -->
-    <article class="post-card">
-        {% if post.image %}
-        <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-image">
+/* ── Hero image banner ── */
+.pd-hero {
+  position:relative; overflow:hidden;
+  min-height:340px;
+  display:flex; align-items:flex-end;
+}
+.pd-hero-img {
+  position:absolute; inset:0;
+  background:linear-gradient(135deg,rgba(10,12,24,.9) 0%,rgba(30,20,60,.7) 100%);
+}
+.pd-hero-img img {
+  width:100%; height:100%; object-fit:cover; opacity:.35;
+}
+.pd-hero-orb {
+  position:absolute; border-radius:50%; filter:blur(80px); pointer-events:none;
+}
+.pd-hero-orb1 { width:350px;height:350px; top:-80px;left:-60px; background:rgba(99,102,241,.14); }
+.pd-hero-orb2 { width:280px;height:280px; bottom:-40px;right:-40px; background:rgba(139,92,246,.10); }
+.pd-hero-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+.pd-hero-content {
+  position:relative; z-index:2;
+  max-width:800px; margin:0 auto; width:100%;
+  padding:2rem 1.5rem;
+}
+.pd-back-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:.4rem .9rem; border-radius:99px; margin-bottom:1.25rem;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.10);
+  color:var(--pd-muted); font-size:.82rem; font-weight:600;
+  text-decoration:none; transition:all .22s;
+  backdrop-filter:blur(8px);
+}
+.pd-back-btn:hover { color:var(--pd-text); border-color:rgba(99,102,241,.3); background:rgba(99,102,241,.1); }
+
+.pd-meta {
+  display:flex; flex-wrap:wrap; align-items:center; gap:.65rem;
+  margin-bottom:1rem;
+}
+.pd-type-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:.3rem .8rem; border-radius:99px; font-size:.75rem; font-weight:700;
+  backdrop-filter:blur(10px);
+}
+.pd-type-badge.type-news        { background:rgba(59,130,246,.85); color:#fff; }
+.pd-type-badge.type-tutorial    { background:rgba(16,185,129,.85); color:#fff; }
+.pd-type-badge.type-tips        { background:rgba(245,158,11,.85); color:#fff; }
+.pd-type-badge.type-announcement{ background:rgba(239,68,68,.85); color:#fff; }
+.pd-type-badge.type-other       { background:rgba(100,116,139,.85); color:#fff; }
+
+.pd-date {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:.3rem .8rem; border-radius:99px;
+  background:rgba(0,0,0,.4); backdrop-filter:blur(8px);
+  color:rgba(255,255,255,.7); font-size:.75rem; font-weight:600;
+}
+.pd-hero-title {
+  font-size:clamp(1.5rem,4vw,2.4rem); font-weight:900;
+  color:#f1f5f9; line-height:1.25; margin:0;
+  text-shadow:0 2px 20px rgba(0,0,0,.5);
+}
+
+/* ── Main content ── */
+.pd-main {
+  max-width:800px; margin:0 auto;
+  padding:2rem 1.5rem 5rem;
+}
+
+/* ── Glass card ── */
+.pd-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px; overflow:hidden;
+  backdrop-filter:blur(10px);
+  margin-bottom:1.5rem;
+}
+
+/* Author section */
+.pd-author {
+  display:flex; align-items:center; gap:1rem;
+  padding:1.4rem 1.75rem;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.pd-author-avatar {
+  width:52px; height:52px; border-radius:50%; object-fit:cover;
+  border:2px solid rgba(99,102,241,.3); flex-shrink:0;
+}
+.pd-author-init {
+  width:52px; height:52px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:800; font-size:1.1rem;
+  border:2px solid rgba(99,102,241,.3);
+}
+.pd-author-name { font-weight:700; color:var(--pd-text); font-size:.95rem; }
+.pd-author-role { font-size:.78rem; color:var(--pd-muted); margin-top:1px; }
+
+/* Content body */
+.pd-body {
+  padding:1.75rem;
+  color:var(--pd-text);
+  font-size:1.04rem;
+  line-height:1.85;
+}
+.pd-body p { margin-bottom:1.2rem; }
+.pd-body h2,.pd-body h3,.pd-body h4 {
+  color:#f1f5f9; font-weight:700; margin:1.75rem 0 .75rem;
+}
+.pd-body a { color:#818cf8; }
+.pd-body img {
+  max-width:100%; border-radius:14px; margin:1.5rem 0;
+  border:1px solid rgba(255,255,255,.08);
+}
+.pd-body code {
+  background:rgba(99,102,241,.12); border:1px solid rgba(99,102,241,.15);
+  padding:.15em .4em; border-radius:6px; font-size:.9em; color:#a78bfa;
+}
+.pd-body pre {
+  background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08);
+  border-radius:12px; padding:1.25rem; overflow-x:auto; margin:1.5rem 0;
+}
+.pd-body pre code { background:none; border:none; padding:0; color:#e2e8f0; }
+.pd-body blockquote {
+  border-left:3px solid #6366f1; padding-left:1rem; margin:1.5rem 0;
+  color:var(--pd-muted); font-style:italic;
+}
+
+/* Actions bar */
+.pd-actions {
+  display:flex; align-items:center; gap:1rem;
+  padding:1.25rem 1.75rem;
+  border-top:1px solid rgba(255,255,255,.07);
+  flex-wrap:wrap;
+}
+.pd-like-btn {
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.55rem 1.25rem; border-radius:99px;
+  font-weight:700; font-size:.9rem; text-decoration:none;
+  transition:all .25s; border:2px solid transparent;
+}
+.pd-like-btn.not-liked {
+  background:rgba(239,68,68,.1); color:#ef4444;
+  border-color:rgba(239,68,68,.22);
+}
+.pd-like-btn.not-liked:hover {
+  background:rgba(239,68,68,.2);
+  box-shadow:0 6px 20px rgba(239,68,68,.2);
+  transform:translateY(-2px);
+}
+.pd-like-btn.liked {
+  background:#ef4444; color:#fff; border-color:#ef4444;
+  box-shadow:0 6px 20px rgba(239,68,68,.35);
+}
+.pd-like-btn.liked:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(239,68,68,.45); }
+
+.pd-cmt-count {
+  display:flex; align-items:center; gap:.5rem;
+  color:var(--pd-muted); font-size:.9rem; font-weight:600;
+}
+
+/* ── Comments section ── */
+.pd-cmt-section {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:22px; overflow:hidden;
+  backdrop-filter:blur(10px);
+}
+.pd-cmt-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:1.4rem 1.75rem;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.pd-cmt-header h3 {
+  font-weight:800; color:var(--pd-text); margin:0;
+  display:flex; align-items:center; gap:.55rem; font-size:1.05rem;
+}
+.pd-cmt-badge {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-width:28px; height:24px; padding:0 .6rem; border-radius:99px;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff; font-size:.75rem; font-weight:700;
+}
+
+/* Comment form */
+.pd-cmt-form-wrap { padding:1.5rem 1.75rem; border-bottom:1px solid rgba(255,255,255,.06); }
+.pd-cmt-textarea {
+  width:100%; padding:1rem 1.1rem; border-radius:14px; resize:none; min-height:96px;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  color:var(--pd-text); font-size:.95rem; font-family:inherit;
+  transition:all .22s; outline:none;
+}
+.pd-cmt-textarea:focus {
+  border-color:rgba(99,102,241,.45);
+  background:rgba(99,102,241,.06);
+  box-shadow:0 0 0 4px rgba(99,102,241,.12);
+}
+.pd-cmt-textarea::placeholder { color:var(--pd-muted); }
+.pd-cmt-form-footer {
+  display:flex; justify-content:flex-end; margin-top:.85rem;
+}
+.pd-cmt-submit {
+  display:inline-flex; align-items:center; gap:.5rem;
+  padding:.6rem 1.4rem; border-radius:99px; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  color:#fff; font-weight:700; font-size:.88rem;
+  transition:all .22s;
+  box-shadow:0 6px 20px rgba(99,102,241,.3);
+}
+.pd-cmt-submit:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(99,102,241,.4); }
+
+/* Comment list */
+.pd-cmt-list { padding:1.5rem 1.75rem; display:flex; flex-direction:column; gap:1.25rem; }
+.pd-cmt-item { display:flex; gap:1rem; }
+.pd-cmt-ava {
+  width:44px; height:44px; border-radius:50%; object-fit:cover;
+  flex-shrink:0; border:2px solid rgba(99,102,241,.2);
+}
+.pd-cmt-ava-init {
+  width:44px; height:44px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-weight:700; font-size:.85rem;
+  border:2px solid rgba(99,102,241,.2);
+}
+.pd-cmt-bubble {
+  flex:1; min-width:0;
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:16px; padding:1rem 1.1rem;
+}
+.pd-cmt-bubble-hdr {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:.4rem; flex-wrap:wrap; gap:.3rem;
+}
+.pd-cmt-name { font-weight:700; color:var(--pd-text); font-size:.88rem; }
+.pd-cmt-time { font-size:.75rem; color:var(--pd-muted); }
+.pd-cmt-text { color:var(--pd-text); line-height:1.6; font-size:.9rem; margin:0;
+  overflow-wrap:break-word; word-break:break-word; }
+
+/* empty */
+.pd-cmt-empty {
+  text-align:center; padding:3rem 2rem; color:var(--pd-muted);
+}
+.pd-cmt-empty i { font-size:3rem; color:rgba(99,102,241,.2); display:block; margin-bottom:1rem; }
+
+/* admin edit/delete */
+.pd-admin-btns {
+  display:flex; gap:.5rem; margin-left:auto;
+}
+.pd-admin-btn {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:.4rem .85rem; border-radius:99px; font-size:.78rem; font-weight:600;
+  text-decoration:none; transition:all .2s; border:1px solid;
+}
+.pd-admin-btn.edit {
+  background:rgba(99,102,241,.1); border-color:rgba(99,102,241,.25); color:#818cf8;
+}
+.pd-admin-btn.edit:hover { background:rgba(99,102,241,.2); }
+.pd-admin-btn.del {
+  background:rgba(239,68,68,.1); border-color:rgba(239,68,68,.25); color:#ef4444;
+}
+.pd-admin-btn.del:hover { background:rgba(239,68,68,.2); }
+
+/* responsive */
+@media(max-width:600px){
+  .pd-hero { min-height:260px; }
+  .pd-body { padding:1.25rem; font-size:.97rem; }
+  .pd-author { padding:1rem 1.25rem; }
+  .pd-cmt-form-wrap, .pd-cmt-list { padding:1.25rem; }
+  .pd-actions { padding:1rem 1.25rem; }
+  .pd-cmt-item { flex-direction:column; gap:.65rem; }
+}
+</style>
+
+<div class="pd">
+  <!-- Hero Banner -->
+  <div class="pd-hero">
+    <div class="pd-hero-img">
+      {% if post.image %}<img src="{{ post.image.url }}" alt="">{% endif %}
+    </div>
+    <div class="pd-hero-grid"></div>
+    <div class="pd-hero-orb pd-hero-orb1"></div>
+    <div class="pd-hero-orb pd-hero-orb2"></div>
+    <div class="pd-hero-content">
+      <a href="{% url 'blog:post_list' %}" class="pd-back-btn">
+        <i class="bi bi-arrow-left"></i> Postlarga qaytish
+      </a>
+      <div class="pd-meta">
+        <span class="pd-type-badge type-{{ post.post_type }}">
+          {% if post.post_type == 'news' %}<i class="bi bi-newspaper"></i> Yangilik
+          {% elif post.post_type == 'tutorial' %}<i class="bi bi-book-half"></i> Darslik
+          {% elif post.post_type == 'tips' %}<i class="bi bi-lightbulb-fill"></i> Maslahat
+          {% elif post.post_type == 'announcement' %}<i class="bi bi-megaphone-fill"></i> E'lon
+          {% else %}<i class="bi bi-three-dots"></i> Boshqa{% endif %}
+        </span>
+        <span class="pd-date"><i class="bi bi-calendar3"></i> {{ post.created_at|date:"d.m.Y, H:i" }}</span>
+      </div>
+      <h1 class="pd-hero-title">{{ post.title }}</h1>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="pd-main">
+    <!-- Post card -->
+    <article class="pd-card">
+      <!-- Author -->
+      <div class="pd-author">
+        {% if post.author.photo %}
+        <img src="{{ post.author.photo.url }}" class="pd-author-avatar" alt="">
+        {% else %}
+        <div class="pd-author-init">{{ post.author.get_initials }}</div>
         {% endif %}
-        
-        <div class="post-content-wrapper">
-            <!-- Meta -->
-            <div class="post-meta">
-                <span class="post-type-badge">{{ post.get_post_type_display }}</span>
-                <span class="post-date">
-                    <i class="bi bi-calendar3"></i>
-                    {{ post.created_at|date:"d.m.Y, H:i" }}
-                </span>
-            </div>
-            
-            <!-- Title -->
-            <h1 class="post-title">{{ post.title }}</h1>
-            
-            <!-- Author -->
-            <div class="author-section">
-                {% if post.author.photo %}
-                <img src="{{ post.author.photo.url }}" alt="" class="author-avatar">
-                {% else %}
-                <div class="author-avatar-placeholder">
-                    {{ post.author.get_initials }}
-                </div>
-                {% endif %}
-                <div class="author-info">
-                    <h4>{{ post.author.full_name }}</h4>
-                    <span>Muallif</span>
-                </div>
-            </div>
-            
-            <!-- Content -->
-            <div class="post-body">
-                {{ post.content|safe }}
-            </div>
-            
-            <!-- Actions -->
-            <div class="actions-bar">
-                <a href="{% url 'blog:toggle_like' post.pk %}" 
-                   class="like-btn {% if is_liked %}liked{% else %}not-liked{% endif %}">
-                    <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
-                    <span>{{ post.likes.count }}</span>
-                </a>
-                
-                <span class="comments-count">
-                    <i class="bi bi-chat-dots"></i>
-                    {{ post.comments.count }} izoh
-                </span>
-            </div>
+        <div>
+          <div class="pd-author-name">{{ post.author.get_full_name }}</div>
+          <div class="pd-author-role">Muallif</div>
         </div>
+        {% if user.is_teacher or user.is_admin %}
+        <div class="pd-admin-btns">
+          <a href="{% url 'blog:post_edit' post.pk %}" class="pd-admin-btn edit">
+            <i class="bi bi-pencil"></i> Tahrirlash
+          </a>
+          <a href="{% url 'blog:post_delete' post.pk %}" class="pd-admin-btn del"
+             onclick="return confirm('Postni o\'chirmoqchimisiz?')">
+            <i class="bi bi-trash3"></i> O'chirish
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Body -->
+      <div class="pd-body">{{ post.content|safe }}</div>
+
+      <!-- Actions -->
+      <div class="pd-actions">
+        <a href="{% url 'blog:toggle_like' post.pk %}"
+           class="pd-like-btn {% if is_liked %}liked{% else %}not-liked{% endif %}">
+          <i class="bi {% if is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+          {{ post.likes.count }} like
+        </a>
+        <span class="pd-cmt-count">
+          <i class="bi bi-chat-dots"></i> {{ post.comments.count }} izoh
+        </span>
+      </div>
     </article>
 
-    <!-- Comments Section -->
-    <div class="comments-section">
-        <div class="comments-header">
-            <h3>
-                <i class="bi bi-chat-square-text"></i>
-                Izohlar
-            </h3>
-            <span class="comment-count-badge">{{ comments.count }}</span>
-        </div>
-        
-        <!-- Comment Form -->
-        <form method="post" class="comment-form">
-            {% csrf_token %}
-            <textarea name="content" class="comment-textarea" 
-                      placeholder="Fikringizni yozing..." required>{{ form.content.value|default:'' }}</textarea>
-            <div class="form-footer">
-                <button type="submit" class="submit-btn">
-                    <i class="bi bi-send"></i>
-                    Yuborish
-                </button>
-            </div>
-        </form>
-        
-        <!-- Comment List -->
-        <div class="comment-list">
-            {% for comment in comments %}
-            <div class="comment-item" style="animation-delay: {{ forloop.counter }}00ms">
-                {% if comment.user.photo %}
-                <img src="{{ comment.user.photo.url }}" alt="" class="comment-avatar">
-                {% else %}
-                <div class="comment-avatar-placeholder">
-                    {{ comment.user.first_name|slice:":1"|upper }}
-                </div>
-                {% endif %}
-                
-                <div class="comment-body">
-                    <div class="comment-header">
-                        <span class="comment-author">{{ comment.user.full_name }}</span>
-                        <span class="comment-time">{{ comment.created_at|timesince }} oldin</span>
-                    </div>
-                    <p class="comment-text">{{ comment.content }}</p>
-                </div>
-            </div>
-            {% empty %}
-            <div class="empty-comments">
-                <i class="bi bi-chat-square"></i>
-                <h4>Hozircha izohlar yo'q</h4>
-                <p>Birinchi bo'lib fikr bildiring!</p>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
+    <!-- Comments -->
+    <div class="pd-cmt-section">
+      <div class="pd-cmt-header">
+        <h3><i class="bi bi-chat-square-text-fill" style="color:#6366f1;"></i> Izohlar</h3>
+        <span class="pd-cmt-badge">{{ comments.count }}</span>
+      </div>
 
+      <!-- Form -->
+      <div class="pd-cmt-form-wrap">
+        <form method="post">
+          {% csrf_token %}
+          <textarea name="content" class="pd-cmt-textarea"
+                    placeholder="Fikringizni yozing..." required>{{ form.content.value|default:'' }}</textarea>
+          <div class="pd-cmt-form-footer">
+            <button type="submit" class="pd-cmt-submit">
+              <i class="bi bi-send-fill"></i> Yuborish
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- List -->
+      <div class="pd-cmt-list">
+        {% for comment in comments %}
+        <div class="pd-cmt-item">
+          {% if comment.user.photo %}
+          <img src="{{ comment.user.photo.url }}" class="pd-cmt-ava" alt="">
+          {% else %}
+          <div class="pd-cmt-ava-init">{{ comment.user.first_name|slice:":1"|upper }}</div>
+          {% endif %}
+          <div class="pd-cmt-bubble">
+            <div class="pd-cmt-bubble-hdr">
+              <span class="pd-cmt-name">{{ comment.user.get_full_name }}</span>
+              <span class="pd-cmt-time">{{ comment.created_at|timesince }} oldin</span>
+            </div>
+            <p class="pd-cmt-text">{{ comment.content }}</p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="pd-cmt-empty">
+          <i class="bi bi-chat-square"></i>
+          <div style="font-weight:600;color:#f1f5f9;margin-bottom:.35rem;">Hozircha izohlar yo'q</div>
+          <div style="font-size:.85rem;">Birinchi bo'lib fikr bildiring!</div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
