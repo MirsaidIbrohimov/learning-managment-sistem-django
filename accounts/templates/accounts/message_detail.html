@@ -1,294 +1,232 @@
-﻿{% extends 'accounts/base.html' %}
+{% extends 'accounts/base.html' %}
 
-{% block title %}{{ message.title }} | LMS - IT Shaharcha{% endblock %}
-
-{% block extra_css %}
-<style>
-@keyframes msgFadeIn {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes iconPop {
-    0% { transform: scale(0); }
-    60% { transform: scale(1.15); }
-    100% { transform: scale(1); }
-}
-@keyframes badgeSlide {
-    from { opacity: 0; transform: translateX(12px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes contentFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.md-wrap {
-    max-width: 680px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem;
-}
-
-.md-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0.5rem 1.2rem;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.88rem;
-    color: var(--bs-body-color);
-    background: var(--bs-tertiary-bg);
-    border: 1px solid var(--bs-border-color);
-    text-decoration: none;
-    transition: all 0.25s;
-    margin-bottom: 1.25rem;
-}
-.md-back:hover {
-    border-color: #6366f1;
-    color: #6366f1;
-    transform: translateX(-3px);
-}
-
-.md-card {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-    overflow: hidden;
-    animation: msgFadeIn 0.5s ease-out;
-}
-[data-bs-theme="dark"] .md-card {
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-}
-
-/* Header */
-.md-header {
-    padding: 1.25rem 1.25rem;
-    border-bottom: 1px solid var(--bs-border-color);
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-}
-
-.md-icon {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    animation: iconPop 0.4s ease-out 0.15s both;
-}
-.md-icon.payment { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.md-icon.system { background: rgba(6,182,212,0.12); color: #06b6d4; }
-.md-icon.motivation { background: rgba(236,72,153,0.12); color: #ec4899; }
-.md-icon.achievement { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.md-icon.warning { background: rgba(239,68,68,0.12); color: #ef4444; }
-.md-icon.reminder { background: rgba(168,85,247,0.12); color: #a855f7; }
-.md-icon.recommend { background: rgba(34,197,94,0.12); color: #22c55e; }
-.md-icon.security { background: rgba(99,102,241,0.12); color: #6366f1; }
-.md-icon.default { background: rgba(99,102,241,0.12); color: #6366f1; }
-
-.md-info {
-    flex: 1;
-    min-width: 0;
-}
-.md-title {
-    font-weight: 700;
-    font-size: 1.05rem;
-    margin: 0 0 4px 0;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    line-height: 1.35;
-}
-.md-time {
-    font-size: 0.78rem;
-    color: var(--bs-secondary-color);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.md-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
-    animation: badgeSlide 0.35s ease-out 0.25s both;
-    align-self: center;
-}
-.md-badge.payment { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.md-badge.system { background: rgba(6,182,212,0.12); color: #06b6d4; }
-.md-badge.motivation { background: rgba(236,72,153,0.12); color: #ec4899; }
-.md-badge.achievement { background: rgba(245,158,11,0.12); color: #f59e0b; }
-.md-badge.warning { background: rgba(239,68,68,0.12); color: #ef4444; }
-.md-badge.reminder { background: rgba(168,85,247,0.12); color: #a855f7; }
-.md-badge.recommend { background: rgba(34,197,94,0.12); color: #22c55e; }
-.md-badge.security { background: rgba(99,102,241,0.12); color: #6366f1; }
-.md-badge.default { background: rgba(99,102,241,0.12); color: #6366f1; }
-
-/* Body */
-.md-body {
-    padding: 1.5rem 1.25rem;
-    animation: contentFade 0.5s ease-out 0.3s both;
-}
-.md-content {
-    line-height: 1.85;
-    font-size: 0.92rem;
-    color: var(--bs-body-color);
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-.md-content p {
-    margin-bottom: 0.75rem;
-}
-.md-content p:last-child {
-    margin-bottom: 0;
-}
-
-/* Footer / Sender */
-.md-footer {
-    padding: 1rem 1.25rem;
-    border-top: 1px solid var(--bs-border-color);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.82rem;
-    color: var(--bs-secondary-color);
-    animation: contentFade 0.5s ease-out 0.4s both;
-}
-.md-footer i {
-    font-size: 1rem;
-    color: #6366f1;
-}
-
-/* Responsive */
-@media (max-width: 576px) {
-    .md-wrap {
-        padding: 1rem 0.75rem;
-    }
-    .md-card {
-        border-radius: 16px;
-    }
-    .md-header {
-        padding: 1rem;
-        gap: 10px;
-    }
-    .md-icon {
-        width: 40px;
-        height: 40px;
-        min-width: 40px;
-        border-radius: 12px;
-        font-size: 1.1rem;
-    }
-    .md-title {
-        font-size: 0.95rem;
-    }
-    .md-badge {
-        font-size: 0.68rem;
-        padding: 3px 10px;
-    }
-    .md-body {
-        padding: 1.2rem 1rem;
-    }
-    .md-content {
-        font-size: 0.88rem;
-        line-height: 1.75;
-    }
-    .md-footer {
-        padding: 0.85rem 1rem;
-    }
-}
-
-@media (max-width: 380px) {
-    .md-header {
-        flex-wrap: wrap;
-    }
-    .md-badge {
-        margin-left: auto;
-    }
-}
-</style>
-{% endblock %}
+{% block title %}{{ message.title }} — IT Shaharcha{% endblock %}
 
 {% block content %}
-<div class="md-wrap">
+<style>
+#weather_effect { display:none!important; }
 
-<a href="{% url 'messages' %}" class="md-back">
-    <i class="bi bi-arrow-left"></i> Orqaga
-</a>
+/* ── Full-bleed wrapper ── */
+.md {
+  width:100vw; position:relative; left:50%; margin-left:-50vw;
+  margin-top:-1.25rem;
+  background:linear-gradient(170deg,#07080f 0%,#0d0f1e 40%,#070c18 100%);
+  min-height:100vh;
+  --md-primary:#6366f1; --md-accent:#8b5cf6;
+  --md-border:rgba(255,255,255,0.08);
+  --md-text:#f1f5f9; --md-muted:#94a3b8;
+}
 
-<div class="md-card">
-    <!-- Header -->
-    <div class="md-header">
+/* ── Hero ── */
+.md-hero {
+  position:relative; overflow:hidden;
+  padding:3.5rem 1.5rem 6rem;
+}
+.md-hero-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(99,102,241,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(99,102,241,.05) 1px,transparent 1px);
+  background-size:40px 40px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,#000 40%,transparent 100%);
+}
+.md-orb {
+  position:absolute; border-radius:50%;
+  filter:blur(80px); pointer-events:none;
+}
+.md-orb1 { width:360px;height:360px; top:-100px;left:-80px; background:rgba(99,102,241,.12); }
+.md-orb2 { width:280px;height:280px; bottom:-60px;right:-60px; background:rgba(139,92,246,.09); }
+
+.md-hero-inner {
+  position:relative; z-index:2;
+  max-width:680px; margin:0 auto;
+}
+.md-back {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:.4rem .9rem; border-radius:99px; margin-bottom:1.75rem;
+  background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.10);
+  color:var(--md-muted); font-size:.82rem; font-weight:600;
+  text-decoration:none; transition:all .22s;
+  backdrop-filter:blur(8px);
+}
+.md-back:hover { color:var(--md-text); border-color:rgba(99,102,241,.3); background:rgba(99,102,241,.1); }
+
+/* type icon + title layout */
+.md-hero-row {
+  display:flex; align-items:flex-start; gap:1rem;
+}
+.md-hero-icon {
+  width:56px; height:56px; min-width:56px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.5rem; flex-shrink:0;
+  animation:iconPop .4s cubic-bezier(.4,0,.2,1) .1s both;
+}
+@keyframes iconPop {
+  from { transform:scale(0); opacity:0; }
+  60%  { transform:scale(1.12); }
+  to   { transform:scale(1); opacity:1; }
+}
+.md-hero-icon.payment    { background:rgba(245,158,11,.15); color:#f59e0b; }
+.md-hero-icon.system     { background:rgba(6,182,212,.15); color:#06b6d4; }
+.md-hero-icon.motivation { background:rgba(16,185,129,.15); color:#10b981; }
+.md-hero-icon.achievement{ background:rgba(250,204,21,.15); color:#eab308; }
+.md-hero-icon.warning    { background:rgba(239,68,68,.15); color:#ef4444; }
+.md-hero-icon.reminder   { background:rgba(139,92,246,.15); color:#8b5cf6; }
+.md-hero-icon.recommend  { background:rgba(34,197,94,.15); color:#22c55e; }
+.md-hero-icon.security   { background:rgba(99,102,241,.15); color:#6366f1; }
+.md-hero-icon.default    { background:rgba(99,102,241,.15); color:#6366f1; }
+
+.md-hero-info { flex:1; min-width:0; }
+.md-hero-badge {
+  display:inline-flex; align-items:center;
+  padding:.22rem .7rem; border-radius:99px; font-size:.72rem; font-weight:700;
+  margin-bottom:.5rem; animation:badgeSlide .35s ease-out .2s both;
+}
+@keyframes badgeSlide {
+  from { opacity:0; transform:translateX(12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.md-hero-badge.payment    { background:rgba(245,158,11,.15); color:#f59e0b; }
+.md-hero-badge.system     { background:rgba(6,182,212,.15); color:#06b6d4; }
+.md-hero-badge.motivation { background:rgba(16,185,129,.15); color:#10b981; }
+.md-hero-badge.achievement{ background:rgba(250,204,21,.15); color:#eab308; }
+.md-hero-badge.warning    { background:rgba(239,68,68,.15); color:#ef4444; }
+.md-hero-badge.reminder   { background:rgba(139,92,246,.15); color:#8b5cf6; }
+.md-hero-badge.recommend  { background:rgba(34,197,94,.15); color:#22c55e; }
+.md-hero-badge.security   { background:rgba(99,102,241,.15); color:#6366f1; }
+.md-hero-badge.default    { background:rgba(99,102,241,.15); color:#818cf8; }
+
+.md-hero-title {
+  font-size:clamp(1.2rem,3.5vw,1.8rem); font-weight:900;
+  color:var(--md-text); line-height:1.25; margin:0 0 .5rem;
+  word-break:break-word;
+}
+.md-hero-time {
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:.78rem; color:var(--md-muted);
+}
+
+/* ── Main ── */
+.md-main {
+  max-width:680px; margin:0 auto;
+  padding:0 1rem 5rem;
+  margin-top:-2rem; position:relative; z-index:5;
+}
+
+/* ── Content card ── */
+.md-card {
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px; overflow:hidden;
+  backdrop-filter:blur(10px);
+  animation:cardFade .5s ease-out .15s both;
+}
+@keyframes cardFade {
+  from { opacity:0; transform:translateY(16px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.md-card-body {
+  padding:1.75rem;
+  color:var(--md-text);
+  font-size:.95rem; line-height:1.85;
+}
+.md-card-body p { margin-bottom:.75rem; }
+.md-card-body p:last-child { margin-bottom:0; }
+.md-card-body a { color:#818cf8; }
+
+/* sender footer */
+.md-card-footer {
+  display:flex; align-items:center; gap:.55rem;
+  padding:1rem 1.75rem;
+  border-top:1px solid rgba(255,255,255,.07);
+  font-size:.83rem; color:var(--md-muted);
+}
+.md-card-footer i { font-size:.95rem; color:#6366f1; }
+
+@media(max-width:576px){
+  .md-hero { padding:2.5rem 1rem 5rem; }
+  .md-hero-icon { width:46px;height:46px;min-width:46px;font-size:1.2rem;border-radius:12px; }
+  .md-hero-title { font-size:1.15rem; }
+  .md-card-body { padding:1.25rem; font-size:.9rem; }
+  .md-card-footer { padding:.85rem 1.25rem; }
+}
+</style>
+
+<div class="md">
+  <!-- Hero -->
+  <div class="md-hero">
+    <div class="md-hero-grid"></div>
+    <div class="md-orb md-orb1"></div>
+    <div class="md-orb md-orb2"></div>
+    <div class="md-hero-inner">
+      <a href="{% url 'messages' %}" class="md-back">
+        <i class="bi bi-arrow-left"></i> Xabarlarga qaytish
+      </a>
+      <div class="md-hero-row">
+        <!-- icon -->
         {% if message.message_type == 'payment' %}
-            <div class="md-icon payment"><i class="bi bi-credit-card-fill"></i></div>
+          <div class="md-hero-icon payment"><i class="bi bi-credit-card-fill"></i></div>
         {% elif message.message_type == 'system' %}
-            <div class="md-icon system"><i class="bi bi-gear-fill"></i></div>
+          <div class="md-hero-icon system"><i class="bi bi-gear-fill"></i></div>
         {% elif message.message_type == 'motivation' %}
-            <div class="md-icon motivation"><i class="bi bi-emoji-smile-fill"></i></div>
+          <div class="md-hero-icon motivation"><i class="bi bi-emoji-smile-fill"></i></div>
         {% elif message.message_type == 'achievement' %}
-            <div class="md-icon achievement"><i class="bi bi-trophy-fill"></i></div>
+          <div class="md-hero-icon achievement"><i class="bi bi-trophy-fill"></i></div>
         {% elif message.message_type == 'warning' %}
-            <div class="md-icon warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
+          <div class="md-hero-icon warning"><i class="bi bi-exclamation-triangle-fill"></i></div>
         {% elif message.message_type == 'reminder' %}
-            <div class="md-icon reminder"><i class="bi bi-alarm-fill"></i></div>
+          <div class="md-hero-icon reminder"><i class="bi bi-alarm-fill"></i></div>
         {% elif message.message_type == 'recommendation' %}
-            <div class="md-icon recommend"><i class="bi bi-lightbulb-fill"></i></div>
+          <div class="md-hero-icon recommend"><i class="bi bi-lightbulb-fill"></i></div>
         {% elif message.message_type == 'security' %}
-            <div class="md-icon security"><i class="bi bi-shield-lock-fill"></i></div>
+          <div class="md-hero-icon security"><i class="bi bi-shield-lock-fill"></i></div>
         {% else %}
-            <div class="md-icon default"><i class="bi bi-envelope-fill"></i></div>
+          <div class="md-hero-icon default"><i class="bi bi-envelope-fill"></i></div>
         {% endif %}
 
-        <div class="md-info">
-            <h5 class="md-title">{{ message.title }}</h5>
-            <div class="md-time">
-                <i class="bi bi-clock"></i>
-                {{ message.created_at|date:"d.m.Y H:i" }}
-            </div>
+        <div class="md-hero-info">
+          <!-- badge -->
+          {% if message.message_type == 'payment' %}
+            <span class="md-hero-badge payment"><i class="bi bi-credit-card"></i> To'lov</span>
+          {% elif message.message_type == 'system' %}
+            <span class="md-hero-badge system"><i class="bi bi-gear"></i> Tizim</span>
+          {% elif message.message_type == 'motivation' %}
+            <span class="md-hero-badge motivation"><i class="bi bi-emoji-smile"></i> Motivatsiya</span>
+          {% elif message.message_type == 'achievement' %}
+            <span class="md-hero-badge achievement"><i class="bi bi-trophy"></i> Yutuq</span>
+          {% elif message.message_type == 'warning' %}
+            <span class="md-hero-badge warning"><i class="bi bi-exclamation-triangle"></i> Ogohlantirish</span>
+          {% elif message.message_type == 'reminder' %}
+            <span class="md-hero-badge reminder"><i class="bi bi-alarm"></i> Eslatma</span>
+          {% elif message.message_type == 'recommendation' %}
+            <span class="md-hero-badge recommend"><i class="bi bi-lightbulb"></i> Tavsiya</span>
+          {% elif message.message_type == 'security' %}
+            <span class="md-hero-badge security"><i class="bi bi-shield-lock"></i> Xavfsizlik</span>
+          {% else %}
+            <span class="md-hero-badge default"><i class="bi bi-envelope"></i> Xabar</span>
+          {% endif %}
+
+          <h1 class="md-hero-title">{{ message.title }}</h1>
+          <div class="md-hero-time"><i class="bi bi-clock"></i> {{ message.created_at|date:"d.m.Y H:i" }}</div>
         </div>
-
-        {% if message.message_type == 'payment' %}
-            <span class="md-badge payment">To'lov</span>
-        {% elif message.message_type == 'system' %}
-            <span class="md-badge system">Tizim</span>
-        {% elif message.message_type == 'motivation' %}
-            <span class="md-badge motivation">Motivatsiya</span>
-        {% elif message.message_type == 'achievement' %}
-            <span class="md-badge achievement">Yutuq</span>
-        {% elif message.message_type == 'warning' %}
-            <span class="md-badge warning">Ogohlantirish</span>
-        {% elif message.message_type == 'reminder' %}
-            <span class="md-badge reminder">Eslatma</span>
-        {% elif message.message_type == 'recommendation' %}
-            <span class="md-badge recommend">Tavsiya</span>
-        {% elif message.message_type == 'security' %}
-            <span class="md-badge security">Xavfsizlik</span>
-        {% else %}
-            <span class="md-badge default">Xabar</span>
-        {% endif %}
+      </div>
     </div>
+  </div>
 
-    <!-- Body -->
-    <div class="md-body">
-        <div class="md-content">
-            {{ message.content|linebreaks }}
-        </div>
-    </div>
-
-    <!-- Footer -->
-    {% if message.sender %}
-    <div class="md-footer">
+  <!-- Content -->
+  <div class="md-main">
+    <div class="md-card">
+      <div class="md-card-body">
+        {{ message.content|linebreaks }}
+      </div>
+      {% if message.sender %}
+      <div class="md-card-footer">
         <i class="bi bi-person-circle"></i>
-        Yuboruvchi: <strong>{{ message.sender.full_name }}</strong>
+        Yuboruvchi: <strong style="color:#f1f5f9;">{{ message.sender.get_full_name }}</strong>
+      </div>
+      {% endif %}
     </div>
-    {% endif %}
-</div>
-
+  </div>
 </div>
 {% endblock %}
