@@ -670,6 +670,30 @@ def mp_state(request):
     if not role:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu o'yin ishtirokchisi emassiz"}, status=403), request)
 
+    # ── Inactivity timeout: 5 daqiqa harakatsizlik → avtomatik durang ──
+    INACTIVITY_MINUTES = 5
+    if match.status == 'active':
+        from django.utils import timezone
+        from datetime import timedelta
+        inactivity_cutoff = timezone.now() - timedelta(minutes=INACTIVITY_MINUTES)
+        if match.last_activity_at < inactivity_cutoff and match.move_count > 0:
+            match.status = 'ended'
+            match.winner = 'draw'
+            from django.utils import timezone as tz
+            match.ended_at = tz.now()
+            match.save(update_fields=['status', 'winner', 'ended_at'])
+            _save_mp_attempts(match)
+            # Coin tikishda qaytarish
+            if match.mode == 'coin' and match.wager_coins > 0 and not match.coins_settled:
+                try:
+                    match.white_player.add_coins(match.wager_coins, f"{game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
+                    if match.black_player:
+                        match.black_player.add_coins(match.wager_coins, f"{game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
+                    match.coins_settled = True
+                    match.save(update_fields=['coins_settled'])
+                except Exception:
+                    pass
+
     return _cors_headers(JsonResponse({
         'ok': True, 'match': _serialize_match(match, role)
     }), request)

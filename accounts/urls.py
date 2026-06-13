@@ -300,8 +300,9 @@ urlpatterns = [
     path('dashboard/balans/<int:student_id>/set-fee/', views.admin_balance_set_fee, name='admin_balance_set_fee'),
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
 
-    # ── Oylik to'lovlar ──────────────────────────────────────────
+    # Oylik to'lovlar
     path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
+    path('dashboard/payments/', views.admin_payments),  # alias (eski link uchun)
     path('dashboard/tolovlar/<int:pk>/pay/', views.admin_mark_paid, name='admin_mark_paid'),
     path('dashboard/tolovlar/<int:pk>/unpay/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
     path('yordamchi/tolovlar/', views.admin_payments, name='yordamchi_payments'),

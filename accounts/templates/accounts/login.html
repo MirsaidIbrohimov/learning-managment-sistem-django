@@ -467,51 +467,6 @@ html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--
   var tgCode=document.querySelector('.tg-code');
   if(tgCode){tgCode.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6)});}
 
-  // ──── RUNNING BUTTON EASTER EGG ────
-  (function(){
-    var usernamePanel=document.getElementById('panelUsername');
-    if(!usernamePanel) return;
-    var btn=usernamePanel.querySelector('.lp-btn');
-    var form=usernamePanel.querySelector('form');
-    var usernameInput=form.querySelector('[name="username"]');
-    var passwordInput=form.querySelector('[name="password"]');
-    if(!btn||!usernameInput||!passwordInput) return;
-    var emojis=['😜','🏃','💨','😂','🤣','😝','🙈','🐒','🤪'];
-    function fieldsEmpty(){return !usernameInput.value.trim()||!passwordInput.value.trim();}
-    function resetBtn(){
-      btn.style.transition='all .3s ease';btn.style.position='';btn.style.left='';
-      btn.style.top='';btn.style.zIndex='';btn.style.transform='';
-    }
-    btn.addEventListener('mouseenter',function(e){
-      if(!fieldsEmpty()){resetBtn();return;}
-      var card=btn.closest('.lp-card')||btn.parentElement;
-      var cRect=card.getBoundingClientRect();var bRect=btn.getBoundingClientRect();
-      var bW=bRect.width;var bH=bRect.height;
-      var mx=e.clientX-cRect.left;var my=e.clientY-cRect.top;
-      var bcX=bRect.left-cRect.left+bW/2;var bcY=bRect.top-cRect.top+bH/2;
-      var dx=bcX-mx;var dy=bcY-my;var dist=Math.sqrt(dx*dx+dy*dy)||1;
-      var rd=120+Math.random()*80;
-      var nx=bcX+(dx/dist)*rd-bW/2;var ny=bcY+(dy/dist)*rd-bH/2;
-      var pad=5;
-      nx=Math.max(pad,Math.min(nx,cRect.width-bW-pad));
-      ny=Math.max(pad,Math.min(ny,cRect.height-bH-pad));
-      btn.style.position='absolute';btn.style.zIndex='100';
-      btn.style.transition='left .25s cubic-bezier(.2,.8,.3,1.2), top .25s cubic-bezier(.2,.8,.3,1.2)';
-      btn.style.left=nx+'px';btn.style.top=ny+'px';
-      var emo=document.createElement('span');
-      emo.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-      emo.style.cssText='position:absolute;left:'+(bRect.left-cRect.left+bW/2-10)+'px;top:'+(bRect.top-cRect.top)+'px;font-size:1.4rem;pointer-events:none;z-index:101;transition:all .6s ease;opacity:1;';
-      card.appendChild(emo);
-      requestAnimationFrame(function(){emo.style.transform='translateY(-35px) scale(1.5)';emo.style.opacity='0';});
-      setTimeout(function(){emo.remove();},600);
-    });
-    function checkFields(){if(!fieldsEmpty())resetBtn();}
-    usernameInput.addEventListener('input',checkFields);
-    passwordInput.addEventListener('input',checkFields);
-    form.addEventListener('submit',function(e){
-      if(fieldsEmpty()){e.preventDefault();showToast('Avval login va parolni kiriting! 😄','error');}
-    });
-  })();
 
   // ──── LOADING STATE ────
   document.querySelectorAll('.lp-login-form').forEach(function(form){
