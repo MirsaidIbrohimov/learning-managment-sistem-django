@@ -13750,7 +13750,7 @@ def admin_balance_history(request, student_id):
                 'is_paid': r.is_paid,
                 'paid_amount': int(r.paid_amount) if r.paid_amount else 0,
                 'paid_amount_fmt': f"{int(r.paid_amount):,}".replace(',', ' ') if r.paid_amount else '0',
-                'paid_at': r.paid_at.strftime('%d.%m.%Y') if r.paid_at else None,
+                'paid_date': r.paid_date.strftime('%d.%m.%Y') if r.paid_date else None,
             }
             for r in records
         ],
@@ -13780,9 +13780,9 @@ def admin_balance_set_fee(request, student_id):
         balance.next_payment_date = None
         balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
         return JsonResponse({
-            'ok': True,
-            'is_contract': True,
-            'monthly_fee': int(ps.monthly_fee or 0),
+            'success': True,
+            'mode': 'contract',
+            'fee': int(ps.monthly_fee or 0),
             'next_payment_date': None,
         })
 
@@ -13798,9 +13798,9 @@ def admin_balance_set_fee(request, student_id):
             except Exception:
                 return JsonResponse({'error': 'Sana formati xato (YYYY-MM-DD)'}, status=400)
         return JsonResponse({
-            'ok': True,
-            'is_contract': balance.is_contract,
-            'monthly_fee': int(ps.monthly_fee or 0),
+            'success': True,
+            'mode': 'date_only',
+            'fee': int(ps.monthly_fee or 0),
             'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
         })
 
@@ -13813,7 +13813,7 @@ def admin_balance_set_fee(request, student_id):
         if new_fee < 0:
             raise ValueError
     except ValueError:
-        return JsonResponse({"error": "Tolov miqdori noto'g'ri"}, status=400)
+        return JsonResponse({"error": "Tolov miqdori notogri"}, status=400)
 
     ps.monthly_fee = new_fee
     ps.save(update_fields=['monthly_fee'])
@@ -13830,9 +13830,9 @@ def admin_balance_set_fee(request, student_id):
     balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
 
     return JsonResponse({
-        'ok': True,
-        'is_contract': False,
-        'monthly_fee': new_fee,
-        'monthly_fee_fmt': f"{new_fee:,}".replace(",", " "),
+        'success': True,
+        'mode': 'amount',
+        'fee': new_fee,
+        'fee_fmt': f"{new_fee:,}".replace(",", " "),
         'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
     })
