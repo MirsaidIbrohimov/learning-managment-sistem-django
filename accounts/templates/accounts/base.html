@@ -456,25 +456,38 @@
        ══════════════════════════════════════════════════════════ */
 
     /* ── Base ── */
-    /* ── Frameless floating bar — blends with the page (no box, no glow line) ── */
+    /* ══════════════════════════════════════════════════
+       BOLD GRADIENT PANEL NAVBAR
+       ══════════════════════════════════════════════════ */
     .navbar.nb {
-      position: sticky; top: 8px; z-index: 1050;
-      width: calc(100% - 28px);
-      max-width: 1240px;
-      margin: 8px auto 0;
-      background: transparent !important;
+      position: sticky; top: 10px; z-index: 1050;
+      width: calc(100% - 24px);
+      max-width: 1280px;
+      margin: 10px auto 0;
+      background: linear-gradient(120deg, #4f46e5 0%, #6d28d9 42%, #7c3aed 72%, #8b5cf6 100%) !important;
+      background-size: 220% 100% !important;
+      animation: nbGradientShift 14s ease infinite;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border: none !important;
-      border-radius: 0;
-      box-shadow: none !important;
-      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+      border: 1px solid rgba(255,255,255,0.16) !important;
+      border-radius: 20px;
+      box-shadow:
+        0 14px 36px rgba(79,70,229,0.42),
+        0 3px 10px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.20) !important;
+      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s;
     }
-    /* Kill the animated gradient line from base.css for this nav */
+    @keyframes nbGradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    /* No animated underline for this nav */
     .navbar.nb::after { content: none !important; display: none !important; }
-    /* Scroll states: only hide on scroll-down — no background box */
-    .navbar.nb.nav-shadow { background: transparent !important; box-shadow: none !important; }
-    .navbar.nb.nav-hidden { transform: translateY(calc(-100% - 16px)); }
+    /* Glossy top sheen */
+    .navbar.nb::before {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 46%);
+    }
+    .navbar.nb .nb-inner { position: relative; z-index: 1; }
+    .navbar.nb.nav-shadow { box-shadow: 0 18px 44px rgba(79,70,229,0.52), 0 5px 14px rgba(0,0,0,0.26) !important; }
+    .navbar.nb.nav-hidden { transform: translateY(calc(-100% - 18px)); }
 
     /* ── Inner ── */
     .nb-inner {
@@ -746,6 +759,63 @@
     .nb-user-role.teacher { background: rgba(16,185,129,0.10); color: #10b981; }
     .nb-user-role.student { background: rgba(99,102,241,0.10); color: #6366f1; }
 
+    /* ══ Gradient-panel white treatment for all nav children ══ */
+    .navbar.nb .nb-brand { color: #fff; }
+    .navbar.nb .nb-brand:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.20); }
+    .navbar.nb .nb-brand-text { color: #fff; }
+    .navbar.nb .nb-sep { color: rgba(255,255,255,0.5); }
+    .navbar.nb .nb-brand-icon { background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.20); }
+
+    /* Nav links: white; active = solid white capsule with indigo text */
+    .navbar.nb .nb-link { color: rgba(255,255,255,0.88); }
+    .navbar.nb .nb-link i { opacity: 0.95; }
+    .navbar.nb .nb-link:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.16);
+      border-color: rgba(255,255,255,0.14);
+    }
+    .navbar.nb .nb-link.active {
+      background: #fff; border-color: transparent;
+      color: #4f46e5 !important; font-weight: 700;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+    }
+    .navbar.nb .nb-link.active i { color: #6d28d9; opacity: 1; }
+
+    /* Icon buttons: translucent white, hover = solid white */
+    .navbar.nb .nb-icon-btn {
+      background: rgba(255,255,255,0.15) !important;
+      border: 1px solid rgba(255,255,255,0.20) !important;
+      color: #fff !important;
+    }
+    .navbar.nb .nb-icon-btn:hover {
+      background: #fff !important; color: #6d28d9 !important;
+      border-color: #fff !important;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.22); transform: translateY(-2px) scale(1.04);
+    }
+    .navbar.nb .nb-badge { background: #f59e0b; border-color: #6d28d9; }
+
+    /* Coin pill */
+    .navbar.nb .nb-coin {
+      background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.24); color: #fff;
+    }
+    .navbar.nb .nb-coin i { color: #fde68a; }
+    .navbar.nb .nb-coin:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.36); }
+
+    /* Divider */
+    .navbar.nb .nb-divider { background: rgba(255,255,255,0.30); }
+
+    /* Avatar / chevron */
+    .navbar.nb .nb-avatar-btn { color: #fff; }
+    .navbar.nb .nb-avatar-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
+    .navbar.nb .nb-avatar-init { background: #fff; color: #6d28d9; box-shadow: 0 3px 12px rgba(0,0,0,0.22); }
+    .navbar.nb .nb-avatar { border-color: rgba(255,255,255,0.65); }
+    .navbar.nb .nb-online-dot { border-color: #6d28d9; }
+    .navbar.nb .nb-chevron { color: rgba(255,255,255,0.75); }
+
+    /* Hamburger (mobile) */
+    .navbar.nb .nb-hamburger { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.22); }
+    .navbar.nb .nb-hamburger span { background: #fff; }
+
     /* ── Responsive ── */
     @media (max-width: 991px) {
       .nb-links-desktop { display: none !important; }
@@ -944,7 +1014,7 @@
           <div class="nb-divider"></div>
 
           <!-- Theme Toggle (top nav — desktop) -->
-          <button class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Mavzuni almashtirish" style="cursor:pointer;background:none;border:1px solid rgba(255,255,255,0.08);">
+          <button class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Mavzuni almashtirish" style="cursor:pointer;">
             <i class="bi bi-moon-fill" id="themeIconTop"></i>
           </button>
 
