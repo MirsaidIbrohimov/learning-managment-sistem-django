@@ -25,8 +25,11 @@ class AccountsConfig(AppConfig):
         time.sleep(30)  # Server to'liq ishga tushguncha kutish
         while True:
             try:
-                from django.core.management import call_command
-                call_command('check_ai_homework')
+                from accounts.management.commands.check_ai_homework import Command
+                cmd = Command()
+                cmd.stdout = type('_W', (), {'write': staticmethod(print)})()
+                cmd.stderr = type('_W', (), {'write': staticmethod(print)})()
+                cmd.handle()
             except Exception as e:
                 print(f"AI homework checker xatolik: {e}")
             time.sleep(300)  # 5 daqiqa

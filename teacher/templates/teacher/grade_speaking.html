@@ -142,7 +142,7 @@
     {% if submission.pronunciation_score or submission.fluency_score or submission.grammar_score or submission.vocabulary_score %}
     <div class="t-speaking-section">
         <div class="t-speaking-section-head">
-            <i class="bi bi-bar-chart-fill" style="color: #10b981;"></i> Batafsil ballar
+            <i class="bi bi-bar-chart-fill" style="color: #0d6efd;"></i> Batafsil ballar
         </div>
         <div class="t-speaking-section-body">
             <div class="t-score-grid">
@@ -158,8 +158,8 @@
                 </div>
                 <div class="t-score-item">
                     <div class="t-score-label">Grammatika</div>
-                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.grammar_score|default:0 }}0%; background: #10b981;"></div></div>
-                    <div class="t-score-val" style="color: #10b981;">{{ submission.grammar_score|default:"—" }}/10</div>
+                    <div class="t-score-bar"><div class="t-score-bar-fill" style="width: {{ submission.grammar_score|default:0 }}0%; background: #0d6efd;"></div></div>
+                    <div class="t-score-val" style="color: #0d6efd;">{{ submission.grammar_score|default:"—" }}/10</div>
                 </div>
                 <div class="t-score-item">
                     <div class="t-score-label">Lug'at boyligi</div>
@@ -184,7 +184,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="ai_grade">
                 <button type="submit" class="t-btn t-btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); border: none; width: 100%; justify-content: center;" onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> AI tekshirmoqda...'; this.form.submit();">
-                    <i class="bi bi-robot"></i> 🤖 AI bilan baholash
+                    <i class="bi bi-robot"></i> AI bilan baholash
                 </button>
             </form>
         </div>

@@ -623,7 +623,7 @@ class Homework(models.Model):
     allowed_formats = models.TextField(blank=True, default='', verbose_name="Ruxsat etilgan formatlar", 
                                         help_text="Vergul bilan ajratilgan formatlar, masalan: .zip,.jpg,.png")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
-    max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
+    max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
     ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
@@ -909,7 +909,7 @@ class SpeakingTask(models.Model):
     description = models.TextField(verbose_name="Vazifa tavsifi")
     target_level = models.CharField(max_length=30, choices=LEVEL_CHOICES, default='beginner', verbose_name="Maqsad daraja")
     max_duration = models.IntegerField(default=120, verbose_name="Maksimal davomiylik (soniya)")
-    max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
+    max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
     ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
     criteria = models.TextField(blank=True, null=True, verbose_name="Baholash mezonlari", help_text="AI yoki ustoz nimaga e'tibor berishi kerak")
@@ -2166,20 +2166,16 @@ class BalanceTopUp(models.Model):
 
 
 class SecurityEvent(models.Model):
-    """
-    Xavfsizlik hodisalari audit jurnali.
-    Barcha shubhali va muhim xavfsizlik hodisalari shu yerda saqlanadi.
-    """
     SEVERITY_CHOICES = [
-        ('low',      '🟢 Past'),
-        ('medium',   '🟡 O\'rta'),
-        ('high',     '🔴 Yuqori'),
-        ('critical', '🚨 Kritik'),
+        ('low',      'Past'),
+        ('medium',   "O'rta"),
+        ('high',     'Yuqori'),
+        ('critical', 'Kritik'),
     ]
     EVENT_TYPES = [
         ('rate_limit_hit',      'Rate limit oshirildi'),
         ('ip_blocked',          'IP bloklandi'),
-        ('blocked_ip_request',  'Bloklangan IP so\'rov yubordi'),
+        ('blocked_ip_request',  "Bloklangan IP so'rov yubordi"),
         ('sqli_attempt',        'SQL Injection urinish'),
         ('xss_attempt',         'XSS urinish'),
         ('path_trav',           'Path Traversal urinish'),
@@ -2191,87 +2187,37 @@ class SecurityEvent(models.Model):
         ('csrf_failure',        'CSRF muvaffaqiyatsiz'),
         ('permission_denied',   'Ruxsatsiz kirish urinishi'),
         ('account_locked',      'Hisob bloklandi'),
-        ('password_changed',    'Parol o\'zgartirildi'),
+        ('password_changed',    "Parol o'zgartirildi"),
         ('profile_updated',     'Profil yangilandi'),
         ('admin_action',        'Admin harakat'),
         ('other',               'Boshqa'),
     ]
 
-    event_type  = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True)
-    severity    = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium', db_index=True)
-    ip_address  = models.CharField(max_length=45, blank=True, db_index=True)
+    event_type  = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True, verbose_name='Hodisa turi')
+    severity    = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium', db_index=True, verbose_name='Xavf darajasi')
+    ip_address  = models.CharField(max_length=45, blank=True, db_index=True, verbose_name='IP manzil')
+    detail      = models.TextField(blank=True, verbose_name='Tafsilot')
+    path        = models.CharField(max_length=500, blank=True, verbose_name='URL yo`li')
+    user_agent  = models.CharField(max_length=512, blank=True, verbose_name='User Agent')
+    created_at  = models.DateTimeField(auto_now_add=True, db_index=True, verbose_name='Vaqt')
+    resolved    = models.BooleanField(default=False, verbose_name='Hal qilindi')
+    resolved_at = models.DateTimeField(null=True, blank=True, verbose_name='Hal qilingan vaqt')
     user        = models.ForeignKey(
-        'CustomUser', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='security_events'
+        'accounts.CustomUser', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='security_events',
+        verbose_name='Foydalanuvchi'
     )
-    detail      = models.TextField(blank=True)
-    path        = models.CharField(max_length=500, blank=True)
-    user_agent  = models.CharField(max_length=512, blank=True)
-    created_at  = models.DateTimeField(auto_now_add=True, db_index=True)
-    resolved    = models.BooleanField(default=False)
     resolved_by = models.ForeignKey(
-        'CustomUser', on_delete=models.SET_NULL,
-        null=True, blank=True, related_name='resolved_security_events'
+        'accounts.CustomUser', null=True, blank=True,
+        on_delete=models.SET_NULL, related_name='resolved_security_events',
+        verbose_name='Hal qilgan admin'
     )
-    resolved_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        ordering = ['-created_at']
-        verbose_name = "Xavfsizlik hodisasi"
-        verbose_name_plural = "Xavfsizlik hodisalari"
-        indexes = [
-            models.Index(fields=['event_type', 'created_at']),
-            models.Index(fields=['ip_address', 'created_at']),
-            models.Index(fields=['severity', 'resolved']),
-        ]
+        verbose_name        = 'Xavfsizlik hodisasi'
+        verbose_name_plural = 'Xavfsizlik hodisalari'
+        ordering            = ['-created_at']
 
     def __str__(self):
-        return f"[{self.severity.upper()}] {self.event_type} — {self.ip_address} ({self.created_at:%d.%m.%Y %H:%M})"
+        return f"{self.get_event_type_display()} - {self.ip_address} - {self.created_at}"
 
-    def resolve(self, admin_user):
-        from django.utils import timezone as tz
-        self.resolved    = True
-        self.resolved_by = admin_user
-        self.resolved_at = tz.now()
-        self.save(update_fields=['resolved', 'resolved_by', 'resolved_at'])
-
-
-# ─────────────────────────────────────────────
-
-from django.db.models.signals import post_save
-from django.dispatch import receiver
-
-@receiver(post_save, sender='accounts.CustomUser')
-def create_student_balance_and_payment_status(sender, instance, created, **kwargs):
-    """
-    Yangi o'quvchi qo'shilganda:
-    1. StudentBalance yaratiladi (0 so'm)
-    2. PaymentStatus yaratiladi
-    3. Joriy oy uchun PaymentRecord yaratiladi
-    """
-    if not created:
-        return
-    if instance.role != 'student':
-        return
-    try:
-        from django.utils import timezone
-        # StudentBalance
-        StudentBalance.objects.get_or_create(user=instance)
-        # PaymentStatus
-        PaymentStatus.objects.get_or_create(
-            user=instance,
-            defaults={'monthly_fee': 200000}
-        )
-        # Joriy oy uchun PaymentRecord
-        now = timezone.now()
-        PaymentRecord.objects.get_or_create(
-            user=instance,
-            month=now.month,
-            year=now.year,
-            defaults={
-                'amount': 200000,
-                'is_paid': False,
-            }
-        )
-    except Exception:
-        pass

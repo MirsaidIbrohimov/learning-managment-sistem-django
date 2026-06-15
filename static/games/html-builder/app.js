@@ -269,13 +269,18 @@ function startGame() {
     $('btn-submit').disabled = true;
 
     // Buttons
-    $('btn-back-to-menu').onclick = () => { stopTimer(); enterMenu(); };
+    $('btn-back-to-menu').onclick = () => { stopTimer(); closePreview(); enterMenu(); };
     $('btn-fullscreen-game').onclick = toggleFullscreen;
     $('btn-undo').onclick   = undoLast;
     $('btn-clear').onclick  = clearCanvas;
     $('btn-preview').onclick= togglePreview;
     $('btn-hint').onclick   = showHint;
     $('btn-submit').onclick = submitGame;
+    // Preview overlay close buttons
+    const povClose = $('pov-close');
+    if (povClose) povClose.onclick = closePreview;
+    const povContinue = $('pov-continue');
+    if (povContinue) povContinue.onclick = closePreview;
 
     setupCanvasDrop();
     showScreen('game');
@@ -412,7 +417,7 @@ function updateScore() {
     $('g-done').textContent  = done;
     $('g-progress').style.width = `${(done / total) * 100}%`;
 
-    // Score formula: req completion + bonus for extra elements + time
+    // Score formula
     const accuracy = Math.round((done / total) * 100);
     const baseScore = Math.round((done / total) * 800);
     const bonus     = Math.min(canvasItems.length * 5, 150);
@@ -425,25 +430,56 @@ function updateScore() {
     // Enable submit when at least 50% done
     $('btn-submit').disabled = done < Math.ceil(total * 0.5);
 
+    // Maqsad % badge
+    const pctEl = $('maqsad-pct');
+    const badge = $('maqsad-badge');
+    if (pctEl) pctEl.textContent = accuracy;
+    if (badge) {
+        badge.classList.toggle('full', accuracy === 100);
+    }
+
+    // Checklist count
+    const ccEl = $('checklist-count');
+    if (ccEl) ccEl.textContent = `${done}/${total}`;
+
     renderChecklist(counts);
 }
 
 function renderChecklist(counts = {}) {
     const cl = $('checklist');
-    cl.innerHTML = '<div class="check-section-title">Kerakli elementlar</div>';
+    if (!cl) return;
+    cl.innerHTML = '';
+    const total = currentLevel.required.length;
+    let doneCount = 0;
+
     currentLevel.required.forEach(req => {
         const have = counts[req.type] || 0;
         const done = have >= req.count;
+        if (done) doneCount++;
+
         const item = document.createElement('div');
         item.className = `check-item${done ? ' done' : ''}`;
+
+        const countHtml = req.count > 1
+            ? `<div class="check-count-tag${done ? ' satisfied' : ''}">
+                 <i class="bi bi-layers"></i> ${have}/${req.count} ta
+               </div>`
+            : '';
+
         item.innerHTML = `
             <div class="check-dot">${done ? '<i class="bi bi-check-lg"></i>' : ''}</div>
-            <div class="check-text">
-                <span class="tag">&lt;${req.type}&gt;</span> — ${req.label}
-                ${req.count > 1 ? `<span style="color:var(--muted);font-size:.72rem"> (${have}/${req.count})</span>` : ''}
+            <div class="check-body">
+                <div class="check-text">
+                    <span class="tag">&lt;${req.type}&gt;</span> ${req.label}
+                </div>
+                ${countHtml}
             </div>`;
         cl.appendChild(item);
     });
+
+    // Update count badge
+    const ccEl = $('checklist-count');
+    if (ccEl) ccEl.textContent = `${doneCount}/${total}`;
 }
 
 // ─── SUBMIT ────────────────────────────────────────────────
@@ -502,21 +538,72 @@ function showHint() {
     showNotif(`💡 Keyingi qadam: <strong>${el?.name || missing.type}</strong> qo'shing (<code>${el?.tag}</code>)`);
 }
 
-// ─── PREVIEW TOGGLE ────────────────────────────────────────
-let previewMode = false;
-function togglePreview() {
-    previewMode = !previewMode;
+// ─── PREVIEW ──────────────────────────────────────────────
+function generateCleanHTML() {
+    if (!canvasItems.length) return '';
+    return canvasItems.map(item => {
+        const d = EL_DEFAULTS[item.type];
+        switch(item.type) {
+            case 'h1':    return `<h1 style="font-size:1.7rem;font-weight:900;color:#0f172a;margin:0 0 10px;letter-spacing:-.4px">${d}</h1>`;
+            case 'h2':    return `<h2 style="font-size:1.15rem;font-weight:700;color:#1e293b;margin:0 0 8px">${d}</h2>`;
+            case 'p':     return `<p style="font-size:.9rem;color:#475569;line-height:1.7;margin:0 0 10px">${d}</p>`;
+            case 'img':   return `<img src="https://placehold.co/500x140/e2e8f0/94a3b8?text=Rasm" style="width:100%;border-radius:8px;display:block;margin:0 0 10px;object-fit:cover">`;
+            case 'btn':   return `<button style="background:#6366f1;color:#fff;border:none;border-radius:7px;padding:9px 22px;font-size:.9rem;font-weight:700;margin:0 0 10px;cursor:pointer">${d}</button>`;
+            case 'ul':    return `<ul style="padding-left:22px;color:#475569;font-size:.88rem;margin:0 0 10px;line-height:1.8">${d.map(t=>`<li>${t}</li>`).join('')}</ul>`;
+            case 'ol':    return `<ol style="padding-left:22px;color:#475569;font-size:.88rem;margin:0 0 10px;line-height:1.8">${d.map(t=>`<li>${t}</li>`).join('')}</ol>`;
+            case 'div':   return `<div style="background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:8px;padding:14px;color:#94a3b8;font-size:.83rem;text-align:center;margin:0 0 10px">${d}</div>`;
+            case 'nav':   return `<nav style="background:#1e293b;padding:10px 14px;border-radius:8px;display:flex;gap:14px;margin:0 0 10px;align-items:center">${d.map((t,i)=>`<span style="color:${i===0?'#e2e8f0':'#64748b'};font-size:.83rem;font-weight:${i===0?700:400}">${t}</span>`).join('')}</nav>`;
+            case 'input': return `<input style="width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 12px;font-size:.88rem;color:#334155;display:block;margin:0 0 10px;outline:none" placeholder="${d}" readonly>`;
+            case 'form':  return `<div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:14px;margin:0 0 10px"><div style="font-weight:700;margin-bottom:10px;color:#1e293b;font-size:.9rem">Forma</div><input style="width:100%;border:1.5px solid #e2e8f0;border-radius:7px;padding:8px 12px;font-size:.85rem;margin-bottom:10px;display:block;outline:none" placeholder="${d}" readonly><button style="background:#6366f1;color:#fff;border:none;border-radius:7px;padding:7px 16px;font-size:.83rem;font-weight:700">Yuborish</button></div>`;
+            case 'footer':return `<footer style="background:#1e293b;color:#94a3b8;font-size:.8rem;padding:12px 16px;border-radius:8px;text-align:center;margin:0 0 10px">${d}</footer>`;
+            default:      return `<div style="background:#f1f5f9;border-radius:8px;padding:12px;color:#94a3b8;margin:0 0 10px">&lt;${item.type}&gt;</div>`;
+        }
+    }).join('');
+}
+
+function openPreview() {
+    const overlay = $('preview-overlay');
+    if (!overlay || !currentLevel) return;
+
+    // Built HTML
+    const builtHtml = generateCleanHTML();
+    const builtEl = $('pov-built-html');
+    if (builtEl) builtEl.innerHTML = builtHtml || '<div style="text-align:center;color:#94a3b8;font-style:italic;margin-top:3rem;font-size:.88rem">Hali hech narsa qo\'shilmagan...</div>';
+
+    // Target HTML
+    const targetEl = $('pov-target-html');
+    if (targetEl) targetEl.innerHTML = currentLevel.targetPreviewHTML || '';
+
+    // Accuracy badge
+    const counts = getTypeCounts();
+    const total  = currentLevel.required.length;
+    let done = 0;
+    currentLevel.required.forEach(r => { if ((counts[r.type]||0) >= r.count) done++; });
+    const acc = Math.round((done / total) * 100);
+    const accEl = $('pov-acc');
+    if (accEl) accEl.textContent = acc + '%';
+
+    // User count badge
+    const ucEl = $('pov-el-count');
+    if (ucEl) ucEl.textContent = canvasItems.length + ' element';
+
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    $('btn-preview').classList.add('active');
+}
+
+function closePreview() {
+    const overlay = $('preview-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    document.body.style.overflow = '';
     const btn = $('btn-preview');
-    const ct  = $('canvas-target');
-    if (previewMode) {
-        btn.classList.add('active');
-        ct.querySelectorAll('.el-delete').forEach(d => d.style.display = 'none');
-        ct.querySelectorAll('.canvas-el').forEach(e => { e.style.pointerEvents = 'none'; e.style.borderColor = 'transparent'; });
-    } else {
-        btn.classList.remove('active');
-        ct.querySelectorAll('.canvas-el').forEach(e => e.style.pointerEvents = '');
-        renderCanvas();
-    }
+    if (btn) btn.classList.remove('active');
+}
+
+function togglePreview() {
+    const overlay = $('preview-overlay');
+    if (!overlay) return;
+    overlay.classList.contains('hidden') ? openPreview() : closePreview();
 }
 
 // ─── FULLSCREEN ────────────────────────────────────────────
@@ -578,19 +665,4 @@ function removeGhost() {
     if (dragGhost) { dragGhost.remove(); dragGhost = null; }
 }
 document.addEventListener('dragover', e => {
-    if (dragGhost) moveDragGhost(e.clientX, e.clientY);
-});
-
-// ─── NOTIF ─────────────────────────────────────────────────
-function showNotif(msg, type = '') {
-    const old = document.querySelector('.notif');
-    if (old) old.remove();
-    const n = document.createElement('div');
-    n.className = `notif${type ? ' ' + type : ''}`;
-    n.innerHTML = msg;
-    document.body.appendChild(n);
-    setTimeout(() => n.remove(), 3000);
-}
-
-// ─── BOOT ──────────────────────────────────────────────────
-verifyToken();
+    if (dragGhost) moveDragGhost(e.clientX, e.cli

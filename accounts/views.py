@@ -1269,9 +1269,11 @@ def professions_view(request):
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
 
-    # O'quvchilar uchun PK orqali kirishni bloklash
-    if request.user.is_student and not request.user.is_admin:
-        return render(request, 'accounts/student_token_required.html', status=403)
+    # O'quvchilar uchun PK orqali kirishni bloklash — token URL ga yo'naltirish
+    if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
+        from .models import StudentCourseToken
+        ct = StudentCourseToken.get_or_create(request.user, profession)
+        return redirect('student_course_view', token=ct.token)
 
     is_enrolled = False
     enrollment_request = None
@@ -5669,7 +5671,7 @@ def add_lesson(request, pk):
             description = request.POST.get('description', '').strip()
             target_level = request.POST.get('target_level', 'beginner')
             max_duration = request.POST.get('max_duration', 120)
-            max_score = request.POST.get('max_score', 10)
+            max_score = request.POST.get('max_score', 100)
             ai_check = request.POST.get('ai_check') == 'on'
             criteria = request.POST.get('criteria', '').strip()
             due_date = request.POST.get('due_date')
@@ -5686,7 +5688,7 @@ def add_lesson(request, pk):
                 max_score = int(max_score)
             except (ValueError, TypeError):
                 max_duration = 120
-                max_score = 10
+                max_score = 100
             
             lesson = Lesson.objects.create(
                 profession=profession,
@@ -13836,109 +13838,83 @@ def admin_balance_set_fee(request, student_id):
     if mode == 'contract':
         balance.is_contract = True
         balance.next_payment_date = None
-        balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
+        balance.save(update_fields=['is_contract', 'next_payment_date'])
+        ps.save()
         return JsonResponse({
             'success': True,
             'mode': 'contract',
-            'fee': int(ps.monthly_fee or 0),
-            'next_payment_date': None,
+            'fee': 0,
         })
 
-    if mode == 'date_only':
-        new_date_str = request.POST.get('next_payment_date', '').strip()
-        if new_date_str:
-            try:
-                from datetime import date as date_cls
-                parts = new_date_str.split('-')
-                new_npd = date_cls(int(parts[0]), int(parts[1]), int(parts[2]))
-                balance.next_payment_date = new_npd
-                balance.save(update_fields=['next_payment_date', 'updated_at'])
-            except Exception:
-                return JsonResponse({'error': 'Sana formati xato (YYYY-MM-DD)'}, status=400)
-        return JsonResponse({
-            'success': True,
-            'mode': 'date_only',
-            'fee': int(ps.monthly_fee or 0),
-            'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
-        })
+    # mode == 'amount'
+    fee_raw = request.POST.get('fee') or request.POST.get('monthly_fee', '')
+    if not fee_raw:
+        return JsonResponse({'success': False, 'error': "Oylik to'lov summasi kiritilmadi"}, status=400)
 
-    # mode == 'amount' (default)
-    fee_str = request.POST.get('monthly_fee', '').strip()
-    if not fee_str:
-        return JsonResponse({'error': 'monthly_fee kiritilmadi'}, status=400)
     try:
-        new_fee = int(fee_str)
-        if new_fee < 0:
+        fee = int(str(fee_raw).replace(' ', '').replace(',', ''))
+        if fee < 0:
             raise ValueError
-    except ValueError:
-        return JsonResponse({"error": "Tolov miqdori notogri"}, status=400)
+    except (ValueError, TypeError):
+        return JsonResponse({'success': False, 'error': "Noto'g'ri summa kiritildi"}, status=400)
 
-    ps.monthly_fee = new_fee
-    ps.save(update_fields=['monthly_fee'])
+    ps.monthly_fee = fee
+    ps.save()
 
-    balance.is_contract = False
-    new_date_str = request.POST.get('next_payment_date', '').strip()
-    if new_date_str:
+    # Update unpaid PaymentRecord for current month if exists
+    from datetime import date
+    today = date.today()
+    from .models import PaymentRecord
+    PaymentRecord.objects.filter(
+        user=student, month=today.month, year=today.year, is_paid=False
+    ).update(amount=fee)
+
+    # Update next_payment_date if provided
+    date_str = request.POST.get('next_payment_date', '').strip()
+    if date_str:
         try:
-            from datetime import date as date_cls
-            parts = new_date_str.split('-')
-            balance.next_payment_date = date_cls(int(parts[0]), int(parts[1]), int(parts[2]))
-        except Exception:
+            from datetime import datetime
+            balance.next_payment_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            balance.is_contract = False
+            balance.save(update_fields=['next_payment_date', 'is_contract'])
+        except ValueError:
             pass
-    balance.save(update_fields=['is_contract', 'next_payment_date', 'updated_at'])
+    else:
+        balance.is_contract = False
+        balance.save(update_fields=['is_contract'])
+
+    next_date_fmt = balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None
 
     return JsonResponse({
         'success': True,
         'mode': 'amount',
-        'fee': new_fee,
-        'fee_fmt': f"{new_fee:,}".replace(",", " "),
-        'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
+        'fee': fee,
+        'fee_fmt': f"{fee:,}".replace(',', ' '),
+        'next_payment_date': next_date_fmt,
     })
 
 
-# ══════════════════════════════════════════════════════════════════
-# XAVFSIZLIK AUDIT PANELI (Admin)
-# ══════════════════════════════════════════════════════════════════
-
+# ──────────────────────────────────────────────────────────────
+#  SECURITY EVENTS DASHBOARD
+# ──────────────────────────────────────────────────────────────
 @login_required
 def admin_security_events(request):
-    """Xavfsizlik hodisalari ro'yxati — Admin paneli."""
+    """Xavfsizlik hodisalari paneli."""
+    from django.core.paginator import Paginator
+    from django.utils import timezone as tz
+    from datetime import timedelta
+    from .models import SecurityEvent
+
     if not request.user.is_admin:
-        messages.error(request, "Ruxsat yo'q!")
         return redirect('home')
 
-    from .models import SecurityEvent
-    from .security import block_ip, unblock_ip, is_ip_blocked
-
-    # ── Qo'lda IP bloklash / ochish ──
-    if request.method == 'POST':
-        action     = request.POST.get('action')
-        target_ip  = request.POST.get('ip', '').strip()
-        if target_ip:
-            if action == 'block_ip':
-                block_ip(target_ip, ttl=3600 * 24, reason=f"Admin qo'lda blokladi: {request.user}")
-                messages.success(request, f"{target_ip} bloklandi (24 soat).")
-            elif action == 'unblock_ip':
-                unblock_ip(target_ip)
-                messages.success(request, f"{target_ip} blokdan chiqarildi.")
-            elif action == 'resolve':
-                event_pk = request.POST.get('event_pk')
-                if event_pk:
-                    try:
-                        ev = SecurityEvent.objects.get(pk=event_pk)
-                        ev.resolve(request.user)
-                        messages.success(request, "Hodisa hal qilindi.")
-                    except SecurityEvent.DoesNotExist:
-                        pass
-        return redirect('admin_security_events')
-
-    # ── Filtrlar ──
     qs = SecurityEvent.objects.select_related('user', 'resolved_by').all()
 
-    severity_f   = request.GET.get('severity')
-    event_type_f = request.GET.get('event_type')
+    # Filters
+    severity_f   = request.GET.get('severity', '')
+    event_type_f = request.GET.get('event_type', '')
     ip_f         = request.GET.get('ip', '').strip()
-    resolved_f   = request.GET.get('resolved')
+    resolved_f   = request.GET.get('resolved', '')
 
     if severity_f:
         qs = qs.filter(severity=severity_f)
@@ -13946,68 +13922,64 @@ def admin_security_events(request):
         qs = qs.filter(event_type=event_type_f)
     if ip_f:
         qs = qs.filter(ip_address__icontains=ip_f)
-    if resolved_f == '0':
-        qs = qs.filter(resolved=False)
-    elif resolved_f == '1':
+    if resolved_f == '1':
         qs = qs.filter(resolved=True)
+    elif resolved_f == '0':
+        qs = qs.filter(resolved=False)
 
-    # ── Statistika ──
+    # Stats
+    now = tz.now()
+    all_qs = SecurityEvent.objects.all()
     from django.db.models import Count
-    from django.utils import timezone
-    now = timezone.now()
-    last24 = now - timedelta(hours=24)
-
+    top_ips_qs = (
+        all_qs.values('ip_address')
+        .annotate(cnt=Count('id'))
+        .order_by('-cnt')[:5]
+    )
     stats = {
-        'total':      qs.count(),
-        'unresolved': qs.filter(resolved=False).count(),
-        'critical':   qs.filter(severity='critical').count(),
-        'high':       qs.filter(severity='high').count(),
-        'last24':     SecurityEvent.objects.filter(created_at__gte=last24).count(),
-        'top_ips':    SecurityEvent.objects.filter(created_at__gte=last24)
-                        .values('ip_address')
-                        .annotate(cnt=Count('id'))
-                        .order_by('-cnt')[:5],
+        'total':      all_qs.count(),
+        'unresolved': all_qs.filter(resolved=False).count(),
+        'critical':   all_qs.filter(severity='critical').count(),
+        'high':       all_qs.filter(severity='high').count(),
+        'last24':     all_qs.filter(created_at__gte=now - timedelta(hours=24)).count(),
+        'top_ips':    list(top_ips_qs),
     }
 
-    # Pagination
-    from django.core.paginator import Paginator
-    paginator = Paginator(qs, 40)
-    page_obj  = paginator.get_page(request.GET.get('page', 1))
+    paginator  = Paginator(qs, 50)
+    page_obj   = paginator.get_page(request.GET.get('page', 1))
 
-    context = {
+    return render(request, 'accounts/admin/security_events.html', {
         'page_obj':      page_obj,
         'stats':         stats,
         'severity_f':    severity_f,
         'event_type_f':  event_type_f,
         'ip_f':          ip_f,
         'resolved_f':    resolved_f,
-        'event_choices': SecurityEvent.EVENT_TYPES,
-        'sev_choices':   SecurityEvent.SEVERITY_CHOICES,
-    }
-    return render(request, 'accounts/admin/security_events.html', context)
+        'severity_choices':   SecurityEvent.SEVERITY_CHOICES,
+        'event_type_choices': SecurityEvent.EVENT_TYPES,
+    })
 
 
 @login_required
 def admin_security_block_ip(request):
-    """API: IP bloklash (AJAX)."""
+    """IP manzilni bloklash (AJAX POST)."""
+    from django.http import JsonResponse
     if not request.user.is_admin:
-        return JsonResponse({'ok': False}, status=403)
+        return JsonResponse({'error': 'Ruxsat yoq'}, status=403)
     if request.method != 'POST':
-        return JsonResponse({'ok': False}, status=405)
+        return JsonResponse({'error': 'POST kerak'}, status=405)
 
-    from .security import block_ip, unblock_ip, is_ip_blocked
-    ip      = request.POST.get('ip', '').strip()
-    action  = request.POST.get('action', 'block')
-    hours   = int(request.POST.get('hours', 24))
-
+    ip = request.POST.get('ip', '').strip()
     if not ip:
-        return JsonResponse({'ok': False, 'error': 'IP kiritilmadi'})
+        return JsonResponse({'error': 'IP kiritilmadi'}, status=400)
 
-    if action == 'block':
-        block_ip(ip, ttl=3600 * hours, reason=f"Admin: {request.user}")
-        return JsonResponse({'ok': True, 'msg': f'{ip} {hours} soatga bloklandi'})
-    elif action == 'unblock':
-        unblock_ip(ip)
-        return JsonResponse({'ok': True, 'msg': f'{ip} blokdan chiqarildi'})
-
-    return JsonResponse({'ok': False, 'error': 'Noto\'g\'ri harakat'})
+    # Simple: record a SecurityEvent for manual block log
+    from .models import SecurityEvent
+    SecurityEvent.objects.create(
+        event_type='ip_blocked',
+        severity='high',
+        ip_address=ip,
+        detail=f"Admin {request.user.username} tomonidan qo'lda bloklandi",
+        user=request.user,
+    )
+    return JsonResponse({'success': True, 'ip': ip})

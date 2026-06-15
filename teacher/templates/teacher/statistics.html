@@ -74,12 +74,12 @@
 
 /* Status badges */
 .ts-status { padding: 3px 9px; border-radius: 7px; font-size: .72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
-.ts-status-faol { background: rgba(16,185,129,.12); color: #059669; }
+.ts-status-faol { background: rgba(13, 110, 253,.12); color: #0a58ca; }
 .ts-status-top { background: rgba(59,130,246,.12); color: #2563eb; }
 .ts-status-ortacha { background: rgba(245,158,11,.12); color: #d97706; }
 .ts-status-sust { background: rgba(249,115,22,.12); color: #ea580c; }
 .ts-status-xavfli { background: rgba(239,68,68,.12); color: #dc2626; }
-[data-bs-theme="dark"] .ts-status-faol { background: rgba(16,185,129,.2); color: #34d399; }
+[data-bs-theme="dark"] .ts-status-faol { background: rgba(13, 110, 253,.2); color: #6ea8fe; }
 [data-bs-theme="dark"] .ts-status-top { background: rgba(59,130,246,.2); color: #60a5fa; }
 [data-bs-theme="dark"] .ts-status-ortacha { background: rgba(245,158,11,.2); color: #fbbf24; }
 [data-bs-theme="dark"] .ts-status-sust { background: rgba(249,115,22,.2); color: #fb923c; }
@@ -140,7 +140,7 @@
         <div class="ts-lbl">Jami o'quvchi</div>
     </div>
     <div class="ts-top-card">
-        <div class="ts-icon" style="background:rgba(16,185,129,.12);color:#10b981;"><i class="bi bi-person-check-fill"></i></div>
+        <div class="ts-icon" style="background:rgba(13, 110, 253,.12);color:#0d6efd;"><i class="bi bi-person-check-fill"></i></div>
         <div class="ts-val">{{ active_students }}</div>
         <div class="ts-lbl">Faol o'quvchilar</div>
     </div>
@@ -271,14 +271,14 @@
                         </td>
                         <td>{{ s.watched_lessons }}/{{ s.total_lessons }}</td>
                         <td>{{ s.done_homeworks }}/{{ s.total_homeworks }}</td>
-                        <td>{% if s.not_done_homeworks > 0 %}<span style="color:#ef4444;font-weight:700;">{{ s.not_done_homeworks }}</span>{% else %}<span style="color:#10b981;">0</span>{% endif %}</td>
+                        <td>{% if s.not_done_homeworks > 0 %}<span style="color:#ef4444;font-weight:700;">{{ s.not_done_homeworks }}</span>{% else %}<span style="color:#0d6efd;">0</span>{% endif %}</td>
                         <td>{{ s.tests_count }}</td>
                         <td>{% if s.tests_count > 0 %}<span class="{% if s.avg_test >= 70 %}text-success{% elif s.avg_test >= 50 %}text-warning{% else %}text-danger{% endif %}" style="font-weight:700;">{{ s.avg_test }}%</span>{% else %}<span class="text-muted">--</span>{% endif %}</td>
                         <td style="font-weight:700;">{{ s.overall_score }}%</td>
                         <td>
                             <div style="display:flex;align-items:center;gap:5px;">
                                 <div class="ts-progress-bar" style="width:50px;">
-                                    <div class="ts-progress-fill" style="width:{{ s.activity }}%;background:{% if s.activity >= 70 %}#10b981{% elif s.activity >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                                    <div class="ts-progress-fill" style="width:{{ s.activity }}%;background:{% if s.activity >= 70 %}#0d6efd{% elif s.activity >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
                                 </div>
                                 <span style="font-size:.78rem;font-weight:600;">{{ s.activity }}%</span>
                             </div>
@@ -332,10 +332,10 @@
                     {% for h in homeworks_data %}
                     <tr>
                         <td style="font-weight:600;">{{ h.homework.lesson.title }}</td>
-                        <td><span style="color:#10b981;font-weight:700;">{{ h.submitted }}</span></td>
+                        <td><span style="color:#0d6efd;font-weight:700;">{{ h.submitted }}</span></td>
                         <td><span style="color:#ef4444;font-weight:700;">{{ h.not_submitted }}</span></td>
                         <td><span class="{% if h.avg_score >= 70 %}text-success{% elif h.avg_score >= 50 %}text-warning{% else %}text-danger{% endif %}" style="font-weight:700;">{{ h.avg_score }}%</span></td>
-                        <td style="color:#10b981;font-weight:600;">{{ h.best_score }}%</td>
+                        <td style="color:#0d6efd;font-weight:600;">{{ h.best_score }}%</td>
                         <td style="color:#ef4444;font-weight:600;">{{ h.worst_score }}%</td>
                         <td><span class="t-badge t-badge-success">{{ h.checked }}</span></td>
                         <td>{% if h.unchecked > 0 %}<span class="t-badge t-badge-warning">{{ h.unchecked }}</span>{% else %}<span class="t-badge t-badge-secondary">0</span>{% endif %}</td>
@@ -370,17 +370,17 @@
                     <div class="ts-test-stat-lbl">Urinish</div>
                 </div>
                 <div class="ts-test-stat">
-                    <div class="ts-test-stat-val" style="color:{% if t.avg_score >= 70 %}#10b981{% elif t.avg_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.avg_score }}%</div>
+                    <div class="ts-test-stat-val" style="color:{% if t.avg_score >= 70 %}#0d6efd{% elif t.avg_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.avg_score }}%</div>
                     <div class="ts-test-stat-lbl">O'rtacha</div>
                 </div>
                 <div class="ts-test-stat">
-                    <div class="ts-test-stat-val" style="color:{% if t.pass_rate >= 70 %}#10b981{% elif t.pass_rate >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.pass_rate }}%</div>
+                    <div class="ts-test-stat-val" style="color:{% if t.pass_rate >= 70 %}#0d6efd{% elif t.pass_rate >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">{{ t.pass_rate }}%</div>
                     <div class="ts-test-stat-lbl">O'tish %</div>
                 </div>
             </div>
             {% if t.best_result or t.worst_result %}
             <div style="margin-top:8px;font-size:.8rem;display:flex;flex-wrap:wrap;gap:12px;">
-                {% if t.best_result %}<div><i class="bi bi-trophy-fill" style="color:#10b981;"></i> <strong>{{ t.best_result.student.full_name }}</strong> — {{ t.best_result.score }}%</div>{% endif %}
+                {% if t.best_result %}<div><i class="bi bi-trophy-fill" style="color:#0d6efd;"></i> <strong>{{ t.best_result.student.full_name }}</strong> — {{ t.best_result.score }}%</div>{% endif %}
                 {% if t.worst_result %}<div><i class="bi bi-graph-down-arrow" style="color:#ef4444;"></i> <strong>{{ t.worst_result.student.full_name }}</strong> — {{ t.worst_result.score }}%</div>{% endif %}
             </div>
             {% endif %}
@@ -413,7 +413,7 @@
     <div class="ts-acc-body">
         <div class="ts-attend-grid">
             <div class="ts-attend-card">
-                <div class="ts-attend-val" style="color:#10b981;">{{ today_login }}</div>
+                <div class="ts-attend-val" style="color:#0d6efd;">{{ today_login }}</div>
                 <div class="ts-attend-lbl">Bugun kirganlar</div>
             </div>
             <div class="ts-attend-card">
@@ -457,7 +457,7 @@
                         <td style="font-weight:700;">{{ l.watch_percent }}%</td>
                         <td style="width:100px;">
                             <div class="ts-progress-bar">
-                                <div class="ts-progress-fill" style="width:{{ l.watch_percent }}%;background:{% if l.watch_percent >= 70 %}#10b981{% elif l.watch_percent >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                                <div class="ts-progress-fill" style="width:{{ l.watch_percent }}%;background:{% if l.watch_percent >= 70 %}#0d6efd{% elif l.watch_percent >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
                             </div>
                         </td>
                     </tr>
@@ -493,7 +493,7 @@
                 <canvas id="hwChart" height="180"></canvas>
             </div>
             <div class="ts-chart-card">
-                <div class="ts-chart-title"><i class="bi bi-bar-chart-line-fill" style="color:#10b981;"></i> Test natijalari</div>
+                <div class="ts-chart-title"><i class="bi bi-bar-chart-line-fill" style="color:#0d6efd;"></i> Test natijalari</div>
                 <canvas id="testChart" height="180"></canvas>
             </div>
         </div>
@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
         type: 'doughnut',
         data: {
             labels: ['Faol', 'Top', 'O\'rtacha', 'Sust', 'Xavfli'],
-            datasets: [{ data: [statusData.faol, statusData.top, statusData.ortacha, statusData.sust, statusData.xavfli], backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
+            datasets: [{ data: [statusData.faol, statusData.top, statusData.ortacha, statusData.sust, statusData.xavfli], backgroundColor: ['#0d6efd', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'], borderWidth: 0, hoverOffset: 4 }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } } }, cutout: '65%' }
     });
@@ -544,7 +544,7 @@ document.addEventListener('DOMContentLoaded', function() {
         new Chart(document.getElementById('hwChart'), {
             type: 'bar',
             data: { labels: hwLabels, datasets: [
-                { label: 'Topshirgan', data: hwSubmitted, backgroundColor: '#10b981', borderRadius: 4, barPercentage: .7 },
+                { label: 'Topshirgan', data: hwSubmitted, backgroundColor: '#0d6efd', borderRadius: 4, barPercentage: .7 },
                 { label: 'Topshirmagan', data: hwNot, backgroundColor: '#ef4444', borderRadius: 4, barPercentage: .7 }
             ] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 12, usePointStyle: true, pointStyle: 'circle', font: { size: 11 } } } }, scales: { y: { beginAtZero: true, grid: { color: gridColor }, ticks: { stepSize: 1 } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
@@ -556,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (testLabels.length > 0) {
         new Chart(document.getElementById('testChart'), {
             type: 'bar',
-            data: { labels: testLabels, datasets: [{ label: '%', data: testScores, backgroundColor: testScores.map(s => s >= 70 ? '#10b981' : s >= 50 ? '#f59e0b' : '#ef4444'), borderRadius: 4, barPercentage: .6 }] },
+            data: { labels: testLabels, datasets: [{ label: '%', data: testScores, backgroundColor: testScores.map(s => s >= 70 ? '#0d6efd' : s >= 50 ? '#f59e0b' : '#ef4444'), borderRadius: 4, barPercentage: .6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: gridColor } }, x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } } } }
         });
     }

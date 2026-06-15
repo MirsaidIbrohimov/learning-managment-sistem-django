@@ -21,7 +21,7 @@ class TelegramBotConfig(AppConfig):
             return
         
         from django.conf import settings
-        if not settings.TELEGRAM_BOT_TOKEN:
+        if not getattr(settings, 'TELEGRAM_BOT_TOKEN', None):
             return
         
         _bot_started = True
@@ -45,7 +45,7 @@ class TelegramBotConfig(AppConfig):
         import requests
         from django.conf import settings
 
-        bot_token = settings.TELEGRAM_BOT_TOKEN
+        bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
         site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
         if not site_url:
             print("SITE_URL sozlanmagan, webhook o'rnatilmadi!")
@@ -102,7 +102,7 @@ class TelegramBotConfig(AppConfig):
         import requests
         from django.conf import settings
 
-        bot_token = settings.TELEGRAM_BOT_TOKEN
+        bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
 
         # ⚠️ MUHIM: Agar SITE_URL o'rnatilgan bo'lsa, serverda webhook ishlaydi
         # Lokalda polling ishga tushirish serverdagi webhookni buzadi!
