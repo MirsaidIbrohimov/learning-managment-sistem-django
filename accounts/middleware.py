@@ -547,3 +547,139 @@ class ProfileCompletionMiddleware:
                 except Exception:
                     pass
         return self.get_response(request)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  KENG QAMROVLI XAVFSIZLIK MIDDLEWARE LARI
+# ══════════════════════════════════════════════════════════════════════════════
+
+class GlobalRateLimitMiddleware:
+    """
+    Barcha so'rovlar uchun IP-asosida global rate limiting.
+    Maqsad: DDoS va brute-force hujumlarini kamaytirish.
+
+    Limitlar (sozlanadi):
+      • Umumiy:   300 so'rov / daqiqa / IP
+      • API:      120 so'rov / daqiqa / IP
+      • Auth:      20 so'rov / 15 daqiqa / IP  (login, register, parol)
+    """
+    # (prefix, limit, window_secs)
+    _RULES = [
+        ('/api/',     120, 60),
+        ('/login',     20, 900),
+        ('/register',  15, 900),
+        ('/password',  10, 900),
+        ('/',         300, 60),   # global fallback
+    ]
+    _SKIP = ('/static/', '/media/')
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if any(request.path.startswith(s) for s in self._SKIP):
+            return self.get_response(request)
+
+        from .security import get_client_ip, is_rate_limited, is_ip_blocked, _log_security_event
+        from django.http import JsonResponse
+
+        ip = get_client_ip(request)
+
+        # Bloklangan IP
+        if is_ip_blocked(ip):
+            _log_security_event('blocked_ip_request', ip=ip, detail=request.path[:200])
+            if request.path.startswith('/api/'):
+                return JsonResponse({'ok': False, 'error': 'Kirishingiz cheklangan.'}, status=429)
+            return HttpResponse(
+                '<h2>429 — Kirish vaqtincha cheklangan</h2><p>Biroz kutib qayta urinib ko\'ring.</p>',
+                status=429, content_type='text/html'
+            )
+
+        # Path-specific rate limit
+        for prefix, limit, window in self._RULES:
+            if request.path.startswith(prefix):
+                key = f"grl:{prefix}:{ip}"
+                if is_rate_limited(key, limit, window):
+                    _log_security_event('rate_limit_hit', ip=ip,
+                                        detail=f'global:{prefix} limit={limit}/{window}s',
+                                        severity='medium')
+                    if request.path.startswith('/api/'):
+                        return JsonResponse(
+                            {'ok': False, 'error': "So'rovlar juda tez yuborilmoqda. Biroz kutib turing."},
+                            status=429
+                        )
+                    return HttpResponse(
+                        '<h2>429 — Juda ko\'p so\'rov</h2><p>Biroz kutib qayta urinib ko\'ring.</p>',
+                        status=429, content_type='text/html'
+                    )
+                break
+
+        return self.get_response(request)
+
+
+class SuspiciousRequestMiddleware:
+    """
+    Kiruvchi so'rovlarni SQL Injection, XSS, Path Traversal,
+    SSTI va Command Injection shablonlari uchun skanerlaydi.
+
+    Shubhali so'rov aniqlansa:
+      1. SecurityEvent yoziladi
+      2. IP ga "strike" qo'shiladi (10 strike = avtomatik bloklash)
+      3. 400 qaytariladi
+    """
+    _SKIP = ('/static/', '/media/', '/admin/jsi18n/')
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if any(request.path.startswith(s) for s in self._SKIP):
+            return self.get_response(request)
+
+        from .security import scan_request, get_client_ip, _add_strike, _log_security_event
+        from django.http import JsonResponse
+
+        attack = scan_request(request)
+        if attack:
+            ip = get_client_ip(request)
+            _add_strike(ip, attack)
+            _log_security_event(
+                f'{attack}_attempt',
+                ip=ip,
+                user_id=request.user.pk if request.user.is_authenticated else None,
+                detail=f'path={request.path[:200]} qs={request.META.get("QUERY_STRING","")[:200]}',
+                severity='high',
+            )
+            if request.path.startswith('/api/'):
+                return JsonResponse({'ok': False, 'error': 'So\'rov rad etildi.'}, status=400)
+            return HttpResponse(
+                '<h2>400 — Xavfli so\'rov rad etildi</h2>',
+                status=400, content_type='text/html'
+            )
+
+        return self.get_response(request)
+
+
+class RequestSizeLimitMiddleware:
+    """
+    Juda katta so'rov tanasini (body) bloklash.
+    Nginx / Apache bu ishni qilmasa Django darajasida himoya qiladi.
+    """
+    MAX_BODY = 20 * 1024 * 1024   # 20 MB
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        cl = request.META.get('CONTENT_LENGTH')
+        if cl:
+            try:
+                if int(cl) > self.MAX_BODY:
+                    from .security import get_client_ip, _log_security_event
+                    ip = get_client_ip(request)
+                    _log_security_event('rate_limit_hit', ip=ip,
+                                        detail=f'oversized body: {cl} bytes', severity='medium')
+                    return HttpResponse('413 — So\'rov hajmi juda katta', status=413)
+            except (ValueError, TypeError):
+                pass
+        return self.get_response(request)

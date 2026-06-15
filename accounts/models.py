@@ -2164,6 +2164,80 @@ class BalanceTopUp(models.Model):
 #  SIGNAL: Yangi student qo'shilganda avtomatik balans va to'lov holati yaratish
 # ─────────────────────────────────────────────
 
+
+class SecurityEvent(models.Model):
+    """
+    Xavfsizlik hodisalari audit jurnali.
+    Barcha shubhali va muhim xavfsizlik hodisalari shu yerda saqlanadi.
+    """
+    SEVERITY_CHOICES = [
+        ('low',      '🟢 Past'),
+        ('medium',   '🟡 O\'rta'),
+        ('high',     '🔴 Yuqori'),
+        ('critical', '🚨 Kritik'),
+    ]
+    EVENT_TYPES = [
+        ('rate_limit_hit',      'Rate limit oshirildi'),
+        ('ip_blocked',          'IP bloklandi'),
+        ('blocked_ip_request',  'Bloklangan IP so\'rov yubordi'),
+        ('sqli_attempt',        'SQL Injection urinish'),
+        ('xss_attempt',         'XSS urinish'),
+        ('path_trav',           'Path Traversal urinish'),
+        ('ssti',                'Template Injection urinish'),
+        ('cmd_inject',          'Command Injection urinish'),
+        ('brute_force',         'Brute-force urinish'),
+        ('failed_login',        'Muvaffaqiyatsiz login'),
+        ('suspicious_upload',   'Shubhali fayl yuklanishga urinish'),
+        ('csrf_failure',        'CSRF muvaffaqiyatsiz'),
+        ('permission_denied',   'Ruxsatsiz kirish urinishi'),
+        ('account_locked',      'Hisob bloklandi'),
+        ('password_changed',    'Parol o\'zgartirildi'),
+        ('profile_updated',     'Profil yangilandi'),
+        ('admin_action',        'Admin harakat'),
+        ('other',               'Boshqa'),
+    ]
+
+    event_type  = models.CharField(max_length=40, choices=EVENT_TYPES, db_index=True)
+    severity    = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='medium', db_index=True)
+    ip_address  = models.CharField(max_length=45, blank=True, db_index=True)
+    user        = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='security_events'
+    )
+    detail      = models.TextField(blank=True)
+    path        = models.CharField(max_length=500, blank=True)
+    user_agent  = models.CharField(max_length=512, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True, db_index=True)
+    resolved    = models.BooleanField(default=False)
+    resolved_by = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='resolved_security_events'
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Xavfsizlik hodisasi"
+        verbose_name_plural = "Xavfsizlik hodisalari"
+        indexes = [
+            models.Index(fields=['event_type', 'created_at']),
+            models.Index(fields=['ip_address', 'created_at']),
+            models.Index(fields=['severity', 'resolved']),
+        ]
+
+    def __str__(self):
+        return f"[{self.severity.upper()}] {self.event_type} — {self.ip_address} ({self.created_at:%d.%m.%Y %H:%M})"
+
+    def resolve(self, admin_user):
+        from django.utils import timezone as tz
+        self.resolved    = True
+        self.resolved_by = admin_user
+        self.resolved_at = tz.now()
+        self.save(update_fields=['resolved', 'resolved_by', 'resolved_at'])
+
+
+# ─────────────────────────────────────────────
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 

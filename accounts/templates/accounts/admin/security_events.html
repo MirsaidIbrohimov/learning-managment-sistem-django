@@ -1,0 +1,356 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Xavfsizlik Paneli{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+  --sec-bg:      #0d1117;
+  --sec-surface: #161b22;
+  --sec-card:    #21262d;
+  --sec-border:  #30363d;
+  --sec-text:    #e6edf3;
+  --sec-muted:   #7d8590;
+  --sec-red:     #f85149;
+  --sec-amber:   #d29922;
+  --sec-green:   #3fb950;
+  --sec-blue:    #58a6ff;
+  --sec-violet:  #bc8cff;
+  --sec-radius:  8px;
+  --sec-mono:    "JetBrains Mono","Fira Code",Consolas,monospace;
+}
+[data-bs-theme="light"] {
+  --sec-bg:      #f6f8fa;
+  --sec-surface: #fff;
+  --sec-card:    #f0f2f5;
+  --sec-border:  #d0d7de;
+  --sec-text:    #1f2328;
+  --sec-muted:   #636c76;
+  --sec-red:     #cf222e;
+  --sec-amber:   #9a6700;
+  --sec-green:   #1a7f37;
+  --sec-blue:    #0969da;
+}
+
+body { background: var(--sec-bg); color: var(--sec-text); }
+
+.sec-wrap { max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; }
+
+/* Stats row */
+.sec-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 24px; }
+@media(max-width:900px){ .sec-stats { grid-template-columns: repeat(2,1fr); } }
+.sec-stat-card {
+  background: var(--sec-surface);
+  border: 1px solid var(--sec-border);
+  border-radius: var(--sec-radius);
+  padding: 16px;
+}
+.sec-stat-label { font-size: 11px; font-family: var(--sec-mono); color: var(--sec-muted); text-transform: uppercase; letter-spacing:.06em; }
+.sec-stat-val { font-size: 32px; font-weight: 800; font-family: var(--sec-mono); margin-top: 4px; }
+
+/* Severity colors */
+.sev-critical { color: var(--sec-red); }
+.sev-high     { color: #f0883e; }
+.sev-medium   { color: var(--sec-amber); }
+.sev-low      { color: var(--sec-green); }
+
+/* Top IPs */
+.sec-top-ips { background: var(--sec-surface); border: 1px solid var(--sec-border); border-radius: var(--sec-radius); padding: 14px 16px; margin-bottom: 24px; }
+.sec-top-ips h6 { font-size: 12px; font-family: var(--sec-mono); color: var(--sec-muted); text-transform: uppercase; margin-bottom: 10px; }
+.sec-ip-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--sec-border); font-size: 13px; }
+.sec-ip-row:last-child { border: none; }
+.sec-ip-addr { font-family: var(--sec-mono); flex: 1; color: var(--sec-blue); }
+.sec-ip-cnt  { font-family: var(--sec-mono); font-weight: 700; color: var(--sec-red); }
+
+/* IP Block form */
+.sec-block-form {
+  background: var(--sec-surface);
+  border: 1px solid var(--sec-border);
+  border-radius: var(--sec-radius);
+  padding: 16px;
+  margin-bottom: 24px;
+  display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+}
+.sec-block-form label { font-size: 11px; font-family: var(--sec-mono); color: var(--sec-muted); display: block; margin-bottom: 4px; }
+.sec-input {
+  background: var(--sec-card); border: 1px solid var(--sec-border);
+  border-radius: 6px; padding: 7px 12px; color: var(--sec-text);
+  font-family: var(--sec-mono); font-size: 13px;
+}
+.sec-input:focus { outline: none; border-color: var(--sec-blue); }
+.sec-btn {
+  padding: 8px 16px; border: none; border-radius: 6px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.sec-btn-red    { background: var(--sec-red);   color: #fff; }
+.sec-btn-green  { background: var(--sec-green); color: #fff; }
+.sec-btn-blue   { background: var(--sec-blue);  color: #fff; }
+.sec-btn:hover  { opacity: .85; }
+
+/* Filter bar */
+.sec-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.sec-select {
+  background: var(--sec-surface); border: 1px solid var(--sec-border);
+  border-radius: 6px; padding: 6px 10px; color: var(--sec-text);
+  font-size: 13px; font-family: var(--sec-mono);
+}
+
+/* Table */
+.sec-table-wrap { overflow-x: auto; }
+table.sec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sec-table th {
+  background: var(--sec-card); border-bottom: 1px solid var(--sec-border);
+  padding: 10px 12px; text-align: left;
+  font-size: 11px; font-family: var(--sec-mono);
+  color: var(--sec-muted); text-transform: uppercase; letter-spacing:.04em;
+  white-space: nowrap;
+}
+.sec-table td {
+  padding: 9px 12px; border-bottom: 1px solid var(--sec-border);
+  vertical-align: middle;
+}
+.sec-table tr:hover td { background: rgba(88,166,255,.04); }
+
+.sec-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 11px; font-weight: 600; font-family: var(--sec-mono);
+  white-space: nowrap;
+}
+.badge-critical { background: rgba(248,81,73,.15); color: var(--sec-red); border: 1px solid rgba(248,81,73,.3); }
+.badge-high     { background: rgba(240,136,62,.15); color: #f0883e; border: 1px solid rgba(240,136,62,.3); }
+.badge-medium   { background: rgba(210,153,34,.15); color: var(--sec-amber); border: 1px solid rgba(210,153,34,.3); }
+.badge-low      { background: rgba(63,185,80,.15); color: var(--sec-green); border: 1px solid rgba(63,185,80,.3); }
+
+.sec-ip-chip {
+  font-family: var(--sec-mono); font-size: 12px;
+  background: rgba(88,166,255,.1); color: var(--sec-blue);
+  border: 1px solid rgba(88,166,255,.2); border-radius: 4px;
+  padding: 2px 8px; white-space: nowrap; cursor: pointer;
+}
+.sec-ip-chip:hover { background: rgba(88,166,255,.2); }
+
+.sec-resolve-btn {
+  background: none; border: 1px solid var(--sec-border);
+  border-radius: 4px; padding: 3px 8px; font-size: 11px;
+  color: var(--sec-muted); cursor: pointer;
+}
+.sec-resolve-btn:hover { border-color: var(--sec-green); color: var(--sec-green); }
+
+/* Pagination */
+.sec-pager { display: flex; gap: 6px; justify-content: center; margin-top: 20px; }
+.sec-pager a, .sec-pager span {
+  background: var(--sec-surface); border: 1px solid var(--sec-border);
+  border-radius: 6px; padding: 6px 12px; font-size: 13px;
+  font-family: var(--sec-mono); text-decoration: none; color: var(--sec-text);
+}
+.sec-pager .current { background: var(--sec-blue); color: #fff; border-color: var(--sec-blue); }
+
+/* Top bar */
+.sec-topbar {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.sec-topbar h4 { font-size: 18px; font-weight: 700; margin: 0; flex: 1; }
+.sec-tag {
+  font-family: var(--sec-mono); font-size: 11px;
+  background: var(--sec-card); border: 1px solid var(--sec-border);
+  border-radius: 4px; padding: 3px 8px; color: var(--sec-muted);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sec-wrap">
+
+  <!-- Top bar -->
+  <div class="sec-topbar">
+    <a href="{% url 'admin_dashboard' %}" style="color:var(--sec-muted);text-decoration:none;font-size:13px">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+    <h4><i class="bi bi-shield-lock" style="color:var(--sec-red)"></i> Xavfsizlik Paneli</h4>
+    <span class="sec-tag">audit log</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="sec-stats">
+    <div class="sec-stat-card">
+      <div class="sec-stat-label">Jami hodisa</div>
+      <div class="sec-stat-val" style="color:var(--sec-blue)">{{ stats.total }}</div>
+    </div>
+    <div class="sec-stat-card">
+      <div class="sec-stat-label">Hal qilinmagan</div>
+      <div class="sec-stat-val sev-high">{{ stats.unresolved }}</div>
+    </div>
+    <div class="sec-stat-card">
+      <div class="sec-stat-label">Kritik</div>
+      <div class="sec-stat-val sev-critical">{{ stats.critical }}</div>
+    </div>
+    <div class="sec-stat-card">
+      <div class="sec-stat-label">Yuqori xavf</div>
+      <div class="sec-stat-val sev-high">{{ stats.high }}</div>
+    </div>
+    <div class="sec-stat-card">
+      <div class="sec-stat-label">So'nggi 24 soat</div>
+      <div class="sec-stat-val" style="color:var(--sec-violet)">{{ stats.last24 }}</div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:20px">
+
+    <!-- IP Bloklash -->
+    <div>
+      <div class="sec-block-form">
+        <form method="post" style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;width:100%">
+          {% csrf_token %}
+          <div>
+            <label>IP Manzil</label>
+            <input class="sec-input" name="ip" placeholder="192.168.1.1" style="width:180px">
+          </div>
+          <div>
+            <label>Harakat</label>
+            <select class="sec-select" name="action">
+              <option value="block_ip">🔒 Bloklash (24 soat)</option>
+              <option value="unblock_ip">🔓 Blokdan chiqarish</option>
+            </select>
+          </div>
+          <button type="submit" class="sec-btn sec-btn-red">Bajarish</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Top IPs (so'nggi 24 soat) -->
+    <div class="sec-top-ips">
+      <h6><i class="bi bi-bar-chart"></i> Top IP (24 soat)</h6>
+      {% for ip in stats.top_ips %}
+      <div class="sec-ip-row">
+        <span class="sec-ip-addr">{{ ip.ip_address }}</span>
+        <span class="sec-ip-cnt">{{ ip.cnt }}</span>
+        <form method="post" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="block_ip">
+          <input type="hidden" name="ip" value="{{ ip.ip_address }}">
+          <button type="submit" class="sec-btn sec-btn-red" style="padding:3px 8px;font-size:11px">Blok</button>
+        </form>
+      </div>
+      {% empty %}
+      <p style="color:var(--sec-muted);font-size:13px">Ma'lumot yo'q</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <form method="get" class="sec-filters">
+    <select class="sec-select" name="severity" onchange="this.form.submit()">
+      <option value="">Barcha xavf</option>
+      {% for val, label in sev_choices %}
+      <option value="{{ val }}" {% if severity_f == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select class="sec-select" name="event_type" onchange="this.form.submit()">
+      <option value="">Barcha tur</option>
+      {% for val, label in event_choices %}
+      <option value="{{ val }}" {% if event_type_f == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <select class="sec-select" name="resolved" onchange="this.form.submit()">
+      <option value="">Barchasi</option>
+      <option value="0" {% if resolved_f == '0' %}selected{% endif %}>Hal qilinmagan</option>
+      <option value="1" {% if resolved_f == '1' %}selected{% endif %}>Hal qilingan</option>
+    </select>
+    <input class="sec-input" name="ip" value="{{ ip_f }}" placeholder="IP bo'yicha qidirish..." style="width:180px">
+    <button type="submit" class="sec-btn sec-btn-blue">Filtr</button>
+    <a href="{% url 'admin_security_events' %}" class="sec-btn" style="background:var(--sec-card);color:var(--sec-text);text-decoration:none">Tozalash</a>
+  </form>
+
+  <!-- Table -->
+  <div class="sec-table-wrap">
+    <table class="sec-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Vaqt</th>
+          <th>Xavf</th>
+          <th>Tur</th>
+          <th>IP</th>
+          <th>Foydalanuvchi</th>
+          <th>Tafsilot</th>
+          <th>Holat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in page_obj %}
+        <tr>
+          <td style="color:var(--sec-muted);font-family:var(--sec-mono)">{{ ev.pk }}</td>
+          <td style="font-family:var(--sec-mono);font-size:12px;white-space:nowrap">
+            {{ ev.created_at|date:"d.m.Y H:i" }}
+          </td>
+          <td>
+            <span class="sec-badge badge-{{ ev.severity }}">{{ ev.get_severity_display }}</span>
+          </td>
+          <td style="font-family:var(--sec-mono);font-size:12px;color:var(--sec-muted)">
+            {{ ev.event_type }}
+          </td>
+          <td>
+            {% if ev.ip_address %}
+            <span class="sec-ip-chip" onclick="document.querySelector('[name=ip]').value='{{ ev.ip_address }}';document.querySelector('[name=ip]').closest('form').submit()">
+              {{ ev.ip_address }}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td style="font-size:12px">
+            {% if ev.user %}
+            <a href="{% url 'admin_user_view' ev.user.pk %}" style="color:var(--sec-blue);text-decoration:none">
+              {{ ev.user.username }}
+            </a>
+            {% else %}—{% endif %}
+          </td>
+          <td style="font-size:12px;color:var(--sec-muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+              title="{{ ev.detail }}">
+            {{ ev.detail|truncatechars:80 }}
+          </td>
+          <td>
+            {% if ev.resolved %}
+            <span style="color:var(--sec-green);font-size:12px">✓ Hal qilindi</span>
+            {% else %}
+            <form method="post" style="display:inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="resolve">
+              <input type="hidden" name="ip" value="{{ ev.ip_address }}">
+              <input type="hidden" name="event_pk" value="{{ ev.pk }}">
+              <button type="submit" class="sec-resolve-btn">✓ Hal qilish</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="8" style="text-align:center;padding:40px;color:var(--sec-muted)">
+            <i class="bi bi-shield-check" style="font-size:32px;display:block;margin-bottom:8px"></i>
+            Hodisalar topilmadi
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+  <div class="sec-pager">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&severity={{ severity_f }}&event_type={{ event_type_f }}&ip={{ ip_f }}&resolved={{ resolved_f }}">‹</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+      {% if page_obj.number == num %}
+      <span class="current">{{ num }}</span>
+      {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+      <a href="?page={{ num }}&severity={{ severity_f }}&event_type={{ event_type_f }}&ip={{ ip_f }}&resolved={{ resolved_f }}">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&severity={{ severity_f }}&event_type={{ event_type_f }}&ip={{ ip_f }}&resolved={{ resolved_f }}">›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

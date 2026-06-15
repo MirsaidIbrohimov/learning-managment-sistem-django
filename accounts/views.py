@@ -3238,6 +3238,22 @@ def submit_test(request, pk):
         f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
         f"{passed_text}"
     )
+
+    # AJAX / fetch() bilan chaqirilgan bo'lsa — JSON qaytarish
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.urls import reverse
+        import json as _json
+        redirect_url = reverse('test_result', kwargs={'pk': result.pk})
+        return JsonResponse({
+            'ok': True,
+            'result_pk': result.pk,
+            'redirect': redirect_url,
+            'score': score,
+            'passed': result.passed,
+            'correct': correct,
+            'total': total,
+        })
+
     return redirect('test_result', pk=result.pk)
 
 
@@ -4085,6 +4101,20 @@ def student_submit_test(request, token):
         f"✏️ Natija: {correct}/{total} to'g'ri ({score}%)\n"
         f"{passed_text}"
     )
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.urls import reverse
+        redirect_url = reverse('student_test_result', kwargs={'token': token_obj.token, 'result_pk': result.pk})
+        return JsonResponse({
+            'ok': True,
+            'result_pk': result.pk,
+            'redirect': redirect_url,
+            'score': score,
+            'passed': result.passed,
+            'correct': correct,
+            'total': total,
+        })
+
     return redirect('student_test_result', token=token_obj.token, result_pk=result.pk)
 
 
@@ -9469,8 +9499,9 @@ def view_deployed_page(request, username, folder_name, filepath=None):
         if os.path.exists(possible_index):
             file_path = possible_index
         else:
-            return HttpResponse(f"Fayl topilmadi: {filepath}", status=404)
-    
+            # Yo'l ma'lumotini foydalanuvchiga ko'rsatmaslik (ma'lumot oqishi)
+            return HttpResponse("Fayl topilmadi", status=404)
+
     # MIME turini aniqlash
     mime_type, _ = mimetypes.guess_type(file_path)
     if not mime_type:
@@ -9486,14 +9517,14 @@ def view_deployed_page(request, username, folder_name, filepath=None):
             mime_type = 'image/svg+xml'
         else:
             mime_type = 'application/octet-stream'
-    
-    # Faylni o'qish va qaytarish
+
+    # Faylni o'qish va qaytarish — xato xabari orqali yo'l chiqmasin
     try:
         with open(file_path, 'rb') as f:
             content = f.read()
         return HttpResponse(content, content_type=mime_type)
-    except Exception as e:
-        return HttpResponse(f"Faylni o'qishda xato: {str(e)}", status=500)
+    except Exception:
+        return HttpResponse("Faylni o'qishda xato yuz berdi", status=500)
 
 
 # ==================== ADMIN: HTML DEPLOYS ====================
@@ -9966,21 +9997,48 @@ def admin_lesson_statistics(request):
 
 @login_required
 def my_devices(request):
-    devices = request.user.devices.filter(is_active=True).order_by('-last_login')
     current_session_key = request.session.session_key
-    
-    # Find current device
+    devices = list(request.user.devices.filter(is_active=True).order_by('-last_login'))
+
+    # Attach active sessions and find current device
     current_device = None
+    current_session = None
     for device in devices:
-        active_session = device.sessions.filter(session_key=current_session_key, is_active=True).first()
-        if active_session:
-            current_device = device
-            break
-    
+        active_sessions = list(device.sessions.filter(is_active=True).order_by('-last_activity'))
+        device.active_sessions_list = active_sessions
+        for s in active_sessions:
+            if s.session_key == current_session_key:
+                current_device = device
+                current_session = s
+
     return render(request, 'accounts/devices.html', {
         'devices': devices,
         'current_device': current_device,
+        'current_session': current_session,
+        'current_session_key': current_session_key,
     })
+
+
+@login_required
+def logout_session(request, pk):
+    """End a specific session by UserSession pk."""
+    if request.method != 'POST':
+        return redirect('my_devices')
+    from django.contrib.sessions.models import Session as DjangoSession
+    from accounts.models import UserSession
+    session = get_object_or_404(UserSession, pk=pk, user=request.user)
+    current_session_key = request.session.session_key
+    if session.session_key == current_session_key:
+        messages.warning(request, "Joriy sessionni bu yerdan tugatib bo'lmaydi.")
+        return redirect('my_devices')
+    try:
+        DjangoSession.objects.filter(session_key=session.session_key).delete()
+    except Exception:
+        pass
+    session.is_active = False
+    session.save()
+    messages.success(request, "Session muvaffaqiyatli tugatildi.")
+    return redirect('my_devices')
 
 
 @login_required
@@ -13836,3 +13894,120 @@ def admin_balance_set_fee(request, student_id):
         'fee_fmt': f"{new_fee:,}".replace(",", " "),
         'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
     })
+
+
+# ══════════════════════════════════════════════════════════════════
+# XAVFSIZLIK AUDIT PANELI (Admin)
+# ══════════════════════════════════════════════════════════════════
+
+@login_required
+def admin_security_events(request):
+    """Xavfsizlik hodisalari ro'yxati — Admin paneli."""
+    if not request.user.is_admin:
+        messages.error(request, "Ruxsat yo'q!")
+        return redirect('home')
+
+    from .models import SecurityEvent
+    from .security import block_ip, unblock_ip, is_ip_blocked
+
+    # ── Qo'lda IP bloklash / ochish ──
+    if request.method == 'POST':
+        action     = request.POST.get('action')
+        target_ip  = request.POST.get('ip', '').strip()
+        if target_ip:
+            if action == 'block_ip':
+                block_ip(target_ip, ttl=3600 * 24, reason=f"Admin qo'lda blokladi: {request.user}")
+                messages.success(request, f"{target_ip} bloklandi (24 soat).")
+            elif action == 'unblock_ip':
+                unblock_ip(target_ip)
+                messages.success(request, f"{target_ip} blokdan chiqarildi.")
+            elif action == 'resolve':
+                event_pk = request.POST.get('event_pk')
+                if event_pk:
+                    try:
+                        ev = SecurityEvent.objects.get(pk=event_pk)
+                        ev.resolve(request.user)
+                        messages.success(request, "Hodisa hal qilindi.")
+                    except SecurityEvent.DoesNotExist:
+                        pass
+        return redirect('admin_security_events')
+
+    # ── Filtrlar ──
+    qs = SecurityEvent.objects.select_related('user', 'resolved_by').all()
+
+    severity_f   = request.GET.get('severity')
+    event_type_f = request.GET.get('event_type')
+    ip_f         = request.GET.get('ip', '').strip()
+    resolved_f   = request.GET.get('resolved')
+
+    if severity_f:
+        qs = qs.filter(severity=severity_f)
+    if event_type_f:
+        qs = qs.filter(event_type=event_type_f)
+    if ip_f:
+        qs = qs.filter(ip_address__icontains=ip_f)
+    if resolved_f == '0':
+        qs = qs.filter(resolved=False)
+    elif resolved_f == '1':
+        qs = qs.filter(resolved=True)
+
+    # ── Statistika ──
+    from django.db.models import Count
+    from django.utils import timezone
+    now = timezone.now()
+    last24 = now - timedelta(hours=24)
+
+    stats = {
+        'total':      qs.count(),
+        'unresolved': qs.filter(resolved=False).count(),
+        'critical':   qs.filter(severity='critical').count(),
+        'high':       qs.filter(severity='high').count(),
+        'last24':     SecurityEvent.objects.filter(created_at__gte=last24).count(),
+        'top_ips':    SecurityEvent.objects.filter(created_at__gte=last24)
+                        .values('ip_address')
+                        .annotate(cnt=Count('id'))
+                        .order_by('-cnt')[:5],
+    }
+
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(qs, 40)
+    page_obj  = paginator.get_page(request.GET.get('page', 1))
+
+    context = {
+        'page_obj':      page_obj,
+        'stats':         stats,
+        'severity_f':    severity_f,
+        'event_type_f':  event_type_f,
+        'ip_f':          ip_f,
+        'resolved_f':    resolved_f,
+        'event_choices': SecurityEvent.EVENT_TYPES,
+        'sev_choices':   SecurityEvent.SEVERITY_CHOICES,
+    }
+    return render(request, 'accounts/admin/security_events.html', context)
+
+
+@login_required
+def admin_security_block_ip(request):
+    """API: IP bloklash (AJAX)."""
+    if not request.user.is_admin:
+        return JsonResponse({'ok': False}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+
+    from .security import block_ip, unblock_ip, is_ip_blocked
+    ip      = request.POST.get('ip', '').strip()
+    action  = request.POST.get('action', 'block')
+    hours   = int(request.POST.get('hours', 24))
+
+    if not ip:
+        return JsonResponse({'ok': False, 'error': 'IP kiritilmadi'})
+
+    if action == 'block':
+        block_ip(ip, ttl=3600 * hours, reason=f"Admin: {request.user}")
+        return JsonResponse({'ok': True, 'msg': f'{ip} {hours} soatga bloklandi'})
+    elif action == 'unblock':
+        unblock_ip(ip)
+        return JsonResponse({'ok': True, 'msg': f'{ip} blokdan chiqarildi'})
+
+    return JsonResponse({'ok': False, 'error': 'Noto\'g\'ri harakat'})

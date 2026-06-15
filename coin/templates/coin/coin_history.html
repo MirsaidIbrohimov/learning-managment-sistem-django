@@ -95,6 +95,64 @@
 .ch-hero-terminal .cmd { color:#a5b4fc; }
 .ch-hero-terminal .val { color:#34d399; font-weight:700; }
 
+/* Hero action buttons */
+.ch-hero-actions {
+    display: flex; gap: 10px; margin-top: 1.25rem; flex-wrap: wrap;
+}
+.ch-hero-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: .65rem 1.3rem; border-radius: 12px; font-weight: 700;
+    font-size: .85rem; text-decoration: none; border: none; cursor: pointer;
+    transition: all .25s cubic-bezier(.23,1,.32,1);
+    position: relative; overflow: hidden;
+}
+.ch-hero-btn::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    width: 0; height: 0; background: rgba(255,255,255,.18); border-radius: 50%;
+    transform: translate(-50%,-50%); transition: width .5s, height .5s;
+}
+.ch-hero-btn:hover::before { width: 260px; height: 260px; }
+.ch-hero-btn-transfer {
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+    box-shadow: 0 4px 18px rgba(245,158,11,.35);
+}
+.ch-hero-btn-transfer:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(245,158,11,.45); }
+.ch-hero-btn-market {
+    background: rgba(255,255,255,.08); color: #e2e8f0; border: 1px solid rgba(255,255,255,.15);
+}
+.ch-hero-btn-market:hover { background: rgba(255,255,255,.14); color: #fff; transform: translateY(-2px); }
+
+/* Hero coin visual */
+.ch-hero-coin-visual {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    position: relative; z-index: 2;
+}
+.ch-coin-3d {
+    width: 100px; height: 100px; border-radius: 50%;
+    background: conic-gradient(from 0deg, #fbbf24, #f59e0b, #d97706, #fbbf24, #fef08a, #f59e0b, #d97706, #fbbf24);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; color: #7c2d12; position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(245,158,11,.5), inset 0 2px 8px rgba(255,255,255,.3);
+    animation: chFloat 4s ease-in-out infinite;
+}
+.ch-coin-shine {
+    position: absolute; top: -20px; left: -20px;
+    width: 60px; height: 140px; background: rgba(255,255,255,.25);
+    transform: rotate(30deg); animation: coin-shine 3s ease-in-out infinite;
+}
+@keyframes coin-shine {
+    0%,100% { left: -50px; opacity: 0; }
+    40% { opacity: 1; }
+    60% { left: 120px; opacity: 0; }
+}
+.ch-balance-pill {
+    background: rgba(0,0,0,.35); backdrop-filter: blur(10px);
+    border: 1px solid rgba(245,158,11,.3); border-radius: 16px;
+    padding: .7rem 1.3rem; text-align: center;
+    font-size: 1.5rem; font-weight: 900; color: #fbbf24;
+    box-shadow: 0 4px 20px rgba(245,158,11,.2);
+}
+
 /* Transfer button */
 .ch-transfer-btn {
     background: linear-gradient(135deg, #f59e0b, #d97706);
@@ -549,6 +607,7 @@
     .ch-hero { padding:2rem 1.5rem 1.5rem; border-radius:20px; }
     .ch-hero-title { font-size:1.4rem; }
     .ch-hero-content { flex-direction:column; align-items:flex-start; }
+    .ch-hero-coin-visual { display:none; }
     .ch-transfer-btn { width:100%; justify-content:center; }
     .ch-list { padding-left:20px; }
     .ch-tx-card { margin-left:8px; }
@@ -582,15 +641,34 @@
         <div class="ch-hero-orb ch-hero-orb-3"></div>
         <div class="ch-hero-content">
             <div>
-                <h1 class="ch-hero-title"><i class="bi bi-clock-history"></i> Coin Tarixi</h1>
+                <h1 class="ch-hero-title"><i class="bi bi-coin"></i> Coin Tarixi</h1>
                 <p class="ch-hero-sub">Barcha coin tranzaksiyalaringiz tarixi va statistikasi</p>
                 <div class="ch-hero-terminal">
                     <span class="prompt">$</span>
-                    <span class="cmd">Hisob: </span>
+                    <span class="cmd">coin.balance() → </span>
                     <span class="val" id="heroBalance">{{ request.user.coins|default:0 }}</span>
+                    <span style="color:#6366f1;margin-left:4px;">coin</span>
+                </div>
+                <div class="ch-hero-actions">
+                    <button class="ch-hero-btn ch-hero-btn-transfer" onclick="openTransferModal()">
+                        <i class="bi bi-send-fill"></i> Coin o'tkazma
+                    </button>
+                    <a href="{% url 'coin:market_list' %}" class="ch-hero-btn ch-hero-btn-market">
+                        <i class="bi bi-shop"></i> Market
+                    </a>
                 </div>
             </div>
-
+            <div class="ch-hero-coin-visual">
+                <div class="ch-coin-3d">
+                    <i class="bi bi-coin"></i>
+                    <div class="ch-coin-shine"></div>
+                </div>
+                <div class="ch-balance-pill">
+                    <span style="font-size:.7rem;opacity:.7;display:block;margin-bottom:2px;">Hisobingiz</span>
+                    <span id="heroBalanceBig">{{ request.user.coins|default:0 }}</span>
+                    <span style="font-size:.8rem;opacity:.6;margin-left:4px;">coin</span>
+                </div>
+            </div>
         </div>
     </div>
 
