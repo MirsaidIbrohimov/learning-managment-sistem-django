@@ -221,7 +221,9 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklash
     'accounts.middleware.GlobalRateLimitMiddleware',     # DDoS / brute-force
-    'accounts.middleware.SuspiciousRequestMiddleware',   # SQLi/XSS/PathTraversal skan
+    # O'CHIRILDI: noto'g'ri (false-positive) ravishda Market, to'lovlar filtri kabi
+    # oddiy sahifalarni 'xavfli' deb bloklab, request.user xatosini chiqarardi.
+    # 'accounts.middleware.SuspiciousRequestMiddleware',   # SQLi/XSS/PathTraversal skan
     # ── 2. Statik fayllar ─────────────────────────────────────────────────
     'whitenoise.middleware.WhiteNoiseMiddleware',
     # ── 3. Session, Auth, CSRF ────────────────────────────────────────────
