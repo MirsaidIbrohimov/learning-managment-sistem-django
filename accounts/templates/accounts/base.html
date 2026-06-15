@@ -460,34 +460,37 @@
        BOLD GRADIENT PANEL NAVBAR
        ══════════════════════════════════════════════════ */
     .navbar.nb {
-      position: sticky; top: 10px; z-index: 1050;
-      width: calc(100% - 24px);
-      max-width: 1280px;
-      margin: 10px auto 0;
-      background: linear-gradient(120deg, #4f46e5 0%, #6d28d9 42%, #7c3aed 72%, #8b5cf6 100%) !important;
-      background-size: 220% 100% !important;
-      animation: nbGradientShift 14s ease infinite;
-      backdrop-filter: none !important;
-      -webkit-backdrop-filter: none !important;
-      border: 1px solid rgba(255,255,255,0.16) !important;
-      border-radius: 20px;
+      position: sticky; top: 12px; z-index: 1050;
+      width: calc(100% - 28px);
+      max-width: 1180px;
+      margin: 12px auto 0;
+      background:
+        linear-gradient(180deg, rgba(34,36,44,0.96) 0%, rgba(20,21,27,0.97) 100%) !important;
+      background-size: 100% 100% !important;
+      animation: none;
+      backdrop-filter: blur(20px) saturate(150%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
+      border-radius: 22px;
       box-shadow:
-        0 14px 36px rgba(79,70,229,0.42),
-        0 3px 10px rgba(0,0,0,0.18),
-        inset 0 1px 0 rgba(255,255,255,0.20) !important;
+        0 18px 50px rgba(0,0,0,0.55),
+        0 4px 14px rgba(0,0,0,0.35),
+        inset 0 1px 0 rgba(255,255,255,0.10),
+        inset 0 -14px 30px rgba(0,0,0,0.30) !important;
       transition: transform 0.38s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s;
     }
-    @keyframes nbGradientShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
     /* No animated underline for this nav */
     .navbar.nb::after { content: none !important; display: none !important; }
-    /* Glossy top sheen */
+    /* Glossy top sheen + soft indigo glow at bottom edge (like the reference) */
     .navbar.nb::before {
       content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 46%);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 40%),
+        radial-gradient(120% 80% at 50% 130%, rgba(99,102,241,0.16), transparent 60%);
     }
     .navbar.nb .nb-inner { position: relative; z-index: 1; }
-    .navbar.nb.nav-shadow { box-shadow: 0 18px 44px rgba(79,70,229,0.52), 0 5px 14px rgba(0,0,0,0.26) !important; }
-    .navbar.nb.nav-hidden { transform: translateY(calc(-100% - 18px)); }
+    .navbar.nb.nav-shadow { box-shadow: 0 22px 60px rgba(0,0,0,0.65), 0 5px 16px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.10) !important; }
+    .navbar.nb.nav-hidden { transform: translateY(calc(-100% - 20px)); }
 
     /* ── Inner ── */
     .nb-inner {
