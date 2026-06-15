@@ -42,6 +42,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_protect
 
 from accounts.models import (
+    CourseEnrollment,
     Homework,
     HomeworkSubmission,
     HomeworkMessage,
@@ -245,7 +246,8 @@ def _get_lesson(lesson_pk, user):
     profession = lesson.profession
     is_teacher = profession.teachers.filter(pk=user.pk).exists()
     is_admin   = user.is_admin if hasattr(user, 'is_admin') else user.is_staff
-    is_enrolled = profession.students.filter(pk=user.pk).exists()
+    # Use CourseEnrollment — profession.students is a different FK (user's main profession)
+    is_enrolled = CourseEnrollment.objects.filter(user=user, profession=profession).exists()
 
     if not (is_admin or is_teacher or is_enrolled):
         return lesson, False, is_teacher, is_admin
