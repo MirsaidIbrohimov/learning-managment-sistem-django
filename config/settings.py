@@ -430,7 +430,10 @@ CSRF_TRUSTED_ORIGINS   = [
 ]
 
 # ── Session ───────────────────────────────────────────────────────
-SESSION_ENGINE           = 'django.contrib.sessions.backends.cached_db'
+# DB sessiyalar — har bir Passenger jarayonida alohida bo'lgan LocMemCache
+# sessiya yo'lidan olib tashlanadi. Ko'p jarayonli serverda eng ishonchli
+# variant; hisoblar aralashib ketishining oldini oladi.
+SESSION_ENGINE           = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_HTTPONLY  = True
 SESSION_COOKIE_SECURE    = not DEBUG
 SESSION_COOKIE_SAMESITE  = 'Lax'

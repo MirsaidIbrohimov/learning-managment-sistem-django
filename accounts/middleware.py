@@ -509,20 +509,31 @@ class SecurityHeadersMiddleware:
         response['Cross-Origin-Opener-Policy'] = 'same-origin'
         response['Cross-Origin-Resource-Policy'] = 'same-origin'
 
-        # CICHE: autentifikatsiyalangan sahifalarni keshlamaslik.
-        # Umumiy (maktab) kompyuterlarida bir o'quvchining sahifasi -
-        # masalan o'yin iframe'idagi launch token - brauzer back/forward
-        # keshi (bfcache) yoki proxy orqali boshqa o'quvchiga ko'rsatilib
-        # qolib, hisoblar aralashib ketishiga olib kelishi mumkin.
+        # ════════════════════════════════════════════════════════════
+        # HISOBLAR ARALASHIB KETMASLIGI UCHUN — sessiyaga bog'liq (login
+        # qilingan) sahifalarni HECH QANDAY kesh saqlamasligi shart:
+        # brauzer bfcache, proxy, CDN/Cloudflare va LiteSpeed (cPanel) kesh.
+        # Aks holda umumiy kompyuter yoki proksida bitta foydalanuvchining
+        # sahifasi boshqasiga ko'rsatilib qolishi mumkin.
+        # ════════════════════════════════════════════════════════════
         try:
+            from django.conf import settings as _dj
+            _cookie = getattr(_dj, 'SESSION_COOKIE_NAME', 'sessionid')
+            _is_static = request.path.startswith(('/static/', '/media/'))
             _u = getattr(request, 'user', None)
-            if _u is not None and _u.is_authenticated and \
-               not request.path.startswith(('/static/', '/media/')):
-                _cc = response.get('Cache-Control', '')
-                if (not _cc) or ('public' in _cc) or ('max-age' not in _cc):
-                    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
-                    response['Pragma'] = 'no-cache'
-                    response['Expires'] = '0'
+            _is_auth = bool(_u is not None and _u.is_authenticated)
+            _has_session = _cookie in request.COOKIES
+            if (not _is_static) and (_is_auth or _has_session):
+                response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
+                response['Pragma'] = 'no-cache'
+                response['Expires'] = '0'
+                # LiteSpeed / nginx reverse-proxy keshini ham o'chirish
+                response['X-LiteSpeed-Cache-Control'] = 'no-cache'
+                response['X-Accel-Expires'] = '0'
+                # Har qanday kesh javobni Cookie bo'yicha farqlasin
+                _vary = response.get('Vary', '')
+                if 'cookie' not in _vary.lower():
+                    response['Vary'] = (_vary + ', Cookie') if _vary else 'Cookie'
         except Exception:
             pass
         
