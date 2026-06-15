@@ -148,6 +148,9 @@ class BlockedUserMiddleware:
         next_payment_date o'tgan bo'lsa va shartnoma emas bo'lsa → avtomatik bloklash.
         Saytga har kirganida emas, cache orqali soatiga 1 marta tekshiriladi.
         """
+        # Kursni tugatgan (muzlatilgan) o'quvchilar oylik to'lovga tekshirilmaydi
+        if getattr(user, 'is_finished', False):
+            return
         cache_key = f'payment_check_{user.id}'
         if cache.get(cache_key):
             return
@@ -158,6 +161,10 @@ class BlockedUserMiddleware:
                 return
             today = timezone.now().date()
             if bal.next_payment_date <= today:
+                # Balansdan avtomatik yechib, keyingi oyga surishga urinamiz
+                if bal.advance_due_payment():
+                    return
+                # Balans yetmadi -> bloklash
                 CustomUser.objects.filter(pk=user.pk).update(is_blocked=True)
                 cache.set(f'auto_blocked_{user.id}', True, 10)
                 from .models import PaymentStatus

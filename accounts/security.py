@@ -98,12 +98,12 @@ def _add_strike(ip: str, reason: str = "") -> None:
     """Shubhali harakatni hisoblash. Limitga yetsa avtomatik bloklash."""
     key = f"{_IP_STRIKE_PREFIX}{ip}"
     try:
+        # incr mavjud kalit TTL'ini saqlab qoladi (kalit except branchda
+        # _AUTO_BLOCK_TTL bilan yaratiladi)
         strikes = cache.incr(key)
     except ValueError:
         cache.set(key, 1, timeout=_AUTO_BLOCK_TTL)
         strikes = 1
-    if strikes == 1:
-        cache.expire(key, _AUTO_BLOCK_TTL)
     if strikes >= _AUTO_BLOCK_STRIKES:
         block_ip(ip, ttl=_AUTO_BLOCK_TTL,
                  reason=f"Auto-blocked after {strikes} strikes: {reason}")

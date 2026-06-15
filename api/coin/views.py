@@ -186,6 +186,12 @@ def toggle_like(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def purchase_product(request, pk):
+    # Kursni tugatgan (muzlatilgan) o'quvchilar magazindan xarid qila olmaydi
+    if request.user.is_finished:
+        return Response(
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar magazindan xarid qila olmaydi."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     product = get_object_or_404(Product, pk=pk)
     final_price = get_discounted_price(product, request.user)
     has_discount = request.user.is_premium and final_price < product.coin_price
@@ -359,6 +365,12 @@ def add_comment(request, pk):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def request_premium(request):
+    # Kursni tugatgan (muzlatilgan) o'quvchilar coin sarflay olmaydi
+    if request.user.is_finished:
+        return Response(
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar coin sarflay olmaydi."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     serializer = PremiumRequestSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     plan = serializer.validated_data['plan']
@@ -501,8 +513,10 @@ def search_user_for_transfer(request):
     if not query or len(query) < 2:
         return Response({'error': "Kamida 2 ta belgi kiriting"}, status=status.HTTP_400_BAD_REQUEST)
     
+    # Kursni tugatgan (muzlatilgan) o'quvchilarga coin o'tkazib bo'lmaydi —
+    # ularning coinlari ko'paymasligi kerak
     base_qs = CustomUser.objects.filter(
-        is_blocked=False,
+        is_blocked=False, is_finished=False,
     ).exclude(pk=request.user.pk)
     
     # Telefon raqam bo'yicha qidirish (raqam bilan boshlansa)
@@ -526,6 +540,12 @@ def search_user_for_transfer(request):
 @throttle_classes([CoinTransferRateThrottle])
 def initiate_transfer(request):
     """Coin o'tkazmani boshlash — tasdiqlash kodi yuborish"""
+    # Kursni tugatgan (muzlatilgan) o'quvchilar coin o'tkaza olmaydi
+    if request.user.is_finished:
+        return Response(
+            {'error': "Hisobingiz muzlatilgan. Kursni tugatgan o'quvchilar coin o'tkaza olmaydi."},
+            status=status.HTTP_403_FORBIDDEN
+        )
     serializer = CoinTransferInitSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     
@@ -540,6 +560,13 @@ def initiate_transfer(request):
     
     if receiver.pk == request.user.pk:
         return Response({'error': "O'zingizga coin o'tkaza olmaysiz!"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Qabul qiluvchi kursni tugatgan (muzlatilgan) bo'lsa — coin o'tkazib bo'lmaydi
+    if getattr(receiver, 'is_finished', False):
+        return Response(
+            {'error': "Bu foydalanuvchi hisobi muzlatilgan, unga coin o'tkazib bo'lmaydi."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
     
     # 10% xizmat haqqi
     fee = math.ceil(amount * 0.10)

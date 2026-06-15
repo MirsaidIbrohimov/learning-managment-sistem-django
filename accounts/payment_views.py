@@ -50,41 +50,43 @@ def _get_student(student_id_str):
 
 def _record_payment(student, amount_som, source, transaction_id):
     """
-    Save a successful payment to PaymentRecord and update PaymentStatus.
-    amount_som — payment amount in UZS (so'm).
+    Onlayn to'lovni (Payme/Click) o'quvchining balansiga qo'shadi va oylik
+    to'lovni balansdan yechib akkauntni ochishga uradi.
+    amount_som - to'lov miqdori (so'm).
     """
-    today = date.today()
+    from django.db import transaction
+    from .models import StudentBalance, BalanceTopUp
 
-    # Update or create PaymentStatus
-    ps, _ = PaymentStatus.objects.get_or_create(user=student)
-    ps.is_paid = True
-    ps.last_payment_date = today
-    if not ps.paid_until or ps.paid_until < today:
-        # Extend by one month from today (pure stdlib, no dateutil needed)
-        import calendar
-        days_in_month = calendar.monthrange(today.year, today.month)[1]
-        from datetime import timedelta
-        ps.paid_until = today + timedelta(days=days_in_month)
-    ps.auto_blocked = False
-    ps.save()
+    # Aylanma import - circular importdan saqlanish uchun funksiya ichida
+    try:
+        from .views import _auto_deduct_and_unblock
+    except Exception:
+        _auto_deduct_and_unblock = None
 
-    # PaymentRecord for current month
-    record, created = PaymentRecord.objects.get_or_create(
-        user=student,
-        month=today.month,
-        year=today.year,
-        defaults={'amount': ps.monthly_fee},
-    )
-    record.is_paid = True
-    record.paid_date = today
-    record.paid_amount = amount_som
-    record.notes = f"{source} | tx:{transaction_id}"
-    record.save()
+    with transaction.atomic():
+        # 1. To'lovni o'quvchining BALANSIGA qo'shamiz
+        balance, _ = StudentBalance.objects.select_for_update().get_or_create(user=student)
+        balance.amount += amount_som
+        balance.save(update_fields=['amount', 'updated_at'])
 
-    # Un-block the student if they were blocked for non-payment
-    if student.is_blocked and ps.auto_blocked:
-        student.is_blocked = False
-        student.save(update_fields=['is_blocked'])
+        # 2. To'ldirish tarixiga yozamiz (onlayn - added_by yo'q)
+        BalanceTopUp.objects.create(
+            student=student,
+            amount=amount_som,
+            added_by=None,
+            note=f"Onlayn to'lov ({source}) | tx:{transaction_id}"[:500],
+        )
+
+        # 3. Oylik to'lovni balansdan yechib, akkauntni ochishga urinamiz.
+        #    Balans yetsa fee yechiladi va unblock bo'ladi; yetmasa pul balansda
+        #    to'planib qoladi, akkaunt bloklangan holatda turaveradi.
+        balance.refresh_from_db()
+        if _auto_deduct_and_unblock is not None:
+            if student.is_blocked:
+                _auto_deduct_and_unblock(student)
+            elif not balance.is_contract and not balance.next_payment_date:
+                # Birinchi marta to'lov - oylik to'lovni yechib, sanani belgilaymiz
+                _auto_deduct_and_unblock(student)
 
 
 # ═══════════════════════════════════════════════════════════════════

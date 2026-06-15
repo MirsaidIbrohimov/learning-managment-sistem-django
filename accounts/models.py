@@ -289,6 +289,10 @@ class CustomUser(AbstractUser):
         if amount <= 0:
             return
 
+        # Kursni tugatgan (muzlatilgan) o'quvchilarning coinlari ko'paymaydi
+        if self.is_finished:
+            return
+
         self.coins += amount
         self.save(update_fields=['coins'])
 
@@ -303,6 +307,10 @@ class CustomUser(AbstractUser):
         from coin.models import CoinTransaction
 
         if amount <= 0:
+            return
+
+        # Kursni tugatgan (muzlatilgan) o'quvchilarning coinlari o'zgarmaydi
+        if self.is_finished:
             return
 
         # Coinlar minusga ham o'tishi mumkin
@@ -2080,6 +2088,15 @@ class ClickTransaction(models.Model):
 #  BALANS TIZIMI
 # ─────────────────────────────────────────────
 
+def _balance_add_one_month(d):
+    """Berilgan sanaga 1 oy qo'shadi (oy oxiri kunlarini hisobga olib)."""
+    import calendar
+    year = d.year + (1 if d.month == 12 else 0)
+    month = 1 if d.month == 12 else d.month + 1
+    day = min(d.day, calendar.monthrange(year, month)[1])
+    return d.replace(year=year, month=month, day=day)
+
+
 class StudentBalance(models.Model):
     """
     Har bir o'quvchining naqd pul balansi (so'mda).
@@ -2116,6 +2133,75 @@ class StudentBalance(models.Model):
 
     def formatted(self):
         return f"{int(self.amount):,} so'm".replace(",", " ")
+
+    def advance_due_payment(self):
+        """
+        Keyingi to'lov sanasi kelganda balansdan oylik to'lovni avtomatik
+        yechib, sanani keyingi oyga suradi (avto-uzaytirish). Balans bir necha
+        oyga yetsa, har bir o'tib ketgan oy uchun takrorlanadi.
+
+        Qaytaradi:
+            True  → to'lov holati joriy, foydalanuvchini bloklash shart emas.
+            False → balans yetarli emas, foydalanuvchini bloklash kerak.
+        """
+        from django.db import transaction
+        from django.utils import timezone
+
+        today = timezone.now().date()
+        # Shartnoma yoki sana belgilanmagan yoki hali muddat kelmagan → tegmaymiz
+        if self.is_contract or not self.next_payment_date or self.next_payment_date > today:
+            return True
+
+        try:
+            with transaction.atomic():
+                bal = StudentBalance.objects.select_for_update().get(pk=self.pk)
+                if bal.is_contract or not bal.next_payment_date or bal.next_payment_date > today:
+                    return True
+
+                ps = PaymentStatus.objects.filter(user_id=bal.user_id).first()
+                monthly_fee = (ps.monthly_fee if ps else 0) or 200000
+
+                charged = False
+                guard = 0
+                while bal.next_payment_date and bal.next_payment_date <= today and guard < 24:
+                    guard += 1
+                    if bal.amount < monthly_fee:
+                        break
+                    bal.amount -= monthly_fee
+                    pay_month = bal.next_payment_date.month
+                    pay_year = bal.next_payment_date.year
+                    bal.next_payment_date = _balance_add_one_month(bal.next_payment_date)
+                    charged = True
+                    PaymentRecord.objects.update_or_create(
+                        user_id=bal.user_id, month=pay_month, year=pay_year,
+                        defaults={
+                            'amount': monthly_fee,
+                            'is_paid': True,
+                            'paid_date': today,
+                            'paid_amount': monthly_fee,
+                            'notes': "Balansdan avtomatik yechildi (avto-uzaytirish)",
+                        }
+                    )
+
+                if charged:
+                    bal.save(update_fields=['amount', 'next_payment_date', 'updated_at'])
+                    # Joriy obyektni sinxronlash
+                    self.amount = bal.amount
+                    self.next_payment_date = bal.next_payment_date
+                    if ps:
+                        ps.is_paid = True
+                        ps.last_payment_date = today
+                        ps.auto_blocked = False
+                        ps.paid_until = bal.next_payment_date
+                        ps.save()
+
+                # Hali ham muddat o'tgan bo'lsa → balans yetmadi → bloklash kerak
+                if bal.next_payment_date and bal.next_payment_date <= today:
+                    return False
+                return True
+        except Exception:
+            # Xatolik bo'lsa foydalanuvchini bloklab qo'ymaymiz
+            return True
 
 
 class BalanceTopUp(models.Model):
