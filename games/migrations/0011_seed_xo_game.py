@@ -37,7 +37,7 @@ def unseed_xo_game(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('games', '0009_boardmatch_delete_shashkamatch_and_more'),
+        ('games', '0010_merge_20260613_1210'),
     ]
 
     operations = [
