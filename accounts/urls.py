@@ -316,9 +316,14 @@ urlpatterns = [
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
 
     # Oylik to'lovlar
+    # Oylik to'lovlar
     path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
-    path('dashboard/payments/', views.admin_payments),
-    path('dashboard/tolovlar/<int:pk>/pay/', views.admin_mark_paid, name='admin_mark_paid'),
-    path('dashboard/tolovlar/<int:pk>/unpay/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
-    path('yordamchi/tolovlar/', views.admin_payments, name='yordamchi_payments'),
+    path('dashboard/tolovlar/<int:pk>/mark-paid/', views.admin_mark_paid, name='admin_mark_paid'),
+    path('dashboard/tolovlar/<int:pk>/mark-unpaid/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
+    path('dashboard/tolovlar/<int:pk>/history/', views.admin_payment_history, name='admin_payment_history'),
+
+    # Yordamchi admin — alohida sahifalar
+    path('yordamchi/tolovlar/', views.yordamchi_payments, name='yordamchi_payments'),
+    path('yordamchi/tolovlar/<int:pk>/mark-paid/', views.yordamchi_mark_paid, name='yordamchi_mark_paid'),
+    path('yordamchi/tolovlar/<int:pk>/mark-unpaid/', views.yordamchi_mark_unpaid, name='yordamchi_mark_unpaid'),
 ]

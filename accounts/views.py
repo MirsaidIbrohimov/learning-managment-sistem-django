@@ -37,6 +37,15 @@ from django.core.cache import cache
 from telegram_bot.utils import notify_admins, notify_user, notify_group
 
 
+def _to_int(value, default=0):
+    """Xavfsiz int o'girish: bo'sh/noto'g'ri qiymatda default qaytaradi.
+    Filtr/qidiruv formasi bo'sh month/year yuborganda 500 xatolikni oldini oladi."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
 def _redirect_student_to_token(request, lesson):
     """O'quvchilarni PK URL'dan bloklash — faqat token URL orqali kirish mumkin."""
     if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
@@ -835,6 +844,15 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
             if user is None:
+                # Parol to'g'ri, lekin akkaunt o'chirilgan/bloklangan (is_active=False)
+                # bo'lsa — authenticate None qaytaradi. Shuni aniqlab, aniq xabar beramiz.
+                _u = CustomUser.objects.filter(username__iexact=(username or '').strip()).first()
+                if _u and not _u.is_active and _u.check_password(password):
+                    messages.error(
+                        request,
+                        "Akkauntingiz bloklangan. Iltimos, administrator bilan bog'laning. ⛔"
+                    )
+                    return _login_render(request, form, login_mode)
                 _record_failed_login(ip_address, username, user_agent, login_token)
                 messages.error(request, "Username yoki parol noto'g'ri ❌")
                 return _login_render(request, form, login_mode)
@@ -852,6 +870,13 @@ def login_view(request):
                 login(request, user)
                 user.last_activity = timezone.now()
                 user.save(update_fields=["last_activity"])
+                _reason = getattr(user, 'blocked_reason', '') or ''
+                messages.warning(
+                    request,
+                    "Akkauntingiz vaqtincha bloklangan"
+                    + (f": {_reason}" if _reason else "")
+                    + ". To'lovni amalga oshiring. 🔒"
+                )
                 return redirect('payment_wall')
             # Unblock bo'ldi — oddiy login davom etadi
 
@@ -4954,11 +4979,14 @@ from django.core.paginator import Paginator
 def admin_payments(request):
     if not request.user.is_admin_or_assistant:
         return redirect('home')
+    # Yordamchi admin oylik to'lovlarni O'ZINING alohida panelida ko'radi
+    if request.user.is_assistant_admin:
+        return redirect('yordamchi_payments')
 
     from datetime import date
     today = date.today()
-    selected_month = int(request.GET.get('month', today.month))
-    selected_year = int(request.GET.get('year', today.year))
+    selected_month = _to_int(request.GET.get('month'), today.month)
+    selected_year = _to_int(request.GET.get('year'), today.year)
     search_query = request.GET.get('q', '').strip()
     filter_status = request.GET.get('status', '')
 
@@ -5078,8 +5106,8 @@ def admin_mark_paid(request, pk):
     user = get_object_or_404(CustomUser, pk=pk)
     payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
 
-    month = int(request.POST.get('month', date.today().month))
-    year = int(request.POST.get('year', date.today().year))
+    month = _to_int(request.POST.get('month'), date.today().month)
+    year = _to_int(request.POST.get('year'), date.today().year)
     paid_amount = request.POST.get('paid_amount', '')
     notes = request.POST.get('notes', '')
 
@@ -5087,7 +5115,7 @@ def admin_mark_paid(request, pk):
         user=user, month=month, year=year,
         defaults={'amount': payment_status.monthly_fee}
     )
-    record.paid_amount = int(paid_amount) if paid_amount else record.amount
+    record.paid_amount = _to_int(paid_amount, record.amount)
     record.is_paid = True
     record.paid_date = date.today()
     record.notes = notes
@@ -5122,8 +5150,8 @@ def admin_mark_unpaid(request, pk):
 
     from datetime import date
     user = get_object_or_404(CustomUser, pk=pk)
-    month = int(request.POST.get('month', date.today().month))
-    year = int(request.POST.get('year', date.today().year))
+    month = _to_int(request.POST.get('month'), date.today().month)
+    year = _to_int(request.POST.get('year'), date.today().year)
 
     record = PaymentRecord.objects.filter(user=user, month=month, year=year).first()
     if record:
@@ -5176,8 +5204,8 @@ def send_bulk_payment_reminders(request):
     if request.method == 'POST':
         from datetime import date
         today = date.today()
-        m = int(request.POST.get('month', today.month))
-        y = int(request.POST.get('year', today.year))
+        m = _to_int(request.POST.get('month'), today.month)
+        y = _to_int(request.POST.get('year'), today.year)
         unpaid_ids = PaymentRecord.objects.filter(
             month=m, year=y, is_paid=False
         ).values_list('user_id', flat=True)
@@ -5316,7 +5344,7 @@ def bulk_payment_action(request):
             messages.success(request, f"{count} ta o'quvchi blokdan ochildi!")
 
         elif action == 'set_fee':
-            fee = int(request.POST.get('monthly_fee', 200000))
+            fee = _to_int(request.POST.get('monthly_fee'), 200000)
             count = 0
             for student in students:
                 ps, _ = PaymentStatus.objects.get_or_create(user=student)
@@ -5409,8 +5437,8 @@ def export_payments_pdf(request):
     from io import BytesIO
 
     today = date.today()
-    selected_month = int(request.GET.get('month', today.month))
-    selected_year = int(request.GET.get('year', today.year))
+    selected_month = _to_int(request.GET.get('month'), today.month)
+    selected_year = _to_int(request.GET.get('year'), today.year)
 
     MONTH_NAMES = {
         1: 'Yanvar', 2: 'Fevral', 3: 'Mart', 4: 'Aprel',
@@ -13983,3 +14011,183 @@ def admin_security_block_ip(request):
         user=request.user,
     )
     return JsonResponse({'success': True, 'ip': ip})
+
+
+# ══════════════════════════════════════════════════════════════
+#  YORDAMCHI ADMIN — OYLIK TO'LOVLAR
+# ══════════════════════════════════════════════════════════════
+
+@login_required
+def yordamchi_payments(request):
+    """Yordamchi admin uchun alohida oylik to'lovlar sahifasi."""
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+
+    from datetime import date
+    from django.db.models import Sum
+    today = date.today()
+    selected_month = _to_int(request.GET.get('month'), today.month)
+    selected_year  = _to_int(request.GET.get('year'), today.year)
+    search_query   = request.GET.get('q', '').strip()
+    filter_status  = request.GET.get('status', '')
+
+    qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+
+    # Ensure PaymentStatus exists for every student
+    existing_ids = set(PaymentStatus.objects.filter(
+        user__role='student', user__is_finished=False
+    ).values_list('user_id', flat=True))
+    all_ids = set(qs.values_list('id', flat=True))
+    missing_ps = all_ids - existing_ids
+    if missing_ps:
+        PaymentStatus.objects.bulk_create(
+            [PaymentStatus(user_id=uid) for uid in missing_ps], ignore_conflicts=True
+        )
+        qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+
+    # Ensure PaymentRecord exists for selected month
+    existing_rec_ids = set(PaymentRecord.objects.filter(
+        month=selected_month, year=selected_year
+    ).values_list('user_id', flat=True))
+    missing_rec = all_ids - existing_rec_ids
+    if missing_rec:
+        fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_rec)}
+        PaymentRecord.objects.bulk_create([
+            PaymentRecord(
+                user_id=uid, month=selected_month, year=selected_year,
+                amount=fees.get(uid, 200000)
+            ) for uid in missing_rec
+        ], ignore_conflicts=True)
+
+    # Search
+    if search_query:
+        qs = qs.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)  |
+            Q(username__icontains=search_query)   |
+            Q(phone__icontains=search_query)
+        )
+
+    records     = PaymentRecord.objects.filter(month=selected_month, year=selected_year).select_related('user')
+    records_dict = {r.user_id: r for r in records}
+
+    if filter_status == 'paid':
+        qs = qs.filter(pk__in=[r.user_id for r in records if r.is_paid])
+    elif filter_status == 'unpaid':
+        qs = qs.filter(pk__in=[r.user_id for r in records if not r.is_paid])
+    elif filter_status == 'blocked':
+        qs = qs.filter(is_blocked=True)
+
+    students_list = list(qs.order_by('first_name', 'last_name'))
+    for s in students_list:
+        s.current_record = records_dict.get(s.pk)
+
+    paginator = Paginator(students_list, 30)
+    students  = paginator.get_page(request.GET.get('page'))
+
+    active_ids   = list(CustomUser.objects.filter(role='student', is_finished=False).values_list('id', flat=True))
+    all_records  = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_ids)
+    total_students   = len(active_ids)
+    total_expected   = all_records.aggregate(t=Sum('amount'))['t'] or 0
+    total_paid_sum   = all_records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
+    total_paid_count = all_records.filter(is_paid=True).count()
+    total_unpaid     = all_records.filter(is_paid=False).count()
+    blocked_count    = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
+    total_debt       = max(0, total_expected - total_paid_sum)
+
+    MONTH_SHORT = {1:'Yan',2:'Fev',3:'Mar',4:'Apr',5:'May',6:'Iyn',
+                   7:'Iyl',8:'Avg',9:'Sen',10:'Okt',11:'Noy',12:'Dek'}
+    monthly_history = []
+    for i in range(5, -1, -1):
+        m, y = selected_month - i, selected_year
+        while m <= 0:
+            m += 12; y -= 1
+        mr = PaymentRecord.objects.filter(month=m, year=y, user_id__in=active_ids)
+        monthly_history.append({
+            'month': m, 'year': y, 'name': MONTH_SHORT.get(m, ''),
+            'paid':       mr.filter(is_paid=True).aggregate(s=Sum('paid_amount'))['s'] or 0,
+            'expected':   mr.aggregate(s=Sum('amount'))['s'] or 0,
+            'paid_count': mr.filter(is_paid=True).count(),
+            'total_count':mr.count(),
+        })
+
+    months = [(i, PaymentRecord.MONTH_NAMES[i]) for i in range(1, 13)]
+    years  = list(range(2024, today.year + 2))
+
+    return render(request, 'accounts/yordamchi/payments.html', {
+        'students':        students,
+        'total_students':  total_students,
+        'total_expected':  total_expected,
+        'total_paid_sum':  total_paid_sum,
+        'total_paid_count':total_paid_count,
+        'total_unpaid':    total_unpaid,
+        'blocked_count':   blocked_count,
+        'selected_month':  selected_month,
+        'selected_year':   selected_year,
+        'months':          months,
+        'years':           years,
+        'search_query':    search_query,
+        'filter_status':   filter_status,
+        'monthly_history': monthly_history,
+        'total_debt':      total_debt,
+        'today':           today,
+    })
+
+
+@login_required
+def yordamchi_mark_paid(request, pk):
+    """Yordamchi: o'quvchini to'lagan deb belgilash."""
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+    if request.method != 'POST':
+        return redirect('yordamchi_payments')
+
+    from datetime import date
+    user   = get_object_or_404(CustomUser, pk=pk)
+    ps, _  = PaymentStatus.objects.get_or_create(user=user)
+    month  = _to_int(request.POST.get('month'), date.today().month)
+    year   = _to_int(request.POST.get('year'), date.today().year)
+    paid_amount = request.POST.get('paid_amount', '')
+    notes  = request.POST.get('notes', '')
+
+    record, _ = PaymentRecord.objects.get_or_create(
+        user=user, month=month, year=year,
+        defaults={'amount': ps.monthly_fee}
+    )
+    record.paid_amount   = _to_int(paid_amount, record.amount)
+    record.is_paid       = True
+    record.paid_date     = date.today()
+    record.notes         = notes
+    record.recorded_by   = request.user
+    record.save()
+
+    ps.is_paid           = True
+    ps.last_payment_date = date.today()
+    ps.save()
+
+    messages.success(request, f"{user.get_full_name()} to'lovi qayd etildi.")
+    return redirect(f"{request.POST.get('next', '/yordamchi/tolovlar/')}?month={month}&year={year}")
+
+
+@login_required
+def yordamchi_mark_unpaid(request, pk):
+    """Yordamchi: o'quvchining to'lovini bekor qilish."""
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+    if request.method != 'POST':
+        return redirect('yordamchi_payments')
+
+    from datetime import date
+    user   = get_object_or_404(CustomUser, pk=pk)
+    month  = _to_int(request.POST.get('month'), date.today().month)
+    year   = _to_int(request.POST.get('year'), date.today().year)
+
+    PaymentRecord.objects.filter(user=user, month=month, year=year).update(
+        is_paid=False, paid_amount=0, paid_date=None, notes='', recorded_by=None
+    )
+    ps, _ = PaymentStatus.objects.get_or_create(user=user)
+    ps.is_paid = False
+    ps.save()
+
+    messages.warning(request, f"{user.get_full_name()} to'lovi bekor qilindi.")
+    return redirect(f"{request.POST.get('next', '/yordamchi/tolovlar/')}?month={month}&year={year}")

@@ -508,6 +508,23 @@ class SecurityHeadersMiddleware:
         response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
         response['Cross-Origin-Opener-Policy'] = 'same-origin'
         response['Cross-Origin-Resource-Policy'] = 'same-origin'
+
+        # CICHE: autentifikatsiyalangan sahifalarni keshlamaslik.
+        # Umumiy (maktab) kompyuterlarida bir o'quvchining sahifasi -
+        # masalan o'yin iframe'idagi launch token - brauzer back/forward
+        # keshi (bfcache) yoki proxy orqali boshqa o'quvchiga ko'rsatilib
+        # qolib, hisoblar aralashib ketishiga olib kelishi mumkin.
+        try:
+            _u = getattr(request, 'user', None)
+            if _u is not None and _u.is_authenticated and \
+               not request.path.startswith(('/static/', '/media/')):
+                _cc = response.get('Cache-Control', '')
+                if (not _cc) or ('public' in _cc) or ('max-age' not in _cc):
+                    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, private, max-age=0'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
+        except Exception:
+            pass
         
         # CSP - Content Security Policy
         csp_directives = [

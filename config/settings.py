@@ -381,21 +381,21 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # ── Parol hashlash ────────────────────────────────────────────────
 # Argon2 kutubxonasi o'rnatilgan bo'lsa ishlatiladi, aks holda PBKDF2
+# PBKDF2 (Django ichida, qo'shimcha kutubxonasiz) DEFAULT bo'ladi —
+# shunda parol yangilash/tekshirish hech qachon Argon2 ga bog'liq emas.
+# Argon2 faqat kutubxonasi HAQIQATAN ishlasa, eski argon2 hashlarini
+# tekshirish uchun ro'yxat OXIRIGA qo'shiladi (default emas).
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.ScryptPasswordHasher',
+]
 try:
-    import argon2  # noqa: F401
-    PASSWORD_HASHERS = [
-        'django.contrib.auth.hashers.Argon2PasswordHasher',   # eng kuchli
-        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-        'django.contrib.auth.hashers.ScryptPasswordHasher',
-    ]
-except ImportError:
-    PASSWORD_HASHERS = [
-        'django.contrib.auth.hashers.PBKDF2PasswordHasher',   # built-in, xavfsiz
-        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-        'django.contrib.auth.hashers.ScryptPasswordHasher',
-    ]
+    from argon2 import low_level as _argon2_low_level  # noqa: F401
+    PASSWORD_HASHERS.append('django.contrib.auth.hashers.Argon2PasswordHasher')
+except Exception:
+    pass
 
 # ── HTTPS (production) ────────────────────────────────────────────
 SECURE_HSTS_SECONDS            = 0 if DEBUG else 31536000   # 1 yil (production)
@@ -507,3 +507,17 @@ GAME_MAX_WPM = 180
 GAME_MIN_SECONDS_PER_WORD = 0.15
 GAME_MIN_SECONDS = 3
 GAME_MAX_SCORE_MULTI = 10
+
+
+# ══════════════════════════════════════════════════════════════════
+# TELEGRAM BOT (.env dan o'qiladi — ilgari settings'ga ulanmagan edi,
+# shuning uchun bot ishga tushmasdi)
+# ══════════════════════════════════════════════════════════════════
+TELEGRAM_BOT_TOKEN     = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
+TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID', '').strip()
+TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
+
+# SITE_URL: webhook (production) uchun real domen kerak.
+# '*' yoki bo'sh bo'lsa — lokal polling rejimi ishlaydi (webhook emas).
+_raw_site_url = os.getenv('SITE_URL', '').strip()
+SITE_URL = '' if _raw_site_url in ('', '*') else _raw_site_url.rstrip('/')

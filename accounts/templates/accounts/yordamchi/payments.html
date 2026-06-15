@@ -1,0 +1,290 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% load custom_filters %}
+{% block title %}Oylik To'lovlar — Yordamchi Panel{% endblock %}
+{% block page_title %}Oylik To'lovlar{% endblock %}
+
+{% block content %}
+<style>
+/* ── Stats cards ── */
+.yp-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:20px; }
+.yp-stat  { background:var(--yo-card); border:1px solid var(--yo-border); border-radius:14px;
+            padding:14px 16px; display:flex; flex-direction:column; gap:4px; }
+.yp-stat-label { font-size:.72rem; font-weight:600; color:var(--yo-text-muted); text-transform:uppercase; letter-spacing:.04em; }
+.yp-stat-val   { font-size:1.35rem; font-weight:800; color:var(--yo-text); font-family:'JetBrains Mono',monospace; }
+.yp-stat-val.green  { color:#22c55e; }
+.yp-stat-val.red    { color:#ef4444; }
+.yp-stat-val.yellow { color:#f59e0b; }
+.yp-stat-val.purple { color:#8b5cf6; }
+
+/* ── Month bar ── */
+.yp-month-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+.yp-month-bar select { background:var(--yo-card); border:1px solid var(--yo-border); border-radius:10px;
+                       padding:.4rem .75rem; color:var(--yo-text); font-size:.85rem; cursor:pointer; }
+.yp-month-bar button { padding:.4rem 1rem; border-radius:10px; border:none; background:#6366f1;
+                       color:#fff; font-weight:600; font-size:.85rem; cursor:pointer; }
+
+/* ── History mini chart ── */
+.yp-history { display:flex; gap:6px; margin-bottom:18px; overflow-x:auto; padding-bottom:4px; }
+.yp-hist-col { flex:1; min-width:56px; background:var(--yo-card); border:1px solid var(--yo-border);
+               border-radius:10px; padding:8px 6px; text-align:center; font-size:.7rem; }
+.yp-hist-col .hn { font-weight:700; color:var(--yo-text); margin-bottom:4px; }
+.yp-hist-col .hb { height:32px; background:rgba(99,102,241,.18); border-radius:5px; margin:4px 0;
+                   display:flex; align-items:flex-end; overflow:hidden; }
+.yp-hist-col .hbf{ background:#6366f1; border-radius:5px; width:100%; transition:.3s; }
+.yp-hist-col .hp { color:#22c55e; font-weight:700; }
+
+/* ── Filters ── */
+.yp-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.yp-filters input { flex:1; min-width:180px; background:var(--yo-card); border:1px solid var(--yo-border);
+                    border-radius:10px; padding:.45rem .85rem; color:var(--yo-text); font-size:.85rem; }
+.yp-filters input:focus { outline:none; border-color:#6366f1; }
+.yp-filter-btn { padding:.4rem .85rem; border-radius:9px; border:1px solid var(--yo-border);
+                 background:var(--yo-card); color:var(--yo-text-muted); font-size:.8rem; font-weight:600;
+                 cursor:pointer; text-decoration:none; transition:.15s; }
+.yp-filter-btn:hover,.yp-filter-btn.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+.yp-filter-btn.green.active  { background:#22c55e; border-color:#22c55e; }
+.yp-filter-btn.red.active    { background:#ef4444; border-color:#ef4444; }
+.yp-filter-btn.orange.active { background:#f59e0b; border-color:#f59e0b; }
+
+/* ── Table ── */
+.yp-table-wrap { overflow-x:auto; border-radius:14px; border:1px solid var(--yo-border); }
+table.yp-table  { width:100%; border-collapse:collapse; }
+table.yp-table th { background:var(--yo-card); padding:.6rem 1rem; text-align:left;
+                    font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+                    color:var(--yo-text-muted); border-bottom:1px solid var(--yo-border); white-space:nowrap; }
+table.yp-table td { padding:.7rem 1rem; border-bottom:1px solid var(--yo-border);
+                    font-size:.85rem; color:var(--yo-text); vertical-align:middle; }
+table.yp-table tr:last-child td { border-bottom:none; }
+table.yp-table tr:hover td { background:rgba(99,102,241,.04); }
+
+.badge-paid   { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:99px;
+                background:rgba(34,197,94,.12); color:#22c55e; font-size:.72rem; font-weight:700; }
+.badge-unpaid { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:99px;
+                background:rgba(239,68,68,.10); color:#ef4444; font-size:.72rem; font-weight:700; }
+.badge-blocked{ display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:99px;
+                background:rgba(245,158,11,.12); color:#f59e0b; font-size:.72rem; font-weight:700; }
+
+.yp-btn { padding:.32rem .75rem; border-radius:8px; border:none; font-size:.78rem; font-weight:600;
+          cursor:pointer; transition:.15s; }
+.yp-btn.pay   { background:rgba(34,197,94,.12); color:#22c55e; border:1px solid rgba(34,197,94,.25); }
+.yp-btn.pay:hover { background:#22c55e; color:#fff; }
+.yp-btn.unpay { background:rgba(239,68,68,.10); color:#ef4444; border:1px solid rgba(239,68,68,.22); }
+.yp-btn.unpay:hover { background:#ef4444; color:#fff; }
+
+/* ── Pagination ── */
+.yp-pagination { display:flex; justify-content:center; gap:6px; margin-top:16px; flex-wrap:wrap; }
+.yp-pagination a,.yp-pagination span {
+    padding:.38rem .75rem; border-radius:9px; font-size:.82rem; font-weight:600;
+    border:1px solid var(--yo-border); background:var(--yo-card); color:var(--yo-text); text-decoration:none;
+}
+.yp-pagination .current { background:#6366f1; border-color:#6366f1; color:#fff; }
+.yp-pagination a:hover  { border-color:#6366f1; color:#6366f1; }
+</style>
+
+<!-- Month selector form -->
+<form method="get" id="mainForm">
+  <input type="hidden" name="q"      value="{{ search_query }}">
+  <input type="hidden" name="status" value="{{ filter_status }}">
+
+  <!-- Month/Year bar -->
+  <div class="yp-month-bar">
+    <select name="month" onchange="this.form.submit()">
+      {% for num,name in months %}
+      <option value="{{ num }}" {% if num == selected_month %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <select name="year" onchange="this.form.submit()">
+      {% for y in years %}
+      <option value="{{ y }}" {% if y == selected_year %}selected{% endif %}>{{ y }}</option>
+      {% endfor %}
+    </select>
+    <span style="font-size:.82rem;color:var(--yo-text-muted);">{{ selected_month }}-oy {{ selected_year }} yil</span>
+  </div>
+</form>
+
+<!-- Stats -->
+<div class="yp-stats">
+  <div class="yp-stat">
+    <span class="yp-stat-label">Jami o'quvchi</span>
+    <span class="yp-stat-val">{{ total_students }}</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">To'langan</span>
+    <span class="yp-stat-val green">{{ total_paid_count }}</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">To'lanmagan</span>
+    <span class="yp-stat-val red">{{ total_unpaid }}</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">Bloklangan</span>
+    <span class="yp-stat-val yellow">{{ blocked_count }}</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">Kutilayotgan</span>
+    <span class="yp-stat-val purple">{{ total_expected|space_num }} so'm</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">Yig'ilgan</span>
+    <span class="yp-stat-val green">{{ total_paid_sum|space_num }} so'm</span>
+  </div>
+  <div class="yp-stat">
+    <span class="yp-stat-label">Qarz</span>
+    <span class="yp-stat-val red">{{ total_debt|space_num }} so'm</span>
+  </div>
+</div>
+
+<!-- 6-month mini history -->
+{% if monthly_history %}
+<div class="yp-history">
+  {% for h in monthly_history %}
+  {% with pct=h.paid|default:0 max=h.expected|default:1 %}
+  <div class="yp-hist-col">
+    <div class="hn">{{ h.name }}</div>
+    <div class="hb">
+      <div class="hbf" style="height:{% if h.expected %}{% widthratio h.paid h.expected 100 %}%{% else %}0%{% endif %};"></div>
+    </div>
+    <div class="hp">{{ h.paid_count }}/{{ h.total_count }}</div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Search + filter -->
+<form method="get" style="margin-bottom:0;">
+  <input type="hidden" name="month" value="{{ selected_month }}">
+  <input type="hidden" name="year"  value="{{ selected_year }}">
+  <div class="yp-filters">
+    <input type="text" name="q" value="{{ search_query }}" placeholder="🔍 Ism, username, telefon...">
+    <a href="?month={{ selected_month }}&year={{ selected_year }}"
+       class="yp-filter-btn {% if not filter_status %}active{% endif %}">Hammasi</a>
+    <a href="?month={{ selected_month }}&year={{ selected_year }}&status=paid"
+       class="yp-filter-btn green {% if filter_status == 'paid' %}active{% endif %}">✓ To'langan</a>
+    <a href="?month={{ selected_month }}&year={{ selected_year }}&status=unpaid"
+       class="yp-filter-btn red {% if filter_status == 'unpaid' %}active{% endif %}">✗ To'lanmagan</a>
+    <a href="?month={{ selected_month }}&year={{ selected_year }}&status=blocked"
+       class="yp-filter-btn orange {% if filter_status == 'blocked' %}active{% endif %}">🔒 Bloklangan</a>
+    <button type="submit" class="yp-filter-btn active" style="background:#6366f1;border-color:#6366f1;color:#fff;">
+      <i class="bi bi-search"></i>
+    </button>
+    {% if search_query %}
+    <a href="?month={{ selected_month }}&year={{ selected_year }}" class="yp-filter-btn">✕ Tozalash</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Table -->
+<div class="yp-table-wrap">
+  <table class="yp-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>O'quvchi</th>
+        <th>Oylik to'lov</th>
+        <th>To'langan</th>
+        <th>Holat</th>
+        <th>Sana</th>
+        <th>Amal</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for student in students %}
+      <tr>
+        <td style="color:var(--yo-text-muted);font-size:.75rem;">{{ forloop.counter0|add:students.start_index }}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            {% if student.photo %}
+            <img src="{{ student.photo.url }}" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
+            {% else %}
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                        display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.78rem;">
+              {{ student.get_full_name|slice:":1"|upper }}
+            </div>
+            {% endif %}
+            <div>
+              <div style="font-weight:600;font-size:.85rem;">{{ student.get_full_name }}</div>
+              <div style="font-size:.72rem;color:var(--yo-text-muted);">@{{ student.username }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem;color:#a5b4fc;">
+          {% if student.payment_status %}{{ student.payment_status.monthly_fee|space_num }}{% else %}200 000{% endif %} so'm
+        </td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
+          {% if student.current_record and student.current_record.is_paid %}
+            <span style="color:#22c55e;">{{ student.current_record.paid_amount|space_num }} so'm</span>
+          {% else %}
+            <span style="color:var(--yo-text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if student.is_blocked %}
+            <span class="badge-blocked"><i class="bi bi-lock-fill"></i> Bloklangan</span>
+          {% elif student.current_record and student.current_record.is_paid %}
+            <span class="badge-paid"><i class="bi bi-check-circle-fill"></i> To'langan</span>
+          {% else %}
+            <span class="badge-unpaid"><i class="bi bi-x-circle-fill"></i> To'lanmagan</span>
+          {% endif %}
+        </td>
+        <td style="font-size:.78rem;color:var(--yo-text-muted);">
+          {% if student.current_record and student.current_record.paid_date %}
+            {{ student.current_record.paid_date|date:"d.m.Y" }}
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            {% if student.current_record and student.current_record.is_paid %}
+              <form method="post" action="{% url 'yordamchi_mark_unpaid' student.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year"  value="{{ selected_year }}">
+                <input type="hidden" name="next"  value="/yordamchi/tolovlar/">
+                <button type="submit" class="yp-btn unpay" onclick="return confirm('To\'lovni bekor qilasizmi?')">
+                  <i class="bi bi-x"></i> Bekor
+                </button>
+              </form>
+            {% else %}
+              <form method="post" action="{% url 'yordamchi_mark_paid' student.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="month" value="{{ selected_month }}">
+                <input type="hidden" name="year"  value="{{ selected_year }}">
+                <input type="hidden" name="next"  value="/yordamchi/tolovlar/">
+                <button type="submit" class="yp-btn pay">
+                  <i class="bi bi-check"></i> To'landi
+                </button>
+              </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--yo-text-muted);">
+        <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:.5rem;"></i>
+        O'quvchi topilmadi
+      </td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination -->
+{% if students.has_other_pages %}
+<div class="yp-pagination">
+  {% if students.has_previous %}
+  <a href="?page={{ students.previous_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">‹</a>
+  {% endif %}
+  {% for p in students.paginator.page_range %}
+    {% if p == students.number %}
+    <span class="current">{{ p }}</span>
+    {% elif p >= students.number|add:"-2" and p <= students.number|add:"2" %}
+    <a href="?page={{ p }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if students.has_next %}
+  <a href="?page={{ students.next_page_number }}&month={{ selected_month }}&year={{ selected_year }}&q={{ search_query }}&status={{ filter_status }}">›</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
