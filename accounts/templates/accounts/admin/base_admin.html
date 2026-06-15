@@ -318,252 +318,237 @@
             <i class="bi bi-x-lg"></i>
         </button>
 
-        <div class="sidebar-brand" style="text-decoration: none;">
-            <a href="{% url 'home' %}" class="nav-link" style="gap:10px;">
-                <img src="{% static 'img/logo.png' %}" alt="Logo" style="width:32px;height:32px;border-radius:8px;object-fit:cover;">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'img/logo.png' %}" alt="Logo" style="width:30px;height:30px;border-radius:8px;object-fit:cover;flex-shrink:0;">
                 <span>IT Shaharcha</span>
             </a>
+        </div>
+
+        <!-- User Card -->
+        <div class="sidebar-user-card">
+            <div class="suc-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
+            <div class="suc-info">
+                <div class="suc-name">{{ user.first_name }} {{ user.last_name }}</div>
+                <div class="suc-role">{{ user.email }}</div>
+            </div>
+            <div class="suc-dot"></div>
         </div>
 
         <nav class="sidebar-nav">
             <div class="sidebar-group-label">Asosiy</div>
 
-            <a href="{% url 'admin_dashboard' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" data-title="Dashboard">
-                <i class="bi bi-speedometer2"></i>
+            <a href="{% url 'admin_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" data-title="Dashboard">
+                <div class="nav-icon-wrap"><i class="bi bi-speedometer2"></i></div>
                 <span>Dashboard</span>
             </a>
-            <a href="{% url 'admin_statistics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_statistics' %}active{% endif %}" data-title="Statistika">
-                <i class="bi bi-graph-up"></i>
+            <a href="{% url 'admin_statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_statistics' %}active{% endif %}" data-title="Statistika">
+                <div class="nav-icon-wrap"><i class="bi bi-graph-up"></i></div>
                 <span>Statistika</span>
             </a>
             <a href="{% url 'admin_reports' %}" class="nav-link {% if 'report' in request.path %}active{% endif %}" data-title="Hisobotlar">
-                <i class="bi bi-file-earmark-bar-graph"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-file-earmark-bar-graph"></i></div>
                 <span>Hisobotlar</span>
             </a>
 
             <div class="sidebar-group-label">O'quv jarayoni</div>
 
-            <a href="{% url 'admin_professions' %}"
-                class="nav-link {% if 'profession' in request.resolver_match.url_name %}active{% endif %}" data-title="Kasblar">
-                <i class="bi bi-briefcase"></i>
+            <a href="{% url 'admin_professions' %}" class="nav-link {% if 'profession' in request.resolver_match.url_name %}active{% endif %}" data-title="Kasblar">
+                <div class="nav-icon-wrap"><i class="bi bi-briefcase"></i></div>
                 <span>Kasblar</span>
             </a>
-            <a href="{% url 'admin_lesson_statistics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_lesson_statistics' %}active{% endif %}" data-title="Darslar tahlili">
-                <i class="bi bi-bar-chart"></i>
+            <a href="{% url 'admin_lesson_statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_lesson_statistics' %}active{% endif %}" data-title="Darslar tahlili">
+                <div class="nav-icon-wrap"><i class="bi bi-bar-chart"></i></div>
                 <span>Darslar tahlili</span>
             </a>
-            <a href="{% url 'admin_test_analytics' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_test_analytics' %}active{% endif %}" data-title="Test hulosalari">
-                <i class="bi bi-journal-check"></i>
+            <a href="{% url 'admin_test_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_test_analytics' %}active{% endif %}" data-title="Test hulosalari">
+                <div class="nav-icon-wrap"><i class="bi bi-journal-check"></i></div>
                 <span>Test hulosalari</span>
             </a>
-            <a href="{% url 'homework_submissions' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" data-title="Vazifalar">
-                <i class="bi bi-file-check"></i>
+            <a href="{% url 'homework_submissions' %}" class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" data-title="Vazifalar">
+                <div class="nav-icon-wrap"><i class="bi bi-file-check"></i></div>
                 <span>Vazifalar</span>
                 {% if admin_pending_homeworks %}<span class="sidebar-badge">{{ admin_pending_homeworks }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_sections_management' %}"
-                class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}" data-title="Bo'limlar">
-                <i class="bi bi-layers"></i>
+            <a href="{% url 'admin_sections_management' %}" class="nav-link {% if 'section' in request.resolver_match.url_name %}active{% endif %}" data-title="Bo'limlar">
+                <div class="nav-icon-wrap"><i class="bi bi-layers"></i></div>
                 <span>Bo'limlar</span>
             </a>
-            <a href="{% url 'admin_certificates' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_certificates' or request.resolver_match.url_name == 'admin_certificate_issue' or request.resolver_match.url_name == 'admin_certificate_status' %}active{% endif %}" data-title="Sertifikatlar">
-                <i class="bi bi-award-fill"></i>
+            <a href="{% url 'admin_certificates' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_certificates' or request.resolver_match.url_name == 'admin_certificate_issue' or request.resolver_match.url_name == 'admin_certificate_status' %}active{% endif %}" data-title="Sertifikatlar">
+                <div class="nav-icon-wrap"><i class="bi bi-award-fill"></i></div>
                 <span>Sertifikatlar</span>
             </a>
-<a href="{% url 'admin_certificate_requests' %}"
-   class="nav-link {% if request.resolver_match.url_name == 'admin_certificate_requests' %}active{% endif %}"
-   data-title="Sertifikat so'rovlari">
-   
-   <i class="bi bi-mortarboard-fill"></i>
-   <span>Sertifikat so'rovlari</span>
-</a>
+            <a href="{% url 'admin_certificate_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_certificate_requests' %}active{% endif %}" data-title="Sertifikat so'rovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-mortarboard-fill"></i></div>
+                <span>Sertifikat so'rovlari</span>
+            </a>
+            <a href="{% url 'admin_final_test_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_final_test_payments' %}active{% endif %}" data-title="Yakuniy test to'lovlar">
+                <div class="nav-icon-wrap"><i class="bi bi-credit-card"></i></div>
+                <span>Yakuniy test to'lovlar</span>
+            </a>
 
-<a href="{% url 'admin_final_test_payments' %}"
-   class="nav-link {% if request.resolver_match.url_name == 'admin_final_test_payments' %}active{% endif %}"
-   data-title="Yakuniy test to'lovlar">
-   
-   <i class="bi bi-credit-card"></i>
-   <span>Yakuniy test to'lovlar</span>
-</a>
             <div class="sidebar-group-label">Foydalanuvchilar</div>
 
-            <a href="{% url 'admin_users' %}"
-                class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" data-title="Foydalanuvchilar">
-                <i class="bi bi-people"></i>
+            <a href="{% url 'admin_users' %}" class="nav-link {% if 'user' in request.resolver_match.url_name %}active{% endif %}" data-title="Foydalanuvchilar">
+                <div class="nav-icon-wrap"><i class="bi bi-people"></i></div>
                 <span>Foydalanuvchilar</span>
             </a>
-            <a href="{% url 'parents:admin_parents' %}"
-                class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}" data-title="Ota-onalar">
-                <i class="bi bi-people-fill"></i>
+            <a href="{% url 'parents:admin_parents' %}" class="nav-link {% if 'parent' in request.resolver_match.url_name %}active{% endif %}" data-title="Ota-onalar">
+                <div class="nav-icon-wrap"><i class="bi bi-people-fill"></i></div>
                 <span>Ota-onalar</span>
             </a>
-            <a href="{% url 'admin_enrollment_requests' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_enrollment_requests' %}active{% endif %}" data-title="So'rovlar">
-                <i class="bi bi-person-plus"></i>
+            <a href="{% url 'admin_enrollment_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_enrollment_requests' %}active{% endif %}" data-title="So'rovlar">
+                <div class="nav-icon-wrap"><i class="bi bi-person-plus"></i></div>
                 <span>So'rovlar</span>
                 {% if admin_pending_enrollments %}<span class="sidebar-badge">{{ admin_pending_enrollments }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_unenroll_requests' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_unenroll_requests' %}active{% endif %}" data-title="Chiqish so'rovlari">
-                <i class="bi bi-box-arrow-right"></i>
+            <a href="{% url 'admin_unenroll_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_unenroll_requests' %}active{% endif %}" data-title="Chiqish so'rovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-box-arrow-right"></i></div>
                 <span>Chiqish so'rovlari</span>
                 {% if admin_pending_unenrollments %}<span class="sidebar-badge" style="background:#ef4444;">{{ admin_pending_unenrollments }}</span>{% endif %}
             </a>
-            <a href="{% url 'admin_password_reset_requests' %}"
-                class="nav-link {% if 'password_reset' in request.resolver_match.url_name %}active{% endif %}" data-title="Parol tiklash">
-                <i class="bi bi-key"></i>
+            <a href="{% url 'admin_password_reset_requests' %}" class="nav-link {% if 'password_reset' in request.resolver_match.url_name %}active{% endif %}" data-title="Parol tiklash">
+                <div class="nav-icon-wrap"><i class="bi bi-key"></i></div>
                 <span>Parol tiklash</span>
                 {% if admin_pending_passwords %}<span class="sidebar-badge">{{ admin_pending_passwords }}</span>{% endif %}
             </a>
 
             <div class="sidebar-group-label">O'qituvchilar</div>
 
-            <a href="{% url 'admin_teachers' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}" data-title="O'qituvchilar">
-                <i class="bi bi-person-workspace"></i>
+            <a href="{% url 'admin_teachers' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teachers' %}active{% endif %}" data-title="O'qituvchilar">
+                <div class="nav-icon-wrap"><i class="bi bi-person-workspace"></i></div>
                 <span>O'qituvchilar</span>
             </a>
-            <a href="{% url 'admin_teacher_attendance' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_teacher_attendance' %}active{% endif %}" data-title="Davomat">
-                <i class="bi bi-calendar-check"></i>
+            <a href="{% url 'admin_teacher_attendance' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teacher_attendance' %}active{% endif %}" data-title="Davomat">
+                <div class="nav-icon-wrap"><i class="bi bi-calendar-check"></i></div>
                 <span>Davomat</span>
             </a>
-            <a href="{% url 'admin_teacher_earnings' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_teacher_earnings' %}active{% endif %}" data-title="Daromadlar">
-                <i class="bi bi-cash-stack"></i>
+            <a href="{% url 'admin_teacher_earnings' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_teacher_earnings' %}active{% endif %}" data-title="Daromadlar">
+                <div class="nav-icon-wrap"><i class="bi bi-cash-stack"></i></div>
                 <span>Daromadlar</span>
             </a>
-            <a href="{% url 'admin_teacher_certificates' %}"
-                class="nav-link {% if 'teacher_certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlar">
-                <i class="bi bi-award"></i>
+            <a href="{% url 'admin_teacher_certificates' %}" class="nav-link {% if 'teacher_certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlar">
+                <div class="nav-icon-wrap"><i class="bi bi-award"></i></div>
                 <span>Sertifikatlar</span>
             </a>
 
             <div class="sidebar-group-label">Moliya & Market</div>
 
-            <a href="{% url 'admin_balance_management' %}"
-                class="nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}" data-title="Balans">
-                <i class="bi bi-wallet2"></i>
+            <a href="{% url 'admin_balance_management' %}" class="nav-link {% if 'balance' in request.resolver_match.url_name %}active{% endif %}" data-title="Balans">
+                <div class="nav-icon-wrap"><i class="bi bi-wallet2"></i></div>
                 <span>Balans</span>
             </a>
-            <a href="{% url 'admin_payments' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_payments' %}active{% endif %}" data-title="Oylik to'lovlar">
-                <i class="bi bi-calendar-check"></i>
+            <a href="{% url 'admin_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_payments' %}active{% endif %}" data-title="Oylik to'lovlar">
+                <div class="nav-icon-wrap"><i class="bi bi-calendar-check"></i></div>
                 <span>Oylik to'lovlar</span>
             </a>
-            <a href="{% url 'coin:admin_products' %}"
-                class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}" data-title="Mahsulotlar">
-                <i class="bi bi-shop"></i>
+            <a href="{% url 'coin:admin_products' %}" class="nav-link {% if 'product' in request.resolver_match.url_name %}active{% endif %}" data-title="Mahsulotlar">
+                <div class="nav-icon-wrap"><i class="bi bi-shop"></i></div>
                 <span>Mahsulotlar</span>
             </a>
-            <a href="{% url 'coin:admin_purchases' %}"
-                class="nav-link {% if 'purchase' in request.resolver_match.url_name %}active{% endif %}" data-title="Xaridlar">
-                <i class="bi bi-bag-check"></i>
+            <a href="{% url 'coin:admin_purchases' %}" class="nav-link {% if 'purchase' in request.resolver_match.url_name %}active{% endif %}" data-title="Xaridlar">
+                <div class="nav-icon-wrap"><i class="bi bi-bag-check"></i></div>
                 <span>Xaridlar</span>
             </a>
             <a href="{% url 'admin_manage_coins' %}" class="nav-link {% if '/coins/' in request.path %}active{% endif %}" data-title="Coin berish">
-                <i class="bi bi-coin"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-coin"></i></div>
                 <span>Coin berish</span>
             </a>
             <a href="{% url 'coin:admin_transfers' %}" class="nav-link {% if 'transfer' in request.resolver_match.url_name %}active{% endif %}" data-title="Coin o'tkazmalar">
-                <i class="bi bi-send-fill"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-send-fill"></i></div>
                 <span>Coin o'tkazmalar</span>
             </a>
             <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}" data-title="Premium">
-                <i class="bi bi-patch-check-fill"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-patch-check-fill"></i></div>
                 <span>Premium</span>
                 {% if admin_pending_premium %}<span class="sidebar-badge">{{ admin_pending_premium }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_discounts' %}" class="nav-link {% if 'discount' in request.path %}active{% endif %}" data-title="Chegirmalar">
-                <i class="bi bi-percent"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-percent"></i></div>
                 <span>Chegirmalar</span>
             </a>
 
             <div class="sidebar-group-label">O'yinlar</div>
 
-            <a href="{% url 'games:admin_games' %}"
-                class="nav-link {% if 'admin_game' in request.resolver_match.url_name %}active{% endif %}" data-title="O'yinlar">
-                <i class="bi bi-controller"></i>
+            <a href="{% url 'games:admin_games' %}" class="nav-link {% if 'admin_game' in request.resolver_match.url_name %}active{% endif %}" data-title="O'yinlar">
+                <div class="nav-icon-wrap"><i class="bi bi-controller"></i></div>
                 <span>O'yinlar</span>
             </a>
-            <a href="{% url 'games:admin_competitions' %}"
-                class="nav-link {% if 'competition' in request.resolver_match.url_name %}active{% endif %}" data-title="Musobaqalar">
-                <i class="bi bi-trophy"></i>
+            <a href="{% url 'games:admin_competitions' %}" class="nav-link {% if 'competition' in request.resolver_match.url_name %}active{% endif %}" data-title="Musobaqalar">
+                <div class="nav-icon-wrap"><i class="bi bi-trophy"></i></div>
                 <span>Musobaqalar</span>
             </a>
-            <a href="{% url 'games:admin_results' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_results' %}active{% endif %}" data-title="O'yin natijalari">
-                <i class="bi bi-bar-chart-line"></i>
+            <a href="{% url 'games:admin_results' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_results' %}active{% endif %}" data-title="O'yin natijalari">
+                <div class="nav-icon-wrap"><i class="bi bi-bar-chart-line"></i></div>
                 <span>O'yin natijalari</span>
             </a>
-            <a href="{% url 'games:admin_word_suggestions' %}"
-                class="nav-link {% if 'suggestion' in request.resolver_match.url_name %}active{% endif %}" data-title="So'z takliflari">
-                <i class="bi bi-lightbulb"></i>
+            <a href="{% url 'games:admin_word_suggestions' %}" class="nav-link {% if 'suggestion' in request.resolver_match.url_name %}active{% endif %}" data-title="So'z takliflari">
+                <div class="nav-icon-wrap"><i class="bi bi-lightbulb"></i></div>
                 <span>So'z takliflari</span>
                 {% if admin_pending_suggestions %}<span class="sidebar-badge" style="background:#f59e0b;">{{ admin_pending_suggestions }}</span>{% endif %}
             </a>
 
             <div class="sidebar-group-label">Kontent</div>
 
-            <a href="{% url 'admin_messages' %}"
-                class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}" data-title="Xabarlar">
-                <i class="bi bi-envelope"></i>
+            <a href="{% url 'admin_messages' %}" class="nav-link {% if 'message' in request.resolver_match.url_name %}active{% endif %}" data-title="Xabarlar">
+                <div class="nav-icon-wrap"><i class="bi bi-envelope"></i></div>
                 <span>Xabarlar</span>
             </a>
-            <a href="{% url 'admin_books' %}"
-                class="nav-link {% if 'book' in request.resolver_match.url_name or 'admin_book' in request.resolver_match.url_name %}active{% endif %}" data-title="Kutubxona">
-                <i class="bi bi-book"></i>
+            <a href="{% url 'admin_books' %}" class="nav-link {% if 'book' in request.resolver_match.url_name or 'admin_book' in request.resolver_match.url_name %}active{% endif %}" data-title="Kutubxona">
+                <div class="nav-icon-wrap"><i class="bi bi-book"></i></div>
                 <span>Kutubxona</span>
             </a>
             <a href="{% url 'blog:admin_posts' %}" class="nav-link {% if 'blog' in request.path %}active{% endif %}" data-title="Blog">
-                <i class="bi bi-newspaper"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-newspaper"></i></div>
                 <span>Blog</span>
             </a>
             <a href="{% url 'admin_deploys' %}" class="nav-link {% if 'deploys' in request.path %}active{% endif %}" data-title="Deploylar">
-                <i class="bi bi-code-slash"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-code-slash"></i></div>
                 <span>Deploylar</span>
             </a>
 
             <div class="sidebar-group-label">Tizim</div>
 
-            <a href="{% url 'coin:admin_activities' %}"
-                class="nav-link {% if 'activities' in request.resolver_match.url_name %}active{% endif %}" data-title="Harakatlar">
-                <i class="bi bi-activity"></i>
+            <a href="{% url 'coin:admin_activities' %}" class="nav-link {% if 'activities' in request.resolver_match.url_name %}active{% endif %}" data-title="Harakatlar">
+                <div class="nav-icon-wrap"><i class="bi bi-activity"></i></div>
                 <span>Harakatlar</span>
             </a>
-            <a href="{% url 'admin_ai_checker' %}"
-                class="nav-link {% if request.resolver_match.url_name == 'admin_ai_checker' %}active{% endif %}" data-title="AI Tekshiruvchi">
-                <i class="bi bi-cpu"></i>
+            <a href="{% url 'admin_ai_checker' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_ai_checker' %}active{% endif %}" data-title="AI Tekshiruvchi">
+                <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div>
                 <span>AI Tekshiruvchi</span>
             </a>
             <a href="{% url 'ai_yordamchi:admin_chats' %}" class="nav-link {% if 'ai_yordamchi' in request.path %}active{% endif %}" data-title="AI Chatlar">
-                <i class="bi bi-robot"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-robot"></i></div>
                 <span>AI Chatlar</span>
             </a>
             <a href="{% url 'telegram_bot:admin_telegram' %}" class="nav-link {% if 'telegram' in request.path %}active{% endif %}" data-title="Telegram">
-                <i class="bi bi-telegram"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-telegram"></i></div>
                 <span>Telegram</span>
                 {% if admin_pending_telegram %}<span class="sidebar-badge" style="background:#0088cc;">{{ admin_pending_telegram }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_applications' %}" class="nav-link {% if 'applications' in request.path %}active{% endif %}" data-title="Arizalar">
-                <i class="bi bi-clipboard-check"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-clipboard-check"></i></div>
                 <span>Arizalar</span>
                 {% if admin_pending_applications %}<span class="sidebar-badge">{{ admin_pending_applications }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_help_requests' %}" class="nav-link {% if 'help_requests' in request.path %}active{% endif %}" data-title="Yordam xatlari">
-                <i class="bi bi-question-circle"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-question-circle"></i></div>
                 <span>Yordam xatlari</span>
                 {% if admin_pending_help %}<span class="sidebar-badge">{{ admin_pending_help }}</span>{% endif %}
             </a>
             <a href="{% url 'admin_surveys' %}" class="nav-link {% if 'surveys' in request.path %}active{% endif %}" data-title="So'rovnomalar">
-                <i class="bi bi-ui-checks-grid"></i>
+                <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div>
                 <span>So'rovnomalar</span>
+            </a>
+
+            <!-- Logout -->
+            <div class="sidebar-group-label">Chiqish</div>
+            <a href="{% url 'logout' %}" class="nav-link" data-title="Chiqish" style="color:rgba(239,68,68,0.75);">
+                <div class="nav-icon-wrap" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.15);color:#ef4444;">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <span>Chiqish</span>
             </a>
         </nav>
     </div>

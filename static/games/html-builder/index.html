@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>HTML Builder — IT Shaharcha</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen" class="screen">
+  <div class="auth-card">
+    <div class="auth-icon-wrap"><i class="bi bi-code-slash"></i></div>
+    <h1 class="auth-title">HTML Builder</h1>
+    <p class="auth-sub">IT Shaharcha — O'quv platformasi</p>
+    <div class="auth-loader">
+      <div id="auth-spinner" class="spin-ring"></div>
+      <span id="auth-status" class="auth-status-txt">LMS bilan ulanmoqda...</span>
+    </div>
+    <div id="auth-error" class="auth-error-box hidden"></div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div id="menu-screen" class="screen hidden">
+  <div class="menu-wrap">
+    <header class="menu-hdr">
+      <div class="mhdr-brand">
+        <div class="brand-sq"><i class="bi bi-braces"></i></div>
+        <span>HTML Builder</span>
+      </div>
+      <div class="mhdr-user">
+        <div class="u-ava"><i class="bi bi-person-fill"></i></div>
+        <div class="u-info">
+          <div id="menu-user-name" class="u-name">O'yinchi</div>
+          <div id="menu-user-group" class="u-group"></div>
+        </div>
+      </div>
+      <button id="menu-fullscreen" class="icon-sq" title="To'liq ekran">
+        <i class="bi bi-fullscreen"></i>
+      </button>
+    </header>
+
+    <div class="menu-hero">
+      <div class="hero-pill"><i class="bi bi-cursor-fill"></i>&nbsp; Drag &amp; Drop O'yini</div>
+      <h1 class="hero-h1">HTML elementlarini<br><em>sudrab o'rganing</em></h1>
+      <p class="hero-p">Elementlarni suring, real sahifa yarating, web dasturlashni o'rganing</p>
+    </div>
+
+    <div class="levels-label">Qiyinlik darajasini tanlang</div>
+    <div class="level-grid">
+      <div class="level-card" data-level="easy">
+        <div class="lc-row1">
+          <span class="lc-emoji">&#128522;</span>
+          <span class="lc-time-tag"><i class="bi bi-clock"></i> 3:00</span>
+        </div>
+        <div class="lc-name">Boshlang'ich</div>
+        <div class="lc-desc">Sarlavha, paragraf, rasm va tugmadan iborat oddiy sahifa</div>
+        <div class="lc-row2">
+          <span class="lc-badge lc-easy-b">3-4 element</span>
+          <span class="lc-xp lc-easy-xp">+100 XP</span>
+        </div>
+      </div>
+      <div class="level-card" data-level="medium">
+        <div class="lc-row1">
+          <span class="lc-emoji">&#127919;</span>
+          <span class="lc-time-tag"><i class="bi bi-clock"></i> 5:00</span>
+        </div>
+        <div class="lc-name">O'rta</div>
+        <div class="lc-desc">Navigatsiya, ro'yxat va tugmalar bilan to'liq biznes sahifa</div>
+        <div class="lc-row2">
+          <span class="lc-badge lc-med-b">5-7 element</span>
+          <span class="lc-xp lc-med-xp">+250 XP</span>
+        </div>
+      </div>
+      <div class="level-card" data-level="hard">
+        <div class="lc-row1">
+          <span class="lc-emoji">&#128293;</span>
+          <span class="lc-time-tag"><i class="bi bi-clock"></i> 8:00</span>
+        </div>
+        <div class="lc-name">Murakkab</div>
+        <div class="lc-desc">Forma, footer va to'liq strukturali professional veb-sahifa</div>
+        <div class="lc-row2">
+          <span class="lc-badge lc-hard-b">8+ element</span>
+          <span class="lc-xp lc-hard-xp">+500 XP</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-stats-bar">
+      <div class="msb-item">
+        <i class="bi bi-trophy-fill msb-icon" style="color:#f59e0b"></i>
+        <div>
+          <div id="stat-best" class="msb-val">-</div>
+          <div class="msb-lbl">Eng yaxshi natija</div>
+        </div>
+      </div>
+      <div class="msb-sep"></div>
+      <div class="msb-item">
+        <i class="bi bi-controller msb-icon" style="color:#818cf8"></i>
+        <div>
+          <div id="stat-played" class="msb-val">0</div>
+          <div class="msb-lbl">O'yin o'ynaldi</div>
+        </div>
+      </div>
+      <div class="msb-sep"></div>
+      <div class="msb-item">
+        <i class="bi bi-lightning-charge-fill msb-icon" style="color:#06b6d4"></i>
+        <div>
+          <div class="msb-val">HTML5</div>
+          <div class="msb-lbl">Standart</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen hidden">
+  <div class="gtop">
+    <div class="gtop-l">
+      <button id="btn-back-to-menu" class="g-back-btn">
+        <i class="bi bi-chevron-left"></i> Orqaga
+      </button>
+    </div>
+    <div class="gtop-c">
+      <div class="g-chip g-chip-timer">
+        <i class="bi bi-hourglass-split"></i>
+        <strong id="g-timer">3:00</strong>
+      </div>
+      <div class="g-chip">
+        <i class="bi bi-ui-checks-grid"></i>
+        <strong id="g-done">0</strong><span class="chip-slash">/</span><span id="g-total">4</span>
+      </div>
+      <div class="g-chip g-chip-score">
+        <i class="bi bi-star-fill"></i>
+        <strong id="g-score">0</strong>
+      </div>
+      <div class="g-prog-track">
+        <div id="g-progress" class="g-prog-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="gtop-r">
+      <button id="btn-hint"    class="g-tool" title="Ko'rsatma"><i class="bi bi-lightbulb-fill"></i></button>
+      <button id="btn-preview" class="g-tool g-tool-preview" title="Sahifani ko'rish">
+        <i class="bi bi-eye-fill"></i>
+      </button>
+      <button id="btn-undo"    class="g-tool" title="Bekor qilish"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <button id="btn-clear"   class="g-tool g-tool-red" title="Tozalash"><i class="bi bi-trash3-fill"></i></button>
+      <button id="btn-fullscreen-game" class="g-tool" title="To'liq ekran"><i class="bi bi-fullscreen"></i></button>
+    </div>
+  </div>
+
+  <div class="g-workspace">
+    <!-- LEFT -->
+    <div class="gp-left">
+      <div class="gp-paneltop"><i class="bi bi-grid-1x2-fill"></i> Elementlar</div>
+      <div class="gp-scroll" id="elements-panel"></div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="gp-center">
+      <div class="browser-bar">
+        <span class="bb-dot bb-red"></span>
+        <span class="bb-dot bb-yellow"></span>
+        <span class="bb-dot bb-green"></span>
+        <div class="bb-url"><i class="bi bi-lock-fill"></i> mysite.example.uz</div>
+        <div class="bb-space"></div>
+      </div>
+      <div class="canvas-scroll-area">
+        <div id="canvas-target" class="canvas-page empty"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="gp-right">
+      <div class="maqsad-header">
+        <div class="maqsad-title">
+          <i class="bi bi-layout-text-window"></i> Maqsad
+        </div>
+        <div id="maqsad-badge" class="maqsad-match-badge">
+          <i class="bi bi-percent"></i> <span id="maqsad-pct">0</span>%
+        </div>
+      </div>
+
+      <div class="target-browser">
+        <div class="target-browser-bar">
+          <div class="tbb-dots">
+            <span class="tbb-dot r"></span>
+            <span class="tbb-dot y"></span>
+            <span class="tbb-dot g"></span>
+          </div>
+          <div class="tbb-url">
+            <i class="bi bi-lock-fill"></i> maqsad.example.uz
+          </div>
+          <span class="tbb-label">MAQSAD</span>
+        </div>
+        <div class="target-preview-fade">
+          <div id="target-preview" class="target-preview-inner"></div>
+        </div>
+      </div>
+      <div class="target-caption">
+        <i class="bi bi-arrow-up-circle"></i>
+        Mana shu ko'rinishni yarating
+      </div>
+
+      <div class="checklist-header">
+        <div class="checklist-title">
+          <i class="bi bi-list-check"></i> Vazifalar
+        </div>
+        <div class="checklist-count" id="checklist-count">0/0</div>
+      </div>
+      <div id="checklist" class="checklist-area"></div>
+
+      <div class="score-pane">
+        <div class="sp-header">
+          <span class="sp-lbl"><i class="bi bi-star-fill"></i> Ball</span>
+          <span class="sp-nums">
+            <strong id="score-val">0</strong>
+            <span id="score-max" class="sp-max">/1000</span>
+          </span>
+        </div>
+        <div class="sp-track"><div id="score-bar" class="sp-fill" style="width:0%"></div></div>
+        <button id="btn-submit" class="btn-submit" disabled>
+          <i class="bi bi-send-fill"></i> Topshirish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-screen" class="screen hidden">
+  <div class="result-card">
+    <div id="result-ring" class="result-ring">&#127942;</div>
+    <h2 id="result-title" class="result-title win">Mukammal!</h2>
+    <div id="result-score" class="result-big-score">0</div>
+    <div class="result-score-lbl">ball to'plandi</div>
+    <div class="rs-grid">
+      <div class="rs-cell">
+        <i class="bi bi-layers rs-ico"></i>
+        <div id="rs-elements" class="rs-val">0</div>
+        <div class="rs-lbl">Element</div>
+      </div>
+      <div class="rs-cell">
+        <i class="bi bi-stopwatch rs-ico"></i>
+        <div id="rs-time" class="rs-val">0:00</div>
+        <div class="rs-lbl">Vaqt</div>
+      </div>
+      <div class="rs-cell">
+        <i class="bi bi-bullseye rs-ico"></i>
+        <div id="rs-acc" class="rs-val">0%</div>
+        <div class="rs-lbl">Aniqlik</div>
+      </div>
+    </div>
+    <div class="code-preview-card">
+      <div class="cpc-head"><i class="bi bi-braces-asterisk"></i> Yaratilgan HTML</div>
+      <pre id="result-code" class="cpc-body"></pre>
+    </div>
+    <div class="result-actions">
+      <button id="btn-result-again" class="ra-primary">
+        <i class="bi bi-arrow-repeat"></i> Yana o'yna
+      </button>
+      <button id="btn-result-menu" class="ra-secondary">
+        <i class="bi bi-house-fill"></i> Asosiy menyu
+      </button>
+      <a id="btn-result-lms" href="/" class="ra-ghost">
+        <i class="bi bi-box-arrow-in-left"></i> LMSga qaytish
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- PREVIEW OVERLAY -->
+<div id="preview-overlay" class="preview-overlay hidden">
+  <div class="pov-header">
+    <div class="pov-header-l">
+      <div class="pov-pill">
+        <i class="bi bi-eye-fill"></i>
+        <span>Sahifa Ko'rinishi</span>
+      </div>
+      <div class="pov-acc-badge" id="pov-acc-badge">
+        <i class="bi bi-bullseye"></i>
+        <span id="pov-acc">0%</span>&nbsp;mos kelmoqda
+      </div>
+    </div>
+    <button id="pov-close" class="pov-close-btn">
+      <i class="bi bi-x-lg"></i> Yopish
+    </button>
+  </div>
+
+  <div class="pov-body">
+    <div class="pov-panel">
+      <div class="pov-panel-label user-label">
+        <span class="pov-label-dot user-dot"></span>
+        <i class="bi bi-pencil-square"></i>
+        Sizning sahifangiz
+        <span class="pov-el-count" id="pov-el-count">0 element</span>
+      </div>
+      <div class="pov-browser">
+        <div class="pov-browserbar">
+          <span class="pov-dot pov-r"></span>
+          <span class="pov-dot pov-y"></span>
+          <span class="pov-dot pov-g"></span>
+          <div class="pov-urlbar"><i class="bi bi-lock-fill"></i> mysite.example.uz</div>
+        </div>
+        <div class="pov-page" id="pov-built-html"></div>
+      </div>
+    </div>
+
+    <div class="pov-vs-wrap">
+      <div class="pov-vs-line"></div>
+      <div class="pov-vs-badge">VS</div>
+      <div class="pov-vs-line"></div>
+    </div>
+
+    <div class="pov-panel">
+      <div class="pov-panel-label goal-label">
+        <span class="pov-label-dot goal-dot"></span>
+        <i class="bi bi-bullseye"></i>
+        Maqsad
+        <span class="pov-el-count goal-cnt">Namuna</span>
+      </div>
+      <div class="pov-browser pov-browser-goal">
+        <div class="pov-browserbar goal-bar">
+          <span class="pov-dot pov-r"></span>
+          <span class="pov-dot pov-y"></span>
+          <span class="pov-dot pov-g"></span>
+          <div class="pov-urlbar goal-urlbar"><i class="bi bi-lock-fill"></i> maqsad.example.uz</div>
+        </div>
+        <div class="pov-page" id="pov-target-html"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pov-footer">
+    <div class="pov-footer-tip">
+      <i class="bi bi-lightbulb-fill"></i>
+      Chap tomondagi sahifani o'ng tomondagiga o'xshatishga harakat qiling
+    </div>
+    <button id="pov-continue" class="pov-continue-btn">
+      <i class="bi bi-pencil-square"></i> Tahrirlashni davom ettirish
+    </button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>X va O — IT Shaharcha LMS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============== AUTH ============== -->
+<div id="auth-screen" class="screen">
+    <div class="auth-wrap">
+        <div class="auth-logo">
+            <span class="sym x"><i class="bi bi-x-lg"></i></span>
+            <span class="sym o"><i class="bi bi-circle"></i></span>
+        </div>
+        <h1 class="auth-title">X va O</h1>
+        <p class="auth-sub" id="auth-status">LMS bilan ulanmoqda...</p>
+        <div class="ring-spinner" id="auth-spinner"></div>
+        <div id="auth-error" class="error-box hidden"></div>
+    </div>
+</div>
+
+<!-- ============== MENU ============== -->
+<div id="menu-screen" class="screen hidden">
+    <div class="menu-container">
+
+        <header class="menu-header">
+            <div class="menu-user">
+                <div class="avatar-circle"><i class="bi bi-person-fill"></i></div>
+                <div>
+                    <div class="menu-name"  id="menu-user-name">—</div>
+                    <div class="menu-group" id="menu-user-group"></div>
+                </div>
+            </div>
+            <button class="icon-btn" id="menu-fullscreen" title="To'liq ekran">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+        </header>
+
+        <div class="menu-hero">
+            <div class="hero-symbols">
+                <span class="hero-sym x"><i class="bi bi-x-lg"></i></span>
+                <span class="hero-sep">vs</span>
+                <span class="hero-sym o"><i class="bi bi-circle"></i></span>
+            </div>
+            <h1>X va O</h1>
+            <p>Tic-Tac-Toe — klassik o'yin, yangi his</p>
+        </div>
+
+        <div class="menu-grid">
+            <div class="mode-card mode-ai">
+                <div class="mode-icon"><i class="bi bi-robot"></i></div>
+                <h3>AI bilan o'ynash</h3>
+                <p>Kompyuterga qarshi kurashing — oson yoki yengilmas qiyinlikda!</p>
+                <div class="diff-buttons">
+                    <button class="diff-btn easy" data-mode="ai" data-diff="easy">
+                        <span class="diff-icon">😊</span> Oson
+                    </button>
+                    <button class="diff-btn medium" data-mode="ai" data-diff="medium">
+                        <span class="diff-icon">😐</span> O'rta
+                    </button>
+                    <button class="diff-btn hard" data-mode="ai" data-diff="hard">
+                        <span class="diff-icon">🔥</span> Qiyin
+                    </button>
+                </div>
+            </div>
+
+            <div class="mode-card mode-mp">
+                <div class="mode-icon"><i class="bi bi-people-fill"></i></div>
+                <h3>Multiplayer</h3>
+                <p>Haqiqiy raqib bilan onlayn o'ynang, kim tezroq yutadi?</p>
+                <div class="diff-buttons">
+                    <button class="diff-btn casual" id="btn-find-casual">
+                        <span class="diff-icon"><i class="bi bi-controller"></i></span> Raqib qidirish
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-row">
+            <span>Rang:</span>
+            <button class="theme-swatch active" data-theme="default" title="Default"></button>
+            <button class="theme-swatch" data-theme="ocean"   title="Ocean"></button>
+            <button class="theme-swatch" data-theme="fire"    title="Fire"></button>
+            <button class="theme-swatch" data-theme="galaxy"  title="Galaxy"></button>
+            <button class="theme-swatch" data-theme="mint"    title="Mint"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ============== MATCHMAKING ============== -->
+<div id="matchmaking-screen" class="screen hidden">
+    <div class="mm-wrap">
+        <div class="mm-icon"><i class="bi bi-search-heart"></i></div>
+        <h2>Raqib qidirilmoqda...</h2>
+        <p>Mos keladigan o'quvchi topilguncha kuting</p>
+        <div class="dots-anim">
+            <span></span><span></span><span></span>
+        </div>
+        <button class="btn-danger" id="btn-mm-cancel">
+            <i class="bi bi-x-circle"></i> Bekor qilish
+        </button>
+    </div>
+</div>
+
+<!-- ============== GAME ============== -->
+<div id="game-screen" class="screen hidden">
+    <div class="game-layout">
+
+        <!-- Top -->
+        <div class="game-topbar">
+            <button class="btn-back" id="btn-back-to-menu">
+                <i class="bi bi-arrow-left"></i> Chiqish
+            </button>
+            <div class="score-bar">
+                <div class="score-val x">
+                    <i class="bi bi-x-lg"></i> <span id="score-x">0</span>
+                </div>
+                <span class="score-sep">|</span>
+                <div class="score-val d"><span id="score-d">0</span></div>
+                <span class="score-sep">|</span>
+                <div class="score-val o">
+                    <span id="score-o">0</span> <i class="bi bi-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Players -->
+        <div class="players-row">
+            <div class="player-card x-card active" id="card-player-x">
+                <div class="player-sym-big"><i class="bi bi-x-lg"></i></div>
+                <div>
+                    <div class="player-name" id="name-x">X</div>
+                    <div class="player-meta" id="meta-x">O'yinchi</div>
+                </div>
+            </div>
+            <div class="vs-badge">VS</div>
+            <div class="player-card o-card" id="card-player-o">
+                <div class="player-sym-big"><i class="bi bi-circle"></i></div>
+                <div>
+                    <div class="player-name" id="name-o">O</div>
+                    <div class="player-meta" id="meta-o">O'yinchi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div class="status-banner x-turn" id="status-banner">
+            X ning yurishi
+        </div>
+
+        <!-- Board -->
+        <div class="board-area">
+            <div class="board" id="board">
+                <div class="cell" data-i="0"></div>
+                <div class="cell" data-i="1"></div>
+                <div class="cell" data-i="2"></div>
+                <div class="cell" data-i="3"></div>
+                <div class="cell" data-i="4"></div>
+                <div class="cell" data-i="5"></div>
+                <div class="cell" data-i="6"></div>
+                <div class="cell" data-i="7"></div>
+                <div class="cell" data-i="8"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="game-controls">
+            <button class="btn-primary" id="btn-play-again">
+                <i class="bi bi-arrow-repeat"></i> Qayta o'ynash
+            </button>
+            <button class="btn-danger" id="btn-resign" style="display:none;">
+                <i class="bi bi-flag-fill"></i> Taslim
+            </button>
+            <button class="btn-secondary" id="btn-menu">
+                <i class="bi bi-grid-3x3-gap"></i> Menu
+            </button>
+            <button class="btn-secondary" id="btn-fullscreen-game" title="To'liq ekran">
+                <i class="bi bi-fullscreen"></i>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============== RESULT ============== -->
+<div id="result-screen" class="screen hidden">
+    <div class="result-wrap">
+        <div class="result-glow-ring" id="result-ring">
+            <span id="result-emoji">🏆</span>
+        </div>
+        <div class="result-title" id="result-title">G'alaba!</div>
+        <div class="result-score" id="result-score">100</div>
+        <div class="result-sub" id="result-sub">ball qo'lga kiritildi</div>
+        <div class="result-opp" id="result-opp"></div>
+        <div class="result-actions">
+            <button class="btn-primary" id="btn-result-again">
+                <i class="bi bi-arrow-repeat"></i> Yana o'ynash
+            </button>
+            <button class="btn-secondary" id="btn-result-menu">
+                <i class="bi bi-grid-3x3-gap"></i> Menuga qaytish
+            </button>
+            <a id="btn-result-lms" href="#" class="btn-secondary" style="text-decoration:none;">
+                <i class="bi bi-house-fill"></i> LMS ga qaytish
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

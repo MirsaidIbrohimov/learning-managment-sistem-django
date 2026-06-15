@@ -24,7 +24,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1')
+DEBUG = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u')
@@ -217,15 +217,23 @@ JAZZMIN_UI_TWEAKS = {
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 MIDDLEWARE = [
+    # ── 1. Xavfsizlik (eng birinchi — hamma narsadan oldin) ───────────────
     'django.middleware.security.SecurityMiddleware',
+    'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklash
+    'accounts.middleware.GlobalRateLimitMiddleware',     # DDoS / brute-force
+    'accounts.middleware.SuspiciousRequestMiddleware',   # SQLi/XSS/PathTraversal skan
+    # ── 2. Statik fayllar ─────────────────────────────────────────────────
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    # ── 3. Session, Auth, CSRF ────────────────────────────────────────────
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    # ── 4. Xavfsizlik headerlari (CSP, HSTS, ...) ────────────────────────
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'accounts.middleware.SecurityHeadersMiddleware',
+    # ── 5. Biznes logikasi ────────────────────────────────────────────────
     'accounts.middleware.MaintenanceMiddleware',
     'accounts.middleware.BlockedUserMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
@@ -367,202 +375,135 @@ LOGIN_REDIRECT_URL = 'home'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# ============ XAVFSIZLIK SOZLAMALARI ============
+# ══════════════════════════════════════════════════════════════════
+# KENG QAMROVLI XAVFSIZLIK SOZLAMALARI
+# ══════════════════════════════════════════════════════════════════
 
-# XSS himoya (SecurityHeadersMiddleware da boshqariladi — dublikat bo'lmasligi uchun)
-SECURE_BROWSER_XSS_FILTER = False
+# ── Parol hashlash ────────────────────────────────────────────────
+# Argon2 kutubxonasi o'rnatilgan bo'lsa ishlatiladi, aks holda PBKDF2
+try:
+    import argon2  # noqa: F401
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.Argon2PasswordHasher',   # eng kuchli
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+        'django.contrib.auth.hashers.ScryptPasswordHasher',
+    ]
+except ImportError:
+    PASSWORD_HASHERS = [
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',   # built-in, xavfsiz
+        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'django.contrib.auth.hashers.ScryptPasswordHasher',
+    ]
+
+# ── HTTPS (production) ────────────────────────────────────────────
+SECURE_HSTS_SECONDS            = 0 if DEBUG else 31536000   # 1 yil (production)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD            = not DEBUG
+SECURE_SSL_REDIRECT            = not DEBUG
+SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ── Browser xavfsizlik headerlari ────────────────────────────────
+SECURE_BROWSER_XSS_FILTER  = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS             = 'DENY'
+SECURE_REFERRER_POLICY      = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # SecurityHeadersMiddleware boshqaradi
 
-# Clickjacking himoya (SecurityHeadersMiddleware da boshqariladi)
-X_FRAME_OPTIONS = 'DENY'
-
-# CSRF sozlamalari
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_SAMESITE = 'Lax'
-CSRF_USE_SESSIONS = False
-CSRF_FAILURE_VIEW = 'config.views.csrf_failure'
-CSRF_TRUSTED_ORIGINS = [
+# ── CSRF ─────────────────────────────────────────────────────────
+CSRF_COOKIE_HTTPONLY   = False           # JS Ajax uchun o'qilishi kerak
+CSRF_COOKIE_SECURE     = not DEBUG
+CSRF_COOKIE_SAMESITE   = 'Lax'
+CSRF_COOKIE_NAME       = 'csrftoken'    # standart
+CSRF_USE_SESSIONS      = False
+CSRF_FAILURE_VIEW      = 'config.views.csrf_failure'
+CSRF_TRUSTED_ORIGINS   = [
     o.strip() for o in os.getenv(
         'CSRF_TRUSTED_ORIGINS',
-        'http://localhost:8000,http://127.0.0.1:8000' if DEBUG else 'https://itc-academy.uz,https://www.itc-academy.uz,https://itcreative.uz,https://www.itcreative.uz'
+        'http://localhost:8000,http://127.0.0.1:8000'
+        if DEBUG else
+        'https://itc-academy.uz,https://www.itc-academy.uz,https://itcreative.uz,https://www.itcreative.uz'
     ).split(',') if o.strip()
 ]
 
-# Session xavfsizligi
-SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SAMESITE = 'Lax'
+# ── Session ───────────────────────────────────────────────────────
+SESSION_ENGINE           = 'django.contrib.sessions.backends.cached_db'
+SESSION_COOKIE_HTTPONLY  = True
+SESSION_COOKIE_SECURE    = not DEBUG
+SESSION_COOKIE_SAMESITE  = 'Lax'
+SESSION_COOKIE_NAME      = 'itc_sid'    # Default "sessionid" emas
+SESSION_COOKIE_AGE       = 60 * 60 * 2  # 2 soat
 
-# Content Security Policy (CSP) - inline scriptlarni bloklash
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com", "https://www.youtube.com", "https://player.vimeo.com", "https://s.ytimg.com", "blob:")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net", "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com")
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com")
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://cdn.jsdelivr.net", "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
-CSP_FRAME_SRC = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
+# ── Fayl yuklash ─────────────────────────────────────────────────
+FILE_UPLOAD_MAX_MEMORY_SIZE  = 10 * 1024 * 1024   # 10 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE  = 20 * 1024 * 1024   # 20 MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 500
 
-# HTTPS sozlamalari (production uchun)
-SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
-SECURE_HSTS_PRELOAD = not DEBUG
-SECURE_SSL_REDIRECT = not DEBUG
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-# Referrer va COOP — SecurityHeadersMiddleware da boshqariladi (dublikat oldini olish)
-SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+# ── Logging — xavfsizlik hodisalari ──────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'security': {
+            'format': '[%(asctime)s] %(levelname)s %(name)s: %(message)s',
+            'datefmt': '%d.%m.%Y %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 5 * 1024 * 1024,   # 5 MB
+            'backupCount': 10,
+            'formatter': 'security',
+            'encoding': 'utf-8',
+        },
+        'console': {
+            'level': 'DEBUG' if DEBUG else 'WARNING',
+            'class': 'logging.StreamHandler',
+            'formatter': 'security',
+        },
+    },
+    'loggers': {
+        'security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
 
-# Fayl yuklash xavfsizligi
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 15 * 1024 * 1024  # 15 MB
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
+# ── Rate limiting sozlamalari ─────────────────────────────────────
+LOGIN_MAX_ATTEMPTS      = int(os.getenv('LOGIN_MAX_ATTEMPTS',  '5'))
+LOGIN_LOCKOUT_DURATION  = int(os.getenv('LOGIN_LOCKOUT_DURATION', '15'))   # daqiqa
+
+# ── Content Security Policy (SecurityHeadersMiddleware'ga ma'lumot) ──
+CSP_DEFAULT_SRC  = ("'self'",)
+CSP_SCRIPT_SRC   = ("'self'", "'unsafe-inline'", "'unsafe-eval'",
+                    "https://cdn.tailwindcss.com", "https://cdn.jsdelivr.net",
+                    "https://cdnjs.cloudflare.com", "https://cdn.quilljs.com",
+                    "https://www.youtube.com", "https://player.vimeo.com",
+                    "https://s.ytimg.com", "blob:")
+CSP_STYLE_SRC    = ("'self'", "'unsafe-inline'",
+                    "https://fonts.googleapis.com", "https://cdn.jsdelivr.net",
+                    "https://cdn.tailwindcss.com", "https://cdnjs.cloudflare.com")
+CSP_FONT_SRC     = ("'self'", "https://fonts.gstatic.com",
+                    "https://cdn.jsdelivr.net", "https://fonts.googleapis.com")
+CSP_IMG_SRC      = ("'self'", "data:", "https:")
+CSP_CONNECT_SRC  = ("'self'", "https://cdn.jsdelivr.net",
+                    "https://www.youtube.com", "https://player.vimeo.com", "https://vimeo.com")
+CSP_FRAME_SRC    = ("'self'", "https://www.youtube.com", "https://player.vimeo.com")
 
 # O'yin xavfsizligi
 GAME_HMAC_SECRET = os.getenv('GAME_HMAC_SECRET', SECRET_KEY[:16])
 GAME_MAX_WPM = 180
 GAME_MIN_SECONDS_PER_WORD = 0.15
 GAME_MIN_SECONDS = 3
-GAME_MAX_SCORE_MULTIPLIER = 2.0
-
-# Telegram Bot
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "itc_academybot")
-TELEGRAM_GROUP_CHAT_ID = os.getenv("TELEGRAM_GROUP_CHAT_ID", "")
-
-# ── Online to'lov: Payme ─────────────────────────────────────────
-# .env faylda quyidagilarni to'ldiring:
-#   PAYME_KEY  = Payme merchant cabinet -> Kassa -> Secret Key
-#   PAYME_ID   = Payme merchant cabinet -> Kassa ID
-PAYME_KEY = os.getenv("PAYME_KEY", "")
-PAYME_ID  = os.getenv("PAYME_ID", "")
-
-# ── Online to'lov: Click ─────────────────────────────────────────
-# .env faylda quyidagilarni to'ldiring:
-#   CLICK_SERVICE_ID        = Click -> Do'kon -> Service ID
-#   CLICK_MERCHANT_ID       = Click -> Do'kon -> Merchant ID
-#   CLICK_MERCHANT_USER_ID  = Click -> Do'kon -> Merchant User ID
-#   CLICK_SECRET_KEY        = Click -> Do'kon -> Secret Key
-CLICK_SERVICE_ID       = int(os.getenv("CLICK_SERVICE_ID", "0"))
-CLICK_MERCHANT_ID      = int(os.getenv("CLICK_MERCHANT_ID", "0"))
-CLICK_MERCHANT_USER_ID = int(os.getenv("CLICK_MERCHANT_USER_ID", "0"))
-CLICK_SECRET_KEY       = os.getenv("CLICK_SECRET_KEY", "")
-SITE_URL = os.getenv("SITE_URL", "https://itc-academy.uz")
-
-# ============ LOGIN XAVFSIZLIGI ============
-
-# Brute-force himoya
-LOGIN_MAX_ATTEMPTS = 5  # Maksimal urinishlar soni
-LOGIN_LOCKOUT_DURATION = 15  # Bloklash vaqti (daqiqa)
-
-# Rate limiting sozlamalari
-RATE_LIMIT_LOGIN_IP = 10  # Login: IP uchun urinishlar soni
-RATE_LIMIT_LOGIN_USER = 5  # Login: foydalanuvchi uchun urinishlar soni
-RATE_LIMIT_REGISTER_IP = 3  # Register: IP uchun soatiga
-RATE_LIMIT_PASSWORD_RESET_IP = 3  # Parol tiklash: IP uchun soatiga
-RATE_LIMIT_WINDOW = 900  # Vaqt oynasi (sekundlarda — 15 daqiqa)
-RATE_LIMIT_REGISTER_WINDOW = 3600  # Register vaqt oynasi (1 soat)
-
-# ============ REST FRAMEWORK ============
-
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-        'api.permissions.IsNotBlocked',
-    ],
-    'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.AnonRateThrottle',
-        'rest_framework.throttling.UserRateThrottle',
-    ],
-    'DEFAULT_THROTTLE_RATES': {
-        'anon': '30/minute',
-        'user': '120/minute',
-        'login': '5/minute',
-        'coin_transfer': '10/hour',
-    },
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-}
-
-# ============ LOGGING TIZIMI ============
-
-LOG_DIR = BASE_DIR / 'logs'
-LOG_DIR.mkdir(exist_ok=True)
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {asctime} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'file': {
-            'level': 'WARNING',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'django.log'),
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-        'security_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'security.log'),
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-        'api_audit_file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': str(LOG_DIR / 'api_audit.log'),
-            'formatter': 'verbose',
-            'encoding': 'utf-8',
-        },
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['file', 'console'],
-            'level': 'WARNING',
-            'propagate': True,
-        },
-        'django.security': {
-            'handlers': ['security_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'accounts': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'api': {
-            'handlers': ['file', 'console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'api.audit': {
-            'handlers': ['api_audit_file'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
+GAME_MAX_SCORE_MULTI = 10

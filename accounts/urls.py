@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from . import views
 from . import payment_views
+from .api import homework_views as hw_api
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -99,6 +100,17 @@ urlpatterns = [
     # Student homework
     path('my-homeworks/', views.my_homework_list, name='my_homework_list'),
     path('homework/<int:pk>/chat/', views.homework_chat, name='homework_chat'),
+
+    # ── Homework REST API ──────────────────────────────────────────────────
+    path('api/hw/<int:lesson_pk>/',               hw_api.hw_detail,              name='api_hw_detail'),
+    path('api/hw/<int:lesson_pk>/submit/',         hw_api.hw_submit,              name='api_hw_submit'),
+    path('api/hw/<int:lesson_pk>/edit/',           hw_api.hw_edit,                name='api_hw_edit'),
+    path('api/hw/<int:lesson_pk>/history/',        hw_api.hw_history,             name='api_hw_history'),
+    path('api/hw/<int:lesson_pk>/messages/',       hw_api.hw_messages_list,       name='api_hw_messages_list'),
+    path('api/hw/<int:lesson_pk>/messages/send/',  hw_api.hw_messages_send,       name='api_hw_messages_send'),
+    path('api/hw/<int:lesson_pk>/submissions/',    hw_api.hw_teacher_submissions, name='api_hw_teacher_submissions'),
+    path('api/hw/submission/<int:sub_pk>/grade/',  hw_api.hw_grade,               name='api_hw_grade'),
+    # ──────────────────────────────────────────────────────────────────────
     
     # Messages
     path('messages/', views.messages_view, name='messages'),
@@ -185,6 +197,7 @@ urlpatterns = [
     path('profile/devices/logout-all/', views.logout_all_devices, name='logout_all_devices'),
     path('profile/devices/remove-all/', views.remove_all_devices, name='remove_all_devices'),
     path('profile/devices/bulk-remove/', views.bulk_remove_devices, name='bulk_remove_devices'),
+    path('profile/sessions/<int:pk>/logout/', views.logout_session, name='logout_session'),
     
     # Coding / HTML Deploy
     path('coding/', views.my_deploys, name='my_deploys'),
@@ -227,8 +240,6 @@ urlpatterns = [
     path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
     path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),
     
-    # Ota-ona portali — parents app ga ko'chirildi (parents.portal_urls)
-    
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),
     path('dashboard/books/add/', views.admin_book_add, name='admin_book_add'),
@@ -270,6 +281,11 @@ urlpatterns = [
     path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
     
     # Admin: AI Tekshiruvchi
+    # Admin: Xavfsizlik paneli
+    path('dashboard/security/', views.admin_security_events, name='admin_security_events'),
+    path('dashboard/security/block-ip/', views.admin_security_block_ip, name='admin_security_block_ip'),
+
+    # Admin: AI Tekshiruvchi
     path('dashboard/ai-checker/', views.admin_ai_checker, name='admin_ai_checker'),
     path('dashboard/ai-checker/toggle/', views.admin_ai_checker_toggle, name='admin_ai_checker_toggle'),
     path('dashboard/ai-checker/course-toggle/', views.admin_ai_course_toggle, name='admin_ai_course_toggle'),
@@ -286,13 +302,12 @@ urlpatterns = [
     # So'rovnomani to'ldirish
     path('survey/<int:pk>/fill/', views.fill_survey, name='fill_survey'),
 
-    # ── Online to'lov (Payme & Click) ──────────────────────────────
+    # Online to'lov (Payme & Click)
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
     path('click/prepare/', payment_views.click_prepare, name='click_prepare'),
     path('click/complete/', payment_views.click_complete, name='click_complete'),
 
- 
-    # ── Balans tizimi ─────────────────────────────────────────────
+    # Balans tizimi
     path('tolov/', views.payment_wall, name='payment_wall'),
     path('dashboard/balans/', views.admin_balance_management, name='admin_balance_management'),
     path('dashboard/balans/<int:student_id>/topup/', views.admin_balance_topup, name='admin_balance_topup'),
@@ -302,7 +317,7 @@ urlpatterns = [
 
     # Oylik to'lovlar
     path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
-    path('dashboard/payments/', views.admin_payments),  # alias (eski link uchun)
+    path('dashboard/payments/', views.admin_payments),
     path('dashboard/tolovlar/<int:pk>/pay/', views.admin_mark_paid, name='admin_mark_paid'),
     path('dashboard/tolovlar/<int:pk>/unpay/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
     path('yordamchi/tolovlar/', views.admin_payments, name='yordamchi_payments'),

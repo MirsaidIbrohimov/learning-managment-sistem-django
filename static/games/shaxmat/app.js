@@ -273,7 +273,7 @@ $('btn-menu').onclick = async () => {
 };
 $('btn-play-again').onclick = () => startGame();
 $('btn-result-menu').onclick = () => showScreen('menu');
-$('btn-back').href = RETURN_URL;
+if ($('btn-back')) $('btn-back').href = RETURN_URL;
 
 function askWager() {
     return new Promise((resolve) => {

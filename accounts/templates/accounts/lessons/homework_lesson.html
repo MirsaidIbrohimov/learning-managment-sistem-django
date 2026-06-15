@@ -1,1519 +1,1691 @@
 {% extends 'accounts/base.html' %}
+{% block title %}{{ lesson.title }} — Uy vazifasi{% endblock %}
 
-{% block title %}{{ lesson.title }} - LMS{% endblock %}
-
-{% block content %}
+{% block extra_css %}
 <style>
-/* ==================== FILE SIZE WARNING MODAL ==================== */
-.file-warn-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    backdrop-filter: blur(6px);
-    z-index: 9999;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-.file-warn-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-.file-warn-modal {
-    background: var(--card-bg, #fff);
-    border-radius: 24px;
-    padding: 2.5rem 2rem 2rem;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
-    transform: scale(0.8) translateY(30px);
-    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
-    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
-    position: relative;
-}
-.file-warn-overlay.show .file-warn-modal {
-    transform: scale(1) translateY(0);
-}
-.file-warn-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.25rem;
-    font-size: 2.2rem;
-    color: #fff;
-    box-shadow: 0 8px 25px rgba(238,90,36,0.35);
-    animation: warnPulse 2s ease-in-out infinite;
-}
-@keyframes warnPulse {
-    0%, 100% { box-shadow: 0 8px 25px rgba(238,90,36,0.35); }
-    50% { box-shadow: 0 8px 40px rgba(238,90,36,0.55); }
-}
-.file-warn-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--text-color, #1a1a2e);
-    margin-bottom: 0.5rem;
-}
-.file-warn-text {
-    color: var(--text-muted, #6c757d);
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-}
-.file-warn-size {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(238,90,36,0.1);
-    border: 1px solid rgba(238,90,36,0.25);
-    border-radius: 12px;
-    padding: 0.6rem 1.2rem;
-    margin-bottom: 1.5rem;
-    font-weight: 600;
-    color: #ee5a24;
-    font-size: 0.95rem;
-}
-.file-warn-bar-wrap {
-    background: rgba(0,0,0,0.06);
-    border-radius: 50px;
-    height: 10px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-.file-warn-bar {
-    height: 100%;
-    border-radius: 50px;
-    background: linear-gradient(90deg, #28a745, #ffc107, #ee5a24, #dc3545);
-    transition: width 0.6s ease;
-}
-.file-warn-close-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #4361ee, #7209b7);
-    color: #fff;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(67,97,238,0.3);
-}
-.file-warn-close-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67,97,238,0.45);
-}
-
-/* ==================== HOMEWORK PAGE STYLES ==================== */
-.homework-page {
-    padding: 1rem 0 3rem;
-    min-height: 100vh;
-}
-
-/* Back Button */
-.back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4361ee, #7209b7);
-    border: none;
-    color: #fff;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 10px rgba(67, 97, 238, 0.3);
-}
-
-.back-btn:hover {
-    background: linear-gradient(135deg, #3a56d4, #6508a0);
-    color: #fff;
-    transform: translateX(-5px);
-    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
-}
-
-/* Page Header */
-.homework-header {
-    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    color: #fff;
-    position: relative;
-    overflow: hidden;
-}
-
-.homework-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 300px;
-    height: 300px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 50%;
-}
-
-.homework-header::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -10%;
-    width: 200px;
-    height: 200px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 50%;
-}
-
-.homework-header h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0;
-    position: relative;
-    z-index: 1;
-}
-
-.homework-header .subtitle {
-    opacity: 0.9;
-    margin-top: 0.5rem;
-    position: relative;
-    z-index: 1;
-}
-
-/* Main Content Cards */
-.homework-card {
-    background: var(--card-bg, #fff);
-    border-radius: 20px;
-    border: 1px solid var(--border-color, #e0e0e0);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-    overflow: hidden;
-    transition: all 0.3s ease;
-    height: 100%;
-}
-
-.homework-card:hover {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-}
-
-.card-header-custom {
-    background: linear-gradient(135deg, rgba(67,97,238,0.1) 0%, rgba(114,9,183,0.1) 100%);
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border-color, #e0e0e0);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.card-header-custom .icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 1.25rem;
-}
-
-.card-header-custom h5 {
-    margin: 0;
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.card-body-custom {
-    padding: 1.5rem;
-}
-
-/* Description Content */
-.description-content {
-    color: var(--text-color);
-    line-height: 1.9;
-    font-size: 1rem;
-}
-
-.description-content h1, .description-content h2, .description-content h3 {
-    color: var(--text-color);
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-}
-
-.description-content ul, .description-content ol {
-    padding-left: 1.5rem;
-}
-
-.description-content code {
-    background: rgba(67,97,238,0.1);
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-/* Status Badge */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.status-badge.pending {
-    background: rgba(255,193,7,0.15);
-    color: #d39e00;
-}
-
-.status-badge.reviewing {
-    background: rgba(23,162,184,0.15);
-    color: #117a8b;
-}
-
-.status-badge.graded {
-    background: rgba(40,167,69,0.15);
-    color: #1e7e34;
-}
-
-.status-badge.revision {
-    background: rgba(220,53,69,0.15);
-    color: #c82333;
-}
-
-/* Submission Info Card */
-.submission-info {
-    background: linear-gradient(135deg, rgba(40,167,69,0.08) 0%, rgba(32,201,151,0.08) 100%);
-    border-radius: 16px;
-    padding: 1.25rem;
-    border: 1px solid rgba(40,167,69,0.2);
-}
-
-.submission-info .info-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px dashed rgba(0,0,0,0.1);
-}
-
-.submission-info .info-row:last-child {
-    border-bottom: none;
-}
-
-.submission-info .info-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(40,167,69,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #28a745;
-}
-
-.submission-info .info-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 0.1rem;
-}
-
-.submission-info .info-value {
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-/* Submission Type Toggle */
-.submission-type-toggle {
-    display: flex;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-
-.type-option {
-    flex: 1;
-    position: relative;
-}
-
-.type-option input {
-    position: absolute;
-    opacity: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    z-index: 2;
-}
-
-.type-option label {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1.1rem 1rem;
-    border-radius: 14px;
-    border: 2px solid var(--bs-border-color);
-    background: var(--bs-body-bg);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-}
-
-.type-option label i {
-    font-size: 1.5rem;
-    color: var(--bs-secondary-color);
-    transition: all 0.3s ease;
-}
-
-.type-option label span {
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--bs-body-color);
-}
-
-.type-option input:checked + label {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.08);
-    box-shadow: 0 0 0 1px rgba(99,102,241,0.15);
-}
-
-.type-option input:checked + label i {
-    color: #6366f1;
-}
-
-[data-bs-theme="dark"] .type-option input:checked + label {
-    background: rgba(99,102,241,0.12);
-    box-shadow: 0 0 0 1px rgba(99,102,241,0.25);
-}
-
-.type-option label:hover {
-    border-color: rgba(99,102,241,0.4);
-}
-
-/* File Upload Area */
-.file-upload-area {
-    border: 2px dashed var(--bs-border-color);
-    border-radius: 16px;
-    padding: 2.5rem 2rem;
-    text-align: center;
-    background: var(--bs-tertiary-bg);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.file-upload-area:hover {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.05);
-}
-
-.file-upload-area.dragover {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.1);
-    transform: scale(1.01);
-}
-
-[data-bs-theme="dark"] .file-upload-area {
-    background: rgba(255,255,255,0.03);
-}
-
-[data-bs-theme="dark"] .file-upload-area:hover {
-    background: rgba(99,102,241,0.08);
-}
-
-.file-upload-area i {
-    font-size: 3rem;
-    color: #6366f1;
-    margin-bottom: 1rem;
-    opacity: 0.7;
-}
-
-.file-upload-area p {
-    color: var(--bs-secondary-color);
-    margin-bottom: 0.5rem;
-}
-
-.file-upload-area .file-name {
-    font-weight: 700;
-    color: #6366f1;
-    margin-top: 0.75rem;
-    padding: 0.4rem 1rem;
-    background: rgba(99,102,241,0.08);
-    border-radius: 50px;
-    display: inline-block;
-}
-
-.formats-info {
-    background: rgba(99,102,241,0.06);
-    border: 1px solid rgba(99,102,241,0.1);
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    margin-top: 1rem;
-}
-
-[data-bs-theme="dark"] .formats-info {
-    background: rgba(99,102,241,0.1);
-    border-color: rgba(99,102,241,0.15);
-}
-
-.formats-info small {
-    color: var(--bs-secondary-color);
-}
-
-.formats-info .badge {
-    font-weight: 500;
-    padding: 0.35rem 0.65rem;
-}
-
-/* Text Editor */
-.editor-container {
-    border: 1px solid var(--bs-border-color);
-    border-radius: 16px;
-    overflow: hidden;
-    background: var(--bs-body-bg);
-    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    transition: border-color 0.25s, box-shadow 0.25s;
-}
-
-.editor-container:focus-within {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12), 0 4px 16px rgba(0,0,0,0.08);
-}
-
-[data-bs-theme="dark"] .editor-container {
-    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
-}
-
-[data-bs-theme="dark"] .editor-container:focus-within {
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.2), 0 4px 16px rgba(0,0,0,0.3);
-}
-
-.editor-toolbar {
-    background: var(--bs-tertiary-bg);
-    border-bottom: 1px solid var(--bs-border-color);
-    padding: 0.6rem 0.75rem;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-    align-items: center;
-}
-
-[data-bs-theme="dark"] .editor-toolbar {
-    background: rgba(255,255,255,0.04);
-}
-
-.toolbar-group {
-    display: flex;
-    gap: 0.2rem;
-    padding-right: 0.6rem;
-    margin-right: 0.2rem;
-    border-right: 1px solid var(--bs-border-color);
-    align-items: center;
-}
-
-.toolbar-group:last-child {
-    border-right: none;
-    padding-right: 0;
-    margin-right: 0;
-}
-
-.toolbar-btn {
-    width: 34px;
-    height: 34px;
-    border: none;
-    border-radius: 8px;
-    background: transparent;
-    color: var(--bs-body-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.95rem;
-}
-
-.toolbar-btn:hover {
-    background: rgba(99,102,241,0.12);
-    color: #6366f1;
-}
-
-.toolbar-btn:active {
-    transform: scale(0.92);
-}
-
-.toolbar-btn.active {
-    background: #6366f1;
-    color: #fff;
-}
-
-[data-bs-theme="dark"] .toolbar-btn:hover {
-    background: rgba(99,102,241,0.2);
-}
-
-.font-size-select {
-    height: 34px;
-    border-radius: 8px;
-    border: 1px solid var(--bs-border-color);
-    padding: 0 0.6rem;
-    font-size: 0.8rem;
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-.font-size-select:focus {
-    border-color: #6366f1;
-    outline: none;
-}
-
-.color-picker {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    border: 2px solid var(--bs-border-color);
-    padding: 2px;
-    cursor: pointer;
-    overflow: hidden;
-    background: var(--bs-body-bg);
-    transition: border-color 0.2s;
-}
-
-.color-picker:hover {
-    border-color: #6366f1;
-}
-
-.text-editor-area {
-    min-height: 280px;
-    max-height: 450px;
-    overflow-y: auto;
-    padding: 1.25rem;
-    font-size: 1rem;
-    line-height: 1.8;
-    color: var(--bs-body-color);
-    background: var(--bs-body-bg);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(99,102,241,0.25) transparent;
-}
-
-.text-editor-area::-webkit-scrollbar { width: 6px; }
-.text-editor-area::-webkit-scrollbar-track { background: transparent; }
-.text-editor-area::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.25); border-radius: 10px; }
-
-.text-editor-area:empty::before {
-    content: attr(placeholder);
-    color: var(--bs-secondary-color);
-    pointer-events: none;
-}
-
-.text-editor-area:focus {
-    outline: none;
-}
-
-[data-bs-theme="dark"] .text-editor-area {
-    background: rgba(255,255,255,0.02);
-}
-
-/* Submit Button */
-.submit-btn {
-    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
-    border: none;
-    border-radius: 12px;
-    padding: 1rem 2rem;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #fff;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(67,97,238,0.3);
-}
-
-.submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67,97,238,0.4);
-}
-
-.submit-btn:active {
-    transform: translateY(0);
-}
-
-/* View Submission Button */
-.view-submission-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    padding: 0.875rem 1.5rem;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
-    color: #fff;
-    text-decoration: none;
-    font-weight: 600;
-    transition: all 0.3s ease;
-}
-
-.view-submission-btn:hover {
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67,97,238,0.3);
-}
-
-/* Text Preview Card */
-.text-preview-card {
-    border-radius: 16px;
-    overflow: hidden;
-    border: 1px solid rgba(99,102,241,0.15);
-    margin-top: 1rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-}
-
-[data-bs-theme="dark"] .text-preview-card {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.text-preview-header {
-    background: rgba(99,102,241,0.08);
-    padding: 0.85rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: var(--bs-body-color);
-    border-bottom: 1px solid rgba(99,102,241,0.1);
-}
-
-.text-preview-header i {
-    color: #6366f1;
-    font-size: 1.1rem;
-}
-
-[data-bs-theme="dark"] .text-preview-header {
-    background: rgba(99,102,241,0.12);
-}
-
-.text-preview-body {
-    padding: 1.25rem;
-    max-height: 300px;
-    overflow-y: auto;
-    background: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    line-height: 1.85;
-    font-size: 0.95rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(99,102,241,0.2) transparent;
-}
-
-[data-bs-theme="dark"] .text-preview-body {
-    background: rgba(255,255,255,0.02);
-}
-
-/* Due Date Badge */
-.due-date-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-    background: rgba(255,193,7,0.15);
-    color: #d39e00;
-    font-weight: 500;
-    font-size: 0.875rem;
-}
-
-/* Responsive */
-@media (max-width: 991px) {
-    .homework-header {
-        padding: 1.5rem;
-    }
-    
-    .homework-header h1 {
-        font-size: 1.5rem;
-    }
-    
-    .row > div {
-        margin-bottom: 1.5rem;
-    }
-}
-
-@media (max-width: 767px) {
-    .homework-page {
-        padding: 0.5rem 0 2rem;
-    }
-    
-    .homework-header {
-        border-radius: 16px;
-        padding: 1.25rem;
-    }
-    
-    .homework-header h1 {
-        font-size: 1.25rem;
-    }
-    
-    .homework-card {
-        border-radius: 16px;
-    }
-    
-    .card-header-custom {
-        padding: 1rem;
-    }
-    
-    .card-header-custom .icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.1rem;
-    }
-    
-    .card-body-custom {
-        padding: 1rem;
-    }
-    
-    .submission-type-toggle {
-        flex-direction: column;
-    }
-    
-    .file-upload-area {
-        padding: 1.5rem 1rem;
-    }
-    
-    .file-upload-area i {
-        font-size: 2.5rem;
-    }
-    
-    .editor-toolbar {
-        padding: 0.5rem;
-    }
-    
-    .toolbar-group {
-        padding-right: 0.5rem;
-    }
-    
-    .toolbar-btn {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .text-editor-area {
-        min-height: 200px;
-        padding: 1rem;
-    }
-}
-
-/* Dark mode support */
-[data-bs-theme="dark"] .homework-card {
-    background: var(--card-bg, #1a1a2e);
-    border-color: var(--border-color, #2d2d44);
-}
-
-[data-bs-theme="dark"] .file-upload-area {
-    background: rgba(255,255,255,0.03);
-    border-color: var(--border-color, #2d2d44);
-}
-
-[data-bs-theme="dark"] .editor-container {
-    border-color: var(--border-color, #2d2d44);
-}
-
-[data-bs-theme="dark"] .editor-toolbar {
-    background: rgba(255,255,255,0.03);
-}
-
-[data-bs-theme="dark"] .text-editor-area {
-    background: var(--card-bg, #1a1a2e);
-}
-
-[data-bs-theme="dark"] .type-option label {
-    background: var(--card-bg, #1a1a2e);
-    border-color: var(--border-color, #2d2d44);
-}
-
-/* Edit Timer & Info */
-.edit-info-banner {
-    background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(59,130,246,0.1) 100%);
-    border: 1px solid rgba(99,102,241,0.2);
-    border-radius: 12px;
-    padding: 0.875rem 1rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--text-color);
-    line-height: 1.5;
-}
-.edit-info-banner i {
-    font-size: 1.3rem;
-    color: #6366f1;
-    flex-shrink: 0;
-}
-[data-bs-theme="dark"] .edit-info-banner {
-    background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(59,130,246,0.12) 100%);
-    border-color: rgba(99,102,241,0.3);
-}
-
-.edit-timer-card {
-    background: linear-gradient(135deg, rgba(245,158,11,0.1) 0%, rgba(251,191,36,0.08) 100%);
-    border: 1px solid rgba(245,158,11,0.25);
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.edit-timer-card.expired {
-    background: rgba(220,53,69,0.08);
-    border-color: rgba(220,53,69,0.2);
-}
-.edit-timer-icon {
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    background: rgba(245,158,11,0.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.25rem; color: #f59e0b; flex-shrink: 0;
-}
-.edit-timer-card.expired .edit-timer-icon {
-    background: rgba(220,53,69,0.15);
-    color: #dc3545;
-}
-.edit-timer-info {
-    flex: 1; min-width: 0;
-}
-.edit-timer-label {
-    font-size: 0.78rem; color: var(--text-muted); margin-bottom: 2px;
-}
-.edit-timer-value {
-    font-weight: 700; font-size: 1.1rem; color: #f59e0b;
-    font-variant-numeric: tabular-nums;
-}
-.edit-timer-card.expired .edit-timer-value {
-    color: #dc3545;
-}
-.edit-btn {
-    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-    padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600;
-    font-size: 0.9rem; color: #fff; text-decoration: none;
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border: none; cursor: pointer; transition: all 0.3s ease;
-    box-shadow: 0 3px 12px rgba(245,158,11,0.3);
-    width: 100%; margin-top: 0.75rem;
-}
-.edit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 18px rgba(245,158,11,0.4);
-    color: #fff;
-}
-.edit-btn:disabled {
-    opacity: 0.5; cursor: not-allowed; transform: none;
-    box-shadow: none;
-}
-.edit-form-wrap {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px dashed var(--border-color, #e0e0e0);
+/* ═══════════════════════════════════════════════════════
+   IT PROFESSIONAL HOMEWORK SPA — CSS TOKENS
+═══════════════════════════════════════════════════════ */
+:root {
+  --sp-bg:        #0d1117;
+  --sp-surface:   #161b22;
+  --sp-card:      #21262d;
+  --sp-border:    #30363d;
+  --sp-text:      #e6edf3;
+  --sp-muted:     #7d8590;
+  --sp-accent:    #58a6ff;
+  --sp-accent2:   #bc8cff;
+  --sp-green:     #3fb950;
+  --sp-amber:     #d29922;
+  --sp-red:       #f85149;
+  --sp-indigo:    #7c3aed;
+  --sp-radius:    8px;
+  --sp-radius-lg: 12px;
+  --sp-shadow:    0 8px 24px rgba(0,0,0,.4);
+  --sp-ease:      .2s ease;
+  /* Code-like monospace accent */
+  --sp-mono: "JetBrains Mono","Fira Code","Cascadia Code","Consolas",monospace;
+}
+[data-bs-theme="light"] {
+  --sp-bg:      #f6f8fa;
+  --sp-surface: #ffffff;
+  --sp-card:    #f0f2f5;
+  --sp-border:  #d0d7de;
+  --sp-text:    #1f2328;
+  --sp-muted:   #636c76;
+  --sp-accent:  #0969da;
+  --sp-accent2: #8250df;
+  --sp-green:   #1a7f37;
+  --sp-amber:   #9a6700;
+  --sp-red:     #cf222e;
+  --sp-shadow:  0 2px 12px rgba(0,0,0,.1);
+}
+
+/* ── Layout ── */
+.sp-wrap {
+  min-height: 100vh;
+  background: var(--sp-bg);
+  color: var(--sp-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  padding: 0;
+}
+
+/* ── Top bar ── */
+.sp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--sp-surface);
+  border-bottom: 1px solid var(--sp-border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  height: 52px;
+}
+.sp-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sp-muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color var(--sp-ease);
+  white-space: nowrap;
+}
+.sp-back:hover { color: var(--sp-accent); }
+.sp-topbar-title {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--sp-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sp-topbar-badge {
+  font-size: 11px;
+  font-family: var(--sp-mono);
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  color: var(--sp-muted);
+}
+.sp-topbar-status {
+  font-size: 12px;
+  font-family: var(--sp-mono);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+}
+
+/* ── Main two-col grid ── */
+.sp-body {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 20px 60px;
+}
+@media(max-width:900px){
+  .sp-body { grid-template-columns: 1fr; }
+  .sp-sidebar { order: -1; }
+}
+
+/* ── Card base ── */
+.sp-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  overflow: hidden;
+}
+.sp-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--sp-border);
+}
+.sp-card-head-icon {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.sp-card-head h6 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--sp-text);
+  letter-spacing: .02em;
+}
+.sp-card-head small {
+  font-size: 11px;
+  font-family: var(--sp-mono);
+  color: var(--sp-muted);
+  display: block;
+  margin-top: 1px;
+}
+.sp-card-body { padding: 18px; }
+
+/* ── Tabs ── */
+.sp-tabs {
+  display: flex;
+  gap: 0;
+  background: var(--sp-card);
+  border-radius: var(--sp-radius-lg) var(--sp-radius-lg) 0 0;
+  border: 1px solid var(--sp-border);
+  border-bottom: none;
+  overflow: hidden;
+}
+.sp-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 13px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--sp-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--sp-ease);
+  position: relative;
+  user-select: none;
+}
+.sp-tab:hover { color: var(--sp-text); background: var(--sp-surface); }
+.sp-tab.active {
+  color: var(--sp-accent);
+  background: var(--sp-surface);
+  border-bottom-color: var(--sp-accent);
+}
+.sp-tab-badge {
+  background: var(--sp-red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 1px 5px;
+  min-width: 16px;
+  text-align: center;
+}
+.sp-tab-panel {
+  display: none;
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-top: none;
+  border-radius: 0 0 var(--sp-radius-lg) var(--sp-radius-lg);
+}
+.sp-tab-panel.active { display: block; }
+
+/* ── Homework description ── */
+.hw-desc-wrap {
+  padding: 20px;
+  line-height: 1.75;
+  color: var(--sp-text);
+  font-size: 14.5px;
+}
+.hw-desc-wrap pre {
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 14px;
+  font-family: var(--sp-mono);
+  font-size: 13px;
+  overflow-x: auto;
+}
+.hw-desc-wrap code {
+  background: var(--sp-card);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: var(--sp-mono);
+  font-size: 12.5px;
+  color: var(--sp-accent2);
+}
+.hw-desc-wrap img { max-width: 100%; border-radius: var(--sp-radius); }
+
+/* ── Meta pills row ── */
+.sp-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--sp-border);
+}
+.sp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.sp-pill.info    { background: rgba(88,166,255,.1); color: var(--sp-accent); border-color: rgba(88,166,255,.25); }
+.sp-pill.success { background: rgba(63,185,80,.1);  color: var(--sp-green); border-color: rgba(63,185,80,.25); }
+.sp-pill.warn    { background: rgba(210,153,34,.1); color: var(--sp-amber); border-color: rgba(210,153,34,.25); }
+.sp-pill.danger  { background: rgba(248,81,73,.1);  color: var(--sp-red);   border-color: rgba(248,81,73,.25); }
+.sp-pill.violet  { background: rgba(188,140,255,.1); color: var(--sp-accent2); border-color: rgba(188,140,255,.25); }
+
+/* ── Submit form ── */
+.sp-form { padding: 20px; }
+.sp-type-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.sp-type-card {
+  border: 1.5px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 14px;
+  cursor: pointer;
+  transition: all var(--sp-ease);
+  text-align: center;
+}
+.sp-type-card:hover { border-color: var(--sp-accent); background: rgba(88,166,255,.04); }
+.sp-type-card.active { border-color: var(--sp-accent); background: rgba(88,166,255,.08); }
+.sp-type-card i { font-size: 22px; display: block; margin-bottom: 6px; }
+.sp-type-card span { font-size: 12.5px; font-weight: 500; }
+.sp-type-card.file-card.active i { color: var(--sp-accent); }
+.sp-type-card.text-card.active i { color: var(--sp-accent2); }
+
+/* ── Upload zone ── */
+.sp-drop-zone {
+  border: 2px dashed var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--sp-ease);
+  position: relative;
+  overflow: hidden;
+}
+.sp-drop-zone:hover,.sp-drop-zone.drag-over {
+  border-color: var(--sp-accent);
+  background: rgba(88,166,255,.05);
+}
+.sp-drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+.sp-drop-icon { font-size: 36px; color: var(--sp-muted); margin-bottom: 10px; }
+.sp-drop-label { font-size: 13.5px; font-weight: 500; color: var(--sp-text); }
+.sp-drop-sub { font-size: 12px; color: var(--sp-muted); margin-top: 4px; }
+.sp-file-chosen {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--sp-card);
+  border-radius: var(--sp-radius);
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: 13px;
+  font-family: var(--sp-mono);
+}
+.sp-file-chosen i { color: var(--sp-accent); }
+
+/* ── Upload progress bar ── */
+.sp-progress-wrap {
+  display: none;
+  margin-top: 12px;
+}
+.sp-progress-bar-outer {
+  height: 4px;
+  background: var(--sp-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.sp-progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, var(--sp-accent), var(--sp-accent2));
+  border-radius: 2px;
+  transition: width .2s ease;
+  width: 0%;
+}
+.sp-progress-label {
+  font-size: 11px;
+  font-family: var(--sp-mono);
+  color: var(--sp-muted);
+  margin-top: 5px;
+}
+
+/* ── Text editor ── */
+.sp-editor-wrap {
+  border: 1.5px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  overflow: hidden;
+  transition: border-color var(--sp-ease);
+}
+.sp-editor-wrap:focus-within { border-color: var(--sp-accent2); }
+.sp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--sp-card);
+  border-bottom: 1px solid var(--sp-border);
+}
+.sp-toolbar-sep {
+  width: 1px; background: var(--sp-border);
+  margin: 2px 4px;
+}
+.sp-tb-btn {
+  background: none; border: none;
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  color: var(--sp-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--sp-ease);
+  display: flex; align-items: center; justify-content: center;
+}
+.sp-tb-btn:hover { background: var(--sp-border); color: var(--sp-text); }
+.sp-tb-btn.active { background: var(--sp-accent); color: #fff; }
+.sp-editor-area {
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  min-height: 200px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--sp-text);
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.7;
+}
+.sp-word-count {
+  font-size: 11px;
+  font-family: var(--sp-mono);
+  color: var(--sp-muted);
+  padding: 6px 14px;
+  background: var(--sp-card);
+  border-top: 1px solid var(--sp-border);
+  text-align: right;
+}
+
+/* ── Submit button ── */
+.sp-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--sp-indigo), var(--sp-accent2));
+  border: none;
+  border-radius: var(--sp-radius);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: opacity var(--sp-ease), transform var(--sp-ease);
+  letter-spacing: .02em;
+}
+.sp-submit-btn:hover { opacity: .9; transform: translateY(-1px); }
+.sp-submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.sp-submit-btn .sp-spinner {
+  display: none;
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── History panel ── */
+.sp-history-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.sp-rev-card {
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 14px;
+  font-size: 13px;
+}
+.sp-rev-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.sp-rev-ver {
+  font-family: var(--sp-mono);
+  font-size: 11px;
+  background: var(--sp-indigo);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.sp-rev-date { font-size: 11px; font-family: var(--sp-mono); color: var(--sp-muted); }
+.sp-rev-body { color: var(--sp-muted); }
+.sp-rev-grade {
+  display: inline-block;
+  font-size: 20px; font-weight: 800;
+  color: var(--sp-green);
+  font-family: var(--sp-mono);
+  margin-right: 4px;
+}
+
+/* ── Chat ── */
+.sp-chat-wrap { display: flex; flex-direction: column; height: 420px; }
+.sp-chat-msgs {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.sp-msg-row { display: flex; gap: 8px; align-items: flex-end; }
+.sp-msg-row.me { flex-direction: row-reverse; }
+.sp-msg-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+  flex-shrink: 0;
+  color: var(--sp-accent);
+}
+.sp-msg-bubble {
+  max-width: 70%;
+  background: var(--sp-card);
+  border-radius: 14px 14px 14px 4px;
+  padding: 9px 13px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  border: 1px solid var(--sp-border);
+}
+.sp-msg-row.me .sp-msg-bubble {
+  background: rgba(88,166,255,.12);
+  border-color: rgba(88,166,255,.25);
+  border-radius: 14px 14px 4px 14px;
+}
+.sp-msg-time {
+  font-size: 10px;
+  font-family: var(--sp-mono);
+  color: var(--sp-muted);
+  display: block;
+  margin-top: 3px;
+}
+.sp-chat-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--sp-border);
+}
+.sp-chat-input {
+  flex: 1;
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--sp-text);
+  outline: none;
+  transition: border-color var(--sp-ease);
+}
+.sp-chat-input:focus { border-color: var(--sp-accent); }
+.sp-chat-send {
+  background: var(--sp-accent);
+  border: none;
+  border-radius: var(--sp-radius);
+  color: #fff;
+  width: 38px; height: 38px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity var(--sp-ease);
+  font-size: 15px;
+}
+.sp-chat-send:hover { opacity: .85; }
+
+/* ── Sidebar ── */
+.sp-sidebar { display: flex; flex-direction: column; gap: 14px; }
+.sp-status-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  overflow: hidden;
+}
+.sp-status-top {
+  background: var(--sp-card);
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--sp-border);
+}
+.sp-status-icon-wrap {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin: 0 auto 10px;
+  border: 2px solid;
+}
+.s-pending  { color: var(--sp-amber); border-color: rgba(210,153,34,.35); background: rgba(210,153,34,.1); }
+.s-reviewing{ color: var(--sp-accent); border-color: rgba(88,166,255,.35); background: rgba(88,166,255,.1); }
+.s-revision { color: var(--sp-red);   border-color: rgba(248,81,73,.35); background: rgba(248,81,73,.1); }
+.s-accepted { color: var(--sp-green); border-color: rgba(63,185,80,.35);  background: rgba(63,185,80,.1); }
+.s-graded   { color: var(--sp-accent2); border-color: rgba(188,140,255,.35); background: rgba(188,140,255,.1); }
+.s-none     { color: var(--sp-muted); border-color: var(--sp-border); background: var(--sp-card); }
+
+.sp-status-label {
+  font-size: 13px; font-weight: 600;
+  font-family: var(--sp-mono);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.sp-grade-display {
+  font-size: 38px; font-weight: 800;
+  font-family: var(--sp-mono);
+  color: var(--sp-green);
+  line-height: 1;
+  margin-top: 4px;
+}
+.sp-grade-display.grade-low { color: var(--sp-amber); }
+.sp-grade-display.grade-bad { color: var(--sp-red); }
+
+.sp-sidebar-rows { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.sp-sidebar-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px; font-size: 12.5px;
+}
+.sp-sidebar-row-label { color: var(--sp-muted); display: flex; align-items: center; gap: 5px; }
+.sp-sidebar-row-val {
+  font-weight: 600;
+  font-family: var(--sp-mono);
+  font-size: 12px;
+  text-align: right;
+  color: var(--sp-text);
+  max-width: 160px;
+}
+
+/* ── Edit timer ── */
+.sp-edit-timer {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(88,166,255,.06);
+  border: 1px solid rgba(88,166,255,.2);
+  border-radius: var(--sp-radius);
+  padding: 10px 14px;
+  margin: 0 16px 14px;
+  font-family: var(--sp-mono);
+  font-size: 12px;
+}
+.sp-edit-timer i { color: var(--sp-accent); font-size: 14px; }
+.sp-edit-timer.expired { border-color: rgba(248,81,73,.2); background: rgba(248,81,73,.06); }
+.sp-edit-timer.expired i { color: var(--sp-red); }
+#editTimerVal { font-weight: 700; color: var(--sp-accent); }
+.sp-edit-timer.expired #editTimerVal { color: var(--sp-red); }
+
+/* ── AI feedback block ── */
+.sp-ai-block {
+  margin: 14px 16px;
+  border-radius: var(--sp-radius);
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.65;
+  border: 1px solid;
+}
+.sp-ai-block.good   { background: rgba(63,185,80,.06); border-color: rgba(63,185,80,.2); }
+.sp-ai-block.plag   { background: rgba(248,81,73,.06); border-color: rgba(248,81,73,.2); }
+.sp-ai-block h6 { font-size: 12px; font-family: var(--sp-mono); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.sp-ai-block.good h6 { color: var(--sp-green); }
+.sp-ai-block.plag h6 { color: var(--sp-red); }
+
+/* ── Next lesson card ── */
+.sp-next-card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius-lg);
+  overflow: hidden;
+}
+.sp-next-inner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--sp-text);
+  transition: background var(--sp-ease);
+}
+.sp-next-inner:hover { background: var(--sp-card); }
+.sp-next-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--sp-radius);
+  background: rgba(88,166,255,.1);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--sp-accent);
+  flex-shrink: 0;
+}
+.sp-next-label { font-size: 10px; font-family: var(--sp-mono); color: var(--sp-muted); text-transform: uppercase; letter-spacing: .06em; }
+.sp-next-title { font-size: 13px; font-weight: 600; color: var(--sp-text); margin-top: 2px; }
+
+/* ── Toast ── */
+#spToastWrap {
+  position: fixed;
+  top: 60px; right: 16px;
+  z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.sp-toast {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--sp-shadow);
+  pointer-events: auto;
+  animation: toastIn .25s ease;
+  min-width: 220px;
+  max-width: 340px;
+}
+@keyframes toastIn { from { opacity:0; transform:translateX(20px); } }
+.sp-toast.success { border-left: 3px solid var(--sp-green); }
+.sp-toast.error   { border-left: 3px solid var(--sp-red); }
+.sp-toast.info    { border-left: 3px solid var(--sp-accent); }
+.sp-toast i.success-ico { color: var(--sp-green); }
+.sp-toast i.error-ico   { color: var(--sp-red); }
+.sp-toast i.info-ico    { color: var(--sp-accent); }
+
+/* ── Terminal typing tag ── */
+.sp-cmd-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--sp-mono);
+  font-size: 12px;
+  color: var(--sp-green);
+  background: rgba(63,185,80,.06);
+  border: 1px solid rgba(63,185,80,.15);
+  border-radius: 4px;
+  padding: 3px 10px;
+}
+.sp-cmd-tag::before { content: '$ '; opacity: .5; }
+
+/* ── Submission preview ── */
+.sp-preview-wrap {
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  overflow: hidden;
+  margin: 14px 0;
+}
+.sp-preview-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--sp-border);
+  font-size: 12px;
+  font-family: var(--sp-mono);
+  color: var(--sp-muted);
+}
+.sp-preview-content {
+  padding: 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.sp-dl-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(88,166,255,.1);
+  border: 1px solid rgba(88,166,255,.25);
+  color: var(--sp-accent);
+  border-radius: var(--sp-radius);
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background var(--sp-ease);
+}
+.sp-dl-btn:hover { background: rgba(88,166,255,.18); color: var(--sp-accent); }
+
+/* ── Empty states ── */
+.sp-empty {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 40px 20px;
+  color: var(--sp-muted);
+  text-align: center;
+  gap: 10px;
+}
+.sp-empty i { font-size: 36px; opacity: .4; }
+.sp-empty p { font-size: 13.5px; margin: 0; }
+
+/* ── Feedback block ── */
+.sp-feedback-block {
+  background: var(--sp-card);
+  border: 1px solid var(--sp-border);
+  border-radius: var(--sp-radius);
+  padding: 14px;
+  margin-top: 12px;
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+.sp-feedback-label {
+  font-size: 11px; font-family: var(--sp-mono);
+  color: var(--sp-muted); text-transform: uppercase;
+  letter-spacing: .06em; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 5px;
+}
+
+/* ── Responsive tweaks ── */
+@media(max-width:600px){
+  .sp-topbar { padding: 0 12px; }
+  .sp-body   { padding: 12px 12px 60px; gap: 14px; }
+  .sp-form   { padding: 14px; }
+  .hw-desc-wrap { padding: 14px; }
+}
+
+/* ── Loading skeleton ── */
+.sp-skeleton {
+  background: linear-gradient(90deg, var(--sp-card) 25%, var(--sp-border) 50%, var(--sp-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* ── Resubmit notice ── */
+.sp-resubmit-notice {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: rgba(124,58,237,.07);
+  border: 1px solid rgba(124,58,237,.2);
+  border-radius: var(--sp-radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--sp-accent2);
+  margin-bottom: 16px;
 }
 </style>
+{% endblock %}
 
-<div class="homework-page">
-    <div class="container">
-        <!-- Back Button -->
-        {% if course_token %}
-        <a href="{% url 'student_course_view' course_token.token %}" class="back-btn mb-4">
-        {% else %}
-        <a href="{% url 'profession_detail' profession.pk %}" class="back-btn mb-4">
-        {% endif %}
-            <i class="bi bi-arrow-left"></i>
-            <span>Orqaga qaytish</span>
+{% block content %}
+<div class="sp-wrap" id="hwApp">
+
+  <!-- Top bar -->
+  <div class="sp-topbar">
+    <a href="{% url 'profession_detail' profession.pk %}" class="sp-back">
+      <i class="bi bi-arrow-left"></i><span>{{ profession.name }}</span>
+    </a>
+    <span style="color:var(--sp-border);font-size:18px;">›</span>
+    <div class="sp-topbar-title">{{ lesson.title }}</div>
+    <span class="sp-topbar-badge">homework</span>
+    <span class="sp-topbar-status" id="topStatus"></span>
+  </div>
+
+  <!-- Main body -->
+  <div class="sp-body">
+
+    <!-- ── LEFT: tabs ── -->
+    <div class="sp-left">
+      <!-- Tabs header -->
+      <div class="sp-tabs" id="spTabs">
+        <div class="sp-tab active" data-tab="desc" onclick="switchTab('desc')">
+          <i class="bi bi-file-text"></i> Vazifa
+        </div>
+        <div class="sp-tab" data-tab="submit" onclick="switchTab('submit')">
+          <i class="bi bi-upload"></i> Topshirish
+        </div>
+        <div class="sp-tab" data-tab="history" onclick="switchTab('history')">
+          <i class="bi bi-clock-history"></i> Tarix
+        </div>
+        <div class="sp-tab" data-tab="chat" onclick="switchTab('chat')">
+          <i class="bi bi-chat-dots"></i> Chat
+          <span class="sp-tab-badge" id="chatBadge" style="display:none">0</span>
+        </div>
+      </div>
+
+      <!-- Panel: Vazifa -->
+      <div class="sp-tab-panel active" id="panel-desc">
+        <div class="sp-meta-row" id="descMetaRow">
+          <span class="sp-pill info"><i class="bi bi-trophy"></i> <span id="metaMaxScore">—</span> ball</span>
+          <span class="sp-pill" id="metaDue"></span>
+          <span class="sp-pill violet" id="metaAi" style="display:none"><i class="bi bi-robot"></i> AI tekshiradi</span>
+          <span class="sp-pill warn" id="metaFileOnly" style="display:none"><i class="bi bi-paperclip"></i> Faqat fayl</span>
+          <span class="sp-pill warn" id="metaHandwritten" style="display:none"><i class="bi bi-pen"></i> Qo'lyozma</span>
+        </div>
+        <div class="hw-desc-wrap" id="hwDesc">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="sp-skeleton" style="height:18px;width:60%"></div>
+            <div class="sp-skeleton" style="height:14px;width:90%"></div>
+            <div class="sp-skeleton" style="height:14px;width:80%"></div>
+            <div class="sp-skeleton" style="height:14px;width:70%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Topshirish -->
+      <div class="sp-tab-panel" id="panel-submit">
+        <div class="sp-form" id="submitForm">
+          <!-- Resubmit notice (shown when already submitted) -->
+          <div class="sp-resubmit-notice" id="resubmitNotice" style="display:none">
+            <i class="bi bi-arrow-repeat" style="font-size:18px;flex-shrink:0;margin-top:1px"></i>
+            <div>
+              <b>Qayta topshirish</b><br>
+              Avvalgi versiyalaringiz saqlanib qoladi. Yangi versiya alohida ko'rib chiqiladi.
+            </div>
+          </div>
+
+          <!-- Type switch (hidden when file_only / handwritten_only) -->
+          <div class="sp-type-switch" id="typeSwitch">
+            <div class="sp-type-card file-card active" id="typeFile" onclick="setType('file')">
+              <i class="bi bi-file-earmark-arrow-up" style="color:var(--sp-accent)"></i>
+              <span>Fayl yuklash</span>
+            </div>
+            <div class="sp-type-card text-card" id="typeText" onclick="setType('text')">
+              <i class="bi bi-code-square" style="color:var(--sp-accent2)"></i>
+              <span>Matn yozish</span>
+            </div>
+          </div>
+
+          <!-- File upload zone -->
+          <div id="fileSection">
+            <div class="sp-drop-zone" id="dropZone"
+                 ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+              <input type="file" id="fileInput" onchange="onFileChosen()">
+              <div class="sp-drop-icon"><i class="bi bi-cloud-upload"></i></div>
+              <div class="sp-drop-label">Fayl tanlang yoki bu yerga torting</div>
+              <div class="sp-drop-sub" id="allowedFormatsHint">Ruxsat etilgan: barcha fayl turlari, max 5 MB</div>
+            </div>
+            <div class="sp-file-chosen" id="fileChosen" style="display:none">
+              <i class="bi bi-paperclip"></i>
+              <span id="fileChosenName"></span>
+            </div>
+            <div class="sp-progress-wrap" id="progressWrap">
+              <div class="sp-progress-bar-outer">
+                <div class="sp-progress-bar-inner" id="progressBar"></div>
+              </div>
+              <div class="sp-progress-label" id="progressLabel">Yuklanmoqda...</div>
+            </div>
+          </div>
+
+          <!-- Text editor -->
+          <div id="textSection" style="display:none">
+            <div class="sp-editor-wrap">
+              <div class="sp-toolbar">
+                <button class="sp-tb-btn" onclick="fmt('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('underline')" title="Underline"><i class="bi bi-type-underline"></i></button>
+                <div class="sp-toolbar-sep"></div>
+                <button class="sp-tb-btn" onclick="fmt('insertUnorderedList')" title="Bullet list"><i class="bi bi-list-ul"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('insertOrderedList')" title="Numbered list"><i class="bi bi-list-ol"></i></button>
+                <div class="sp-toolbar-sep"></div>
+                <button class="sp-tb-btn" onclick="wrapCode()" title="Code block"><i class="bi bi-code-slash"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('justifyLeft')" title="Align left"><i class="bi bi-text-left"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('justifyCenter')" title="Center"><i class="bi bi-text-center"></i></button>
+                <div class="sp-toolbar-sep"></div>
+                <button class="sp-tb-btn" onclick="fmt('undo')" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+                <button class="sp-tb-btn" onclick="fmt('redo')" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+              </div>
+              <div class="sp-editor-area"
+                   id="editorArea"
+                   contenteditable="true"
+                   onkeyup="updateWordCount()"
+                   oninput="updateWordCount()"
+                   placeholder="Vazifangizni shu yerga yozing..."></div>
+              <div class="sp-word-count" id="wordCount">0 so'z</div>
+            </div>
+          </div>
+
+          <button class="sp-submit-btn" id="submitBtn" onclick="doSubmit()">
+            <span class="sp-spinner" id="submitSpinner"></span>
+            <i class="bi bi-send" id="submitIcon"></i>
+            <span id="submitBtnText">Topshirish</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel: Tarix -->
+      <div class="sp-tab-panel" id="panel-history">
+        <div class="sp-history-list" id="historyList">
+          <div class="sp-empty">
+            <i class="bi bi-clock-history"></i>
+            <p>Yuklanmoqda...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel: Chat -->
+      <div class="sp-tab-panel" id="panel-chat">
+        <div class="sp-chat-wrap">
+          <div class="sp-chat-msgs" id="chatMsgs">
+            <div class="sp-empty">
+              <i class="bi bi-chat-dots"></i>
+              <p>Xabarlar yo'q</p>
+            </div>
+          </div>
+          <div class="sp-chat-input-row">
+            <input class="sp-chat-input" id="chatInput"
+                   placeholder="Xabar yozing..."
+                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+            <button class="sp-chat-send" onclick="sendChat()">
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /.sp-left -->
+
+    <!-- ── RIGHT: sidebar ── -->
+    <div class="sp-sidebar">
+
+      <!-- Status card -->
+      <div class="sp-status-card" id="statusCard">
+        <div class="sp-status-top">
+          <div class="sp-status-icon-wrap s-none" id="statusIcon">
+            <i class="bi bi-hourglass"></i>
+          </div>
+          <div class="sp-status-label" id="statusLabel">Topshirilmagan</div>
+          <div class="sp-grade-display" id="gradeDisplay" style="display:none"></div>
+        </div>
+        <!-- Edit timer -->
+        <div class="sp-edit-timer" id="editTimerBlock" style="display:none">
+          <i class="bi bi-pencil-square"></i>
+          <div style="flex:1">
+            <div style="color:var(--sp-muted);font-size:10px;margin-bottom:2px">Tahrirlash oynasi</div>
+            <span id="editTimerVal">00:00</span>
+          </div>
+        </div>
+        <!-- Sidebar rows -->
+        <div class="sp-sidebar-rows" id="sidebarRows">
+          <div class="sp-sidebar-row">
+            <span class="sp-sidebar-row-label"><i class="bi bi-layers"></i> Versiya</span>
+            <span class="sp-sidebar-row-val" id="sbVersion">—</span>
+          </div>
+          <div class="sp-sidebar-row">
+            <span class="sp-sidebar-row-label"><i class="bi bi-calendar-check"></i> Topshirilgan</span>
+            <span class="sp-sidebar-row-val" id="sbDate">—</span>
+          </div>
+          <div class="sp-sidebar-row">
+            <span class="sp-sidebar-row-label"><i class="bi bi-file-type"></i> Turi</span>
+            <span class="sp-sidebar-row-val" id="sbType">—</span>
+          </div>
+          <div class="sp-sidebar-row" id="sbLateRow" style="display:none">
+            <span class="sp-sidebar-row-label"><i class="bi bi-exclamation-circle"></i> Holat</span>
+            <span class="sp-sidebar-row-val" style="color:var(--sp-amber)">Kech topshirildi</span>
+          </div>
+          <div class="sp-sidebar-row" id="sbCoinRow" style="display:none">
+            <span class="sp-sidebar-row-label"><i class="bi bi-coin"></i> Coin</span>
+            <span class="sp-sidebar-row-val" style="color:var(--sp-amber)" id="sbCoin">—</span>
+          </div>
+        </div>
+
+        <!-- AI feedback -->
+        <div id="aiFeedbackWrap" style="display:none"></div>
+
+        <!-- Teacher feedback -->
+        <div id="teacherFeedbackWrap" style="display:none"></div>
+
+        <!-- Submitted file/text preview -->
+        <div id="submissionPreviewWrap" style="display:none;padding:0 16px 16px"></div>
+      </div>
+
+      <!-- Next lesson card -->
+      {% if next_lesson %}
+      <div class="sp-next-card">
+        <a href="{% url 'lesson_view' next_lesson.pk %}" class="sp-next-inner">
+          <div class="sp-next-icon">
+            {% if next_lesson.lesson_type == 'video' %}
+            <i class="bi bi-play-circle"></i>
+            {% elif next_lesson.lesson_type == 'homework' %}
+            <i class="bi bi-journal-check"></i>
+            {% else %}
+            <i class="bi bi-question-circle"></i>
+            {% endif %}
+          </div>
+          <div>
+            <div class="sp-next-label">Keyingi dars</div>
+            <div class="sp-next-title">{{ next_lesson.title }}</div>
+          </div>
+          <i class="bi bi-arrow-right-short" style="margin-left:auto;font-size:18px;color:var(--sp-muted)"></i>
         </a>
+      </div>
+      {% endif %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" style="border-radius: 12px;">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- Page Header -->
-        <div class="homework-header mb-4">
-            <h1><i class="bi bi-journal-text me-2"></i>{{ lesson.title }}</h1>
-            <p class="subtitle mb-0">
-                <i class="bi bi-book me-1"></i>{{ profession.name }}
-                {% if homework.due_date %}
-                <span class="ms-3">
-                    <i class="bi bi-calendar-event me-1"></i>Muddat: {{ homework.due_date|date:"d.m.Y H:i" }}
-                </span>
-                {% endif %}
-            </p>
+      <!-- Terminal-style metadata card -->
+      <div class="sp-card" id="termCard">
+        <div class="sp-card-head">
+          <div class="sp-card-head-icon" style="background:rgba(63,185,80,.1);color:var(--sp-green)">
+            <i class="bi bi-terminal"></i>
+          </div>
+          <div>
+            <h6>API endpoint</h6>
+            <small>REST JSON interface</small>
+          </div>
         </div>
-
-        <div class="row g-4">
-            <!-- Description Card -->
-            <div class="col-lg-7">
-                <div class="homework-card">
-                    <div class="card-header-custom">
-                        <div class="icon">
-                            <i class="bi bi-file-text"></i>
-                        </div>
-                        <div>
-                            <h5>Vazifa tavsifi</h5>
-                        </div>
-                    </div>
-                    <div class="card-body-custom">
-                        <div class="description-content">
-                            {{ homework.description|safe }}
-                        </div>
-                        {% if homework.ai_check %}
-                        <div class="mt-3" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 1rem;border-radius:50px;background:rgba(16,185,129,0.1);color:#059669;font-size:0.85rem;font-weight:600;">
-                            <i class="bi bi-robot"></i> AI tekshiradi
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Submission Card -->
-            <div class="col-lg-5">
-                <div class="homework-card">
-                    <div class="card-header-custom">
-                        <div class="icon">
-                            <i class="bi bi-send"></i>
-                        </div>
-                        <div>
-                            <h5>Vazifani topshirish</h5>
-                        </div>
-                    </div>
-                    <div class="card-body-custom">
-                        {% if submission %}
-                            <!-- Submitted State -->
-                            <div class="text-center mb-3">
-                                <div class="status-badge {% if submission.status == 'graded' %}graded{% elif submission.status == 'pending' %}pending{% elif submission.status == 'reviewing' %}reviewing{% else %}revision{% endif %} mx-auto">
-                                    {% if submission.status == 'graded' %}
-                                        <i class="bi bi-check-circle-fill"></i>
-                                    {% elif submission.status == 'pending' %}
-                                        <i class="bi bi-hourglass-split"></i>
-                                    {% elif submission.status == 'reviewing' %}
-                                        <i class="bi bi-eye-fill"></i>
-                                    {% else %}
-                                        <i class="bi bi-arrow-repeat"></i>
-                                    {% endif %}
-                                    {{ submission.get_status_display }}
-                                </div>
-                            </div>
-
-                            <div class="submission-info">
-                                <div class="info-row">
-                                    <div class="info-icon">
-                                        <i class="bi bi-calendar-check"></i>
-                                    </div>
-                                    <div>
-                                        <div class="info-label">Yuborilgan sana</div>
-                                        <div class="info-value">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
-                                    </div>
-                                </div>
-                                
-                                {% if submission.grade %}
-                                <div class="info-row">
-                                    <div class="info-icon" style="background: rgba(40,167,69,0.2);">
-                                        <i class="bi bi-trophy"></i>
-                                    </div>
-                                    <div>
-                                        <div class="info-label">Baho</div>
-                                        <div class="info-value" style="font-size: 1.25rem; color: #28a745;">{{ submission.grade }}/10</div>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                {% if submission.feedback %}
-                                <div class="info-row">
-                                    <div class="info-icon" style="background: rgba(67,97,238,0.15); color: #4361ee;">
-                                        <i class="bi bi-chat-left-text"></i>
-                                    </div>
-                                    <div style="flex: 1;">
-                                        <div class="info-label">O'qituvchi izohi</div>
-                                        <div class="info-value" style="font-weight: 400;">{{ submission.feedback }}</div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            {% if submission.ai_feedback %}
-                                {% if '🚫' in submission.ai_feedback %}
-                                <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(220,53,69,0.08) 0%, rgba(255,107,107,0.08) 100%); border-radius: 16px; padding: 1.25rem; border: 1px solid rgba(220,53,69,0.25);">
-                                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
-                                        <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #dc3545, #ff6b6b); display: flex; align-items: center; justify-content: center;">
-                                            <i class="bi bi-shield-exclamation" style="color: #fff; font-size: 1.1rem;"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.95rem; color: #dc3545;">⚠️ AI plagiat tekshiruvi</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Avtomatik tekshiruv</div>
-                                        </div>
-                                    </div>
-                                    <div style="font-size: 0.9rem; line-height: 1.7; color: var(--bs-body-color);">
-                                        {{ submission.ai_feedback|linebreaksbr }}
-                                    </div>
-                                </div>
-                                {% else %}
-                                <div style="margin-top: 1rem; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border-radius: 16px; padding: 1.25rem; border: 1px solid rgba(139,92,246,0.2);">
-                                    <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem;">
-                                        <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #8b5cf6, #3b82f6); display: flex; align-items: center; justify-content: center;">
-                                            <i class="bi bi-robot" style="color: #fff; font-size: 1.1rem;"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--bs-body-color);">🤖 AI Xulosasi</div>
-                                            <div style="font-size: 0.75rem; color: var(--text-muted);">Avtomatik baholash</div>
-                                        </div>
-                                    </div>
-                                    <div style="font-size: 0.9rem; line-height: 1.7; color: var(--bs-body-color);">
-                                        {{ submission.ai_feedback|linebreaksbr }}
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endif %}
-
-                            {% if submission.submission_type == 'file' and submission.file %}
-                                <a href="{{ submission.file.url }}" class="view-submission-btn mt-3" target="_blank">
-                                    <i class="bi bi-download"></i>
-                                    Yuborilgan faylni ko'rish
-                                </a>
-                            {% elif submission.submission_type == 'text' %}
-                                <div class="text-preview-card">
-                                    <div class="text-preview-header">
-                                        <i class="bi bi-file-text"></i>
-                                        Yuborilgan matn
-                                    </div>
-                                    <div class="text-preview-body">
-                                        <iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:200px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px';"></iframe>
-                                    </div>
-                                </div>
-                            {% endif %}
-
-                            <!-- Tahrirlash taymeri va formasi -->
-                            {% if submission.can_edit %}
-                            <div class="edit-timer-card" id="editTimerCard">
-                                <div class="edit-timer-icon">
-                                    <i class="bi bi-pencil-square"></i>
-                                </div>
-                                <div class="edit-timer-info">
-                                    <div class="edit-timer-label">Tahrirlash uchun qolgan vaqt</div>
-                                    <div class="edit-timer-value" id="editTimerValue">--:--</div>
-                                </div>
-                            </div>
-
-                            <button type="button" class="edit-btn" onclick="toggleEditForm()">
-                                <i class="bi bi-pencil-square"></i>
-                                Tahrirlash
-                            </button>
-
-                            <div class="edit-form-wrap" id="editFormWrap" style="display:none;">
-                                {% if student_token %}
-                                <form method="POST" action="{% url 'student_edit_homework' student_token.token %}" enctype="multipart/form-data" id="editHomeworkForm">
-                                {% else %}
-                                <form method="POST" action="{% url 'edit_homework' submission.pk %}" enctype="multipart/form-data" id="editHomeworkForm">
-                                {% endif %}
-                                    {% csrf_token %}
-                                    {% if submission.submission_type == 'file' %}
-                                    <input type="hidden" name="submission_type" value="file">
-                                    <div class="file-upload-area" onclick="document.getElementById('edit-file-input').click()" style="padding:1.5rem;">
-                                        <i class="bi bi-cloud-arrow-up" style="font-size:2rem;"></i>
-                                        <p class="mb-0"><strong>Yangi fayl tanlang</strong></p>
-                                        <div class="file-name" id="edit-file-name" style="display:none;"></div>
-                                    </div>
-                                    <input type="file" id="edit-file-input" name="file" class="d-none" onchange="showEditFileName(this)">
-                                    {% else %}
-                                    <input type="hidden" name="submission_type" value="text">
-                                    <textarea name="text_content" class="form-control" rows="5" placeholder="Yangi matn yozing..." style="border-radius:12px;">{{ submission.text_content|striptags }}</textarea>
-                                    {% endif %}
-                                    <button type="submit" class="edit-btn mt-3" id="editSubmitBtn">
-                                        <i class="bi bi-check-lg"></i>
-                                        Saqlash
-                                    </button>
-                                </form>
-                            </div>
-                            {% else %}
-                                {% if submission.status == 'pending' and not submission.ai_checked %}
-                                <div class="edit-timer-card expired">
-                                    <div class="edit-timer-icon">
-                                        <i class="bi bi-hourglass-split"></i>
-                                    </div>
-                                    <div class="edit-timer-info">
-                                        <div class="edit-timer-label">Tahrirlash muddati tugadi</div>
-                                        <div class="edit-timer-value">AI tekshirmoqda...</div>
-                                    </div>
-                                </div>
-                                {% elif submission.ai_checked %}
-                                <div class="edit-timer-card expired">
-                                    <div class="edit-timer-icon">
-                                        <i class="bi bi-lock-fill"></i>
-                                    </div>
-                                    <div class="edit-timer-info">
-                                        <div class="edit-timer-label">Tahrirlash muddati tugadi</div>
-                                        <div class="edit-timer-value">Vazifa baholandi</div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            {% endif %}
-
-                        {% else %}
-                            <!-- Submission Form -->
-                            <div class="edit-info-banner">
-                                <i class="bi bi-info-circle-fill"></i>
-                                <span>Topshiriqni yuborgandan keyin <strong>1 soat</strong> ichida tahrirlashingiz mumkin. Shundan so'ng o'zgartirish imkoni bo'lmaydi.</span>
-                            </div>
-                            {% if student_token %}
-                            <form method="POST" action="{% url 'student_submit_homework' student_token.token %}" enctype="multipart/form-data" id="homeworkForm">
-                            {% else %}
-                            <form method="POST" action="{% url 'submit_homework' homework.pk %}" enctype="multipart/form-data" id="homeworkForm">
-                            {% endif %}
-                                {% csrf_token %}
-                                
-                                <!-- Submission Type Toggle -->
-                                {% if homework.handwritten_only %}
-                                <div class="alert" style="background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.3); border-radius: 14px; padding: 1rem; margin-bottom: 1.5rem;">
-                                    <i class="bi bi-pencil-square" style="color: #8b5cf6;"></i>
-                                    <strong>Yozma topshirish</strong> — Daftaringizga yozib, rasm (foto) ko'rinishida yuboring. Faqat rasm formatida qabul qilinadi (.jpg, .jpeg, .png).
-                                </div>
-                                <input type="hidden" name="submission_type" value="file">
-                                {% elif homework.file_only %}
-                                <div class="alert" style="background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); border-radius: 14px; padding: 1rem; margin-bottom: 1.5rem;">
-                                    <i class="bi bi-file-earmark-arrow-up" style="color: #3b82f6;"></i>
-                                    <strong>Faqat fayl</strong> — Bu vazifa faqat fayl ko'rinishida qabul qilinadi.
-                                </div>
-                                <input type="hidden" name="submission_type" value="file">
-                                {% else %}
-                                <div class="submission-type-toggle">
-                                    <div class="type-option">
-                                        <input type="radio" name="submission_type" id="type_file" value="file" checked onchange="toggleSubmissionType()">
-                                        <label for="type_file">
-                                            <i class="bi bi-cloud-arrow-up"></i>
-                                            <span>Fayl yuklash</span>
-                                        </label>
-                                    </div>
-                                    <div class="type-option">
-                                        <input type="radio" name="submission_type" id="type_text" value="text" onchange="toggleSubmissionType()">
-                                        <label for="type_text">
-                                            <i class="bi bi-pencil-square"></i>
-                                            <span>Matn yozish</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                <!-- File Upload Section -->
-                                <div id="file-section">
-                                    <div class="file-upload-area" onclick="document.getElementById('file-input').click()">
-                                        <i class="bi bi-cloud-arrow-up"></i>
-                                        <p class="mb-1"><strong>Fayl tanlash uchun bosing</strong></p>
-                                        <p class="small text-muted mb-0">yoki faylni bu yerga tashlang</p>
-                                        <div class="file-name" id="file-name-display" style="display: none;"></div>
-                                    </div>
-                                    <input type="file" id="file-input" name="file" class="d-none" onchange="showFileName(this)" {% if homework.handwritten_only %}accept=".jpg,.jpeg,.png"{% endif %}>
-                                    
-                                    {% if homework.allowed_formats %}
-                                    <div class="formats-info">
-                                        <small class="d-block mb-2"><i class="bi bi-info-circle me-1"></i>Ruxsat etilgan formatlar:</small>
-                                        <div class="d-flex flex-wrap gap-1">
-                                            {% for fmt in homework.get_allowed_formats_list %}
-                                            <span class="badge bg-primary">{{ fmt }}</span>
-                                            {% endfor %}
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-
-                                <!-- Text Editor Section -->
-                                <div id="text-section" style="display: none;" {% if homework.handwritten_only or homework.file_only %}class="d-none"{% endif %}>
-                                    <div class="editor-container">
-                                        <div class="editor-toolbar">
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" onclick="formatText('bold')" title="Qalin (Ctrl+B)">
-                                                    <i class="bi bi-type-bold"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('italic')" title="Yotiq (Ctrl+I)">
-                                                    <i class="bi bi-type-italic"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('underline')" title="Tagiga chizish (Ctrl+U)">
-                                                    <i class="bi bi-type-underline"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('strikeThrough')" title="Chizib tashlash">
-                                                    <i class="bi bi-type-strikethrough"></i>
-                                                </button>
-                                            </div>
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" onclick="formatText('insertUnorderedList')" title="Ro'yxat">
-                                                    <i class="bi bi-list-ul"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('insertOrderedList')" title="Raqamli ro'yxat">
-                                                    <i class="bi bi-list-ol"></i>
-                                                </button>
-                                            </div>
-                                            <div class="toolbar-group">
-                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyLeft')" title="Chapga">
-                                                    <i class="bi bi-text-left"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyCenter')" title="Markazga">
-                                                    <i class="bi bi-text-center"></i>
-                                                </button>
-                                                <button type="button" class="toolbar-btn" onclick="formatText('justifyRight')" title="O'ngga">
-                                                    <i class="bi bi-text-right"></i>
-                                                </button>
-                                            </div>
-                                            <div class="toolbar-group">
-                                                <select class="font-size-select" onchange="changeFontSize(this.value)">
-                                                    <option value="2">Kichik</option>
-                                                    <option value="3" selected>Normal</option>
-                                                    <option value="4">O'rta</option>
-                                                    <option value="5">Katta</option>
-                                                    <option value="6">Juda katta</option>
-                                                </select>
-                                            </div>
-                                            <div class="toolbar-group" style="border-right: none;">
-                                                <input type="color" class="color-picker" id="textColor" value="#000000" onchange="changeColor(this.value)" title="Matn rangi">
-                                                <input type="color" class="color-picker" id="bgColor" value="#ffffff" onchange="changeBgColor(this.value)" title="Fon rangi">
-                                            </div>
-                                        </div>
-                                        <div id="text-editor" class="text-editor-area" contenteditable="true" placeholder="Javobingizni bu yerga yozing..."></div>
-                                    </div>
-                                    <input type="hidden" name="text_content" id="text-content-input">
-                                </div>
-
-                                <button type="submit" class="submit-btn mt-4" id="submit-homework-btn" onclick="prepareSubmit()">
-                                    <i class="bi bi-send-fill"></i>
-                                    Yuborish
-                                </button>
-                            </form>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+        <div style="padding:14px;font-family:var(--sp-mono);font-size:11px;line-height:1.9;color:var(--sp-muted)">
+          <div><span style="color:var(--sp-green)">GET</span>  /api/hw/<span style="color:var(--sp-amber)">{{ lesson.pk }}</span>/</div>
+          <div><span style="color:var(--sp-accent)">POST</span> /api/hw/<span style="color:var(--sp-amber)">{{ lesson.pk }}</span>/submit/</div>
+          <div><span style="color:var(--sp-accent)">POST</span> /api/hw/<span style="color:var(--sp-amber)">{{ lesson.pk }}</span>/edit/</div>
+          <div><span style="color:var(--sp-green)">GET</span>  /api/hw/<span style="color:var(--sp-amber)">{{ lesson.pk }}</span>/messages/</div>
         </div>
+      </div>
     </div>
-</div>
 
-<!-- File Size Warning Modal -->
-<div class="file-warn-overlay" id="fileSizeWarning">
-    <div class="file-warn-modal">
-        <div class="file-warn-icon">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-        </div>
-        <div class="file-warn-title">Fayl hajmi juda katta!</div>
-        <div class="file-warn-text">
-            Yuklash uchun ruxsat etilgan eng yuqori hajm <strong>5 MB</strong>.
-            Iltimos, kichikroq fayl tanlang.
-        </div>
-        <div class="file-warn-size">
-            <i class="bi bi-file-earmark-arrow-up"></i>
-            <span id="fileSizeValue">0 MB</span> / 5 MB
-        </div>
-        <div class="file-warn-bar-wrap">
-            <div class="file-warn-bar" id="fileSizeBar" style="width: 100%"></div>
-        </div>
-        <button class="file-warn-close-btn" onclick="closeFileSizeWarning()">
-            <i class="bi bi-arrow-repeat"></i>
-            Boshqa fayl tanlash
-        </button>
-    </div>
+  </div><!-- /.sp-body -->
+
+  <!-- Toast container -->
+  <div id="spToastWrap"></div>
 </div>
 
 <script>
-// File size warning modal
-function showFileSizeWarning(sizeMB) {
-    document.getElementById('fileSizeValue').textContent = sizeMB + ' MB';
-    const percent = Math.min((sizeMB / 5) * 100, 100);
-    document.getElementById('fileSizeBar').style.width = percent + '%';
-    document.getElementById('fileSizeWarning').classList.add('show');
-}
-function closeFileSizeWarning() {
-    document.getElementById('fileSizeWarning').classList.remove('show');
-}
-document.getElementById('fileSizeWarning').addEventListener('click', function(e) {
-    if (e.target === this) closeFileSizeWarning();
+/* ─────────────────────────────────────────────
+   CONFIG (from Django context)
+───────────────────────────────────────────── */
+const LESSON_PK    = {{ lesson.pk }};
+const CSRF_TOKEN   = '{{ csrf_token }}';
+
+const API = {
+  detail:  `/api/hw/${LESSON_PK}/`,
+  submit:  `/api/hw/${LESSON_PK}/submit/`,
+  edit:    `/api/hw/${LESSON_PK}/edit/`,
+  history: `/api/hw/${LESSON_PK}/history/`,
+  msgs:    `/api/hw/${LESSON_PK}/messages/`,
+  msgSend: `/api/hw/${LESSON_PK}/messages/send/`,
+};
+
+/* ─────────────────────────────────────────────
+   STATE
+───────────────────────────────────────────── */
+let hwState = {
+  homework:    null,
+  submission:  null,
+  versionCount: 0,
+  isTeacher:   false,
+};
+let submitType = 'file';
+let editTimerInterval = null;
+let chatPollInterval  = null;
+
+/* ─────────────────────────────────────────────
+   INIT
+───────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadDetail();
 });
 
-// Toggle submission type
-function toggleSubmissionType() {
-    const isFile = document.getElementById('type_file').checked;
-    document.getElementById('file-section').style.display = isFile ? 'block' : 'none';
-    document.getElementById('text-section').style.display = isFile ? 'none' : 'block';
+async function loadDetail() {
+  try {
+    const r = await api(API.detail, 'GET');
+    if (!r.ok) return toast(r.error, 'error');
+    hwState.homework     = r.homework;
+    hwState.submission   = r.submission;
+    hwState.versionCount = r.version_count || 0;
+    hwState.isTeacher    = r.is_teacher || false;
+    renderAll();
+  } catch (e) {
+    toast('Ma\'lumot yuklanmadi: ' + e.message, 'error');
+  }
 }
 
-// Show selected file name + 5MB check
-function showFileName(input) {
-    const display = document.getElementById('file-name-display');
-    const maxSize = 5 * 1024 * 1024; // 5 MB
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        if (file.size > maxSize) {
-            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            showFileSizeWarning(sizeMB);
-            input.value = '';
-            display.style.display = 'none';
-            return;
-        }
-        display.textContent = file.name;
-        display.style.display = 'block';
+function renderAll() {
+  renderMeta();
+  renderDesc();
+  renderStatus();
+  renderSubmitForm();
+  loadHistory();
+  loadMessages();
+}
+
+/* ─────────────────────────────────────────────
+   META ROW
+───────────────────────────────────────────── */
+function renderMeta() {
+  const hw = hwState.homework;
+  if (!hw) return;
+
+  document.getElementById('metaMaxScore').textContent = hw.max_score;
+
+  const dueEl = document.getElementById('metaDue');
+  if (hw.due_date) {
+    dueEl.className = 'sp-pill ' + (hw.is_deadline_passed ? 'danger' : 'warn');
+    dueEl.innerHTML = `<i class="bi bi-calendar-x"></i> ${hw.due_date}`;
+  } else {
+    dueEl.className = 'sp-pill success';
+    dueEl.innerHTML = `<i class="bi bi-calendar-check"></i> Muddatsiz`;
+  }
+
+  if (hw.ai_check)         document.getElementById('metaAi').style.display      = '';
+  if (hw.file_only)        document.getElementById('metaFileOnly').style.display = '';
+  if (hw.handwritten_only) document.getElementById('metaHandwritten').style.display = '';
+
+  // Allowed formats hint
+  if (hw.allowed_formats && hw.allowed_formats.length) {
+    document.getElementById('allowedFormatsHint').textContent =
+      'Ruxsat: ' + hw.allowed_formats.join(', ') + ' — max 5 MB';
+  }
+}
+
+/* ─────────────────────────────────────────────
+   DESCRIPTION
+───────────────────────────────────────────── */
+function renderDesc() {
+  const hw = hwState.homework;
+  const el = document.getElementById('hwDesc');
+  if (!hw) return;
+  el.innerHTML = hw.description || '<p style="color:var(--sp-muted)">Tavsif yo\'q</p>';
+}
+
+/* ─────────────────────────────────────────────
+   STATUS CARD
+───────────────────────────────────────────── */
+const STATUS_MAP = {
+  pending:   { cls:'s-pending',   icon:'bi-hourglass-split',  label:"Ko'rib chiqilmoqda" },
+  reviewing: { cls:'s-reviewing', icon:'bi-eye',               label:'Tekshirilmoqda'    },
+  revision:  { cls:'s-revision',  icon:'bi-arrow-repeat',      label:'Qayta topshiring'  },
+  accepted:  { cls:'s-accepted',  icon:'bi-check-circle-fill', label:'Qabul qilindi'     },
+  graded:    { cls:'s-graded',    icon:'bi-stars',             label:'Baholandi'         },
+};
+
+function renderStatus() {
+  const sub = hwState.submission;
+  const iconEl  = document.getElementById('statusIcon');
+  const labelEl = document.getElementById('statusLabel');
+  const gradeEl = document.getElementById('gradeDisplay');
+  const topEl   = document.getElementById('topStatus');
+
+  if (!sub) {
+    iconEl.className  = 'sp-status-icon-wrap s-none';
+    iconEl.innerHTML  = '<i class="bi bi-inbox"></i>';
+    labelEl.textContent = 'Topshirilmagan';
+    gradeEl.style.display = 'none';
+    topEl.textContent = '';
+    topEl.style = '';
+    clearInterval(editTimerInterval);
+    document.getElementById('editTimerBlock').style.display = 'none';
+    document.getElementById('sbVersion').textContent = '—';
+    document.getElementById('sbDate').textContent    = '—';
+    document.getElementById('sbType').textContent    = '—';
+    document.getElementById('sbLateRow').style.display = 'none';
+    document.getElementById('aiFeedbackWrap').style.display   = 'none';
+    document.getElementById('teacherFeedbackWrap').style.display = 'none';
+    document.getElementById('submissionPreviewWrap').style.display = 'none';
+    return;
+  }
+
+  const info = STATUS_MAP[sub.status] || { cls:'s-none', icon:'bi-question', label: sub.status_display };
+  iconEl.className = 'sp-status-icon-wrap ' + info.cls;
+  iconEl.innerHTML = `<i class="bi ${info.icon}"></i>`;
+  labelEl.textContent = info.label;
+
+  // Top bar status indicator
+  topEl.style.cssText = '';
+  if (sub.status === 'graded' || sub.status === 'accepted') {
+    topEl.classList.remove(...topEl.classList);
+    topEl.classList.add('sp-topbar-status');
+    topEl.style.background = 'rgba(63,185,80,.12)';
+    topEl.style.color = 'var(--sp-green)';
+    topEl.style.border = '1px solid rgba(63,185,80,.3)';
+    topEl.textContent = sub.status === 'graded' ? `✓ ${sub.grade}/${sub.max_score}` : '✓ Qabul';
+  } else if (sub.status === 'revision') {
+    topEl.classList.add('sp-topbar-status');
+    topEl.style.background = 'rgba(248,81,73,.12)';
+    topEl.style.color = 'var(--sp-red)';
+    topEl.style.border = '1px solid rgba(248,81,73,.3)';
+    topEl.textContent = '↩ Qayta topshiring';
+  } else {
+    topEl.classList.add('sp-topbar-status');
+    topEl.style.background = 'rgba(210,153,34,.1)';
+    topEl.style.color = 'var(--sp-amber)';
+    topEl.style.border = '1px solid rgba(210,153,34,.25)';
+    topEl.textContent = '⏳ Kutilmoqda';
+  }
+
+  // Grade display
+  if (sub.grade !== null && sub.grade !== undefined) {
+    gradeEl.style.display = 'block';
+    const pct = sub.max_score > 0 ? sub.grade / sub.max_score : 0;
+    gradeEl.className = 'sp-grade-display' + (pct < 0.5 ? ' grade-bad' : pct < 0.75 ? ' grade-low' : '');
+    gradeEl.textContent = `${sub.grade}/${sub.max_score}`;
+  } else {
+    gradeEl.style.display = 'none';
+  }
+
+  // Sidebar rows
+  document.getElementById('sbVersion').textContent = `v${sub.version}`;
+  document.getElementById('sbDate').textContent    = sub.submitted_at;
+  document.getElementById('sbType').textContent    = sub.submission_type === 'file' ? 'Fayl' : 'Matn';
+  document.getElementById('sbLateRow').style.display = sub.is_late ? '' : 'none';
+
+  if (sub.coin_awarded) {
+    document.getElementById('sbCoinRow').style.display = '';
+    document.getElementById('sbCoin').textContent = '🪙 Berildi';
+  }
+
+  // Edit timer
+  renderEditTimer(sub);
+
+  // AI feedback
+  renderAiFeedback(sub);
+
+  // Teacher feedback
+  renderTeacherFeedback(sub);
+
+  // Submission preview
+  renderSubmissionPreview(sub);
+}
+
+function renderEditTimer(sub) {
+  const block = document.getElementById('editTimerBlock');
+  clearInterval(editTimerInterval);
+  if (!sub.can_edit) { block.style.display = 'none'; return; }
+
+  block.style.display = 'flex';
+  let secs = sub.edit_seconds_left;
+
+  function tick() {
+    if (secs <= 0) {
+      clearInterval(editTimerInterval);
+      block.classList.add('expired');
+      document.getElementById('editTimerVal').textContent = 'Muddati o\'tdi';
+      return;
     }
+    const m = Math.floor(secs / 60).toString().padStart(2,'0');
+    const s = (secs % 60).toString().padStart(2,'0');
+    document.getElementById('editTimerVal').textContent = `${m}:${s}`;
+    secs--;
+  }
+  tick();
+  editTimerInterval = setInterval(tick, 1000);
 }
 
-// Text formatting
-function formatText(command) {
-    document.execCommand(command, false, null);
-    document.getElementById('text-editor').focus();
+function renderAiFeedback(sub) {
+  const wrap = document.getElementById('aiFeedbackWrap');
+  if (!sub.ai_checked || !sub.ai_feedback) { wrap.style.display = 'none'; return; }
+  const isPlag = /plagiat|copy|nusxa|plagiarism/i.test(sub.ai_feedback);
+  wrap.style.display = '';
+  wrap.innerHTML = `
+    <div class="sp-ai-block ${isPlag ? 'plag' : 'good'}">
+      <h6><i class="bi bi-robot"></i> AI Tekshiruvi</h6>
+      ${escapeHtml(sub.ai_feedback)}
+    </div>`;
 }
 
-function changeFontSize(size) {
-    document.execCommand('fontSize', false, size);
-    document.getElementById('text-editor').focus();
+function renderTeacherFeedback(sub) {
+  const wrap = document.getElementById('teacherFeedbackWrap');
+  if (!sub.feedback) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+  wrap.innerHTML = `
+    <div style="padding:0 16px 12px">
+      <div class="sp-feedback-block">
+        <div class="sp-feedback-label"><i class="bi bi-chat-quote"></i> O'qituvchi izohi</div>
+        ${sub.feedback}
+      </div>
+    </div>`;
 }
 
-function changeColor(color) {
-    document.execCommand('foreColor', false, color);
-    document.getElementById('text-editor').focus();
+function renderSubmissionPreview(sub) {
+  const wrap = document.getElementById('submissionPreviewWrap');
+  if (!sub) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  if (sub.submission_type === 'file' && sub.file_url) {
+    wrap.innerHTML = `
+      <div class="sp-preview-head">
+        <span><i class="bi bi-paperclip"></i> ${escapeHtml(sub.file_name || 'fayl')}</span>
+        <span>v${sub.version}</span>
+      </div>
+      <div style="padding:10px 0 2px">
+        <a class="sp-dl-btn" href="${sub.file_url}" target="_blank" download>
+          <i class="bi bi-download"></i> Yuklab olish
+        </a>
+      </div>`;
+  } else if (sub.submission_type === 'text' && sub.text_content) {
+    const preview = sub.text_content.length > 300
+      ? sub.text_content.slice(0, 300) + '…'
+      : sub.text_content;
+    wrap.innerHTML = `
+      <div class="sp-preview-wrap">
+        <div class="sp-preview-head">
+          <span><i class="bi bi-file-text"></i> Matn (v${sub.version})</span>
+          <span style="color:var(--sp-muted)">${countWords(sub.text_content)} so'z</span>
+        </div>
+        <div class="sp-preview-content">${preview}</div>
+      </div>`;
+  } else {
+    wrap.style.display = 'none';
+  }
 }
 
-function changeBgColor(color) {
-    document.execCommand('hiliteColor', false, color);
-    document.getElementById('text-editor').focus();
+/* ─────────────────────────────────────────────
+   SUBMIT FORM
+───────────────────────────────────────────── */
+function renderSubmitForm() {
+  const hw  = hwState.homework;
+  const sub = hwState.submission;
+
+  if (!hw) return;
+
+  // If there's already a submission, show resubmit notice
+  document.getElementById('resubmitNotice').style.display = sub ? '' : 'none';
+  document.getElementById('submitBtnText').textContent    = sub ? 'Qayta topshirish' : 'Topshirish';
+
+  // Type switch visibility
+  const ts = document.getElementById('typeSwitch');
+  if (hw.file_only || hw.handwritten_only) {
+    ts.style.display = 'none';
+    setType('file');
+  } else {
+    ts.style.display = '';
+  }
 }
 
-// Prepare form submission
-function prepareSubmit() {
-    const isText = document.getElementById('type_text').checked;
-    if (isText) {
-        const content = document.getElementById('text-editor').innerHTML;
-        document.getElementById('text-content-input').value = content;
+function setType(t) {
+  submitType = t;
+  document.getElementById('fileSection').style.display = t === 'file' ? '' : 'none';
+  document.getElementById('textSection').style.display = t === 'text' ? '' : 'none';
+  document.getElementById('typeFile').classList.toggle('active', t === 'file');
+  document.getElementById('typeText').classList.toggle('active', t === 'text');
+}
+
+/* ─────────────────────────────────────────────
+   FILE HANDLING
+───────────────────────────────────────────── */
+function onFileChosen() {
+  const fi = document.getElementById('fileInput');
+  if (!fi.files[0]) return;
+  showFileChosen(fi.files[0].name);
+}
+function showFileChosen(name) {
+  document.getElementById('fileChosen').style.display = 'flex';
+  document.getElementById('fileChosenName').textContent = name;
+}
+function dragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+}
+function dragLeave(e) {
+  document.getElementById('dropZone').classList.remove('drag-over');
+}
+function dropFile(e) {
+  e.preventDefault();
+  dragLeave(e);
+  const files = e.dataTransfer.files;
+  if (files[0]) {
+    document.getElementById('fileInput').files = files;
+    showFileChosen(files[0].name);
+  }
+}
+
+/* ─────────────────────────────────────────────
+   TEXT EDITOR
+───────────────────────────────────────────── */
+function fmt(cmd) {
+  document.execCommand(cmd, false, null);
+  document.getElementById('editorArea').focus();
+}
+function wrapCode() {
+  const sel = window.getSelection();
+  if (sel && sel.toString()) {
+    document.execCommand('insertHTML', false,
+      `<pre><code>${escapeHtml(sel.toString())}</code></pre>`);
+  }
+}
+function updateWordCount() {
+  const txt = document.getElementById('editorArea').innerText || '';
+  const words = txt.trim().split(/\s+/).filter(Boolean).length;
+  document.getElementById('wordCount').textContent = `${words} so'z`;
+}
+
+/* ─────────────────────────────────────────────
+   SUBMIT
+───────────────────────────────────────────── */
+async function doSubmit() {
+  const btn = document.getElementById('submitBtn');
+  const spin = document.getElementById('submitSpinner');
+  const icon = document.getElementById('submitIcon');
+
+  btn.disabled = true;
+  spin.style.display = 'inline-block';
+  icon.style.display = 'none';
+
+  try {
+    const fd = new FormData();
+    fd.append('submission_type', submitType);
+
+    if (submitType === 'file') {
+      const fi = document.getElementById('fileInput');
+      if (!fi.files[0]) { toast('Fayl tanlanmagan', 'error'); return; }
+      fd.append('file', fi.files[0]);
+      // Show progress
+      await uploadWithProgress(API.submit, fd);
+    } else {
+      const content = document.getElementById('editorArea').innerHTML;
+      if (!content.trim()) { toast('Matn yozing', 'error'); return; }
+      fd.append('text_content', content);
+      const r = await api(API.submit, 'POST', fd);
+      handleSubmitResponse(r);
     }
-    // Tugmani bir marta bosish uchun o'chirish
-    const btn = document.getElementById('submit-homework-btn');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda...';
-        // Form submit bo'lgandan keyin buttonni disable qilish
-        setTimeout(function() {
-            btn.closest('form').submit();
-        }, 100);
-    }
+  } catch (e) {
+    toast('Xato: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    spin.style.display = 'none';
+    icon.style.display = '';
+  }
 }
 
-// Drag and drop support
-const uploadArea = document.querySelector('.file-upload-area');
-if (uploadArea) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
+async function uploadWithProgress(url, fd) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('X-CSRFToken', CSRF_TOKEN);
 
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        document.getElementById('progressWrap').style.display = '';
+        document.getElementById('progressBar').style.width    = pct + '%';
+        document.getElementById('progressLabel').textContent  = `${pct}% yuklandi`;
+      }
+    };
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => uploadArea.classList.add('dragover'), false);
-    });
+    xhr.onload = () => {
+      document.getElementById('progressWrap').style.display = 'none';
+      document.getElementById('progressBar').style.width    = '0%';
+      try {
+        const r = JSON.parse(xhr.responseText);
+        handleSubmitResponse(r);
+        resolve(r);
+      } catch {
+        toast('Server javobi noto\'g\'ri', 'error');
+        reject(new Error('Bad response'));
+      }
+    };
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('dragover'), false);
-    });
+    xhr.onerror = () => {
+      document.getElementById('progressWrap').style.display = 'none';
+      toast('Tarmoq xatosi', 'error');
+      reject(new Error('Network error'));
+    };
 
-    uploadArea.addEventListener('drop', function(e) {
-        const files = e.dataTransfer.files;
-        if (files.length) {
-            const maxSize = 5 * 1024 * 1024;
-            if (files[0].size > maxSize) {
-                const sizeMB = (files[0].size / (1024 * 1024)).toFixed(2);
-                showFileSizeWarning(sizeMB);
-                return;
-            }
-            document.getElementById('file-input').files = files;
-            showFileName(document.getElementById('file-input'));
-        }
-    }, false);
+    xhr.send(fd);
+  });
 }
 
-// Keyboard shortcuts for editor
-document.getElementById('text-editor')?.addEventListener('keydown', function(e) {
-    if (e.ctrlKey || e.metaKey) {
-        switch(e.key.toLowerCase()) {
-            case 'b':
-                e.preventDefault();
-                formatText('bold');
-                break;
-            case 'i':
-                e.preventDefault();
-                formatText('italic');
-                break;
-            case 'u':
-                e.preventDefault();
-                formatText('underline');
-                break;
-        }
-    }
-});
-
-// ======== Tahrirlash taymeri ========
-{% if submission and submission.can_edit %}
-(function() {
-    let secondsLeft = {{ submission.edit_seconds_left }};
-    const timerEl = document.getElementById('editTimerValue');
-    const timerCard = document.getElementById('editTimerCard');
-    const editFormWrap = document.getElementById('editFormWrap');
-
-    function pad(n) { return n < 10 ? '0' + n : n; }
-
-    function updateTimer() {
-        if (secondsLeft <= 0) {
-            timerEl.textContent = 'Tugadi! AI tekshirmoqda...';
-            timerCard.classList.add('expired');
-            timerCard.querySelector('.edit-timer-icon').innerHTML = '<i class="bi bi-hourglass-split"></i>';
-            timerCard.querySelector('.edit-timer-label').textContent = 'Tahrirlash muddati tugadi';
-            if (editFormWrap) editFormWrap.style.display = 'none';
-            const editBtns = document.querySelectorAll('.edit-btn');
-            editBtns.forEach(function(btn) {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.style.cursor = 'not-allowed';
-            });
-            // Sahifani yangilash — AI natijasi ko'rinishi uchun
-            setTimeout(function() { location.reload(); }, 10000);
-            return;
-        }
-        const m = Math.floor(secondsLeft / 60);
-        const s = secondsLeft % 60;
-        timerEl.textContent = pad(m) + ':' + pad(s);
-        secondsLeft--;
-        setTimeout(updateTimer, 1000);
-    }
-    updateTimer();
-})();
-{% endif %}
-
-function toggleEditForm() {
-    const wrap = document.getElementById('editFormWrap');
-    if (wrap) {
-        wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
-    }
+function handleSubmitResponse(r) {
+  if (r.ok) {
+    hwState.submission  = r.submission;
+    hwState.versionCount++;
+    toast(r.message || 'Muvaffaqiyatli yuborildi!', 'success');
+    renderStatus();
+    renderSubmitForm();
+    switchTab('desc');
+    // Clear form
+    document.getElementById('fileInput').value   = '';
+    document.getElementById('fileChosen').style.display = 'none';
+    document.getElementById('editorArea').innerHTML     = '';
+    updateWordCount();
+  } else {
+    toast(r.error || 'Xato yuz berdi', 'error');
+  }
 }
 
-function showEditFileName(input) {
-    const display = document.getElementById('edit-file-name');
-    if (input.files && input.files[0] && display) {
-        display.textContent = input.files[0].name;
-        display.style.display = 'block';
+/* ─────────────────────────────────────────────
+   HISTORY
+───────────────────────────────────────────── */
+async function loadHistory() {
+  const el = document.getElementById('historyList');
+  try {
+    const r = await api(API.history, 'GET');
+    if (!r.ok || !r.history.length) {
+      el.innerHTML = `<div class="sp-empty"><i class="bi bi-inbox"></i><p>Topshirishlar tarixi yo'q</p></div>`;
+      return;
     }
+    el.innerHTML = [...r.history].reverse().map(renderHistoryCard).join('');
+  } catch {
+    el.innerHTML = `<div class="sp-empty"><i class="bi bi-exclamation-circle"></i><p>Yuklanmadi</p></div>`;
+  }
+}
+
+function renderHistoryCard(sub) {
+  const info = STATUS_MAP[sub.status] || { icon:'bi-question', label: sub.status_display };
+  const gradeHtml = sub.grade !== null && sub.grade !== undefined
+    ? `<span class="sp-rev-grade">${sub.grade}/${sub.max_score}</span>`
+    : '';
+  const fileHtml = sub.submission_type === 'file' && sub.file_url
+    ? `<div style="margin-top:8px"><a class="sp-dl-btn" href="${sub.file_url}" target="_blank" download><i class="bi bi-download"></i> ${escapeHtml(sub.file_name||'fayl')}</a></div>`
+    : '';
+  const feedbackHtml = sub.feedback
+    ? `<div class="sp-feedback-block" style="margin-top:8px">
+         <div class="sp-feedback-label"><i class="bi bi-chat-quote"></i> O'qituvchi izohi</div>
+         ${sub.feedback}
+       </div>` : '';
+
+  return `
+    <div class="sp-rev-card">
+      <div class="sp-rev-header">
+        <span class="sp-rev-ver">v${sub.version}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${gradeHtml}
+          <span class="sp-rev-date">${sub.submitted_at}</span>
+        </div>
+      </div>
+      <div class="sp-rev-body">
+        <span class="sp-pill ${statusPillClass(sub.status)}" style="font-size:11px">
+          <i class="bi ${info.icon}"></i> ${info.label}
+        </span>
+        ${sub.is_late ? '<span class="sp-pill warn" style="font-size:11px;margin-left:4px"><i class="bi bi-clock"></i> Kech</span>' : ''}
+        ${fileHtml}
+        ${feedbackHtml}
+      </div>
+    </div>`;
+}
+
+function statusPillClass(s) {
+  return { pending:'warn', reviewing:'info', revision:'danger', accepted:'success', graded:'violet' }[s] || 'info';
+}
+
+/* ─────────────────────────────────────────────
+   CHAT
+───────────────────────────────────────────── */
+async function loadMessages() {
+  try {
+    const r = await api(API.msgs, 'GET');
+    if (!r.ok) return;
+    renderMessages(r.messages || []);
+  } catch { /* silent */ }
+}
+
+function renderMessages(msgs) {
+  const el = document.getElementById('chatMsgs');
+  if (!msgs.length) {
+    el.innerHTML = `<div class="sp-empty"><i class="bi bi-chat-dots"></i><p>Hali xabar yo'q</p></div>`;
+    return;
+  }
+  el.innerHTML = msgs.map(renderMsg).join('');
+  el.scrollTop = el.scrollHeight;
+  // Hide unread badge since we just read them
+  document.getElementById('chatBadge').style.display = 'none';
+}
+
+function renderMsg(m) {
+  const avatarLetter = m.sender.charAt(0).toUpperCase();
+  const fileHtml = m.file_url
+    ? `<div style="margin-top:6px"><a class="sp-dl-btn" href="${m.file_url}" target="_blank" download style="font-size:12px;padding:5px 10px"><i class="bi bi-paperclip"></i> Fayl</a></div>`
+    : '';
+  return `
+    <div class="sp-msg-row ${m.is_me ? 'me' : ''}">
+      <div class="sp-msg-avatar">${avatarLetter}</div>
+      <div>
+        <div class="sp-msg-bubble">
+          ${m.message ? escapeHtml(m.message) : ''}
+          ${fileHtml}
+          <span class="sp-msg-time">${m.created_at}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  input.value    = '';
+  input.disabled = true;
+  try {
+    const fd = new FormData();
+    fd.append('message', text);
+    const r = await api(API.msgSend, 'POST', fd);
+    if (r.ok) {
+      const el = document.getElementById('chatMsgs');
+      // Remove empty state if present
+      const empty = el.querySelector('.sp-empty');
+      if (empty) empty.remove();
+      el.insertAdjacentHTML('beforeend', renderMsg(r.message));
+      el.scrollTop = el.scrollHeight;
+    } else {
+      toast(r.error || 'Yuborilmadi', 'error');
+    }
+  } catch (e) {
+    toast('Xato: ' + e.message, 'error');
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+}
+
+/* ─────────────────────────────────────────────
+   TABS
+───────────────────────────────────────────── */
+function switchTab(name) {
+  document.querySelectorAll('.sp-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.sp-tab-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+
+  if (name === 'history') loadHistory();
+  if (name === 'chat')    loadMessages();
+}
+
+/* ─────────────────────────────────────────────
+   FETCH WRAPPER
+───────────────────────────────────────────── */
+async function api(url, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'X-CSRFToken': CSRF_TOKEN },
+    credentials: 'same-origin',
+  };
+  if (body && !(body instanceof FormData)) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  } else if (body) {
+    opts.body = body;
+  }
+  const resp = await fetch(url, opts);
+  if (resp.status === 429) return { ok: false, error: "So'rovlar juda tez. Biroz kutib turing." };
+  if (resp.status === 403) return { ok: false, error: "Ruxsat yo'q (403)" };
+  return await resp.json();
+}
+
+/* ─────────────────────────────────────────────
+   TOAST
+───────────────────────────────────────────── */
+function toast(msg, type = 'info') {
+  const icons = { success: 'bi-check-circle-fill success-ico', error: 'bi-x-circle-fill error-ico', info: 'bi-info-circle info-ico' };
+  const wrap  = document.getElementById('spToastWrap');
+  const div   = document.createElement('div');
+  div.className = `sp-toast ${type}`;
+  div.innerHTML = `<i class="bi ${icons[type] || icons.info}"></i><span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(div);
+  setTimeout(() => {
+    div.style.transition = 'opacity .3s';
+    div.style.opacity    = '0';
+    setTimeout(() => div.remove(), 350);
+  }, 3500);
+}
+
+/* ─────────────────────────────────────────────
+   UTILS
+───────────────────────────────────────────── */
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function countWords(text) {
+  return (text || '').replace(/<[^>]+>/g,' ').trim().split(/\s+/).filter(Boolean).length;
 }
 </script>
 {% endblock %}

@@ -3,119 +3,349 @@
 
 <head>
     {% load static %}
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}O'qituvchi paneli - LMS{% endblock %}</title>
+
+    <meta name="description" content="IT Shaharcha Zomin - Zomin IT Park. Zomin hududida eng yaxshi dasturlash kurslari.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
+
+    <link rel="stylesheet" href="{% static 'css/base_admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/teacher_panel.css' %}">
     <link rel="icon" href="{% static 'img/fav.ico' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/teacher_panel.css' %}">
+
+    <style>
+    /* ===== Teacher Layout (mirrors base_admin) ===== */
+    .admin-topbar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 280px;
+        height: 64px;
+        background: var(--card-bg);
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 24px;
+        z-index: 999;
+        transition: left 0.3s ease;
+    }
+
+    .admin-topbar-left { display: flex; align-items: center; gap: 12px; }
+    .admin-topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .sidebar-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 12px;
+        background: rgba(13, 110, 253, 0.08);
+        color: var(--primary-blue);
+        font-size: 1.3rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .sidebar-toggle:active { transform: scale(0.92); }
+
+    /* Desktop sidebar collapsed state */
+    body.sidebar-collapsed .sidebar { width: 78px; }
+    body.sidebar-collapsed .sidebar .sidebar-brand span,
+    body.sidebar-collapsed .sidebar .sidebar-nav .nav-link span,
+    body.sidebar-collapsed .sidebar .sidebar-group-label,
+    body.sidebar-collapsed .sidebar .sidebar-user-card .suc-info,
+    body.sidebar-collapsed .sidebar .sidebar-user-card .suc-dot { display: none; }
+
+    body.sidebar-collapsed .sidebar .sidebar-nav .nav-link {
+        justify-content: center;
+        padding: 12px;
+    }
+    body.sidebar-collapsed .sidebar .sidebar-nav .nav-link i:first-child { margin-right: 0; font-size: 1.25rem; }
+    body.sidebar-collapsed .sidebar .sidebar-brand { text-align: center; }
+    body.sidebar-collapsed .sidebar .sidebar-brand a { justify-content: center; }
+    body.sidebar-collapsed .sidebar .sidebar-brand i { margin-right: 0 !important; }
+    body.sidebar-collapsed .sidebar .sidebar-user-card { justify-content: center; padding: 10px; }
+    body.sidebar-collapsed .admin-topbar { left: 78px; }
+    body.sidebar-collapsed .main-content { margin-left: 78px; }
+
+    /* Tooltip for collapsed sidebar */
+    body.sidebar-collapsed .sidebar .nav-link { position: relative; }
+    body.sidebar-collapsed .sidebar .nav-link:hover::after {
+        content: attr(data-title);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #1a1a2e;
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 0.82rem;
+        white-space: nowrap;
+        z-index: 9999;
+        margin-left: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        pointer-events: none;
+    }
+
+    .topbar-title { font-weight: 700; font-size: 1.1rem; color: var(--text-color); }
+
+    .topbar-profile-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px 6px 6px;
+        border: 1px solid var(--border-color);
+        border-radius: 50px;
+        background: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        color: var(--text-color);
+    }
+    .topbar-profile-btn:hover { background: rgba(13, 110, 253, 0.05); border-color: var(--primary-blue); }
+
+    .topbar-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .topbar-name { font-weight: 600; font-size: 0.9rem; }
+
+    .admin-theme-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .admin-theme-btn:hover { background: rgba(13, 110, 253, 0.08); color: var(--primary-blue); }
+
+    .main-content {
+        margin-left: 280px;
+        padding-top: 88px;
+        padding-left: 30px;
+        padding-right: 30px;
+        padding-bottom: 30px;
+        min-height: 100vh;
+    }
+
+    /* ===== Sidebar Overlay (mobile) ===== */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        backdrop-filter: blur(3px);
+        z-index: 1049;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+    /* ===== Sidebar nav groups ===== */
+    .sidebar-group-label {
+        color: rgba(255,255,255,0.35);
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        padding: 16px 15px 6px;
+        margin-top: 6px;
+    }
+
+    .sidebar-close {
+        display: none;
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 992px) {
+        .sidebar {
+            width: 280px !important;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1050;
+        }
+        .sidebar.open { transform: translateX(0); }
+        .sidebar-close { display: flex; align-items: center; justify-content: center; }
+        .sidebar-brand span,
+        .sidebar-nav .nav-link span:not(.sidebar-badge) { display: inline !important; }
+        .sidebar-user-card .suc-info,
+        .sidebar-user-card .suc-dot { display: block !important; }
+        .sidebar-nav .nav-link {
+            justify-content: flex-start !important;
+            padding: 12px 15px !important;
+        }
+        .sidebar-nav .nav-link i:first-child { margin-right: 10px !important; }
+        .admin-topbar { left: 0 !important; }
+        .main-content { margin-left: 0 !important; }
+    }
+
+    @media (max-width: 576px) {
+        .admin-topbar { padding: 0 14px; }
+        .topbar-name { display: none; }
+        .main-content { padding: 78px 14px 20px; }
+    }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 
 <body>
+
     <!-- Sidebar Overlay (mobile) -->
-    <div class="t-sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <!-- Sidebar -->
-    <div class="t-sidebar" id="teacherSidebar">
-        <button class="t-sidebar-close" id="sidebarClose"><i class="bi bi-x-lg"></i></button>
-        <div class="t-sidebar-brand">
+    <div class="sidebar" id="adminSidebar">
+        <button class="sidebar-close" id="sidebarClose" aria-label="Yopish">
+            <i class="bi bi-x-lg"></i>
+        </button>
+
+        <!-- Brand -->
+        <div class="sidebar-brand">
             <a href="{% url 'teacher:dashboard' %}">
-                <div class="t-brand-icon"><i class="bi bi-mortarboard-fill"></i></div>
+                <img src="{% static 'img/logo.png' %}" alt="Logo" style="width:30px;height:30px;border-radius:8px;object-fit:cover;flex-shrink:0;">
                 <span>O'qituvchi paneli</span>
             </a>
         </div>
 
-        <nav class="t-sidebar-nav">
-            <div class="t-nav-section open" id="navAsosiy">
-                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navAsosiy')">
-                    Asosiy <i class="bi bi-chevron-down t-nav-chevron"></i>
-                </div>
-                <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:dashboard' %}" class="t-nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-title="Bosh sahifa">
-                        <i class="bi bi-grid-1x2-fill"></i><span>Bosh sahifa</span>
-                    </a>
-                    <a href="{% url 'teacher:statistics' %}" class="t-nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" data-title="Statistika">
-                        <i class="bi bi-bar-chart-line-fill"></i><span>Statistika</span>
-                    </a>
-                    <a href="{% url 'teacher:courses' %}" class="t-nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}" data-title="Kurslarim">
-                        <i class="bi bi-book-fill"></i><span>Kurslarim</span>
-                    </a>
-                    <a href="{% url 'teacher:my_students' %}" class="t-nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}" data-title="O'quvchilarim">
-                        <i class="bi bi-people-fill"></i><span>O'quvchilarim</span>
-                    </a>
-                </div>
+        <!-- User Card -->
+        <div class="sidebar-user-card">
+            <div class="suc-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
+            <div class="suc-info">
+                <div class="suc-name">{{ user.first_name }} {{ user.last_name }}</div>
+                <div class="suc-role">O'qituvchi</div>
             </div>
+            <div class="suc-dot"></div>
+        </div>
 
-            <div class="t-nav-section open" id="navOquv">
-                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navOquv')">
-                    O'quv jarayoni <i class="bi bi-chevron-down t-nav-chevron"></i>
-                </div>
-                <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:homeworks' %}" class="t-nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}" data-title="Uyga vazifalar">
-                        <i class="bi bi-journal-check"></i><span>Uyga vazifalar</span>
-                    </a>
-                    <a href="{% url 'teacher:speaking_tasks' %}" class="t-nav-link {% if 'speaking' in request.resolver_match.url_name %}active{% endif %}" data-title="Speaking vazifalar">
-                        <i class="bi bi-mic-fill"></i><span>Speaking vazifalar</span>
-                    </a>
-                    <a href="{% url 'teacher:test_results' %}" class="t-nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}" data-title="Test natijalari">
-                        <i class="bi bi-clipboard-data-fill"></i><span>Test natijalari</span>
-                    </a>
-                    <a href="{% url 'teacher:ai_checker' %}" class="t-nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
-                        <i class="bi bi-cpu"></i><span>AI Tekshiruvchi</span>
-                    </a>
-                </div>
-            </div>
+        <nav class="sidebar-nav">
+            <div class="sidebar-group-label">Asosiy</div>
 
-            <div class="t-nav-section open" id="navBoshqa">
-                <div class="t-nav-group t-nav-group-toggle" onclick="toggleNavSection('navBoshqa')">
-                    Boshqa <i class="bi bi-chevron-down t-nav-chevron"></i>
-                </div>
-                <div class="t-nav-section-links">
-                    <a href="{% url 'teacher:earnings' %}" class="t-nav-link {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}" data-title="Daromadlarim">
-                        <i class="bi bi-cash-coin"></i><span>Daromadlarim</span>
-                    </a>
-                                        <a href="{% url 'teacher:final_test_payments' %}" class="t-nav-link {% if request.resolver_match.url_name == 'final_test_payments' %}active{% endif %}" data-title="Yakuniy test to'lovlari">
-                        <i class="bi bi-cash-coin"></i><span>Yakuniy test to'lovlari</span>
-                    </a>
-                    <a href="{% url 'teacher:certificates' %}" class="t-nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlarim">
-                        <i class="bi bi-award-fill"></i><span>Sertifikatlarim</span>
-                    </a>
-                </div>
-            </div>
+            <a href="{% url 'teacher:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" data-title="Bosh sahifa">
+                <div class="nav-icon-wrap"><i class="bi bi-speedometer2"></i></div>
+                <span>Bosh sahifa</span>
+            </a>
+            <a href="{% url 'teacher:statistics' %}" class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" data-title="Statistika">
+                <div class="nav-icon-wrap"><i class="bi bi-graph-up"></i></div>
+                <span>Statistika</span>
+            </a>
+            <a href="{% url 'teacher:courses' %}" class="nav-link {% if request.resolver_match.url_name == 'courses' %}active{% endif %}" data-title="Kurslarim">
+                <div class="nav-icon-wrap"><i class="bi bi-book"></i></div>
+                <span>Kurslarim</span>
+            </a>
+            <a href="{% url 'teacher:my_students' %}" class="nav-link {% if request.resolver_match.url_name == 'my_students' %}active{% endif %}" data-title="O'quvchilarim">
+                <div class="nav-icon-wrap"><i class="bi bi-people"></i></div>
+                <span>O'quvchilarim</span>
+            </a>
 
-            <div style="margin-top:8px;">
-                <a href="{% url 'home' %}" class="t-nav-link" data-title="Saytga qaytish">
-                    <i class="bi bi-house-fill"></i><span>Saytga qaytish</span>
-                </a>
-                <a href="{% url 'logout' %}" class="t-nav-link t-nav-danger" data-title="Chiqish">
-                    <i class="bi bi-box-arrow-right"></i><span>Chiqish</span>
-                </a>
-            </div>
+            <div class="sidebar-group-label">O'quv jarayoni</div>
+
+            <a href="{% url 'teacher:homeworks' %}" class="nav-link {% if 'homework' in request.resolver_match.url_name %}active{% endif %}" data-title="Uyga vazifalar">
+                <div class="nav-icon-wrap"><i class="bi bi-journal-check"></i></div>
+                <span>Uyga vazifalar</span>
+                {% if pending_homeworks_count %}<span class="sidebar-badge">{{ pending_homeworks_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'teacher:speaking_tasks' %}" class="nav-link {% if 'speaking' in request.resolver_match.url_name %}active{% endif %}" data-title="Speaking vazifalar">
+                <div class="nav-icon-wrap"><i class="bi bi-mic"></i></div>
+                <span>Speaking vazifalar</span>
+                {% if pending_speakings_count %}<span class="sidebar-badge" style="background:#8b5cf6;">{{ pending_speakings_count }}</span>{% endif %}
+            </a>
+            <a href="{% url 'teacher:test_results' %}" class="nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}" data-title="Test natijalari">
+                <div class="nav-icon-wrap"><i class="bi bi-clipboard-data"></i></div>
+                <span>Test natijalari</span>
+            </a>
+            <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
+                <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div>
+                <span>AI Tekshiruvchi</span>
+            </a>
+
+            <div class="sidebar-group-label">Moliya & Hujjatlar</div>
+
+            <a href="{% url 'teacher:earnings' %}" class="nav-link {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}" data-title="Daromadlarim">
+                <div class="nav-icon-wrap"><i class="bi bi-cash-stack"></i></div>
+                <span>Daromadlarim</span>
+            </a>
+            <a href="{% url 'teacher:final_test_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'final_test_payments' %}active{% endif %}" data-title="Yakuniy test to'lovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-credit-card"></i></div>
+                <span>Yakuniy test to'lovlari</span>
+            </a>
+            <a href="{% url 'teacher:certificates' %}" class="nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlarim">
+                <div class="nav-icon-wrap"><i class="bi bi-award"></i></div>
+                <span>Sertifikatlarim</span>
+            </a>
+
+            <!-- Logout -->
+            <div class="sidebar-group-label">Boshqa</div>
+            <a href="{% url 'home' %}" class="nav-link" data-title="Saytga qaytish">
+                <div class="nav-icon-wrap"><i class="bi bi-house"></i></div>
+                <span>Saytga qaytish</span>
+            </a>
+            <a href="{% url 'logout' %}" class="nav-link" data-title="Chiqish" style="color:rgba(239,68,68,0.75);">
+                <div class="nav-icon-wrap" style="background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.15);color:#ef4444;">
+                    <i class="bi bi-box-arrow-right"></i>
+                </div>
+                <span>Chiqish</span>
+            </a>
         </nav>
     </div>
 
-    <!-- Topbar -->
-    <div class="t-topbar">
-        <div class="t-topbar-left">
-            <button class="t-sidebar-toggle" id="sidebarToggle"><i class="bi bi-list"></i></button>
-            <span class="t-topbar-title">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
+    <!-- Top Bar -->
+    <div class="admin-topbar">
+        <div class="admin-topbar-left">
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menyu">
+                <i class="bi bi-list" id="sidebarToggleIcon"></i>
+            </button>
+            <span class="topbar-title d-none d-md-inline">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
         </div>
-        <div class="t-topbar-right">
-            <button class="t-theme-btn" id="themeToggle" title="Tema o'zgartirish">
+
+        <div class="admin-topbar-right">
+            <button class="admin-theme-btn" id="themeToggle" title="Tema">
                 <i class="bi bi-moon-fill" id="themeIcon"></i>
             </button>
+
             <div class="dropdown">
-                <button class="t-profile-btn" data-bs-toggle="dropdown">
-                    <div class="t-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
-                    <span class="t-profile-name">{{ user.first_name }}</span>
-                    <i class="bi bi-chevron-down" style="font-size:.7rem;opacity:.5;"></i>
+                <button class="topbar-profile-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                    <div class="topbar-avatar">{{ user.first_name.0 }}{{ user.last_name.0 }}</div>
+                    <span class="topbar-name">{{ user.first_name }}</span>
+                    <i class="bi bi-chevron-down" style="font-size:0.7rem;opacity:0.5;"></i>
                 </button>
+
                 <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;padding:8px;">
                     <li class="px-3 py-2">
                         <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
@@ -132,108 +362,109 @@
     </div>
 
     <!-- Main Content -->
-    <div class="t-main-content">
+    <div class="main-content">
         {% if messages %}
         {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %}-fill me-2"></i>
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         {% endfor %}
         {% endif %}
+
         {% block teacher_content %}{% endblock %}
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    // Theme
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIcon = document.getElementById('themeIcon');
-    const html = document.documentElement;
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    html.setAttribute('data-bs-theme', savedTheme);
-    updateIcon(savedTheme);
-    themeToggle.addEventListener('click', () => {
-        const cur = html.getAttribute('data-bs-theme');
-        const nw = cur === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-bs-theme', nw);
-        localStorage.setItem('theme', nw);
-        updateIcon(nw);
-    });
-    function updateIcon(t) {
-        themeIcon.classList.toggle('bi-moon-fill', t === 'light');
-        themeIcon.classList.toggle('bi-sun-fill', t === 'dark');
-    }
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const html = document.documentElement;
 
-    // Nav section toggle with localStorage
-    function toggleNavSection(id) {
-        const el = document.getElementById(id);
-        el.classList.toggle('open');
-        const state = {};
-        document.querySelectorAll('.t-nav-section').forEach(s => {
-            state[s.id] = s.classList.contains('open');
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-bs-theme', savedTheme);
+        updateIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcon(newTheme);
         });
-        localStorage.setItem('navState', JSON.stringify(state));
-    }
-    (function() {
-        try {
-            const saved = JSON.parse(localStorage.getItem('navState'));
-            if (saved) {
-                document.querySelectorAll('.t-nav-section').forEach(s => {
-                    if (saved[s.id] === false) s.classList.remove('open');
-                    else s.classList.add('open');
-                });
+
+        function updateIcon(theme) {
+            themeIcon.classList.toggle('bi-moon-fill', theme === 'light');
+            themeIcon.classList.toggle('bi-sun-fill', theme === 'dark');
+        }
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('adminSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const closeBtn = document.getElementById('sidebarClose');
+        const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
+
+        function updateSidebarIcon() {
+            if (window.innerWidth > 992 && document.body.classList.contains('sidebar-collapsed')) {
+                sidebarToggleIcon.className = 'bi bi-chevron-right';
+            } else {
+                sidebarToggleIcon.className = 'bi bi-list';
             }
-        } catch(e) {}
-    })();
+        }
 
-    // Sidebar collapse/expand
-    const sidebar = document.getElementById('teacherSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    const toggleBtn = document.getElementById('sidebarToggle');
-    const closeBtn = document.getElementById('sidebarClose');
+        if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
+            document.body.classList.add('sidebar-collapsed');
+        }
+        updateSidebarIcon();
 
-    // Restore collapsed state on desktop
-    if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 992) {
-        document.body.classList.add('t-sidebar-collapsed');
-    }
-
-    toggleBtn.addEventListener('click', function() {
-        if (window.innerWidth <= 992) {
-            // Mobile: overlay
+        function openSidebar() {
             sidebar.classList.add('open');
             overlay.classList.add('active');
             document.body.style.overflow = 'hidden';
-        } else {
-            // Desktop: collapse/expand
-            document.body.classList.toggle('t-sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', document.body.classList.contains('t-sidebar-collapsed'));
         }
-    });
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
-    function closeSidebar() {
-        sidebar.classList.remove('open');
-        overlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-    closeBtn.addEventListener('click', closeSidebar);
-    overlay.addEventListener('click', closeSidebar);
-    sidebar.querySelectorAll('.t-nav-link').forEach(l => l.addEventListener('click', () => { if(window.innerWidth<=992) closeSidebar(); }));
-
-    // Prevent double submit
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            const btn = form.querySelector('button[type="submit"]');
-            if (btn && !btn.disabled) {
-                btn.disabled = true;
-                const origText = btn.innerHTML;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
-                setTimeout(() => { btn.disabled = false; btn.innerHTML = origText; }, 5000);
+        toggleBtn.addEventListener('click', () => {
+            if (window.innerWidth > 992) {
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebarCollapsed', document.body.classList.contains('sidebar-collapsed'));
+                updateSidebarIcon();
+            } else {
+                openSidebar();
             }
         });
-    });
+        closeBtn.addEventListener('click', closeSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        sidebar.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 992) closeSidebar();
+            });
+        });
+
+        // Prevent double submit
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const btn = form.querySelector('button[type="submit"]');
+                if (btn && !btn.disabled) {
+                    btn.disabled = true;
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+                    setTimeout(() => { btn.disabled = false; btn.innerHTML = origText; }, 5000);
+                }
+            });
+        });
     </script>
+
     {% block extra_js %}{% endblock %}
+
 </body>
+
 </html>

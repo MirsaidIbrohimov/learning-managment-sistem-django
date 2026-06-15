@@ -1542,7 +1542,7 @@ def teacher_add_speaking(request, pk):
         description = request.POST.get('description', '').strip()
         target_level = request.POST.get('target_level', 'beginner')
         max_duration = request.POST.get('max_duration', 120)
-        max_score = request.POST.get('max_score', 10)
+        max_score = request.POST.get('max_score', 100)
         ai_check = request.POST.get('ai_check') == 'on'
         criteria = request.POST.get('criteria', '').strip()
         due_date = request.POST.get('due_date')
@@ -1560,7 +1560,7 @@ def teacher_add_speaking(request, pk):
             max_score = int(max_score)
         except (ValueError, TypeError):
             max_duration = 120
-            max_score = 10
+            max_score = 100
         
         lesson = Lesson.objects.create(
             profession=profession,

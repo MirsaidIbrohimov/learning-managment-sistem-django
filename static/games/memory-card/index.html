@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Xotira O'yini — IT Shaharcha LMS</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen" class="screen">
+    <div class="auth-wrap">
+        <div class="auth-cards-anim">
+            <div class="auth-card-mini">🧠</div>
+            <div class="auth-card-mini">❓</div>
+            <div class="auth-card-mini">💡</div>
+            <div class="auth-card-mini">⭐</div>
+        </div>
+        <h1 class="auth-title">Xotira O'yini</h1>
+        <p class="auth-sub" id="auth-status">LMS bilan ulanmoqda...</p>
+        <div class="ring-spinner" id="auth-spinner"></div>
+        <div id="auth-error" class="error-box hidden"></div>
+    </div>
+</div>
+
+<!-- MENU -->
+<div id="menu-screen" class="screen hidden">
+    <div class="menu-container">
+        <header class="menu-header">
+            <div class="menu-user">
+                <div class="avatar-circle"><i class="bi bi-person-fill"></i></div>
+                <div>
+                    <div class="menu-name"  id="menu-user-name">—</div>
+                    <div class="menu-group" id="menu-user-group"></div>
+                </div>
+            </div>
+            <button class="icon-btn" id="menu-fullscreen"><i class="bi bi-arrows-fullscreen"></i></button>
+        </header>
+
+        <div class="menu-hero">
+            <span class="hero-icon">🧠</span>
+            <h1>Xotira O'yini</h1>
+            <p>Juft kartalarni toping — xotirangizni mashq qiling!</p>
+        </div>
+
+        <!-- Category -->
+        <div class="cat-row">
+            <button class="cat-btn active" data-cat="animals">
+                <span class="cat-icon">🐾</span> Hayvonlar
+            </button>
+            <button class="cat-btn" data-cat="fruits">
+                <span class="cat-icon">🍎</span> Mevalar
+            </button>
+            <button class="cat-btn" data-cat="tech">
+                <span class="cat-icon">💻</span> Texnologiya
+            </button>
+            <button class="cat-btn" data-cat="uzbek">
+                <span class="cat-icon">🇺🇿</span> O'zbek so'zlari
+            </button>
+            <button class="cat-btn" data-cat="math">
+                <span class="cat-icon">🔢</span> Matematika
+            </button>
+        </div>
+
+        <!-- Difficulty -->
+        <div class="diff-grid">
+            <div class="diff-card easy" data-diff="easy">
+                <span class="diff-icon-big">😊</span>
+                <h3>Oson</h3>
+                <p>8 juft (4×4)<br>Boshlang'ichlar uchun</p>
+            </div>
+            <div class="diff-card medium" data-diff="medium">
+                <span class="diff-icon-big">🎯</span>
+                <h3>O'rta</h3>
+                <p>12 juft (4×6)<br>Xotirani sinab ko'ring</p>
+            </div>
+            <div class="diff-card hard" data-diff="hard">
+                <span class="diff-icon-big">🔥</span>
+                <h3>Qiyin</h3>
+                <p>18 juft (6×6)<br>Haqiqiy xotira ustasi</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GAME -->
+<div id="game-screen" class="screen hidden">
+    <div class="game-layout">
+        <!-- Topbar -->
+        <div class="game-topbar">
+            <button class="btn-back" id="btn-back-to-menu">
+                <i class="bi bi-arrow-left"></i> Chiqish
+            </button>
+            <div class="stats-bar">
+                <div class="stat-chip moves"><i class="bi bi-hand-index"></i> <span id="stat-moves">0</span></div>
+                <div class="stat-chip pairs"><i class="bi bi-check2-circle"></i> <span id="stat-pairs">0</span>/<span id="stat-total">0</span></div>
+                <div class="stat-chip timer"><i class="bi bi-stopwatch"></i> <span id="stat-timer">0:00</span></div>
+            </div>
+            <button class="btn-secondary" id="btn-fullscreen-game" style="padding:.45rem .7rem;">
+                <i class="bi bi-fullscreen"></i>
+            </button>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+
+        <!-- Board -->
+        <div class="board-wrap">
+            <div class="card-grid" id="card-grid"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="game-controls">
+            <button class="btn-primary" id="btn-restart">
+                <i class="bi bi-arrow-repeat"></i> Qayta boshlash
+            </button>
+            <button class="btn-secondary" id="btn-menu">
+                <i class="bi bi-grid"></i> Menu
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- RESULT -->
+<div id="result-screen" class="screen hidden">
+    <div class="result-wrap">
+        <div class="result-ring" id="result-ring">🏆</div>
+        <div class="result-title" id="result-title">Ajoyib!</div>
+        <div class="result-score" id="result-score">1000</div>
+        <div class="result-sub">ball qo'lga kiritildi</div>
+        <div class="result-stats">
+            <div class="rs-item">
+                <div class="rs-val" id="rs-moves">0</div>
+                <div class="rs-lbl">Urinish</div>
+            </div>
+            <div class="rs-item">
+                <div class="rs-val" id="rs-time">0:00</div>
+                <div class="rs-lbl">Vaqt</div>
+            </div>
+            <div class="rs-item">
+                <div class="rs-val" id="rs-acc">0%</div>
+                <div class="rs-lbl">Aniqlik</div>
+            </div>
+        </div>
+        <div class="result-actions">
+            <button class="btn-primary" id="btn-result-again">
+                <i class="bi bi-arrow-repeat"></i> Yana o'ynash
+            </button>
+            <button class="btn-secondary" id="btn-result-menu">
+                <i class="bi bi-grid"></i> Menuga
+            </button>
+            <a id="btn-result-lms" href="#" class="btn-secondary" style="text-decoration:none;">
+                <i class="bi bi-house-fill"></i> LMS ga qaytish
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
