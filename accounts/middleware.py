@@ -77,8 +77,18 @@ class UpdateLastActivityMiddleware:
         if request.user.is_authenticated:
             now = timezone.now()
             now_ts = now.timestamp()
+
+            # 🔥 Kunlik streak — kuniga faqat bir marta tekshiriladi (session orqali)
+            today_str = timezone.localdate().isoformat()
+            if request.session.get('_streak_checked_date') != today_str:
+                request.session['_streak_checked_date'] = today_str
+                try:
+                    request.user.update_streak()
+                except Exception:
+                    pass
+
             last_saved = request.session.get('_last_activity_saved', 0)
-            
+
             # Faqat 60 sekundda bir marta ishlash
             if last_saved and (now_ts - last_saved) <= 60:
                 return response

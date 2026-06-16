@@ -890,6 +890,12 @@ def login_view(request):
         user.last_activity = timezone.now()
         user.save(update_fields=["last_activity"])
 
+        # 🔥 Kunlik streak'ni yangilash
+        try:
+            user.update_streak()
+        except Exception:
+            pass
+
         # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
         device_ok = _register_device_and_session(request, user)
         if not device_ok and not user.is_admin:

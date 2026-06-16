@@ -119,6 +119,8 @@ class CustomUser(AbstractUser):
     premium_purchased_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium sotib olingan sana")
     premium_expires_at = models.DateTimeField(null=True, blank=True, verbose_name="Premium tugash sanasi")
     last_daily_login = models.DateField(null=True, blank=True, verbose_name="Oxirgi kunlik login")
+    streak_days = models.IntegerField(default=0, verbose_name="Ketma-ket kunlar (streak)")
+    last_streak_date = models.DateField(null=True, blank=True, verbose_name="Oxirgi streak sanasi")
     weather_effect = models.CharField(max_length=20, default='auto', verbose_name="Ob-havo effekti")
 
     # Telegram
@@ -238,6 +240,25 @@ class CustomUser(AbstractUser):
         if not self.last_activity:
             return False
         return (timezone.now() - self.last_activity).total_seconds() < 300
+
+    def update_streak(self):
+        """Kunlik faollik streak'ini yangilaydi.
+        - Bugun allaqachon hisoblangan bo'lsa — o'zgarmaydi.
+        - Kecha kirgan bo'lsa — streak +1.
+        - Birinchi marta yoki tanaffus (1 kundan ko'p) bo'lsa — streak 1 dan boshlanadi.
+        """
+        from datetime import timedelta
+        today = timezone.localdate()
+        last = self.last_streak_date
+        if last == today:
+            return False
+        if last == today - timedelta(days=1):
+            self.streak_days = (self.streak_days or 0) + 1
+        else:
+            self.streak_days = 1
+        self.last_streak_date = today
+        self.save(update_fields=["streak_days", "last_streak_date"])
+        return True
 
     @property
     def full_name(self):
