@@ -1803,18 +1803,70 @@ def admin_word_round_delete(request, pk):
 
 # ============== SPECTATING VIEWS ==============
 
+LIVE_BOARD_INACTIVITY_MINUTES = 5
+
+
+def _is_spectatable_board_match(match):
+    """Live tomosha sahifasi faqat shaxmat/shashka matchlarini ko'rsatadi."""
+    engine = ((match.game.config or {}).get('engine') or match.game.slug).lower()
+    return (
+        match.game.game_type == 'external'
+        and (
+            engine in ('chess', 'checkers')
+            or 'shaxmat' in engine
+            or 'shashka' in engine
+        )
+    )
+
+
+def _finish_stale_live_matches(matches):
+    """Polling to'xtab qolsa ham eski active matchlar live sahifada osilib qolmasin."""
+    from datetime import timedelta
+
+    cutoff = timezone.now() - timedelta(minutes=LIVE_BOARD_INACTIVITY_MINUTES)
+    stale_matches = [
+        match for match in matches
+        if match.status == 'active' and match.last_activity_at < cutoff
+    ]
+
+    if not stale_matches:
+        return
+
+    for match in stale_matches:
+        match.status = 'ended'
+        match.winner = 'draw'
+        match.ended_at = timezone.now()
+        match.save(update_fields=['status', 'winner', 'ended_at'])
+        external_api._save_mp_attempts(match)
+
+
 @login_required
 def live_games(request):
     """Hozir o'ynalayotgan barcha taxta o'yinlarini (shaxmat + shashka) ko'rsatadi."""
     from .models import BoardMatch
-    active_matches = (
+    matches = list(
         BoardMatch.objects
-        .filter(status='active')
+        .filter(
+            status='active',
+            game__game_type='external',
+            game__is_active=True,
+            black_player__isnull=False,
+            ended_at__isnull=True,
+        )
         .select_related('white_player', 'black_player', 'game')
         .order_by('-last_activity_at')
     )
+
+    matches = [match for match in matches if _is_spectatable_board_match(match)]
+    _finish_stale_live_matches(matches)
+    active_matches = [match for match in matches if match.status == 'active']
+
     return render(request, 'games/student/live_games.html', {
         'matches': active_matches,
+        'coin_matches_count': sum(
+            1 for match in active_matches
+            if match.mode == 'coin' and match.wager_coins
+        ),
     })
 
 
@@ -1823,7 +1875,16 @@ def spectate_match(request, match_id):
     """Bitta o'yinni tomosha qilish sahifasi (read-only, polling)."""
     import json as _json
     from .models import BoardMatch
-    match = get_object_or_404(BoardMatch, pk=match_id)
+    match = get_object_or_404(BoardMatch.objects.select_related('white_player', 'black_player', 'game'), pk=match_id)
+    if not _is_spectatable_board_match(match):
+        messages.info(request, "Bu live tomosha sahifasi faqat shaxmat va shashka o'yinlari uchun.")
+        return redirect('games:live_games')
+
+    _finish_stale_live_matches([match])
+    if match.status != 'active':
+        messages.info(request, "Bu o'yin tugagan, live ro'yxatdan olib tashlandi.")
+        return redirect('games:live_games')
+
     return render(request, 'games/student/spectate.html', {
         'match': match,
         'is_player': (
@@ -1843,6 +1904,11 @@ def spectate_state(request, match_id):
         match = BoardMatch.objects.select_related('white_player', 'black_player', 'game').get(pk=match_id)
     except BoardMatch.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Match topilmadi'}, status=404)
+
+    if not _is_spectatable_board_match(match):
+        return JsonResponse({'ok': False, 'error': "Bu o'yinni live tomosha qilish qo'llab-quvvatlanmaydi"}, status=400)
+
+    _finish_stale_live_matches([match])
 
     return JsonResponse({
         'ok': True,
