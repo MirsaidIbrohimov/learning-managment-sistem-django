@@ -429,9 +429,67 @@ def _initial_chess_board():
 def _initial_board_for(game):
     """Game.config.engine ga qarab dastlabki taxta holatini qaytaradi."""
     engine = ((game.config or {}).get('engine') or game.slug).lower()
+    if engine == 'xo' or game.slug == 'xo':
+        return _initial_xo_board(3)
     if 'chess' in engine or 'shaxmat' in engine:
         return _initial_chess_board()
     return _initial_shashka_board()
+
+
+def _is_xo_game(game):
+    engine = ((game.config or {}).get('engine') or game.slug).lower()
+    return engine == 'xo' or game.slug == 'xo'
+
+
+def _normalize_xo_size(value):
+    try:
+        size = int(value)
+    except (TypeError, ValueError):
+        size = 3
+    return min(max(size, 3), 5)
+
+
+def _xo_win_length(size):
+    return 3 if size == 3 else 4
+
+
+def _initial_xo_board(size):
+    return [''] * (size * size)
+
+
+def _xo_match_size(match):
+    board = match.board_state or []
+    if isinstance(board, list):
+        root = int(len(board) ** 0.5)
+        if root * root == len(board):
+            return _normalize_xo_size(root)
+    return _normalize_xo_size((match.last_move or {}).get('board_size'))
+
+
+def _xo_check_winner(board, size):
+    win_len = _xo_win_length(size)
+    directions = ((0, 1), (1, 0), (1, 1), (1, -1))
+    for r in range(size):
+        for c in range(size):
+            sym = board[r * size + c]
+            if not sym:
+                continue
+            for dr, dc in directions:
+                line = []
+                for step in range(win_len):
+                    nr = r + dr * step
+                    nc = c + dc * step
+                    if not (0 <= nr < size and 0 <= nc < size):
+                        break
+                    idx = nr * size + nc
+                    if board[idx] != sym:
+                        break
+                    line.append(idx)
+                if len(line) == win_len:
+                    return 'white' if sym == 'X' else 'black'
+    if all(board):
+        return 'draw'
+    return None
 
 
 def _count_pieces(board):
@@ -470,6 +528,7 @@ def _mp_resolve_user_and_game(request, data):
 
 def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
     """Match ma'lumotini JSON shakliga aylantiradi."""
+    board_size = _xo_match_size(match) if _is_xo_game(match.game) else None
     return {
         'id': match.id,
         'status': match.status,
@@ -491,6 +550,8 @@ def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
             'name': match.black_player.full_name or match.black_player.username,
         } if match.black_player_id else None,
         'your_role': viewer_role,
+        'board_size': board_size,
+        'win_length': _xo_win_length(board_size) if board_size else None,
         'started_at': match.started_at.isoformat() if match.started_at else None,
         'ended_at': match.ended_at.isoformat() if match.ended_at else None,
     }
@@ -561,8 +622,11 @@ def mp_find(request):
         if user.coins < wager:
             return _cors_headers(JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (sizda: {user.coins})"}, status=400), request)
 
-    # Initial board (shashka yoki shaxmat)
-    init_board = _initial_board_for(game)
+    is_xo = _is_xo_game(game)
+    board_size = _normalize_xo_size(data.get('board_size')) if is_xo else None
+
+    # Initial board (XO, shashka yoki shaxmat)
+    init_board = _initial_xo_board(board_size) if is_xo else _initial_board_for(game)
 
     from django.db.models import Q
     from django.db import transaction
@@ -579,6 +643,15 @@ def mp_find(request):
             'ok': True, 'match': _serialize_match(own, own.player_role(user))
         }), request)
 
+    if own and own.status == 'waiting' and is_xo and _xo_match_size(own) != board_size:
+        if own.mode == 'coin' and own.wager_coins > 0 and not own.coins_settled:
+            own.white_player.add_coins(own.wager_coins, f"{game.title} matchi bekor qilindi — coin qaytarildi")
+            own.coins_settled = True
+        own.status = 'abandoned'
+        own.ended_at = timezone.now()
+        own.save(update_fields=['status', 'ended_at', 'coins_settled'])
+        own = None
+
     # Eski waiting'larni tozalash
     cutoff = timezone.now() - timedelta(minutes=5)
     abandoned = BoardMatch.objects.filter(
@@ -593,10 +666,18 @@ def mp_find(request):
 
     # 2. Mos kutayotgan match topish — mode/wager mos kelishi kerak
     with transaction.atomic():
-        waiting = BoardMatch.objects.select_for_update().filter(
+        waiting_qs = BoardMatch.objects.select_for_update().filter(
             game=game, status='waiting', black_player__isnull=True,
             mode=mode, wager_coins=wager,
-        ).exclude(white_player=user).order_by('created_at').first()
+        ).exclude(white_player=user).order_by('created_at')
+        waiting = None
+        if is_xo:
+            for candidate in waiting_qs:
+                if _xo_match_size(candidate) == board_size:
+                    waiting = candidate
+                    break
+        else:
+            waiting = waiting_qs.first()
 
         if waiting:
             if mode == 'coin':
@@ -633,6 +714,7 @@ def mp_find(request):
             mode=mode,
             wager_coins=wager,
             competition=competition,
+            last_move={'board_size': board_size, 'win_length': _xo_win_length(board_size)} if is_xo else {},
         )
         return _cors_headers(JsonResponse({
             'ok': True, 'match': _serialize_match(new_match, 'white')
@@ -734,6 +816,47 @@ def mp_move(request):
         return _cors_headers(JsonResponse({'ok': False, 'error': f"O'yin holati: {match.status}"}, status=409), request)
     if match.current_turn != role:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Bu sizning yurishingiz emas"}, status=409), request)
+
+    if _is_xo_game(game):
+        size = _xo_match_size(match)
+        board = list(match.board_state or _initial_xo_board(size))
+        position = (data.get('move') or {}).get('position')
+        try:
+            position = int(position)
+        except (TypeError, ValueError):
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Yaroqsiz katak"}, status=400), request)
+        if position < 0 or position >= len(board):
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Katak chegaradan tashqarida"}, status=400), request)
+        if board[position]:
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Bu katak band"}, status=409), request)
+
+        symbol = 'X' if role == 'white' else 'O'
+        board[position] = symbol
+
+        match.board_state = board
+        match.last_move = {
+            'board_size': size,
+            'win_length': _xo_win_length(size),
+            'position': position,
+            'symbol': symbol,
+        }
+        match.move_count += 1
+        match.current_turn = 'black' if role == 'white' else 'white'
+
+        winner = _xo_check_winner(board, size)
+        if winner:
+            from django.utils import timezone
+            match.status = 'ended'
+            match.winner = winner
+            match.ended_at = timezone.now()
+
+        match.save()
+        if match.status == 'ended':
+            _save_mp_attempts(match)
+
+        return _cors_headers(JsonResponse({
+            'ok': True, 'match': _serialize_match(match, role)
+        }), request)
 
     new_board = data.get('board')
     if not isinstance(new_board, list) or len(new_board) != 8 or any(len(row) != 8 for row in new_board):
@@ -838,7 +961,13 @@ def _save_mp_attempts(match: BoardMatch):
     if match.started_at and match.ended_at:
         duration = (match.ended_at - match.started_at).total_seconds()
 
-    w_count, b_count = _count_pieces(match.board_state or [])
+    is_xo = _is_xo_game(match.game)
+    if is_xo:
+        flat_board = match.board_state or []
+        w_count = sum(1 for cell in flat_board if cell == 'X')
+        b_count = sum(1 for cell in flat_board if cell == 'O')
+    else:
+        w_count, b_count = _count_pieces(match.board_state or [])
 
     # ===== COIN TRANSFER (wager rejimida) =====
     coin_delta = {'white': 0, 'black': 0}
@@ -862,6 +991,10 @@ def _save_mp_attempts(match: BoardMatch):
             match.black_player.add_coins(wager, f"Match #{match.id} durang — tikilish qaytarildi")
 
     def _score(role):
+        if is_xo:
+            if match.winner == 'draw':
+                return 50
+            return 100 if match.winner == role else 10
         pieces = w_count if role == 'white' else b_count
         bonus = 0
         if match.mode == 'coin':

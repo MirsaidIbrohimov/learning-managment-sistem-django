@@ -568,6 +568,37 @@
 }
 .sp-grade-display.grade-low { color: var(--sp-amber); }
 .sp-grade-display.grade-bad { color: var(--sp-red); }
+.sp-grade-breakdown {
+  margin-top: 12px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--sp-muted);
+}
+.sp-grade-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid var(--sp-border);
+  border-radius: 8px;
+  background: rgba(125,133,144,.08);
+}
+.sp-grade-breakdown-row strong {
+  color: var(--sp-text);
+  font-family: var(--sp-mono);
+}
+.sp-grade-breakdown-row.best {
+  border-color: rgba(63,185,80,.35);
+  background: rgba(63,185,80,.1);
+}
+.sp-grade-breakdown-note {
+  line-height: 1.45;
+  text-align: left;
+}
 
 .sp-sidebar-rows { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
 .sp-sidebar-row {
@@ -960,6 +991,7 @@
           </div>
           <div class="sp-status-label" id="statusLabel">Topshirilmagan</div>
           <div class="sp-grade-display" id="gradeDisplay" style="display:none"></div>
+          <div class="sp-grade-breakdown" id="gradeBreakdown" style="display:none"></div>
         </div>
         <!-- Edit timer -->
         <div class="sp-edit-timer" id="editTimerBlock" style="display:none">
@@ -1165,6 +1197,7 @@ function renderStatus() {
   const iconEl  = document.getElementById('statusIcon');
   const labelEl = document.getElementById('statusLabel');
   const gradeEl = document.getElementById('gradeDisplay');
+  const gradeBreakdownEl = document.getElementById('gradeBreakdown');
   const topEl   = document.getElementById('topStatus');
 
   if (!sub) {
@@ -1172,6 +1205,7 @@ function renderStatus() {
     iconEl.innerHTML  = '<i class="bi bi-inbox"></i>';
     labelEl.textContent = 'Topshirilmagan';
     gradeEl.style.display = 'none';
+    gradeBreakdownEl.style.display = 'none';
     topEl.textContent = '';
     topEl.style = '';
     clearInterval(editTimerInterval);
@@ -1199,7 +1233,10 @@ function renderStatus() {
     topEl.style.background = 'rgba(63,185,80,.12)';
     topEl.style.color = 'var(--sp-green)';
     topEl.style.border = '1px solid rgba(63,185,80,.3)';
-    topEl.textContent = sub.status === 'graded' ? `✓ ${sub.grade}/${sub.max_score}` : '✓ Qabul';
+    const topGrade = sub.effective_grade ?? sub.grade;
+    topEl.textContent = sub.status === 'graded' && topGrade !== null && topGrade !== undefined
+      ? `✓ ${topGrade}/${sub.max_score}`
+      : '✓ Qabul';
   } else if (sub.status === 'revision') {
     topEl.classList.add('sp-topbar-status');
     topEl.style.background = 'rgba(248,81,73,.12)';
@@ -1215,13 +1252,17 @@ function renderStatus() {
   }
 
   // Grade display
-  if (sub.grade !== null && sub.grade !== undefined) {
+  const shownGrade = sub.effective_grade ?? sub.grade;
+  if (shownGrade !== null && shownGrade !== undefined) {
     gradeEl.style.display = 'block';
-    const pct = sub.max_score > 0 ? sub.grade / sub.max_score : 0;
+    const pct = sub.max_score > 0 ? shownGrade / sub.max_score : 0;
     gradeEl.className = 'sp-grade-display' + (pct < 0.5 ? ' grade-bad' : pct < 0.75 ? ' grade-low' : '');
-    gradeEl.textContent = `${sub.grade}/${sub.max_score}`;
+    gradeEl.textContent = `${shownGrade}/${sub.max_score}`;
+    gradeBreakdownEl.style.display = '';
+    gradeBreakdownEl.innerHTML = renderGradeBreakdown(sub);
   } else {
     gradeEl.style.display = 'none';
+    gradeBreakdownEl.style.display = 'none';
   }
 
   // Sidebar rows
@@ -1246,6 +1287,23 @@ function renderStatus() {
 
   // Submission preview
   renderSubmissionPreview(sub);
+}
+
+function renderGradeBreakdown(sub) {
+  const maxScore = sub.max_score || 10;
+  const rows = [];
+  if (sub.previous_grade !== null && sub.previous_grade !== undefined) {
+    const versionText = sub.previous_version ? ` (v${sub.previous_version})` : '';
+    rows.push(`<div class="sp-grade-breakdown-row"><span>Oldingi urinish${versionText}</span><strong>${sub.previous_grade}/${maxScore}</strong></div>`);
+  }
+  if (sub.current_grade !== null && sub.current_grade !== undefined) {
+    rows.push(`<div class="sp-grade-breakdown-row"><span>Joriy urinish (v${sub.version})</span><strong>${sub.current_grade}/${maxScore}</strong></div>`);
+  }
+  if (sub.best_grade !== null && sub.best_grade !== undefined) {
+    rows.push(`<div class="sp-grade-breakdown-row best"><span>Hisobga olinadigan eng yuqori ball</span><strong>${sub.best_grade}/${maxScore}</strong></div>`);
+    rows.push(`<div class="sp-grade-breakdown-note">Qayta topshirilganda yakuniy natija sifatida eng yuqori baho olinadi. Masalan, oldingi urinish 5 bo'lib, keyingisi 10 bo'lsa, yakuniy ball 10 hisoblanadi.</div>`);
+  }
+  return rows.join('');
 }
 
 function renderEditTimer(sub) {

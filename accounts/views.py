@@ -5634,6 +5634,7 @@ def add_lesson(request, pk):
                 Homework.objects.create(
                     lesson=lesson,
                     description=form.cleaned_data['description'],
+                    max_score=10,
                     ai_check=form.cleaned_data.get('ai_check', False),
                     handwritten_only=form.cleaned_data.get('handwritten_only', False),
                 )
@@ -5812,6 +5813,7 @@ def edit_lesson(request, pk):
                 lesson.title = form.cleaned_data['title']
                 lesson.save()
                 lesson.homework.description = form.cleaned_data['description']
+                lesson.homework.max_score = 10
                 lesson.homework.ai_check = form.cleaned_data.get('ai_check', False)
                 lesson.homework.handwritten_only = form.cleaned_data.get('handwritten_only', False)
                 lesson.homework.save()

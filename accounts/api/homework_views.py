@@ -50,6 +50,8 @@ from accounts.models import (
     StudentLessonToken,
 )
 
+HOMEWORK_MAX_SCORE = 10
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
@@ -174,6 +176,38 @@ def _sanitize_html(text: str) -> str:
 
 
 # ── Submission serializer ──────────────────────────────────────────────────────
+def _homework_max_score(_hw: Homework) -> int:
+    """Uy vazifasi bahosi doim 10 ballik tizimda ko'rsatiladi."""
+    return HOMEWORK_MAX_SCORE
+
+
+def _submission_grade_summary(sub: HomeworkSubmission) -> dict:
+    graded_attempts = list(
+        HomeworkSubmission.objects.filter(
+            homework=sub.homework,
+            student=sub.student,
+            status='graded',
+            grade__isnull=False,
+        ).order_by('submitted_at', 'pk').values('pk', 'grade', 'version', 'submitted_at')
+    )
+    previous = None
+    best_grade = None
+    for attempt in graded_attempts:
+        if best_grade is None or attempt['grade'] > best_grade:
+            best_grade = attempt['grade']
+        if (attempt['submitted_at'], attempt['pk']) < (sub.submitted_at, sub.pk):
+            previous = attempt
+
+    return {
+        "current_grade": sub.grade,
+        "previous_grade": previous['grade'] if previous else None,
+        "previous_version": previous['version'] if previous else None,
+        "best_grade": best_grade,
+        "effective_grade": best_grade,
+        "is_current_best": sub.grade is not None and best_grade is not None and sub.grade >= best_grade,
+    }
+
+
 def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
     file_url = None
     if sub.file:
@@ -181,6 +215,8 @@ def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
             file_url = request.build_absolute_uri(sub.file.url)
         except Exception:
             pass
+
+    grade_summary = _submission_grade_summary(sub)
 
     return {
         "id":               sub.pk,
@@ -191,7 +227,13 @@ def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
         "file_name":        os.path.basename(sub.file.name) if sub.file else None,
         "text_content":     sub.text_content or "",
         "grade":            sub.grade,
-        "max_score":        sub.homework.max_score,
+        "max_score":        _homework_max_score(sub.homework),
+        "current_grade":    grade_summary["current_grade"],
+        "previous_grade":   grade_summary["previous_grade"],
+        "previous_version": grade_summary["previous_version"],
+        "best_grade":       grade_summary["best_grade"],
+        "effective_grade":  grade_summary["effective_grade"],
+        "is_current_best":  grade_summary["is_current_best"],
         "feedback":         sub.feedback or "",
         "ai_feedback":      sub.ai_feedback or "",
         "ai_checked":       sub.ai_checked,
@@ -210,7 +252,7 @@ def _serialize_homework(hw: Homework) -> dict:
         "id":               hw.pk,
         "description":      hw.description,
         "due_date":         hw.due_date.strftime("%d.%m.%Y %H:%M") if hw.due_date else None,
-        "max_score":        hw.max_score,
+        "max_score":        _homework_max_score(hw),
         "ai_check":         hw.ai_check,
         "file_only":        hw.file_only,
         "handwritten_only": hw.handwritten_only,
@@ -657,8 +699,9 @@ def hw_grade(request, sub_pk):
             grade = int(grade)
         except (TypeError, ValueError):
             return _err("Baho raqam bo'lishi kerak")
-        if not (0 <= grade <= sub.homework.max_score):
-            return _err(f"Baho 0–{sub.homework.max_score} orasida bo'lishi kerak")
+        max_score = _homework_max_score(sub.homework)
+        if not (0 <= grade <= max_score):
+            return _err(f"Baho 0–{max_score} orasida bo'lishi kerak")
 
     allowed_statuses = {'reviewing', 'revision', 'accepted', 'graded'}
     if status not in allowed_statuses:
