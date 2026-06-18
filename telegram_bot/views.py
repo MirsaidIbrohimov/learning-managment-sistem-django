@@ -147,6 +147,11 @@ def bot_health(request):
         notify_unchecked_homework()
     except Exception:
         pass
+    try:
+        from telegram_bot.utils import notify_payment_reminders
+        notify_payment_reminders()
+    except Exception:
+        pass
     return JsonResponse({'status': 'ok', 'bot': 'alive'})
 
 

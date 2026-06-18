@@ -88,6 +88,15 @@ def _record_payment(student, amount_som, source, transaction_id):
                 # Birinchi marta to'lov - oylik to'lovni yechib, sanani belgilaymiz
                 _auto_deduct_and_unblock(student)
 
+    # 4. O'quvchiga Telegram orqali hisob to'ldirilgani haqida xabar yuboramiz.
+    #    Transaksiyadan keyin, eng so'nggi balans bilan (oylik yechilgan bo'lishi mumkin).
+    try:
+        from telegram_bot.utils import notify_balance_topup
+        balance.refresh_from_db()
+        notify_balance_topup(student, amount_som, source, balance_amount=balance.amount)
+    except Exception:
+        pass
+
 
 # ═══════════════════════════════════════════════════════════════════
 #  PAYME MERCHANT API

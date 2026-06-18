@@ -368,3 +368,153 @@ def check_birthdays():
         pass
 
     return count
+
+
+# ============================================================================
+# Balans / to'lov bilan bog'liq Telegram xabarlari
+# ============================================================================
+
+def _fmt_som(value):
+    """Pul miqdorini chiroyli formatda qaytaradi: 200000 -> '200 000 so\'m'."""
+    try:
+        return f"{int(value):,}".replace(",", " ") + " so'm"
+    except Exception:
+        return f"{value} so'm"
+
+
+def _source_label(source):
+    """To'lov manbasini foydalanuvchiga ko'rinadigan matnga aylantiradi."""
+    s = (source or '').strip().lower()
+    if s == 'payme':
+        return "Payme orqali"
+    if s == 'click':
+        return "Click orqali"
+    return "naqd, admin tomonidan"
+
+
+def _balance_and_fee(student):
+    """O'quvchining joriy balansi va oylik to'lovini qaytaradi (balans, oylik_tolov)."""
+    from accounts.models import StudentBalance, PaymentStatus
+    bal = StudentBalance.objects.filter(user=student).first()
+    balance_amount = bal.amount if bal else 0
+    ps = PaymentStatus.objects.filter(user=student).first()
+    monthly_fee = (ps.monthly_fee if ps else 0) or 200000
+    return balance_amount, monthly_fee
+
+
+def notify_balance_topup(student, amount, source, balance_amount=None):
+    """
+    O'quvchining hisobi to'ldirilganda unga Telegram orqali xabar yuborish.
+
+    student        - CustomUser (o'quvchi)
+    amount         - qo'shilgan miqdor (so'm)
+    source         - 'Payme' | 'Click' | 'manual' kabi manba
+    balance_amount - to'ldirilgandan keyingi joriy balans (None bo'lsa DB'dan olinadi)
+    """
+    telegram_id = getattr(student, 'telegram_id', None)
+    if not telegram_id:
+        return
+
+    db_balance, monthly_fee = _balance_and_fee(student)
+    if balance_amount is None:
+        balance_amount = db_balance
+
+    enough = balance_amount >= monthly_fee
+    if enough:
+        status_line = "\u2705 Oylik to'lov uchun hisobingizda mablag' yetarli."
+    else:
+        need = monthly_fee - balance_amount
+        status_line = (
+            "\u26a0\ufe0f Oylik to'lov uchun mablag' yetarli emas.\n"
+            f"Yana {_fmt_som(need)} to'ldirishingiz kerak."
+        )
+
+    sid = getattr(student, 'student_id', None) or '-'
+    text = (
+        "\U0001f4b0 <b>Hisobingiz to'ldirildi!</b>\n\n"
+        f"\U0001f194 ID: <b>{sid}</b>\n"
+        f"\U0001f464 F.I.SH: <b>{student.full_name}</b>\n\n"
+        f"\u2795 To'ldirildi: <b>{_fmt_som(amount)}</b> ({_source_label(source)})\n"
+        f"\U0001f4b3 Joriy balans: <b>{_fmt_som(balance_amount)}</b>\n"
+        f"\U0001f4cc Oylik to'lov: <b>{_fmt_som(monthly_fee)}</b>\n\n"
+        f"{status_line}"
+    )
+    notify_user(telegram_id, text)
+
+
+def notify_payment_reminders():
+    """
+    Keyingi to'lov sanasiga 3, 2, 1 kun qolgan o'quvchilarga har kuni eslatma
+    yuboradi. Balansi oylik to'lovga yetsa "yetarli", aks holda "yetarli emas,
+    to'ldiring" deb xabar beradi. Kuniga faqat 1 marta ishlaydi (marker orqali).
+    """
+    import os
+    from datetime import date, timedelta
+    from django.conf import settings as django_settings
+    from accounts.models import StudentBalance
+
+    today = date.today()
+
+    # Kuniga faqat 1 marta yuborish - marker fayl orqali
+    marker_dir = os.path.join(getattr(django_settings, 'BASE_DIR', ''), 'media')
+    marker_file = os.path.join(marker_dir, '.payment_reminder_marker')
+    try:
+        if os.path.exists(marker_file):
+            with open(marker_file, 'r') as f:
+                if f.read().strip() == today.isoformat():
+                    return 0
+    except Exception:
+        pass
+
+    # 3, 2, 1 kun qolgan (ya'ni sana bugundan 1..3 kun keyin) o'quvchilar
+    target_dates = [today + timedelta(days=d) for d in (1, 2, 3)]
+
+    balances = StudentBalance.objects.filter(
+        is_contract=False,
+        next_payment_date__in=target_dates,
+        user__telegram_id__isnull=False,
+        user__role='student',
+    ).select_related('user')
+
+    count = 0
+    for bal in balances:
+        student = bal.user
+        if not student.telegram_id:
+            continue
+
+        days_left = (bal.next_payment_date - today).days
+        _, monthly_fee = _balance_and_fee(student)
+        enough = bal.amount >= monthly_fee
+
+        if enough:
+            status_line = "\u2705 Mablag' yetarli, hisobingiz avtomatik uzaytiriladi."
+        else:
+            need = monthly_fee - bal.amount
+            status_line = (
+                "\u26a0\ufe0f Mablag' yetarli emas! Iltimos, hisobingizni to'ldiring.\n"
+                f"Yana {_fmt_som(need)} kerak."
+            )
+
+        sid = getattr(student, 'student_id', None) or '-'
+        text = (
+            "\U0001f514 <b>To'lov eslatmasi</b>\n\n"
+            f"\U0001f194 ID: <b>{sid}</b>\n"
+            f"\U0001f464 F.I.SH: <b>{student.full_name}</b>\n\n"
+            f"\u23f3 To'lov sanasiga <b>{days_left} kun</b> qoldi "
+            f"({bal.next_payment_date.strftime('%d.%m.%Y')})\n"
+            f"\U0001f4b3 Joriy balans: <b>{_fmt_som(bal.amount)}</b>\n"
+            f"\U0001f4cc Oylik to'lov: <b>{_fmt_som(monthly_fee)}</b>\n\n"
+            f"{status_line}"
+        )
+        notify_user(student.telegram_id, text)
+        count += 1
+
+    # Marker yozish - bugun yuborildi
+    try:
+        os.makedirs(marker_dir, exist_ok=True)
+        with open(marker_file, 'w') as f:
+            f.write(today.isoformat())
+    except Exception:
+        pass
+
+    return count

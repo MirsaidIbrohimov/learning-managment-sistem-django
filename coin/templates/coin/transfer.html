@@ -597,6 +597,7 @@
   var selectedUser = null;
   var currentTransfer = null;
   var searchTimer = null;
+  var searchUsers = [];
   var countdownTimer = null;
   var countdownSec = 0;
 
@@ -679,6 +680,7 @@
 
   function renderUsers(data) {
     if (!Array.isArray(data) || !data.length) {
+      searchUsers = [];
       document.getElementById('ctpResults').innerHTML =
         '<div style="text-align:center;padding:1.4rem;color:var(--text-muted,#aaa);font-size:.84rem;">'
         + '<i class="bi bi-person-slash" style="font-size:2rem;display:block;margin-bottom:.4rem;opacity:.3;"></i>'
@@ -687,13 +689,14 @@
         + '</div>';
       return;
     }
+    searchUsers = data;
     document.getElementById('ctpResults').innerHTML = data.map(function(u,i){
       var init = (u.full_name||u.username||'?').charAt(0).toUpperCase();
       var roleMap = {teacher:["O'qituvchi",'#3b82f6','rgba(59,130,246,.1)'],admin:['Admin','#8b5cf6','rgba(139,92,246,.1)']};
       var r = roleMap[u.role] || ["O'quvchi",'#22c55e','rgba(34,197,94,.1)'];
       var isSel = selectedUser && selectedUser.username===u.username;
       return '<div class="ctp-u-card'+(isSel?' selected':'')+'" '
-        +'onclick="selectUser(this,\''+u.username+'\',\''+(u.full_name||'').replace(/\'/g,"\\'")+'\',\''+(u.photo||'\')"'
+        +'onclick="selectUserByIndex(this,'+i+')"'
         +' style="animation:ct-up .3s ease '+(i*60)+'ms both">'
         +'<div class="ctp-u-ava">'+(u.photo?'<img src="'+u.photo+'" alt="">':init)+'</div>'
         +'<div class="ctp-u-info">'
@@ -707,6 +710,12 @@
         +'</div>';
     }).join('');
   }
+
+  window.selectUserByIndex = function(el, index){
+    var u = searchUsers[index];
+    if (!u) return;
+    window.selectUser(el, u.username, u.full_name || '', u.photo || '');
+  };
 
   // Search
   document.getElementById('ctpSearchInput').addEventListener('input', function(){

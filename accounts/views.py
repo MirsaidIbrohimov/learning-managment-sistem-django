@@ -13770,6 +13770,14 @@ def admin_balance_topup(request, student_id):
                 # Birinchi marta balans to'ldirildi — oylik to'lovni yechib, sanani belgilaymiz
                 _auto_deduct_and_unblock(student)
 
+        # O'quvchiga Telegram orqali hisob to'ldirilgani haqida xabar yuboramiz
+        try:
+            from telegram_bot.utils import notify_balance_topup
+            balance.refresh_from_db()
+            notify_balance_topup(student, amount, 'manual', balance_amount=balance.amount)
+        except Exception:
+            pass
+
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
             balance.refresh_from_db()

@@ -505,11 +505,17 @@ def premium_plans(request):
 # ============== COIN TRANSFER ==============
 
 
+def _clean_transfer_username(value):
+    """Frontend/user kiritmasidan kelgan username'ni normal holatga keltirish."""
+    return (value or '').strip().lstrip('@').strip()
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def search_user_for_transfer(request):
     """Username yoki telefon raqam bo'yicha foydalanuvchi qidirish"""
-    query = request.query_params.get('username', '').strip()
+    raw_query = request.query_params.get('username', '').strip()
+    query = _clean_transfer_username(raw_query)
     if not query or len(query) < 2:
         return Response({'error': "Kamida 2 ta belgi kiriting"}, status=status.HTTP_400_BAD_REQUEST)
     
@@ -520,13 +526,17 @@ def search_user_for_transfer(request):
     ).exclude(pk=request.user.pk)
     
     # Telefon raqam bo'yicha qidirish (raqam bilan boshlansa)
-    if query.replace('+', '').replace(' ', '').replace('-', '').isdigit():
-        clean_phone = query.replace(' ', '').replace('-', '')
-        users = base_qs.filter(phone__icontains=clean_phone)[:5]
+    phone_digits = ''.join(ch for ch in raw_query if ch.isdigit())
+    if phone_digits and len(phone_digits) >= 2:
+        phone_q = Q(phone__icontains=phone_digits)
+        if phone_digits.startswith('998') and len(phone_digits) == 12:
+            phone_q |= Q(phone__icontains=phone_digits[3:])
+        users = base_qs.filter(phone_q)[:5]
     else:
         # Username yoki ism bo'yicha qidirish
         users = base_qs.filter(
             Q(username__icontains=query) |
+            Q(telegram_username__icontains=query) |
             Q(first_name__icontains=query) |
             Q(last_name__icontains=query)
         )[:5]
@@ -549,13 +559,12 @@ def initiate_transfer(request):
     serializer = CoinTransferInitSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     
-    receiver_username = serializer.validated_data['receiver_username']
+    receiver_username = _clean_transfer_username(serializer.validated_data['receiver_username'])
     amount = serializer.validated_data['amount']
     
     # Qabul qiluvchini topish
-    try:
-        receiver = CustomUser.objects.get(username=receiver_username, is_blocked=False)
-    except CustomUser.DoesNotExist:
+    receiver = CustomUser.objects.filter(username__iexact=receiver_username, is_blocked=False).first()
+    if not receiver:
         return Response({'error': "Foydalanuvchi topilmadi!"}, status=status.HTTP_404_NOT_FOUND)
     
     if receiver.pk == request.user.pk:
