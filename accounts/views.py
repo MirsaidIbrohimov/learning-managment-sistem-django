@@ -5146,7 +5146,7 @@ def admin_mark_paid(request, pk):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True, 'name': user.full_name, 'paid_amount': record.paid_amount, 'debt': record.debt})
     messages.success(request, f"{user.full_name} to'lovi belgilandi!")
-    return redirect(f'/dashboard/payments/?month={month}&year={year}')
+    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
 
 @login_required
@@ -5169,7 +5169,7 @@ def admin_mark_unpaid(request, pk):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'success': True, 'name': user.full_name})
     messages.warning(request, f"{user.full_name} to'lovi bekor qilindi!")
-    return redirect(f'/dashboard/payments/?month={month}&year={year}')
+    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
 
 @login_required
@@ -5199,7 +5199,7 @@ def send_payment_reminder(request, pk):
     messages.success(request, f"{student.full_name}ga eslatma yuborildi!")
     month = request.GET.get('month', '')
     year = request.GET.get('year', '')
-    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
 
 @login_required
@@ -5241,7 +5241,7 @@ def send_bulk_payment_reminders(request):
         )
         messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
 
-    return redirect(f'/dashboard/payments/?month={m}&year={y}')
+    return redirect(f'/dashboard/tolovlar/?month={m}&year={y}')
 
 
 @login_required
@@ -5292,7 +5292,7 @@ def admin_toggle_block_payment(request, pk):
 
     month = request.GET.get('month', '')
     year = request.GET.get('year', '')
-    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
 
 @login_required
@@ -5310,7 +5310,7 @@ def bulk_payment_action(request):
 
         if not ids_str:
             messages.warning(request, "Hech qanday o'quvchi tanlanmadi!")
-            return redirect(f'/dashboard/payments/?month={month}&year={year}')
+            return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
         student_ids = [int(x) for x in ids_str.split(',') if x.strip().isdigit()]
         students = CustomUser.objects.filter(pk__in=student_ids, role='student')
@@ -5374,7 +5374,7 @@ def bulk_payment_action(request):
                 count += 1
             messages.success(request, f"{count} ta o'quvchiga eslatma yuborildi!")
 
-        return redirect(f'/dashboard/payments/?month={month}&year={year}')
+        return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
     return redirect('admin_payments')
 
@@ -5400,11 +5400,11 @@ def admin_set_monthly_fee(request, pk):
             ).update(amount=int(fee))
 
         messages.success(request, f"{user.full_name} oylik to'lovi {int(fee):,} so'm qilib belgilandi!")
-        return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+        return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
     month = request.GET.get('month', '')
     year = request.GET.get('year', '')
-    return redirect(f'/dashboard/payments/?month={month}&year={year}' if month else 'admin_payments')
+    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
 
 @login_required
