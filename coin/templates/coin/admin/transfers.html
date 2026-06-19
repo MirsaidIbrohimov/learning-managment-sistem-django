@@ -497,6 +497,56 @@
     }
     [data-bs-theme="dark"] .ctr-status.cancelled { color: #f87171; }
 
+    /* ===== Coin game extras ===== */
+    .ctr-vs {
+        font-size: 0.7rem;
+        font-weight: 800;
+        color: #8b5cf6;
+        background: rgba(139, 92, 246, 0.1);
+        padding: 0.2rem 0.5rem;
+        border-radius: 8px;
+        flex-shrink: 0;
+    }
+    [data-bs-theme="dark"] .ctr-vs { color: #c4b5fd; background: rgba(139, 92, 246, 0.2); }
+    .ctr-game-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #7c3aed;
+        background: rgba(139, 92, 246, 0.08);
+        padding: 0.25rem 0.6rem;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .ctr-game-tag { color: #c4b5fd; background: rgba(139, 92, 246, 0.16); }
+    .ctr-winner-name {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #059669;
+        white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .ctr-winner-name { color: #34d399; }
+    .ctr-status.active {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563eb;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    [data-bs-theme="dark"] .ctr-status.active { color: #60a5fa; }
+    .ctr-status.waiting {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+        border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+    [data-bs-theme="dark"] .ctr-status.waiting { color: #fbbf24; }
+    .ctr-status.abandoned, .ctr-status.draw {
+        background: rgba(107, 114, 128, 0.12);
+        color: #6b7280;
+        border: 1px solid rgba(107, 114, 128, 0.2);
+    }
+    [data-bs-theme="dark"] .ctr-status.abandoned, [data-bs-theme="dark"] .ctr-status.draw { color: #9ca3af; }
+
     /* ===== Empty State ===== */
     .ctr-empty {
         text-align: center;
@@ -687,6 +737,27 @@
     }
 </style>
 
+{% if view_type == 'games' %}
+<!-- Hero (Coin o'yinlar) -->
+<div class="ctr-hero" style="background:linear-gradient(135deg,#8b5cf6 0%,#7c3aed 40%,#6d28d9 100%);">
+    <div class="ctr-hero-inner">
+        <div>
+            <h1><i class="bi bi-controller"></i> Coin O'yinlar</h1>
+            <p>2 foydalanuvchi coin tikib o'ynagan o'yinlar — kim, kim bilan, qancha coinga</p>
+        </div>
+        <div class="ctr-stats">
+            <div class="ctr-stat">
+                <div class="ctr-stat-val">{{ games_total_count }}</div>
+                <div class="ctr-stat-label">Jami</div>
+            </div>
+            <div class="ctr-stat">
+                <div class="ctr-stat-val">{{ games_finished_count }}</div>
+                <div class="ctr-stat-label">Tugagan</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
 <!-- Hero -->
 <div class="ctr-hero">
     <div class="ctr-hero-inner">
@@ -706,7 +777,57 @@
         </div>
     </div>
 </div>
+{% endif %}
 
+<!-- View Switcher -->
+<div class="ctr-tabs" style="margin-bottom:1rem;">
+    <a href="?view=transfers{% if filter_type and filter_type != 'all' %}&filter={{ filter_type }}{% endif %}"
+       class="ctr-tab {% if view_type != 'games' %}active{% endif %}">
+        <i class="bi bi-send-fill"></i>
+        <span class="ctr-tab-text">Coin o'tkazmalar</span>
+        <span class="ctr-tab-count">{{ total_count }}</span>
+    </a>
+    <a href="?view=games{% if filter_type and filter_type != 'all' %}&filter={{ filter_type }}{% endif %}"
+       class="ctr-tab {% if view_type == 'games' %}active{% endif %}">
+        <i class="bi bi-controller"></i>
+        <span class="ctr-tab-text">Coin o'yinlar</span>
+        <span class="ctr-tab-count">{{ games_total_count }}</span>
+    </a>
+</div>
+
+{% if view_type == 'games' %}
+<!-- Summary Cards (Coin o'yinlar) -->
+<div class="ctr-summary-grid">
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon orange"><i class="bi bi-controller"></i></div>
+        <div>
+            <div class="ctr-summary-label">Jami o'yinlar</div>
+            <div class="ctr-summary-value" id="animTotal">{{ games_total_count }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon green"><i class="bi bi-flag-fill"></i></div>
+        <div>
+            <div class="ctr-summary-label">Tugagan o'yinlar</div>
+            <div class="ctr-summary-value" id="animSuccess" style="color:#10b981;">{{ games_finished_count }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon blue"><i class="bi bi-coin"></i></div>
+        <div>
+            <div class="ctr-summary-label">Jami tikilgan coin</div>
+            <div class="ctr-summary-value" id="animCoins" style="color:#3b82f6;">{{ games_total_wager|default:"0" }}</div>
+        </div>
+    </div>
+    <div class="ctr-summary-card">
+        <div class="ctr-summary-icon red"><i class="bi bi-percent"></i></div>
+        <div>
+            <div class="ctr-summary-label">Xizmat haqqi ({{ service_fee_percent }}%)</div>
+            <div class="ctr-summary-value" id="animFees" style="color:#ef4444;">{{ games_total_fees|default:"0" }}</div>
+        </div>
+    </div>
+</div>
+{% else %}
 <!-- Summary Cards -->
 <div class="ctr-summary-grid">
     <div class="ctr-summary-card">
@@ -738,22 +859,23 @@
         </div>
     </div>
 </div>
+{% endif %}
 
 <!-- Tabs -->
 <div class="ctr-tabs">
-    <a href="?filter=all" class="ctr-tab {% if filter_type == 'all' or not filter_type %}active{% endif %}">
+    <a href="?view={{ view_type }}&filter=all" class="ctr-tab {% if filter_type == 'all' or not filter_type %}active{% endif %}">
         <i class="bi bi-grid-fill"></i>
         <span class="ctr-tab-text">Barchasi</span>
     </a>
-    <a href="?filter=today" class="ctr-tab {% if filter_type == 'today' %}active{% endif %}">
+    <a href="?view={{ view_type }}&filter=today" class="ctr-tab {% if filter_type == 'today' %}active{% endif %}">
         <i class="bi bi-calendar-day"></i>
         <span class="ctr-tab-text">Bugun</span>
     </a>
-    <a href="?filter=week" class="ctr-tab {% if filter_type == 'week' %}active{% endif %}">
+    <a href="?view={{ view_type }}&filter=week" class="ctr-tab {% if filter_type == 'week' %}active{% endif %}">
         <i class="bi bi-calendar-week"></i>
         <span class="ctr-tab-text">Bu hafta</span>
     </a>
-    <a href="?filter=month" class="ctr-tab {% if filter_type == 'month' %}active{% endif %}">
+    <a href="?view={{ view_type }}&filter=month" class="ctr-tab {% if filter_type == 'month' %}active{% endif %}">
         <i class="bi bi-calendar-month"></i>
         <span class="ctr-tab-text">Bu oy</span>
     </a>
@@ -761,6 +883,7 @@
 
 <!-- Date Filter -->
 <form class="ctr-filter-bar" method="get">
+    <input type="hidden" name="view" value="{{ view_type }}">
     <input type="hidden" name="filter" value="custom">
     <div class="ctr-filter-label"><i class="bi bi-calendar3"></i> Sana bo'yicha:</div>
     <input type="date" name="date_from" value="{{ date_from|default:'' }}" placeholder="Dan">
@@ -774,6 +897,101 @@
     <a href="?" class="ctr-filter-reset"><i class="bi bi-x-lg"></i> Tozalash</a>
 </form>
 
+{% if view_type == 'games' %}
+<!-- Coin Games List -->
+<div class="ctr-list" id="gamesList">
+    {% for m in game_matches %}
+    <div class="ctr-card" style="animation-delay: {{ forloop.counter0 }}50ms">
+        <div class="ctr-card-inner">
+            <!-- ID -->
+            <div class="ctr-id">#{{ m.pk }}</div>
+
+            <!-- Players: White vs Black -->
+            <div class="ctr-direction">
+                <!-- White player -->
+                <div class="ctr-sender-block">
+                    {% if m.white_player.photo %}
+                    <img src="{{ m.white_player.photo.url }}" class="ctr-avatar" alt="">
+                    {% else %}
+                    <div class="ctr-avatar-placeholder sender">{{ m.white_player.get_initials }}</div>
+                    {% endif %}
+                    <div class="ctr-person">
+                        <div class="ctr-person-name">{{ m.white_player.full_name }}</div>
+                        <div class="ctr-person-username">@{{ m.white_player.username }}{% if m.winner == 'white' %} 🏆{% endif %}</div>
+                    </div>
+                </div>
+
+                <!-- VS -->
+                <span class="ctr-vs">VS</span>
+
+                <!-- Black player -->
+                <div class="ctr-receiver-block">
+                    {% if m.black_player %}
+                        {% if m.black_player.photo %}
+                        <img src="{{ m.black_player.photo.url }}" class="ctr-avatar" alt="">
+                        {% else %}
+                        <div class="ctr-avatar-placeholder receiver">{{ m.black_player.get_initials }}</div>
+                        {% endif %}
+                        <div class="ctr-person">
+                            <div class="ctr-person-name">{{ m.black_player.full_name }}</div>
+                            <div class="ctr-person-username">@{{ m.black_player.username }}{% if m.winner == 'black' %} 🏆{% endif %}</div>
+                        </div>
+                    {% else %}
+                        <div class="ctr-avatar-placeholder receiver">?</div>
+                        <div class="ctr-person">
+                            <div class="ctr-person-name" style="opacity:0.6;">Raqib kutilmoqda</div>
+                            <div class="ctr-person-username">—</div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Meta -->
+            <div class="ctr-meta">
+                <div>
+                    <span class="ctr-game-tag"><i class="bi bi-controller"></i> {{ m.game.title }}</span>
+                </div>
+                <div>
+                    <div class="ctr-coin-badge"><i class="bi bi-coin"></i> {{ m.wager_coins }} / kishi</div>
+                    <div class="ctr-fee-text" style="text-align:right;margin-top:0.2rem;">Bank: {{ m.coin_pot }} coin</div>
+                </div>
+                {% if m.winner_player %}
+                <div style="text-align:right;">
+                    <div class="ctr-winner-name"><i class="bi bi-trophy-fill"></i> {{ m.winner_player.full_name }}</div>
+                    <div class="ctr-fee-text" style="margin-top:0.1rem;">+{{ m.winner_payout }} coin (xizmat -{{ m.service_fee }})</div>
+                </div>
+                {% endif %}
+                <div style="text-align:right;">
+                    <div class="ctr-date-text"><i class="bi bi-calendar3"></i> {{ m.created_at|date:"d.m.Y" }}</div>
+                    <div class="ctr-date-text" style="margin-top:0.1rem;"><i class="bi bi-clock"></i> {{ m.created_at|date:"H:i" }}</div>
+                </div>
+            </div>
+
+            <!-- Status -->
+            {% if m.status == 'ended' and m.winner == 'draw' %}
+            <span class="ctr-status draw"><i class="bi bi-dash-circle-fill"></i> Durang</span>
+            {% elif m.status == 'ended' %}
+            <span class="ctr-status completed"><i class="bi bi-check-circle-fill"></i> Tugagan</span>
+            {% elif m.status == 'active' %}
+            <span class="ctr-status active"><i class="bi bi-controller"></i> O'ynalmoqda</span>
+            {% elif m.status == 'waiting' %}
+            <span class="ctr-status waiting"><i class="bi bi-hourglass-split"></i> Kutilmoqda</span>
+            {% else %}
+            <span class="ctr-status abandoned"><i class="bi bi-x-circle-fill"></i> Tashlandi</span>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="ctr-empty">
+        <div class="ctr-empty-icon">
+            <i class="bi bi-controller"></i>
+        </div>
+        <h4>Coin o'yinlar yo'q</h4>
+        <p>Hozircha hech kim coin tikib o'yin o'ynamagan</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
 <!-- Transfers List -->
 <div class="ctr-list" id="transfersList">
     {% for t in transfers %}
@@ -846,13 +1064,47 @@
     </div>
     {% endfor %}
 </div>
+{% endif %}
 
 <!-- Pagination -->
+{% if view_type == 'games' %}
+{% if game_matches.has_other_pages %}
+<div class="ctr-pagination">
+    {% if game_matches.has_previous %}
+    <a href="?view=games&filter={{ filter_type }}&page=1" title="Birinchi"><i class="bi bi-chevron-double-left"></i></a>
+    <a href="?view=games&filter={{ filter_type }}&page={{ game_matches.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
+    {% else %}
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-double-left"></i></span>
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-left"></i></span>
+    {% endif %}
+
+    {% for num in game_matches.paginator.page_range %}
+        {% if num > game_matches.number|add:'-3' and num < game_matches.number|add:'3' %}
+            {% if game_matches.number == num %}
+            <span class="ctr-page-active">{{ num }}</span>
+            {% else %}
+            <a href="?view=games&filter={{ filter_type }}&page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <span class="ctr-page-info">{{ game_matches.number }} / {{ game_matches.paginator.num_pages }}</span>
+
+    {% if game_matches.has_next %}
+    <a href="?view=games&filter={{ filter_type }}&page={{ game_matches.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
+    <a href="?view=games&filter={{ filter_type }}&page={{ game_matches.paginator.num_pages }}" title="Oxirgi"><i class="bi bi-chevron-double-right"></i></a>
+    {% else %}
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-right"></i></span>
+    <span class="ctr-page-disabled"><i class="bi bi-chevron-double-right"></i></span>
+    {% endif %}
+</div>
+{% endif %}
+{% else %}
 {% if transfers.has_other_pages %}
 <div class="ctr-pagination">
     {% if transfers.has_previous %}
-    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page=1" title="Birinchi"><i class="bi bi-chevron-double-left"></i></a>
-    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
+    <a href="?view=transfers&filter={{ filter_type }}&page=1" title="Birinchi"><i class="bi bi-chevron-double-left"></i></a>
+    <a href="?view=transfers&filter={{ filter_type }}&page={{ transfers.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
     {% else %}
     <span class="ctr-page-disabled"><i class="bi bi-chevron-double-left"></i></span>
     <span class="ctr-page-disabled"><i class="bi bi-chevron-left"></i></span>
@@ -863,7 +1115,7 @@
             {% if transfers.number == num %}
             <span class="ctr-page-active">{{ num }}</span>
             {% else %}
-            <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ num }}">{{ num }}</a>
+            <a href="?view=transfers&filter={{ filter_type }}&page={{ num }}">{{ num }}</a>
             {% endif %}
         {% endif %}
     {% endfor %}
@@ -871,13 +1123,14 @@
     <span class="ctr-page-info">{{ transfers.number }} / {{ transfers.paginator.num_pages }}</span>
 
     {% if transfers.has_next %}
-    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
-    <a href="?{% if filter_type %}filter={{ filter_type }}&{% endif %}page={{ transfers.paginator.num_pages }}" title="Oxirgi"><i class="bi bi-chevron-double-right"></i></a>
+    <a href="?view=transfers&filter={{ filter_type }}&page={{ transfers.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
+    <a href="?view=transfers&filter={{ filter_type }}&page={{ transfers.paginator.num_pages }}" title="Oxirgi"><i class="bi bi-chevron-double-right"></i></a>
     {% else %}
     <span class="ctr-page-disabled"><i class="bi bi-chevron-right"></i></span>
     <span class="ctr-page-disabled"><i class="bi bi-chevron-double-right"></i></span>
     {% endif %}
 </div>
+{% endif %}
 {% endif %}
 
 <script>
@@ -897,10 +1150,17 @@
         el.textContent = '0';
         requestAnimationFrame(step);
     }
+    {% if view_type == 'games' %}
+    animateNum(document.getElementById('animTotal'), '{{ games_total_count }}');
+    animateNum(document.getElementById('animSuccess'), '{{ games_finished_count }}');
+    animateNum(document.getElementById('animCoins'), '{{ games_total_wager|default:"0" }}');
+    animateNum(document.getElementById('animFees'), '{{ games_total_fees|default:"0" }}');
+    {% else %}
     animateNum(document.getElementById('animTotal'), '{{ total_count }}');
     animateNum(document.getElementById('animSuccess'), '{{ success_count }}');
     animateNum(document.getElementById('animCoins'), '{{ total_coins|default:"0" }}');
     animateNum(document.getElementById('animFees'), '{{ total_fees|default:"0" }}');
+    {% endif %}
 })();
 </script>
 {% endblock %}

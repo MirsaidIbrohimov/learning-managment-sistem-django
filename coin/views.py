@@ -297,43 +297,86 @@ def admin_activities(request):
 def admin_transfers(request):
     if not request.user.is_admin:
         return redirect('home')
-    
-    transfers = CoinTransfer.objects.all().select_related('sender', 'receiver')
-    
+
+    # Qaysi ko'rinish: 'transfers' (coin o'tkazmalar) yoki 'games' (coin o'yinlar)
+    view_type = request.GET.get('view', 'transfers')
+
     filter_type = request.GET.get('filter', 'all')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
     now = timezone.now()
-    
-    if filter_type == 'today':
-        transfers = transfers.filter(created_at__date=now.date())
-    elif filter_type == 'week':
-        start_of_week = now - timedelta(days=now.weekday())
-        transfers = transfers.filter(created_at__date__gte=start_of_week.date())
-    elif filter_type == 'month':
-        transfers = transfers.filter(created_at__year=now.year, created_at__month=now.month)
-    elif filter_type == 'custom':
-        if date_from:
-            transfers = transfers.filter(created_at__date__gte=date_from)
-        if date_to:
-            transfers = transfers.filter(created_at__date__lte=date_to)
-    
+
+    def apply_date_filter(qs):
+        if filter_type == 'today':
+            qs = qs.filter(created_at__date=now.date())
+        elif filter_type == 'week':
+            start_of_week = now - timedelta(days=now.weekday())
+            qs = qs.filter(created_at__date__gte=start_of_week.date())
+        elif filter_type == 'month':
+            qs = qs.filter(created_at__year=now.year, created_at__month=now.month)
+        elif filter_type == 'custom':
+            if date_from:
+                qs = qs.filter(created_at__date__gte=date_from)
+            if date_to:
+                qs = qs.filter(created_at__date__lte=date_to)
+        return qs
+
+    # ===== Coin o'tkazmalar =====
+    transfers = CoinTransfer.objects.all().select_related('sender', 'receiver')
+    transfers = apply_date_filter(transfers)
+
     total_count = transfers.count()
     success_qs = transfers.filter(status='completed')
     success_count = success_qs.count()
     total_coins = success_qs.aggregate(total=Sum('amount'))['total'] or 0
     total_fees = success_qs.aggregate(total=Sum('fee'))['total'] or 0
-    
-    paginator = Paginator(transfers, 30)
-    page = request.GET.get('page', 1)
-    transfers = paginator.get_page(page)
-    
+
+    # ===== Coin bilan o'ynalgan o'yinlar (BoardMatch, mode='coin') =====
+    from games.models import BoardMatch
+    from games.external_api import SERVICE_FEE_PERCENT
+
+    games_qs = (
+        BoardMatch.objects
+        .filter(mode='coin', wager_coins__gt=0)
+        .select_related('white_player', 'black_player', 'game')
+    )
+    games_qs = apply_date_filter(games_qs)
+
+    games_total_count = games_qs.count()
+    games_finished_count = games_qs.filter(status='ended').count()
+    # Har bir o'yinda jami bank = 2 * wager_coins
+    games_total_wager = (games_qs.aggregate(total=Sum('wager_coins'))['total'] or 0) * 2
+    # Yutgan o'yinlardan ushlangan xizmat haqi (durang/bekorlardan tashqari)
+    decided_qs = games_qs.filter(status='ended', winner__in=['white', 'black'])
+    games_total_fees = sum(
+        ((m.wager_coins * 2) * SERVICE_FEE_PERCENT) // 100
+        for m in decided_qs
+    )
+
+    if view_type == 'games':
+        paginator = Paginator(games_qs.order_by('-created_at'), 30)
+        page = request.GET.get('page', 1)
+        game_matches = paginator.get_page(page)
+        transfers_page = None
+    else:
+        paginator = Paginator(transfers, 30)
+        page = request.GET.get('page', 1)
+        transfers_page = paginator.get_page(page)
+        game_matches = None
+
     return render(request, 'coin/admin/transfers.html', {
-        'transfers': transfers,
+        'view_type': view_type,
+        'transfers': transfers_page,
+        'game_matches': game_matches,
         'total_count': total_count,
         'success_count': success_count,
         'total_coins': total_coins,
         'total_fees': total_fees,
+        'games_total_count': games_total_count,
+        'games_finished_count': games_finished_count,
+        'games_total_wager': games_total_wager,
+        'games_total_fees': games_total_fees,
+        'service_fee_percent': SERVICE_FEE_PERCENT,
         'filter_type': filter_type,
         'date_from': date_from,
         'date_to': date_to,
