@@ -528,6 +528,24 @@
         white-space: nowrap;
     }
     [data-bs-theme="dark"] .ctr-winner-name { color: #34d399; }
+    /* Per-player coin outcome badge */
+    .ctr-delta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.2rem;
+        font-size: 0.7rem;
+        font-weight: 800;
+        padding: 0.1rem 0.45rem;
+        border-radius: 8px;
+        margin-top: 0.15rem;
+        white-space: nowrap;
+    }
+    .ctr-delta.win { color: #059669; background: rgba(16,185,129,0.12); }
+    .ctr-delta.loss { color: #dc2626; background: rgba(239,68,68,0.1); }
+    .ctr-delta.zero { color: #6b7280; background: rgba(107,114,128,0.1); }
+    [data-bs-theme="dark"] .ctr-delta.win { color: #34d399; }
+    [data-bs-theme="dark"] .ctr-delta.loss { color: #f87171; }
+    [data-bs-theme="dark"] .ctr-delta.zero { color: #9ca3af; }
     .ctr-status.active {
         background: rgba(59, 130, 246, 0.1);
         color: #2563eb;
@@ -916,8 +934,17 @@
                     <div class="ctr-avatar-placeholder sender">{{ m.white_player.get_initials }}</div>
                     {% endif %}
                     <div class="ctr-person">
-                        <div class="ctr-person-name">{{ m.white_player.full_name }}</div>
-                        <div class="ctr-person-username">@{{ m.white_player.username }}{% if m.winner == 'white' %} 🏆{% endif %}</div>
+                        <div class="ctr-person-name">{{ m.white_player.full_name }}{% if m.winner == 'white' %} 🏆{% endif %}</div>
+                        <div class="ctr-person-username">@{{ m.white_player.username }}</div>
+                        {% if m.winner == 'white' or m.winner == 'black' %}
+                            {% if m.white_coin_delta > 0 %}
+                            <span class="ctr-delta win"><i class="bi bi-arrow-up-short"></i> +{{ m.white_coin_delta }} coin</span>
+                            {% else %}
+                            <span class="ctr-delta loss"><i class="bi bi-arrow-down-short"></i> {{ m.white_coin_delta }} coin</span>
+                            {% endif %}
+                        {% elif m.status == 'ended' and m.winner == 'draw' %}
+                            <span class="ctr-delta zero"><i class="bi bi-arrow-repeat"></i> {{ m.wager_coins }} qaytdi</span>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -933,8 +960,17 @@
                         <div class="ctr-avatar-placeholder receiver">{{ m.black_player.get_initials }}</div>
                         {% endif %}
                         <div class="ctr-person">
-                            <div class="ctr-person-name">{{ m.black_player.full_name }}</div>
-                            <div class="ctr-person-username">@{{ m.black_player.username }}{% if m.winner == 'black' %} 🏆{% endif %}</div>
+                            <div class="ctr-person-name">{{ m.black_player.full_name }}{% if m.winner == 'black' %} 🏆{% endif %}</div>
+                            <div class="ctr-person-username">@{{ m.black_player.username }}</div>
+                            {% if m.winner == 'white' or m.winner == 'black' %}
+                                {% if m.black_coin_delta > 0 %}
+                                <span class="ctr-delta win"><i class="bi bi-arrow-up-short"></i> +{{ m.black_coin_delta }} coin</span>
+                                {% else %}
+                                <span class="ctr-delta loss"><i class="bi bi-arrow-down-short"></i> {{ m.black_coin_delta }} coin</span>
+                                {% endif %}
+                            {% elif m.status == 'ended' and m.winner == 'draw' %}
+                                <span class="ctr-delta zero"><i class="bi bi-arrow-repeat"></i> {{ m.wager_coins }} qaytdi</span>
+                            {% endif %}
                         </div>
                     {% else %}
                         <div class="ctr-avatar-placeholder receiver">?</div>
@@ -957,8 +993,8 @@
                 </div>
                 {% if m.winner_player %}
                 <div style="text-align:right;">
-                    <div class="ctr-winner-name"><i class="bi bi-trophy-fill"></i> {{ m.winner_player.full_name }}</div>
-                    <div class="ctr-fee-text" style="margin-top:0.1rem;">+{{ m.winner_payout }} coin (xizmat -{{ m.service_fee }})</div>
+                    <div class="ctr-winner-name"><i class="bi bi-trophy-fill"></i> {{ m.winner_player.full_name }} yutdi</div>
+                    <div class="ctr-fee-text" style="margin-top:0.1rem;">{{ m.winner_payout }} coin oldi (xizmat haqi -{{ m.service_fee }})</div>
                 </div>
                 {% endif %}
                 <div style="text-align:right;">

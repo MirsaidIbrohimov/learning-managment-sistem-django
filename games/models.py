@@ -390,6 +390,32 @@ class BoardMatch(models.Model):
             return self.black_player
         return None
 
+    @property
+    def winner_net(self):
+        """G'olibning sof yutug'i (tikilishi qaytib, ustiga qancha qo'shildi)."""
+        if self.mode != 'coin' or self.winner not in ('white', 'black'):
+            return 0
+        return self.winner_payout - self.wager_coins
+
+    def coin_delta(self, role):
+        """Berilgan o'yinchining (white/black) shu o'yindagi sof coin o'zgarishi."""
+        if self.mode != 'coin' or self.wager_coins <= 0:
+            return 0
+        # Durang yoki o'yin yakunlanmagan bo'lsa — tikilish qaytariladi (0)
+        if self.winner not in ('white', 'black'):
+            return 0
+        if self.winner == role:
+            return self.winner_net          # g'olib: + sof yutuq
+        return -self.wager_coins             # mag'lub: - tikilishi
+
+    @property
+    def white_coin_delta(self):
+        return self.coin_delta('white')
+
+    @property
+    def black_coin_delta(self):
+        return self.coin_delta('black')
+
 
 class WordSuggestion(models.Model):
     STATUS_CHOICES = (
