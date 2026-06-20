@@ -159,11 +159,29 @@ def strip_tg_emoji(text):
 
 
 def _is_custom_emoji_error(resp):
+    """Xabar custom emoji sababli rad etilganmi?
+
+    Bot (oddiy bot) custom emoji yubora olmaganda Telegram turli xil xatolar
+    qaytaradi: yaroqsiz ID uchun "DOCUMENT_INVALID", ruxsat yo'qligida
+    "CUSTOM_EMOJI_INVALID" yoki "custom emoji" matnli xato, ba'zan entity
+    xatolari. Bularning barchasini ushlab, custom emojisiz qayta yuboramiz.
+    """
     try:
-        if resp is None or resp.status_code == 200:
+        if resp is None:
             return False
-        body = resp.text or ""
-        return "CUSTOM_EMOJI" in body.upper() or "custom emoji" in body.lower()
+        try:
+            if resp.status_code == 200 and resp.json().get("ok"):
+                return False
+        except Exception:
+            pass
+        body = (resp.text or "").upper()
+        return any(marker in body for marker in (
+            "CUSTOM_EMOJI",
+            "CUSTOM EMOJI",
+            "DOCUMENT_INVALID",
+            "ENTITIES_TOO_LONG",
+            "ENTITY",
+        ))
     except Exception:
         return False
 
