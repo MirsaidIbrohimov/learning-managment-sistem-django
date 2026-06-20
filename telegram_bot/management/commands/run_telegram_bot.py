@@ -550,8 +550,8 @@ class Command(BaseCommand):
             self._send_message(bot_token, chat_id, "❌ Telegram akkauntingiz tizimga ulanmagan!")
             return
 
+        from telegram_bot import premium
         user = CustomUser.objects.get(telegram_id=telegram_id)
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         keyboard = {
             'keyboard': [
                 [{'text': '✅ Ha, uzilsin'}, {'text': '❌ Bekor qilish'}],
@@ -559,15 +559,13 @@ class Command(BaseCommand):
             'resize_keyboard': True,
             'one_time_keyboard': True,
         }
-        requests.post(url, json={
-            'chat_id': chat_id,
-            'text': f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
-                    f"👤 {user.first_name} {user.last_name}\n\n"
-                    f"Uzilgandan so'ng bot orqali login qila olmaysiz.\n"
-                    f"Qayta ulash uchun saytdan \"Telegramni ulash\" tugmasini bosishingiz kerak.",
-            'parse_mode': 'HTML',
-            'reply_markup': keyboard,
-        })
+        text = (
+            f"⚠️ <b>Telegramni uzmoqchimisiz?</b>\n\n"
+            f"👤 {user.first_name} {user.last_name}\n\n"
+            f"Uzilgandan so'ng bot orqali login qila olmaysiz.\n"
+            f"Qayta ulash uchun saytdan \"Telegramni ulash\" tugmasini bosishingiz kerak."
+        )
+        premium.send_message(bot_token, chat_id, text, reply_markup=keyboard)
 
     def _do_unlink(self, bot_token, chat_id, telegram_id):
         try:
@@ -580,17 +578,15 @@ class Command(BaseCommand):
         user.telegram_username = None
         user.save(update_fields=['telegram_id', 'telegram_username'])
 
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        from telegram_bot import premium
         keyboard = {'remove_keyboard': True}
-        requests.post(url, json={
-            'chat_id': chat_id,
-            'text': f"✅ Telegram muvaffaqiyatli uzildi!\n\n"
-                    f"👤 {user.first_name} {user.last_name}\n\n"
-                    f"📱 Qayta ulash uchun saytda profilingizga kirib\n"
-                    f"\"Telegramni ulash\" tugmasini bosing.",
-            'parse_mode': 'HTML',
-            'reply_markup': keyboard,
-        })
+        text = (
+            f"✅ Telegram muvaffaqiyatli uzildi!\n\n"
+            f"👤 {user.first_name} {user.last_name}\n\n"
+            f"📱 Qayta ulash uchun saytda profilingizga kirib\n"
+            f"\"Telegramni ulash\" tugmasini bosing."
+        )
+        premium.send_message(bot_token, chat_id, text, reply_markup=keyboard)
         self.stdout.write(f"  🔓 Uzildi: {user.first_name} {user.last_name} ({user.username}) ← TG:{telegram_id}")
 
     def _handle_ai_chat_start(self, bot_token, chat_id, telegram_id):
@@ -923,8 +919,15 @@ class Command(BaseCommand):
             'resize_keyboard': True,
         }
 
+    def _maybe_sticker(self, bot_token, chat_id, text):
+        """Muhim voqealarda mos premium stiker yuboradi (bezak)."""
+        from telegram_bot import premium
+        event = premium.pick_sticker(text)
+        if event in {"welcome", "success", "error", "celebrate"}:
+            premium.send_sticker(bot_token, chat_id, event)
+
     def _send_message_with_keyboard(self, bot_token, chat_id, text):
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        from telegram_bot import premium
         keyboard = {
             'keyboard': [
                 [{'text': '💰 Coin statistika'}, {'text': '📊 Ball statistika'}],
@@ -934,29 +937,18 @@ class Command(BaseCommand):
             ],
             'resize_keyboard': True,
         }
-        requests.post(url, json={
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'HTML',
-            'reply_markup': keyboard,
-        })
+        self._maybe_sticker(bot_token, chat_id, text)
+        premium.send_message(bot_token, chat_id, text, reply_markup=keyboard)
 
     def _send_message_with_reply_markup(self, bot_token, chat_id, text, reply_markup):
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        requests.post(url, json={
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'HTML',
-            'reply_markup': reply_markup,
-        })
+        from telegram_bot import premium
+        self._maybe_sticker(bot_token, chat_id, text)
+        premium.send_message(bot_token, chat_id, text, reply_markup=reply_markup)
 
     def _send_message(self, bot_token, chat_id, text):
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        requests.post(url, json={
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'HTML'
-        })
+        from telegram_bot import premium
+        self._maybe_sticker(bot_token, chat_id, text)
+        premium.send_message(bot_token, chat_id, text)
 
     def _notify_admin_telegram_message(self, bot_token, tg_full, tg_username, telegram_id, text):
         import threading
@@ -970,15 +962,11 @@ class Command(BaseCommand):
         )
 
         def _send():
+            from telegram_bot import premium
             admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
             for admin in admins:
                 try:
-                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    requests.post(url, json={
-                        'chat_id': admin.telegram_id,
-                        'text': notify_text,
-                        'parse_mode': 'HTML',
-                    }, timeout=10)
+                    premium.send_message(bot_token, admin.telegram_id, notify_text)
                 except Exception:
                     pass
 

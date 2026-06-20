@@ -522,6 +522,12 @@ TELEGRAM_BOT_TOKEN     = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID', '').strip()
 TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
 
+# Premium custom emoji va stikerlar (telegram_bot/premium.py).
+# True bo'lsa, bot xabarlari premium animatsiyali emoji + stiker ishlatadi.
+# ID lar noto'g'ri bo'lsa avtomatik oddiy emojiga qaytadi (botni buzmaydi).
+TELEGRAM_USE_PREMIUM_EMOJI = os.getenv('TELEGRAM_USE_PREMIUM_EMOJI', 'true').lower() in ('1', 'true', 'yes')
+TELEGRAM_USE_STICKERS      = os.getenv('TELEGRAM_USE_STICKERS', 'true').lower() in ('1', 'true', 'yes')
+
 # SITE_URL: webhook (production) uchun real domen kerak.
 # '*' yoki bo'sh bo'lsa — lokal polling rejimi ishlaydi (webhook emas).
 _raw_site_url = os.getenv('SITE_URL', '').strip()
