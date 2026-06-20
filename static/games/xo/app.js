@@ -82,6 +82,12 @@ let MATCH_ID    = null;   // mp match id
 let mpPollTimer = null;
 let mpActive    = false;
 
+// Matchmaking wait UI (elapsed timer + "play vs AI instead" offer)
+const MM_AI_OFFER_DELAY_SEC = 14;
+let mmWaitStart   = null;
+let mmElapsedTimer = null;
+let mmOfferShown  = false;
+
 function setBoardSize(size) {
     BOARD_SIZE = [3, 4, 5].includes(Number(size)) ? Number(size) : 3;
     WIN_LENGTH = BOARD_SIZE === 3 ? 3 : 4;
@@ -500,14 +506,45 @@ function startMatchmaking() {
     }
     MODE = 'mp';
     showScreen('mm');
+    startMmWaitUI();
     mpFind();
 }
 
 let mmPollTimer = null;
 
+// ---- wait UI: elapsed counter + delayed "play vs AI" offer ----
+function startMmWaitUI() {
+    mmWaitStart  = Date.now();
+    mmOfferShown = false;
+    $('mm-ai-offer').classList.add('hidden');
+    updateMmElapsedUI();
+    if (mmElapsedTimer) clearInterval(mmElapsedTimer);
+    mmElapsedTimer = setInterval(updateMmElapsedUI, 1000);
+}
+
+function updateMmElapsedUI() {
+    if (!mmWaitStart) return;
+    const sec = Math.floor((Date.now() - mmWaitStart) / 1000);
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    $('mm-elapsed').textContent = `Qidirilmoqda: ${m}:${String(s).padStart(2, '0')}`;
+    if (!mmOfferShown && sec >= MM_AI_OFFER_DELAY_SEC) {
+        mmOfferShown = true;
+        $('mm-ai-offer').classList.remove('hidden');
+    }
+}
+
+function stopMmWaitUI() {
+    if (mmElapsedTimer) { clearInterval(mmElapsedTimer); mmElapsedTimer = null; }
+    mmWaitStart  = null;
+    mmOfferShown = false;
+    $('mm-ai-offer').classList.add('hidden');
+}
+
 async function mpFind() {
     if (!TOKEN || !API_BASE) {
         showNotif('Token kerak — multiplayer ishlamaydi');
+        stopMmWaitUI();
         enterMenu(); return;
     }
     try {
@@ -527,6 +564,7 @@ async function mpFind() {
         }
     } catch (err) {
         showNotif(`Xatolik: ${err.message}`, 4000);
+        stopMmWaitUI();
         enterMenu();
     }
 }
@@ -574,6 +612,7 @@ async function mpPoll() {
 
 async function startMpGame(data) {
     clearTimeout(mmPollTimer);
+    stopMmWaitUI();
     MATCH_ID = data.id;
     BOARD_SIZE = data.board_size || BOARD_SIZE;
     WIN_LENGTH = data.win_length || (BOARD_SIZE === 3 ? 3 : 4);
@@ -731,6 +770,7 @@ function stopMp() {
     mpActive = false;
     if (mpPollTimer) { clearInterval(mpPollTimer); mpPollTimer = null; }
     if (mmPollTimer) { clearTimeout(mmPollTimer);  mmPollTimer = null; }
+    stopMmWaitUI();
 }
 
 // ============== CELL CLICK ==============
@@ -761,6 +801,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         stopMp();
         enterMenu();
+    });
+
+    // Raqib topilmasa — AI bilan o'ynashga o'tish
+    $('btn-mm-play-ai').addEventListener('click', () => {
+        if (MATCH_ID) {
+            fetch(URLS.mpResign, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID }),
+            }).catch(() => {});
+        }
+        stopMp();
+        MODE = 'ai';
+        DIFFICULTY = DIFFICULTY || 'medium';
+        startAIGame();
     });
 
     // Fullscreen

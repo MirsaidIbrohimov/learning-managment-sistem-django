@@ -214,7 +214,8 @@
   padding: .75rem 1.25rem;
   background: rgba(0,0,0,.2);
   border-top: 1px solid rgba(255,255,255,.04);
-  gap: .5rem;
+  gap: .5rem .85rem;
+  flex-wrap: wrap;
 }
 .lg-footer-stat {
   display: flex; align-items: center; gap: .35rem;
@@ -403,6 +404,7 @@
 
       <!-- footer -->
       <div class="lg-card-footer">
+        <span class="lg-footer-stat"><i class="bi bi-clock-history"></i> {{ match.started_at|default:match.created_at|timesince }} davom etmoqda</span>
         <span class="lg-footer-stat"><i class="bi bi-arrow-left-right"></i> {{ match.move_count }} yurish</span>
         {% if match.mode == 'coin' and match.wager_coins %}
         <span class="lg-footer-stat gold"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin tikilgan</span>

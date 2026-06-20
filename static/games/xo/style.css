@@ -272,6 +272,31 @@ body::before {
 .dots-anim span:nth-child(3) { background: var(--o-color); box-shadow: 0 0 10px var(--o-glow); animation-delay: 0.4s; }
 @keyframes dot-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-16px)} }
 
+.mm-elapsed {
+    font-size: 0.85rem; color: var(--muted);
+    margin-bottom: 1.5rem; font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.mm-ai-offer {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    animation: mm-offer-in 0.35s ease;
+}
+.mm-ai-offer.hidden { display: none; }
+.mm-ai-offer p {
+    color: var(--muted); font-size: 0.85rem;
+    margin-bottom: 0.9rem; line-height: 1.4;
+}
+.mm-ai-offer .btn-primary { width: 100%; }
+@keyframes mm-offer-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ===== GAME SCREEN ===== */
 #game-screen {
     align-items: stretch; justify-content: stretch;
