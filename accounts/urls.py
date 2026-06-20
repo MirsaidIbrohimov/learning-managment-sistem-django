@@ -5,6 +5,7 @@ from .api import homework_views as hw_api
 
 urlpatterns = [
     path('', views.home_view, name='home'),
+    path('search/', views.global_search, name='global_search'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),

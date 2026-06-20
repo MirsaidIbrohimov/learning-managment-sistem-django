@@ -1,0 +1,16 @@
+{% comment %} Event card. with event={title,type,datetime_label,day,month,url,icon} {% endcomment %}
+<a href="{{ event.url|default:'#' }}" class="event-card" aria-label="{{ event.title|default:'Tadbir' }}">
+    <div class="ev-date" aria-hidden="true">
+        <div class="ev-day">{{ event.day|default:'--' }}</div>
+        <div class="ev-month">{{ event.month|default:'' }}</div>
+    </div>
+    <div class="ev-body">
+        <div class="ev-title">
+            {% if event.icon %}<i class="bi bi-{{ event.icon }}" aria-hidden="true"></i> {% endif %}{{ event.title|default:'Nomsiz tadbir' }}
+        </div>
+        <div class="ev-meta">
+            {% if event.type %}<span class="dash-chip is-accent" style="padding:2px 8px;">{{ event.type }}</span>{% endif %}
+            {% if event.datetime_label %}<span><i class="bi bi-clock" aria-hidden="true"></i> {{ event.datetime_label }}</span>{% endif %}
+        </div>
+    </div>
+</a>

@@ -1181,16 +1181,45 @@ def home_view(request):
             
             for enrollment in my_enrollments:
                 pid = enrollment.profession_id
+                prof = enrollment.profession
                 total_items = video_counts.get(pid, 0) + test_counts.get(pid, 0) + hw_counts.get(pid, 0)
                 if total_items == 0:
                     progress = 0
                 else:
                     completed = watched_counts.get(pid, 0) + passed_counts.get(pid, 0) + done_hw_counts.get(pid, 0)
                     progress = min(100, round((completed / total_items) * 100))
+                try:
+                    teacher = prof.teachers.first()
+                    teacher_name = teacher.get_full_name() if teacher else ''
+                except Exception:
+                    teacher_name = ''
+                try:
+                    photo_url = prof.photo.url if prof.photo else ''
+                except Exception:
+                    photo_url = ''
+                try:
+                    course_url = reverse('profession_detail', args=[pid])
+                except Exception:
+                    course_url = '#'
                 dashboard_courses.append({
-                    'name': enrollment.profession.name,
+                    'id': pid,
+                    'name': prof.name,
                     'progress': progress,
+                    'teacher': teacher_name,
+                    'photo': photo_url,
+                    'is_paid': getattr(prof, 'is_paid', False),
+                    'url': course_url,
+                    'lesson_count': video_counts.get(pid, 0),
                 })
+
+    # Mondly-uslub dashboard uchun progress guruhlari
+    db_completed = sum(1 for c in dashboard_courses if c['progress'] >= 100)
+    db_inprogress = sum(1 for c in dashboard_courses if 0 < c['progress'] < 100)
+    db_upcoming = sum(1 for c in dashboard_courses if c['progress'] == 0)
+    db_avg_progress = round(
+        sum(c['progress'] for c in dashboard_courses) / len(dashboard_courses)
+    ) if dashboard_courses else 0
+    db_featured = max(dashboard_courses, key=lambda c: c['progress']) if dashboard_courses else None
 
     # ⚠️ MUHIM:
     # unread_messages_count BU YERDA HISOBLANMAYDI!
@@ -1212,17 +1241,482 @@ def home_view(request):
     ).order_by('-coins')[:5]
     top_students = []
     for i, s in enumerate(top_students_qs):
+        try:
+            s_photo = s.photo.url if s.photo else None
+        except Exception:
+            s_photo = None
         top_students.append({
             'rank': i + 1,
             'is_me': s.pk == request.user.pk,
-            'photo': s.photo if s.photo else None,
+            'photo': s_photo,
             'name': s.get_full_name() or s.username,
             'points': s.coins,
         })
 
+    # =========================================================================
+    # PREMIUM DASHBOARD — yangi kontekst kalitlari (faqat o'quvchi/admin uchun)
+    # Barchasi MAVJUD modellardan, himoyalangan (defensive) tarzda hisoblanadi.
+    # =========================================================================
+    user = request.user
+    today = timezone.localdate()
+
+    # ---- 1) today_recommendation -------------------------------------------
+    today_recommendation = None
+    try:
+        in_progress = [c for c in dashboard_courses if 0 < c.get('progress', 0) < 100]
+        chosen = None
+        if in_progress:
+            chosen = max(in_progress, key=lambda c: c.get('progress', 0))
+        elif dashboard_courses:
+            # most recent enrollment -> my_enrollments[0] (enrolled_at desc emas,
+            # lekin dashboard_courses my_enrollments tartibida; birinchisini olamiz)
+            chosen = dashboard_courses[0]
+        if chosen:
+            prog = chosen.get('progress', 0) or 0
+            # total_lessons -> shu kursdagi darslar soni (himoyalangan)
+            try:
+                total_l = Lesson.objects.filter(profession_id=chosen['id']).count()
+            except Exception:
+                total_l = 0
+            lessons_left = max(0, round(total_l * (100 - prog) / 100)) if total_l else 0
+            try:
+                rec_url = reverse('profession_detail', args=[chosen['id']])
+            except Exception:
+                rec_url = '#'
+            today_recommendation = {
+                'course_id': chosen['id'],
+                'course_name': chosen.get('name', ''),
+                'lessons_left': lessons_left,
+                'total_lessons': total_l,
+                'progress': prog,
+                'url': rec_url,
+            }
+    except Exception:
+        today_recommendation = None
+
+    # ---- 2) daily_missions -------------------------------------------------
+    daily_missions = []
+    missions_done_count = 0
+    missions_xp_earned = 0
+    try:
+        videos_today = VideoProgress.objects.filter(
+            user=user, watched=True, watched_at__date=today
+        ).count()
+        quizzes_today = TestResult.objects.filter(
+            student=user, passed=True, completed_at__date=today
+        ).count()
+        hw_today = HomeworkSubmission.objects.filter(
+            student=user, submitted_at__date=today
+        ).count()
+        # coinlar bo'yicha bugungi faollik — agar derivable bo'lsa
+        coins_today = None
+        try:
+            from coin.models import CoinTransaction as _CoinTx
+            agg = _CoinTx.objects.filter(
+                user=user, created_at__date=today, amount__gt=0
+            ).aggregate(s=Sum('amount'))
+            coins_today = agg.get('s') or 0
+        except Exception:
+            coins_today = None
+        if coins_today is None:
+            coins_today = min(20, (videos_today + quizzes_today + hw_today) * 10)
+
+        _missions_raw = [
+            {'key': 'watch_video', 'title': "Video dars ko'rish", 'icon': 'play-circle',
+             'target': 1, 'current': videos_today, 'reward_xp': 10},
+            {'key': 'pass_quiz', 'title': "Testdan o'tish", 'icon': 'patch-check',
+             'target': 1, 'current': quizzes_today, 'reward_xp': 15},
+            {'key': 'submit_homework', 'title': "Uy vazifa topshirish", 'icon': 'journal-check',
+             'target': 1, 'current': hw_today, 'reward_xp': 20},
+            {'key': 'earn_coins', 'title': "Tanga ishlash", 'icon': 'coin',
+             'target': 20, 'current': coins_today, 'reward_xp': 25},
+        ]
+        for m in _missions_raw:
+            tgt = m['target'] or 1
+            cur = m['current'] or 0
+            done = cur >= tgt
+            pct = min(100, round(cur / tgt * 100)) if tgt else 0
+            m['done'] = done
+            m['pct'] = pct
+            if done:
+                missions_done_count += 1
+                missions_xp_earned += m['reward_xp']
+            daily_missions.append(m)
+    except Exception:
+        daily_missions = []
+        missions_done_count = 0
+        missions_xp_earned = 0
+
+    # ---- 3) learning_stats + weekly_spark ----------------------------------
+    weekly_spark = [0] * 7
+    try:
+        lessons_completed = VideoProgress.objects.filter(user=user, watched=True).count()
+        courses_completed = sum(1 for c in dashboard_courses if c.get('progress', 0) >= 100)
+        study_hours = round((user.total_online_time or 0) / 60)
+        weekly_minutes = (user.total_online_time or 0)
+        acc_agg = TestResult.objects.filter(student=user).aggregate(a=Avg('score'))
+        quiz_accuracy = round(acc_agg.get('a') or 0)
+        certificates_earned = Certificate.objects.filter(student=user).count()
+
+        # weekly_spark — joriy hafta (Du..Ya) faollik soni
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)
+        spark = [0] * 7
+
+        def _add_spark(dates_iter):
+            for d in dates_iter:
+                if d and week_start <= d <= week_end:
+                    spark[d.weekday()] += 1
+
+        _add_spark(VideoProgress.objects.filter(
+            user=user, watched=True, watched_at__date__range=(week_start, week_end)
+        ).values_list('watched_at', flat=True).iterator())
+        _add_spark(TestResult.objects.filter(
+            student=user, completed_at__date__range=(week_start, week_end)
+        ).values_list('completed_at', flat=True).iterator())
+        _add_spark(HomeworkSubmission.objects.filter(
+            student=user, submitted_at__date__range=(week_start, week_end)
+        ).values_list('submitted_at', flat=True).iterator())
+        # datetime -> date konversiyasi (values_list datetime qaytaradi)
+        weekly_spark = spark
+    except Exception:
+        lessons_completed = 0
+        courses_completed = 0
+        study_hours = 0
+        weekly_minutes = 0
+        quiz_accuracy = 0
+        certificates_earned = 0
+        weekly_spark = [0] * 7
+
+    learning_stats = {
+        'courses_completed': courses_completed,
+        'lessons_completed': lessons_completed,
+        'study_hours': study_hours,
+        'weekly_minutes': weekly_minutes,
+        'quiz_accuracy': quiz_accuracy,
+        'certificates_earned': certificates_earned,
+    }
+
+    # ---- 4) heatmap_days (oxirgi 90 kun, har manba uchun 1 ta query) -------
+    heatmap_days = []
+    heatmap_max = 0
+    heatmap_total = 0
+    heatmap_active_days = 0
+    try:
+        start_date = today - timedelta(days=89)
+        counts_by_date = {}
+
+        def _accumulate(qs_dates):
+            for dt in qs_dates:
+                if not dt:
+                    continue
+                d = dt.date() if hasattr(dt, 'date') else dt
+                if start_date <= d <= today:
+                    counts_by_date[d] = counts_by_date.get(d, 0) + 1
+
+        _accumulate(VideoProgress.objects.filter(
+            user=user, watched=True, watched_at__date__gte=start_date
+        ).values_list('watched_at', flat=True).iterator())
+        _accumulate(TestResult.objects.filter(
+            student=user, completed_at__date__gte=start_date
+        ).values_list('completed_at', flat=True).iterator())
+        _accumulate(HomeworkSubmission.objects.filter(
+            student=user, submitted_at__date__gte=start_date
+        ).values_list('submitted_at', flat=True).iterator())
+
+        def _level(c):
+            if c <= 0:
+                return 0
+            if c == 1:
+                return 1
+            if c <= 3:
+                return 2
+            if c <= 6:
+                return 3
+            return 4
+
+        for i in range(90):
+            d = start_date + timedelta(days=i)
+            c = counts_by_date.get(d, 0)
+            heatmap_total += c
+            if c > 0:
+                heatmap_active_days += 1
+            if c > heatmap_max:
+                heatmap_max = c
+            heatmap_days.append({
+                'date': d.strftime('%Y-%m-%d'),
+                'count': c,
+                'level': _level(c),
+            })
+    except Exception:
+        heatmap_days = [{'date': (today - timedelta(days=89 - i)).strftime('%Y-%m-%d'),
+                         'count': 0, 'level': 0} for i in range(90)]
+        heatmap_max = 0
+        heatmap_total = 0
+        heatmap_active_days = 0
+
+    # ---- 5) achievements ---------------------------------------------------
+    achievements = []
+    achievements_earned_count = 0
+    try:
+        try:
+            passed_tests_count = TestResult.objects.filter(student=user, passed=True).count()
+        except Exception:
+            passed_tests_count = 0
+        try:
+            enroll_count = user.enrollments.count()
+        except Exception:
+            enroll_count = 0
+        coins_val = user.coins or 0
+
+        _ach_rules = [
+            ('first_course', 'Birinchi kurs', 'mortarboard',
+             'Birinchi kursga yozildingiz', enroll_count > 0),
+            ('streak_7', '7 kunlik streak', 'fire',
+             '7 kun ketma-ket faollik', (user.streak_days or 0) >= 7),
+            ('streak_30', '30 kunlik streak', 'lightning-charge',
+             '30 kun ketma-ket faollik', (user.streak_days or 0) >= 30),
+            ('quiz_master', 'Test ustasi', 'patch-check',
+             '5 ta testdan muvaffaqiyatli o\'tdingiz', passed_tests_count >= 5),
+            ('centurion', 'Sentaurion', 'coin',
+             '100 ta tanga to\'pladingiz', coins_val >= 100),
+            ('scholar', 'Bilimdon', 'book',
+             '20 ta dars tugatdingiz', lessons_completed >= 20),
+            ('certified', 'Sertifikatli', 'award',
+             'Sertifikat oldingiz', certificates_earned >= 1),
+            ('premium', 'Premium', 'gem',
+             'Premium foydalanuvchi', bool(getattr(user, 'is_premium', False))),
+            ('top_10', 'Top 10', 'trophy',
+             'Reytingda top 10 talikdasiz', bool(user_rank) and user_rank <= 10),
+            ('explorer', 'Kashfiyotchi', 'compass',
+             '3 va undan ortiq kursga yozildingiz', enroll_count >= 3),
+        ]
+        for key, title, icon, desc, earned in _ach_rules:
+            earned = bool(earned)
+            if earned:
+                achievements_earned_count += 1
+            achievements.append({
+                'key': key, 'title': title, 'icon': icon, 'desc': desc,
+                'earned': earned,
+                'earned_label': 'Olingan' if earned else 'Yopiq',
+            })
+    except Exception:
+        achievements = []
+        achievements_earned_count = 0
+    achievements_total = len(achievements)
+
+    # ---- 6) ai_recommendations --------------------------------------------
+    ai_recommendations = {'course': None, 'article': None, 'practice': None}
+    try:
+        enrolled_ids = set(user.enrollments.values_list('profession_id', flat=True))
+    except Exception:
+        enrolled_ids = set()
+    # course
+    try:
+        rec_prof = Profession.objects.filter(
+            is_blocked=False
+        ).exclude(id__in=enrolled_ids).first()
+        if rec_prof:
+            ai_recommendations['course'] = {
+                'title': rec_prof.name,
+                'reason': 'Sizning qiziqishlaringizga mos yangi kurs',
+                'url': reverse('profession_detail', args=[rec_prof.id]),
+                'icon': 'mortarboard',
+            }
+    except Exception:
+        ai_recommendations['course'] = None
+    # article
+    try:
+        from blog.models import Post as _BlogPost
+        latest_post = _BlogPost.objects.filter(is_published=True).order_by('-created_at').first()
+        if latest_post:
+            try:
+                art_url = reverse('blog:post_list')
+            except Exception:
+                art_url = '#'
+            ai_recommendations['article'] = {
+                'title': latest_post.title,
+                'reason': 'Yangi maqola — bilimingizni kengaytiring',
+                'url': art_url,
+                'icon': 'newspaper',
+            }
+    except Exception:
+        ai_recommendations['article'] = None
+    # practice
+    try:
+        ai_recommendations['practice'] = {
+            'title': 'Bilimni mustahkamlang',
+            'reason': "O'yinlar orqali ko'nikmangizni oshiring",
+            'url': reverse('games:games_list'),
+            'icon': 'controller',
+        }
+    except Exception:
+        ai_recommendations['practice'] = None
+
+    # ---- 7) recommended_courses (6 tagacha) --------------------------------
+    recommended_courses = []
+    try:
+        rec_qs = Profession.objects.filter(
+            is_blocked=False
+        ).exclude(id__in=enrolled_ids).prefetch_related('teachers').annotate(
+            lesson_count=Count('lessons')
+        )[:6]
+        for p in rec_qs:
+            try:
+                photo = p.photo.url if p.photo else ''
+            except Exception:
+                photo = ''
+            try:
+                t = p.teachers.first()
+                t_name = t.get_full_name() if t else ''
+            except Exception:
+                t_name = ''
+            try:
+                rc_url = reverse('profession_detail', args=[p.id])
+            except Exception:
+                rc_url = '#'
+            recommended_courses.append({
+                'id': p.id,
+                'name': p.name,
+                'photo': photo,
+                'teacher': t_name,
+                'is_paid': getattr(p, 'is_paid', False),
+                'lesson_count': getattr(p, 'lesson_count', 0) or 0,
+                'reason': 'Sizning qiziqishlaringizga mos',
+                'url': rc_url,
+            })
+    except Exception:
+        recommended_courses = []
+
+    # ---- 8) upcoming_events ------------------------------------------------
+    upcoming_events = []
+    try:
+        from games.models import Competition as _Competition
+        _now = timezone.now()
+        _months = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn',
+                   'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+        comp_qs = _Competition.objects.filter(
+            is_active=True, end_time__gte=_now
+        ).order_by('start_time')[:5]
+        for comp in comp_qs:
+            st = timezone.localtime(comp.start_time) if comp.start_time else None
+            if st:
+                dt_label = st.strftime('%d.%m.%Y %H:%M')
+                day = st.strftime('%d')
+                month = _months[st.month - 1]
+            else:
+                dt_label = ''
+                day = ''
+                month = ''
+            try:
+                ev_url = reverse('games:competition_leaderboard', args=[comp.id])
+            except Exception:
+                ev_url = reverse('games:games_list')
+            upcoming_events.append({
+                'title': comp.title,
+                'type': 'competition',
+                'datetime_label': dt_label,
+                'day': day,
+                'month': month,
+                'url': ev_url,
+                'icon': 'trophy',
+            })
+    except Exception:
+        upcoming_events = []
+
+    # ---- 9) announcements --------------------------------------------------
+    announcements = []
+    announcements_unread = 0
+    try:
+        from blog.models import Post as _BlogPost2
+        recent_cutoff = timezone.now() - timedelta(days=7)
+        try:
+            ann_url = reverse('blog:post_list')
+        except Exception:
+            ann_url = '#'
+        for post in _BlogPost2.objects.filter(is_published=True).order_by('-created_at')[:4]:
+            is_unread = bool(post.created_at and post.created_at >= recent_cutoff)
+            if is_unread:
+                announcements_unread += 1
+            try:
+                date_label = timezone.localtime(post.created_at).strftime('%d.%m.%Y') if post.created_at else ''
+            except Exception:
+                date_label = ''
+            body_txt = (getattr(post, 'content', '') or '')
+            announcements.append({
+                'title': post.title,
+                'body': body_txt[:160],
+                'date_label': date_label,
+                'is_unread': is_unread,
+                'badge': 'new' if is_unread else 'update',
+                'url': ann_url,
+            })
+    except Exception:
+        announcements = []
+        announcements_unread = 0
+
+    # ---- 10) quick_access --------------------------------------------------
+    quick_access = []
+    _qa_items = [
+        ('Kurslar', 'professions', None, 'mortarboard', '#6366f1'),
+        ('AI Chat', 'ai_yordamchi:chat_home', None, 'robot', '#8b5cf6'),
+        ("O'yinlar", 'games:games_list', None, 'controller', '#ec4899'),
+        ('Market', 'coin:market_list', None, 'bag', '#f59e0b'),
+        ('Blog', 'blog:post_list', None, 'newspaper', '#10b981'),
+        ('Sertifikatlar', 'my_certificates', None, 'award', '#06b6d4'),
+        ('Reyting', 'leaderboard', None, 'bar-chart', '#ef4444'),
+        ('Coding Arena', 'games:live_games', None, 'cpu', '#3b82f6'),
+    ]
+    for label, url_name, args, icon, color in _qa_items:
+        try:
+            url = reverse(url_name, args=args) if args else reverse(url_name)
+        except Exception:
+            continue
+        quick_access.append({
+            'label': label,
+            'url': url,
+            'icon': icon,
+            'color': color,
+        })
+
+    # --- Template uchun tayyor StatsCard ro'yxati (learning_stats dan) ---
+    _ls = learning_stats if isinstance(learning_stats, dict) else {}
+    stat_cards = [
+        {'label': "Tugatilgan kurslar", 'value': _ls.get('courses_completed', 0), 'icon': 'mortarboard-fill', 'color': 'accent'},
+        {'label': "Tugatilgan darslar", 'value': _ls.get('lessons_completed', 0), 'icon': 'collection-play-fill', 'color': 'accent2'},
+        {'label': "Jami o'qish (soat)", 'value': _ls.get('study_hours', 0), 'icon': 'clock-history', 'color': 'success'},
+        {'label': "Online vaqt (daqiqa)", 'value': _ls.get('weekly_minutes', 0), 'icon': 'clock', 'color': 'warning'},
+        {'label': "Test aniqligi", 'value': str(_ls.get('quiz_accuracy', 0)) + '%', 'icon': 'bullseye', 'color': 'accent'},
+        {'label': "Sertifikatlar", 'value': _ls.get('certificates_earned', 0), 'icon': 'patch-check-fill', 'color': 'success'},
+    ]
+
+    # --- Kunlik vazifalar sarlavhasi uchun matn ---
+    missions_subtitle = "%s / 4 bajarildi · +%s XP" % (missions_done_count, missions_xp_earned)
+
+    # --- Foydalanuvchining reyting qatori (top 5 ichida bo'lmasa) ---
+    my_leader_row = None
+    try:
+        if user_rank and user_rank > 5 and request.user.is_student:
+            try:
+                _my_photo = request.user.photo.url if request.user.photo else None
+            except Exception:
+                _my_photo = None
+            my_leader_row = {
+                'rank': user_rank,
+                'is_me': True,
+                'photo': _my_photo,
+                'name': request.user.get_full_name() or request.user.username,
+                'points': request.user.coins or 0,
+            }
+    except Exception:
+        my_leader_row = None
+
     context = {
         'professions': professions,
         'total_students': total_students,
+        'stat_cards': stat_cards,
+        'missions_subtitle': missions_subtitle,
+        'my_leader_row': my_leader_row,
         'total_courses': total_courses,
         'total_lessons': total_lessons,
         'my_enrollments': my_enrollments,
@@ -1231,9 +1725,183 @@ def home_view(request):
         'show_telegram_prompt': show_telegram_prompt,
         'user_rank': user_rank,
         'top_students': top_students,
+        'db_completed': db_completed,
+        'db_inprogress': db_inprogress,
+        'db_upcoming': db_upcoming,
+        'db_avg_progress': db_avg_progress,
+        'db_featured': db_featured,
+        # --- YANGI premium dashboard kalitlari ---
+        'today_recommendation': today_recommendation,
+        'daily_missions': daily_missions,
+        'missions_done_count': missions_done_count,
+        'missions_total': 4,
+        'missions_xp_earned': missions_xp_earned,
+        'learning_stats': learning_stats,
+        'weekly_spark': weekly_spark,
+        'heatmap_days': heatmap_days,
+        'heatmap_max': heatmap_max,
+        'heatmap_total': heatmap_total,
+        'heatmap_active_days': heatmap_active_days,
+        'achievements': achievements,
+        'achievements_earned_count': achievements_earned_count,
+        'achievements_total': achievements_total,
+        'ai_recommendations': ai_recommendations,
+        'recommended_courses': recommended_courses,
+        'upcoming_events': upcoming_events,
+        'announcements': announcements,
+        'announcements_unread': announcements_unread,
+        'quick_access': quick_access,
     }
 
     return render(request, 'accounts/home.html', context)
+
+
+@login_required
+def global_search(request):
+    """Premium universal qidiruv — kurslar, darslar, market, kitoblar, blog + tavsiyalar."""
+    from django.urls import reverse
+    from django.db.models import Q as _Q, Count as _Count
+    from coin.models import Product
+    from blog.models import Post
+
+    q = (request.GET.get('q') or '').strip()
+    groups = []
+    total = 0
+
+    enrolled_ids = set()
+    try:
+        if request.user.is_authenticated:
+            enrolled_ids = set(request.user.enrollments.values_list('profession_id', flat=True))
+    except Exception:
+        enrolled_ids = set()
+
+    def course_dict(p):
+        try:
+            img = p.photo.url if p.photo else ''
+        except Exception:
+            img = ''
+        teacher = None
+        try:
+            teacher = p.teachers.first()
+        except Exception:
+            teacher = None
+        t_name = teacher.get_full_name() if teacher else 'IT Shaharcha'
+        try:
+            t_photo = teacher.photo.url if (teacher and teacher.photo) else ''
+        except Exception:
+            t_photo = ''
+        lessons = getattr(p, '_lessons', 0) or 0
+        students = getattr(p, '_students', 0) or 0
+        hours = max(1, round(lessons * 8 / 60)) if lessons else 0
+        if lessons < 12:
+            level, level_lab = 'beginner', "Boshlang'ich"
+        elif lessons < 30:
+            level, level_lab = 'inter', "O'rta"
+        else:
+            level, level_lab = 'advanced', 'Yuqori'
+        dur = 'short' if hours < 2 else ('mid' if hours <= 6 else 'long')
+        return {
+            'level': level, 'level_lab': level_lab, 'dur': dur,
+            'title': p.name,
+            'url': reverse('profession_detail', args=[p.pk]),
+            'image': img,
+            'teacher': t_name,
+            'teacher_photo': t_photo,
+            'students': students,
+            'lessons': lessons,
+            'hours': hours,
+            'rating': round(4.5 + (p.pk % 5) * 0.1, 1),
+            'is_paid': getattr(p, 'is_paid', False),
+            'enrolled': p.pk in enrolled_ids,
+        }
+
+    if q:
+        # --- Kurslar ---
+        prof_qs = Profession.objects.filter(
+            _Q(name__icontains=q) | _Q(description__icontains=q)
+        ).annotate(
+            _lessons=_Count('lessons', distinct=True),
+            _students=_Count('enrollments', distinct=True),
+        ).prefetch_related('teachers')[:12]
+        course_items = [course_dict(p) for p in prof_qs]
+        if course_items:
+            groups.append({'key': 'course', 'kind': 'course', 'label': 'Kurslar',
+                           'icon': 'bi-mortarboard-fill', 'color': '#3B82F6', 'items': course_items})
+            total += len(course_items)
+
+        # --- Darslar ---
+        lesson_qs = Lesson.objects.select_related('profession').filter(title__icontains=q)[:10]
+        lesson_items = [{
+            'title': l.title,
+            'subtitle': l.profession.name if l.profession_id else '',
+            'url': reverse('lesson_view', args=[l.pk]),
+            'image': '',
+        } for l in lesson_qs]
+        if lesson_items:
+            groups.append({'key': 'lesson', 'kind': 'simple', 'label': 'Darslar',
+                           'icon': 'bi-play-circle-fill', 'color': '#8B5CF6', 'items': lesson_items})
+            total += len(lesson_items)
+
+        # --- Market ---
+        prod_qs = Product.objects.filter(
+            _Q(name__icontains=q) | _Q(description__icontains=q), is_active=True
+        )[:10]
+        prod_items = []
+        for pr in prod_qs:
+            try:
+                img = pr.image.url if pr.image else ''
+            except Exception:
+                img = ''
+            prod_items.append({'title': pr.name, 'subtitle': f"{pr.coin_price} coin",
+                               'url': reverse('coin:market_detail', args=[pr.pk]), 'image': img})
+        if prod_items:
+            groups.append({'key': 'market', 'kind': 'simple', 'label': 'Market',
+                           'icon': 'bi-bag-heart-fill', 'color': '#22C55E', 'items': prod_items})
+            total += len(prod_items)
+
+        # --- Kitoblar ---
+        book_qs = Book.objects.filter(_Q(title__icontains=q) | _Q(author__icontains=q))[:10]
+        book_items = []
+        for b in book_qs:
+            try:
+                img = b.cover_image.url if b.cover_image else ''
+            except Exception:
+                img = ''
+            book_items.append({'title': b.title, 'subtitle': b.author or '',
+                               'url': reverse('my_book_rentals'), 'image': img})
+        if book_items:
+            groups.append({'key': 'book', 'kind': 'simple', 'label': 'Kitoblar',
+                           'icon': 'bi-book-half', 'color': '#F59E0B', 'items': book_items})
+            total += len(book_items)
+
+        # --- Blog ---
+        post_qs = Post.objects.filter(
+            _Q(title__icontains=q) | _Q(content__icontains=q), is_published=True
+        )[:10]
+        post_items = []
+        for po in post_qs:
+            try:
+                img = po.image.url if po.image else ''
+            except Exception:
+                img = ''
+            post_items.append({'title': po.title, 'subtitle': (po.content or '')[:90],
+                               'url': reverse('blog:post_detail', args=[po.pk]), 'image': img})
+        if post_items:
+            groups.append({'key': 'blog', 'kind': 'simple', 'label': 'Blog',
+                           'icon': 'bi-newspaper', 'color': '#EC4899', 'items': post_items})
+            total += len(post_items)
+
+    # --- Tavsiya etilgan kurslar (empty state + pastki blok uchun) ---
+    rec_qs = Profession.objects.filter(is_blocked=False).annotate(
+        _lessons=_Count('lessons', distinct=True),
+        _students=_Count('enrollments', distinct=True),
+    ).prefetch_related('teachers').order_by('-_students')[:8]
+    recommended = [course_dict(p) for p in rec_qs]
+
+    return render(request, 'accounts/search.html', {
+        'q': q, 'groups': groups, 'total': total, 'recommended': recommended,
+    })
+
 
 @login_required
 def professions_view(request):
@@ -4265,6 +4933,14 @@ def profile_view(request):
     total_homeworks_submitted = hw_submissions.count()
     avg_homework_grade = round(hw_submissions.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0, 1)
     
+    # XP / Daraja tizimi (bosh sahifa bilan bir xil): 100 XP = 1 daraja
+    _xp = int(getattr(request.user, 'coins', 0) or 0)
+    profile_level = _xp // 100 + 1
+    profile_xp = _xp
+    profile_xp_in_level = _xp % 100
+    profile_xp_to_next = 100 - profile_xp_in_level
+    profile_xp_pct = profile_xp_in_level  # 100 XP bir daraja => foiz = darajadagi XP
+
     return render(request, 'accounts/profile.html', {
         'certificates': certificates,
         'enrollments': enrollments,
@@ -4278,6 +4954,11 @@ def profile_view(request):
         'total_homeworks_submitted': total_homeworks_submitted,
         'avg_homework_grade': avg_homework_grade,
         'student_balance': student_balance,
+        'profile_level': profile_level,
+        'profile_xp': profile_xp,
+        'profile_xp_in_level': profile_xp_in_level,
+        'profile_xp_to_next': profile_xp_to_next,
+        'profile_xp_pct': profile_xp_pct,
     })
 
 
@@ -13702,7 +14383,6 @@ def yordamchi_balance_management(request):
     contract_count = StudentBalance.objects.filter(is_contract=True).count()
 
     recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
-
     return render(request, 'accounts/yordamchi/balance_management.html', {
         'students': students,
         'search': search,

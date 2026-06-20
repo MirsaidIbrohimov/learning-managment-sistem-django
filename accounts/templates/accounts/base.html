@@ -464,28 +464,37 @@
       width: calc(100% - 28px);
       max-width: 1180px;
       margin: 12px auto 0;
-      background:
-        linear-gradient(180deg, rgba(34,36,44,0.96) 0%, rgba(20,21,27,0.97) 100%) !important;
+      background: rgba(255,255,255,0.90) !important;
       background-size: 100% 100% !important;
       animation: none;
-      backdrop-filter: blur(20px) saturate(150%) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
-      border: 1px solid rgba(255,255,255,0.08) !important;
+      backdrop-filter: blur(20px) saturate(160%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(160%) !important;
+      border: 1px solid rgba(15,23,42,0.06) !important;
       border-radius: 22px;
+      box-shadow:
+        0 12px 34px rgba(15,23,42,0.10),
+        0 3px 10px rgba(15,23,42,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.65) !important;
+      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s, background 0.4s ease, border-color 0.4s ease;
+    }
+    [data-bs-theme="dark"] .navbar.nb {
+      background: linear-gradient(180deg, rgba(28,30,38,0.96) 0%, rgba(18,19,25,0.97) 100%) !important;
+      border: 1px solid rgba(255,255,255,0.08) !important;
       box-shadow:
         0 18px 50px rgba(0,0,0,0.55),
         0 4px 14px rgba(0,0,0,0.35),
-        inset 0 1px 0 rgba(255,255,255,0.10),
-        inset 0 -14px 30px rgba(0,0,0,0.30) !important;
-      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s;
+        inset 0 1px 0 rgba(255,255,255,0.08) !important;
     }
     /* No animated underline for this nav */
     .navbar.nb::after { content: none !important; display: none !important; }
     /* Glossy top sheen + soft indigo glow at bottom edge (like the reference) */
     .navbar.nb::before {
       content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0) 45%);
+    }
+    [data-bs-theme="dark"] .navbar.nb::before {
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0) 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0) 40%),
         radial-gradient(120% 80% at 50% 130%, rgba(99,102,241,0.16), transparent 60%);
     }
     .navbar.nb .nb-inner { position: relative; z-index: 1; }
@@ -762,71 +771,49 @@
     .nb-user-role.teacher { background: rgba(16,185,129,0.10); color: #10b981; }
     .nb-user-role.student { background: rgba(99,102,241,0.10); color: #6366f1; }
 
-    /* ══ Gradient-panel white treatment for all nav children ══ */
-    .navbar.nb .nb-brand { color: #fff; }
-    .navbar.nb .nb-brand:hover { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.20); }
-    .navbar.nb .nb-brand-text { color: #fff; }
-    .navbar.nb .nb-sep { color: rgba(255,255,255,0.5); }
-    .navbar.nb .nb-brand-icon { background: #fff; box-shadow: 0 4px 14px rgba(0,0,0,0.20); }
-
-    /* Nav links: white; active = solid white capsule with indigo text */
-    .navbar.nb .nb-link { color: rgba(255,255,255,0.88); }
-    .navbar.nb .nb-link i { opacity: 0.95; }
+    /* ══ Reference-style nav (theme adaptive) ══ */
+    /* Center links sit in a centered pill with text labels */
+    .navbar.nb .nb-links {
+      flex: 1 1 auto; min-width: 0; margin: 0 8px;
+      justify-content: center; overflow-x: auto; overflow-y: hidden;
+      background: rgba(15,23,42,0.05); border: 1px solid rgba(15,23,42,0.05);
+      border-radius: 999px; padding: 4px 5px; gap: 2px;
+    }
+    [data-bs-theme="dark"] .navbar.nb .nb-links {
+      background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.07);
+    }
+    .navbar.nb .nb-link {
+      width: auto; height: 34px; padding: 0 13px; gap: 0; overflow: visible;
+      color: rgba(15,23,42,0.60); font-weight: 600; font-size: 0.83rem; white-space: nowrap;
+    }
+    [data-bs-theme="dark"] .navbar.nb .nb-link { color: rgba(255,255,255,0.62); }
+    .navbar.nb .nb-link i { display: none; }
+    .navbar.nb .nb-link span { max-width: none; opacity: 1; overflow: visible; margin: 0; }
     .navbar.nb .nb-link:hover {
-      color: #fff;
-      background: rgba(255,255,255,0.16);
-      border-color: rgba(255,255,255,0.14);
+      width: auto; padding: 0 13px; background: rgba(15,23,42,0.07);
+      border-color: transparent; color: #0f172a;
     }
+    [data-bs-theme="dark"] .navbar.nb .nb-link:hover { background: rgba(255,255,255,0.10); color: #fff; }
     .navbar.nb .nb-link.active {
-      background: #fff; border-color: transparent;
-      color: #4f46e5 !important; font-weight: 700;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+      width: auto; padding: 0 16px; background: #111827; border-color: transparent;
+      color: #fff !important; font-weight: 700; box-shadow: 0 6px 16px rgba(17,24,39,0.22);
     }
-    .navbar.nb .nb-link.active i { color: #6d28d9; opacity: 1; }
-
-    /* Icon buttons: translucent white, hover = solid white */
-    .navbar.nb .nb-icon-btn {
-      background: rgba(255,255,255,0.15) !important;
-      border: 1px solid rgba(255,255,255,0.20) !important;
-      color: #fff !important;
+    [data-bs-theme="dark"] .navbar.nb .nb-link.active {
+      background: #ffffff; color: #111827 !important; box-shadow: 0 6px 16px rgba(0,0,0,0.30);
     }
-    .navbar.nb .nb-icon-btn:hover {
-      background: #fff !important; color: #6d28d9 !important;
-      border-color: #fff !important;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.22); transform: translateY(-2px) scale(1.04);
-    }
-    .navbar.nb .nb-badge { background: #f59e0b; border-color: #6d28d9; }
-
-    /* Coin pill */
-    .navbar.nb .nb-coin {
-      background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.24); color: #fff;
-    }
-    .navbar.nb .nb-coin i { color: #fde68a; }
-    .navbar.nb .nb-coin:hover { background: rgba(255,255,255,0.26); border-color: rgba(255,255,255,0.36); }
-
-    /* Divider */
-    .navbar.nb .nb-divider { background: rgba(255,255,255,0.30); }
-
-    /* Avatar / chevron */
-    .navbar.nb .nb-avatar-btn { color: #fff; }
-    .navbar.nb .nb-avatar-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.22); }
-    .navbar.nb .nb-avatar-init { background: #fff; color: #6d28d9; box-shadow: 0 3px 12px rgba(0,0,0,0.22); }
-    .navbar.nb .nb-avatar { border-color: rgba(255,255,255,0.65); }
-    .navbar.nb .nb-online-dot { border-color: #6d28d9; }
-    .navbar.nb .nb-chevron { color: rgba(255,255,255,0.75); }
-
-    /* Hamburger (mobile) */
-    .navbar.nb .nb-hamburger { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.22); }
-    .navbar.nb .nb-hamburger span { background: #fff; }
+    .navbar.nb .nb-link.active i { display: none; }
+    /* Brand + right-zone controls use base theme-aware rules (icon-btn, coin, avatar) */
+    .navbar.nb .nb-brand { color: var(--text); }
+    .navbar.nb .nb-brand-text { color: var(--text); }
 
     /* ── Responsive ── */
-    @media (max-width: 991px) {
+    @media (max-width: 1199px) {
       .nb-links-desktop { display: none !important; }
       .nb-hamburger { display: flex; }
       .nb-desktop-only { display: none !important; }
       .nb-inner { height: 52px; padding: 0 0.65rem; }
     }
-    @media (min-width: 992px) {
+    @media (min-width: 1200px) {
       .nb-hamburger { display: none !important; }
     }
 
@@ -935,6 +922,21 @@
     .nb-mobile-logout:hover { background: rgba(239,68,68,0.13); border-color: rgba(239,68,68,0.25); color: #dc2626; }
     </style>
 
+    <style>
+    .nb-search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:30px;padding:7px 14px;min-width:190px;max-width:240px;transition:border-color .2s,box-shadow .2s;}
+    .nb-search:focus-within{border-color:rgba(255,255,255,.5);box-shadow:0 0 0 3px rgba(255,255,255,.12);}
+    [data-bs-theme="light"] .nb-search{background:rgba(0,0,0,.045);border-color:rgba(0,0,0,.10);}
+    [data-bs-theme="light"] .nb-search:focus-within{border-color:rgba(109,40,217,.4);box-shadow:0 0 0 3px rgba(109,40,217,.10);}
+    .nb-search i{font-size:.85rem;opacity:.75;}
+    .nb-search input{border:none;background:transparent;outline:none;color:inherit;font-size:.85rem;width:100%;font-family:inherit;}
+    .nb-search input::placeholder{color:currentColor;opacity:.6;}
+    .nb-search-mobile{display:none;}
+    @media (max-width:991px){ .nb-search{display:none;} .nb-search-mobile{display:flex;} }
+    ::view-transition-old(root){animation:none;}
+    ::view-transition-new(root){animation:none;mix-blend-mode:normal;}
+    html,body{transition:background-color .45s ease,color .45s ease;}
+    .navbar.nb,.nb-inner,.db-panel,.md-card{transition:background-color .45s ease,border-color .45s ease,color .45s ease;}
+    </style>
     <nav class="navbar nb" id="mainNavbar">
       <div class="nb-inner">
 
@@ -976,6 +978,9 @@
 
         <!-- Right zone -->
         <div class="nb-right">
+
+          <!-- Search -->
+          <a href="{% url 'global_search' %}" class="nb-icon-btn" title="Qidirish" aria-label="Qidirish"><i class="bi bi-search"></i></a>
 
           <!-- Social dropdown (desktop) -->
           <div class="dropdown nb-desktop-only">
@@ -1758,233 +1763,89 @@
     }
     </script>
 
-    <!-- ══════════════════════════════════════════════
-         FLOATING PILL BOTTOM NAV  — Screenshot design
-         Active item: icon + label (horizontal, wider pill)
-         Inactive items: icon only (compact circle)
-         ══════════════════════════════════════════════ -->
-    <style>
-    /* Barcha qurilmalarda ko'rinadi */
-    .main-container { padding-bottom: calc(76px + env(safe-area-inset-bottom, 12px)) !important; }
+    <!-- (pastki navbar olib tashlandi) -->
 
-    /* ── Outer pill container ── */
-    .mob-bottom-nav {
-        position: fixed;
-        bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1055;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 6px;
-        border-radius: 999px;
-        background: rgba(6, 8, 20, 0.82);
-        backdrop-filter: blur(28px) saturate(200%);
-        -webkit-backdrop-filter: blur(28px) saturate(200%);
-        border: 1px solid rgba(255,255,255,0.09);
-        box-shadow:
-            0 12px 40px rgba(0,0,0,0.50),
-            0 2px 10px rgba(0,0,0,0.35),
-            0 1px 0 rgba(255,255,255,0.06) inset;
-        animation: mbnSlideUp 0.50s cubic-bezier(0.34,1.56,0.64,1) both;
-        animation-delay: 0.08s;
-        white-space: nowrap;
-    }
-    [data-bs-theme="light"] .mob-bottom-nav {
-        background: rgba(248,250,252,0.88);
-        border-color: rgba(0,0,0,0.08);
-        box-shadow: 0 10px 36px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.07);
-    }
-    @keyframes mbnSlideUp {
-        from { opacity: 0; transform: translateX(-50%) translateY(28px) scale(0.85); }
-        to   { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1);    }
-    }
-
-    /* ── Each nav item ── */
-    .mbn-item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        width: 46px;
-        height: 46px;
-        border-radius: 999px;
-        text-decoration: none;
-        color: rgba(255,255,255,0.40);
-        border: 1px solid transparent;
-        transition:
-            width         0.35s cubic-bezier(0.34,1.20,0.64,1),
-            background    0.25s ease,
-            border-color  0.25s ease,
-            color         0.22s ease,
-            box-shadow    0.25s ease,
-            gap           0.30s ease;
-        position: relative;
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-        user-select: none;
-        overflow: hidden;
-        flex-shrink: 0;
-    }
-    [data-bs-theme="light"] .mbn-item {
-        color: rgba(15,20,42,0.38);
-    }
-
-    /* ── Icon inside item ── */
-    .mbn-item i {
-        font-size: 1.18rem;
-        flex-shrink: 0;
-        line-height: 1;
-        transition: transform 0.30s cubic-bezier(0.34,1.56,0.64,1), color 0.22s;
-    }
-
-    /* ── Label: hidden by default, shown only on active ── */
-    .mbn-label {
-        max-width: 0;
-        overflow: hidden;
-        opacity: 0;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        white-space: nowrap;
-        transition:
-            max-width 0.35s cubic-bezier(0.34,1.20,0.64,1),
-            opacity   0.25s ease,
-            margin    0.30s ease;
-        margin-left: 0;
-    }
-
-    /* ── ACTIVE state: expand pill + show label ── */
-    .mbn-item.active {
-        width: auto;
-        padding: 0 14px 0 10px;
-        gap: 6px;
-        background: linear-gradient(135deg, rgba(99,102,241,0.30), rgba(139,92,246,0.20));
-        border-color: rgba(99,102,241,0.28);
-        color: #c4b5fd;
-        box-shadow: 0 4px 20px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
-    }
-    [data-bs-theme="light"] .mbn-item.active {
-        background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.10));
-        border-color: rgba(99,102,241,0.22);
-        color: #6366f1;
-        box-shadow: 0 4px 18px rgba(99,102,241,0.18);
-    }
-    .mbn-item.active i {
-        transform: scale(1.08);
-        color: #a5b4fc;
-    }
-    [data-bs-theme="light"] .mbn-item.active i { color: #6366f1; }
-
-    .mbn-item.active .mbn-label {
-        max-width: 90px;
-        opacity: 1;
-        margin-left: 0;
-    }
-
-    /* ── Hover (tablet / pointer device) ── */
-    @media (hover: hover) {
-        .mbn-item:hover:not(.active) {
-            background: rgba(255,255,255,0.07);
-            border-color: rgba(255,255,255,0.10);
-            color: rgba(255,255,255,0.68);
-            transform: translateY(-2px);
-        }
-        [data-bs-theme="light"] .mbn-item:hover:not(.active) {
-            background: rgba(99,102,241,0.07);
-            color: rgba(15,20,42,0.60);
-        }
-    }
-
-    /* ── button reset for theme toggle ── */
-    button.mbn-item {
-        background: none;
-        border: 1px solid transparent;
-        cursor: pointer;
-        font-family: inherit;
-    }
-
-    /* ── Tap press feedback ── */
-    .mbn-item:active {
-        transform: scale(0.88) !important;
-        transition: transform 0.08s;
-    }
-
-    /* ── Unread badge ── */
-    .mbn-badge {
-        position: absolute;
-        top: 5px; right: 5px;
-        min-width: 16px; height: 16px; padding: 0 3px;
-        border-radius: 99px;
-        background: #ef4444; color: #fff;
-        font-size: 0.52rem; font-weight: 800;
-        display: flex; align-items: center; justify-content: center;
-        border: 1.5px solid rgba(6,8,20,0.90);
-        animation: mbnBadgePop 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
-        z-index: 1;
-    }
-    [data-bs-theme="light"] .mbn-badge { border-color: rgba(248,250,252,0.95); }
-    @keyframes mbnBadgePop { from { transform: scale(0); } to { transform: scale(1); } }
-    </style>
-
-    <!-- ── Bottom Nav HTML ── -->
-    <nav class="mob-bottom-nav" aria-label="Asosiy navigatsiya">
-
-        <a class="mbn-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
-           href="{% url 'home' %}" aria-label="Bosh sahifa">
-            <i class="bi bi-house-fill"></i>
-            <span class="mbn-label">Home</span>
-        </a>
-
-        <a class="mbn-item {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}"
-           href="{% url 'professions' %}" aria-label="Kurslar">
-            <i class="bi bi-book-fill"></i>
-            <span class="mbn-label">Kurslar</span>
-        </a>
-
-        <a class="mbn-item {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
-           href="{% url 'leaderboard' %}" aria-label="Reyting">
-            <i class="bi bi-bar-chart-fill"></i>
-            <span class="mbn-label">Reyting</span>
-        </a>
-
-        <a class="mbn-item {% if 'messages' in request.resolver_match.url_name %}active{% endif %}"
-           href="{% url 'messages' %}" aria-label="Xabarlar">
-            <i class="bi bi-envelope-fill"></i>
-            {% if unread_messages_count|default:0|add:0 > 0 %}
-            <span class="mbn-badge">{{ unread_messages_count }}</span>
-            {% endif %}
-            <span class="mbn-label">Xabar</span>
-        </a>
-
-        <a class="mbn-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
-           href="{% url 'profile' %}" aria-label="Profil">
-            {% if user.photo %}
-            <img src="{{ user.photo.url }}"
-                 style="width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid rgba(99,102,241,0.35);flex-shrink:0;" alt="">
-            {% else %}
-            <i class="bi bi-person-fill"></i>
-            {% endif %}
-            <span class="mbn-label">Profil</span>
-        </a>
-
-        <!-- Divider -->
-        <span style="width:1px;height:24px;background:rgba(255,255,255,0.10);border-radius:1px;flex-shrink:0;align-self:center;"></span>
-
-        <!-- Theme Toggle -->
-        <button class="mbn-item" id="themeToggle" aria-label="Mavzuni almashtirish">
-            <i class="bi bi-moon-fill" id="themeIcon"></i>
-        </button>
-
-    </nav>
 
     {% endif %}
 
     <main class="main-container">
         {% block content %}{% endblock %}
     </main>
+
+    {% if user.is_authenticated %}
+    <style>
+    .site-footer{ background:transparent; margin-top:40px; padding:0 14px 22px; }
+    .site-footer-inner{
+      max-width:1180px; margin:0 auto; background:#ffffff;
+      border:1px solid rgba(15,23,42,0.06); border-radius:24px;
+      box-shadow:0 12px 34px rgba(15,23,42,0.07); padding:30px 32px 22px;
+      transition:background .4s ease,border-color .4s ease;
+    }
+    [data-bs-theme="dark"] .site-footer-inner{ background:rgba(255,255,255,0.035); border-color:rgba(255,255,255,0.08); box-shadow:0 12px 34px rgba(0,0,0,0.4); }
+    .sf-grid{ display:grid; grid-template-columns:1.6fr 1fr 1fr 1.2fr; gap:26px; }
+    .sf-brand{ display:flex; align-items:center; gap:11px; margin-bottom:12px; }
+    .sf-brand-ic{ width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#6366f1,#8b5cf6); display:flex; align-items:center; justify-content:center; box-shadow:0 5px 16px rgba(99,102,241,.3); overflow:hidden; }
+    .sf-brand-ic img{ width:100%; height:100%; object-fit:cover; }
+    .sf-brand-tx{ font-weight:800; font-size:1.05rem; color:var(--text); letter-spacing:-.3px; }
+    .sf-desc{ font-size:.85rem; color:var(--text-muted); line-height:1.6; max-width:300px; }
+    .sf-social{ display:flex; gap:9px; margin-top:14px; }
+    .sf-social a{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.05); color:var(--text); text-decoration:none; transition:all .2s; }
+    [data-bs-theme="dark"] .sf-social a{ background:rgba(255,255,255,0.06); }
+    .sf-social a:hover{ background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; transform:translateY(-2px); }
+    .sf-col h4{ font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin:4px 0 14px; }
+    .sf-col a{ display:block; font-size:.88rem; color:var(--text); text-decoration:none; padding:5px 0; opacity:.8; transition:all .18s; }
+    .sf-col a:hover{ opacity:1; color:#8b5cf6; transform:translateX(3px); }
+    .sf-bottom{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:26px; padding-top:18px; border-top:1px solid rgba(15,23,42,0.07); font-size:.82rem; color:var(--text-muted); }
+    [data-bs-theme="dark"] .sf-bottom{ border-top-color:rgba(255,255,255,0.08); }
+    .sf-bottom .made{ display:inline-flex; align-items:center; gap:6px; }
+    .sf-bottom .made i{ color:#ef4444; }
+    @media (max-width:780px){ .sf-grid{ grid-template-columns:1fr 1fr; gap:20px; } .site-footer-inner{ padding:24px 20px; } }
+    </style>
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <div class="sf-grid">
+          <div>
+            <div class="sf-brand">
+              <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt="IT Shaharcha"></span>
+              <span class="sf-brand-tx">IT Shaharcha</span>
+            </div>
+            <div class="sf-desc">Zamonaviy bilim maskani — kod yoz, o'rgan va kelajagingni qur. Har bir dars seni maqsadingga yaqinlashtiradi.</div>
+            <div class="sf-social">
+              <a href="https://t.me/IT_Creative" target="_blank" title="Telegram"><i class="bi bi-telegram"></i></a>
+              <a href="https://instagram.com/ITC_Zomin" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
+              <a href="https://youtube.com/@IT_Creative" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
+            </div>
+          </div>
+          <div class="sf-col">
+            <h4>Platforma</h4>
+            <a href="{% url 'professions' %}">Kurslar</a>
+            <a href="{% url 'leaderboard' %}">Reyting</a>
+            <a href="{% url 'coin:market_list' %}">Market</a>
+            <a href="{% url 'blog:post_list' %}">Blog</a>
+          </div>
+          <div class="sf-col">
+            <h4>Imkoniyatlar</h4>
+            <a href="{% url 'ai_yordamchi:chat_home' %}">AI Chat</a>
+            <a href="{% url 'games:games_list' %}">O'yinlar</a>
+            <a href="{% url 'my_deploys' %}">Coding</a>
+            <a href="{% url 'global_search' %}">Qidiruv</a>
+          </div>
+          <div class="sf-col">
+            <h4>Hisob</h4>
+            <a href="{% url 'profile' %}">Profil</a>
+            <a href="{% url 'messages' %}">Xabarlar</a>
+            <a href="{% url 'help_page' %}">Yordam</a>
+            <a href="{% url 'coin:coin_history' %}">Coin tarixi</a>
+          </div>
+        </div>
+        <div class="sf-bottom">
+          <div>&copy; <span id="sfYear">2026</span> IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</div>
+          <div class="made">Mehr bilan yaratildi <i class="bi bi-heart-fill"></i> IT Creative</div>
+        </div>
+      </div>
+    </footer>
+    <script>try{document.getElementById('sfYear').textContent=new Date().getFullYear();}catch(e){}</script>
+    {% endif %}
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -2004,11 +1865,25 @@
         }
         syncThemeIcons(savedTheme);
 
-        function toggleTheme() {
+        function _applyTheme(t){
+            html.setAttribute('data-bs-theme', t);
+            localStorage.setItem('theme', t);
+            syncThemeIcons(t);
+        }
+        function toggleTheme(ev){
             const newTheme = html.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-bs-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            syncThemeIcons(newTheme);
+            const x = (ev && ev.clientX != null) ? ev.clientX : (window.innerWidth - 40);
+            const y = (ev && ev.clientY != null) ? ev.clientY : 24;
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!document.startViewTransition || reduce){ _applyTheme(newTheme); return; }
+            const endR = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+            const vt = document.startViewTransition(() => _applyTheme(newTheme));
+            vt.ready.then(() => {
+                document.documentElement.animate(
+                    { clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + endR + 'px at ' + x + 'px ' + y + 'px)'] },
+                    { duration: 480, easing: 'cubic-bezier(.4,0,.2,1)', pseudoElement: '::view-transition-new(root)' }
+                );
+            });
         }
 
         const themeToggle    = document.getElementById('themeToggle');

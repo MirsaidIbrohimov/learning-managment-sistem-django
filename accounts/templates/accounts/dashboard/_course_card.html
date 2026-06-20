@@ -1,0 +1,44 @@
+{% comment %} Course card. with course={id,name,photo,teacher,is_paid,progress?,lesson_count?,reason?,url} | optional: recommend=True {% endcomment %}
+<div class="course-card">
+    <a href="{{ course.url|default:'#' }}" class="cc-thumb" aria-label="{{ course.name|default:'Kurs' }} kursini ochish">
+        {% if course.photo %}
+            <img src="{{ course.photo }}" alt="{{ course.name|default:'Kurs' }}">
+        {% else %}
+            <span class="cc-letter" aria-hidden="true">{{ course.name|first|upper|default:'K' }}</span>
+        {% endif %}
+        {% if course.is_paid %}
+            <span class="cc-badge" aria-hidden="true">Premium</span>
+        {% else %}
+            <span class="cc-badge is-free" aria-hidden="true">Bepul</span>
+        {% endif %}
+    </a>
+    <div class="cc-body">
+        <div class="cc-title">{{ course.name|default:'Nomsiz kurs' }}</div>
+        {% if course.teacher %}
+            <div class="cc-teacher"><i class="bi bi-person-circle" aria-hidden="true"></i>{{ course.teacher }}</div>
+        {% endif %}
+        {% if course.reason %}
+            <div class="cc-reason"><i class="bi bi-stars" aria-hidden="true"></i> {{ course.reason }}</div>
+        {% endif %}
+        {% if course.lesson_count %}
+            <div class="cc-meta"><i class="bi bi-collection-play" aria-hidden="true"></i> {{ course.lesson_count }} dars</div>
+        {% endif %}
+        {% if course.progress is not None %}
+            <div>
+                <div class="dash-prog-label"><span>Jarayon</span><span>{{ course.progress }}%</span></div>
+                <div class="dash-prog"><i style="--pct:{{ course.progress }}%"></i></div>
+            </div>
+        {% endif %}
+        <div class="cc-foot">
+            {% if recommend %}
+                <a href="{{ course.url|default:'#' }}" class="cc-btn is-ghost" aria-label="{{ course.name|default:'Kurs' }} kursini ko'rish">
+                    <i class="bi bi-eye" aria-hidden="true"></i> Ko'rish
+                </a>
+            {% else %}
+                <a href="{{ course.url|default:'#' }}" class="cc-btn" aria-label="{{ course.name|default:'Kurs' }} kursini davom ettirish">
+                    <i class="bi bi-play-fill" aria-hidden="true"></i> Davom etish
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,21 @@
+{% comment %} StatsCard. with stat={label,value,icon,color,hint?}  | optional: skeleton=True {% endcomment %}
+{% if skeleton %}
+<div class="stat-card" aria-hidden="true">
+    <div class="skeleton" style="width:48px;height:48px;border-radius:14px;flex:0 0 auto;"></div>
+    <div class="sc-body" style="flex:1;">
+        <div class="skeleton skeleton-text w-40"></div>
+        <div class="skeleton skeleton-text w-60"></div>
+    </div>
+</div>
+{% else %}
+<div class="stat-card">
+    <div class="sc-icon{% if stat.color %} c-{{ stat.color }}{% endif %}" aria-hidden="true">
+        <i class="bi bi-{{ stat.icon|default:'graph-up' }}"></i>
+    </div>
+    <div class="sc-body">
+        <div class="sc-value">{{ stat.value|default:'0' }}</div>
+        <div class="sc-label">{{ stat.label|default:'' }}</div>
+        {% if stat.hint %}<div class="sc-hint">{{ stat.hint }}</div>{% endif %}
+    </div>
+</div>
+{% endif %}

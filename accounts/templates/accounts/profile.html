@@ -347,6 +347,38 @@
 <!-- ================= RIGHT ================= -->
 <div class="col-lg-8">
 
+<!-- XP / Daraja (bosh sahifa uslubida) -->
+<style>
+.pf-xp{position:relative;overflow:hidden;border-radius:24px;padding:22px;margin-bottom:18px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,#6366f1,#8b5cf6 55%,#a855f7);color:#fff;box-shadow:0 14px 34px rgba(99,102,241,.32)}
+.pf-xp::after{content:'';position:absolute;top:-40%;right:-6%;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}
+.pf-xp>*{position:relative;z-index:1}
+.pf-xp-ring{--pct:0;position:relative;width:104px;height:104px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;text-align:center;background:conic-gradient(#fff calc(var(--pct)*1%),rgba(255,255,255,.25) 0)}
+.pf-xp-ring::after{content:'';position:absolute;width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,#6b41e0,#8b5cf6)}
+.pf-xp-ring b{position:relative;z-index:1;font-size:1.7rem;font-weight:800;line-height:1}
+.pf-xp-ring small{position:relative;z-index:1;display:block;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;opacity:.88;margin-top:2px}
+.pf-xp-main{flex:1;min-width:200px}
+.pf-xp-main h3{font-size:1.25rem;font-weight:800;margin:0 0 4px}
+.pf-xp-main p{margin:0 0 12px;font-size:.86rem;opacity:.92}
+.pf-xp-chips{display:flex;gap:10px;flex-wrap:wrap}
+.pf-xp-chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:8px 14px;backdrop-filter:blur(6px)}
+.pf-xp-chip .n{font-size:1.15rem;font-weight:800;line-height:1}
+.pf-xp-chip .l{font-size:.66rem;opacity:.85;font-weight:600;margin-top:2px}
+</style>
+<div class="pf-xp a-up d1">
+  <div class="pf-xp-ring" style="--pct:{{ profile_xp_pct|default:0 }}" aria-hidden="true">
+    <span><b>{{ profile_level|default:1 }}</b><small>daraja</small></span>
+  </div>
+  <div class="pf-xp-main">
+    <h3>{{ profile_xp|default:0 }} XP yig'ildi</h3>
+    <p>Keyingi darajagacha yana <b>{{ profile_xp_to_next|default:100 }} XP</b> kerak</p>
+    <div class="pf-xp-chips">
+      <div class="pf-xp-chip"><div class="n">{{ user.coins|default:0 }}</div><div class="l">Coin / XP</div></div>
+      <div class="pf-xp-chip"><div class="n">{{ user.streak_days|default:0 }}</div><div class="l">Streak (kun)</div></div>
+      <div class="pf-xp-chip"><div class="n">{{ certificates|length }}</div><div class="l">Sertifikat</div></div>
+    </div>
+  </div>
+</div>
+
 <!-- Quick Stats -->
 <div class="pf-qstats">
     <div class="pf-qs a-scale d2 {% if user.is_premium %}pm-qs{% endif %}">

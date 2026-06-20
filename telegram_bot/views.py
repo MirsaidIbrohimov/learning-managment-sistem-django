@@ -127,7 +127,7 @@ def set_webhook(request):
         webhook_url = f"{site_url}{webhook_path}"
 
         url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
-        resp = http_requests.post(url, json={'url': webhook_url}, timeout=15)
+        resp = http_requests.post(url, json={'url': webhook_url, 'allowed_updates': ['message', 'callback_query']}, timeout=15)
         result = resp.json()
         result['webhook_url'] = webhook_url
         return JsonResponse(result)
@@ -170,10 +170,53 @@ def bot_webhook(request):
     return JsonResponse({'ok': True})
 
 
+def _handle_callback_query(callback):
+    """Inline tugma (callback_query) bosilganda ishlaydi — polling bilan parity."""
+    from django.conf import settings
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        return
+    cb_id = callback.get('id')
+    cb_msg = callback.get('message', {}) or {}
+    chat_id = (cb_msg.get('chat', {}) or {}).get('id')
+    telegram_id = (callback.get('from', {}) or {}).get('id')
+    cb_data = callback.get('data', '') or ''
+
+    # "Loading" holatini olib tashlash uchun darhol javob beramiz
+    try:
+        import requests
+        requests.post(
+            f"https://api.telegram.org/bot{bot_token}/answerCallbackQuery",
+            json={'callback_query_id': cb_id}, timeout=10,
+        )
+    except Exception:
+        pass
+
+    if not chat_id or not telegram_id:
+        return
+
+    if cb_data == 'my_coins':
+        try:
+            user = CustomUser.objects.get(telegram_id=telegram_id)
+        except CustomUser.DoesNotExist:
+            _send_message(bot_token, chat_id, "❌ Akkaunt topilmadi!")
+            return
+        _send_coin_stats(bot_token, chat_id, user, profession=None)
+
+
 def _process_webhook(data):
     """Webhook update ni background threadda qayta ishlash"""
     import django
     django.db.connections.close_all()
+
+    # Inline tugma bosilganda (callback_query) — buni alohida qayta ishlaymiz
+    callback = data.get('callback_query')
+    if callback:
+        try:
+            _handle_callback_query(callback)
+        except Exception:
+            logger.exception("callback_query qayta ishlashda xato")
+        return
 
     message = data.get('message', {})
     if not message:

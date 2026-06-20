@@ -1,0 +1,14 @@
+{% comment %} Achievement / badge card. with badge={key,title,icon,desc,earned,earned_label} {% endcomment %}
+<div class="achievement-card{% if not badge.earned %} is-locked{% endif %}" title="{{ badge.title|default:'Yutuq' }}">
+    {% if not badge.earned %}
+        <span class="ac-lock" aria-hidden="true"><i class="bi bi-lock-fill"></i></span>
+    {% endif %}
+    <div class="ac-icon" aria-hidden="true">
+        <i class="bi bi-{{ badge.icon|default:'award' }}"></i>
+    </div>
+    <div class="ac-title">{{ badge.title|default:'Yutuq' }}</div>
+    {% if badge.desc %}<div class="ac-desc">{{ badge.desc }}</div>{% endif %}
+    {% if badge.earned %}
+        <div class="ac-earned"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {{ badge.earned_label|default:'Qo\'lga kiritildi' }}</div>
+    {% endif %}
+</div>

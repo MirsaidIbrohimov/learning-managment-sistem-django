@@ -1,0 +1,14 @@
+{% comment %} Section header. with title  | optional: subtitle, action_url, action_label, icon {% endcomment %}
+<div class="dash-section-head">
+    <div>
+        <h2 class="sh-title">
+            {% if icon %}<i class="bi bi-{{ icon }}" aria-hidden="true"></i> {% endif %}{{ title|default:'' }}
+        </h2>
+        {% if subtitle %}<p class="sh-sub">{{ subtitle }}</p>{% endif %}
+    </div>
+    {% if action_url %}
+        <a href="{{ action_url }}" class="sh-action" aria-label="{{ action_label|default:'Hammasini ko\'rish' }}">
+            {{ action_label|default:'Hammasi' }} <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+    {% endif %}
+</div>
