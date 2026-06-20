@@ -66,7 +66,10 @@ function showScreen(name) {
 
 // ============== GAME STATE ==============
 // board[i]: '' | 'X' | 'O'
-let board       = Array(9).fill('');
+let BOARD_SIZE  = parseInt(localStorage.getItem('xo_board_size') || '3', 10);
+if (![3, 4, 5].includes(BOARD_SIZE)) BOARD_SIZE = 3;
+let WIN_LENGTH  = BOARD_SIZE === 3 ? 3 : 4;
+let board       = Array(BOARD_SIZE * BOARD_SIZE).fill('');
 let currentTurn = 'X';   // 'X' | 'O'
 let gameOver    = false;
 let MODE        = 'ai';   // 'ai' | 'mp'
@@ -79,11 +82,14 @@ let MATCH_ID    = null;   // mp match id
 let mpPollTimer = null;
 let mpActive    = false;
 
-const WIN_LINES = [
-    [0,1,2],[3,4,5],[6,7,8],   // rows
-    [0,3,6],[1,4,7],[2,5,8],   // cols
-    [0,4,8],[2,4,6],           // diags
-];
+function setBoardSize(size) {
+    BOARD_SIZE = [3, 4, 5].includes(Number(size)) ? Number(size) : 3;
+    WIN_LENGTH = BOARD_SIZE === 3 ? 3 : 4;
+    localStorage.setItem('xo_board_size', String(BOARD_SIZE));
+    document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.classList.toggle('active', Number(btn.dataset.size) === BOARD_SIZE);
+    });
+}
 
 // ============== NOTIFICATIONS ==============
 function showNotif(msg, dur = 2500) {
@@ -119,9 +125,9 @@ async function verifyToken() {
         });
         const data = await res.json();
         if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
-        LMS_USER = data;
+        LMS_USER = data.user || data;
         spinnerEl.classList.add('hidden');
-        statusEl.textContent = `Xush kelibsiz, ${data.name}!`;
+        statusEl.textContent = `Xush kelibsiz, ${LMS_USER.name}!`;
         setTimeout(enterMenu, 700);
     } catch (err) {
         spinnerEl.classList.add('hidden');
@@ -134,7 +140,7 @@ async function verifyToken() {
     }
 }
 
-async function submitResult(score, accuracy, timeSec) {
+async function submitResult(outcome, score, timeSec) {
     if (!TOKEN || !API_BASE || !LMS_USER || LMS_USER.id === 0) return;
     try {
         await fetch(URLS.result, {
@@ -143,11 +149,17 @@ async function submitResult(score, accuracy, timeSec) {
             body: JSON.stringify({
                 token: TOKEN,
                 game: GAME,
+                result: outcome === 'loss' ? 'lose' : outcome,
                 score: score,
-                wpm: 0,
-                accuracy: accuracy,
                 time_spent: timeSec,
                 competition_id: COMPETITION_ID || '',
+                meta: {
+                    mode: MODE,
+                    difficulty: DIFFICULTY,
+                    board_size: BOARD_SIZE,
+                    win_length: WIN_LENGTH,
+                    competition_id: COMPETITION_ID || '',
+                },
             }),
         });
     } catch (_) { /* silent */ }
@@ -156,6 +168,7 @@ async function submitResult(score, accuracy, timeSec) {
 // ============== MENU ==============
 function enterMenu() {
     initThemePicker();
+    setBoardSize(BOARD_SIZE);
     if (LMS_USER) {
         $('menu-user-name').textContent  = LMS_USER.name || 'O\'yinchi';
         $('menu-user-group').textContent = LMS_USER.group || '';
@@ -163,26 +176,43 @@ function enterMenu() {
     showScreen('menu');
     $('btn-result-lms').href = RETURN_URL || '/';
 
+    document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.onclick = () => setBoardSize(btn.dataset.size);
+    });
+
     document.querySelectorAll('[data-mode="ai"]').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.onclick = () => {
             DIFFICULTY = btn.dataset.diff;
             MODE = 'ai';
             startAIGame();
-        });
+        };
     });
 
-    $('btn-find-casual').addEventListener('click', startMatchmaking);
+    $('btn-find-casual').onclick = startMatchmaking;
 
-    $('menu-fullscreen').addEventListener('click', () => {
+    $('menu-fullscreen').onclick = () => {
         if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
         else document.exitFullscreen().catch(() => {});
-    });
+    };
 }
 
 // ============== BOARD RENDERING ==============
 const cells = () => document.querySelectorAll('.cell');
 
 function renderBoard() {
+    const boardEl = $('board');
+    boardEl.style.setProperty('--board-size', BOARD_SIZE);
+    boardEl.dataset.size = String(BOARD_SIZE);
+    if (boardEl.children.length !== board.length) {
+        boardEl.innerHTML = '';
+        board.forEach((_, i) => {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.i = i;
+            boardEl.appendChild(cell);
+        });
+    }
+
     document.querySelectorAll('.cell').forEach((cell, i) => {
         cell.textContent = '';
         cell.className = 'cell';
@@ -216,8 +246,25 @@ function highlightWin(line) {
 
 // ============== AI LOGIC ==============
 function checkWinner(b) {
-    for (const [a, c, d] of WIN_LINES) {
-        if (b[a] && b[a] === b[c] && b[a] === b[d]) return { winner: b[a], line: [a, c, d] };
+    const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            const start = r * BOARD_SIZE + c;
+            const sym = b[start];
+            if (!sym) continue;
+            for (const [dr, dc] of dirs) {
+                const line = [];
+                for (let step = 0; step < WIN_LENGTH; step++) {
+                    const nr = r + dr * step;
+                    const nc = c + dc * step;
+                    if (nr < 0 || nr >= BOARD_SIZE || nc < 0 || nc >= BOARD_SIZE) break;
+                    const idx = nr * BOARD_SIZE + nc;
+                    if (b[idx] !== sym) break;
+                    line.push(idx);
+                }
+                if (line.length === WIN_LENGTH) return { winner: sym, line };
+            }
+        }
     }
     if (b.every(v => v !== '')) return { winner: 'draw', line: null };
     return null;
@@ -232,7 +279,7 @@ function minimax(b, depth, isMax, alpha, beta) {
     }
     if (isMax) {
         let best = -Infinity;
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < b.length; i++) {
             if (!b[i]) {
                 b[i] = 'O';
                 best = Math.max(best, minimax(b, depth + 1, false, alpha, beta));
@@ -244,7 +291,7 @@ function minimax(b, depth, isMax, alpha, beta) {
         return best;
     } else {
         let best = Infinity;
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < b.length; i++) {
             if (!b[i]) {
                 b[i] = 'X';
                 best = Math.min(best, minimax(b, depth + 1, true, alpha, beta));
@@ -258,8 +305,9 @@ function minimax(b, depth, isMax, alpha, beta) {
 }
 
 function getBestMove(b) {
+    if (BOARD_SIZE !== 3) return getSmartMove(b);
     let best = -Infinity, move = -1;
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < b.length; i++) {
         if (!b[i]) {
             b[i] = 'O';
             const val = minimax(b, 0, false, -Infinity, Infinity);
@@ -275,13 +323,35 @@ function getRandomMove(b) {
     return empty[Math.floor(Math.random() * empty.length)];
 }
 
+function getWinningMove(b, symbol) {
+    for (let i = 0; i < b.length; i++) {
+        if (b[i]) continue;
+        b[i] = symbol;
+        const res = checkWinner(b);
+        b[i] = '';
+        if (res && res.winner === symbol) return i;
+    }
+    return -1;
+}
+
+function getSmartMove(b) {
+    let move = getWinningMove(b, 'O');
+    if (move >= 0) return move;
+    move = getWinningMove(b, 'X');
+    if (move >= 0) return move;
+
+    const center = Math.floor(b.length / 2);
+    if (!b[center]) return center;
+    return getRandomMove(b);
+}
+
 function aiMove() {
     if (gameOver || currentTurn !== 'O') return;
     let move;
     if (DIFFICULTY === 'easy') {
         move = getRandomMove(board);
     } else if (DIFFICULTY === 'medium') {
-        // 60% minimax, 40% random
+        // 60% aqlli/minimax, 40% random
         move = Math.random() < 0.6 ? getBestMove(board) : getRandomMove(board);
     } else {
         move = getBestMove(board);
@@ -293,7 +363,7 @@ function aiMove() {
 // ============== AI GAME ==============
 function startAIGame() {
     stopMp();
-    board       = Array(9).fill('');
+    board       = Array(BOARD_SIZE * BOARD_SIZE).fill('');
     currentTurn = 'X';
     gameOver    = false;
     MY_SYMBOL   = 'X';
@@ -384,7 +454,7 @@ function enableBoard(on) {
 
 function goToMenu() {
     stopMp();
-    if (!gameOver) submitResult(0, 0, getElapsed());
+    if (!gameOver && MODE === 'ai') submitResult('lose', 0, getElapsed());
     scores = { X: 0, O: 0, draw: 0 };
     enterMenu();
 }
@@ -402,7 +472,7 @@ async function finishGame(outcome) {
     else if (outcome === 'draw') { score = 50;  accuracy = 50;  }
     else                         { score = 10;  accuracy = 0;   }
 
-    await submitResult(score, accuracy, timeSec);
+    if (MODE === 'ai') await submitResult(outcome, score, timeSec);
     setTimeout(() => showResult(outcome, score), 1200);
 }
 
@@ -444,13 +514,13 @@ async function mpFind() {
         const res  = await fetch(URLS.mpFind, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: TOKEN, game: GAME, mode: 'casual', wager: 0 }),
+            body: JSON.stringify({ token: TOKEN, game: GAME, mode: 'casual', wager: 0, board_size: BOARD_SIZE }),
         });
         const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        if (data.status === 'matched' || data.status === 'active') {
-            MATCH_ID = data.match_id;
-            startMpGame(data);
+        if (!data.ok || data.error) throw new Error(data.error || 'Matchmaking xatosi');
+        MATCH_ID = data.match.id;
+        if (data.match.status === 'active') {
+            startMpGame(data.match);
         } else {
             // still waiting
             mmPollTimer = setTimeout(mpPoll, 2000);
@@ -468,13 +538,13 @@ async function mpPoll() {
             const res  = await fetch(URLS.mpFind, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: TOKEN, game: GAME, mode: 'casual', wager: 0 }),
+                body: JSON.stringify({ token: TOKEN, game: GAME, mode: 'casual', wager: 0, board_size: BOARD_SIZE }),
             });
             const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            if (data.status === 'matched' || data.status === 'active') {
-                MATCH_ID = data.match_id;
-                startMpGame(data);
+            if (!data.ok || data.error) throw new Error(data.error || 'Matchmaking xatosi');
+            MATCH_ID = data.match.id;
+            if (data.match.status === 'active') {
+                startMpGame(data.match);
             } else {
                 mmPollTimer = setTimeout(mpPoll, 2000);
             }
@@ -483,23 +553,41 @@ async function mpPoll() {
         }
         return;
     }
-    // match found, poll state
-    await mpFetchState();
+    // Waiting match bor — raqib qo'shilganini tekshiramiz
+    try {
+        const res = await fetch(URLS.mpState, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID }),
+        });
+        const data = await res.json();
+        if (!data.ok || data.error) throw new Error(data.error || 'Holat olinmadi');
+        if (data.match.status === 'active') {
+            startMpGame(data.match);
+        } else {
+            mmPollTimer = setTimeout(mpPoll, 2000);
+        }
+    } catch {
+        mmPollTimer = setTimeout(mpPoll, 3000);
+    }
 }
 
 async function startMpGame(data) {
     clearTimeout(mmPollTimer);
-    MATCH_ID = data.match_id;
+    MATCH_ID = data.id;
+    BOARD_SIZE = data.board_size || BOARD_SIZE;
+    WIN_LENGTH = data.win_length || (BOARD_SIZE === 3 ? 3 : 4);
 
     // Determine player symbol from role
-    const role = data.role; // 'white' | 'black'
+    const role = data.your_role; // 'white' | 'black'
     MY_SYMBOL  = role === 'white' ? 'X' : 'O';
 
-    const opp = data.opponent || { name: 'Raqib', group: '' };
+    const opp = role === 'white' ? data.black_player : data.white_player;
+    const oppName = opp?.name || 'Raqib';
 
-    $('name-x').textContent  = role === 'white' ? (LMS_USER.name || 'Siz') : opp.name;
+    $('name-x').textContent  = role === 'white' ? (LMS_USER.name || 'Siz') : oppName;
     $('meta-x').textContent  = 'X o\'yinchi';
-    $('name-o').textContent  = role === 'black' ? (LMS_USER.name || 'Siz') : opp.name;
+    $('name-o').textContent  = role === 'black' ? (LMS_USER.name || 'Siz') : oppName;
     $('meta-o').textContent  = 'O o\'yinchi';
     $('btn-resign').style.display = 'inline-flex';
     $('btn-resign').onclick = mpResign;
@@ -507,7 +595,7 @@ async function startMpGame(data) {
     $('btn-menu').onclick       = goToMenu;
     $('btn-back-to-menu').onclick = goToMenu;
 
-    board       = Array(9).fill('');
+    board       = Array(BOARD_SIZE * BOARD_SIZE).fill('');
     currentTurn = 'X';
     gameOver    = false;
     mpActive    = true;
@@ -518,11 +606,7 @@ async function startMpGame(data) {
     showScreen('game');
 
     // Apply server state if available
-    if (data.board_state && data.board_state.length === 9) {
-        board = data.board_state.map(v => v || '');
-        currentTurn = data.current_turn === 'white' ? 'X' : 'O';
-        renderBoard();
-    }
+    applyServerState(data, true);
 
     const myTurn = currentTurn === MY_SYMBOL;
     setStatus(myTurn ? "Sizning yurishing" : "Raqib o'ylayapti...", myTurn ? (MY_SYMBOL === 'X' ? 'x-turn' : 'o-turn') : '');
@@ -538,15 +622,16 @@ async function mpFetchState() {
         const res = await fetch(URLS.mpState, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: TOKEN, match_id: MATCH_ID }),
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID }),
         });
         const data = await res.json();
-        if (data.error) { stopMp(); return; }
+        if (!data.ok || data.error) { stopMp(); return; }
+        const match = data.match;
 
-        if (data.status === 'ended' || data.status === 'abandoned') {
+        if (match.status === 'ended' || match.status === 'abandoned') {
             stopMp();
-            applyServerState(data);
-            const w = data.winner;
+            applyServerState(match, true);
+            const w = match.winner;
             let outcome;
             if (!w || w === 'draw') outcome = 'draw';
             else if ((w === 'white' && MY_SYMBOL === 'X') || (w === 'black' && MY_SYMBOL === 'O')) outcome = 'win';
@@ -559,18 +644,22 @@ async function mpFetchState() {
             return;
         }
 
-        applyServerState(data);
+        applyServerState(match);
     } catch (_) { /* retry next tick */ }
 }
 
-function applyServerState(data) {
-    if (!data.board_state || data.board_state.length !== 9) return;
-    const newBoard = data.board_state.map(v => v || '');
+function applyServerState(data, force = false) {
+    if (!data.board || !Array.isArray(data.board)) return;
+    if (data.board_size) {
+        BOARD_SIZE = data.board_size;
+        WIN_LENGTH = data.win_length || (BOARD_SIZE === 3 ? 3 : 4);
+    }
+    const newBoard = data.board.map(v => v || '');
     let changed = false;
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < newBoard.length; i++) {
         if (newBoard[i] !== board[i]) { changed = true; break; }
     }
-    if (!changed) return;
+    if (!changed && !force) return;
 
     board = newBoard;
     currentTurn = data.current_turn === 'white' ? 'X' : 'O';
@@ -593,16 +682,19 @@ async function mpSendMove(idx) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 token: TOKEN,
+                game: GAME,
                 match_id: MATCH_ID,
                 move: { position: idx },
             }),
         });
         const data = await res.json();
-        if (data.error) {
+        if (!data.ok || data.error) {
             showNotif(`Yurish xatosi: ${data.error}`, 3000);
+            await mpFetchState();
             return;
         }
-        applyServerState(data);
+        const match = data.match;
+        applyServerState(match, true);
         const result = checkWinner(board);
         if (result) {
             stopMp();
@@ -610,8 +702,8 @@ async function mpSendMove(idx) {
             enableBoard(false);
             if (result.line) highlightWin(result.line);
             let outcome;
-            if (result.winner === 'draw') outcome = 'draw';
-            else if (result.winner === MY_SYMBOL) outcome = 'win';
+            if (match.winner === 'draw') outcome = 'draw';
+            else if ((match.winner === 'white' && MY_SYMBOL === 'X') || (match.winner === 'black' && MY_SYMBOL === 'O')) outcome = 'win';
             else outcome = 'loss';
             finishGame(outcome);
         }
@@ -627,7 +719,7 @@ async function mpResign() {
         await fetch(URLS.mpResign, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token: TOKEN, match_id: MATCH_ID }),
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID }),
         });
     } catch (_) {}
     gameOver = true;
@@ -653,14 +745,20 @@ document.addEventListener('DOMContentLoaded', () => {
             placeMove(idx, true);
         } else {
             if (currentTurn !== MY_SYMBOL) return;
-            // optimistic
-            placeMove(idx, true);
+            enableBoard(false);
             mpSendMove(idx);
         }
     });
 
     // Matchmaking cancel
     $('btn-mm-cancel').addEventListener('click', () => {
+        if (MATCH_ID) {
+            fetch(URLS.mpResign, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID }),
+            }).catch(() => {});
+        }
         stopMp();
         enterMenu();
     });

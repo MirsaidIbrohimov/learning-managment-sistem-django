@@ -352,6 +352,70 @@ class BoardMatch(models.Model):
             return 'black'
         return None
 
+    # ===== Coin o'yin (wager) ko'rsatkichlari =====
+    @property
+    def coin_pot(self):
+        """Umumiy bank — ikkala o'yinchining tikilishi."""
+        return self.wager_coins * 2 if self.mode == 'coin' else 0
+
+    @property
+    def service_fee_percent(self):
+        """Xizmat haqi foizi (config orqali yoki default 15%)."""
+        from .external_api import SERVICE_FEE_PERCENT
+        return int((self.config_value('service_fee_percent') or SERVICE_FEE_PERCENT))
+
+    def config_value(self, key, default=None):
+        cfg = (self.game.config or {}) if self.game_id else {}
+        return cfg.get(key, default)
+
+    @property
+    def service_fee(self):
+        """G'olib aniqlangan o'yinda ushlangan xizmat haqi (coin)."""
+        if self.mode != 'coin' or self.winner not in ('white', 'black'):
+            return 0
+        return (self.coin_pot * self.service_fee_percent) // 100
+
+    @property
+    def winner_payout(self):
+        """G'olibga o'tkazilgan coin (o'z tikilishi + yutuq - xizmat haqi)."""
+        if self.mode != 'coin' or self.winner not in ('white', 'black'):
+            return 0
+        return self.coin_pot - self.service_fee
+
+    @property
+    def winner_player(self):
+        if self.winner == 'white':
+            return self.white_player
+        if self.winner == 'black':
+            return self.black_player
+        return None
+
+    @property
+    def winner_net(self):
+        """G'olibning sof yutug'i (tikilishi qaytib, ustiga qancha qo'shildi)."""
+        if self.mode != 'coin' or self.winner not in ('white', 'black'):
+            return 0
+        return self.winner_payout - self.wager_coins
+
+    def coin_delta(self, role):
+        """Berilgan o'yinchining (white/black) shu o'yindagi sof coin o'zgarishi."""
+        if self.mode != 'coin' or self.wager_coins <= 0:
+            return 0
+        # Durang yoki o'yin yakunlanmagan bo'lsa — tikilish qaytariladi (0)
+        if self.winner not in ('white', 'black'):
+            return 0
+        if self.winner == role:
+            return self.winner_net          # g'olib: + sof yutuq
+        return -self.wager_coins             # mag'lub: - tikilishi
+
+    @property
+    def white_coin_delta(self):
+        return self.coin_delta('white')
+
+    @property
+    def black_coin_delta(self):
+        return self.coin_delta('black')
+
 
 class WordSuggestion(models.Model):
     STATUS_CHOICES = (

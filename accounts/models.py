@@ -652,7 +652,7 @@ class Homework(models.Model):
     allowed_formats = models.TextField(blank=True, default='', verbose_name="Ruxsat etilgan formatlar", 
                                         help_text="Vergul bilan ajratilgan formatlar, masalan: .zip,.jpg,.png")
     due_date = models.DateTimeField(null=True, blank=True, verbose_name="Topshirish muddati")
-    max_score = models.IntegerField(default=100, verbose_name="Maksimal ball")
+    max_score = models.IntegerField(default=10, verbose_name="Maksimal ball")
     late_penalty = models.IntegerField(default=10, verbose_name="Kechikish jarimasi (%)")
     allow_late = models.BooleanField(default=True, verbose_name="Kech topshirishga ruxsat")
     ai_check = models.BooleanField(default=True, verbose_name="AI tekshirsin")
@@ -2327,4 +2327,3 @@ class SecurityEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_event_type_display()} - {self.ip_address} - {self.created_at}"
-

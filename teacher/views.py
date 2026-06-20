@@ -892,6 +892,9 @@ def teacher_grade_homework(request, pk):
         if status == 'graded' and grade_val is None:
             messages.error(request, "Iltimos, baho kiriting.")
             return redirect('teacher:grade_homework', pk=pk)
+        if grade_val is not None and not (1 <= grade_val <= 10):
+            messages.error(request, "Baho 1 dan 10 gacha bo'lishi kerak.")
+            return redirect('teacher:grade_homework', pk=pk)
         
         submission.grade = grade_val
         submission.feedback = feedback

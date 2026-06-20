@@ -455,9 +455,13 @@
                 <div class="nav-icon-wrap"><i class="bi bi-coin"></i></div>
                 <span>Coin berish</span>
             </a>
-            <a href="{% url 'coin:admin_transfers' %}" class="nav-link {% if 'transfer' in request.resolver_match.url_name %}active{% endif %}" data-title="Coin o'tkazmalar">
+            <a href="{% url 'coin:admin_transfers' %}" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view != 'games' %}active{% endif %}" data-title="Coin o'tkazmalar">
                 <div class="nav-icon-wrap"><i class="bi bi-send-fill"></i></div>
                 <span>Coin o'tkazmalar</span>
+            </a>
+            <a href="{% url 'coin:admin_transfers' %}?view=games" class="nav-link {% if 'transfer' in request.resolver_match.url_name and request.GET.view == 'games' %}active{% endif %}" data-title="Coin o'yinlar">
+                <div class="nav-icon-wrap"><i class="bi bi-controller"></i></div>
+                <span>Coin o'yinlar</span>
             </a>
             <a href="{% url 'admin_premium_management' %}" class="nav-link {% if '/premium/' in request.path %}active{% endif %}" data-title="Premium">
                 <div class="nav-icon-wrap"><i class="bi bi-patch-check-fill"></i></div>
