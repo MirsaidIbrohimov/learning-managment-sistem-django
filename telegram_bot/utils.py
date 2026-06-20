@@ -2,6 +2,8 @@ import threading
 import requests
 from django.conf import settings
 
+from telegram_bot import premium
+
 
 def notify_admins(text):
     """Barcha admin foydalanuvchilarga Telegram orqali xabar yuborish (background thread)"""
@@ -14,12 +16,7 @@ def notify_admins(text):
         admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
         for admin in admins:
             try:
-                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                requests.post(url, json={
-                    'chat_id': admin.telegram_id,
-                    'text': text,
-                    'parse_mode': 'HTML',
-                }, timeout=10)
+                premium.send_message(bot_token, admin.telegram_id, text)
             except Exception:
                 pass
 
@@ -35,15 +32,8 @@ def notify_group(text, inline_keyboard=None):
 
     def _send():
         try:
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            payload = {
-                'chat_id': group_chat_id,
-                'text': text,
-                'parse_mode': 'HTML',
-            }
-            if inline_keyboard:
-                payload['reply_markup'] = {'inline_keyboard': inline_keyboard}
-            requests.post(url, json=payload, timeout=10)
+            reply_markup = {'inline_keyboard': inline_keyboard} if inline_keyboard else None
+            premium.send_message(bot_token, group_chat_id, text, reply_markup=reply_markup)
         except Exception:
             pass
 
@@ -58,12 +48,7 @@ def notify_user(telegram_id, text):
 
     def _send():
         try:
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            requests.post(url, json={
-                'chat_id': telegram_id,
-                'text': text,
-                'parse_mode': 'HTML',
-            }, timeout=10)
+            premium.send_message(bot_token, telegram_id, text)
         except Exception:
             pass
 

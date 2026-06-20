@@ -664,33 +664,22 @@ def _linked_keyboard():
 
 
 def _send_message(bot_token, chat_id, text):
-    """Telegram API orqali xabar yuborish"""
-    import requests
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    """Telegram API orqali xabar yuborish (premium custom emoji bilan)"""
+    from telegram_bot import premium
     try:
-        resp = requests.post(url, json={
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'HTML'
-        }, timeout=10)
-        if not resp.json().get('ok'):
+        resp = premium.send_message(bot_token, chat_id, text)
+        if resp is not None and not resp.json().get('ok'):
             logger.error(f"sendMessage xatolik: {resp.text}")
     except Exception as e:
         logger.error(f"sendMessage exception: {e}")
 
 
 def _send_message_with_reply_markup(bot_token, chat_id, text, reply_markup):
-    """Telegram API orqali keyboard bilan xabar yuborish"""
-    import requests
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    """Telegram API orqali keyboard bilan xabar yuborish (premium custom emoji bilan)"""
+    from telegram_bot import premium
     try:
-        resp = requests.post(url, json={
-            'chat_id': chat_id,
-            'text': text,
-            'parse_mode': 'HTML',
-            'reply_markup': reply_markup,
-        }, timeout=10)
-        if not resp.json().get('ok'):
+        resp = premium.send_message(bot_token, chat_id, text, reply_markup=reply_markup)
+        if resp is not None and not resp.json().get('ok'):
             logger.error(f"sendMessage xatolik: {resp.text}")
     except Exception as e:
         logger.error(f"sendMessage exception: {e}")
@@ -1083,15 +1072,11 @@ def _notify_admin_telegram_message(bot_token, tg_full, tg_username, telegram_id,
     )
 
     def _send():
+        from telegram_bot import premium
         admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
         for admin in admins:
             try:
-                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                requests.post(url, json={
-                    'chat_id': admin.telegram_id,
-                    'text': notify_text,
-                    'parse_mode': 'HTML',
-                }, timeout=10)
+                premium.send_message(bot_token, admin.telegram_id, notify_text)
             except Exception:
                 pass
 
@@ -1264,6 +1249,7 @@ def _notify_admin_contact(msg):
         text += f"\n\n🔗 Tizim foydalanuvchisi: {msg.user.full_name} (@{msg.user.username})"
 
     def _send():
+        from telegram_bot import premium
         admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
         for admin in admins:
             try:
@@ -1274,16 +1260,11 @@ def _notify_admin_contact(msg):
                     requests.post(url, json={
                         'chat_id': admin.telegram_id,
                         'photo': photo_url,
-                        'caption': text[:1024],
+                        'caption': premium.premiumize(text[:1024]),
                         'parse_mode': 'HTML',
                     }, timeout=10)
                 else:
-                    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                    requests.post(url, json={
-                        'chat_id': admin.telegram_id,
-                        'text': text,
-                        'parse_mode': 'HTML',
-                    }, timeout=10)
+                    premium.send_message(bot_token, admin.telegram_id, text)
             except Exception:
                 pass
 
@@ -1307,13 +1288,9 @@ def _send_contact_reply_telegram(msg, reply_text):
     )
 
     try:
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        resp = requests.post(url, json={
-            'chat_id': msg.user.telegram_id,
-            'text': text,
-            'parse_mode': 'HTML',
-        }, timeout=10)
-        return resp.status_code == 200
+        from telegram_bot import premium
+        resp = premium.send_message(bot_token, msg.user.telegram_id, text)
+        return resp is not None and resp.status_code == 200
     except Exception:
         return False
 
@@ -1380,6 +1357,7 @@ def admin_send_broadcast(request):
             broadcast.recipients_count = len(recipients)
             broadcast.save(update_fields=['recipients_count'])
 
+            from telegram_bot import premium
             for r in recipients:
                 try:
                     if broadcast.image:
@@ -1391,19 +1369,15 @@ def admin_send_broadcast(request):
                             'parse_mode': 'HTML',
                         }
                         if text:
-                            payload['caption'] = text[:1024]
+                            payload['caption'] = premium.premiumize(text[:1024])
                         resp = http_requests.post(url, json=payload, timeout=15)
                     else:
-                        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                        payload = {
-                            'chat_id': r['chat_id'],
-                            'text': text,
-                            'parse_mode': 'HTML',
-                            'disable_web_page_preview': False,
-                        }
-                        resp = http_requests.post(url, json=payload, timeout=15)
+                        resp = premium.send_message(
+                            bot_token, r['chat_id'], text,
+                            disable_web_page_preview=False,
+                        )
 
-                    if resp.status_code == 200 and resp.json().get('ok'):
+                    if resp is not None and resp.status_code == 200 and resp.json().get('ok'):
                         success += 1
                     else:
                         failed += 1
@@ -1510,6 +1484,7 @@ def _send_phone_link_to_admins(image_path, caption):
         return
 
     def _send():
+        from telegram_bot import premium
         admins = CustomUser.objects.filter(role='admin', telegram_id__isnull=False)
         for admin in admins:
             try:
@@ -1517,7 +1492,7 @@ def _send_phone_link_to_admins(image_path, caption):
                 with open(image_path, 'rb') as photo:
                     requests.post(url, data={
                         'chat_id': admin.telegram_id,
-                        'caption': caption[:1024],
+                        'caption': premium.premiumize(caption[:1024]),
                         'parse_mode': 'HTML',
                     }, files={
                         'photo': photo,
