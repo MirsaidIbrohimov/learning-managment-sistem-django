@@ -1698,3 +1698,96 @@ body {
     box-shadow: 0 0 6px rgba(148,163,184,0.6);
 }
 
+/* ============================================================
+ * ENHANCEMENTS — capture highlight, sound, touch, accessibility
+ * (mavjud stillarga qo'shimcha)
+ * ============================================================ */
+
+/* Yutib olinadigan dushman donasini ajratib ko'rsatuvchi pulsing halqa */
+.piece.capturable {
+    box-shadow:
+        0 0 0 3px rgba(239,68,68,0.95),
+        0 0 18px rgba(239,68,68,0.85),
+        0 6px 16px rgba(0,0,0,0.5);
+    animation: capturablePulse 0.9s ease-in-out infinite;
+}
+@keyframes capturablePulse {
+    0%, 100% { box-shadow: 0 0 0 3px rgba(239,68,68,0.95), 0 0 14px rgba(239,68,68,0.7), 0 6px 16px rgba(0,0,0,0.5); }
+    50%      { box-shadow: 0 0 0 4px rgba(248,113,113,1), 0 0 26px rgba(239,68,68,0.95), 0 6px 16px rgba(0,0,0,0.5); }
+}
+
+/* Ovoz tugmasi faol holati */
+.icon-btn.active { color: #fbbf24; border-color: rgba(251,191,36,0.55); box-shadow: 0 0 12px rgba(251,191,36,0.35); }
+
+/* Touch / tap optimizatsiya (mobil lag'ni yo'q qiladi) */
+html { -webkit-text-size-adjust: 100%; }
+body { touch-action: manipulation; }
+.cell, .piece, .diff-btn, .icon-btn, .action-btn, .primary-btn, .ghost-btn, .theme-swatch {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Reduced motion / accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .piece.capturable { animation: none; }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.06ms !important;
+    }
+}
+
+/* ============================================================
+ * LIGHT MODE — yorug' rejim (shashka + shaxmat uchun umumiy)
+ * Sahifa chrome'i (panel/topbar/kartalar/matn) yoritiladi;
+ * o'yin taxtasi va donalar tema bo'yicha o'zgarmaydi.
+ * ============================================================ */
+[data-mode="light"] body {
+    background:
+        radial-gradient(ellipse at top left, #e7ecf7 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, #eef2fb 0%, transparent 60%),
+        linear-gradient(160deg, #eef2fb 0%, #e7ecf7 40%, #f3f6fd 100%);
+    color: #1e293b;
+}
+[data-mode="light"] .card,
+[data-mode="light"] .topbar,
+[data-mode="light"] .side-panel,
+[data-mode="light"] .modal-box {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.10);
+}
+[data-mode="light"] .mode-card {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.08);
+}
+[data-mode="light"] .mode-card p,
+[data-mode="light"] .mode-hint,
+[data-mode="light"] .player-info .meta,
+[data-mode="light"] .menu-name,
+[data-mode="light"] .menu-group { color: #64748b; }
+[data-mode="light"] .player-block { background: rgba(15, 23, 42, 0.04); }
+[data-mode="light"] .role-chip { background: rgba(15, 23, 42, 0.06); }
+[data-mode="light"] .meta-pill { background: rgba(15, 23, 42, 0.06); color: #334155; }
+[data-mode="light"] .side-panel h4 { color: #4338ca; }
+[data-mode="light"] .captured-display { border-color: rgba(15, 23, 42, 0.08); }
+[data-mode="light"] .moves-panel ol li { color: #334155; }
+[data-mode="light"] .moves-panel ol li.opp { color: #64748b; }
+[data-mode="light"] .action-btn,
+[data-mode="light"] .ghost-btn,
+[data-mode="light"] .icon-btn {
+    background: rgba(15, 23, 42, 0.05);
+    color: #1e293b;
+}
+[data-mode="light"] .action-btn:hover,
+[data-mode="light"] .ghost-btn:hover,
+[data-mode="light"] .icon-btn:hover { background: rgba(15, 23, 42, 0.10); }
+[data-mode="light"] .stat-item .stat-num { color: #1e293b; }
+[data-mode="light"] .stat-item .stat-label,
+[data-mode="light"] .auth-card p { color: #64748b; }
+/* Chess: AI o'ylayapti pill yorug' rejimda */
+[data-mode="light"] .turn-pill.thinking {
+    background: rgba(99,102,241,0.12) !important;
+    color: #4338ca !important;
+}
+

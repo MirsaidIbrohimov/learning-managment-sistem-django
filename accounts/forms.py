@@ -137,10 +137,41 @@ class ProfessionForm(forms.ModelForm):
         widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://t.me/+... yoki boshqa havola'}),
         label="Yopiq guruh havolasi"
     )
+    kind = forms.ChoiceField(
+        choices=Profession.KIND_CHOICES,
+        initial='course',
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Turi (Kasb / Kurs)"
+    )
+    has_certificate = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Sertifikat beriladi"
+    )
+    topic_count = forms.IntegerField(
+        required=False,
+        min_value=0,
+        initial=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 = cheksiz', 'min': 0}),
+        label="Mavzular (darslar) soni",
+        help_text="0 = cheksiz. Belgilangan sondan ortiq dars qo'shib bo'lmaydi."
+    )
+    duration_months = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Masalan: 6', 'min': 0}),
+        label="O'qish davomiyligi (oy)"
+    )
+
+    def clean_topic_count(self):
+        v = self.cleaned_data.get('topic_count')
+        return v if v else 0
 
     class Meta:
         model = Profession
-        fields = ['name', 'photo', 'description', 'is_paid', 'is_mandatory', 'closed_group_link']
+        fields = ['name', 'photo', 'description', 'kind', 'is_paid', 'is_mandatory',
+                  'has_certificate', 'topic_count', 'duration_months', 'closed_group_link']
 
 
 class UserProfileForm(forms.ModelForm):

@@ -6257,6 +6257,17 @@ def add_lesson(request, pk):
     if request.user.is_teacher and not request.user.teaching_professions.filter(pk=profession.pk).exists():
         messages.error(request, "Sizda bu kursga kirish huquqi yo'q!")
         return redirect('professions')
+
+    # ─── Mavzu (dars) limiti ───
+    # Kurs uchun topic_count belgilangan bo'lsa, undan ortiq dars qo'shib bo'lmaydi.
+    if profession.is_lesson_limit_reached:
+        messages.error(
+            request,
+            f"Mavzu (dars) limiti to'ldi: {profession.topic_count} tadan {profession.lessons.count()} ta dars qo'shilgan. "
+            f"Yangi dars qo'shib bo'lmaydi. Limitni oshirish uchun kursni tahrirlang."
+        )
+        return redirect('profession_detail', pk=pk)
+
     lesson_type = request.GET.get('type', 'video')
     section_id = request.GET.get('section')
     section = None

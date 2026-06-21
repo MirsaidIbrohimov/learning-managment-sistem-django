@@ -19,8 +19,30 @@ class Profession(models.Model):
     blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
     closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
     ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan")
+
+    # ─── Turi / mavzular soni / davomiylik ───
+    KIND_CHOICES = (
+        ('course', 'Kurs'),
+        ('profession', 'Kasb'),
+    )
+    kind = models.CharField(max_length=12, choices=KIND_CHOICES, default='course',
+                            verbose_name="Turi (Kasb / Kurs)")
+    topic_count = models.PositiveIntegerField(
+        default=0, verbose_name="Mavzular (darslar) soni",
+        help_text="0 = cheksiz. Belgilangan sondan ortiq dars (mavzu) qo'shib bo'lmaydi.")
+    duration_months = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="O'qish davomiyligi (oy)",
+        help_text="O'qish necha oy davom etadi (masalan: 6).")
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    @property
+    def is_lesson_limit_reached(self):
+        """Dars (mavzu) limiti to'lganmi? (topic_count > 0 bo'lsa)."""
+        if not self.topic_count:
+            return False
+        return self.lessons.count() >= self.topic_count
+
     def __str__(self):
         return self.name
     

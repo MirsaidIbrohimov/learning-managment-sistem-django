@@ -70,6 +70,96 @@ function showScreen(name) {
     screens[name].classList.remove('hidden');
 }
 
+// ============== LIGHT / DARK MODE ==============
+const MODE_KEY        = 'shashka_mode';
+const MODE_MANUAL_KEY = 'shashka_mode_manual';
+
+function systemPrefersDark() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function resolveMode() {
+    const saved = localStorage.getItem(MODE_KEY);
+    if (saved === 'light' || saved === 'dark') return saved;
+    return systemPrefersDark() ? 'dark' : 'light';
+}
+function applyMode(mode, manual) {
+    mode = mode === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-mode', mode);
+    if (manual) {
+        localStorage.setItem(MODE_KEY, mode);
+        localStorage.setItem(MODE_MANUAL_KEY, '1');
+    }
+    updateModeBtn(mode);
+}
+function updateModeBtn(mode) {
+    const b = document.getElementById('menu-mode');
+    if (!b) return;
+    b.innerHTML = mode === 'dark' ? '<i class="bi bi-moon-stars-fill"></i>' : '<i class="bi bi-sun-fill"></i>';
+    b.title = mode === 'dark' ? "Yorug' rejim" : 'Tungi rejim';
+}
+function toggleMode() {
+    const next = document.documentElement.getAttribute('data-mode') === 'dark' ? 'light' : 'dark';
+    applyMode(next, true);
+}
+window.addEventListener('message', e => {
+    if (e && e.data && e.data.type === 'lms-theme') {
+        if (localStorage.getItem(MODE_MANUAL_KEY) !== '1') {
+            applyMode(e.data.theme === 'light' ? 'light' : 'dark', false);
+        }
+    }
+});
+applyMode(resolveMode(), false);
+try { if (window.parent && window.parent !== window) window.parent.postMessage({ type: 'request-theme' }, '*'); } catch (_) {}
+
+// ============== SOUND (WebAudio, default OFF) ==============
+const SOUND_KEY = 'shashka_sound';
+let SOUND_ON = localStorage.getItem(SOUND_KEY) === '1';
+let audioCtx = null;
+
+function ensureAudio() {
+    if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+}
+
+function beep(freq, dur = 0.08, type = 'sine', vol = 0.06, when = 0) {
+    if (!SOUND_ON || !audioCtx) return;
+    const t0 = audioCtx.currentTime + when;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+}
+
+function playMove()    { if (!SOUND_ON) return; ensureAudio(); beep(320, 0.06, 'triangle', 0.05); }
+function playCapture() { if (!SOUND_ON) return; ensureAudio(); beep(220, 0.09, 'sawtooth', 0.05); beep(140, 0.12, 'sawtooth', 0.04, 0.05); }
+function playKing()    { if (!SOUND_ON) return; ensureAudio(); [523.25, 783.99].forEach((f, i) => beep(f, 0.14, 'sine', 0.05, i * 0.1)); }
+function playWin()     { if (!SOUND_ON) return; ensureAudio(); [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, 0.18, 'sine', 0.06, i * 0.1)); }
+function playLose()    { if (!SOUND_ON) return; ensureAudio(); beep(196, 0.28, 'sawtooth', 0.05); beep(146.83, 0.34, 'sawtooth', 0.05, 0.12); }
+
+function updateSoundBtn() {
+    const btn = $('menu-sound');
+    if (!btn) return;
+    btn.classList.toggle('active', SOUND_ON);
+    btn.setAttribute('aria-pressed', SOUND_ON ? 'true' : 'false');
+    btn.innerHTML = SOUND_ON ? '<i class="bi bi-volume-up-fill"></i>' : '<i class="bi bi-volume-mute"></i>';
+}
+
+function toggleSound() {
+    SOUND_ON = !SOUND_ON;
+    localStorage.setItem(SOUND_KEY, SOUND_ON ? '1' : '0');
+    updateSoundBtn();
+    if (SOUND_ON) { ensureAudio(); playMove(); }
+}
+
 // Mode: 'ai' | 'mp'
 // AI diff: 'easy' | 'medium' | 'hard'
 let MODE = 'ai';
@@ -251,6 +341,8 @@ function askWager() {
     });
 }
 $('menu-fullscreen').onclick = toggleFullscreen;
+if ($('menu-sound')) { updateSoundBtn(); $('menu-sound').onclick = toggleSound; }
+if ($('menu-mode')) { updateModeBtn(document.documentElement.getAttribute('data-mode') || 'dark'); $('menu-mode').onclick = toggleMode; }
 $('btn-cancel-mm').onclick = cancelMatchmaking;
 $('btn-fullscreen').onclick = toggleFullscreen;
 $('btn-resign').onclick = resignGame;
@@ -401,6 +493,10 @@ function renderBoard() {
                 const p = document.createElement('div');
                 p.className = `piece ${piece.color}${piece.king ? ' king' : ''}`;
                 if (piece.color === PLAYER_COLOR && currentTurn === PLAYER_COLOR) p.classList.add('movable');
+                // Tanlangan yurish shu dushman donasini yesa — "capturable" belgisi (pulsing halqa)
+                if (selected && possibleMoves.some(m => m.captures.some(cap => cap.r === r && cap.c === c))) {
+                    p.classList.add('capturable');
+                }
                 cell.appendChild(p);
             }
             boardEl.appendChild(cell);
@@ -535,6 +631,10 @@ function doMove(fromR, fromC, move, isRemote = false) {
         if (piece.color === 'white' && move.r === 0) { piece.king = true; becameKing = true; }
         if (piece.color === 'black' && move.r === 7) { piece.king = true; becameKing = true; }
     }
+
+    if (becameKing) playKing();
+    else if (move.captures.length > 0) playCapture();
+    else playMove();
 
     logMove(piece.color, fromR, fromC, move.r, move.c, move.captures.length > 0, becameKing);
 
@@ -998,6 +1098,11 @@ function endGame(winner) {
         if (DIFFICULTY === 'hard')   score = Math.round(score * 1.35);
     }
     if (MODE === 'mp') score = Math.round(score * 1.5);  // multiplayer bigger reward
+
+    if (result === 'win') playWin();
+    else if (result === 'lose') playLose();
+
+    if (window.Gamify) Gamify.onResult(result, score, MODE === 'ai' ? 'ai' : 'mp');
 
     showResult(result, score, elapsed);
 

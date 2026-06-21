@@ -6,6 +6,10 @@
 <title>X va O — IT Shaharcha LMS</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="style.css">
+<script>
+// Flashsiz light/dark: birinchi bo'yoqdan oldin rejimni o'rnatamiz
+(function(){try{var m=localStorage.getItem('xo_mode');if(m!=='light'&&m!=='dark'){m=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mode',m);}catch(e){document.documentElement.setAttribute('data-mode','dark');}})();
+</script>
 </head>
 <body>
 
@@ -35,9 +39,17 @@
                     <div class="menu-group" id="menu-user-group"></div>
                 </div>
             </div>
-            <button class="icon-btn" id="menu-fullscreen" title="To'liq ekran">
-                <i class="bi bi-arrows-fullscreen"></i>
-            </button>
+            <div class="menu-header-actions">
+                <button class="icon-btn" id="menu-mode" title="Yorug'/Tungi rejim">
+                    <i class="bi bi-moon-stars-fill"></i>
+                </button>
+                <button class="icon-btn" id="menu-sound" title="Ovoz" aria-pressed="false">
+                    <i class="bi bi-volume-mute"></i>
+                </button>
+                <button class="icon-btn" id="menu-fullscreen" title="To'liq ekran">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </button>
+            </div>
         </header>
 
         <div class="menu-hero">
@@ -50,6 +62,19 @@
             <p>Tic-Tac-Toe — klassik o'yin, yangi his</p>
         </div>
 
+        <div class="profile-bar" id="profile-bar">
+            <div class="pb-rank" id="pb-rank"><span class="pb-rank-ico">🥉</span><span class="pb-rank-name">Bronze</span></div>
+            <div class="pb-xp">
+                <div class="pb-xp-top"><span>Daraja <b id="pb-level">1</b></span><span id="pb-xp-text">0 / 100 XP</span></div>
+                <div class="pb-xp-track"><span id="pb-xp-fill"></span></div>
+            </div>
+            <div class="pb-actions">
+                <button class="pb-btn" id="btn-leaderboard-x" title="Reyting" aria-label="Reyting"><i class="bi bi-bar-chart-fill"></i></button>
+                <button class="pb-btn" id="btn-achievements-x" title="Yutuqlar" aria-label="Yutuqlar"><i class="bi bi-trophy-fill"></i></button>
+                <button class="pb-btn" id="btn-stats-x" title="Statistika" aria-label="Statistika"><i class="bi bi-graph-up"></i></button>
+            </div>
+        </div>
+
         <div class="board-size-card">
             <div>
                 <h3>Kataklar soni</h3>
@@ -59,6 +84,7 @@
                 <button class="size-btn active" data-size="3">3×3</button>
                 <button class="size-btn" data-size="4">4×4</button>
                 <button class="size-btn" data-size="5">5×5</button>
+                <button class="size-btn" data-size="6">6×6</button>
             </div>
         </div>
 
@@ -77,6 +103,12 @@
                     <button class="diff-btn hard" data-mode="ai" data-diff="hard">
                         <span class="diff-icon">🔥</span> Qiyin
                     </button>
+                    <button class="diff-btn expert" data-mode="ai" data-diff="expert">
+                        <span class="diff-icon">👑</span> Ekspert
+                    </button>
+                    <button class="diff-btn impossible" data-mode="ai" data-diff="impossible">
+                        <span class="diff-icon">🤖</span> Yengilmas
+                    </button>
                 </div>
             </div>
 
@@ -86,7 +118,16 @@
                 <p>Haqiqiy raqib bilan onlayn o'ynang, kim tezroq yutadi?</p>
                 <div class="diff-buttons">
                     <button class="diff-btn casual" id="btn-find-casual">
-                        <span class="diff-icon"><i class="bi bi-controller"></i></span> Raqib qidirish
+                        <span class="diff-icon"><i class="bi bi-controller"></i></span> Tezkor o'yin
+                    </button>
+                    <button class="diff-btn ranked" id="btn-find-ranked">
+                        <span class="diff-icon">🏆</span> Reytingli o'yin
+                    </button>
+                    <button class="diff-btn room-create" id="btn-create-room">
+                        <span class="diff-icon"><i class="bi bi-door-open"></i></span> Xona yaratish
+                    </button>
+                    <button class="diff-btn room-join" id="btn-join-room">
+                        <span class="diff-icon"><i class="bi bi-box-arrow-in-right"></i></span> Xonaga kirish
                     </button>
                 </div>
             </div>
@@ -123,6 +164,48 @@
 
         <button class="btn-danger" id="btn-mm-cancel">
             <i class="bi bi-x-circle"></i> Bekor qilish
+        </button>
+    </div>
+</div>
+
+<!-- ============== ROOM LOBBY (xona yaratuvchi kutadi) ============== -->
+<div id="room-screen" class="screen hidden">
+    <div class="room-wrap">
+        <div class="room-icon"><i class="bi bi-door-open-fill"></i></div>
+        <h2>Xona tayyor!</h2>
+        <p>Do'stingizga shu kodni yuboring — u "Xonaga kirish" orqali qo'shiladi.</p>
+
+        <div class="room-code-box" id="room-code-box" title="Nusxalash">
+            <span class="room-code-value" id="room-code-value">—</span>
+            <button class="room-copy-btn" id="room-copy-btn" title="Nusxalash">
+                <i class="bi bi-clipboard"></i>
+            </button>
+        </div>
+
+        <div class="room-waiting">
+            <div class="dots-anim"><span></span><span></span><span></span></div>
+            <span id="room-wait-label">Raqib qo'shilishini kutmoqda...</span>
+        </div>
+
+        <button class="btn-danger" id="btn-room-cancel">
+            <i class="bi bi-x-circle"></i> Xonani yopish
+        </button>
+    </div>
+</div>
+
+<!-- ============== JOIN ROOM MODAL ============== -->
+<div id="join-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+        <button class="modal-close" id="join-close" title="Yopish"><i class="bi bi-x-lg"></i></button>
+        <div class="modal-icon"><i class="bi bi-box-arrow-in-right"></i></div>
+        <h2>Xonaga kirish</h2>
+        <p>Do'stingiz yuborgan xona kodini kiriting.</p>
+        <input type="text" id="join-code-input" class="join-input" maxlength="7"
+               inputmode="text" autocomplete="off" spellcheck="false"
+               placeholder="KOD: ABCDE" aria-label="Xona kodi">
+        <div id="join-error" class="join-error hidden"></div>
+        <button class="btn-primary" id="join-submit">
+            <i class="bi bi-box-arrow-in-right"></i> Qo'shilish
         </button>
     </div>
 </div>
@@ -175,7 +258,12 @@
 
         <!-- Board -->
         <div class="board-area">
-            <div class="board" id="board"></div>
+            <div class="board-stack">
+                <div class="board" id="board"></div>
+                <svg class="win-line-svg" id="win-line-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <line id="win-line" x1="0" y1="0" x2="0" y2="0"></line>
+                </svg>
+            </div>
         </div>
 
         <!-- Controls -->
@@ -206,6 +294,8 @@
         <div class="result-title" id="result-title">G'alaba!</div>
         <div class="result-score" id="result-score">100</div>
         <div class="result-sub" id="result-sub">ball qo'lga kiritildi</div>
+        <div class="result-xp-line" id="result-xp-line"></div>
+        <div class="result-rank-line" id="result-rank-line"></div>
         <div class="result-opp" id="result-opp"></div>
         <div class="result-actions">
             <button class="btn-primary" id="btn-result-again">
@@ -220,6 +310,17 @@
         </div>
     </div>
 </div>
+
+<!-- Reusable hub modal (reyting / yutuqlar / statistika) -->
+<div id="x-modal" class="x-modal-overlay hidden">
+    <div class="x-modal-card">
+        <div class="x-modal-head"><span id="x-modal-title"><i class="bi bi-trophy-fill"></i> Yutuqlar</span><button class="x-modal-x" id="x-modal-close"><i class="bi bi-x-lg"></i></button></div>
+        <div class="x-modal-body" id="x-modal-body"></div>
+    </div>
+</div>
+
+<!-- Confetti layer (g'alaba animatsiyasi) -->
+<div id="confetti-layer" class="confetti-layer" aria-hidden="true"></div>
 
 <script src="app.js"></script>
 </body>

@@ -1,8 +1,13 @@
 import os
+import sys
 import threading
 import time
 
 from django.apps import AppConfig
+
+# Management buyruqlarida (migrate va h.k.) auto-tuzatishni o'tkazib yuboramiz
+_FIX_SKIP = {'migrate', 'makemigrations', 'collectstatic', 'createsuperuser',
+             'shell', 'dbshell', 'test', 'fix_encoding', 'check', 'loaddata', 'dumpdata'}
 
 
 class AccountsConfig(AppConfig):
@@ -15,6 +20,19 @@ class AccountsConfig(AppConfig):
             if getattr(self.__class__, '_ai_checker_started', False):
                 return
             self.__class__._ai_checker_started = True
+
+            # ── Auto-tuzatish: shablonlardagi UTF-8 bo'lmagan baytlar ──
+            # (UnicodeDecodeError 0x97 kabi xatolar serverda qayta ishga
+            #  tushganda avtomatik tuzatiladi — qo'lda hech narsa kerak emas)
+            if not _FIX_SKIP.intersection(sys.argv):
+                try:
+                    from accounts.management.commands.fix_encoding import repair_templates
+                    fixed, scanned = repair_templates(dry=False, log=lambda m: None)
+                    if fixed:
+                        print(f"[fix_encoding] Avtomatik tuzatildi: {fixed} ta shablon fayl "
+                              f"({scanned} tekshirildi). UnicodeDecodeError bartaraf etildi.")
+                except Exception as e:
+                    print(f"[fix_encoding] Auto-tuzatish xatosi (e'tiborsiz): {e}")
 
             t = threading.Thread(target=self._ai_homework_loop, daemon=True)
             t.start()

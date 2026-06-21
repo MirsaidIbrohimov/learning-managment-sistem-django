@@ -79,6 +79,44 @@
                         <small class="text-muted d-block mt-1">Telegram yopiq guruh yoki boshqa platforma havolasini kiriting (ixtiyoriy)</small>
                     </div>
 
+                    <!-- Turi: Kasb / Kurs -->
+                    <div class="mb-4">
+                        <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                            <i class="bi bi-collection-fill me-2" style="color:#6366f1;"></i>Turi
+                        </label>
+                        {{ form.kind }}
+                        <small class="text-muted d-block mt-1">Bu element <b>kasb</b> yoki alohida <b>kurs</b> ekanligini belgilang</small>
+                    </div>
+
+                    <!-- Mavzular soni + O'qish davomiyligi -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                <i class="bi bi-list-ol me-2" style="color:#06b6d4;"></i>Mavzular (darslar) soni
+                            </label>
+                            {{ form.topic_count }}
+                            <small class="text-muted d-block mt-1">0 = cheksiz. Belgilangan sondan ortiq dars qo'shib bo'lmaydi.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                <i class="bi bi-calendar-range me-2" style="color:#f59e0b;"></i>O'qish davomiyligi (oy)
+                            </label>
+                            {{ form.duration_months }}
+                            <small class="text-muted d-block mt-1">Masalan: 6 (oy). Ixtiyoriy.</small>
+                        </div>
+                    </div>
+
+                    <!-- Sertifikat -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.has_certificate }}
+                            <label class="form-check-label" for="id_has_certificate">
+                                <i class="bi bi-patch-check-fill me-2" style="color:#10b981;"></i>Sertifikat beriladi
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">Yoqilsa — kursni tugatgan o'quvchilarga sertifikat beriladi</small>
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-2"></i>Saqlash

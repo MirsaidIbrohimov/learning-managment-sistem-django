@@ -321,6 +321,10 @@ class BoardMatch(models.Model):
 
     competition = models.ForeignKey(Competition, on_delete=models.SET_NULL, null=True, blank=True, related_name='board_matches', verbose_name="Musobaqa")
 
+    # Shaxsiy (private) xona kodi — kod orqali do'st bilan o'ynash uchun.
+    # Random matchmaking matchlarida bo'sh (null) bo'ladi.
+    room_code = models.CharField(max_length=8, null=True, blank=True, db_index=True, verbose_name="Xona kodi")
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     started_at = models.DateTimeField(null=True, blank=True, verbose_name="Boshlangan vaqt")
     last_activity_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name="Oxirgi faollik")
@@ -440,3 +444,75 @@ class WordSuggestion(models.Model):
 
     def __str__(self):
         return f"{self.user} → {self.word} ({self.word_round.letters})"
+
+
+# ============================================================
+# GAMIFICATION — XP / level / achievements (HTML Builder va boshqa
+# o'yinlar uchun umumiy). Coin va streak CustomUser'da saqlanadi.
+# ============================================================
+
+def xp_to_level(total_xp):
+    """Umumiy XP'dan (level, joriy levelga to'plangan xp, keyingi level uchun kerakli xp)
+    ni hisoblaydi. Daraja oshgani sayin talab 1.35x ortadi."""
+    total_xp = max(0, int(total_xp or 0))
+    level = 1
+    need = 100
+    remaining = total_xp
+    while remaining >= need:
+        remaining -= need
+        level += 1
+        need = int(need * 1.35)
+    return level, remaining, need
+
+
+class GameProgress(models.Model):
+    """Foydalanuvchining bitta o'yindagi gamifikatsiya holati."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='game_progress', verbose_name="Foydalanuvchi")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='player_progress', verbose_name="O'yin")
+
+    total_xp = models.PositiveIntegerField(default=0, verbose_name="Umumiy XP")
+    best_score = models.PositiveIntegerField(default=0, verbose_name="Eng yuqori ball")
+    plays = models.PositiveIntegerField(default=0, verbose_name="O'ynaldi")
+    # Tugatilgan bosqichlar: {"beginner": ["l1","l2"], "advanced": [...]}
+    levels_completed = models.JSONField(default=dict, blank=True, verbose_name="Tugatilgan bosqichlar")
+    last_played_at = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi o'yin")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "O'yin progressi (gamifikatsiya)"
+        verbose_name_plural = "O'yin progresslari (gamifikatsiya)"
+        unique_together = ['user', 'game']
+        indexes = [
+            models.Index(fields=['game', '-total_xp'], name='gameprog_game_xp_idx'),
+        ]
+
+    def __str__(self):
+        return f"{self.user} · {self.game.slug}: lvl {self.level} ({self.total_xp} XP)"
+
+    @property
+    def level(self):
+        return xp_to_level(self.total_xp)[0]
+
+    @property
+    def level_progress(self):
+        lvl, into, need = xp_to_level(self.total_xp)
+        return {'level': lvl, 'xp_into_level': into, 'xp_for_next': need}
+
+
+class UserAchievement(models.Model):
+    """Foydalanuvchi qo'lga kiritgan yutuq (achievement). Yutuq ta'riflari
+    frontendda; backend faqat ochilgan kodlarni saqlaydi."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='game_achievements', verbose_name="Foydalanuvchi")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='achievements', verbose_name="O'yin")
+    code = models.CharField(max_length=64, verbose_name="Yutuq kodi")
+    unlocked_at = models.DateTimeField(auto_now_add=True, verbose_name="Ochilgan vaqt")
+
+    class Meta:
+        verbose_name = "Foydalanuvchi yutug'i"
+        verbose_name_plural = "Foydalanuvchi yutuqlari"
+        unique_together = ['user', 'game', 'code']
+        ordering = ['-unlocked_at']
+
+    def __str__(self):
+        return f"{self.user} · {self.game.slug} · {self.code}"

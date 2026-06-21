@@ -362,6 +362,78 @@
   .kp-img { height:155px; }
   .kp-toolbar { flex-direction:column;align-items:flex-start; }
 }
+
+/* ════════════════════════════════════════════
+   ENHANCEMENTS — kuchliroq dizayn + responsiv + a11y
+   (additive — mavjud tuzilma o'zgartirilmagan)
+   ════════════════════════════════════════════ */
+/* Kartalar — kuchliroq hover + gradient accent chiziq */
+.kp-card { border-radius:18px; }
+.kp-card::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--kp-grad); opacity:0; transform:scaleX(.35); transform-origin:left;
+  transition:opacity .3s, transform .45s cubic-bezier(.22,.61,.36,1); z-index:5;
+}
+.kp-card:hover::after { opacity:1; transform:scaleX(1); }
+.kp-card:hover {
+  transform:translateY(-7px);
+  box-shadow:0 24px 60px rgba(0,0,0,.42), 0 0 0 1px rgba(99,102,241,.22), 0 0 44px rgba(99,102,241,.13);
+}
+[data-bs-theme="light"] .kp-card { box-shadow:0 4px 18px rgba(31,41,68,.06); }
+[data-bs-theme="light"] .kp-card:hover { box-shadow:0 22px 54px rgba(99,102,241,.16), 0 0 0 1px rgba(99,102,241,.22); }
+.kp-arrow { width:34px; height:34px; }
+
+/* Hero — jonliroq sheen + kuchliroq sarlavha */
+.kp-hero-title { text-shadow:0 6px 44px rgba(99,102,241,.28); }
+.kp-hero-sub { font-size:1rem; max-width:580px; line-height:1.6; }
+.kp-hero::after {
+  content:''; position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(120deg,transparent 35%,rgba(139,92,246,.07) 50%,transparent 65%);
+  background-size:220% 100%; animation:kpSheen 9s linear infinite;
+}
+@keyframes kpSheen { from{ background-position:210% 0; } to{ background-position:-210% 0; } }
+
+/* Touch-friendly + scrollbarsiz tablar/statlar */
+.kp-tab,.kp-sort-btn,.kp-view-btn,.pg,.kp-search-clear,.kp-arrow { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.kp-filters,.kp-hero-stats { scrollbar-width:none; }
+.kp-filters::-webkit-scrollbar,.kp-hero-stats::-webkit-scrollbar { display:none; }
+
+/* Fokus holatlari (klaviatura / accessibility) */
+.kp-card:focus-visible,.kp-tab:focus-visible,.pg:focus-visible,.kp-sort-btn:focus-visible { outline:2px solid var(--kp-indigo); outline-offset:3px; border-radius:12px; }
+
+/* ── Kuchaytirilgan responsiv ── */
+@media(max-width:900px){
+  .kp-filters { display:flex; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; gap:8px; padding-bottom:4px; max-width:100%; }
+  .kp-tab { flex-shrink:0; }
+}
+@media(max-width:768px){
+  .kp-hero-title { font-size:clamp(1.7rem,7vw,2.4rem); }
+  .kp-hero-stats { width:100%; gap:10px; }
+  .kp-hs { min-width:0; flex:1; padding:12px 14px; }
+  .kp-toolbar-right { width:100%; justify-content:space-between; }
+  .kp-tab { min-height:42px; }
+}
+@media(max-width:575px){
+  .kp-hero { padding:26px 0 66px; }
+  .kp-hs-val { font-size:1.1rem; } .kp-hs-lab { font-size:.62rem; }
+  .kp-hs-icon { width:32px; height:32px; }
+  .kp-img { height:172px; }
+  .kp-name { font-size:1.05rem; } .kp-desc { font-size:.85rem; -webkit-line-clamp:3; }
+  .pg { min-width:44px; height:44px; }
+  .kp-grid.view-compact { grid-template-columns:1fr; }
+  .kp-search-box { padding:9px 13px; }
+}
+/* Juda keng monitorlar */
+@media(min-width:1500px){
+  .kp-wrap,.kp-search-float { max-width:1440px; }
+  .kp-grid { grid-template-columns:repeat(4,1fr); }
+  .kp-grid.view-compact { grid-template-columns:repeat(5,1fr); }
+}
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .kp-hero::after,.kp-prog-fill::after { animation:none !important; }
+  .kp-card { animation:none !important; opacity:1 !important; }
+}
 </style>
 
 <div class="kp">

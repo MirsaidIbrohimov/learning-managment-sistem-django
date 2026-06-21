@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Bilim Arena — IT Shaharcha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="style.css?v=1">
+<script>
+(function(){try{var m=localStorage.getItem('arena_mode');if(m!=='light'&&m!=='dark'){m=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mode',m);}catch(e){document.documentElement.setAttribute('data-mode','dark');}})();
+</script>
+</head>
+<body>
+
+<div id="screen-loading" class="screen-loading">
+  <div class="load-logo">🌍</div>
+  <div class="load-title">Bilim Arena</div>
+  <div class="load-spinner"><span></span><span></span><span></span></div>
+  <div id="load-status" class="load-status">Yuklanmoqda…</div>
+</div>
+
+<div id="app" class="app hidden">
+  <!-- NAVBAR -->
+  <header class="navbar glass">
+    <div class="nav-brand"><div class="brand-badge">🌍</div><div class="brand-text"><span class="brand-name">Bilim Arena</span><span class="brand-sub">Bilim sarguzashti</span></div></div>
+    <div class="nav-stats">
+      <button class="stat-chip chip-streak" id="chip-streak" title="Streak"><i class="bi bi-fire"></i><span id="nav-streak">0</span></button>
+      <button class="stat-chip chip-coin" id="chip-coin" title="Coinlar"><i class="bi bi-coin"></i><span id="nav-coins">0</span></button>
+      <button class="stat-chip chip-level" id="chip-level" title="Daraja"><span class="lvl-ring"><span id="nav-level">1</span></span><span class="lvl-meta"><span class="lvl-label">Daraja</span><span class="xp-mini-track"><span class="xp-mini-fill" id="nav-xp-fill"></span></span></span></button>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="btn-theme" title="Rejim"><i class="bi bi-moon-stars-fill"></i></button>
+      <button class="icon-btn" id="btn-settings" title="Sozlamalar"><i class="bi bi-gear-fill"></i></button>
+    </div>
+  </header>
+
+  <!-- WORLD MAP -->
+  <main id="screen-map" class="screen-map">
+    <section class="home-hero glass">
+      <div class="hero-avatar" id="hero-avatar">A</div>
+      <div class="hero-info">
+        <div class="hero-greet">Xush kelibsiz,</div>
+        <div class="hero-name" id="hero-name">Sayyoh</div>
+        <div class="hero-levelbar"><span class="hero-level-tag">Daraja <b id="hero-level">1</b></span><span class="xp-track"><span class="xp-fill" id="hero-xp-fill"></span></span><span class="hero-xp-text" id="hero-xp-text">0 / 100 XP</span></div>
+      </div>
+      <div class="hero-quick">
+        <button class="quick-btn" id="btn-achievements" title="Yutuqlar"><i class="bi bi-trophy-fill"></i></button>
+        <button class="quick-btn" id="btn-leaderboard" title="Reyting"><i class="bi bi-bar-chart-fill"></i></button>
+        <button class="quick-btn" id="btn-stats" title="Statistika"><i class="bi bi-graph-up"></i></button>
+      </div>
+    </section>
+
+    <section class="daily glass" id="daily-card">
+      <div class="daily-icon">⚡</div>
+      <div class="daily-body"><div class="daily-title">Kunlik challenge</div><div class="daily-desc" id="daily-desc">Tasodifiy olamdan 5 ta savol — bonus XP</div></div>
+      <button class="daily-go" id="daily-go">Boshlash <i class="bi bi-arrow-right"></i></button>
+    </section>
+
+    <h2 class="section-title"><i class="bi bi-compass"></i> Olamlar xaritasi</h2>
+    <div class="world-grid" id="world-grid"></div>
+  </main>
+
+  <!-- REGION (world missions) -->
+  <section id="screen-region" class="screen-region hidden">
+    <div class="region-head glass" id="region-head">
+      <button class="icon-btn" id="region-back"><i class="bi bi-chevron-left"></i></button>
+      <div class="region-titlewrap"><div class="region-name" id="region-name">Olam</div><div class="region-sub" id="region-sub"></div></div>
+      <div class="region-prog"><span id="region-prog-txt">0/0</span><span class="region-prog-track"><span id="region-prog-fill"></span></span></div>
+    </div>
+    <div class="mission-list" id="mission-list"></div>
+  </section>
+
+  <!-- MISSION PLAYER -->
+  <section id="screen-mission" class="screen-mission hidden">
+    <div class="game-topbar glass">
+      <button class="icon-btn" id="mission-exit"><i class="bi bi-x-lg"></i></button>
+      <div class="mt-titlewrap"><div class="mt-name" id="mt-name">Missiya</div><div class="mt-type" id="mt-type"></div></div>
+      <div class="mt-metrics">
+        <div class="gt-metric" id="mt-timer-wrap" hidden><i class="bi bi-stopwatch"></i> <b id="mt-timer">0:00</b></div>
+        <div class="gt-metric"><i class="bi bi-list-ol"></i> <b id="mt-step">1</b>/<span id="mt-total">1</span></div>
+        <div class="gt-metric gt-score"><i class="bi bi-star-fill"></i> <b id="mt-score">0</b></div>
+      </div>
+    </div>
+    <div class="mt-progress"><span id="mt-progress-fill"></span></div>
+    <div class="mission-stage" id="mission-stage"></div>
+    <div class="mission-foot">
+      <div class="mt-feedback" id="mt-feedback"></div>
+      <button class="btn-primary" id="mt-action" disabled><i class="bi bi-check-lg"></i> Tekshirish</button>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <div class="modal-overlay hidden" id="modal-result">
+    <div class="modal-card result-card glass">
+      <div class="result-ring" id="result-ring">🏆</div>
+      <div class="result-stars" id="result-stars"></div>
+      <h2 class="result-title" id="result-title">Ajoyib!</h2>
+      <p class="result-sub" id="result-sub"></p>
+      <div class="result-xp" id="result-xp">+0 XP</div>
+      <div class="result-stats">
+        <div class="rs"><div class="rs-v" id="rs-correct">0</div><div class="rs-l">To'g'ri</div></div>
+        <div class="rs"><div class="rs-v" id="rs-acc">0%</div><div class="rs-l">Aniqlik</div></div>
+        <div class="rs"><div class="rs-v" id="rs-coins">+0</div><div class="rs-l">Coin</div></div>
+      </div>
+      <div class="result-actions">
+        <button class="btn-primary" id="rs-next"><i class="bi bi-arrow-right-circle-fill"></i> Keyingi missiya</button>
+        <button class="btn-ghost" id="rs-replay"><i class="bi bi-arrow-repeat"></i> Qayta</button>
+        <button class="btn-ghost" id="rs-map"><i class="bi bi-globe-americas"></i> Xaritaga</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="modal-achievements"><div class="modal-card glass"><div class="modal-head"><span><i class="bi bi-trophy-fill"></i> Yutuqlar</span><button class="modal-x" data-close><i class="bi bi-x-lg"></i></button></div><div class="ach-grid" id="ach-grid"></div></div></div>
+  <div class="modal-overlay hidden" id="modal-leaderboard"><div class="modal-card glass"><div class="modal-head"><span><i class="bi bi-bar-chart-fill"></i> Reyting</span><button class="modal-x" data-close><i class="bi bi-x-lg"></i></button></div><div class="lb-list" id="lb-list"></div><div class="lb-me" id="lb-me"></div></div></div>
+  <div class="modal-overlay hidden" id="modal-stats"><div class="modal-card glass"><div class="modal-head"><span><i class="bi bi-graph-up"></i> Statistika</span><button class="modal-x" data-close><i class="bi bi-x-lg"></i></button></div><div class="stats-grid" id="stats-grid"></div></div></div>
+  <div class="modal-overlay hidden" id="modal-settings"><div class="modal-card glass"><div class="modal-head"><span><i class="bi bi-gear-fill"></i> Sozlamalar</span><button class="modal-x" data-close><i class="bi bi-x-lg"></i></button></div>
+    <div class="settings-body">
+      <label class="set-row"><span><i class="bi bi-moon-stars"></i> Tungi rejim</span><button class="switch" id="set-theme"></button></label>
+      <label class="set-row"><span><i class="bi bi-volume-up"></i> Ovoz</span><button class="switch" id="set-sound"></button></label>
+      <label class="set-row"><span><i class="bi bi-universal-access"></i> Kam animatsiya</span><button class="switch" id="set-motion"></button></label>
+      <label class="set-row"><span><i class="bi bi-circle-half"></i> Yuqori kontrast</span><button class="switch" id="set-contrast"></button></label>
+    </div>
+  </div></div>
+
+  <div class="levelup hidden" id="levelup"><div class="levelup-card glass"><div class="levelup-burst"></div><div class="levelup-num" id="levelup-num">2</div><div class="levelup-title">Yangi daraja!</div><div class="levelup-sub">Tabriklaymiz!</div></div></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="confetti" class="confetti-layer" aria-hidden="true"></div>
+</div>
+
+<script src="app.js?v=1"></script>
+</body>
+</html>

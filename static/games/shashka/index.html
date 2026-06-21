@@ -6,6 +6,10 @@
 <title>Shashka — IT Shaharcha LMS</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../_shared/gamify.css?v=1">
+<script>
+(function(){try{var m=localStorage.getItem('shashka_mode');if(m!=='light'&&m!=='dark'){m=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mode',m);}catch(e){document.documentElement.setAttribute('data-mode','dark');}})();
+</script>
 </head>
 <body>
 
@@ -37,6 +41,8 @@
                     <div class="menu-group" id="menu-user-group"></div>
                 </div>
             </div>
+            <button class="icon-btn" id="menu-mode" title="Yorug'/Tungi rejim"><i class="bi bi-moon-stars-fill"></i></button>
+            <button class="icon-btn" id="menu-sound" title="Ovoz" aria-pressed="false"><i class="bi bi-volume-mute"></i></button>
             <button class="icon-btn" id="menu-fullscreen" title="To'liq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
             <a id="btn-back" href="/" style="color:rgba(255,255,255,.45);font-size:.8rem;text-decoration:none;display:flex;align-items:center;gap:.3rem;"><i class="bi bi-arrow-left"></i> O'yinlar</a>
         </header>
@@ -98,6 +104,8 @@
                     <span class="stat-label">Eng yuqori ball</span>
                 </div>
             </div>
+
+            <div id="gamify-slot" style="margin:14px 0;"></div>
 
             <!-- ============ TEMA TANLASH ============ -->
             <div class="theme-picker">
@@ -286,5 +294,6 @@
 </div>
 
 <script src="app.js?v=5"></script>
+<script src="../_shared/gamify.js?v=1"></script>
 </body>
 </html>

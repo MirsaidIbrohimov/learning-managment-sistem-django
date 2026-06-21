@@ -213,6 +213,47 @@
     animation: fadeInUp 0.6s ease-out 0.1s both;
 }
 
+/* ===== Combo / streak multiplier ===== */
+.combo-badge {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    width: max-content;
+    margin: 0 auto 1rem;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #fff;
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+}
+.combo-badge.show {
+    display: inline-flex;
+    animation: comboPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.combo-badge .combo-sub {
+    font-size: 0.72rem;
+    font-weight: 600;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.combo-badge.bump { animation: comboBump 0.4s ease; }
+@keyframes comboPop {
+    from { opacity: 0; transform: scale(0.5) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes comboBump {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .combo-badge.show, .combo-badge.bump { animation: none; }
+}
+
 /* ===== Letters Circle ===== */
 .letters-container {
     display: flex;
@@ -961,6 +1002,12 @@
 
         <!-- Game Area -->
         <div class="game-card">
+            <!-- Combo / streak multiplier -->
+            <div class="combo-badge" id="comboBadge" aria-live="polite">
+                <i class="bi bi-fire"></i> <span id="comboText">x2</span>
+                <span class="combo-sub">ketma-ket!</span>
+            </div>
+
             <!-- Letters -->
             <div class="letters-container" id="lettersContainer"></div>
 
@@ -1214,6 +1261,25 @@
     const foundCountLabel = document.getElementById('foundCountLabel');
     const foundEmpty = document.getElementById('foundEmpty');
     const messageEl = document.getElementById('gameMessage');
+    const comboBadge = document.getElementById('comboBadge');
+    const comboText = document.getElementById('comboText');
+
+    // ===== Combo / streak multiplier (faqat vizual — server ballini o'zgartirmaydi) =====
+    var _combo = 0;
+    function bumpCombo() {
+        _combo++;
+        if (_combo >= 2 && comboBadge) {
+            comboText.textContent = 'x' + _combo;
+            comboBadge.classList.add('show');
+            comboBadge.classList.remove('bump');
+            void comboBadge.offsetWidth;   // reflow — animatsiyani qayta ishga tushirish
+            comboBadge.classList.add('bump');
+        }
+    }
+    function resetCombo() {
+        _combo = 0;
+        if (comboBadge) comboBadge.classList.remove('show', 'bump');
+    }
 
     // ===== Render Letters =====
     function renderLetters() {
@@ -1343,6 +1409,7 @@
                     endGame();
                 } else {
                     showMessage(data.error, 'error');
+                    resetCombo();
                 }
                 selectedIndices = [];
                 updateWordDisplay();
@@ -1366,10 +1433,13 @@
                 totalScore = data.total_score;
                 updateStats(data.total_found || foundWords.length);
                 addFoundWord(data.word, data.points);
+                bumpCombo();
 
-                showMessage(data.word + ' ✓  +' + data.points + ' ball', 'success');
+                var comboMsg = _combo >= 2 ? '  🔥 x' + _combo + ' ketma-ket' : '';
+                showMessage(data.word + ' ✓  +' + data.points + ' ball' + comboMsg, 'success');
             } else {
                 // So'z qabul qilinmadi
+                resetCombo();
                 wordDisplay.classList.add('wrong-flash');
                 setTimeout(function() { wordDisplay.classList.remove('wrong-flash'); }, 500);
 
