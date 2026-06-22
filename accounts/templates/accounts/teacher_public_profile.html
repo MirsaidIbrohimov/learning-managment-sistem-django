@@ -428,6 +428,13 @@
             {% if teacher.bio %}
             <p class="tp-bio">{{ teacher.bio }}</p>
             {% endif %}
+            {% if teacher.pk != request.user.pk %}
+            <div class="mt-3">
+                <a href="{% url 'direct_chat' teacher.pk %}" class="btn rounded-pill px-4 fw-bold text-white shadow-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none;">
+                    <i class="bi bi-chat-dots-fill me-1"></i> Xabar yozish
+                </a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

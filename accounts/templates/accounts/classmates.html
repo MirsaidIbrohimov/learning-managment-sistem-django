@@ -1,4 +1,4 @@
-﻿{% extends 'accounts/base.html' %}
+{% extends 'accounts/base.html' %}
 {% load static %}
 {% load custom_filters %}
 
@@ -10,158 +10,365 @@
 
 <style>
 :root{
-    --card-bg: #ffffff;
-    --card-border: rgba(0,0,0,.08);
-    --text-muted: #6c757d;
-    --soft-bg: rgba(0,0,0,.04);
+    --cm-bg: #ffffff;
+    --cm-border: rgba(15,23,42,.08);
+    --cm-muted: #64748b;
+    --cm-soft: #f8fafc;
+    --cm-soft2: #f1f5f9;
+    --cm-text: #0f172a;
+    --cm-brand1: #6366f1;
+    --cm-brand2: #8b5cf6;
+    --cm-shadow: 0 10px 30px rgba(15,23,42,.08);
+    --cm-shadow-hover: 0 20px 45px rgba(99,102,241,.22);
 }
 [data-bs-theme="dark"]{
-    --card-bg: #0f172a;
-    --card-border: rgba(255,255,255,.08);
-    --text-muted: #9ca3af;
-    --soft-bg: rgba(255,255,255,.05);
+    --cm-bg: #0f172a;
+    --cm-border: rgba(255,255,255,.08);
+    --cm-muted: #94a3b8;
+    --cm-soft: rgba(255,255,255,.03);
+    --cm-soft2: rgba(255,255,255,.06);
+    --cm-text: #e2e8f0;
+    --cm-shadow: 0 10px 30px rgba(0,0,0,.4);
+    --cm-shadow-hover: 0 20px 45px rgba(0,0,0,.55);
 }
 
-/* Card */
-.classmate-card{
-    background: var(--card-bg);
-    border:1px solid var(--card-border);
-    border-radius:20px;
-    padding:20px;
-    transition:.3s ease;
+.cm-wrap{ max-width:1180px; }
+
+/* ============ HERO ============ */
+.cm-hero{
     position:relative;
+    border-radius:26px;
+    padding:30px 28px;
+    background:
+        radial-gradient(120% 140% at 100% 0%, rgba(139,92,246,.35), transparent 55%),
+        radial-gradient(120% 140% at 0% 100%, rgba(37,99,235,.30), transparent 55%),
+        linear-gradient(135deg, #4f46e5, #7c3aed);
+    color:#fff;
     overflow:hidden;
+    box-shadow:0 18px 45px rgba(79,70,229,.35);
 }
-.classmate-card:hover{
-    transform:translateY(-6px);
-    box-shadow:0 18px 40px rgba(0,0,0,.25);
+.cm-hero::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+        radial-gradient(circle at 18% 30%, rgba(255,255,255,.18) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 70%, rgba(255,255,255,.12) 0 2px, transparent 3px);
+    background-size:90px 90px, 120px 120px;
+    opacity:.5; pointer-events:none;
 }
+.cm-hero-content{ position:relative; z-index:1; }
+.cm-back{
+    width:46px;height:46px;flex:0 0 46px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:14px;
+    background:rgba(255,255,255,.16);
+    color:#fff; border:1px solid rgba(255,255,255,.25);
+    transition:.2s;
+}
+.cm-back:hover{ background:rgba(255,255,255,.30); color:#fff; transform:translateX(-3px); }
+.cm-hero h1{ font-size:1.6rem; font-weight:800; margin:0; letter-spacing:-.3px; }
+.cm-hero .cm-sub{ opacity:.9; font-size:.92rem; }
+
+.cm-stats{ display:flex; gap:14px; flex-wrap:wrap; }
+.cm-stat{
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.22);
+    border-radius:16px;
+    padding:12px 18px; min-width:108px;
+    backdrop-filter:blur(6px);
+}
+.cm-stat .v{ font-size:1.4rem; font-weight:800; line-height:1; }
+.cm-stat .l{ font-size:.72rem; text-transform:uppercase; letter-spacing:.6px; opacity:.85; }
+
+/* ============ SEARCH ============ */
+.cm-search{
+    position:relative; max-width:340px; width:100%;
+}
+.cm-search i{
+    position:absolute; left:16px; top:50%; transform:translateY(-50%);
+    color:var(--cm-muted);
+}
+.cm-search input{
+    width:100%; border-radius:14px;
+    border:1px solid var(--cm-border);
+    background:var(--cm-bg);
+    color:var(--cm-text);
+    padding:12px 14px 12px 44px;
+    outline:none; transition:.2s;
+}
+.cm-search input:focus{ border-color:var(--cm-brand1); box-shadow:0 0 0 4px rgba(99,102,241,.15); }
+
+/* ============ CARD ============ */
+.cm-card{
+    background:var(--cm-bg);
+    border:1px solid var(--cm-border);
+    border-radius:22px;
+    padding:22px 20px 20px;
+    box-shadow:var(--cm-shadow);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s;
+    position:relative; overflow:hidden;
+    height:100%;
+}
+.cm-card::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:5px;
+    background:linear-gradient(90deg,var(--cm-brand1),var(--cm-brand2));
+    opacity:0; transition:.25s;
+}
+.cm-card:hover{ transform:translateY(-6px); box-shadow:var(--cm-shadow-hover); border-color:transparent; }
+.cm-card:hover::before{ opacity:1; }
+
+/* Rank */
+.cm-rank{
+    position:absolute; top:14px; right:14px;
+    width:34px;height:34px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800; font-size:.85rem;
+    background:var(--cm-soft2); color:var(--cm-muted);
+}
+.cm-rank.gold{   background:linear-gradient(135deg,#fde047,#f59e0b); color:#7c2d12; box-shadow:0 6px 16px rgba(245,158,11,.4); }
+.cm-rank.silver{ background:linear-gradient(135deg,#e5e7eb,#9ca3af); color:#1f2937; box-shadow:0 6px 16px rgba(156,163,175,.4); }
+.cm-rank.bronze{ background:linear-gradient(135deg,#fcd9b6,#d97706); color:#fff; box-shadow:0 6px 16px rgba(217,119,6,.4); }
 
 /* Avatar */
-.avatar-lg{
-    width:72px;height:72px;border-radius:50%;
-    object-fit:cover;
-    border:3px solid rgba(99,102,241,.4);
+.cm-ava-ring{ position:relative; width:74px; height:74px; flex:0 0 74px; }
+.cm-ava{
+    width:74px;height:74px;border-radius:20px;object-fit:cover;
+    border:3px solid var(--cm-soft2);
 }
-.avatar-fallback-lg{
-    width:72px;height:72px;border-radius:50%;
-    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+.cm-ava-fb{
+    width:74px;height:74px;border-radius:20px;
+    background:linear-gradient(135deg,var(--cm-brand1),var(--cm-brand2));
     display:flex;align-items:center;justify-content:center;
-    color:#fff;font-size:1.4rem;font-weight:700;
+    color:#fff;font-size:1.5rem;font-weight:800;
+}
+.cm-presence{
+    position:absolute; bottom:-3px; right:-3px;
+    width:18px;height:18px;border-radius:50%;
+    border:3px solid var(--cm-bg);
+}
+.cm-presence.on{ background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.25); }
+.cm-presence.off{ background:#94a3b8; }
+
+.cm-name{ font-weight:700; font-size:1.02rem; color:var(--cm-text); margin:0; display:flex; align-items:center; gap:6px; }
+.cm-user{ color:var(--cm-muted); font-size:.82rem; }
+
+.cm-crown{ color:#f59e0b; font-size:.85rem; }
+
+/* Chips */
+.cm-chips{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.cm-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px; border-radius:999px;
+    font-size:.8rem; font-weight:600;
+    background:var(--cm-soft); color:var(--cm-text);
+    border:1px solid var(--cm-border);
+}
+.cm-chip.coin{ background:linear-gradient(135deg,#fef3c7,#fde68a); color:#92400e; border:none; }
+.cm-chip.streak{ background:linear-gradient(135deg,#ffedd5,#fed7aa); color:#9a3412; border:none; }
+[data-bs-theme="dark"] .cm-chip.coin{ background:rgba(245,158,11,.18); color:#fcd34d; }
+[data-bs-theme="dark"] .cm-chip.streak{ background:rgba(249,115,22,.18); color:#fdba74; }
+.cm-chip.online{ background:rgba(34,197,94,.12); color:#16a34a; border:none; }
+.cm-chip.offline{ color:var(--cm-muted); }
+
+.cm-bio{
+    background:var(--cm-soft);
+    border:1px solid var(--cm-border);
+    border-radius:14px; padding:11px 13px;
+    font-size:.84rem; color:var(--cm-muted);
+    margin-bottom:16px; line-height:1.45;
 }
 
-/* Online */
-.status-pill{
-    display:inline-flex;align-items:center;gap:6px;
-    padding:4px 10px;border-radius:20px;
-    font-size:.8rem;background:var(--soft-bg);
+.cm-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; padding:11px; border-radius:14px;
+    background:linear-gradient(135deg,var(--cm-brand1),var(--cm-brand2));
+    color:#fff; font-weight:600; border:none;
+    transition:.2s;
 }
-.dot{
-    width:10px;height:10px;border-radius:50%;
-}
-.dot.online{background:#22c55e;}
-.dot.offline{background:#9ca3af;}
+.cm-btn:hover{ color:#fff; filter:brightness(1.07); transform:translateY(-1px); box-shadow:0 10px 24px rgba(99,102,241,.4); }
 
-/* Coin */
-.coin-badge{
-    background:linear-gradient(135deg,#facc15,#f59e0b);
-    color:#111;padding:6px 14px;border-radius:20px;
-    font-weight:700;font-size:.85rem;
+/* Group chat CTA in hero */
+.cm-groupchat-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:11px 20px; border-radius:14px;
+    background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.3);
+    color:#fff; font-weight:700; text-decoration:none; backdrop-filter:blur(6px);
+    transition:.2s;
 }
+.cm-groupchat-btn:hover{ background:#fff; color:#4f46e5; transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.2); }
 
-/* Bio */
-.bio-box{
-    background:var(--soft-bg);
-    border-radius:12px;
-    padding:10px 12px;
-    font-size:.85rem;
-    color:var(--text-muted);
+/* Per-card action row */
+.cm-actions{ display:flex; gap:8px; margin-top:auto; }
+.cm-actions .cm-btn{ margin-top:0; }
+.cm-dm-btn{
+    flex:0 0 46px; width:46px; padding:11px 0;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:14px; border:1px solid var(--cm-border);
+    background:var(--cm-soft); color:var(--cm-brand1); font-size:1.05rem;
+    transition:.2s;
 }
+.cm-dm-btn:hover{ background:var(--cm-brand1); color:#fff; border-color:transparent; transform:translateY(-1px); }
 
-/* Button */
-.btn-profile{
-    background:linear-gradient(135deg,#2563eb,#7c3aed);
-    border:none;border-radius:999px;
+/* Empty */
+.cm-empty{
+    text-align:center; padding:60px 20px;
+    background:var(--cm-bg); border:1px dashed var(--cm-border);
+    border-radius:24px;
 }
-.btn-profile:hover{opacity:.9}
+.cm-empty-ico{
+    width:90px;height:90px;border-radius:26px; margin:0 auto 18px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,rgba(99,102,241,.15),rgba(139,92,246,.15));
+    color:var(--cm-brand1); font-size:2.4rem;
+}
+.cm-noresult{ display:none; text-align:center; padding:40px; color:var(--cm-muted); }
+
+@media (max-width:575px){
+    .cm-hero{ padding:24px 18px; }
+    .cm-hero h1{ font-size:1.3rem; }
+    .cm-stat{ min-width:92px; padding:10px 14px; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container cm-wrap py-4">
 
-<!-- HEADER -->
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a href="{% url 'profession_detail' profession.pk %}"
-       class="btn btn-outline-secondary rounded-circle">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    <div>
-        <h3 class="mb-0"><i class="bi bi-people me-2"></i>Kursdoshlar</h3>
-        <small class="text-muted">{{ profession.name }} • {{ classmates.count }} ta o‘quvchi</small>
-    </div>
-</div>
-
-{% if classmates %}
-<div class="row g-4">
-
-{% for student in classmates %}
-<div class="col-md-6 col-lg-4">
-    <div class="classmate-card h-100 d-flex flex-column">
-
-        <!-- TOP -->
-        <div class="d-flex align-items-center gap-3 mb-3">
-            {% if student.photo %}
-                <img src="{{ student.photo.url }}" class="avatar-lg">
-            {% else %}
-                <div class="avatar-fallback-lg">{{ student.get_initials }}</div>
-            {% endif %}
-
+    <!-- ============ HERO ============ -->
+    <div class="cm-hero mb-4">
+        <div class="cm-hero-content d-flex flex-wrap align-items-center gap-3">
+            <a href="{% url 'profession_detail' profession.pk %}" class="cm-back" title="Orqaga">
+                <i class="bi bi-arrow-left fs-5"></i>
+            </a>
             <div class="flex-grow-1">
-                <h6 class="mb-0">{{ student|premium_name }}</h6>
-                <small class="text-muted">@{{ student.username }}</small>
+                <h1><i class="bi bi-people-fill me-2"></i>Kursdoshlar</h1>
+                <div class="cm-sub mt-1">
+                    <i class="bi bi-mortarboard-fill me-1"></i>{{ profession.name }}
+                </div>
+            </div>
+            <div class="cm-stats">
+                <div class="cm-stat">
+                    <div class="v">{{ classmates.count }}</div>
+                    <div class="l">O‘quvchi</div>
+                </div>
             </div>
         </div>
-
-        <!-- STATUS -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="status-pill">
-                <span class="dot {% if student.is_online %}online{% else %}offline{% endif %}"></span>
-                {% if student.is_online %}Online{% else %}Offline{% endif %}
-            </span>
-
-            <span class="coin-badge">
-                <i class="bi bi-coin me-1"></i>{{ student.coins }}
-            </span>
+        <div class="cm-hero-content mt-3">
+            <a href="{% url 'group_chat' profession.pk %}" class="cm-groupchat-btn">
+                <i class="bi bi-chat-square-text-fill"></i> Guruppaga xabar yozish
+            </a>
         </div>
-
-        <!-- BIO -->
-        {% if student.bio %}
-        <div class="bio-box mb-3">
-            {{ student.bio|truncatewords:18 }}
-        </div>
-        {% endif %}
-
-        <!-- BUTTON -->
-        <a href="{% url 'student_public_profile' student.pk %}"
-           class="btn btn-profile text-white mt-auto w-100">
-            <i class="bi bi-person me-1"></i> Profilni ko‘rish
-        </a>
-
     </div>
-</div>
-{% endfor %}
+
+    {% if classmates %}
+    <!-- ============ SEARCH ============ -->
+    <div class="d-flex justify-content-end mb-4">
+        <div class="cm-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="cmSearch" placeholder="Kursdosh izlash...">
+        </div>
+    </div>
+
+    <!-- ============ GRID ============ -->
+    <div class="row g-4" id="cmGrid">
+        {% for student in classmates %}
+        <div class="col-sm-6 col-lg-4 cm-item"
+             data-name="{{ student|premium_name|lower }} {{ student.username|lower }}">
+            <div class="cm-card d-flex flex-column">
+
+                <!-- Rank -->
+                <div class="cm-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                    {% if forloop.counter <= 3 %}<i class="bi bi-trophy-fill"></i>{% else %}{{ forloop.counter }}{% endif %}
+                </div>
+
+                <!-- TOP -->
+                <div class="d-flex align-items-center gap-3 mb-1" style="padding-right:38px;">
+                    <div class="cm-ava-ring">
+                        {% if student.photo %}
+                            <img src="{{ student.photo.url }}" class="cm-ava" alt="{{ student.username }}">
+                        {% else %}
+                            <div class="cm-ava-fb">{{ student.get_initials }}</div>
+                        {% endif %}
+                        <span class="cm-presence {% if student.is_online %}on{% else %}off{% endif %}"></span>
+                    </div>
+                    <div class="flex-grow-1 min-w-0">
+                        <p class="cm-name text-truncate">
+                            {{ student|premium_name }}
+                            {% if student.is_premium %}<i class="bi bi-patch-check-fill cm-crown" title="Premium"></i>{% endif %}
+                        </p>
+                        <span class="cm-user">@{{ student.username }}</span>
+                    </div>
+                </div>
+
+                <!-- CHIPS -->
+                <div class="cm-chips">
+                    <span class="cm-chip coin">
+                        <i class="bi bi-coin"></i>{{ student.coins }}
+                    </span>
+                    {% if student.streak_days %}
+                    <span class="cm-chip streak">
+                        <i class="bi bi-fire"></i>{{ student.streak_days }} kun
+                    </span>
+                    {% endif %}
+                    <span class="cm-chip {% if student.is_online %}online{% else %}offline{% endif %}">
+                        <i class="bi bi-circle-fill" style="font-size:.55rem;"></i>
+                        {% if student.is_online %}Online{% else %}Offline{% endif %}
+                    </span>
+                </div>
+
+                <!-- BIO -->
+                {% if student.bio %}
+                <div class="cm-bio">{{ student.bio|truncatewords:18 }}</div>
+                {% endif %}
+
+                <!-- ACTIONS -->
+                <div class="cm-actions">
+                    <a href="{% url 'student_public_profile' student.pk %}" class="cm-btn flex-grow-1">
+                        <i class="bi bi-person-lines-fill"></i> Profil
+                    </a>
+                    <a href="{% url 'direct_chat' student.pk %}" class="cm-dm-btn" title="Xabar yozish">
+                        <i class="bi bi-chat-dots-fill"></i>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- No search result -->
+    <div class="cm-noresult" id="cmNoResult">
+        <i class="bi bi-search fs-1 d-block mb-2"></i>
+        Hech narsa topilmadi.
+    </div>
+
+    {% else %}
+    <!-- ============ EMPTY ============ -->
+    <div class="cm-empty">
+        <div class="cm-empty-ico"><i class="bi bi-people"></i></div>
+        <h5 class="fw-bold">Kursdoshlar yo‘q</h5>
+        <p class="text-muted mb-0">Hozircha bu kursga siz birinchi bo‘lib yozilgansiz 🙂</p>
+    </div>
+    {% endif %}
 
 </div>
 
-{% else %}
-<!-- EMPTY -->
-<div class="text-center py-5">
-    <i class="bi bi-people fs-1 text-muted"></i>
-    <h5 class="mt-3">Kursdoshlar yo‘q</h5>
-    <p class="text-muted">Hozircha bu kursga siz birinchi bo‘lib yozilgansiz 🙂</p>
-</div>
-{% endif %}
-
-</div>
+<script>
+(function(){
+    var input = document.getElementById('cmSearch');
+    if(!input) return;
+    var items = Array.prototype.slice.call(document.querySelectorAll('#cmGrid .cm-item'));
+    var noResult = document.getElementById('cmNoResult');
+    input.addEventListener('input', function(){
+        var q = this.value.trim().toLowerCase();
+        var visible = 0;
+        items.forEach(function(el){
+            var match = el.getAttribute('data-name').indexOf(q) !== -1;
+            el.style.display = match ? '' : 'none';
+            if(match) visible++;
+        });
+        noResult.style.display = visible === 0 ? 'block' : 'none';
+    });
+})();
+</script>
 {% endblock %}

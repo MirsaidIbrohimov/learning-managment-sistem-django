@@ -1,0 +1,71 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Guruh chatlari | IT Shaharcha{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{ --gl-panel:#fff; --gl-border:rgba(15,23,42,.08); --gl-muted:#64748b; --gl-text:#0f172a; }
+[data-bs-theme="dark"]{ --gl-panel:#0f172a; --gl-border:rgba(255,255,255,.08); --gl-muted:#94a3b8; --gl-text:#e2e8f0; }
+.gl-wrap{ max-width:760px; }
+.gl-head{
+    background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff;
+    border-radius:20px; padding:22px 24px; margin-bottom:18px;
+    box-shadow:0 14px 35px rgba(79,70,229,.3);
+}
+.gl-head h1{ font-size:1.4rem; font-weight:800; margin:0; }
+.gl-tabs{ display:flex; gap:10px; margin-bottom:16px; }
+.gl-tab{
+    flex:1; text-align:center; padding:11px; border-radius:14px;
+    background:var(--gl-panel); border:1px solid var(--gl-border);
+    color:var(--gl-text); font-weight:600; text-decoration:none; transition:.2s;
+}
+.gl-tab:hover{ border-color:#6366f1; color:#6366f1; }
+.gl-tab.active{ background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; }
+.gl-item{
+    display:flex; align-items:center; gap:14px;
+    background:var(--gl-panel); border:1px solid var(--gl-border);
+    border-radius:16px; padding:14px 16px; text-decoration:none; color:var(--gl-text);
+    transition:.2s; margin-bottom:10px;
+}
+.gl-item:hover{ transform:translateX(3px); border-color:#6366f1; box-shadow:0 10px 25px rgba(99,102,241,.15); }
+.gl-ico{
+    width:52px;height:52px;border-radius:14px;flex:0 0 52px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:1.4rem;
+}
+.gl-name{ font-weight:700; }
+.gl-sub{ font-size:.84rem; color:var(--gl-muted); }
+.gl-empty{ text-align:center; padding:60px 20px; color:var(--gl-muted); }
+.gl-empty i{ font-size:3rem; opacity:.4; display:block; margin-bottom:12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container gl-wrap py-4">
+    <div class="gl-head">
+        <h1><i class="bi bi-people-fill me-2"></i>Guruh chatlari</h1>
+    </div>
+
+    <div class="gl-tabs">
+        <a href="{% url 'chat_inbox' %}" class="gl-tab"><i class="bi bi-person me-1"></i> Shaxsiy</a>
+        <a href="{% url 'my_group_chats' %}" class="gl-tab active"><i class="bi bi-people me-1"></i> Guruhlar</a>
+    </div>
+
+    {% for p in professions %}
+    <a href="{% url 'group_chat' p.pk %}" class="gl-item">
+        <div class="gl-ico"><i class="bi bi-chat-square-text-fill"></i></div>
+        <div class="flex-grow-1 min-w-0">
+            <div class="gl-name text-truncate">{{ p.name }}</div>
+            <div class="gl-sub"><i class="bi bi-arrow-right-circle"></i> Guruh suhbatiga kirish</div>
+        </div>
+        <i class="bi bi-chevron-right text-muted"></i>
+    </a>
+    {% empty %}
+    <div class="gl-empty">
+        <i class="bi bi-people"></i>
+        Sizda guruh chatlari yo‘q.
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

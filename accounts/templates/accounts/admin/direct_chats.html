@@ -1,0 +1,99 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Shaxsiy chatlar - Admin Panel{% endblock %}
+{% block topbar_title %}Shaxsiy chatlar{% endblock %}
+
+{% block extra_css %}
+<style>
+.adc-page { max-width: 900px; margin: 0 auto; }
+.adc-search { position: relative; margin-bottom: 1.25rem; }
+.adc-search-icon {
+    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+    color: var(--bs-secondary-color, #6c757d); font-size: 1.1rem; pointer-events: none;
+}
+.adc-search-input {
+    width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 2px solid var(--border-color, #dee2e6); border-radius: 14px;
+    background: var(--card-bg, #fff); color: var(--text-color, #212529);
+    font-size: 0.95rem;
+}
+.adc-search-input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+.adc-result-count { font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d); margin-bottom: 1rem; }
+
+.adc-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.adc-row {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 0.9rem 1.25rem; border: 1px solid var(--border-color, rgba(0,0,0,.08));
+    border-radius: 16px; background: var(--card-bg, #fff); text-decoration: none; color: inherit;
+    transition: .2s;
+}
+.adc-row:hover { box-shadow: 0 8px 24px rgba(99,102,241,.14); border-color: #6366f1; color: inherit; }
+.adc-pair { display: flex; align-items: center; gap: 0.5rem; flex: 1; min-width: 0; }
+.adc-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex: 0 0 38px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6); color: #fff;
+    font-weight: 700; font-size: 0.8rem;
+}
+.adc-vs { color: var(--bs-secondary-color, #6c757d); font-size: 0.8rem; flex: 0 0 auto; }
+.adc-name { font-weight: 600; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+.adc-stats { display: flex; gap: 16px; font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); flex: 0 0 auto; }
+.adc-stats b { color: #6366f1; }
+.adc-btn { color: #6366f1; font-size: 1.2rem; }
+.adc-empty { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color, #6c757d); }
+.adc-empty i { font-size: 3rem; opacity: .4; display: block; margin-bottom: 12px; }
+@media (max-width: 576px) {
+    .adc-name { max-width: 90px; }
+    .adc-stats { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="adc-page">
+    <div class="mb-3">
+        <h4 class="fw-bold mb-1"><i class="bi bi-incognito me-2 text-primary"></i>Shaxsiy chatlar</h4>
+        <p class="text-muted mb-0">O'quvchilar o'rtasidagi shaxsiy suhbatlar (faqat ko'rish — investigatsiya uchun).</p>
+    </div>
+
+    <form method="GET">
+        <div class="adc-search">
+            <i class="bi bi-search adc-search-icon"></i>
+            <input type="text" name="q" class="adc-search-input"
+                   placeholder="Ism yoki username bo'yicha izlash..."
+                   value="{{ search_query }}" autocomplete="off">
+        </div>
+    </form>
+    <div class="adc-result-count"><i class="bi bi-chat-dots me-1"></i>{{ total_count }} ta suhbat</div>
+
+    {% if page_obj.object_list %}
+    <div class="adc-list">
+        {% for c in page_obj %}
+        <a href="{% url 'admin_direct_chat_detail' c.u1.pk c.u2.pk %}" class="adc-row">
+            <div class="adc-pair">
+                <div class="adc-avatar">{{ c.u1.full_name|slice:":1"|upper }}</div>
+                <span class="adc-name">{{ c.u1.full_name }}</span>
+                <span class="adc-vs"><i class="bi bi-arrow-left-right"></i></span>
+                <div class="adc-avatar">{{ c.u2.full_name|slice:":1"|upper }}</div>
+                <span class="adc-name">{{ c.u2.full_name }}</span>
+            </div>
+            <div class="adc-stats">
+                <span><i class="bi bi-chat-dots"></i> <b>{{ c.msg_count }}</b> xabar</span>
+                <span><i class="bi bi-clock"></i> {{ c.last_at|timesince }} oldin</span>
+            </div>
+            <span class="adc-btn"><i class="bi bi-chevron-right"></i></span>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% include 'accounts/admin/includes/pagination.html' %}
+
+    {% else %}
+    <div class="adc-empty">
+        <i class="bi bi-incognito"></i>
+        {% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Hozircha shaxsiy suhbatlar yo'q.{% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}{{ partner|premium_name }} bilan suhbat | IT Shaharcha{% endblock %}
+
+{% block extra_css %}{% include 'accounts/chat/_chat_styles.html' %}{% endblock %}
+
+{% block content %}
+<div class="container ch-wrap py-3">
+    <div class="ch-shell">
+
+        <!-- HEADER -->
+        <div class="ch-head">
+            <a href="{% url 'chat_inbox' %}" class="ch-back" title="Suhbatlar">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            {% if partner.photo %}
+                <img src="{{ partner.photo.url }}" class="ch-ava" alt="">
+            {% else %}
+                <div class="ch-ava-fb">{{ partner.get_initials }}</div>
+            {% endif %}
+            <div class="flex-grow-1 min-w-0">
+                <div class="h-name text-truncate">{{ partner|premium_name }}</div>
+                <div class="h-sub">
+                    <span class="ch-dot {% if partner.is_online %}on{% else %}off{% endif %}"></span>
+                    {% if partner.is_online %}Online{% else %}Oflayn{% endif %}
+                    • @{{ partner.username }}
+                </div>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="ch-body" id="chBody">
+            <div class="ch-empty" id="chEmpty">
+                <i class="bi bi-chat-heart"></i>
+                Suhbatni boshlang — birinchi xabarni yozing!
+            </div>
+        </div>
+
+        <!-- COMPOSER -->
+        <div class="ch-foot">
+            <div class="ch-filechip" id="chFileChip">
+                <i class="bi bi-paperclip"></i>
+                <span id="chFileName" class="text-truncate" style="max-width:200px;"></span>
+                <span class="x" id="chFileClear"><i class="bi bi-x-lg"></i></span>
+            </div>
+            <form class="ch-form" id="chForm" autocomplete="off">
+                <label class="ch-attach" title="Fayl biriktirish">
+                    <i class="bi bi-paperclip"></i>
+                    <input type="file" id="chFile" hidden>
+                </label>
+                <textarea class="ch-input" id="chInput" rows="1" placeholder="Xabar yozing..."></textarea>
+                <button type="submit" class="ch-send" id="chSend" title="Yuborish">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'accounts/chat/_chat_script.html' %}
+<script>
+initChat({
+    listUrl: "{% url 'api_chat_direct_messages' partner.pk %}",
+    sendUrl: "{% url 'api_chat_direct_send' partner.pk %}",
+    isGroup: false,
+    csrf: "{{ csrf_token }}"
+});
+</script>
+{% endblock %}

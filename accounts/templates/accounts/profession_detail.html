@@ -580,182 +580,173 @@
     padding: 0;
 }
 
-/* ── ROADMAP ───────────────────────────────────────────── */
-.roadmap-wrap { padding: .85rem 0 .5rem; margin-bottom: .75rem; }
-.roadmap-title {
-    display: flex; align-items: center; gap: .45rem;
-    font-size: .76rem; font-weight: 800; color: #6366f1;
-    margin-bottom: .85rem;
-    text-transform: uppercase; letter-spacing: .5px;
+/* ── ROADMAP (premium) ─────────────────────────────────── */
+.roadmap-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.1rem 1.25rem 1.25rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp .55s ease both;
 }
-[data-bs-theme="dark"] .roadmap-title { color: #a5b4fc; }
+.roadmap-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #10b981);
+}
+.roadmap-wrap { padding: .25rem 0 0; }
+
+.roadmap-head { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.1rem; }
+.rm-head-icon {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+    font-size: 1.15rem; box-shadow: 0 4px 12px rgba(99,102,241,.3);
+}
+.rm-head-text { flex: 1; min-width: 0; }
+.roadmap-title {
+    display: flex; align-items: center; gap: .4rem;
+    font-size: .92rem; font-weight: 800; color: #1d1d1f; margin: 0; letter-spacing: .2px;
+}
+[data-bs-theme="dark"] .roadmap-title { color: #f1f1f1; }
+.roadmap-subtitle { font-size: .74rem; color: #8b8b93; margin-top: 1px; }
 
 .roadmap-nodes {
-    display: flex;
-    align-items: flex-start;
-    position: relative;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+    display: flex; align-items: flex-start; position: relative;
+    overflow-x: auto; padding: .35rem 0 .5rem;
+    scrollbar-width: none; -ms-overflow-style: none;
+    scroll-snap-type: x proximity;
 }
 .roadmap-nodes::-webkit-scrollbar { display: none; }
 
 .roadmap-node {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    flex: 1;
-    min-width: 72px;
-    position: relative;
-    z-index: 1;
-    cursor: pointer;
-    transition: transform 0.2s;
+    display: flex; flex-direction: column; align-items: center; gap: .55rem;
+    flex: 1; min-width: 80px; position: relative; z-index: 1;
+    cursor: pointer; scroll-snap-align: center;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
-.roadmap-node:hover { transform: translateY(-3px); }
+.roadmap-node:hover { transform: translateY(-4px); }
 
 .roadmap-connector {
-    position: absolute;
-    top: 22px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    z-index: 0;
-    pointer-events: none;
+    position: absolute; top: 26px; left: 0; right: 0; height: 4px;
+    z-index: 0; pointer-events: none;
 }
 .roadmap-connector-bg {
-    position: absolute;
-    top: 0;
-    left: calc(50px / 2);
-    right: calc(50px / 2);
-    height: 100%;
-    background: var(--card-border);
-    border-radius: 2px;
+    position: absolute; top: 0; left: 40px; right: 40px; height: 100%;
+    background: var(--card-border); border-radius: 4px;
 }
 .roadmap-connector-fill {
-    position: absolute;
-    top: 0;
-    left: calc(50px / 2);
-    height: 100%;
-    background: linear-gradient(90deg, #10b981, #059669);
-    border-radius: 2px;
-    width: 0%;
-    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute; top: 0; left: 40px; height: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399, #10b981);
+    background-size: 200% 100%;
+    border-radius: 4px; width: 0%;
+    transition: width 1.2s cubic-bezier(.4,0,.2,1);
+    animation: rmFlow 2.5s linear infinite;
+    box-shadow: 0 0 10px rgba(16,185,129,.4);
 }
+@keyframes rmFlow { to { background-position: 200% 0; } }
 
 .rn-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.82rem;
-    font-weight: 800;
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .9rem; font-weight: 800;
     border: 3px solid var(--card-border);
-    background: var(--card-bg);
-    color: #9ca3af;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    z-index: 2;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    background: var(--card-bg); color: #9ca3af;
+    transition: all .4s cubic-bezier(.4,0,.2,1);
+    position: relative; z-index: 2;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
-[data-bs-theme="dark"] .rn-circle {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
+[data-bs-theme="dark"] .rn-circle { box-shadow: 0 2px 8px rgba(0,0,0,.3); }
 
 .roadmap-node.rn-completed .rn-circle {
     border-color: #10b981;
     background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+    color: #fff; box-shadow: 0 6px 18px rgba(16,185,129,.4);
 }
 .roadmap-node.rn-active .rn-circle {
     border-color: #6366f1;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+    color: #fff; box-shadow: 0 6px 20px rgba(99,102,241,.45);
     animation: rnActivePulse 2s ease-in-out infinite;
 }
-.roadmap-node.rn-locked .rn-circle {
-    opacity: 0.5;
-    border-style: dashed;
+.roadmap-node.rn-active .rn-circle::after {
+    content: ''; position: absolute; inset: -6px; border-radius: 50%;
+    border: 2px solid rgba(99,102,241,.4); animation: rnRing 2s ease-out infinite;
 }
+@keyframes rnRing {
+    0% { transform: scale(.9); opacity: .7; }
+    100% { transform: scale(1.4); opacity: 0; }
+}
+.roadmap-node.rn-locked { cursor: not-allowed; }
+.roadmap-node.rn-locked:hover { transform: none; }
+.roadmap-node.rn-locked .rn-circle { opacity: .55; border-style: dashed; }
+.roadmap-node.rn-locked .rn-num { visibility: hidden; }
 @keyframes rnActivePulse {
-    0%, 100% { box-shadow: 0 4px 16px rgba(99,102,241,0.35); }
-    50% { box-shadow: 0 4px 28px rgba(99,102,241,0.55); }
+    0%, 100% { box-shadow: 0 6px 20px rgba(99,102,241,.45); }
+    50% { box-shadow: 0 6px 30px rgba(99,102,241,.65); }
 }
 
+.rn-num { position: relative; z-index: 1; }
 .rn-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: #6b7280;
-    text-align: center;
-    line-height: 1.25;
-    max-width: 76px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    font-size: .7rem; font-weight: 600; color: #6b7280;
+    text-align: center; line-height: 1.25; max-width: 84px;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 [data-bs-theme="dark"] .rn-label { color: #94a3b8; }
-.roadmap-node.rn-completed .rn-label { color: #10b981; }
+.roadmap-node.rn-completed .rn-label { color: #10b981; font-weight: 700; }
 .roadmap-node.rn-active .rn-label { color: #6366f1; font-weight: 700; }
 [data-bs-theme="dark"] .roadmap-node.rn-completed .rn-label { color: #4ade80; }
 [data-bs-theme="dark"] .roadmap-node.rn-active .rn-label { color: #a5b4fc; }
 
 .rn-check {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: #10b981;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.55rem;
-    box-shadow: 0 2px 6px rgba(16,185,129,0.4);
-    opacity: 0;
-    transform: scale(0);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: absolute; top: -4px; right: -4px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #10b981; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .6rem; box-shadow: 0 2px 6px rgba(16,185,129,.5);
+    border: 2px solid var(--card-bg);
+    opacity: 0; transform: scale(0);
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
 }
-.roadmap-node.rn-completed .rn-check {
-    opacity: 1;
-    transform: scale(1);
+.roadmap-node.rn-completed .rn-check { opacity: 1; transform: scale(1); }
+
+.rn-lock {
+    position: absolute; inset: 0; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: .95rem; z-index: 2;
 }
+.roadmap-node.rn-locked .rn-lock { display: flex; }
+
+/* Legend */
+.roadmap-legend {
+    display: flex; flex-wrap: wrap; gap: .9rem;
+    margin-top: 1rem; padding-top: .85rem;
+    border-top: 1px dashed var(--card-border);
+}
+.rm-legend-item { display: inline-flex; align-items: center; gap: .35rem; font-size: .72rem; font-weight: 600; color: #8b8b93; }
+.rm-legend-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+.rm-legend-dot.done { background: linear-gradient(135deg, #10b981, #059669); }
+.rm-legend-dot.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.rm-legend-dot.locked { background: var(--card-border); border: 1.5px dashed #9ca3af; }
 
 /* Roadmap overall progress bar */
-.roadmap-progress-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-top: 0.75rem;
-}
+.roadmap-progress-row { display: flex; align-items: center; gap: .75rem; margin-top: 1rem; }
 .roadmap-progress-track {
-    flex: 1;
-    height: 6px;
-    background: var(--card-border);
-    border-radius: 3px;
-    overflow: hidden;
+    flex: 1; height: 8px; background: var(--card-border);
+    border-radius: 4px; overflow: hidden;
 }
 .roadmap-progress-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, #10b981, #059669);
-    width: 0%;
-    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    width: 0%; transition: width 1.5s cubic-bezier(.4,0,.2,1);
 }
 .roadmap-progress-text {
-    font-size: 0.78rem;
-    font-weight: 800;
-    color: #10b981;
-    min-width: 36px;
-    text-align: right;
+    font-size: .82rem; font-weight: 800; color: #10b981;
+    min-width: 40px; text-align: right;
 }
 
 /* ── CERTIFICATE SECTION ───────────────────────────────── */
@@ -985,6 +976,9 @@
             {% endif %}
 
             {% if user.is_admin or is_teaching %}
+            <a href="{% url 'classmates' profession.pk %}" class="cd-btn cd-btn-outline">
+                <i class="bi bi-people"></i> Kursdoshlar
+            </a>
             <a href="{% url 'course_statistics' profession.pk %}" class="cd-btn cd-btn-primary">
                 <i class="bi bi-bar-chart-line"></i> Kurs statistikasi
             </a>
@@ -1021,33 +1015,44 @@
 
         <!-- Course Roadmap Nodes -->
         {% if sections %}
-        <div class="roadmap-wrap" id="courseRoadmap">
-            <div class="roadmap-title">
-                <i class="bi bi-signpost-split-fill"></i>
-                <span>Kurs yo'l xaritasi</span>
-            </div>
-            <div style="position:relative;">
-                <div class="roadmap-connector">
-                    <div class="roadmap-connector-bg"></div>
-                    <div class="roadmap-connector-fill" id="rmConnectorFill"></div>
-                </div>
-                <div class="roadmap-nodes" id="rmNodes">
-                    {% for section in sections %}
-                    <div class="roadmap-node" data-section-idx="{{ forloop.counter0 }}" data-section-id="{{ section.id }}" id="rmNode{{ forloop.counter0 }}">
-                        <div class="rn-circle">
-                            {{ forloop.counter }}
-                            <div class="rn-check"><i class="bi bi-check"></i></div>
-                        </div>
-                        <div class="rn-label">{{ section.title|truncatechars:20 }}</div>
+        <div class="roadmap-card" id="courseRoadmap">
+            <div class="roadmap-wrap">
+                <div class="roadmap-head">
+                    <div class="rm-head-icon"><i class="bi bi-signpost-split-fill"></i></div>
+                    <div class="rm-head-text">
+                        <div class="roadmap-title">Kurs yo'l xaritasi</div>
+                        <div class="roadmap-subtitle">Bo'limni bosib, darslarga o'ting</div>
                     </div>
-                    {% endfor %}
                 </div>
-            </div>
-            <div class="roadmap-progress-row">
-                <div class="roadmap-progress-track">
-                    <div class="roadmap-progress-fill" id="rmProgressFill"></div>
+                <div style="position:relative;">
+                    <div class="roadmap-connector">
+                        <div class="roadmap-connector-bg"></div>
+                        <div class="roadmap-connector-fill" id="rmConnectorFill"></div>
+                    </div>
+                    <div class="roadmap-nodes" id="rmNodes">
+                        {% for section in sections %}
+                        <div class="roadmap-node" data-section-idx="{{ forloop.counter0 }}" data-section-id="{{ section.id }}" id="rmNode{{ forloop.counter0 }}">
+                            <div class="rn-circle">
+                                <span class="rn-num">{{ forloop.counter }}</span>
+                                <div class="rn-check"><i class="bi bi-check"></i></div>
+                                <div class="rn-lock"><i class="bi bi-lock-fill"></i></div>
+                            </div>
+                            <div class="rn-label">{{ section.title|truncatechars:20 }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
                 </div>
-                <div class="roadmap-progress-text" id="rmProgressText">0%</div>
+                <div class="roadmap-progress-row">
+                    <div class="roadmap-progress-track">
+                        <div class="roadmap-progress-fill" id="rmProgressFill"></div>
+                    </div>
+                    <div class="roadmap-progress-text" id="rmProgressText">0%</div>
+                </div>
+                <div class="roadmap-legend">
+                    <span class="rm-legend-item"><span class="rm-legend-dot done"></span> Tugallangan</span>
+                    <span class="rm-legend-item"><span class="rm-legend-dot active"></span> Joriy</span>
+                    <span class="rm-legend-item"><span class="rm-legend-dot locked"></span> Yopiq</span>
+                </div>
             </div>
         </div>
         {% endif %}

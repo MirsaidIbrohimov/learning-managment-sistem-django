@@ -2101,3 +2101,17 @@ def teacher_file_only_toggle(request):
         'new_state': obj.file_only,
         'message': f"{status_text}: {obj.lesson.title}",
     })
+
+
+@teacher_required
+def teacher_group_chats(request):
+    """O'qituvchi biriktirilgan guruhlar chati ro'yxati."""
+    from accounts.models import GroupChatMessage
+    from django.db.models import Count as _Count
+    professions = request.user.teaching_professions.annotate(
+        msg_count=_Count('chat_messages', distinct=True),
+        member_count=_Count('enrollments', distinct=True),
+    ).order_by('name')
+    return render(request, 'teacher/group_chats.html', {
+        'professions': professions,
+    })

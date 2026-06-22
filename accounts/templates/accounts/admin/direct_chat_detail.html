@@ -1,0 +1,96 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ u1.full_name }} & {{ u2.full_name }} - Shaxsiy chat{% endblock %}
+{% block topbar_title %}Shaxsiy chat{% endblock %}
+
+{% block extra_css %}
+<style>
+.adcd-page { max-width: 760px; margin: 0 auto; }
+.adcd-header {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
+    padding: 1rem 1.25rem; border-radius: 16px;
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, rgba(0,0,0,.08));
+}
+.adcd-back { color: var(--bs-secondary-color, #6c757d); font-size: 1.3rem; text-decoration: none; flex: 0 0 auto; }
+.adcd-back:hover { color: #6366f1; }
+.adcd-title { font-weight: 700; font-size: 1rem; }
+.adcd-sub { font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); }
+.adcd-notice {
+    display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;
+    color: #d97706; background: rgba(245,158,11,0.1); border-radius: 10px;
+    padding: 0.5rem 0.9rem; margin-bottom: 1.25rem;
+}
+
+.adcd-thread { display: flex; flex-direction: column; gap: 0.5rem; }
+.adcd-msg {
+    max-width: 78%; padding: 0.6rem 0.9rem; border-radius: 14px;
+    border: 1px solid var(--border-color, rgba(0,0,0,.06));
+}
+.adcd-msg.from-u1 { align-self: flex-start; background: var(--card-bg, #fff); }
+.adcd-msg.from-u2 { align-self: flex-end; background: rgba(99,102,241,0.07); }
+.adcd-msg-sender { font-size: 0.74rem; font-weight: 700; color: #6366f1; margin-bottom: 2px; }
+.adcd-msg-reply {
+    font-size: 0.74rem; color: var(--bs-secondary-color, #6c757d);
+    border-left: 3px solid #6366f1; padding: 2px 8px; margin-bottom: 4px;
+    background: rgba(99,102,241,0.05); border-radius: 4px;
+}
+.adcd-msg-text { font-size: 0.9rem; white-space: pre-wrap; word-break: break-word; }
+.adcd-msg-file { font-size: 0.85rem; margin-top: 4px; }
+.adcd-msg-meta { font-size: 0.7rem; color: var(--bs-secondary-color, #6c757d); margin-top: 3px; display: flex; gap: 6px; }
+.adcd-empty { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color, #6c757d); }
+.adcd-empty i { font-size: 3rem; opacity: .4; display: block; margin-bottom: 12px; }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="adcd-page">
+    <div class="adcd-header">
+        <a href="{% url 'admin_direct_chats' %}" class="adcd-back"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <div class="adcd-title">{{ u1.full_name }} <i class="bi bi-arrow-left-right text-muted" style="font-size:0.75rem;"></i> {{ u2.full_name }}</div>
+            <div class="adcd-sub">@{{ u1.username }} &middot; @{{ u2.username }}</div>
+        </div>
+    </div>
+
+    <div class="adcd-notice">
+        <i class="bi bi-eye"></i> Faqat ko'rish rejimi — bu yerdan xabar yuborish, tahrirlash yoki o'chirish mumkin emas.
+    </div>
+
+    {% if messages_chrono %}
+    <div class="adcd-thread">
+        {% for m in messages_chrono %}
+        <div class="adcd-msg {% if m.sender_id == u1.pk %}from-u1{% else %}from-u2{% endif %}">
+            <div class="adcd-msg-sender">{{ m.sender.full_name }}</div>
+            {% if m.reply_to %}
+            <div class="adcd-msg-reply">
+                <i class="bi bi-reply"></i> {{ m.reply_to.sender.full_name }}: {{ m.reply_to.message|truncatechars:60 }}
+            </div>
+            {% endif %}
+            {% if m.is_forwarded %}
+            <div class="adcd-msg-reply"><i class="bi bi-share"></i> Forward: {{ m.forwarded_sender_name }}</div>
+            {% endif %}
+            {% if m.message %}<div class="adcd-msg-text">{{ m.message }}</div>{% endif %}
+            {% if m.file %}
+            <div class="adcd-msg-file">
+                <a href="{{ m.file.url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> {{ m.file.name|cut:"direct_chat/" }}</a>
+            </div>
+            {% endif %}
+            <div class="adcd-msg-meta">
+                <span>{{ m.created_at|date:"d.m.Y H:i" }}</span>
+                {% if m.is_edited %}<span><i class="bi bi-pencil"></i> tahrirlangan</span>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% include 'accounts/admin/includes/pagination.html' %}
+
+    {% else %}
+    <div class="adcd-empty">
+        <i class="bi bi-chat-square"></i>
+        Bu ikki o'quvchi o'rtasida hali xabar yo'q.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

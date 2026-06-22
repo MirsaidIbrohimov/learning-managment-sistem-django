@@ -1,4 +1,5 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
 
 {% block title %}Vazifani tekshirish - Admin Panel{% endblock %}
 
@@ -1354,7 +1355,7 @@
                         <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
                         <button type="button" class="gh-copy-btn" onclick="ghCopyAnswer(this)" title="Nusxalash"><i class="bi bi-clipboard"></i> Nusxalash</button>
                     </div>
-                    <div class="gh-text-answer">{{ submission.text_content }}</div>
+                    <div class="gh-text-answer">{{ submission.text_content|submission_plain }}</div>
                 </div>
                 {% endif %}
             </div>

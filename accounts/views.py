@@ -2274,18 +2274,17 @@ def profession_detail(request, pk):
     })
 
 
-@login_required
-def course_statistics(request, pk):
-    profession = get_object_or_404(Profession, pk=pk)
-    is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
-    if not (is_enrolled or request.user.is_admin or request.user.is_teacher):
-        messages.error(request, "Bu kursga yozilmagansiz!")
-        return redirect('profession_detail', pk=pk)
+def _course_statistics_data(profession):
+    """Kurs statistikasi uchun barcha ko'rsatkichlarni hisoblaydi.
+
+    JSON-serializable dict qaytaradi. Ham sahifa view (course_statistics),
+    ham JSON API (course_statistics_api) shu yagona manbadan foydalanadi (DRY)."""
+    from collections import defaultdict
+    from django.utils import timezone
 
     enrolled_students = CustomUser.objects.filter(
         enrollments__profession=profession, role='student'
     ).order_by('-coins')
-
     total_students = enrolled_students.count()
 
     lessons = Lesson.objects.filter(profession=profession)
@@ -2308,7 +2307,6 @@ def course_statistics(request, pk):
     student_ids = list(enrolled_students.values_list('id', flat=True))
 
     # Bulk test statistikasi
-    from collections import defaultdict
     test_stats = defaultdict(lambda: {'count': 0, 'passed': 0, 'total_score': 0, 'avg_score': 0})
     for row in TestResult.objects.filter(
         student_id__in=student_ids, test__lesson__profession=profession
@@ -2352,7 +2350,8 @@ def course_statistics(request, pk):
 
     total_possible = total_tests + total_homeworks + total_videos
 
-    student_stats = []
+    students = []
+    distribution = {'high': 0, 'medium': 0, 'low': 0}
     for student in enrolled_students:
         sid = student.id
         ts = test_stats[sid]
@@ -2360,42 +2359,95 @@ def course_statistics(request, pk):
         vw = video_stats.get(sid, 0)
 
         completed = ts.get('passed', 0) + hs.get('accepted_count', 0) + vw
-        progress = round(completed / total_possible * 100) if total_possible else 0
-
+        progress = min(round(completed / total_possible * 100) if total_possible else 0, 100)
         s_total_score = ts.get('total_score', 0) + hs.get('graded_total', 0)
 
-        student_stats.append({
-            'student': student,
+        if progress >= 70:
+            distribution['high'] += 1
+        elif progress >= 40:
+            distribution['medium'] += 1
+        else:
+            distribution['low'] += 1
+
+        photo_url = ''
+        try:
+            if student.photo:
+                photo_url = student.photo.url
+        except Exception:
+            photo_url = ''
+
+        full_name = (f"{student.first_name} {student.last_name}").strip() or student.username
+
+        students.append({
+            'id': sid,
+            'name': full_name,
+            'initial': (student.first_name[:1] or student.username[:1] or '?').upper(),
+            'photo_url': photo_url,
             'test_count': ts.get('count', 0),
             'test_avg': round(ts.get('avg_score', 0), 1),
             'passed_tests': ts.get('passed', 0),
             'hw_count': hs.get('count', 0),
             'hw_avg': round(hs.get('graded_avg', 0), 1),
             'videos_watched': vw,
-            'progress': min(progress, 100),
+            'progress': progress,
             'coins': student.coins,
             'total_score': s_total_score,
         })
 
-    student_stats.sort(key=lambda x: x['total_score'], reverse=True)
-
-    for i, s in enumerate(student_stats):
+    students.sort(key=lambda x: x['total_score'], reverse=True)
+    for i, s in enumerate(students):
         s['rank'] = i + 1
 
+    return {
+        'profession': {'id': profession.pk, 'name': profession.name},
+        'overview': {
+            'total_students': total_students,
+            'total_lessons': total_lessons,
+            'total_tests': total_tests,
+            'total_homeworks': total_homeworks,
+            'total_videos': total_videos,
+            'avg_test_score': round(avg_test_score, 1),
+            'pass_rate': pass_rate,
+            'total_test_attempts': total_test_attempts,
+            'total_hw_submitted': total_hw_submitted,
+            'avg_hw_grade': round(avg_hw_grade, 1),
+        },
+        'distribution': distribution,
+        'students': students,
+        'generated_at': timezone.localtime().strftime('%H:%M:%S'),
+    }
+
+
+def _can_view_course_stats(user, profession):
+    """Statistikani ko'rish ruxsatini tekshiradi."""
+    is_enrolled = CourseEnrollment.objects.filter(
+        user=user, profession=profession
+    ).exists() or user.profession == profession
+    return is_enrolled or user.is_admin or user.is_teacher
+
+
+@login_required
+def course_statistics(request, pk):
+    profession = get_object_or_404(Profession, pk=pk)
+    if not _can_view_course_stats(request.user, profession):
+        messages.error(request, "Bu kursga yozilmagansiz!")
+        return redirect('profession_detail', pk=pk)
+
+    data = _course_statistics_data(profession)
     return render(request, 'accounts/course_statistics.html', {
         'profession': profession,
-        'total_students': total_students,
-        'total_lessons': total_lessons,
-        'total_tests': total_tests,
-        'total_homeworks': total_homeworks,
-        'total_videos': total_videos,
-        'avg_test_score': round(avg_test_score, 1),
-        'pass_rate': pass_rate,
-        'total_test_attempts': total_test_attempts,
-        'total_hw_submitted': total_hw_submitted,
-        'avg_hw_grade': round(avg_hw_grade, 1),
-        'student_stats': student_stats,
+        'overview': data['overview'],
+        'stats_data': data,
     })
+
+
+@login_required
+def course_statistics_api(request, pk):
+    """Kurs statistikasi JSON API — jonli yangilanish, grafiklar va eksport uchun."""
+    profession = get_object_or_404(Profession, pk=pk)
+    if not _can_view_course_stats(request.user, profession):
+        return JsonResponse({'error': "Bu kursga ruxsatingiz yo'q"}, status=403)
+    return JsonResponse(_course_statistics_data(profession))
 
 
 @login_required
@@ -14898,3 +14950,190 @@ def yordamchi_mark_unpaid(request, pk):
 
     messages.warning(request, f"{user.get_full_name()} to'lovi bekor qilindi.")
     return redirect(f"{request.POST.get('next', '/yordamchi/tolovlar/')}?month={month}&year={year}")
+
+
+# ============================================================
+# CHAT - Guruh chati, Shaxsiy chat, Inbox (sahifalar)
+# ============================================================
+
+def _chat_can_access_group(user, profession):
+    """Kursga yozilgan o'quvchi YOKI biriktirilgan o'qituvchi YOKI admin."""
+    if user.is_admin or user.is_admin_or_assistant:
+        return True
+    if profession.teachers.filter(pk=user.pk).exists():
+        return True
+    return CourseEnrollment.objects.filter(user=user, profession=profession).exists()
+
+
+def _chat_is_admin(user):
+    return bool(user.is_admin or user.is_admin_or_assistant or user.is_staff)
+
+
+@login_required
+def group_chat_view(request, pk):
+    """Kurs (guruh) chat xonasi — unified Messenger-style sahifa."""
+    profession = get_object_or_404(Profession, pk=pk)
+    if not _chat_can_access_group(request.user, profession):
+        messages.error(request, "Bu guruh chatiga ruxsatingiz yo'q!")
+        return redirect('profession_detail', pk=pk)
+
+    members_count = CourseEnrollment.objects.filter(profession=profession).count()
+    can_moderate = _chat_is_admin(request.user) or profession.teachers.filter(pk=request.user.pk).exists()
+    return render(request, 'accounts/chat/messenger.html', {
+        'initial_kind': 'group',
+        'initial_id': profession.pk,
+        'initial_group': profession,
+        'members_count': members_count,
+        'initial_can_moderate': can_moderate,
+        'is_admin_global': _chat_is_admin(request.user),
+        'initial_filter': 'all',
+    })
+
+
+@login_required
+def direct_chat_view(request, pk):
+    """Ikki foydalanuvchi o'rtasidagi shaxsiy chat xonasi — unified Messenger-style sahifa."""
+    other = get_object_or_404(CustomUser, pk=pk)
+    if other.pk == request.user.pk:
+        return redirect('chat_inbox')
+    return render(request, 'accounts/chat/messenger.html', {
+        'initial_kind': 'dm',
+        'initial_id': other.pk,
+        'initial_partner': other,
+        'is_admin_global': _chat_is_admin(request.user),
+        'initial_filter': 'all',
+    })
+
+
+@login_required
+def chat_inbox_view(request):
+    """Suhbatlar — unified Messenger-style sahifa (shaxsiy filtri faol)."""
+    return render(request, 'accounts/chat/messenger.html', {
+        'is_admin_global': _chat_is_admin(request.user),
+        'initial_filter': 'dm',
+    })
+
+
+@login_required
+def my_group_chats_view(request):
+    """Guruh chatlari — unified Messenger-style sahifa (guruh filtri faol)."""
+    return render(request, 'accounts/chat/messenger.html', {
+        'is_admin_global': _chat_is_admin(request.user),
+        'initial_filter': 'group',
+    })
+
+
+@login_required
+def admin_group_chats(request):
+    """Admin panel: barcha guruh chatlari."""
+    if not (request.user.is_admin or request.user.is_admin_or_assistant):
+        return redirect('home')
+    from django.db.models import Count as _Count
+    professions = Profession.objects.annotate(
+        msg_count=_Count('chat_messages', distinct=True),
+        member_count=_Count('enrollments', distinct=True),
+    ).order_by('name')
+    return render(request, 'accounts/admin/group_chats.html', {
+        'professions': professions,
+    })
+
+
+@login_required
+def admin_direct_chats(request):
+    """Admin panel: o'quvchilar o'rtasidagi shaxsiy (1:1) suhbatlar ro'yxati.
+
+    Faqat ko'rish uchun (investigatsiya) — admin bu yerdan xabar yubora yoki
+    o'chira olmaydi. Faqat o'quvchi <-> o'quvchi suhbatlari ko'rsatiladi
+    (o'qituvchi/admin ishtirokidagi shaxsiy xabarlar bu ro'yxatda yo'q)."""
+    if not (request.user.is_admin or request.user.is_admin_or_assistant):
+        return redirect('home')
+
+    from django.db.models import Case, When, IntegerField, Max, F, Count as _Count
+    from .models import DirectMessage
+
+    search_query = request.GET.get('q', '').strip()
+
+    pairs = (
+        DirectMessage.objects
+        .filter(is_deleted=False, sender__role='student', recipient__role='student')
+        .annotate(
+            u1=Case(
+                When(sender_id__lt=F('recipient_id'), then=F('sender_id')),
+                default=F('recipient_id'),
+                output_field=IntegerField(),
+            ),
+            u2=Case(
+                When(sender_id__lt=F('recipient_id'), then=F('recipient_id')),
+                default=F('sender_id'),
+                output_field=IntegerField(),
+            ),
+        )
+        .values('u1', 'u2')
+        .annotate(msg_count=_Count('id'), last_at=Max('created_at'))
+        .order_by('-last_at')
+    )
+
+    user_ids = set()
+    for p in pairs:
+        user_ids.add(p['u1'])
+        user_ids.add(p['u2'])
+    users_by_id = CustomUser.objects.in_bulk(user_ids)
+
+    conversations = []
+    for p in pairs:
+        u1 = users_by_id.get(p['u1'])
+        u2 = users_by_id.get(p['u2'])
+        if not u1 or not u2:
+            continue
+        if search_query:
+            q = search_query.lower()
+            haystack = f"{u1.full_name} {u1.username} {u2.full_name} {u2.username}".lower()
+            if q not in haystack:
+                continue
+        conversations.append({
+            'u1': u1, 'u2': u2,
+            'msg_count': p['msg_count'], 'last_at': p['last_at'],
+        })
+
+    paginator = Paginator(conversations, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'accounts/admin/direct_chats.html', {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'total_count': len(conversations),
+    })
+
+
+@login_required
+def admin_direct_chat_detail(request, u1_pk, u2_pk):
+    """Admin panel: ikki o'quvchi o'rtasidagi shaxsiy suhbatni ko'rish (faqat o'qish)."""
+    if not (request.user.is_admin or request.user.is_admin_or_assistant):
+        return redirect('home')
+    if u1_pk == u2_pk:
+        return redirect('admin_direct_chats')
+
+    from .models import DirectMessage
+
+    u1 = get_object_or_404(CustomUser, pk=u1_pk, role='student')
+    u2 = get_object_or_404(CustomUser, pk=u2_pk, role='student')
+
+    thread = (
+        DirectMessage.objects
+        .filter(
+            Q(sender=u1, recipient=u2) | Q(sender=u2, recipient=u1),
+            is_deleted=False,
+        )
+        .select_related('sender', 'recipient', 'reply_to', 'reply_to__sender')
+        .order_by('-created_at')
+    )
+
+    paginator = Paginator(thread, 50)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    messages_chrono = list(reversed(page_obj.object_list))
+
+    return render(request, 'accounts/admin/direct_chat_detail.html', {
+        'u1': u1, 'u2': u2,
+        'page_obj': page_obj,
+        'messages_chrono': messages_chrono,
+    })

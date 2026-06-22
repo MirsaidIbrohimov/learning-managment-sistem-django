@@ -1,0 +1,107 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Suhbatlar | IT Shaharcha{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{ --ib-panel:#fff; --ib-border:rgba(15,23,42,.08); --ib-muted:#64748b; --ib-text:#0f172a; --ib-soft:#f8fafc; }
+[data-bs-theme="dark"]{ --ib-panel:#0f172a; --ib-border:rgba(255,255,255,.08); --ib-muted:#94a3b8; --ib-text:#e2e8f0; --ib-soft:rgba(255,255,255,.04); }
+.ib-wrap{ max-width:760px; }
+.ib-head{
+    background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff;
+    border-radius:20px; padding:22px 24px; margin-bottom:18px;
+    box-shadow:0 14px 35px rgba(79,70,229,.3);
+}
+.ib-head h1{ font-size:1.4rem; font-weight:800; margin:0; }
+.ib-tabs{ display:flex; gap:10px; margin-bottom:16px; }
+.ib-tab{
+    flex:1; text-align:center; padding:11px; border-radius:14px;
+    background:var(--ib-panel); border:1px solid var(--ib-border);
+    color:var(--ib-text); font-weight:600; text-decoration:none; transition:.2s;
+}
+.ib-tab:hover{ border-color:#6366f1; color:#6366f1; }
+.ib-tab.active{ background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; }
+.ib-list{ display:flex; flex-direction:column; gap:10px; }
+.ib-item{
+    display:flex; align-items:center; gap:14px;
+    background:var(--ib-panel); border:1px solid var(--ib-border);
+    border-radius:16px; padding:13px 16px; text-decoration:none; color:var(--ib-text);
+    transition:.2s;
+}
+.ib-item:hover{ transform:translateX(3px); border-color:#6366f1; box-shadow:0 10px 25px rgba(99,102,241,.15); }
+.ib-ava{ width:52px;height:52px;border-radius:50%;object-fit:cover;flex:0 0 52px; }
+.ib-ava-fb{
+    width:52px;height:52px;border-radius:50%;flex:0 0 52px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:800;
+}
+.ib-name{ font-weight:700; }
+.ib-last{ font-size:.85rem; color:var(--ib-muted); }
+.ib-meta{ text-align:right; flex:0 0 auto; }
+.ib-time{ font-size:.72rem; color:var(--ib-muted); }
+.ib-badge{
+    display:inline-block; min-width:22px; padding:2px 7px; margin-top:5px;
+    background:#ef4444; color:#fff; border-radius:999px; font-size:.72rem; font-weight:700;
+}
+.ib-empty{ text-align:center; padding:60px 20px; color:var(--ib-muted); }
+.ib-empty i{ font-size:3rem; opacity:.4; display:block; margin-bottom:12px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container ib-wrap py-4">
+    <div class="ib-head">
+        <h1><i class="bi bi-chat-dots-fill me-2"></i>Suhbatlar</h1>
+    </div>
+
+    <div class="ib-tabs">
+        <a href="{% url 'chat_inbox' %}" class="ib-tab active"><i class="bi bi-person me-1"></i> Shaxsiy</a>
+        <a href="{% url 'my_group_chats' %}" class="ib-tab"><i class="bi bi-people me-1"></i> Guruhlar</a>
+    </div>
+
+    <div class="ib-list" id="ibList">
+        <div class="ib-empty" id="ibLoading">
+            <i class="bi bi-hourglass-split"></i> Yuklanmoqda...
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+    var list = document.getElementById('ibList');
+    function esc(s){ return (s||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+    function avatar(p){
+        if(p.photo) return '<img class="ib-ava" src="'+esc(p.photo)+'">';
+        return '<div class="ib-ava-fb">'+esc(p.initials||'?')+'</div>';
+    }
+    fetch("{% url 'api_chat_conversations' %}", {headers:{'X-Requested-With':'XMLHttpRequest'}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+        list.innerHTML='';
+        if(!d.ok || !d.conversations.length){
+            list.innerHTML='<div class="ib-empty"><i class="bi bi-inbox"></i>Hozircha suhbatlar yo‘q.<br><small>Biror profildan yozishni boshlang.</small></div>';
+            return;
+        }
+        d.conversations.forEach(function(c){
+            var pre = c.is_mine ? 'Siz: ' : '';
+            var badge = c.unread ? '<div class="ib-badge">'+c.unread+'</div>' : '';
+            var a = document.createElement('a');
+            a.className='ib-item';
+            a.href='/chat/u/'+c.partner.id+'/';
+            a.innerHTML =
+                avatar(c.partner) +
+                '<div class="flex-grow-1 min-w-0">'+
+                    '<div class="ib-name text-truncate">'+esc(c.partner.name)+'</div>'+
+                    '<div class="ib-last text-truncate">'+esc(pre)+esc(c.last_message)+'</div>'+
+                '</div>'+
+                '<div class="ib-meta"><div class="ib-time">'+esc(c.last_at)+'</div>'+badge+'</div>';
+            list.appendChild(a);
+        });
+    })
+    .catch(function(){ list.innerHTML='<div class="ib-empty"><i class="bi bi-wifi-off"></i>Xatolik yuz berdi.</div>'; });
+})();
+</script>
+{% endblock %}

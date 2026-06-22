@@ -1,7 +1,30 @@
+import re
+import html as _html
+
 from django import template
 from django.utils.safestring import mark_safe
 
 register = template.Library()
+
+
+@register.filter
+def submission_plain(text):
+    """Rich-editor (contenteditable) HTML javobini toza, o'qiladigan matnga aylantiradi.
+
+    Masalan o'quvchi kod yozsa, muharrir uni `<div>&lt;!DOCTYPE...&gt;</div>` ko'rinishda
+    saqlaydi. Bu filtr: <div>/<p> -> yangi qator, <br> -> yangi qator, qolgan teglarni
+    olib tashlaydi va &lt; kabi entitilarni dekod qiladi. Natija oddiy matn bo'lib qaytadi
+    (auto-escape qilinib ko'rsatiladi — XSS xavfsiz, kod/matn o'z holicha o'qiladi)."""
+    if not text:
+        return ''
+    t = str(text)
+    t = re.sub(r'</(div|p|h[1-6]|li|tr|pre)\s*>', '\n', t, flags=re.IGNORECASE)
+    t = re.sub(r'<br\s*/?>', '\n', t, flags=re.IGNORECASE)
+    t = re.sub(r'<[^>]+>', '', t)          # qolgan teglar
+    t = _html.unescape(t)                  # &lt; -> < , &amp; -> & , &nbsp; -> bo'shliq
+    t = t.replace('\xa0', ' ')
+    t = re.sub(r'\n{3,}', '\n\n', t)
+    return t.strip()
 
 @register.filter
 def get_item(dictionary, key):

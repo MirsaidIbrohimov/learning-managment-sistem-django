@@ -327,8 +327,9 @@ def submit_result(request):
     coin_reason = ''
     engine = str(cfg.get('engine', '')).lower()
 
-    # Shashka (checkers)da coin umuman berilmaydi
-    if result == 'win' and meta.get('mode') == 'ai' and engine != 'checkers':
+    # Faqat shaxmat (chess) AI g'alabasi uchun coin beriladi — boshqa barcha
+    # o'yinlarda (shashka va h.k.) coin umuman berilmaydi.
+    if result == 'win' and meta.get('mode') == 'ai' and engine == 'chess':
         difficulty = str(meta.get('difficulty', 'medium')).lower()
         rewards = (cfg.get('ai_coin_rewards') or {})
         # Default qiymatlar
@@ -1247,7 +1248,8 @@ def gx_profile(request):
 @csrf_exempt
 def gx_complete(request):
     """POST {token, game, score, mode, level_id, time_spent, achievements:[codes]}
-    XP qo'shadi, streak'ni yangilaydi, yutuqlarni saqlaydi va coin beradi.
+    XP qo'shadi, streak'ni yangilaydi, yutuqlarni saqlaydi. Coin BERMAYDI —
+    coin faqat shaxmatda submit_result() orqali beriladi.
     XP server tomonda hisoblanadi (clientga ishonilmaydi)."""
     if request.method == 'OPTIONS':
         return _cors_headers(JsonResponse({}), request)
@@ -1296,11 +1298,12 @@ def gx_complete(request):
     except Exception:
         pass
 
-    coins_earned = max(1, xp_earned // 20)
-    try:
-        user.add_coins(coins_earned, f"{game.title}: o'yin yakuni (+{xp_earned} XP)")
-    except Exception:
-        coins_earned = 0
+    # Coin faqat shaxmatda (AI g'alabasi, submit_result orqali) beriladi.
+    # gx_complete har qanday "external" o'yin uchun chaqirilishi mumkin
+    # (xo, memory-card, html-builder, bilim-arena, shashka/shaxmat — Gamify.onResult
+    # orqali har bir o'yin tugaganda), shuning uchun bu yerda coin UMUMAN berilmaydi —
+    # faqat XP/streak/achievements hisoblanadi.
+    coins_earned = 0
 
     newly = []
     claimed = data.get('achievements') or []

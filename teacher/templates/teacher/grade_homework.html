@@ -1,4 +1,5 @@
 {% extends 'teacher/base_teacher.html' %}
+{% load custom_filters %}
 
 {% block title %}Vazifani baholash - O'qituvchi paneli{% endblock %}
 {% block topbar_title %}Vazifani baholash{% endblock %}
@@ -120,7 +121,7 @@
                 <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
                 <button type="button" class="t-copy-btn" onclick="tgCopyAnswer(this)"><i class="bi bi-clipboard"></i> Nusxalash</button>
             </div>
-            <div class="t-grade-text-content">{{ submission.text_content }}</div>
+            <div class="t-grade-text-content">{{ submission.text_content|submission_plain }}</div>
             {% endif %}
             {% if not submission.file and not submission.text_content %}
             <p style="color: var(--bs-secondary-color);">Topshiriq fayli yoki matni mavjud emas.</p>

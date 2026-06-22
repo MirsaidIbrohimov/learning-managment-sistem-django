@@ -1522,6 +1522,17 @@ function renderTeacherFeedback(sub) {
     </div>`;
 }
 
+/* Rich-editor HTML javobini toza o'qiladigan matnga aylantiradi */
+function toPlainText(htmlStr) {
+  if (!htmlStr) return '';
+  var t = String(htmlStr)
+    .replace(/<\/(div|p|h[1-6]|li|tr|pre)\s*>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '');
+  var ta = document.createElement('textarea'); ta.innerHTML = t; t = ta.value;  // entitilarni dekod
+  return t.replace(/ /g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+}
+
 function renderSubmissionPreview(sub) {
   const wrap = document.getElementById('submissionPreviewWrap');
   if (!sub) { wrap.style.display = 'none'; return; }
@@ -1545,7 +1556,7 @@ function renderSubmissionPreview(sub) {
           <span><i class="bi bi-file-text"></i> Sizning javobingiz (v${sub.version})</span>
           <span style="color:var(--sp-muted)">${countWords(sub.text_content)} so'z</span>
         </div>
-        <div class="sp-preview-content sp-text-answer">${escapeHtml(sub.text_content)}</div>
+        <div class="sp-preview-content sp-text-answer">${escapeHtml(toPlainText(sub.text_content))}</div>
       </div>`;
   } else {
     wrap.style.display = 'none';
