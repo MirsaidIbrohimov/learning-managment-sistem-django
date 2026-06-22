@@ -216,6 +216,8 @@ def verify(request):
             'max_wager': int(cfg.get('max_wager', 5000)),
             'ai_coin_rewards': cfg.get('ai_coin_rewards') or {'easy': 25, 'medium': 35, 'hard': 50},
             'service_fee_percent': int(cfg.get('service_fee_percent', SERVICE_FEE_PERCENT)),
+            # Coin (tikilish / AI mukofoti) faqat shaxmatda yoqilgan
+            'coin_enabled': _is_chess_game(game),
         },
         'competition': competition_info,
         'exp': payload['exp'],
@@ -442,6 +444,12 @@ def _is_xo_game(game):
     return engine == 'xo' or game.slug == 'xo'
 
 
+def _is_chess_game(game):
+    """Faqat shaxmat (chess) o'yini coin tikilishiga ruxsat etiladi."""
+    engine = ((game.config or {}).get('engine') or game.slug).lower()
+    return 'chess' in engine or 'shaxmat' in engine
+
+
 def _normalize_xo_size(value):
     try:
         size = int(value)
@@ -603,6 +611,9 @@ def mp_find(request):
     # Rejim va wager
     mode = str(data.get('mode', 'casual')).lower()
     if mode not in ('casual', 'coin'):
+        mode = 'casual'
+    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    if mode == 'coin' and not _is_chess_game(game):
         mode = 'casual'
     try:
         wager = int(data.get('wager', 0))
@@ -975,6 +986,9 @@ def _resolve_mode_wager(data, game, user):
     """mp_find bilan bir xil mode/wager validatsiyasi. (mode, wager, error_response) qaytaradi."""
     mode = str(data.get('mode', 'casual')).lower()
     if mode not in ('casual', 'coin'):
+        mode = 'casual'
+    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    if mode == 'coin' and not _is_chess_game(game):
         mode = 'casual'
     try:
         wager = int(data.get('wager', 0))
