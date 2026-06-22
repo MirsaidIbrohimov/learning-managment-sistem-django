@@ -15038,13 +15038,20 @@ def admin_group_chats(request):
     })
 
 
+# Shaxsiy chat monitoring: admin/yordamchi-admin o'z shaxsiy xabarlarini
+# maxfiy saqlaydi — ular qatnashgan suhbatlar ro'yxatda ko'rinmaydi.
+# O'quvchi va o'qituvchilar o'rtasidagi barcha shaxsiy suhbatlar (o'quvchi<->o'quvchi,
+# o'quvchi<->o'qituvchi, o'qituvchi<->o'qituvchi) ko'rsatiladi.
+_PRIVATE_CHAT_ROLES = ('admin', 'assistant_admin')
+
+
 @login_required
 def admin_direct_chats(request):
-    """Admin panel: o'quvchilar o'rtasidagi shaxsiy (1:1) suhbatlar ro'yxati.
+    """Admin panel: o'quvchi/o'qituvchilar o'rtasidagi shaxsiy (1:1) suhbatlar ro'yxati.
 
     Faqat ko'rish uchun (investigatsiya) — admin bu yerdan xabar yubora yoki
-    o'chira olmaydi. Faqat o'quvchi <-> o'quvchi suhbatlari ko'rsatiladi
-    (o'qituvchi/admin ishtirokidagi shaxsiy xabarlar bu ro'yxatda yo'q)."""
+    o'chira olmaydi. Admin/yordamchi-admin ishtirokidagi shaxsiy xabarlar
+    maxfiy qoladi va bu ro'yxatda ko'rsatilmaydi."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
         return redirect('home')
 
@@ -15055,7 +15062,9 @@ def admin_direct_chats(request):
 
     pairs = (
         DirectMessage.objects
-        .filter(is_deleted=False, sender__role='student', recipient__role='student')
+        .filter(is_deleted=False)
+        .exclude(sender__role__in=_PRIVATE_CHAT_ROLES)
+        .exclude(recipient__role__in=_PRIVATE_CHAT_ROLES)
         .annotate(
             u1=Case(
                 When(sender_id__lt=F('recipient_id'), then=F('sender_id')),
@@ -15107,7 +15116,9 @@ def admin_direct_chats(request):
 
 @login_required
 def admin_direct_chat_detail(request, u1_pk, u2_pk):
-    """Admin panel: ikki o'quvchi o'rtasidagi shaxsiy suhbatni ko'rish (faqat o'qish)."""
+    """Admin panel: ikkita foydalanuvchi o'rtasidagi shaxsiy suhbatni ko'rish (faqat o'qish).
+
+    Admin/yordamchi-admin ishtirokidagi suhbatlarga kirish taqiqlanadi (maxfiy)."""
     if not (request.user.is_admin or request.user.is_admin_or_assistant):
         return redirect('home')
     if u1_pk == u2_pk:
@@ -15115,8 +15126,10 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
 
     from .models import DirectMessage
 
-    u1 = get_object_or_404(CustomUser, pk=u1_pk, role='student')
-    u2 = get_object_or_404(CustomUser, pk=u2_pk, role='student')
+    u1 = get_object_or_404(CustomUser, pk=u1_pk)
+    u2 = get_object_or_404(CustomUser, pk=u2_pk)
+    if u1.role in _PRIVATE_CHAT_ROLES or u2.role in _PRIVATE_CHAT_ROLES:
+        return redirect('admin_direct_chats')
 
     thread = (
         DirectMessage.objects
