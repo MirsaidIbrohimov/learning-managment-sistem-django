@@ -1,0 +1,14 @@
+{% comment %} Leaderboard row. with row={rank,is_me,photo,name,points,level?} {% endcomment %}
+<div class="leader-row{% if row.is_me %} is-me{% endif %}">
+    <div class="lr-rank{% if row.rank == 1 %} medal-1{% elif row.rank == 2 %} medal-2{% elif row.rank == 3 %} medal-3{% endif %}" aria-hidden="true">
+        {% if row.rank == 1 %}<i class="bi bi-trophy-fill"></i>{% elif row.rank == 2 or row.rank == 3 %}<i class="bi bi-award-fill"></i>{% else %}{{ row.rank|default:'-' }}{% endif %}
+    </div>
+    <div class="lr-avatar" aria-hidden="true">
+        {% if row.photo %}<img src="{{ row.photo }}" alt="">{% else %}{{ row.name|first|upper|default:'?' }}{% endif %}
+    </div>
+    <div class="lr-name">
+        {{ row.name|default:'Foydalanuvchi' }}{% if row.is_me %} <span class="dash-chip is-accent" style="padding:2px 8px;">Siz</span>{% endif %}
+        {% if row.level %}<div class="lr-level">{{ row.level }}-daraja</div>{% endif %}
+    </div>
+    <div class="lr-points">{{ row.points|default:0 }} XP</div>
+</div>

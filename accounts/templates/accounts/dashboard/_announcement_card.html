@@ -1,0 +1,14 @@
+{% comment %} Announcement card. with ann={title,body,date_label,is_unread,badge,url} {% endcomment %}
+<a href="{{ ann.url|default:'#' }}" class="announce-card{% if ann.is_unread %} is-unread{% endif %}" aria-label="{{ ann.title|default:'E\'lon' }}{% if ann.is_unread %} (o'qilmagan){% endif %}">
+    <div class="an-head">
+        <div class="an-title">
+            {% if ann.is_unread %}<span class="an-dot" aria-hidden="true"></span>{% endif %}
+            {{ ann.title|default:'Nomsiz e\'lon' }}
+        </div>
+        {% if ann.badge %}
+            <span class="dash-chip is-{{ ann.badge|default:'accent' }}" style="padding:2px 8px;">{{ ann.badge }}</span>
+        {% endif %}
+    </div>
+    {% if ann.body %}<div class="an-body">{{ ann.body|truncatechars:120 }}</div>{% endif %}
+    {% if ann.date_label %}<div class="an-date"><i class="bi bi-calendar3" aria-hidden="true"></i> {{ ann.date_label }}</div>{% endif %}
+</a>

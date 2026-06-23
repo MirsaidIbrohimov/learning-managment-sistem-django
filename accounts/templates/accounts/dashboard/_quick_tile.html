@@ -1,0 +1,7 @@
+{% comment %} Quick action tile. with tile={label,url,icon,color} {% endcomment %}
+<a href="{{ tile.url|default:'#' }}" class="quick-tile" aria-label="{{ tile.label|default:'Havola' }}">
+    <span class="qt-icon{% if tile.color %} c-{{ tile.color }}{% endif %}" aria-hidden="true">
+        <i class="bi bi-{{ tile.icon|default:'grid' }}"></i>
+    </span>
+    <span class="qt-label">{{ tile.label|default:'' }}</span>
+</a>

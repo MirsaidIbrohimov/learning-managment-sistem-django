@@ -1,0 +1,590 @@
+{% extends 'accounts/base.html' %}
+{% block title %}Qidiruv — IT Shaharcha{% endblock %}
+{% block content %}
+{% load static %}
+
+<style>
+/* ════════ PREMIUM SEARCH (SaaS · glass · bento) ════════ */
+.qs{
+  --bg:#0B1120; --surface:#111827; --surface2:#0e1626; --elev:#16203400;
+  --border:rgba(255,255,255,.08); --border2:rgba(255,255,255,.06);
+  --text:#e7eef9; --muted:#8b97ad; --faint:#5b687e;
+  --accent:#3B82F6; --accent2:#60a5fa; --success:#22C55E; --amber:#f59e0b;
+  --glass:rgba(255,255,255,.045); --glass2:rgba(255,255,255,.03);
+  --ring:rgba(59,130,246,.45); --shadow:0 18px 50px rgba(0,0,0,.5);
+  width:100vw; position:relative; left:50%; margin-left:-50vw; margin-top:-1.25rem;
+  background:radial-gradient(1200px 600px at 70% -10%, rgba(59,130,246,.10), transparent 60%), var(--bg);
+  min-height:100vh; color:var(--text); padding-bottom:80px;
+  font-family:'Space Grotesk','Inter',system-ui,sans-serif;
+}
+[data-bs-theme="light"] .qs{
+  --bg:#F8FAFC; --surface:#FFFFFF; --surface2:#f1f5f9;
+  --border:rgba(15,23,42,.08); --border2:rgba(15,23,42,.06);
+  --text:#0f172a; --muted:#64748b; --faint:#94a3b8;
+  --accent:#2563EB; --accent2:#3b82f6;
+  --glass:rgba(255,255,255,.75); --glass2:#ffffff;
+  --ring:rgba(37,99,235,.30); --shadow:0 18px 50px rgba(15,23,42,.10);
+  background:radial-gradient(1100px 560px at 72% -10%, rgba(37,99,235,.08), transparent 60%), var(--bg);
+}
+.qs *{ box-sizing:border-box; }
+.qs-wrap{ max-width:1200px; margin:0 auto; padding:0 22px; }
+
+/* hero */
+.qs-hero{ text-align:center; padding:54px 0 8px; position:relative; }
+.qs-eyebrow{ display:inline-flex; align-items:center; gap:8px; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--accent2); background:var(--glass); border:1px solid var(--border); padding:7px 15px; border-radius:30px; backdrop-filter:blur(12px); }
+.qs-eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 10px var(--accent); animation:qsPulse 2s infinite; }
+@keyframes qsPulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
+.qs-h1{ font-size:clamp(1.8rem,4vw,3rem); font-weight:800; letter-spacing:-.025em; margin:18px 0 8px; line-height:1.1; }
+.qs-h1 span{ background:linear-gradient(120deg,var(--accent),#a78bfa 70%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.qs-sub{ color:var(--muted); font-size:1rem; max-width:560px; margin:0 auto; }
+
+/* command bar */
+.qs-cmdwrap{ max-width:760px; margin:26px auto 0; position:relative; }
+.qs-cmd{ display:flex; align-items:center; gap:8px; background:var(--glass); backdrop-filter:blur(22px) saturate(160%); -webkit-backdrop-filter:blur(22px) saturate(160%); border:1px solid var(--border); border-radius:20px; padding:9px 9px 9px 18px; box-shadow:var(--shadow); transition:border-color .2s, box-shadow .2s; }
+.qs-cmd:focus-within{ border-color:var(--ring); box-shadow:0 0 0 4px var(--ring), var(--shadow); }
+.qs-cmd .lead{ font-size:1.2rem; color:var(--muted); }
+.qs-cmd input{ flex:1; min-width:0; border:none; outline:none; background:transparent; color:var(--text); font-size:1.05rem; font-family:inherit; }
+.qs-cmd input::placeholder{ color:var(--faint); }
+.qs-ibtn{ width:42px; height:42px; flex-shrink:0; border-radius:13px; border:1px solid var(--border); background:var(--glass2); color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .18s; font-size:1rem; }
+.qs-ibtn:hover{ color:var(--accent); border-color:var(--ring); transform:translateY(-1px); }
+.qs-ibtn.rec{ color:#ef4444; border-color:rgba(239,68,68,.4); }
+.qs-ibtn.ai{ background:linear-gradient(135deg,var(--accent),#8b5cf6); color:#fff; border:none; }
+.qs-submit{ height:42px; padding:0 22px; flex-shrink:0; border:none; border-radius:13px; background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; font-weight:700; font-size:.92rem; cursor:pointer; transition:transform .15s, box-shadow .2s; }
+.qs-submit:hover{ transform:translateY(-1px); box-shadow:0 10px 24px rgba(59,130,246,.4); }
+
+/* recent dropdown */
+.qs-recent{ position:absolute; left:0; right:0; top:calc(100% + 8px); background:var(--surface); border:1px solid var(--border); border-radius:16px; box-shadow:var(--shadow); padding:8px; z-index:30; display:none; }
+.qs-recent.show{ display:block; animation:qsDrop .18s ease both; }
+@keyframes qsDrop{ from{opacity:0; transform:translateY(-6px)} to{opacity:1; transform:none} }
+.qs-recent-h{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); padding:6px 10px; display:flex; justify-content:space-between; }
+.qs-recent-h button{ border:none; background:none; color:var(--accent); cursor:pointer; font-size:.7rem; font-weight:700; }
+.qs-recent a{ display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:10px; color:var(--text); text-decoration:none; font-size:.9rem; transition:background .15s; }
+.qs-recent a:hover{ background:var(--glass); }
+.qs-recent a i{ color:var(--faint); }
+
+/* AI panel */
+.qs-ai{ max-width:760px; margin:12px auto 0; background:var(--glass); border:1px solid var(--border); border-radius:18px; padding:16px 18px; backdrop-filter:blur(16px); display:none; }
+.qs-ai.show{ display:block; animation:qsDrop .2s ease both; }
+.qs-ai-h{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:.92rem; margin-bottom:10px; }
+.qs-ai-h i{ color:#a78bfa; }
+.qs-ai-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* chips */
+.qs-chips{ display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin-top:20px; }
+.qs-chip{ display:inline-flex; align-items:center; gap:7px; background:var(--glass); border:1px solid var(--border); color:var(--text); font-size:.84rem; font-weight:600; padding:8px 15px; border-radius:30px; cursor:pointer; text-decoration:none; transition:all .16s; }
+.qs-chip:hover{ border-color:var(--ring); color:var(--accent); transform:translateY(-2px); }
+.qs-chip i{ opacity:.75; }
+.qs-label{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); text-align:center; margin:26px 0 0; }
+
+/* section heading */
+.qs-sec{ margin-top:46px; }
+.qs-sec-h{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+.qs-sec-t{ font-size:1.2rem; font-weight:800; letter-spacing:-.01em; display:flex; align-items:center; gap:9px; }
+.qs-sec-t i{ color:var(--accent); }
+
+/* results layout */
+.qs-resline{ color:var(--muted); font-size:.92rem; margin:30px 0 16px; }
+.qs-resline b{ color:var(--text); }
+.qs-typebar{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.qs-tbtn{ display:inline-flex; align-items:center; gap:7px; background:var(--glass); border:1px solid var(--border); color:var(--muted); font-size:.85rem; font-weight:700; padding:9px 16px; border-radius:30px; cursor:pointer; transition:all .16s; }
+.qs-tbtn .c{ font-size:.7rem; background:var(--glass2); padding:1px 8px; border-radius:20px; }
+.qs-tbtn.active{ background:var(--accent); color:#fff; border-color:transparent; box-shadow:0 8px 20px rgba(59,130,246,.32); }
+.qs-tbtn.active .c{ background:rgba(255,255,255,.25); }
+
+.qs-layout{ display:grid; grid-template-columns:248px 1fr; gap:24px; align-items:start; }
+.qs-side{ position:sticky; top:88px; background:var(--glass); border:1px solid var(--border); border-radius:20px; padding:18px; backdrop-filter:blur(14px); }
+.qs-side-h{ display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:.98rem; margin-bottom:8px; }
+.qs-side-h .clr{ border:none; background:none; color:var(--accent); cursor:pointer; font-size:.74rem; font-weight:700; }
+.qs-fgroup{ padding:14px 0; border-top:1px solid var(--border2); }
+.qs-fgroup:first-of-type{ border-top:none; }
+.qs-ftitle{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); margin-bottom:10px; }
+.qs-fchips{ display:flex; flex-wrap:wrap; gap:7px; }
+.qs-fchip{ font-size:.8rem; font-weight:600; padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--glass2); color:var(--text); cursor:pointer; transition:all .15s; }
+.qs-fchip:hover{ border-color:var(--ring); }
+.qs-fchip.active{ background:var(--accent); color:#fff; border-color:transparent; }
+
+/* cards grid */
+.qs-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:16px; }
+.qs-group{ margin-bottom:34px; animation:qsUp .45s cubic-bezier(.22,1,.36,1) both; }
+@keyframes qsUp{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+.qs-ghead{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+.qs-gic{ width:36px; height:36px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1rem; }
+.qs-glabel{ font-weight:800; font-size:1.05rem; }
+.qs-gcount{ font-size:.72rem; font-weight:700; color:var(--muted); background:var(--glass); border:1px solid var(--border); padding:3px 10px; border-radius:20px; }
+
+/* course card */
+.qs-card{ display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--border); border-radius:20px; overflow:hidden; transition:transform .2s cubic-bezier(.22,1,.36,1), border-color .2s, box-shadow .2s; position:relative; }
+[data-bs-theme="light"] .qs-card{ box-shadow:0 6px 18px rgba(15,23,42,.05); }
+.qs-card:hover{ transform:translateY(-6px); border-color:var(--ring); box-shadow:0 22px 44px rgba(0,0,0,.4); }
+[data-bs-theme="light"] .qs-card:hover{ box-shadow:0 22px 44px rgba(15,23,42,.14); }
+.qs-thumb{ aspect-ratio:16/9; position:relative; background:linear-gradient(135deg,#1d4ed8,#7c3aed); overflow:hidden; }
+.qs-thumb img{ width:100%; height:100%; object-fit:cover; transition:transform .35s; }
+.qs-card:hover .qs-thumb img{ transform:scale(1.06); }
+.qs-thumb-ico{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:rgba(255,255,255,.85); }
+.qs-tag{ position:absolute; top:10px; left:10px; font-size:.66rem; font-weight:800; padding:4px 10px; border-radius:20px; backdrop-filter:blur(8px); }
+.qs-tag.free{ background:rgba(34,197,94,.9); color:#fff; }
+.qs-tag.prem{ background:rgba(245,158,11,.92); color:#1a1205; }
+.qs-bm{ position:absolute; top:9px; right:9px; width:34px; height:34px; border-radius:11px; border:none; background:rgba(8,12,22,.55); color:#fff; backdrop-filter:blur(8px); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .16s; }
+.qs-bm:hover{ background:rgba(8,12,22,.8); transform:scale(1.08); }
+.qs-bm.on{ color:var(--amber); }
+.qs-cbody{ padding:15px 16px 16px; display:flex; flex-direction:column; flex:1; }
+.qs-ctitle{ font-weight:800; font-size:1rem; line-height:1.3; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.qs-teacher{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.qs-tav{ width:26px; height:26px; border-radius:50%; object-fit:cover; display:flex; align-items:center; justify-content:center; font-size:.7rem; font-weight:700; color:#fff; background:linear-gradient(135deg,var(--accent),#8b5cf6); flex-shrink:0; }
+.qs-tname{ font-size:.82rem; color:var(--muted); font-weight:600; }
+.qs-meta{ display:flex; align-items:center; gap:13px; font-size:.78rem; color:var(--muted); margin-bottom:14px; flex-wrap:wrap; }
+.qs-meta span{ display:inline-flex; align-items:center; gap:5px; }
+.qs-meta .star{ color:var(--amber); }
+.qs-cfoot{ display:flex; align-items:center; gap:9px; margin-top:auto; }
+.qs-cont{ flex:1; text-align:center; padding:10px; border-radius:12px; background:var(--accent); color:#fff; font-weight:700; font-size:.84rem; text-decoration:none; transition:transform .15s, box-shadow .2s, background .2s; }
+.qs-cont.go{ background:var(--success); }
+.qs-cont:hover{ transform:translateY(-1px); box-shadow:0 8px 18px rgba(59,130,246,.36); }
+.qs-prog{ height:5px; border-radius:4px; background:var(--glass2); border:1px solid var(--border2); overflow:hidden; margin-bottom:12px; }
+.qs-prog span{ display:block; height:100%; background:linear-gradient(90deg,var(--success),#4ade80); }
+.qs-status{ font-size:.7rem; font-weight:700; padding:3px 9px; border-radius:20px; }
+.qs-status.go{ background:rgba(34,197,94,.16); color:var(--success); }
+.qs-status.new{ background:rgba(59,130,246,.14); color:var(--accent2); }
+
+/* simple card */
+.qs-scard{ display:flex; align-items:center; gap:13px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:13px 15px; text-decoration:none; color:var(--text); transition:transform .16s, border-color .16s, box-shadow .16s; position:relative; overflow:hidden; }
+.qs-scard:hover{ transform:translateY(-3px); border-color:var(--ring); box-shadow:0 14px 28px rgba(0,0,0,.3); }
+[data-bs-theme="light"] .qs-scard:hover{ box-shadow:0 14px 28px rgba(15,23,42,.10); }
+.qs-simg{ width:50px; height:50px; border-radius:13px; object-fit:cover; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:1.15rem; }
+.qs-sbody{ min-width:0; flex:1; }
+.qs-st{ font-weight:700; font-size:.92rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.qs-ss{ font-size:.76rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.qs-sar{ color:var(--faint); font-size:1.1rem; flex-shrink:0; }
+
+/* empty state */
+.qs-empty{ text-align:center; padding:54px 20px; }
+.qs-empty-ill{ width:120px; height:120px; margin:0 auto 18px; border-radius:32px; display:flex; align-items:center; justify-content:center; font-size:3rem; color:#fff; background:linear-gradient(135deg,var(--accent),#8b5cf6); box-shadow:0 20px 50px rgba(59,130,246,.4); animation:qsFloat 4s ease-in-out infinite; }
+@keyframes qsFloat{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.qs-empty h3{ font-weight:800; font-size:1.4rem; margin-bottom:6px; }
+.qs-empty p{ color:var(--muted); margin-bottom:18px; }
+
+/* responsive */
+@media (max-width:900px){
+  .qs-layout{ grid-template-columns:1fr; }
+  .qs-side{ position:static; }
+  .qs-sidewrap{ margin-bottom:18px; }
+}
+@media (max-width:560px){
+  .qs-submit span{ display:none; }
+  .qs-submit{ padding:0 14px; }
+  .qs-cmd{ padding-left:14px; }
+}
+</style>
+
+<div class="qs" id="qs"
+     data-q="{{ q|escapejs }}">
+  <div class="qs-wrap">
+
+    <!-- HERO -->
+    <div class="qs-hero">
+      <span class="qs-eyebrow"><span class="dot"></span> AI Qidiruv</span>
+      <h1 class="qs-h1">Bugun nimani <span>o'rganmoqchisiz?</span></h1>
+      <p class="qs-sub">Kurslar, video darslar, testlar, o'qituvchilar va materiallar — barchasini bir soniyada toping.</p>
+    </div>
+
+    <!-- COMMAND BAR -->
+    <div class="qs-cmdwrap">
+      <form class="qs-cmd" method="get" action="{% url 'global_search' %}" role="search" id="qsForm" autocomplete="off">
+        <i class="bi bi-search lead"></i>
+        <input type="text" name="q" id="qsInput" value="{{ q }}" placeholder="Masalan: Python, frontend, dizayn, ingliz tili...">
+        <button type="button" class="qs-ibtn" id="qsVoice" title="Ovozli qidiruv" aria-label="Ovozli qidiruv"><i class="bi bi-mic-fill"></i></button>
+        <button type="button" class="qs-ibtn ai" id="qsAiBtn" title="AI yordamchi" aria-label="AI yordamchi"><i class="bi bi-stars"></i></button>
+        <button type="submit" class="qs-submit"><i class="bi bi-search d-sm-none"></i><span>Qidirish</span></button>
+      </form>
+
+      <!-- recent searches -->
+      <div class="qs-recent" id="qsRecent">
+        <div class="qs-recent-h"><span>So'nggi qidiruvlar</span><button type="button" id="qsRecentClear">Tozalash</button></div>
+        <div id="qsRecentList"></div>
+      </div>
+    </div>
+
+    <!-- AI panel -->
+    <div class="qs-ai" id="qsAiPanel">
+      <div class="qs-ai-h"><i class="bi bi-robot"></i> AI tavsiya qiladi — quyidagilardan birini sinab ko'ring</div>
+      <div class="qs-ai-grid">
+        <a class="qs-chip" href="?q=Python dasturlash"><i class="bi bi-lightning-charge"></i>Python dasturlash</a>
+        <a class="qs-chip" href="?q=Frontend"><i class="bi bi-window"></i>Frontend asoslari</a>
+        <a class="qs-chip" href="?q=Grafik dizayn"><i class="bi bi-palette"></i>Grafik dizayn</a>
+        <a class="qs-chip" href="?q=Ingliz tili"><i class="bi bi-translate"></i>Ingliz tili</a>
+        <a class="qs-chip" href="?q=Data Science"><i class="bi bi-graph-up"></i>Data Science</a>
+      </div>
+    </div>
+
+    {% if not q %}
+    <!-- QUICK CATEGORIES -->
+    <div class="qs-label">Tezkor kategoriyalar</div>
+    <div class="qs-chips">
+      <a class="qs-chip" href="?q=Python"><i class="bi bi-fire"></i>Python</a>
+      <a class="qs-chip" href="?q=Frontend"><i class="bi bi-window-stack"></i>Frontend</a>
+      <a class="qs-chip" href="?q=Backend"><i class="bi bi-hdd-stack"></i>Backend</a>
+      <a class="qs-chip" href="?q=Dizayn"><i class="bi bi-palette"></i>Dizayn</a>
+      <a class="qs-chip" href="?q=Mobil"><i class="bi bi-phone"></i>Mobil</a>
+      <a class="qs-chip" href="?q=Ingliz"><i class="bi bi-translate"></i>Ingliz tili</a>
+      <a class="qs-chip" href="?q=Kitob"><i class="bi bi-book"></i>Kitoblar</a>
+    </div>
+    {% endif %}
+
+    <!-- ============ RESULTS ============ -->
+    {% if q %}
+      {% if total %}
+        <div class="qs-resline"><b>{{ q }}</b> bo'yicha <b>{{ total }}</b> ta natija topildi</div>
+
+        <!-- type bar -->
+        <div class="qs-typebar" id="qsTypeBar">
+          <button class="qs-tbtn active" data-type="all" type="button">Barchasi <span class="c">{{ total }}</span></button>
+          {% for g in groups %}
+          <button class="qs-tbtn" data-type="{{ g.key }}" type="button"><i class="bi {{ g.icon }}"></i> {{ g.label }} <span class="c">{{ g.items|length }}</span></button>
+          {% endfor %}
+        </div>
+
+        <div class="qs-layout">
+          <!-- SMART FILTERS -->
+          <aside class="qs-sidewrap">
+          <div class="qs-side" id="qsSide">
+            <div class="qs-side-h"><span><i class="bi bi-sliders"></i> Filtrlar</span><button class="clr" id="qsClear" type="button">Tozalash</button></div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Narx</div>
+              <div class="qs-fchips" data-filter="paid">
+                <button class="qs-fchip active" data-val="all" type="button">Hammasi</button>
+                <button class="qs-fchip" data-val="free" type="button">Bepul</button>
+                <button class="qs-fchip" data-val="paid" type="button">Premium</button>
+              </div>
+            </div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Daraja</div>
+              <div class="qs-fchips" data-filter="level">
+                <button class="qs-fchip active" data-val="all" type="button">Hammasi</button>
+                <button class="qs-fchip" data-val="beginner" type="button">Boshlang'ich</button>
+                <button class="qs-fchip" data-val="inter" type="button">O'rta</button>
+                <button class="qs-fchip" data-val="advanced" type="button">Yuqori</button>
+              </div>
+            </div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Davomiylik</div>
+              <div class="qs-fchips" data-filter="dur">
+                <button class="qs-fchip active" data-val="all" type="button">Hammasi</button>
+                <button class="qs-fchip" data-val="short" type="button">&lt; 2 soat</button>
+                <button class="qs-fchip" data-val="mid" type="button">2–6 soat</button>
+                <button class="qs-fchip" data-val="long" type="button">6+ soat</button>
+              </div>
+            </div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Reyting</div>
+              <div class="qs-fchips" data-filter="rating">
+                <button class="qs-fchip active" data-val="all" type="button">Hammasi</button>
+                <button class="qs-fchip" data-val="4.5" type="button">4.5+</button>
+                <button class="qs-fchip" data-val="4.8" type="button">4.8+</button>
+              </div>
+            </div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Til</div>
+              <div class="qs-fchips">
+                <button class="qs-fchip active" type="button">O'zbek</button>
+              </div>
+            </div>
+            <div class="qs-fgroup">
+              <div class="qs-ftitle">Saralash</div>
+              <div class="qs-fchips" data-filter="sort">
+                <button class="qs-fchip active" data-val="rel" type="button">Mos</button>
+                <button class="qs-fchip" data-val="students" type="button">O'quvchilar</button>
+                <button class="qs-fchip" data-val="rating" type="button">Reyting</button>
+              </div>
+            </div>
+          </div>
+          </aside>
+
+          <!-- RESULTS COLUMN -->
+          <div class="qs-resultcol">
+            {% for g in groups %}
+            <div class="qs-group" data-key="{{ g.key }}">
+              <div class="qs-ghead">
+                <span class="qs-gic" style="background:{{ g.color }}"><i class="bi {{ g.icon }}"></i></span>
+                <span class="qs-glabel">{{ g.label }}</span>
+                <span class="qs-gcount">{{ g.items|length }}</span>
+              </div>
+
+              {% if g.kind == 'course' %}
+              <div class="qs-grid" data-grid="course">
+                {% for c in g.items %}
+                <article class="qs-card" data-paid="{{ c.is_paid|yesno:'paid,free' }}" data-level="{{ c.level }}" data-dur="{{ c.dur }}" data-rating="{{ c.rating }}" data-students="{{ c.students }}">
+                  <div class="qs-thumb">
+                    {% if c.image %}<img src="{{ c.image }}" alt="">{% else %}<span class="qs-thumb-ico"><i class="bi bi-mortarboard-fill"></i></span>{% endif %}
+                    {% if c.is_paid %}<span class="qs-tag prem">Premium</span>{% else %}<span class="qs-tag free">Bepul</span>{% endif %}
+                    <button class="qs-bm" type="button" data-bm="{{ c.url }}" data-title="{{ c.title }}" title="Saqlash" aria-label="Saqlash"><i class="bi bi-bookmark"></i></button>
+                  </div>
+                  <div class="qs-cbody">
+                    <div class="qs-ctitle">{{ c.title }}</div>
+                    <div class="qs-teacher">
+                      {% if c.teacher_photo %}<img class="qs-tav" src="{{ c.teacher_photo }}" alt="">{% else %}<span class="qs-tav">{{ c.teacher|slice:":1"|upper }}</span>{% endif %}
+                      <span class="qs-tname">{{ c.teacher }}</span>
+                    </div>
+                    <div class="qs-meta">
+                      <span class="star"><i class="bi bi-star-fill"></i> {{ c.rating }}</span>
+                      <span><i class="bi bi-people-fill"></i> {{ c.students }}</span>
+                      <span><i class="bi bi-clock"></i> {% if c.hours %}{{ c.hours }} soat{% else %}{{ c.lessons }} dars{% endif %}</span>
+                    </div>
+                    {% if c.enrolled %}<div class="qs-prog"><span style="width:100%"></span></div>{% endif %}
+                    <div class="qs-cfoot">
+                      {% if c.enrolled %}
+                      <a class="qs-cont go" href="{{ c.url }}">Davom ettirish</a>
+                      <span class="qs-status go">Davom etmoqda</span>
+                      {% else %}
+                      <a class="qs-cont" href="{{ c.url }}">Boshlash</a>
+                      <span class="qs-status new">Yangi</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </article>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div class="qs-grid">
+                {% for item in g.items %}
+                <a class="qs-scard" href="{{ item.url }}">
+                  {% if item.image %}<img class="qs-simg" src="{{ item.image }}" alt="">{% else %}<span class="qs-simg" style="background:{{ g.color }}"><i class="bi {{ g.icon }}"></i></span>{% endif %}
+                  <div class="qs-sbody">
+                    <div class="qs-st">{{ item.title }}</div>
+                    {% if item.subtitle %}<div class="qs-ss">{{ item.subtitle }}</div>{% endif %}
+                  </div>
+                  <i class="bi bi-arrow-right-short qs-sar"></i>
+                </a>
+                {% endfor %}
+              </div>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      {% else %}
+        <!-- EMPTY STATE -->
+        <div class="qs-empty">
+          <div class="qs-empty-ill"><i class="bi bi-binoculars-fill"></i></div>
+          <h3>Hech narsa topilmadi</h3>
+          <p>"{{ q }}" bo'yicha natija yo'q. Quyidagi AI tavsiyalaridan birini sinab ko'ring.</p>
+          <div class="qs-chips">
+            <a class="qs-chip" href="?q=Python"><i class="bi bi-stars"></i>Python</a>
+            <a class="qs-chip" href="?q=Frontend"><i class="bi bi-stars"></i>Frontend</a>
+            <a class="qs-chip" href="?q=Dizayn"><i class="bi bi-stars"></i>Dizayn</a>
+            <a class="qs-chip" href="?q=Ingliz"><i class="bi bi-stars"></i>Ingliz tili</a>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+
+    <!-- RECENTLY VIEWED (JS) -->
+    <div class="qs-sec" id="qsRecentlyViewed" style="display:none">
+      <div class="qs-sec-h"><div class="qs-sec-t"><i class="bi bi-clock-history"></i> Yaqinda ko'rilgan</div></div>
+      <div class="qs-grid" id="qsRVGrid"></div>
+    </div>
+
+    <!-- RECOMMENDED -->
+    {% if recommended %}
+    <div class="qs-sec">
+      <div class="qs-sec-h">
+        <div class="qs-sec-t"><i class="bi bi-gem"></i> {% if q and not total %}Mashhur kurslar{% else %}Siz uchun tavsiya{% endif %}</div>
+        <a class="qs-chip" href="{% url 'professions' %}"><i class="bi bi-grid"></i> Barchasi</a>
+      </div>
+      <div class="qs-grid">
+        {% for c in recommended %}
+        <article class="qs-card">
+          <div class="qs-thumb">
+            {% if c.image %}<img src="{{ c.image }}" alt="">{% else %}<span class="qs-thumb-ico"><i class="bi bi-mortarboard-fill"></i></span>{% endif %}
+            {% if c.is_paid %}<span class="qs-tag prem">Premium</span>{% else %}<span class="qs-tag free">Bepul</span>{% endif %}
+            <button class="qs-bm" type="button" data-bm="{{ c.url }}" data-title="{{ c.title }}" title="Saqlash"><i class="bi bi-bookmark"></i></button>
+          </div>
+          <div class="qs-cbody">
+            <div class="qs-ctitle">{{ c.title }}</div>
+            <div class="qs-teacher">
+              {% if c.teacher_photo %}<img class="qs-tav" src="{{ c.teacher_photo }}" alt="">{% else %}<span class="qs-tav">{{ c.teacher|slice:":1"|upper }}</span>{% endif %}
+              <span class="qs-tname">{{ c.teacher }}</span>
+            </div>
+            <div class="qs-meta">
+              <span class="star"><i class="bi bi-star-fill"></i> {{ c.rating }}</span>
+              <span><i class="bi bi-people-fill"></i> {{ c.students }}</span>
+              <span><i class="bi bi-clock"></i> {% if c.hours %}{{ c.hours }} soat{% else %}{{ c.lessons }} dars{% endif %}</span>
+            </div>
+            <div class="qs-cfoot">
+              <a class="qs-cont {% if c.enrolled %}go{% endif %}" href="{{ c.url }}">{% if c.enrolled %}Davom ettirish{% else %}Ko'rish{% endif %}</a>
+            </div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- POPULAR SEARCHES -->
+    <div class="qs-sec">
+      <div class="qs-sec-h"><div class="qs-sec-t"><i class="bi bi-graph-up-arrow"></i> Mashhur qidiruvlar</div></div>
+      <div class="qs-chips" style="justify-content:flex-start">
+        <a class="qs-chip" href="?q=Python"><i class="bi bi-search"></i>Python</a>
+        <a class="qs-chip" href="?q=Frontend"><i class="bi bi-search"></i>Frontend</a>
+        <a class="qs-chip" href="?q=Backend"><i class="bi bi-search"></i>Backend</a>
+        <a class="qs-chip" href="?q=Dizayn"><i class="bi bi-search"></i>Dizayn</a>
+        <a class="qs-chip" href="?q=Data Science"><i class="bi bi-search"></i>Data Science</a>
+        <a class="qs-chip" href="?q=Ingliz"><i class="bi bi-search"></i>Ingliz tili</a>
+        <a class="qs-chip" href="?q=Marketing"><i class="bi bi-search"></i>Marketing</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var form=document.getElementById('qsForm'),
+      input=document.getElementById('qsInput'),
+      RECENT_KEY='qs_recent_v1', RV_KEY='qs_recently_viewed', BM_KEY='qs_bookmarks';
+
+  function getArr(k){ try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]} }
+  function setArr(k,v){ try{localStorage.setItem(k,JSON.stringify(v))}catch(e){} }
+
+  /* ---- recent searches ---- */
+  var recentBox=document.getElementById('qsRecent'),
+      recentList=document.getElementById('qsRecentList');
+  function renderRecent(){
+    var arr=getArr(RECENT_KEY);
+    if(!arr.length){ recentList.innerHTML='<a style="cursor:default;color:var(--faint)">Hozircha yoʻq</a>'; return; }
+    recentList.innerHTML=arr.map(function(t){
+      return '<a href="?q='+encodeURIComponent(t)+'"><i class="bi bi-clock-history"></i>'+t.replace(/</g,'&lt;')+'</a>';
+    }).join('');
+  }
+  if(input){
+    input.addEventListener('focus',function(){ renderRecent(); if(getArr(RECENT_KEY).length) recentBox.classList.add('show'); });
+    document.addEventListener('click',function(e){ if(!e.target.closest('.qs-cmdwrap')) recentBox.classList.remove('show'); });
+  }
+  var rc=document.getElementById('qsRecentClear');
+  if(rc) rc.addEventListener('click',function(){ setArr(RECENT_KEY,[]); renderRecent(); });
+  if(form){
+    form.addEventListener('submit',function(){
+      var v=(input.value||'').trim(); if(!v) return;
+      var arr=getArr(RECENT_KEY).filter(function(x){return x.toLowerCase()!==v.toLowerCase();});
+      arr.unshift(v); arr=arr.slice(0,6); setArr(RECENT_KEY,arr);
+    });
+  }
+
+  /* ---- voice search ---- */
+  var voiceBtn=document.getElementById('qsVoice');
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(voiceBtn){
+    if(!SR){ voiceBtn.style.display='none'; }
+    else{
+      voiceBtn.addEventListener('click',function(){
+        try{
+          var r=new SR(); r.lang='uz-UZ'; r.interimResults=false;
+          voiceBtn.classList.add('rec');
+          r.onresult=function(ev){ input.value=ev.results[0][0].transcript; voiceBtn.classList.remove('rec'); form.submit(); };
+          r.onerror=function(){ voiceBtn.classList.remove('rec'); };
+          r.onend=function(){ voiceBtn.classList.remove('rec'); };
+          r.start();
+        }catch(e){ voiceBtn.classList.remove('rec'); }
+      });
+    }
+  }
+
+  /* ---- AI panel toggle ---- */
+  var aiBtn=document.getElementById('qsAiBtn'), aiPanel=document.getElementById('qsAiPanel');
+  if(aiBtn) aiBtn.addEventListener('click',function(){ aiPanel.classList.toggle('show'); });
+
+  /* ---- type bar ---- */
+  var typeBar=document.getElementById('qsTypeBar');
+  if(typeBar){
+    var groups=Array.prototype.slice.call(document.querySelectorAll('.qs-resultcol .qs-group'));
+    typeBar.addEventListener('click',function(e){
+      var b=e.target.closest('.qs-tbtn'); if(!b) return;
+      typeBar.querySelectorAll('.qs-tbtn').forEach(function(x){x.classList.remove('active');});
+      b.classList.add('active');
+      var t=b.getAttribute('data-type');
+      groups.forEach(function(g){ g.style.display=(t==='all'||g.getAttribute('data-key')===t)?'':'none'; });
+    });
+  }
+
+  /* ---- smart filters (course grid) ---- */
+  var side=document.getElementById('qsSide');
+  var state={paid:'all',level:'all',dur:'all',rating:'all',sort:'rel'};
+  function applyFilters(){
+    var grid=document.querySelector('[data-grid="course"]'); if(!grid) return;
+    var cards=Array.prototype.slice.call(grid.querySelectorAll('.qs-card'));
+    cards.forEach(function(c){
+      var ok=true;
+      if(state.paid!=='all' && c.dataset.paid!==state.paid) ok=false;
+      if(state.level!=='all' && c.dataset.level!==state.level) ok=false;
+      if(state.dur!=='all' && c.dataset.dur!==state.dur) ok=false;
+      if(state.rating!=='all' && parseFloat(c.dataset.rating)<parseFloat(state.rating)) ok=false;
+      c.style.display=ok?'':'none';
+    });
+    var vis=cards.filter(function(c){return c.style.display!=='none';});
+    if(state.sort!=='rel'){
+      vis.sort(function(a,b){
+        var k=state.sort==='students'?'students':'rating';
+        return parseFloat(b.dataset[k])-parseFloat(a.dataset[k]);
+      });
+      vis.forEach(function(c){ grid.appendChild(c); });
+    }
+  }
+  if(side){
+    side.addEventListener('click',function(e){
+      var chip=e.target.closest('.qs-fchip'); if(!chip) return;
+      var wrap=chip.closest('[data-filter]'); if(!wrap) return;
+      wrap.querySelectorAll('.qs-fchip').forEach(function(x){x.classList.remove('active');});
+      chip.classList.add('active');
+      state[wrap.getAttribute('data-filter')]=chip.getAttribute('data-val');
+      applyFilters();
+    });
+    var clr=document.getElementById('qsClear');
+    if(clr) clr.addEventListener('click',function(){
+      state={paid:'all',level:'all',dur:'all',rating:'all',sort:'rel'};
+      side.querySelectorAll('[data-filter]').forEach(function(w){
+        w.querySelectorAll('.qs-fchip').forEach(function(x,i){ x.classList.toggle('active',i===0); });
+      });
+      applyFilters();
+    });
+  }
+
+  /* ---- bookmarks ---- */
+  function syncBookmarks(){
+    var bm=getArr(BM_KEY);
+    document.querySelectorAll('.qs-bm').forEach(function(btn){
+      var on=bm.indexOf(btn.dataset.bm)>=0;
+      btn.classList.toggle('on',on);
+      btn.querySelector('i').className=on?'bi bi-bookmark-fill':'bi bi-bookmark';
+    });
+  }
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('.qs-bm'); if(!btn) return;
+    e.preventDefault();
+    var bm=getArr(BM_KEY), url=btn.dataset.bm, i=bm.indexOf(url);
+    if(i>=0) bm.splice(i,1); else bm.push(url);
+    setArr(BM_KEY,bm); syncBookmarks();
+  });
+  syncBookmarks();
+
+  /* ---- recently viewed: record clicks on course cards ---- */
+  document.querySelectorAll('.qs-card a.qs-cont').forEach(function(a){
+    a.addEventListener('click',function(){
+      var card=a.closest('.qs-card');
+      var title=(card.querySelector('.qs-ctitle')||{}).textContent||'';
+      var img=(card.querySelector('.qs-thumb img')||{}).src||'';
+      var rv=getArr(RV_KEY).filter(function(x){return x.url!==a.getAttribute('href');});
+      rv.unshift({title:title.trim(),url:a.getAttribute('href'),img:img});
+      setArr(RV_KEY,rv.slice(0,4));
+    });
+  });
+  (function renderRV(){
+    var rv=getArr(RV_KEY); if(!rv.length) return;
+    var sec=document.getElementById('qsRecentlyViewed'), grid=document.getElementById('qsRVGrid');
+    grid.innerHTML=rv.map(function(c){
+      var thumb=c.img?'<img src="'+c.img+'" alt="">':'<span class="qs-thumb-ico"><i class="bi bi-mortarboard-fill"></i></span>';
+      return '<article class="qs-card"><div class="qs-thumb">'+thumb+'</div><div class="qs-cbody"><div class="qs-ctitle">'+(c.title||'Kurs').replace(/</g,'&lt;')+'</div><div class="qs-cfoot"><a class="qs-cont" href="'+c.url+'">Davom ettirish</a></div></div></article>';
+    }).join('');
+    sec.style.display='';
+  })();
+})();
+</script>
+{% endblock %}

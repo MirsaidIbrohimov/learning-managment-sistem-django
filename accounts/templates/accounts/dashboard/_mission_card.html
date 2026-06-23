@@ -1,0 +1,23 @@
+{% comment %} Mission card. with mission={key,title,icon,target,current,reward_xp,done,pct} {% endcomment %}
+<div class="mission-card{% if mission.done %} is-done{% endif %}">
+    {% if mission.done %}
+        <div class="dash-ring is-done" aria-hidden="true"><span><i class="bi bi-check-lg"></i></span></div>
+    {% else %}
+        <div class="dash-ring" style="--pct:{{ mission.pct|default:0 }}" aria-hidden="true">
+            <span>{{ mission.pct|default:0 }}%</span>
+        </div>
+    {% endif %}
+    <div class="mc-body">
+        <div class="mc-title">
+            {% if mission.icon %}<i class="bi bi-{{ mission.icon }}" aria-hidden="true"></i>{% endif %}
+            {{ mission.title|default:'Vazifa' }}
+        </div>
+        <div class="mc-sub">{{ mission.current|default:0 }} / {{ mission.target|default:0 }}</div>
+        {% if mission.reward_xp %}
+            <div class="mc-reward">+{{ mission.reward_xp }} XP</div>
+        {% endif %}
+    </div>
+    {% if mission.done %}
+        <i class="bi bi-patch-check-fill mc-check" aria-hidden="true" title="Bajarildi"></i>
+    {% endif %}
+</div>
