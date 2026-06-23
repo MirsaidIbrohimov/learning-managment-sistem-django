@@ -1,4 +1,5 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
 
 {% block title %}Vazifani tekshirish - Admin Panel{% endblock %}
 
@@ -368,6 +369,28 @@
         max-width: 100%;
         box-sizing: border-box;
     }
+    /* Robust, xavfsiz matnli javob ko'rinishi (iframe o'rniga) */
+    .gh-page .gh-text-toolbar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 0 .6rem; font-size: .8rem; color: var(--bs-secondary-color, #6c757d); font-weight: 600;
+    }
+    .gh-page .gh-text-toolbar i { color: #818cf8; }
+    .gh-page .gh-copy-btn {
+        display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 9px;
+        background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.25); color: #6366f1;
+        font-weight: 600; font-size: .76rem; cursor: pointer; transition: all .2s;
+    }
+    .gh-page .gh-copy-btn:hover { background: rgba(99,102,241,.18); transform: translateY(-1px); }
+    .gh-page .gh-copy-btn.copied { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.4); color: #16a34a; }
+    .gh-page .gh-text-answer {
+        white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
+        font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+        font-size: .9rem; line-height: 1.75; color: var(--bs-body-color, #1e293b);
+        background: rgba(99,102,241,.05); border: 1px solid rgba(99,102,241,.18);
+        border-radius: 12px; padding: 1rem 1.15rem; max-height: 460px; overflow-y: auto;
+        animation: ghFadeUp .4s cubic-bezier(.22,.61,.36,1);
+    }
+    @keyframes ghFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
     /* actions */
     .gh-page .gh-actions {
@@ -1327,7 +1350,13 @@
                         <div style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">{{ submission.submitted_at|date:"d.m.Y H:i" }}</div>
                     </div>
                 </div>
-                <div class="gh-text-body"><iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:200px;" onload="this.style.height=this.contentDocument.body.scrollHeight+'px';"></iframe></div>
+                <div class="gh-text-body">
+                    <div class="gh-text-toolbar">
+                        <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
+                        <button type="button" class="gh-copy-btn" onclick="ghCopyAnswer(this)" title="Nusxalash"><i class="bi bi-clipboard"></i> Nusxalash</button>
+                    </div>
+                    <div class="gh-text-answer">{{ submission.text_content|submission_plain }}</div>
+                </div>
                 {% endif %}
             </div>
 
@@ -1814,6 +1843,14 @@ Masalan:
 </div>
 
 <script>
+    function ghCopyAnswer(btn) {
+        var box = btn.closest('.gh-text-body').querySelector('.gh-text-answer');
+        if (!box) return;
+        var txt = box.innerText;
+        var done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash'; }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(function () {}); }
+        else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
+    }
     function updateCharCount(textarea) {
         const count = textarea.value.length;
         const maxCount = parseInt(textarea.getAttribute('data-max'));

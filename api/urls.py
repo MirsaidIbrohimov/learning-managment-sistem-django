@@ -46,4 +46,10 @@ urlpatterns = [
     path('games/external/mp/state/',  games_external_api.mp_state,  name='external_game_mp_state'),
     path('games/external/mp/move/',   games_external_api.mp_move,   name='external_game_mp_move'),
     path('games/external/mp/resign/', games_external_api.mp_resign, name='external_game_mp_resign'),
+    path('games/external/mp/room/',   games_external_api.mp_room,   name='external_game_mp_room'),
+
+    # Gamification (XP / level / streak / achievements / leaderboard)
+    path('games/external/gx/profile/',     games_external_api.gx_profile,     name='external_game_gx_profile'),
+    path('games/external/gx/complete/',    games_external_api.gx_complete,    name='external_game_gx_complete'),
+    path('games/external/gx/leaderboard/', games_external_api.gx_leaderboard, name='external_game_gx_leaderboard'),
 ]

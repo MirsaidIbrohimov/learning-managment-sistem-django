@@ -1,0 +1,781 @@
+<script>
+/* Unified Messenger-style chat controller (polling-based, no websockets).
+   Drives the two-pane /chat page: sidebar (direct + group threads merged)
+   on the left, active conversation on the right. Mobile: single pane that
+   slides between list <-> chat via the .mz-chat-open class on #mzShell. */
+window.MZChat = (function(){
+
+    // Keep in sync with accounts.models.MessageReaction.EMOJI_CHOICES
+    var REACT_EMOJIS = ['👍','❤️','😂','😮','😢','🔥'];
+    var EMOJI_LIST = ['😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😴',
+                       '😢','😭','😡','👍','👎','👏','🙏','🔥','🎉','❤️',
+                       '💯','✅','❌','😮','🥳','🤩','🙌','👌','✨','🤝',
+                       '😅','😇','🤗','😜','🥰','😱','🤯','🫡'];
+
+    var POLL_MSG_MS     = 4000;
+    var POLL_TYPING_MS  = 4000;
+    var POLL_SIDEBAR_MS = 8000;
+    var TYPING_PING_MS  = 4000;
+
+    var dom = {};
+    var state = {
+        cfg: null, items: [], extraUsers: [], filter: 'all',
+        currentKind: null, currentId: null, currentCanModerate: false,
+        msgCache: {}, seenMsgIds: {}, lastMsgId: 0,
+        replyTo: null, editingId: null, sending: false,
+        pollTimer: null, typingTimer: null,
+        forwardId: null, forwardKind: null,
+    };
+
+    function esc(s){
+        return (s||'').toString().replace(/[&<>"']/g, function(c){
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+    function escAttr(s){ return esc(s).replace(/\n/g,' '); }
+
+    function urlFor(key, id, kind){
+        var u = state.cfg.urls[key];
+        if(kind) u = u.replace('KIND', kind);
+        if(id !== undefined && id !== null) u = u.replace('999999999', id);
+        return u;
+    }
+
+    function findItem(kind, id){
+        return (state.items||[]).filter(function(it){
+            return it.kind===kind && String(it.id)===String(id);
+        })[0];
+    }
+
+    // ───────────────────────── Sidebar ─────────────────────────
+    function loadSidebar(){
+        fetch(state.cfg.urls.sidebar, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(!d.ok) return;
+            state.items = d.items;
+            renderSidebar();
+        }).catch(function(){});
+    }
+
+    function buildRow(it){
+        var row = document.createElement('div');
+        row.className = 'mz-row' + ((it.kind===state.currentKind && String(it.id)===String(state.currentId)) ? ' active' : '');
+        row.dataset.kind = it.kind; row.dataset.id = it.id;
+        var avaHtml = it.photo
+            ? '<img class="mz-row-ava" src="'+esc(it.photo)+'">'
+            : '<div class="mz-row-ava-fb">'+esc(it.initials||'?')+'</div>';
+        var dotHtml = it.kind==='dm' ? ('<span class="mz-row-dot '+(it.is_online?'on':'off')+'"></span>') : '';
+        var kindBadge = it.kind==='group' ? '<span class="mz-row-kind group"><i class="bi bi-people-fill"></i></span>' : '';
+        var pre = it.is_mine_last ? 'Siz: ' : '';
+        row.innerHTML =
+            '<div style="position:relative;flex:0 0 48px;">'+avaHtml+dotHtml+kindBadge+'</div>'+
+            '<div class="mz-row-body">'+
+                '<div class="mz-row-top"><div class="mz-row-name">'+esc(it.name)+'</div><div class="mz-row-time">'+esc(it.last_at||'')+'</div></div>'+
+                '<div class="mz-row-bottom"><div class="mz-row-last">'+esc(pre)+esc(it.last_message||'')+'</div>'+
+                    (it.pinned ? '<i class="bi bi-pin-angle-fill mz-row-pin"></i>' : '') +
+                    (it.unread ? '<div class="mz-row-badge">'+it.unread+'</div>' : '') +
+                '</div>'+
+            '</div>';
+        row.addEventListener('click', function(){ openConversation(it.kind, it.id, true, it); });
+        return row;
+    }
+
+    function renderSidebar(){
+        var q = (dom.search.value||'').trim().toLowerCase();
+        var list = (state.items||[]).filter(function(it){
+            if(state.filter!=='all' && it.kind!==state.filter) return false;
+            if(q && it.name.toLowerCase().indexOf(q)===-1) return false;
+            return true;
+        });
+        dom.list.innerHTML = '';
+        if(!list.length && !(q && state.extraUsers && state.extraUsers.length)){
+            dom.list.innerHTML = '<div class="mz-empty"><i class="bi bi-inbox"></i>Hozircha suhbatlar yo\'q.</div>';
+        } else {
+            list.forEach(function(it){ dom.list.appendChild(buildRow(it)); });
+        }
+        if(q && state.extraUsers && state.extraUsers.length){
+            var hdr = document.createElement('div');
+            hdr.style.cssText = 'padding:10px 10px 4px;font-size:.7rem;font-weight:700;color:var(--mz-muted);text-transform:uppercase;letter-spacing:.03em;';
+            hdr.textContent = 'Yangi xabar';
+            dom.list.appendChild(hdr);
+            state.extraUsers.forEach(function(u){
+                dom.list.appendChild(buildRow({
+                    kind:'dm', id:u.id, name:u.name, photo:u.photo, initials:u.initials,
+                    is_online:u.is_online, last_message:'', last_at:'', unread:0, pinned:false
+                }));
+            });
+        }
+        if(state.currentKind && state.currentId){
+            var cur = findItem(state.currentKind, state.currentId);
+            if(cur) dom.pinBtn.classList.toggle('pinned', !!cur.pinned);
+        }
+    }
+
+    var sideSearchTimer = null;
+    function onSidebarSearchInput(){
+        renderSidebar();
+        var q = dom.search.value.trim();
+        clearTimeout(sideSearchTimer);
+        if(q.length < 2){ state.extraUsers = []; renderSidebar(); return; }
+        sideSearchTimer = setTimeout(function(){
+            fetch(state.cfg.urls.search+'?q='+encodeURIComponent(q), {headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if(!d.ok) return;
+                var existingIds = {};
+                (state.items||[]).forEach(function(it){ if(it.kind==='dm') existingIds[it.id]=true; });
+                state.extraUsers = d.users.filter(function(u){ return !existingIds[u.id]; });
+                renderSidebar();
+            }).catch(function(){});
+        }, 300);
+    }
+
+    // ───────────────────────── Conversation open/close ─────────────────────────
+    function openConversation(kind, id, pushHistory, itemData){
+        resetComposer();
+        state.currentKind = kind;
+        state.currentId = id;
+        state.msgCache = {};
+        state.seenMsgIds = {};
+        state.lastMsgId = 0;
+        dom.body.innerHTML = '<div class="mz-empty" id="mzBodyLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>';
+        dom.body.style.display = '';
+        dom.head.style.display = '';
+        dom.foot.style.display = '';
+        dom.placeholder.style.display = 'none';
+        dom.typing.style.display = 'none';
+
+        var item = itemData || findItem(kind, id);
+        state.currentCanModerate = item ? !!item.can_moderate :
+            ((kind===state.cfg.initialKind && String(id)===String(state.cfg.initialId)) ? state.cfg.initialCanModerate : false);
+        renderHeader(item, kind);
+
+        dom.shell.classList.add('mz-chat-open');
+        document.querySelectorAll('.mz-row').forEach(function(r){
+            r.classList.toggle('active', r.dataset.kind===kind && String(r.dataset.id)===String(id));
+        });
+
+        if(pushHistory){
+            var url = kind==='dm' ? urlFor('dmPage', id) : urlFor('groupPage', id);
+            history.pushState({kind:kind, id:id}, '', url);
+        }
+
+        loadMessages(true);
+        if(state.pollTimer) clearInterval(state.pollTimer);
+        state.pollTimer = setInterval(loadMessages, POLL_MSG_MS);
+        startTypingPoll();
+    }
+
+    function closeConversation(pushHistory){
+        state.currentKind = null; state.currentId = null;
+        if(state.pollTimer) clearInterval(state.pollTimer);
+        if(state.typingTimer) clearInterval(state.typingTimer);
+        dom.shell.classList.remove('mz-chat-open');
+        dom.head.style.display = 'none';
+        dom.body.style.display = 'none';
+        dom.foot.style.display = 'none';
+        dom.typing.style.display = 'none';
+        dom.placeholder.style.display = 'flex';
+        document.querySelectorAll('.mz-row').forEach(function(r){ r.classList.remove('active'); });
+        if(pushHistory) history.pushState({}, '', state.cfg.urls.inboxPage);
+    }
+
+    function renderHeader(item, kind){
+        if(!item) return;
+        dom.headName.textContent = item.name;
+        dom.headSub.innerHTML = (kind==='dm' ? ('<span class="mz-dot '+(item.is_online?'on':'off')+'"></span>') : '') + esc(item.sub||'');
+        if(item.photo){
+            dom.headAva.outerHTML = '<img src="'+esc(item.photo)+'" class="mz-ava" id="mzHeadAva">';
+        } else {
+            dom.headAva.outerHTML = '<div class="mz-ava-fb" id="mzHeadAva">'+(kind==='group' ? '<i class="bi bi-people-fill"></i>' : esc(item.initials||'?'))+'</div>';
+        }
+        dom.headAva = document.getElementById('mzHeadAva');
+        dom.pinBtn.classList.toggle('pinned', !!item.pinned);
+    }
+
+    // ───────────────────────── Messages ─────────────────────────
+    function loadMessages(forceScroll){
+        if(!state.currentKind) return;
+        var key = state.currentKind==='dm' ? 'dmMessages' : 'groupMessages';
+        fetch(urlFor(key, state.currentId), {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(!d.ok) return;
+            reconcile(d.messages, forceScroll);
+        }).catch(function(){});
+    }
+
+    function atBottom(){ return dom.body.scrollHeight - dom.body.scrollTop - dom.body.clientHeight < 150; }
+    function scrollDown(){ dom.body.scrollTop = dom.body.scrollHeight; }
+
+    function reconcile(list, forceScroll){
+        var loading = document.getElementById('mzBodyLoading');
+        if(loading) loading.remove();
+
+        if(!list.length){
+            if(!dom.body.children.length){
+                dom.body.innerHTML = '<div class="mz-empty"><i class="bi bi-chat-heart"></i>Suhbatni boshlang!</div>';
+            }
+            return;
+        }
+        var stick = forceScroll || atBottom();
+        var emptyEl = dom.body.querySelector('.mz-empty');
+        if(emptyEl) emptyEl.remove();
+
+        var freshIds = {};
+        var ids = [];
+        list.forEach(function(m){
+            freshIds[m.id] = true;
+            ids.push(m.id);
+            state.msgCache[m.id] = m;
+            var existing = document.getElementById('mzMsg'+m.id);
+            if(existing){
+                existing.outerHTML = buildMsgRow(m);
+            } else {
+                dom.body.insertAdjacentHTML('beforeend', buildMsgRow(m));
+            }
+            state.seenMsgIds[m.id] = true;
+            if(m.id > state.lastMsgId) state.lastMsgId = m.id;
+        });
+
+        var minId = Math.min.apply(null, ids), maxId = Math.max.apply(null, ids);
+        Object.keys(state.seenMsgIds).forEach(function(idStr){
+            var id = parseInt(idStr, 10);
+            if(id >= minId && id <= maxId && !freshIds[id]){
+                var el = document.getElementById('mzMsg'+id);
+                if(el) el.remove();
+                delete state.seenMsgIds[id];
+                delete state.msgCache[id];
+            }
+        });
+
+        if(stick) scrollDown();
+    }
+
+    function rerenderMsg(id){
+        var el = document.getElementById('mzMsg'+id);
+        if(el && state.msgCache[id]) el.outerHTML = buildMsgRow(state.msgCache[id]);
+    }
+
+    function formatTime(ts){
+        var d = new Date(ts*1000);
+        var h = ('0'+d.getHours()).slice(-2), mi = ('0'+d.getMinutes()).slice(-2);
+        return h+':'+mi;
+    }
+
+    function ticksHtml(m){
+        if(!m.is_me || state.currentKind!=='dm') return '';
+        if(m.is_read) return ' <i class="bi bi-check2-all mz-tick read"></i>';
+        if(m.is_delivered) return ' <i class="bi bi-check2-all mz-tick"></i>';
+        return ' <i class="bi bi-check2 mz-tick"></i>';
+    }
+
+    function reactionsHtml(m){
+        if(!m.reactions || !m.reactions.length) return '';
+        var html = '<div class="mz-react-row">';
+        m.reactions.forEach(function(r){
+            html += '<span class="mz-react-pill'+(r.mine?' mine':'')+'" data-react="'+esc(r.emoji)+'">'+esc(r.emoji)+' '+r.count+'</span>';
+        });
+        html += '</div>';
+        return html;
+    }
+
+    function fileHtml(m){
+        if(!m.file_url) return '';
+        var isImg = /\.(png|jpe?g|gif|webp)$/i.test(m.file_url);
+        if(isImg) return '<a class="mz-file" href="'+esc(m.file_url)+'" target="_blank"><img src="'+esc(m.file_url)+'"></a>';
+        return '<a class="mz-file" href="'+esc(m.file_url)+'" target="_blank"><i class="bi bi-paperclip"></i>'+esc(m.file_name||'Fayl')+'</a>';
+    }
+
+    function actionsHtml(m){
+        var canDelete = m.is_me || state.cfg.isAdmin || (state.currentKind==='group' && state.currentCanModerate);
+        var html = '<div class="mz-actions">';
+        html += '<div class="mz-act-btn" data-act="react" title="Reaksiya"><i class="bi bi-emoji-smile"></i></div>';
+        html += '<div class="mz-act-btn" data-act="reply" title="Javob"><i class="bi bi-reply-fill"></i></div>';
+        html += '<div class="mz-act-btn" data-act="copy" title="Nusxa"><i class="bi bi-clipboard"></i></div>';
+        html += '<div class="mz-act-btn" data-act="forward" title="Forward"><i class="bi bi-share-fill"></i></div>';
+        if(m.is_me) html += '<div class="mz-act-btn" data-act="edit" title="Tahrirlash"><i class="bi bi-pencil-fill"></i></div>';
+        if(canDelete) html += '<div class="mz-act-btn danger" data-act="delete" title="O\'chirish"><i class="bi bi-trash-fill"></i></div>';
+        html += '</div>';
+        return html;
+    }
+
+    function buildMsgRow(m){
+        var isGroup = state.currentKind==='group';
+        var cls = 'mz-row-msg ' + (m.is_me?'me':'other');
+        var avaHtml = '';
+        if(isGroup && !m.is_me && m.sender){
+            avaHtml = m.sender.photo
+                ? '<img class="mz-msg-ava" src="'+esc(m.sender.photo)+'">'
+                : '<div class="mz-msg-ava-fb">'+esc(m.sender.initials||'?')+'</div>';
+        }
+        var bubble = '<div class="mz-bubble-wrap"><div class="mz-bubble">';
+        if(isGroup && !m.is_me && m.sender){
+            bubble += '<div class="mz-sender">'+esc(m.sender.name)+'</div>';
+        }
+        if(m.reply_to){
+            bubble += '<div class="mz-quote" data-goto="'+m.reply_to.id+'"><span class="qn">'+esc(m.reply_to.sender_name)+'</span><span class="qs">'+esc(m.reply_to.snippet)+'</span></div>';
+        }
+        if(m.message){
+            bubble += '<div class="mz-msg-text">'+esc(m.message).replace(/\n/g,'<br>')+'</div>';
+        }
+        bubble += fileHtml(m);
+        if(m.is_forwarded){
+            bubble += '<div class="mz-tag"><i class="bi bi-share"></i> Forward: '+esc(m.forwarded_from||'')+'</div>';
+        }
+        bubble += reactionsHtml(m);
+        bubble += '<div class="mz-meta-row">';
+        if(m.is_edited) bubble += '<span class="mz-tag">tahrirlangan</span>';
+        bubble += '<span class="mz-time">'+formatTime(m.ts)+'</span>';
+        bubble += ticksHtml(m);
+        bubble += '</div></div>';
+        bubble += actionsHtml(m);
+        bubble += '</div>';
+
+        var senderName = (isGroup && m.sender) ? m.sender.name : '';
+        return '<div class="'+cls+'" id="mzMsg'+m.id+'" data-id="'+m.id+'" data-kind="'+state.currentKind+'" '+
+               'data-text="'+escAttr(m.message||'')+'" data-sender="'+escAttr(senderName)+'">'+avaHtml+bubble+'</div>';
+    }
+
+    // ───────────────────────── Message actions ─────────────────────────
+    function onBodyClick(e){
+        var quote = e.target.closest('.mz-quote');
+        if(quote){
+            var target = document.getElementById('mzMsg'+quote.dataset.goto);
+            if(target) target.scrollIntoView({behavior:'smooth', block:'center'});
+            return;
+        }
+        var pill = e.target.closest('.mz-react-pill');
+        if(pill){
+            var prow = pill.closest('.mz-row-msg');
+            sendReact(prow.dataset.id, pill.dataset.react);
+            return;
+        }
+        var actBtn = e.target.closest('.mz-act-btn');
+        if(actBtn){
+            var row = actBtn.closest('.mz-row-msg');
+            handleAction(actBtn.dataset.act, row);
+            return;
+        }
+    }
+
+    function handleAction(act, row){
+        var id = row.dataset.id;
+        var text = row.dataset.text;
+        var sender = row.classList.contains('me') ? 'Siz' : (row.dataset.sender || '');
+        switch(act){
+            case 'reply':
+                state.replyTo = {id:id, name: sender || 'Xabar', snippet: text.slice(0,80)};
+                showReplyBar();
+                break;
+            case 'copy':
+                if(navigator.clipboard) navigator.clipboard.writeText(text).catch(function(){});
+                break;
+            case 'edit':
+                startEdit(id, text);
+                break;
+            case 'delete':
+                if(confirm("Xabarni o'chirishni tasdiqlaysizmi?")) sendDelete(id);
+                break;
+            case 'forward':
+                openForwardModal(id);
+                break;
+            case 'react':
+                toggleReactPicker(row, id);
+                break;
+        }
+    }
+
+    function sendReact(id, emoji){
+        closeReactPicker();
+        fetch(urlFor('msgReact', id, state.currentKind), {
+            method:'POST',
+            headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+            body: new URLSearchParams({emoji: emoji})
+        }).then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.ok && state.msgCache[id]){
+                state.msgCache[id].reactions = d.reactions;
+                rerenderMsg(id);
+            }
+        }).catch(function(){});
+    }
+
+    function sendDelete(id){
+        fetch(urlFor('msgDelete', id, state.currentKind), {
+            method:'POST',
+            headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'}
+        }).then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.ok){
+                var el = document.getElementById('mzMsg'+id);
+                if(el) el.remove();
+                delete state.seenMsgIds[id];
+                delete state.msgCache[id];
+                loadSidebar();
+            } else {
+                alert(d.error || "O'chirilmadi");
+            }
+        }).catch(function(){});
+    }
+
+    function toggleReactPicker(row, id){
+        closeReactPicker();
+        var pop = document.createElement('div');
+        pop.className = 'mz-emoji-pop';
+        pop.id = 'mzReactPop';
+        REACT_EMOJIS.forEach(function(em){
+            var span = document.createElement('span');
+            span.textContent = em;
+            span.addEventListener('click', function(){ sendReact(id, em); });
+            pop.appendChild(span);
+        });
+        row.querySelector('.mz-bubble-wrap').appendChild(pop);
+        setTimeout(function(){ document.addEventListener('click', closeReactPickerOnce); }, 0);
+    }
+    function closeReactPicker(){
+        var old = document.getElementById('mzReactPop');
+        if(old) old.remove();
+        document.removeEventListener('click', closeReactPickerOnce);
+    }
+    function closeReactPickerOnce(e){
+        if(!e.target.closest('.mz-emoji-pop') && !e.target.closest('[data-act="react"]')) closeReactPicker();
+    }
+
+    // ───────────────────────── Reply / edit composer modes ─────────────────────────
+    function showReplyBar(){
+        state.editingId = null;
+        dom.replyLabel.textContent = 'Javob: ' + state.replyTo.name;
+        dom.replySnippet.textContent = state.replyTo.snippet;
+        dom.replyBar.style.display = 'flex';
+        dom.send.classList.remove('editing');
+        dom.input.focus();
+    }
+    function startEdit(id, text){
+        state.replyTo = null;
+        state.editingId = id;
+        dom.replyLabel.textContent = 'Tahrirlash';
+        dom.replySnippet.textContent = text;
+        dom.replyBar.style.display = 'flex';
+        dom.send.classList.add('editing');
+        dom.input.value = text;
+        autoGrow();
+        dom.input.focus();
+    }
+    function onReplyClose(){
+        if(state.editingId){ dom.input.value=''; autoGrow(); }
+        state.replyTo = null; state.editingId = null;
+        dom.replyBar.style.display = 'none';
+        dom.send.classList.remove('editing');
+    }
+
+    // ───────────────────────── Composer: send / edit submit ─────────────────────────
+    function onFormSubmit(e){
+        e.preventDefault();
+        if(state.sending || !state.currentKind) return;
+        var text = dom.input.value.trim();
+        var hasFile = dom.file.files.length;
+        if(!text && !hasFile) return;
+
+        if(state.editingId){ submitEdit(state.editingId, text); return; }
+
+        state.sending = true; dom.send.disabled = true;
+        var fd = new FormData();
+        fd.append('message', text);
+        if(hasFile) fd.append('file', dom.file.files[0]);
+        if(state.replyTo) fd.append('reply_to', state.replyTo.id);
+
+        var key = state.currentKind==='dm' ? 'dmSend' : 'groupSend';
+        fetch(urlFor(key, state.currentId), {
+            method:'POST',
+            headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+            body: fd
+        }).then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.ok && d.message){
+                reconcile([d.message], true);
+                resetComposerInput();
+                loadSidebar();
+            } else {
+                alert(d.error || 'Xabar yuborilmadi');
+            }
+        }).catch(function(){ alert('Tarmoq xatosi'); })
+        .finally(function(){ state.sending=false; dom.send.disabled=false; dom.input.focus(); });
+    }
+
+    function submitEdit(id, text){
+        if(!text){ alert("Xabar matni bo'sh bo'lishi mumkin emas"); return; }
+        fetch(urlFor('msgEdit', id, state.currentKind), {
+            method:'POST',
+            headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+            body: new URLSearchParams({message: text})
+        }).then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.ok && d.message){
+                reconcile([d.message], false);
+                resetComposerInput();
+            } else {
+                alert(d.error || 'Tahrirlanmadi');
+            }
+        }).catch(function(){ alert('Tarmoq xatosi'); });
+    }
+
+    function resetComposerInput(){
+        dom.input.value=''; autoGrow();
+        if(dom.file){ dom.file.value=''; dom.fileChip.style.display='none'; }
+        state.replyTo=null; state.editingId=null;
+        dom.replyBar.style.display='none';
+        dom.send.classList.remove('editing');
+    }
+    function resetComposer(){
+        closeReactPicker();
+        dom.emojiPanel.style.display='none';
+        resetComposerInput();
+    }
+
+    // ───────────────────────── Forward modal ─────────────────────────
+    function openForwardModal(id){
+        state.forwardId = id;
+        state.forwardKind = state.currentKind;
+        dom.fwdBackdrop.style.display = 'flex';
+        dom.fwdSearch.value = '';
+        renderForwardList(state.items||[]);
+        dom.fwdSearch.focus();
+    }
+    function renderForwardList(items){
+        dom.fwdList.innerHTML = '';
+        items.forEach(function(it){
+            var row = document.createElement('div');
+            row.className = 'mz-row';
+            var avaHtml = it.photo
+                ? '<img class="mz-row-ava" src="'+esc(it.photo)+'">'
+                : '<div class="mz-row-ava-fb">'+esc(it.initials||'?')+'</div>';
+            row.innerHTML = '<div style="flex:0 0 48px;">'+avaHtml+'</div><div class="mz-row-body"><div class="mz-row-name">'+esc(it.name)+'</div></div>';
+            row.addEventListener('click', function(){ doForward(it.kind, it.id); });
+            dom.fwdList.appendChild(row);
+        });
+    }
+    var fwdSearchTimer = null;
+    function onFwdSearchInput(){
+        var q = dom.fwdSearch.value.trim();
+        clearTimeout(fwdSearchTimer);
+        if(q.length < 2){ renderForwardList(state.items||[]); return; }
+        fwdSearchTimer = setTimeout(function(){
+            fetch(state.cfg.urls.search+'?q='+encodeURIComponent(q), {headers:{'X-Requested-With':'XMLHttpRequest'}})
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+                if(!d.ok) return;
+                renderForwardList(d.users.map(function(u){
+                    return {kind:'dm', id:u.id, name:u.name, photo:u.photo, initials:u.initials};
+                }));
+            }).catch(function(){});
+        }, 300);
+    }
+    function doForward(toKind, toId){
+        fetch(urlFor('msgForward', state.forwardId, state.forwardKind), {
+            method:'POST',
+            headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+            body: new URLSearchParams({to_kind: toKind, to_id: toId})
+        }).then(function(r){ return r.json(); })
+        .then(function(d){
+            dom.fwdBackdrop.style.display = 'none';
+            if(d.ok && d.message){
+                if(toKind===state.currentKind && String(toId)===String(state.currentId)){
+                    reconcile([d.message], true);
+                }
+                loadSidebar();
+            } else {
+                alert(d.error || 'Forward qilinmadi');
+            }
+        }).catch(function(){ alert('Tarmoq xatosi'); });
+    }
+
+    // ───────────────────────── Typing indicator ─────────────────────────
+    function startTypingPoll(){
+        if(state.typingTimer) clearInterval(state.typingTimer);
+        pollTyping();
+        state.typingTimer = setInterval(pollTyping, POLL_TYPING_MS);
+    }
+    function pollTyping(){
+        if(!state.currentKind) return;
+        var url = state.cfg.urls.typingStatus + '?kind=' + state.currentKind + '&target_id=' + state.currentId;
+        fetch(url, {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(!d.ok) return;
+            if(state.currentKind==='dm'){
+                dom.typing.style.display = d.typing ? '' : 'none';
+                dom.typing.textContent = d.typing ? 'yozyapti...' : '';
+            } else {
+                var names = d.typing_users || [];
+                dom.typing.style.display = names.length ? '' : 'none';
+                dom.typing.textContent = names.length ? (names.join(', ')+' yozyapti...') : '';
+            }
+        }).catch(function(){});
+    }
+    var typingPingAt = 0;
+    function onInputTyping(){
+        autoGrow();
+        if(!state.currentKind) return;
+        var now = Date.now();
+        if(now - typingPingAt > TYPING_PING_MS){
+            typingPingAt = now;
+            fetch(state.cfg.urls.typingPing, {
+                method:'POST',
+                headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+                body: new URLSearchParams({kind: state.currentKind, target_id: state.currentId})
+            }).catch(function(){});
+        }
+    }
+
+    // ───────────────────────── Misc UI wiring ─────────────────────────
+    function autoGrow(){
+        dom.input.style.height = 'auto';
+        dom.input.style.height = Math.min(dom.input.scrollHeight, 120) + 'px';
+    }
+    function buildEmojiPanel(){
+        dom.emojiPanel.innerHTML = '';
+        EMOJI_LIST.forEach(function(em){
+            var span = document.createElement('span');
+            span.textContent = em;
+            span.addEventListener('click', function(){ insertEmoji(em); });
+            dom.emojiPanel.appendChild(span);
+        });
+    }
+    function insertEmoji(em){
+        var start = dom.input.selectionStart || dom.input.value.length;
+        var end = dom.input.selectionEnd || dom.input.value.length;
+        dom.input.value = dom.input.value.slice(0,start) + em + dom.input.value.slice(end);
+        var pos = start + em.length;
+        dom.input.focus();
+        dom.input.setSelectionRange(pos,pos);
+        autoGrow();
+    }
+
+    function wireEvents(){
+        dom.search.addEventListener('input', onSidebarSearchInput);
+        dom.filters.forEach(function(btn){
+            btn.addEventListener('click', function(){
+                dom.filters.forEach(function(b){ b.classList.remove('active'); });
+                btn.classList.add('active');
+                state.filter = btn.dataset.filter;
+                renderSidebar();
+            });
+        });
+
+        dom.back.addEventListener('click', function(){ closeConversation(true); });
+        dom.pinBtn.addEventListener('click', function(){
+            if(!state.currentKind) return;
+            fetch(state.cfg.urls.pin, {
+                method:'POST',
+                headers:{'X-CSRFToken': state.cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+                body: new URLSearchParams({kind: state.currentKind, target_id: state.currentId})
+            }).then(function(r){ return r.json(); })
+            .then(function(d){
+                if(d.ok){ dom.pinBtn.classList.toggle('pinned', d.pinned); loadSidebar(); }
+            }).catch(function(){});
+        });
+
+        dom.body.addEventListener('click', onBodyClick);
+
+        dom.replyClose.addEventListener('click', onReplyClose);
+        dom.form.addEventListener('submit', onFormSubmit);
+        dom.input.addEventListener('input', onInputTyping);
+        dom.input.addEventListener('keydown', function(e){
+            if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); dom.form.requestSubmit(); }
+        });
+        dom.file.addEventListener('change', function(){
+            if(dom.file.files.length){
+                dom.fileName.textContent = dom.file.files[0].name;
+                dom.fileChip.style.display = 'flex';
+            }
+        });
+        dom.fileClear.addEventListener('click', function(){ dom.file.value=''; dom.fileChip.style.display='none'; });
+
+        dom.emojiBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            dom.emojiPanel.style.display = (dom.emojiPanel.style.display==='none') ? 'grid' : 'none';
+        });
+        document.addEventListener('click', function(e){
+            if(dom.emojiPanel.style.display!=='none' && !e.target.closest('#mzEmojiPanel') && !e.target.closest('#mzEmojiBtn')){
+                dom.emojiPanel.style.display = 'none';
+            }
+        });
+
+        dom.fwdClose.addEventListener('click', function(){ dom.fwdBackdrop.style.display='none'; });
+        dom.fwdBackdrop.addEventListener('click', function(e){ if(e.target===dom.fwdBackdrop) dom.fwdBackdrop.style.display='none'; });
+        dom.fwdSearch.addEventListener('input', onFwdSearchInput);
+
+        document.addEventListener('visibilitychange', function(){
+            if(!document.hidden){
+                loadSidebar();
+                if(state.currentKind) loadMessages();
+            }
+        });
+        window.addEventListener('popstate', function(e){
+            var st = e.state;
+            if(st && st.kind && st.id){ openConversation(st.kind, st.id, false); }
+            else { closeConversation(false); }
+        });
+    }
+
+    function cacheDom(){
+        dom.shell = document.getElementById('mzShell');
+        dom.side = document.getElementById('mzSide');
+        dom.search = document.getElementById('mzSearch');
+        dom.filters = document.querySelectorAll('.mz-filter');
+        dom.list = document.getElementById('mzList');
+        dom.main = document.getElementById('mzMain');
+        dom.head = document.getElementById('mzHead');
+        dom.back = document.getElementById('mzBack');
+        dom.headAva = document.getElementById('mzHeadAva');
+        dom.headName = document.getElementById('mzHeadName');
+        dom.headSub = document.getElementById('mzHeadSub');
+        dom.pinBtn = document.getElementById('mzPinBtn');
+        dom.body = document.getElementById('mzBody');
+        dom.typing = document.getElementById('mzTyping');
+        dom.foot = document.getElementById('mzFoot');
+        dom.replyBar = document.getElementById('mzReplyBar');
+        dom.replyLabel = document.getElementById('mzReplyLabel');
+        dom.replySnippet = document.getElementById('mzReplySnippet');
+        dom.replyClose = document.getElementById('mzReplyClose');
+        dom.fileChip = document.getElementById('mzFileChip');
+        dom.fileName = document.getElementById('mzFileName');
+        dom.fileClear = document.getElementById('mzFileClear');
+        dom.file = document.getElementById('mzFile');
+        dom.emojiPanel = document.getElementById('mzEmojiPanel');
+        dom.emojiBtn = document.getElementById('mzEmojiBtn');
+        dom.form = document.getElementById('mzForm');
+        dom.input = document.getElementById('mzInput');
+        dom.send = document.getElementById('mzSend');
+        dom.placeholder = document.getElementById('mzPlaceholder');
+        dom.fwdBackdrop = document.getElementById('mzFwdBackdrop');
+        dom.fwdClose = document.getElementById('mzFwdClose');
+        dom.fwdSearch = document.getElementById('mzFwdSearch');
+        dom.fwdList = document.getElementById('mzFwdList');
+    }
+
+    function init(cfg){
+        state.cfg = cfg;
+        state.filter = cfg.filter || 'all';
+        state.currentKind = cfg.initialKind || null;
+        state.currentId = cfg.initialId || null;
+        state.currentCanModerate = !!cfg.initialCanModerate;
+
+        cacheDom();
+        wireEvents();
+        buildEmojiPanel();
+        loadSidebar();
+        setInterval(loadSidebar, POLL_SIDEBAR_MS);
+
+        if(state.currentKind && state.currentId){
+            loadMessages(true);
+            state.pollTimer = setInterval(loadMessages, POLL_MSG_MS);
+            startTypingPoll();
+        }
+    }
+
+    return { init: init };
+})();
+</script>

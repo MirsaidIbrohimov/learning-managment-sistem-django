@@ -185,6 +185,12 @@
     opacity: 0.4;
 }
 
+/* Joriy so'z uchun harfma-harf (live) aniqlik ko'rsatkichi */
+.ltr-ok   { color: var(--g-success); }
+.ltr-bad  { color: var(--g-danger); text-decoration: underline; background: rgba(239,68,68,0.12); border-radius: 3px; }
+.ltr-todo { color: var(--g-primary); opacity: 0.85; }
+.ltr-extra { color: var(--g-danger); background: rgba(239,68,68,0.22); border-radius: 3px; text-decoration: line-through; }
+
 .typing-area {
     width: 100%;
     min-height: 60px;
@@ -684,6 +690,11 @@
         if (lastChar === ' ' && inputWords.length > 0) {
             var typedWord = inputWords[inputWords.length - 1];
             checkWord(typedWord);
+        } else {
+            // Jonli harfma-harf aniqlik (joriy so'z) + jonli statistika
+            var inProgress = currentVal.replace(/^\s+/, '').split(/\s/).pop() || '';
+            highlightCurrentWord(inProgress);
+            updateStats();
         }
     });
 
@@ -714,6 +725,8 @@
             var min = Math.floor(elapsed / 60);
             var sec = elapsed % 60;
             timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
+            // Live WPM — vaqt o'tishi bilan har soniyada yangilanadi (so'z kutmaydi)
+            updateStats();
         }, 1000);
     }
 
@@ -740,6 +753,9 @@
         var originalWord = words[currentIndex];
         typedWordsList.push(typedWord);
 
+        // Harfma-harf span'larni tozalaymiz (so'z yakunlandi)
+        wordEl.textContent = originalWord;
+
         if (normalizeApostrophes(typedWord) === normalizeApostrophes(originalWord)) {
             wordEl.className = 'prompt-word correct';
             correctCount++;
@@ -763,6 +779,32 @@
         _expectedValue = '';
         if (_origValueDesc) { _origValueDesc.set.call(typingArea, ''); }
         else { typingArea.value = ''; }
+    }
+
+    function _escHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Joriy so'zni harfma-harf yashil/qizil qilib jonli ko'rsatadi
+    function highlightCurrentWord(typed) {
+        if (finished || currentIndex >= words.length) return;
+        var wordEl = document.getElementById('word-' + currentIndex);
+        if (!wordEl) return;
+        var target = words[currentIndex];
+        var nT = normalizeApostrophes(typed);
+        var nTarget = normalizeApostrophes(target);
+        var html = '';
+        for (var i = 0; i < target.length; i++) {
+            var cls;
+            if (i < nT.length) cls = (nT[i] === nTarget[i]) ? 'ltr-ok' : 'ltr-bad';
+            else cls = 'ltr-todo';
+            html += '<span class="' + cls + '">' + _escHtml(target[i]) + '</span>';
+        }
+        if (typed.length > target.length) {
+            html += '<span class="ltr-extra">' + _escHtml(typed.slice(target.length)) + '</span>';
+        }
+        wordEl.innerHTML = html;
+        wordEl.className = 'prompt-word current';
     }
 
     function updateStats() {

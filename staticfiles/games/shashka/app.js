@@ -122,6 +122,11 @@ async function authenticate() {
         }
         LMS_USER = data.user;
         if (data.game && data.game.service_fee_percent != null) SERVICE_FEE_PCT = data.game.service_fee_percent;
+        // Coin tikilish faqat shaxmatda yoqilgan — boshqa o'yinlarda coin tugmasini yashiramiz
+        if (data.game && data.game.coin_enabled === false) {
+            const coinBtn = $('btn-find-coin');
+            if (coinBtn) coinBtn.style.display = 'none';
+        }
         renderUserHeader();
         // Musobaqa rejimi: avtomatik AI Qiyin bilan boshlanadi
         if (COMPETITION_ID) {

@@ -11,6 +11,9 @@ urlpatterns = [
     # O'quvchilarim
     path('students/', views.teacher_my_students, name='my_students'),
 
+    # Guruh chatlari
+    path('group-chats/', views.teacher_group_chats, name='group_chats'),
+
     # Kurslarim
     path('courses/', views.teacher_courses, name='courses'),
     path('courses/<int:pk>/edit/', views.teacher_edit_course, name='edit_course'),

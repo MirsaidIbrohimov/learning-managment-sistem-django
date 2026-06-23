@@ -572,6 +572,12 @@
                 <h3 class="fw-bold mb-1 {% if student.is_premium %}vp-premium-name{% endif %}">{{ student|premium_name }}</h3>
                 <p class="text-muted mb-3" style="font-size:0.95rem;">@{{ student.username }}</p>
 
+                {% if student.pk != request.user.pk %}
+                <a href="{% url 'direct_chat' student.pk %}" class="btn rounded-pill px-4 mb-3 fw-bold text-white shadow-sm" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none;">
+                    <i class="bi bi-chat-dots-fill me-1"></i> Xabar yozish
+                </a>
+                {% endif %}
+
                 {% if student.is_premium %}
                     <div class="vp-premium-badge mb-3">
                         <i class="bi bi-patch-check-fill"></i> Premium O'quvchi

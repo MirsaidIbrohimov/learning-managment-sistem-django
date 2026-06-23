@@ -3,58 +3,390 @@
 {% block title %}Bo'limni tahrirlash - LMS{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <a href="{% url 'manage_lessons' section.profession.pk %}" class="btn btn-outline-secondary mb-4">
-        <i class="bi bi-arrow-left me-2"></i>Orqaga
+<style>
+:root {
+    --es-card: rgba(255,255,255,0.85);
+    --es-border: rgba(0,0,0,0.06);
+    --es-text: #1d1d1f;
+    --es-secondary: #86868b;
+    --es-accent: #6366f1;
+    --es-accent2: #8b5cf6;
+    --es-accent-light: rgba(99,102,241,0.08);
+    --es-bg: #f2f2f7;
+    --es-input-bg: #f2f2f7;
+    --es-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    --es-danger: #ef4444;
+    --es-danger-light: rgba(239,68,68,0.08);
+    --es-success: #22c55e;
+}
+[data-bs-theme="dark"] {
+    --es-card: rgba(28,28,30,0.85);
+    --es-border: rgba(255,255,255,0.08);
+    --es-text: #f5f5f7;
+    --es-secondary: #98989d;
+    --es-accent-light: rgba(99,102,241,0.18);
+    --es-bg: rgba(0,0,0,0.3);
+    --es-input-bg: rgba(255,255,255,0.06);
+    --es-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    --es-danger-light: rgba(239,68,68,0.16);
+}
+
+@keyframes esSlideUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes esBounce {
+    0% { transform: scale(0); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.es-page { max-width: 650px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.es-back {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.25rem; border-radius: 14px;
+    background: var(--es-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--es-border); color: var(--es-accent);
+    text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    transition: all 0.25s; margin-bottom: 1.5rem;
+}
+.es-back:hover { transform: translateX(-4px); color: var(--es-accent); box-shadow: var(--es-shadow); }
+
+.es-card {
+    background: var(--es-card); backdrop-filter: blur(20px);
+    border: 1px solid var(--es-border); border-radius: 24px;
+    overflow: hidden; box-shadow: var(--es-shadow);
+    animation: esSlideUp 0.5s ease;
+}
+
+.es-header {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: 2rem 1.75rem; text-align: center; position: relative; overflow: hidden;
+}
+.es-header::before {
+    content: ''; position: absolute; top: -40%; right: -15%;
+    width: 180px; height: 180px; background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.es-header::after {
+    content: ''; position: absolute; bottom: -30%; left: -10%;
+    width: 140px; height: 140px; background: rgba(255,255,255,0.06); border-radius: 50%;
+}
+.es-header-icon {
+    width: 70px; height: 70px; border-radius: 20px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem; font-size: 2rem; color: #fff;
+    position: relative; z-index: 1;
+    animation: esBounce 0.6s ease 0.3s backwards;
+}
+.es-header h3 { color: #fff; font-size: 1.3rem; font-weight: 700; margin: 0; position: relative; z-index: 1; }
+.es-header p { color: rgba(255,255,255,0.8); font-size: 0.85rem; margin: 0.25rem 0 0; position: relative; z-index: 1; }
+
+.es-body { padding: 1.75rem; }
+
+.es-section-label {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.78rem; font-weight: 700; color: var(--es-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 1rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--es-border);
+}
+.es-section-label i { color: var(--es-accent); font-size: 1rem; }
+
+.es-group { margin-bottom: 1.25rem; }
+
+.es-label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    color: var(--es-text); margin-bottom: 0.4rem;
+}
+
+.es-hint {
+    font-size: 0.78rem; color: var(--es-secondary); margin-top: 0.3rem;
+    display: flex; align-items: center; gap: 0.3rem;
+}
+
+.es-input {
+    width: 100%; border-radius: 14px; border: 1.5px solid var(--es-border);
+    background: var(--es-input-bg); padding: 0.8rem 1rem;
+    color: var(--es-text); font-size: 0.95rem;
+    transition: all 0.25s; outline: none;
+}
+.es-input:focus {
+    border-color: var(--es-accent);
+    box-shadow: 0 0 0 4px var(--es-accent-light);
+}
+textarea.es-input { resize: vertical; min-height: 80px; }
+
+/* Order stepper */
+.es-order-wrap { display: flex; align-items: center; gap: 12px; }
+.es-order-btn {
+    width: 40px; height: 40px; border-radius: 12px;
+    border: 1.5px solid var(--es-border); background: var(--es-bg);
+    color: var(--es-text); font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.es-order-btn:hover { background: var(--es-accent-light); border-color: var(--es-accent); color: var(--es-accent); }
+.es-order-btn:active { transform: scale(0.92); }
+.es-order-input {
+    flex: 1; border-radius: 14px; border: 1.5px solid var(--es-border);
+    background: var(--es-input-bg); padding: 0.8rem 1rem;
+    color: var(--es-text); font-size: 1.1rem; font-weight: 700;
+    text-align: center; outline: none; transition: all 0.25s;
+    -moz-appearance: textfield;
+}
+.es-order-input::-webkit-inner-spin-button,
+.es-order-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.es-order-input:focus { border-color: var(--es-accent); box-shadow: 0 0 0 4px var(--es-accent-light); }
+
+/* Active toggle */
+.es-toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; padding: 0.9rem 1.1rem; border-radius: 16px;
+    border: 1.5px solid var(--es-border); background: var(--es-bg);
+    transition: all 0.25s;
+}
+.es-toggle-row.is-on { border-color: var(--es-accent); background: var(--es-accent-light); }
+.es-toggle-info { display: flex; align-items: center; gap: 0.7rem; }
+.es-toggle-info i { font-size: 1.25rem; color: var(--es-secondary); transition: color 0.25s; }
+.es-toggle-row.is-on .es-toggle-info i { color: var(--es-accent); }
+.es-toggle-info-text strong { display: block; font-size: 0.9rem; font-weight: 700; color: var(--es-text); }
+.es-toggle-info-text span { font-size: 0.76rem; color: var(--es-secondary); }
+.es-switch { position: relative; width: 52px; height: 30px; flex-shrink: 0; }
+.es-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.es-switch-track {
+    position: absolute; inset: 0; border-radius: 30px;
+    background: var(--es-border); transition: all 0.3s; cursor: pointer;
+}
+.es-switch-track::before {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 24px; height: 24px; border-radius: 50%; background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: all 0.3s;
+}
+.es-switch input:checked + .es-switch-track { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+.es-switch input:checked + .es-switch-track::before { transform: translateX(22px); }
+
+/* Live preview */
+.es-preview {
+    margin-top: 1.5rem; padding: 1rem 1.25rem;
+    border-radius: 16px; border: 2px dashed var(--es-border);
+    background: var(--es-bg); transition: all 0.3s; min-height: 60px;
+}
+.es-preview.has-content { border-color: var(--es-accent); border-style: solid; background: var(--es-accent-light); }
+.es-preview-label {
+    font-size: 0.7rem; font-weight: 700; color: var(--es-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.es-preview-badge {
+    font-size: 0.66rem; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .3px;
+}
+.es-preview-badge.on { background: rgba(34,197,94,.15); color: var(--es-success); }
+.es-preview-badge.off { background: rgba(134,134,139,.18); color: var(--es-secondary); }
+.es-preview-title { font-size: 1.05rem; font-weight: 700; color: var(--es-text); display: flex; align-items: center; gap: 0.5rem; }
+.es-preview-title i { color: var(--es-accent); }
+.es-preview-desc { font-size: 0.82rem; color: var(--es-secondary); margin-top: 0.3rem; }
+
+/* Actions */
+.es-actions {
+    display: flex; gap: 0.75rem; margin-top: 1.75rem;
+    padding-top: 1.25rem; border-top: 1px solid var(--es-border);
+    flex-wrap: wrap;
+}
+.es-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 0.5rem; padding: 0.75rem 1.5rem; border-radius: 14px;
+    font-weight: 700; font-size: 0.9rem; border: none;
+    cursor: pointer; transition: all 0.3s; text-decoration: none;
+}
+.es-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; box-shadow: 0 4px 14px rgba(99,102,241,0.3); flex: 1; min-width: 160px;
+}
+.es-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); color: #fff; }
+.es-btn-primary:active { transform: scale(0.97); }
+.es-btn-primary:disabled { opacity: 0.7; transform: none !important; box-shadow: none !important; cursor: not-allowed; }
+.es-btn-danger {
+    background: transparent; color: var(--es-danger); border: 1.5px solid var(--es-border);
+}
+.es-btn-danger:hover { border-color: var(--es-danger); background: var(--es-danger-light); color: var(--es-danger); }
+.es-btn-ghost { background: transparent; color: var(--es-secondary); border: 1.5px solid var(--es-border); }
+.es-btn-ghost:hover { border-color: var(--es-accent); color: var(--es-accent); background: var(--es-accent-light); }
+
+@media (max-width: 576px) {
+    .es-page { padding: 1rem 0.75rem 2rem; }
+    .es-body { padding: 1.25rem; }
+    .es-header { padding: 1.5rem 1.25rem; }
+    .es-header-icon { width: 56px; height: 56px; font-size: 1.6rem; border-radius: 16px; }
+    .es-header h3 { font-size: 1.1rem; }
+    .es-actions { flex-direction: column; }
+    .es-btn { width: 100%; justify-content: center; }
+}
+</style>
+
+<div class="es-page">
+    <a href="{% url 'manage_lessons' section.profession.pk %}" class="es-back">
+        <i class="bi bi-arrow-left"></i> Orqaga
     </a>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header" style="background: transparent; border-bottom: 1px solid var(--border-color);">
-                    <h4 style="color: var(--primary-blue); margin: 0;">
-                        <i class="bi bi-folder2-open me-2"></i>Bo'limni tahrirlash
-                    </h4>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST">
-                        {% csrf_token %}
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Bo'lim nomi</label>
-                            <input type="text" name="title" class="form-control" value="{{ section.title }}" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Tavsif (ixtiyoriy)</label>
-                            <textarea name="description" class="form-control" rows="3">{{ section.description|default:'' }}</textarea>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label" style="color: var(--text);">Tartib raqami</label>
-                            <input type="number" name="order" class="form-control" value="{{ section.order }}" min="0">
-                        </div>
-                        
-                        <div class="form-check mb-4">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if section.is_active %}checked{% endif %}>
-                            <label class="form-check-label" for="isActive" style="color: var(--text);">Faol</label>
-                        </div>
-                        
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-lg me-2"></i>Saqlash
-                            </button>
-                            <a href="{% url 'delete_section' section.pk %}" class="btn btn-outline-danger">
-                                <i class="bi bi-trash me-2"></i>O'chirish
-                            </a>
-                            <a href="{% url 'manage_lessons' section.profession.pk %}" class="btn btn-outline-secondary">
-                                Bekor qilish
-                            </a>
-                        </div>
-                    </form>
-                </div>
+    <div class="es-card">
+        <!-- Header -->
+        <div class="es-header">
+            <div class="es-header-icon">
+                <i class="bi bi-folder2-open"></i>
             </div>
+            <h3>Bo'limni tahrirlash</h3>
+            <p>{{ section.profession.name }}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="es-body">
+            <form method="POST" id="sectionForm">
+                {% csrf_token %}
+
+                <div class="es-section-label">
+                    <i class="bi bi-info-circle-fill"></i> Asosiy ma'lumotlar
+                </div>
+
+                <div class="es-group">
+                    <label class="es-label">Bo'lim nomi</label>
+                    <input type="text" name="title" class="es-input" id="sectionTitle"
+                           placeholder="Masalan: 1-bo'lim: Kirish" required
+                           value="{{ section.title }}">
+                </div>
+
+                <div class="es-group">
+                    <label class="es-label">Tavsif (ixtiyoriy)</label>
+                    <textarea name="description" class="es-input" id="sectionDesc"
+                              placeholder="Bo'lim haqida qisqacha...">{{ section.description|default:'' }}</textarea>
+                </div>
+
+                <div class="es-section-label" style="margin-top:1.5rem;">
+                    <i class="bi bi-sliders"></i> Sozlamalar
+                </div>
+
+                <div class="es-group">
+                    <label class="es-label">Tartib raqami</label>
+                    <div class="es-order-wrap">
+                        <button type="button" class="es-order-btn" onclick="changeOrder(-1)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number" name="order" class="es-order-input" id="sectionOrder"
+                               value="{{ section.order }}" min="0">
+                        <button type="button" class="es-order-btn" onclick="changeOrder(1)">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <div class="es-hint">
+                        <i class="bi bi-info-circle"></i> Kichik raqamli bo'limlar birinchi ko'rsatiladi
+                    </div>
+                </div>
+
+                <div class="es-group">
+                    <label class="es-label">Holat</label>
+                    <div class="es-toggle-row {% if section.is_active %}is-on{% endif %}" id="toggleRow">
+                        <div class="es-toggle-info">
+                            <i class="bi bi-power" id="toggleIcon"></i>
+                            <div class="es-toggle-info-text">
+                                <strong>Faol</strong>
+                                <span>O'chirilsa, o'quvchilarga ko'rinmaydi</span>
+                            </div>
+                        </div>
+                        <label class="es-switch">
+                            <input type="checkbox" name="is_active" id="isActive" {% if section.is_active %}checked{% endif %}>
+                            <span class="es-switch-track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Live Preview -->
+                <div class="es-preview {% if section.title %}has-content{% endif %}" id="preview">
+                    <div class="es-preview-label">
+                        <span>Ko'rinishi</span>
+                        <span class="es-preview-badge {% if section.is_active %}on{% else %}off{% endif %}" id="previewBadge">
+                            {% if section.is_active %}Faol{% else %}Nofaol{% endif %}
+                        </span>
+                    </div>
+                    <div class="es-preview-title">
+                        <i class="bi bi-folder2-open"></i>
+                        <span id="previewTitle">{{ section.title }}</span>
+                    </div>
+                    <div class="es-preview-desc" id="previewDesc" {% if not section.description %}style="display:none;"{% endif %}>{{ section.description|default:'' }}</div>
+                </div>
+
+                <div class="es-actions">
+                    <button type="submit" class="es-btn es-btn-primary" id="submitBtn">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                    <a href="{% url 'delete_section' section.pk %}" class="es-btn es-btn-danger">
+                        <i class="bi bi-trash"></i> O'chirish
+                    </a>
+                    <a href="{% url 'manage_lessons' section.profession.pk %}" class="es-btn es-btn-ghost">
+                        Bekor qilish
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var titleInput = document.getElementById('sectionTitle');
+    var descInput = document.getElementById('sectionDesc');
+    var preview = document.getElementById('preview');
+    var previewTitle = document.getElementById('previewTitle');
+    var previewDesc = document.getElementById('previewDesc');
+    var previewBadge = document.getElementById('previewBadge');
+    var activeInput = document.getElementById('isActive');
+    var toggleRow = document.getElementById('toggleRow');
+
+    function updatePreview() {
+        var title = titleInput.value.trim();
+        var desc = descInput.value.trim();
+        if (title) {
+            previewTitle.textContent = title;
+            preview.classList.add('has-content');
+        } else {
+            previewTitle.textContent = "Bo'lim nomi...";
+            preview.classList.remove('has-content');
+        }
+        previewDesc.textContent = desc;
+        previewDesc.style.display = desc ? 'block' : 'none';
+    }
+
+    function updateToggle() {
+        var on = activeInput.checked;
+        toggleRow.classList.toggle('is-on', on);
+        previewBadge.textContent = on ? 'Faol' : 'Nofaol';
+        previewBadge.classList.toggle('on', on);
+        previewBadge.classList.toggle('off', !on);
+    }
+
+    titleInput.addEventListener('input', updatePreview);
+    descInput.addEventListener('input', updatePreview);
+    activeInput.addEventListener('change', updateToggle);
+    updatePreview();
+    updateToggle();
+
+    window.changeOrder = function (delta) {
+        var input = document.getElementById('sectionOrder');
+        var val = parseInt(input.value, 10) || 0;
+        input.value = Math.max(0, val + delta);
+    };
+
+    // Double-submit prevention
+    var form = document.getElementById('sectionForm');
+    var submitted = false;
+    form.addEventListener('submit', function (e) {
+        if (submitted) { e.preventDefault(); return false; }
+        submitted = true;
+        var btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saqlanmoqda...';
+    });
+})();
+</script>
 {% endblock %}

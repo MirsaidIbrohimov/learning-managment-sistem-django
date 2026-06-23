@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from . import views
 from . import payment_views
 from .api import homework_views as hw_api
+from .api import chat_views as chat_api
 
 urlpatterns = [
     path('', views.home_view, name='home'),
@@ -16,6 +17,7 @@ urlpatterns = [
     path('professions/', views.professions_view, name='professions'),
     path('professions/<int:pk>/', views.profession_detail, name='profession_detail'),
     path('professions/<int:pk>/statistics/', views.course_statistics, name='course_statistics'),
+    path('professions/<int:pk>/statistics/api/', views.course_statistics_api, name='course_statistics_api'),
     path('professions/<int:pk>/enroll/', views.enroll_course, name='enroll_course'),
     path('professions/<int:pk>/unenroll/', views.unenroll_course, name='unenroll_course'),
     path('professions/<int:pk>/request-certificate/', views.request_certificate, name='request_certificate'),
@@ -113,6 +115,33 @@ urlpatterns = [
     path('api/hw/submission/<int:sub_pk>/grade/',  hw_api.hw_grade,               name='api_hw_grade'),
     # ──────────────────────────────────────────────────────────────────────
     
+    # ==== CHAT (Guruh + Shaxsiy) ====
+    # Sahifalar
+    path('professions/<int:pk>/chat/', views.group_chat_view, name='group_chat'),
+    path('chat/', views.chat_inbox_view, name='chat_inbox'),
+    path('chat/groups/', views.my_group_chats_view, name='my_group_chats'),
+    path('chat/u/<int:pk>/', views.direct_chat_view, name='direct_chat'),
+    path('dashboard/group-chats/', views.admin_group_chats, name='admin_group_chats'),
+    path('dashboard/direct-chats/', views.admin_direct_chats, name='admin_direct_chats'),
+    path('dashboard/direct-chats/<int:u1_pk>/<int:u2_pk>/', views.admin_direct_chat_detail, name='admin_direct_chat_detail'),
+    # Chat API (polling)
+    path('api/chat/group/<int:profession_pk>/messages/', chat_api.group_messages, name='api_chat_group_messages'),
+    path('api/chat/group/<int:profession_pk>/send/',     chat_api.group_send,     name='api_chat_group_send'),
+    path('api/chat/direct/<int:user_pk>/messages/',      chat_api.direct_messages, name='api_chat_direct_messages'),
+    path('api/chat/direct/<int:user_pk>/send/',          chat_api.direct_send,     name='api_chat_direct_send'),
+    path('api/chat/conversations/',                      chat_api.conversations,   name='api_chat_conversations'),
+    path('api/chat/sidebar/',                            chat_api.sidebar,         name='api_chat_sidebar'),
+    path('api/chat/unread/',                             chat_api.unread_count,    name='api_chat_unread'),
+    # Per-message actions (Phase 1 chat upgrade)
+    path('api/chat/msg/<str:kind>/<int:msg_id>/edit/',    chat_api.message_edit,    name='api_chat_msg_edit'),
+    path('api/chat/msg/<str:kind>/<int:msg_id>/delete/',  chat_api.message_delete,  name='api_chat_msg_delete'),
+    path('api/chat/msg/<str:kind>/<int:msg_id>/react/',   chat_api.message_react,   name='api_chat_msg_react'),
+    path('api/chat/msg/<str:kind>/<int:msg_id>/forward/', chat_api.message_forward, name='api_chat_msg_forward'),
+    path('api/chat/typing/ping/',                         chat_api.typing_ping,     name='api_chat_typing_ping'),
+    path('api/chat/typing/status/',                       chat_api.typing_status,   name='api_chat_typing_status'),
+    path('api/chat/pin/',                                 chat_api.pin_toggle,      name='api_chat_pin_toggle'),
+    path('api/chat/users/search/',                        chat_api.user_search,     name='api_chat_user_search'),
+
     # Messages
     path('messages/', views.messages_view, name='messages'),
     path('messages/<int:pk>/', views.message_detail, name='message_detail'),

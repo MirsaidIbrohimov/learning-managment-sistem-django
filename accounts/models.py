@@ -3,6 +3,7 @@ import uuid
 from datetime import timedelta
 
 from django.db import models
+from django.db.models import Q
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
@@ -19,8 +20,30 @@ class Profession(models.Model):
     blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
     closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
     ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan")
+
+    # ─── Turi / mavzular soni / davomiylik ───
+    KIND_CHOICES = (
+        ('course', 'Kurs'),
+        ('profession', 'Kasb'),
+    )
+    kind = models.CharField(max_length=12, choices=KIND_CHOICES, default='course',
+                            verbose_name="Turi (Kasb / Kurs)")
+    topic_count = models.PositiveIntegerField(
+        default=0, verbose_name="Mavzular (darslar) soni",
+        help_text="0 = cheksiz. Belgilangan sondan ortiq dars (mavzu) qo'shib bo'lmaydi.")
+    duration_months = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="O'qish davomiyligi (oy)",
+        help_text="O'qish necha oy davom etadi (masalan: 6).")
+
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
+    @property
+    def is_lesson_limit_reached(self):
+        """Dars (mavzu) limiti to'lganmi? (topic_count > 0 bo'lsa)."""
+        if not self.topic_count:
+            return False
+        return self.lessons.count() >= self.topic_count
+
     def __str__(self):
         return self.name
     
@@ -2327,3 +2350,226 @@ class SecurityEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_event_type_display()} - {self.ip_address} - {self.created_at}"
+
+
+# ============================================================
+# CHAT TIZIMI � Guruh (kurs) chati va Shaxsiy (1:1) chat
+# ============================================================
+
+class GroupChatMessage(models.Model):
+    """Kurs (guruh) chati xabari. Kursga yozilgan o'quvchilar, biriktirilgan
+    o'qituvchilar va adminlar ko'rishi/yozishi mumkin."""
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.CASCADE,
+        related_name='chat_messages', verbose_name="Guruh (kurs)"
+    )
+    sender = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='group_chat_messages', verbose_name="Yuboruvchi"
+    )
+    message = models.TextField(blank=True, verbose_name="Xabar")
+    file = models.FileField(upload_to='group_chat/', null=True, blank=True, verbose_name="Fayl")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="O'chirilgan")
+
+    # ── Reply / Edit / Forward (Phase 1 chat upgrade) ──
+    reply_to = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='replies', verbose_name="Javob xabari"
+    )
+    is_edited = models.BooleanField(default=False, verbose_name="Tahrirlangan")
+    edited_at = models.DateTimeField(null=True, blank=True, verbose_name="Tahrirlangan vaqti")
+    is_forwarded = models.BooleanField(default=False, verbose_name="Forward qilingan")
+    forwarded_sender_name = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvchi (forward)"
+    )
+
+    class Meta:
+        verbose_name = "Guruh chat xabari"
+        verbose_name_plural = "Guruh chat xabarlari"
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['profession', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"[{self.profession_id}] {self.sender.username}: {self.message[:30]}"
+
+
+class GroupChatRead(models.Model):
+    """Har bir foydalanuvchi uchun guruhdagi oxirgi o'qilgan vaqt
+    (o'qilmagan xabarlar sonini hisoblash uchun)."""
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.CASCADE, related_name='chat_reads'
+    )
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE, related_name='group_chat_reads'
+    )
+    last_read_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Guruh chat o'qilgan holati"
+        verbose_name_plural = "Guruh chat o'qilgan holatlari"
+        unique_together = ('profession', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.profession_id}"
+
+
+class DirectMessage(models.Model):
+    """Ikki foydalanuvchi o'rtasidagi shaxsiy (1:1) xabar."""
+    sender = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='sent_direct_messages', verbose_name="Yuboruvchi"
+    )
+    recipient = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='received_direct_messages', verbose_name="Qabul qiluvchi"
+    )
+    message = models.TextField(blank=True, verbose_name="Xabar")
+    file = models.FileField(upload_to='direct_chat/', null=True, blank=True, verbose_name="Fayl")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_read = models.BooleanField(default=False, verbose_name="O'qilgan")
+    is_deleted = models.BooleanField(default=False, verbose_name="O'chirilgan")
+
+    # ── Delivery / Reply / Edit / Forward (Phase 1 chat upgrade) ──
+    is_delivered = models.BooleanField(default=False, verbose_name="Yetkazilgan")
+    delivered_at = models.DateTimeField(null=True, blank=True, verbose_name="Yetkazilgan vaqti")
+    reply_to = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='replies', verbose_name="Javob xabari"
+    )
+    is_edited = models.BooleanField(default=False, verbose_name="Tahrirlangan")
+    edited_at = models.DateTimeField(null=True, blank=True, verbose_name="Tahrirlangan vaqti")
+    is_forwarded = models.BooleanField(default=False, verbose_name="Forward qilingan")
+    forwarded_sender_name = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name="Asl yuboruvchi (forward)"
+    )
+
+    class Meta:
+        verbose_name = "Shaxsiy xabar"
+        verbose_name_plural = "Shaxsiy xabarlar"
+        ordering = ['created_at']
+        indexes = [
+            models.Index(fields=['sender', 'recipient', 'created_at']),
+            models.Index(fields=['recipient', 'is_read']),
+        ]
+
+    def __str__(self):
+        return f"{self.sender.username} -> {self.recipient.username}: {self.message[:30]}"
+
+
+class MessageReaction(models.Model):
+    """Xabarga emoji-reaksiya. Bitta foydalanuvchi — bitta xabarga faqat bitta reaksiya
+    (qayta bosilsa eskisi o'chadi/yangisi bilan almashadi)."""
+    EMOJI_CHOICES = (
+        ('👍', '👍'),
+        ('❤️', '❤️'),
+        ('😂', '😂'),
+        ('😮', '😮'),
+        ('😢', '😢'),
+        ('🔥', '🔥'),
+    )
+    direct_message = models.ForeignKey(
+        'accounts.DirectMessage', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='reactions', verbose_name="Shaxsiy xabar"
+    )
+    group_message = models.ForeignKey(
+        'accounts.GroupChatMessage', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='reactions', verbose_name="Guruh xabari"
+    )
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='message_reactions', verbose_name="Foydalanuvchi"
+    )
+    emoji = models.CharField(max_length=8, choices=EMOJI_CHOICES, verbose_name="Emoji")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Xabar reaksiyasi"
+        verbose_name_plural = "Xabar reaksiyalari"
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(direct_message__isnull=False, group_message__isnull=True) |
+                    Q(direct_message__isnull=True, group_message__isnull=False)
+                ),
+                name='reaction_exactly_one_target',
+            ),
+        ]
+        unique_together = (('direct_message', 'user'), ('group_message', 'user'))
+
+    def __str__(self):
+        return f"{self.user.username}: {self.emoji}"
+
+
+class ChatPin(models.Model):
+    """Foydalanuvchi tomonidan ro'yxat tepasiga pin qilingan suhbat (shaxsiy yoki guruh)."""
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='chat_pins', verbose_name="Foydalanuvchi"
+    )
+    partner = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='+', verbose_name="Shaxsiy suhbatdosh"
+    )
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='+', verbose_name="Guruh (kurs)"
+    )
+    pinned_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Pin qilingan suhbat"
+        verbose_name_plural = "Pin qilingan suhbatlar"
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(partner__isnull=False, profession__isnull=True) |
+                    Q(partner__isnull=True, profession__isnull=False)
+                ),
+                name='chatpin_exactly_one_target',
+            ),
+        ]
+        unique_together = (('user', 'partner'), ('user', 'profession'))
+
+    def __str__(self):
+        target = self.partner.username if self.partner_id else f"group:{self.profession_id}"
+        return f"{self.user.username} pinned {target}"
+
+
+class ChatTypingStatus(models.Model):
+    """Foydalanuvchi hozir shu suhbatda yozayotganini bildiradi.
+    Polling orqali yangilanadi; o'qishda updated_at bo'yicha qisqa TTL (~5s) qo'llaniladi,
+    shu sababli alohida tozalash job kerak emas — qator soni foydalanuvchilar x suhbatlar
+    bilan chegaralangan."""
+    user = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE,
+        related_name='typing_statuses', verbose_name="Foydalanuvchi"
+    )
+    partner = models.ForeignKey(
+        'accounts.CustomUser', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='+', verbose_name="Shaxsiy suhbatdosh"
+    )
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.CASCADE, null=True, blank=True,
+        related_name='+', verbose_name="Guruh (kurs)"
+    )
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
+
+    class Meta:
+        verbose_name = "Yozish holati"
+        verbose_name_plural = "Yozish holatlari"
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    Q(partner__isnull=False, profession__isnull=True) |
+                    Q(partner__isnull=True, profession__isnull=False)
+                ),
+                name='typing_exactly_one_target',
+            ),
+        ]
+        unique_together = (('user', 'partner'), ('user', 'profession'))
+
+    def __str__(self):
+        return f"{self.user.username} typing..."

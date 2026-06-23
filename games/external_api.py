@@ -216,6 +216,8 @@ def verify(request):
             'max_wager': int(cfg.get('max_wager', 5000)),
             'ai_coin_rewards': cfg.get('ai_coin_rewards') or {'easy': 25, 'medium': 35, 'hard': 50},
             'service_fee_percent': int(cfg.get('service_fee_percent', SERVICE_FEE_PERCENT)),
+            # Coin (tikilish / AI mukofoti) faqat shaxmatda yoqilgan
+            'coin_enabled': _is_chess_game(game),
         },
         'competition': competition_info,
         'exp': payload['exp'],
@@ -327,8 +329,9 @@ def submit_result(request):
     coin_reason = ''
     engine = str(cfg.get('engine', '')).lower()
 
-    # Shashka (checkers)da coin umuman berilmaydi
-    if result == 'win' and meta.get('mode') == 'ai' and engine != 'checkers':
+    # Faqat shaxmat (chess) AI g'alabasi uchun coin beriladi — boshqa barcha
+    # o'yinlarda (shashka va h.k.) coin umuman berilmaydi.
+    if result == 'win' and meta.get('mode') == 'ai' and engine == 'chess':
         difficulty = str(meta.get('difficulty', 'medium')).lower()
         rewards = (cfg.get('ai_coin_rewards') or {})
         # Default qiymatlar
@@ -441,6 +444,12 @@ def _is_xo_game(game):
     return engine == 'xo' or game.slug == 'xo'
 
 
+def _is_chess_game(game):
+    """Faqat shaxmat (chess) o'yini coin tikilishiga ruxsat etiladi."""
+    engine = ((game.config or {}).get('engine') or game.slug).lower()
+    return 'chess' in engine or 'shaxmat' in engine
+
+
 def _normalize_xo_size(value):
     try:
         size = int(value)
@@ -550,6 +559,7 @@ def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
             'name': match.black_player.full_name or match.black_player.username,
         } if match.black_player_id else None,
         'your_role': viewer_role,
+        'room_code': match.room_code or None,
         'board_size': board_size,
         'win_length': _xo_win_length(board_size) if board_size else None,
         'started_at': match.started_at.isoformat() if match.started_at else None,
@@ -601,6 +611,9 @@ def mp_find(request):
     # Rejim va wager
     mode = str(data.get('mode', 'casual')).lower()
     if mode not in ('casual', 'coin'):
+        mode = 'casual'
+    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    if mode == 'coin' and not _is_chess_game(game):
         mode = 'casual'
     try:
         wager = int(data.get('wager', 0))
@@ -952,6 +965,159 @@ def mp_resign(request):
     }), request)
 
 
+# ============== PRIVATE ROOM (kod orqali do'st bilan o'ynash) ==============
+
+# Chalkashmaydigan belgilar (0/O, 1/I/L olib tashlangan)
+_ROOM_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+_ROOM_CODE_LEN = 5
+
+
+def _generate_room_code():
+    """Faol/kutayotgan matchlar orasida takrorlanmaydigan xona kodi yaratadi."""
+    import random as _random
+    for _ in range(12):
+        code = ''.join(_random.choice(_ROOM_CODE_ALPHABET) for _ in range(_ROOM_CODE_LEN))
+        if not BoardMatch.objects.filter(room_code=code, status__in=['waiting', 'active']).exists():
+            return code
+    return ''.join(_random.choice(_ROOM_CODE_ALPHABET) for _ in range(_ROOM_CODE_LEN + 2))
+
+
+def _resolve_mode_wager(data, game, user):
+    """mp_find bilan bir xil mode/wager validatsiyasi. (mode, wager, error_response) qaytaradi."""
+    mode = str(data.get('mode', 'casual')).lower()
+    if mode not in ('casual', 'coin'):
+        mode = 'casual'
+    # Coin tikilish faqat shaxmatda ruxsat etiladi — boshqa o'yinlar casual'ga o'tadi
+    if mode == 'coin' and not _is_chess_game(game):
+        mode = 'casual'
+    try:
+        wager = int(data.get('wager', 0))
+    except (TypeError, ValueError):
+        wager = 0
+    if mode != 'coin':
+        wager = 0
+    if wager < 0:
+        wager = 0
+
+    cfg = game.config or {}
+    max_wager = int(cfg.get('max_wager', 5000))
+    min_wager = int(cfg.get('min_wager', 5))
+    if mode == 'coin':
+        if wager < min_wager:
+            return None, None, JsonResponse({'ok': False, 'error': f"Minimal tikilish: {min_wager} coin"}, status=400)
+        if wager > max_wager:
+            return None, None, JsonResponse({'ok': False, 'error': f"Maksimal tikilish: {max_wager} coin"}, status=400)
+        if user.coins < wager:
+            return None, None, JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (sizda: {user.coins})"}, status=400)
+    return mode, wager, None
+
+
+@csrf_exempt
+def mp_room(request):
+    """
+    POST /api/v1/games/external/mp/room/
+    Body: {token, game, action: 'create'|'join', code?, board_size?, mode?, wager?}
+
+      - action='create' -> yangi shaxsiy xona (waiting) yaratadi, user WHITE bo'ladi,
+        takrorlanmaydigan room_code qaytaradi. Raqib kod orqali qo'shilguncha kutadi.
+      - action='join'   -> kod bo'yicha kutayotgan xonani topadi, user BLACK bo'lib
+        qo'shiladi va match 'active' holatga o'tadi.
+    """
+    if request.method == 'OPTIONS':
+        return _cors_headers(JsonResponse({}), request)
+    if request.method != 'POST':
+        return _cors_headers(JsonResponse({'error': 'Method not allowed'}, status=405), request)
+
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        return _cors_headers(JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400), request)
+
+    user, game, err = _mp_resolve_user_and_game(request, data)
+    if err:
+        return err
+
+    action = str(data.get('action', '')).lower()
+    is_xo = _is_xo_game(game)
+
+    from django.db import transaction
+    from django.utils import timezone
+
+    # ---------- CREATE ----------
+    if action == 'create':
+        mode, wager, verr = _resolve_mode_wager(data, game, user)
+        if verr is not None:
+            return _cors_headers(verr, request)
+
+        board_size = _normalize_xo_size(data.get('board_size')) if is_xo else None
+
+        existing = BoardMatch.objects.filter(
+            game=game, status='waiting', white_player=user,
+            room_code__isnull=False,
+        ).order_by('-created_at').first()
+        if existing:
+            return _cors_headers(JsonResponse({
+                'ok': True, 'match': _serialize_match(existing, 'white')
+            }), request)
+
+        if mode == 'coin':
+            user.refresh_from_db()
+            if user.coins < wager:
+                return _cors_headers(JsonResponse({'ok': False, 'error': "Coinlaringiz yetarli emas"}, status=400), request)
+            user.remove_coins(wager, f"{game.title} xonasi (tikilish)")
+
+        init_board = _initial_xo_board(board_size) if is_xo else _initial_board_for(game)
+        match = BoardMatch.objects.create(
+            game=game,
+            white_player=user,
+            board_state=init_board,
+            current_turn='white',
+            status='waiting',
+            mode=mode,
+            wager_coins=wager,
+            room_code=_generate_room_code(),
+            last_move={'board_size': board_size, 'win_length': _xo_win_length(board_size)} if is_xo else {},
+        )
+        return _cors_headers(JsonResponse({
+            'ok': True, 'match': _serialize_match(match, 'white')
+        }), request)
+
+    # ---------- JOIN ----------
+    if action == 'join':
+        code = str(data.get('code', '')).strip().upper()
+        if not code:
+            return _cors_headers(JsonResponse({'ok': False, 'error': "Xona kodi kiriting"}, status=400), request)
+
+        with transaction.atomic():
+            match = BoardMatch.objects.select_for_update().filter(
+                game=game, room_code=code, status='waiting', black_player__isnull=True,
+            ).first()
+            if not match:
+                active = BoardMatch.objects.filter(game=game, room_code=code, status='active').first()
+                if active and active.player_role(user):
+                    return _cors_headers(JsonResponse({'ok': True, 'match': _serialize_match(active, active.player_role(user))}), request)
+                return _cors_headers(JsonResponse({'ok': False, 'error': "Bunday xona topilmadi yoki allaqachon to'lgan"}, status=404), request)
+
+            if match.white_player_id == user.pk:
+                return _cors_headers(JsonResponse({'ok': True, 'match': _serialize_match(match, 'white')}), request)
+
+            if match.mode == 'coin' and match.wager_coins > 0:
+                user.refresh_from_db()
+                if user.coins < match.wager_coins:
+                    return _cors_headers(JsonResponse({'ok': False, 'error': f"Coinlaringiz yetarli emas (kerak: {match.wager_coins})"}, status=400), request)
+                user.remove_coins(match.wager_coins, f"{game.title} xonasi (tikilish)")
+
+            match.black_player = user
+            match.status = 'active'
+            match.started_at = timezone.now()
+            match.save()
+            return _cors_headers(JsonResponse({
+                'ok': True, 'match': _serialize_match(match, 'black')
+            }), request)
+
+    return _cors_headers(JsonResponse({'ok': False, 'error': "Noma'lum amal (create/join)"}, status=400), request)
+
+
 def _save_mp_attempts(match: BoardMatch):
     """Multiplayer match tugagach: coin transferi (wager bo'lsa) va GameAttempt'lar."""
     if not match.black_player_id or match.coins_settled:
@@ -1038,3 +1204,187 @@ def _save_mp_attempts(match: BoardMatch):
 
     match.coins_settled = True
     match.save(update_fields=['coins_settled'])
+
+
+# ============================================================
+# GAMIFICATION ENDPOINTS — XP / level / streak / achievements / leaderboard
+# Token bilan himoyalangan (iframe ichidagi o'yin uchun).
+# ============================================================
+
+_XP_MODE_MULT = {
+    # HTML Builder
+    'beginner': 1.0, 'intermediate': 1.25, 'advanced': 1.6, 'challenge': 2.0,
+    # Memory game
+    'classic': 1.0, 'speed': 1.4, 'learning': 1.2, 'daily': 1.3,
+    # Bilim Arena (mission turlari)
+    'quiz': 1.0, 'dragdrop': 1.2, 'error': 1.3,
+    # X/O Arena
+    'ai': 0.8, 'casual': 1.0, 'ranked': 1.6,
+}
+
+
+def _gx_profile_payload(user, game):
+    from .models import GameProgress, UserAchievement, xp_to_level
+    prog, _ = GameProgress.objects.get_or_create(user=user, game=game)
+    lvl, into, need = xp_to_level(prog.total_xp)
+    codes = list(UserAchievement.objects.filter(user=user, game=game).values_list('code', flat=True))
+    return {
+        'xp': prog.total_xp,
+        'level': lvl,
+        'xp_into_level': into,
+        'xp_for_next': need,
+        'best_score': prog.best_score,
+        'plays': prog.plays,
+        'levels_completed': prog.levels_completed or {},
+        'streak_days': getattr(user, 'streak_days', 0) or 0,
+        'coins': getattr(user, 'coins', 0) or 0,
+        'achievements': codes,
+    }
+
+
+@csrf_exempt
+def gx_profile(request):
+    """POST {token, game} -> foydalanuvchining gamifikatsiya profili."""
+    if request.method == 'OPTIONS':
+        return _cors_headers(JsonResponse({}), request)
+    if request.method != 'POST':
+        return _cors_headers(JsonResponse({'error': 'Method not allowed'}, status=405), request)
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        return _cors_headers(JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400), request)
+    user, game, err = _mp_resolve_user_and_game(request, data)
+    if err:
+        return err
+    return _cors_headers(JsonResponse({'ok': True, 'profile': _gx_profile_payload(user, game)}), request)
+
+
+@csrf_exempt
+def gx_complete(request):
+    """POST {token, game, score, mode, level_id, time_spent, achievements:[codes]}
+    XP qo'shadi, streak'ni yangilaydi, yutuqlarni saqlaydi. Coin BERMAYDI —
+    coin faqat shaxmatda submit_result() orqali beriladi.
+    XP server tomonda hisoblanadi (clientga ishonilmaydi)."""
+    if request.method == 'OPTIONS':
+        return _cors_headers(JsonResponse({}), request)
+    if request.method != 'POST':
+        return _cors_headers(JsonResponse({'error': 'Method not allowed'}, status=405), request)
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        return _cors_headers(JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400), request)
+    user, game, err = _mp_resolve_user_and_game(request, data)
+    if err:
+        return err
+
+    from .models import GameProgress, UserAchievement, xp_to_level
+    from django.utils import timezone as _tz
+
+    try:
+        score = max(0, min(1000, int(float(data.get('score', 0)))))
+    except (TypeError, ValueError):
+        score = 0
+    mode = str(data.get('mode', 'beginner')).lower()
+    mult = _XP_MODE_MULT.get(mode, 1.0)
+    level_id = str(data.get('level_id', '') or '')[:64]
+    xp_earned = int(round(score * mult))
+
+    prog, _ = GameProgress.objects.get_or_create(user=user, game=game)
+    level_before = xp_to_level(prog.total_xp)[0]
+    prog.total_xp = (prog.total_xp or 0) + xp_earned
+    if score > prog.best_score:
+        prog.best_score = score
+    prog.plays = (prog.plays or 0) + 1
+    if level_id and score >= 50:
+        lc = prog.levels_completed or {}
+        arr = list(lc.get(mode, []))
+        if level_id not in arr:
+            arr.append(level_id)
+        lc[mode] = arr
+        prog.levels_completed = lc
+    prog.last_played_at = _tz.now()
+    prog.save()
+    level_after = xp_to_level(prog.total_xp)[0]
+
+    try:
+        if hasattr(user, 'update_streak'):
+            user.update_streak()
+    except Exception:
+        pass
+
+    # Coin faqat shaxmatda (AI g'alabasi, submit_result orqali) beriladi.
+    # gx_complete har qanday "external" o'yin uchun chaqirilishi mumkin
+    # (xo, memory-card, html-builder, bilim-arena, shashka/shaxmat — Gamify.onResult
+    # orqali har bir o'yin tugaganda), shuning uchun bu yerda coin UMUMAN berilmaydi —
+    # faqat XP/streak/achievements hisoblanadi.
+    coins_earned = 0
+
+    newly = []
+    claimed = data.get('achievements') or []
+    if isinstance(claimed, list):
+        for code in claimed[:30]:
+            code = str(code)[:64]
+            if not code:
+                continue
+            obj, created = UserAchievement.objects.get_or_create(user=user, game=game, code=code)
+            if created:
+                newly.append(code)
+
+    return _cors_headers(JsonResponse({
+        'ok': True,
+        'xp_earned': xp_earned,
+        'coins_earned': coins_earned,
+        'leveled_up': level_after > level_before,
+        'level_before': level_before,
+        'level_after': level_after,
+        'newly_unlocked': newly,
+        'profile': _gx_profile_payload(user, game),
+    }), request)
+
+
+@csrf_exempt
+def gx_leaderboard(request):
+    """POST {token, game, limit?} -> XP bo'yicha top o'yinchilar + joriy foydalanuvchi o'rni."""
+    if request.method == 'OPTIONS':
+        return _cors_headers(JsonResponse({}), request)
+    if request.method != 'POST':
+        return _cors_headers(JsonResponse({'error': 'Method not allowed'}, status=405), request)
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        return _cors_headers(JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400), request)
+    user, game, err = _mp_resolve_user_and_game(request, data)
+    if err:
+        return err
+
+    from .models import GameProgress, xp_to_level
+    try:
+        limit = max(1, min(100, int(data.get('limit', 20))))
+    except (TypeError, ValueError):
+        limit = 20
+
+    qs = GameProgress.objects.filter(game=game, total_xp__gt=0).select_related('user').order_by('-total_xp', 'updated_at')
+    top = []
+    for i, p in enumerate(qs[:limit], start=1):
+        try:
+            nm = p.user.full_name or p.user.username
+        except Exception:
+            nm = p.user.username
+        top.append({
+            'rank': i,
+            'name': nm,
+            'username': p.user.username,
+            'xp': p.total_xp,
+            'level': xp_to_level(p.total_xp)[0],
+            'is_me': p.user_id == user.pk,
+        })
+
+    me_prog = GameProgress.objects.filter(game=game, user=user).first()
+    me_xp = me_prog.total_xp if me_prog else 0
+    me_rank = (GameProgress.objects.filter(game=game, total_xp__gt=me_xp).count() + 1) if me_xp > 0 else None
+
+    return _cors_headers(JsonResponse({
+        'ok': True,
+        'leaderboard': top,
+        'me': {'rank': me_rank, 'xp': me_xp, 'level': xp_to_level(me_xp)[0]},
+    }), request)

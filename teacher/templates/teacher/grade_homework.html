@@ -1,4 +1,5 @@
 {% extends 'teacher/base_teacher.html' %}
+{% load custom_filters %}
 
 {% block title %}Vazifani baholash - O'qituvchi paneli{% endblock %}
 {% block topbar_title %}Vazifani baholash{% endblock %}
@@ -33,10 +34,16 @@
 }
 .t-grade-submission-body { padding: 24px; }
 .t-grade-text-content {
-    background: var(--bs-tertiary-bg); border-radius: 12px; padding: 16px;
-    font-size: .9rem; white-space: pre-wrap; word-wrap: break-word;
-    max-height: 300px; overflow-y: auto;
+    background: rgba(99,102,241,.05); border: 1px solid rgba(99,102,241,.18); border-radius: 12px; padding: 14px 16px;
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: .88rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere;
+    max-height: 420px; overflow-y: auto; animation: fadeInUp .45s ease;
 }
+.t-grade-text-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: .55rem; font-size: .8rem; color: var(--bs-secondary-color); font-weight: 600; }
+.t-grade-text-toolbar i { color: #818cf8; }
+.t-copy-btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 9px; background: rgba(99,102,241,.1); border: 1px solid rgba(99,102,241,.25); color: #6366f1; font-weight: 600; font-size: .76rem; cursor: pointer; transition: all .2s; }
+.t-copy-btn:hover { background: rgba(99,102,241,.18); transform: translateY(-1px); }
+.t-copy-btn.copied { background: rgba(34,197,94,.14); border-color: rgba(34,197,94,.4); color: #16a34a; }
 .t-grade-form {
     background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
     border-radius: 18px; overflow: hidden; animation: fadeInUp 0.6s ease;
@@ -110,7 +117,11 @@
             </a>
             {% endif %}
             {% if submission.text_content %}
-            <div class="t-grade-text-content">{{ submission.text_content|safe }}</div>
+            <div class="t-grade-text-toolbar">
+                <span><i class="bi bi-fonts"></i> {{ submission.text_content|wordcount }} so'z</span>
+                <button type="button" class="t-copy-btn" onclick="tgCopyAnswer(this)"><i class="bi bi-clipboard"></i> Nusxalash</button>
+            </div>
+            <div class="t-grade-text-content">{{ submission.text_content|submission_plain }}</div>
             {% endif %}
             {% if not submission.file and not submission.text_content %}
             <p style="color: var(--bs-secondary-color);">Topshiriq fayli yoki matni mavjud emas.</p>
@@ -179,4 +190,13 @@
         </div>
     </div>
 </div>
+<script>
+    function tgCopyAnswer(btn) {
+        var box = btn.parentElement.parentElement.querySelector('.t-grade-text-content');
+        if (!box) return;
+        var txt = box.innerText, done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash'; }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(function () {}); }
+        else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
+    }
+</script>
 {% endblock %}

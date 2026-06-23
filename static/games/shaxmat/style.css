@@ -502,3 +502,24 @@ form: translate(0,0) scale(1); }
 .result-bg.draw ~ .result-card .result-actions .primary-btn { background: linear-gradient(135deg, #4338ca, #818cf8); box-shadow: 0 8px 24px rgba(99,102,241,0.35); }
 .result-bg.draw ~ .result-card .result-actions .primary-btn:hover { filter: brightness(1.12); transform: translateY(-2px); }
 @media (max-width: 480px) { .result-stats-grid { grid-template-columns: 1fr; } .result-card-inner { padding: 30px 20px 24px; } #result-title { font-size: 2rem; } }
+
+/* ===== AI THINKING / LOADING INDICATOR ===== */
+.turn-pill.thinking {
+    background: rgba(99,102,241,0.18) !important;
+    border-color: rgba(129,140,248,0.55) !important;
+    color: #c7d2fe !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.ai-spinner {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(199,210,254,0.3);
+    border-top-color: #818cf8;
+    display: inline-block;
+    animation: aiSpin 0.7s linear infinite;
+    flex-shrink: 0;
+}
+@keyframes aiSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .ai-spinner { animation-duration: 1.4s; } }

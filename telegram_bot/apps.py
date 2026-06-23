@@ -103,6 +103,31 @@ class TelegramBotConfig(AppConfig):
 
             time.sleep(3)
 
+    def _make_session(self):
+        """getUpdates uchun chidamli requests.Session.
+
+        Transient tarmoq uzilishlarida (WinError 10054 ConnectionReset,
+        timeout, 5xx) transport darajasida avtomatik qayta urinadi."""
+        import requests
+        from requests.adapters import HTTPAdapter
+        try:
+            from urllib3.util.retry import Retry
+        except Exception:
+            Retry = None
+        s = requests.Session()
+        if Retry is not None:
+            retry = Retry(
+                total=5, connect=5, read=5,
+                backoff_factor=1.0,                       # 0s,1s,2s,4s,8s
+                status_forcelist=(429, 500, 502, 503, 504),
+                allowed_methods=frozenset(['GET', 'POST']),
+                raise_on_status=False,
+            )
+            adapter = HTTPAdapter(max_retries=retry, pool_connections=4, pool_maxsize=4)
+            s.mount('https://', adapter)
+            s.mount('http://', adapter)
+        return s
+
     def _run_bot(self):
         import time
         import requests
@@ -124,8 +149,10 @@ class TelegramBotConfig(AppConfig):
         except UnicodeEncodeError:
             print(f"\nTelegram bot ishga tushdi (polling): @{settings.TELEGRAM_BOT_USERNAME}\n")
 
-        # Session yaratish — TCP connectionlarni qayta ishlatish
-        self._session = requests.Session()
+        # Session yaratish — TCP connectionlarni qayta ishlatish +
+        # transient tarmoq xatoliklarida (10054 ConnectionReset, timeout)
+        # transport darajasida avtomatik qayta urinish.
+        self._session = self._make_session()
 
         # Webhookni o'chirish (faqat lokal uchun)
         try:
@@ -134,6 +161,7 @@ class TelegramBotConfig(AppConfig):
             pass
 
         offset = None
+        net_fail = 0
         while True:
             try:
                 url = f"https://api.telegram.org/bot{bot_token}/getUpdates"
@@ -142,6 +170,7 @@ class TelegramBotConfig(AppConfig):
                     params['offset'] = offset
                 resp = self._session.get(url, params=params, timeout=35)
                 data = resp.json()
+                net_fail = 0  # muvaffaqiyatli so'rov — hisoblagichni tiklaymiz
                 updates = data.get('result', [])
 
                 for update in updates:
@@ -153,6 +182,23 @@ class TelegramBotConfig(AppConfig):
 
             except KeyboardInterrupt:
                 break
+            except (requests.exceptions.ConnectionError,
+                    requests.exceptions.Timeout,
+                    requests.exceptions.ChunkedEncodingError) as e:
+                # Telegram (yoki oraliq tarmoq/NAT/firewall) uzoq-polling
+                # ulanishini yopib qo'yishi normal holat (WinError 10054).
+                # "Buzilgan" keep-alive sessiyani tashlab, yangisini ochamiz
+                # va eksponensial kutib qayta urinamiz — bot uzilmaydi.
+                net_fail += 1
+                try:
+                    self._session.close()
+                except Exception:
+                    pass
+                self._session = self._make_session()
+                delay = min(30, 2 ** min(net_fail, 4))   # 2,4,8,16,30…
+                if net_fail <= 2 or net_fail % 10 == 0:
+                    print(f"Bot polling: tarmoq vaqtincha uzildi, {delay}s dan keyin qayta ulanish (#{net_fail})")
+                time.sleep(delay)
             except Exception as e:
                 print(f"Bot polling xatolik: {e}")
                 time.sleep(3)

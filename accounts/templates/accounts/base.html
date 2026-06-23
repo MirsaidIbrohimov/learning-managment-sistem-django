@@ -1034,6 +1034,12 @@
             {% endif %}
           </a>
 
+          <!-- Chat / Suhbatlar -->
+          <a href="{% url 'chat_inbox' %}" class="nb-icon-btn" title="Suhbatlar" id="nbChatBtn">
+            <i class="bi bi-chat-dots"></i>
+            <span class="nb-badge" id="nbChatBadge" style="display:none;"></span>
+          </a>
+
           <!-- User dropdown (desktop only) -->
           <div class="dropdown nb-desktop-only">
             <a class="nb-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false" role="button">
@@ -2164,6 +2170,28 @@
     window.applySiteLang = applyLang;
 })();
 </script>
+{% if user.is_authenticated %}
+<script>
+(function(){
+    var badge = document.getElementById('nbChatBadge');
+    if(!badge) return;
+    function poll(){
+        fetch("{% url 'api_chat_unread' %}", {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){return r.json();})
+        .then(function(d){
+            if(d && d.ok && d.unread > 0){
+                badge.textContent = d.unread > 99 ? '99+' : d.unread;
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        }).catch(function(){});
+    }
+    poll();
+    setInterval(poll, 20000);
+})();
+</script>
+{% endif %}
 {% block extra_js %}{% endblock %}
 
     <!-- Global Toast Notifications -->

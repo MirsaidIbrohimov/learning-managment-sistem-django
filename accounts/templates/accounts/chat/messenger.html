@@ -1,0 +1,148 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}{% if initial_partner %}{{ initial_partner|premium_name }} bilan suhbat{% elif initial_group %}{{ initial_group.name }} — Guruh chati{% else %}Suhbatlar{% endif %} | IT Shaharcha{% endblock %}
+
+{% block extra_css %}{% include 'accounts/chat/_messenger_styles.html' %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2 px-md-3 py-3">
+<div class="mz-shell {% if initial_kind %}mz-chat-open{% endif %}" id="mzShell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="mz-side" id="mzSide">
+        <div class="mz-side-head">
+            <div class="mz-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="mzSearch" placeholder="Qidiruv yoki yangi xabar...">
+            </div>
+        </div>
+        <div class="mz-filters">
+            <div class="mz-filter {% if not initial_filter or initial_filter == 'all' %}active{% endif %}" data-filter="all">Hammasi</div>
+            <div class="mz-filter {% if initial_filter == 'dm' %}active{% endif %}" data-filter="dm">Shaxsiy</div>
+            <div class="mz-filter {% if initial_filter == 'group' %}active{% endif %}" data-filter="group">Guruhlar</div>
+        </div>
+        <div class="mz-list" id="mzList">
+            <div class="mz-empty" id="mzListLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>
+        </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="mz-main" id="mzMain">
+        {% if initial_kind %}
+        <div class="mz-head" id="mzHead">
+            <div class="mz-back" id="mzBack"><i class="bi bi-arrow-left"></i></div>
+            {% if initial_partner %}
+                {% if initial_partner.photo %}<img src="{{ initial_partner.photo.url }}" class="mz-ava" id="mzHeadAva" alt="">
+                {% else %}<div class="mz-ava-fb" id="mzHeadAva">{{ initial_partner.get_initials }}</div>{% endif %}
+                <div class="flex-grow-1 min-w-0">
+                    <div class="mz-h-name text-truncate" id="mzHeadName">{{ initial_partner|premium_name }}</div>
+                    <div class="mz-h-sub" id="mzHeadSub">
+                        <span class="mz-dot {% if initial_partner.is_online %}on{% else %}off{% endif %}"></span>{% if initial_partner.is_online %}Online{% else %}Oflayn{% endif %} • @{{ initial_partner.username }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="mz-ava-fb" id="mzHeadAva"><i class="bi bi-people-fill"></i></div>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="mz-h-name text-truncate" id="mzHeadName">{{ initial_group.name }}</div>
+                    <div class="mz-h-sub" id="mzHeadSub">{{ members_count }} a'zo</div>
+                </div>
+            {% endif %}
+            <div class="mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+        </div>
+        {% else %}
+        <div class="mz-head" id="mzHead" style="display:none;">
+            <div class="mz-back" id="mzBack"><i class="bi bi-arrow-left"></i></div>
+            <div class="mz-ava-fb" id="mzHeadAva"></div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="mz-h-name text-truncate" id="mzHeadName"></div>
+                <div class="mz-h-sub" id="mzHeadSub"></div>
+            </div>
+            <div class="mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+        </div>
+        {% endif %}
+
+        <div class="mz-body" id="mzBody" {% if not initial_kind %}style="display:none;"{% endif %}>
+            <div class="mz-empty" id="mzBodyLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>
+        </div>
+        <div class="mz-typing" id="mzTyping" style="display:none;"></div>
+
+        <div class="mz-foot" id="mzFoot" {% if not initial_kind %}style="display:none;"{% endif %}>
+            <div class="mz-reply-bar" id="mzReplyBar" style="display:none;">
+                <div class="mz-reply-info">
+                    <div class="mz-reply-label" id="mzReplyLabel"></div>
+                    <div class="mz-reply-snippet" id="mzReplySnippet"></div>
+                </div>
+                <span class="mz-reply-x" id="mzReplyClose"><i class="bi bi-x-lg"></i></span>
+            </div>
+            <div class="mz-filechip" id="mzFileChip" style="display:none;">
+                <i class="bi bi-paperclip"></i>
+                <span id="mzFileName" class="text-truncate" style="max-width:200px;"></span>
+                <span class="x" id="mzFileClear"><i class="bi bi-x-lg"></i></span>
+            </div>
+            <div class="mz-emoji-panel" id="mzEmojiPanel" style="display:none;"></div>
+            <form class="mz-form" id="mzForm" autocomplete="off">
+                <label class="mz-attach" title="Fayl biriktirish">
+                    <i class="bi bi-paperclip"></i>
+                    <input type="file" id="mzFile" hidden>
+                </label>
+                <div class="mz-emoji-btn" id="mzEmojiBtn" title="Emoji"><i class="bi bi-emoji-smile"></i></div>
+                <textarea class="mz-input" id="mzInput" rows="1" placeholder="Xabar yozing..."></textarea>
+                <button type="submit" class="mz-send" id="mzSend" title="Yuborish"><i class="bi bi-send-fill"></i></button>
+            </form>
+        </div>
+
+        <div class="mz-placeholder" id="mzPlaceholder" {% if initial_kind %}style="display:none;"{% endif %}>
+            <i class="bi bi-chat-heart"></i>
+            <div>Suhbatni tanlang</div>
+        </div>
+    </main>
+
+    <!-- ============ FORWARD MODAL ============ -->
+    <div class="mz-modal-backdrop" id="mzFwdBackdrop" style="display:none;">
+        <div class="mz-modal">
+            <div class="mz-modal-head">
+                <span>Forward qilish</span>
+                <span class="mz-modal-x" id="mzFwdClose"><i class="bi bi-x-lg"></i></span>
+            </div>
+            <input type="text" class="mz-modal-search" id="mzFwdSearch" placeholder="Qidirish...">
+            <div class="mz-modal-list" id="mzFwdList"></div>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'accounts/chat/_messenger_script.html' %}
+<script>
+MZChat.init({
+    initialKind: {% if initial_kind %}"{{ initial_kind }}"{% else %}null{% endif %},
+    initialId: {% if initial_id %}{{ initial_id }}{% else %}null{% endif %},
+    filter: "{{ initial_filter|default:'all' }}",
+    csrf: "{{ csrf_token }}",
+    isAdmin: {% if is_admin_global %}true{% else %}false{% endif %},
+    initialCanModerate: {% if initial_can_moderate %}true{% else %}false{% endif %},
+    urls: {
+        sidebar:       "{% url 'api_chat_sidebar' %}",
+        search:        "{% url 'api_chat_user_search' %}",
+        pin:           "{% url 'api_chat_pin_toggle' %}",
+        typingPing:    "{% url 'api_chat_typing_ping' %}",
+        typingStatus:  "{% url 'api_chat_typing_status' %}",
+        dmMessages:    "{% url 'api_chat_direct_messages' 999999999 %}",
+        dmSend:        "{% url 'api_chat_direct_send' 999999999 %}",
+        groupMessages: "{% url 'api_chat_group_messages' 999999999 %}",
+        groupSend:     "{% url 'api_chat_group_send' 999999999 %}",
+        msgEdit:       "{% url 'api_chat_msg_edit' 'KIND' 999999999 %}",
+        msgDelete:     "{% url 'api_chat_msg_delete' 'KIND' 999999999 %}",
+        msgReact:      "{% url 'api_chat_msg_react' 'KIND' 999999999 %}",
+        msgForward:    "{% url 'api_chat_msg_forward' 'KIND' 999999999 %}",
+        dmPage:        "{% url 'direct_chat' 999999999 %}",
+        groupPage:     "{% url 'group_chat' 999999999 %}",
+        inboxPage:     "{% url 'chat_inbox' %}"
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Guruh chatlari - Admin Panel{% endblock %}
+{% block topbar_title %}Guruh chatlari{% endblock %}
+
+{% block extra_css %}
+<style>
+.agc-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:16px; }
+.agc-card{
+    background:var(--card-bg,#fff); border:1px solid var(--border-color,rgba(0,0,0,.08));
+    border-radius:18px; padding:20px; text-decoration:none; color:inherit;
+    transition:.2s; display:flex; flex-direction:column; gap:14px;
+}
+.agc-card:hover{ transform:translateY(-4px); box-shadow:0 16px 36px rgba(99,102,241,.18); border-color:#6366f1; }
+.agc-top{ display:flex; align-items:center; gap:12px; }
+.agc-ico{
+    width:52px;height:52px;border-radius:14px;flex:0 0 52px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-size:1.4rem;
+}
+.agc-name{ font-weight:700; }
+.agc-stats{ display:flex; gap:18px; font-size:.85rem; color:var(--text-muted,#64748b); }
+.agc-stats b{ color:#6366f1; }
+.agc-btn{
+    margin-top:auto; text-align:center; padding:9px; border-radius:12px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:600;
+}
+.agc-empty{ text-align:center; padding:60px 20px; color:var(--text-muted,#64748b); }
+.agc-empty i{ font-size:3rem; opacity:.4; display:block; margin-bottom:12px; }
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="mb-3">
+    <h4 class="fw-bold mb-1"><i class="bi bi-chat-square-text me-2 text-primary"></i>Guruh chatlari</h4>
+    <p class="text-muted mb-0">Barcha kurs guruhlari suhbatlarini ko‘ring va boshqaring.</p>
+</div>
+
+{% if professions %}
+<div class="agc-grid">
+    {% for p in professions %}
+    <a href="{% url 'group_chat' p.pk %}" class="agc-card">
+        <div class="agc-top">
+            <div class="agc-ico"><i class="bi bi-people-fill"></i></div>
+            <div class="min-w-0">
+                <div class="agc-name text-truncate">{{ p.name }}</div>
+                <div class="text-muted small">Guruh chati</div>
+            </div>
+        </div>
+        <div class="agc-stats">
+            <span><i class="bi bi-people"></i> <b>{{ p.member_count }}</b> a'zo</span>
+            <span><i class="bi bi-chat-dots"></i> <b>{{ p.msg_count }}</b> xabar</span>
+        </div>
+        <div class="agc-btn"><i class="bi bi-box-arrow-in-right me-1"></i> Chatga kirish</div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="agc-empty">
+    <i class="bi bi-people"></i>
+    Hozircha guruhlar yo‘q.
+</div>
+{% endif %}
+{% endblock %}

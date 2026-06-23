@@ -95,5 +95,26 @@
                 'calc(100vh - ' + nav.offsetHeight + 'px)';
         }
     })();
+
+    // ===== Light/Dark theme bridge: LMS temasini iframe ichidagi o'yinga uzatadi =====
+    (function() {
+        const iframe = document.querySelector('#game-iframe-wrap iframe');
+        if (!iframe) return;
+        function lmsTheme() {
+            return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light';
+        }
+        function send() {
+            try { iframe.contentWindow.postMessage({ type: 'lms-theme', theme: lmsTheme() }, '*'); } catch (e) {}
+        }
+        iframe.addEventListener('load', function() { send(); setTimeout(send, 200); setTimeout(send, 600); });
+        try {
+            new MutationObserver(send).observe(document.documentElement, {
+                attributes: true, attributeFilter: ['data-bs-theme']
+            });
+        } catch (e) {}
+        window.addEventListener('message', function(e) {
+            if (e && e.data && e.data.type === 'request-theme') send();
+        });
+    })();
 </script>
 {% endblock %}

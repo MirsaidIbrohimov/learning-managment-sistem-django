@@ -1,0 +1,178 @@
+{% load static %}
+<style>
+:root{
+    --ch-bg: #f1f5f9;
+    --ch-panel: #ffffff;
+    --ch-border: rgba(15,23,42,.08);
+    --ch-muted: #64748b;
+    --ch-text: #0f172a;
+    --ch-brand1: #6366f1;
+    --ch-brand2: #8b5cf6;
+    --ch-me1: #6366f1;
+    --ch-me2: #7c3aed;
+    --ch-other: #ffffff;
+    --ch-shadow: 0 10px 30px rgba(15,23,42,.08);
+}
+[data-bs-theme="dark"]{
+    --ch-bg: #0b1220;
+    --ch-panel: #0f172a;
+    --ch-border: rgba(255,255,255,.08);
+    --ch-muted: #94a3b8;
+    --ch-text: #e2e8f0;
+    --ch-other: #1e293b;
+    --ch-shadow: 0 10px 30px rgba(0,0,0,.45);
+}
+
+.ch-shell{
+    max-width:900px; margin:0 auto;
+    display:flex; flex-direction:column;
+    height:calc(100vh - 90px);
+    min-height:480px;
+    background:var(--ch-panel);
+    border:1px solid var(--ch-border);
+    border-radius:22px;
+    overflow:hidden;
+    box-shadow:var(--ch-shadow);
+}
+
+/* ===== HEADER ===== */
+.ch-head{
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px;
+    background:linear-gradient(135deg,var(--ch-brand1),var(--ch-brand2));
+    color:#fff;
+}
+.ch-back{
+    width:40px;height:40px;flex:0 0 40px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:12px; color:#fff;
+    background:rgba(255,255,255,.16); border:1px solid rgba(255,255,255,.22);
+    transition:.2s;
+}
+.ch-back:hover{ background:rgba(255,255,255,.3); color:#fff; }
+.ch-ava{
+    width:46px;height:46px;border-radius:14px;object-fit:cover;
+    border:2px solid rgba(255,255,255,.4);
+}
+.ch-ava-fb{
+    width:46px;height:46px;border-radius:14px;flex:0 0 46px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.2); color:#fff; font-weight:800; font-size:1.05rem;
+}
+.ch-head .h-name{ font-weight:700; font-size:1.05rem; line-height:1.1; }
+.ch-head .h-sub{ font-size:.78rem; opacity:.9; }
+.ch-dot{ width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px; }
+.ch-dot.on{ background:#4ade80; box-shadow:0 0 0 2px rgba(74,222,128,.3); }
+.ch-dot.off{ background:#cbd5e1; }
+
+/* ===== BODY ===== */
+.ch-body{
+    flex:1 1 auto; overflow-y:auto;
+    padding:18px;
+    background:
+        radial-gradient(circle at 20% 10%, rgba(99,102,241,.05), transparent 40%),
+        var(--ch-bg);
+    display:flex; flex-direction:column; gap:10px;
+}
+.ch-body::-webkit-scrollbar{ width:8px; }
+.ch-body::-webkit-scrollbar-thumb{ background:var(--ch-border); border-radius:8px; }
+
+.ch-day{
+    text-align:center; margin:6px 0;
+}
+.ch-day span{
+    background:var(--ch-panel); color:var(--ch-muted);
+    border:1px solid var(--ch-border);
+    padding:3px 12px; border-radius:999px; font-size:.72rem;
+}
+
+/* ===== MESSAGE ROW ===== */
+.ch-row{ display:flex; gap:8px; max-width:82%; }
+.ch-row.me{ align-self:flex-end; flex-direction:row-reverse; }
+.ch-row.other{ align-self:flex-start; }
+.ch-row-ava{
+    width:30px;height:30px;border-radius:50%;flex:0 0 30px; align-self:flex-end;
+    object-fit:cover;
+}
+.ch-row-ava-fb{
+    width:30px;height:30px;border-radius:50%;flex:0 0 30px; align-self:flex-end;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--ch-brand1),var(--ch-brand2));
+    color:#fff; font-size:.72rem; font-weight:700;
+}
+.ch-bubble{
+    padding:9px 13px; border-radius:16px;
+    font-size:.92rem; line-height:1.4; word-break:break-word;
+    position:relative;
+}
+.ch-row.other .ch-bubble{
+    background:var(--ch-other); color:var(--ch-text);
+    border:1px solid var(--ch-border);
+    border-bottom-left-radius:5px;
+}
+.ch-row.me .ch-bubble{
+    background:linear-gradient(135deg,var(--ch-me1),var(--ch-me2));
+    color:#fff;
+    border-bottom-right-radius:5px;
+}
+.ch-sender{ font-size:.74rem; font-weight:700; margin-bottom:3px; color:var(--ch-brand1); }
+.ch-time{ font-size:.66rem; opacity:.7; margin-top:4px; text-align:right; }
+.ch-file{
+    display:inline-flex; align-items:center; gap:7px;
+    padding:7px 11px; border-radius:10px; margin-top:5px;
+    background:rgba(255,255,255,.18); color:inherit; text-decoration:none;
+    font-size:.82rem; border:1px solid rgba(255,255,255,.25);
+}
+.ch-row.other .ch-file{ background:var(--ch-bg); border-color:var(--ch-border); }
+.ch-file img{ max-width:200px; border-radius:8px; display:block; }
+
+/* ===== EMPTY ===== */
+.ch-empty{
+    margin:auto; text-align:center; color:var(--ch-muted); padding:30px;
+}
+.ch-empty i{ font-size:2.6rem; opacity:.5; display:block; margin-bottom:10px; }
+
+/* ===== COMPOSER ===== */
+.ch-foot{
+    padding:12px 14px; border-top:1px solid var(--ch-border);
+    background:var(--ch-panel);
+}
+.ch-form{ display:flex; align-items:flex-end; gap:10px; }
+.ch-attach{
+    width:44px;height:44px;flex:0 0 44px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:14px; cursor:pointer; transition:.2s;
+    background:var(--ch-bg); color:var(--ch-brand1); border:1px solid var(--ch-border);
+}
+.ch-attach:hover{ background:var(--ch-brand1); color:#fff; }
+.ch-input{
+    flex:1 1 auto;
+    border:1px solid var(--ch-border); border-radius:16px;
+    background:var(--ch-bg); color:var(--ch-text);
+    padding:11px 15px; resize:none; max-height:120px; outline:none;
+    font-size:.92rem; line-height:1.4;
+}
+.ch-input:focus{ border-color:var(--ch-brand1); box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+.ch-send{
+    width:44px;height:44px;flex:0 0 44px;
+    display:inline-flex;align-items:center;justify-content:center;
+    border-radius:14px; border:none; color:#fff; font-size:1.1rem;
+    background:linear-gradient(135deg,var(--ch-brand1),var(--ch-brand2));
+    transition:.2s;
+}
+.ch-send:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+.ch-send:disabled{ opacity:.5; cursor:not-allowed; }
+.ch-filechip{
+    display:none; align-items:center; gap:8px; margin-bottom:8px;
+    font-size:.82rem; color:var(--ch-muted);
+    background:var(--ch-bg); border:1px solid var(--ch-border);
+    border-radius:10px; padding:6px 10px;
+}
+.ch-filechip .x{ cursor:pointer; color:#ef4444; }
+
+@media (max-width:575px){
+    .ch-shell{ height:calc(100vh - 70px); border-radius:0; border-left:none; border-right:none; }
+    .container.ch-wrap{ padding-left:0; padding-right:0; }
+    .ch-row{ max-width:90%; }
+}
+</style>

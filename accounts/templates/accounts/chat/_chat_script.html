@@ -1,0 +1,159 @@
+<script>
+/* Shared polling chat controller used by group_chat & direct_chat.
+   Config: { listUrl, sendUrl, isGroup, csrf } */
+function initChat(cfg){
+    var body   = document.getElementById('chBody');
+    var form   = document.getElementById('chForm');
+    var input  = document.getElementById('chInput');
+    var fileIn = document.getElementById('chFile');
+    var chip   = document.getElementById('chFileChip');
+    var chipNm = document.getElementById('chFileName');
+    var chipX  = document.getElementById('chFileClear');
+    var sendBtn= document.getElementById('chSend');
+    var lastId = 0;
+    var seen   = {};
+    var firstLoad = true;
+    var sending = false;
+
+    function esc(s){
+        return (s||'').replace(/[&<>"']/g, function(c){
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+    function atBottom(){
+        return body.scrollHeight - body.scrollTop - body.clientHeight < 120;
+    }
+    function scrollDown(){ body.scrollTop = body.scrollHeight; }
+
+    function avatarHtml(s, cls){
+        if(s.photo){
+            return '<img class="'+cls+'" src="'+esc(s.photo)+'" alt="">';
+        }
+        return '<div class="'+cls.replace('ava','ava-fb').replace('row-ava','row-ava-fb')+'">'+esc(s.initials||'?')+'</div>';
+    }
+
+    function fileHtml(m){
+        if(!m.file_url) return '';
+        var isImg = /\.(png|jpe?g|gif|webp)$/i.test(m.file_url);
+        if(isImg){
+            return '<a class="ch-file" href="'+esc(m.file_url)+'" target="_blank"><img src="'+esc(m.file_url)+'"></a>';
+        }
+        return '<a class="ch-file" href="'+esc(m.file_url)+'" target="_blank"><i class="bi bi-paperclip"></i>'+esc(m.file_name||'Fayl')+'</a>';
+    }
+
+    function renderMsg(m){
+        if(seen[m.id]) return;
+        seen[m.id] = true;
+        if(m.id > lastId) lastId = m.id;
+
+        var row = document.createElement('div');
+        row.className = 'ch-row ' + (m.is_me ? 'me' : 'other');
+
+        var inner = '';
+        // avatar only for group chat & only for others
+        if(cfg.isGroup && !m.is_me){
+            inner += avatarHtml(m.sender, 'ch-row-ava');
+        }
+        var bubble = '<div class="ch-bubble">';
+        if(cfg.isGroup && !m.is_me){
+            bubble += '<div class="ch-sender">'+esc(m.sender.name)+'</div>';
+        }
+        if(m.message){
+            bubble += '<div>'+esc(m.message).replace(/\n/g,'<br>')+'</div>';
+        }
+        bubble += fileHtml(m);
+        bubble += '<div class="ch-time">'+esc(m.created_at)+'</div>';
+        bubble += '</div>';
+        inner += bubble;
+        row.innerHTML = inner;
+        body.appendChild(row);
+    }
+
+    function clearEmpty(){
+        var e = document.getElementById('chEmpty');
+        if(e) e.remove();
+    }
+
+    function load(){
+        fetch(cfg.listUrl + (lastId ? ('?after='+lastId) : ''), {
+            headers: {'X-Requested-With':'XMLHttpRequest'}
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(!d.ok || !d.messages) return;
+            if(d.messages.length){
+                var stick = atBottom() || firstLoad;
+                clearEmpty();
+                d.messages.forEach(renderMsg);
+                if(stick) scrollDown();
+            }
+            firstLoad = false;
+        })
+        .catch(function(){});
+    }
+
+    // file picker
+    if(fileIn){
+        fileIn.addEventListener('change', function(){
+            if(fileIn.files.length){
+                chipNm.textContent = fileIn.files[0].name;
+                chip.style.display = 'flex';
+            }
+        });
+        chipX.addEventListener('click', function(){
+            fileIn.value = '';
+            chip.style.display = 'none';
+        });
+    }
+
+    // auto-grow textarea
+    input.addEventListener('input', function(){
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+    // Enter to send (Shift+Enter = newline)
+    input.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' && !e.shiftKey){
+            e.preventDefault();
+            form.requestSubmit();
+        }
+    });
+
+    form.addEventListener('submit', function(e){
+        e.preventDefault();
+        if(sending) return;
+        var text = input.value.trim();
+        var hasFile = fileIn && fileIn.files.length;
+        if(!text && !hasFile) return;
+
+        sending = true; sendBtn.disabled = true;
+        var fd = new FormData();
+        fd.append('message', text);
+        if(hasFile) fd.append('file', fileIn.files[0]);
+
+        fetch(cfg.sendUrl, {
+            method:'POST',
+            headers:{'X-CSRFToken': cfg.csrf, 'X-Requested-With':'XMLHttpRequest'},
+            body: fd
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(d.ok && d.message){
+                clearEmpty();
+                renderMsg(d.message);
+                scrollDown();
+                input.value=''; input.style.height='auto';
+                if(fileIn){ fileIn.value=''; chip.style.display='none'; }
+            } else {
+                alert(d.error || 'Xabar yuborilmadi');
+            }
+        })
+        .catch(function(){ alert('Tarmoq xatosi'); })
+        .finally(function(){ sending=false; sendBtn.disabled=false; input.focus(); });
+    });
+
+    load();
+    setInterval(load, 4000);
+    input.focus();
+}
+</script>
