@@ -323,7 +323,6 @@ class SectionBlockMiddleware:
         'reyting': ['leaderboard', 'rating'],
         'postlar': ['blog:'],
         'market': ['coin:'],
-        'coding': ['coding'],
         'yordam': ['help'],
         'vazifalar': ['homework'],
         'xabarlar': ['messages'],

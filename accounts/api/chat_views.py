@@ -22,6 +22,7 @@ Security:
 """
 
 import os
+import html
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
@@ -42,6 +43,7 @@ from accounts.models import (
     ChatPin,
     ChatTypingStatus,
 )
+from telegram_bot.utils import notify_user
 
 # Reuse the battle-tested helpers from the homework chat API
 from .homework_views import (
@@ -85,6 +87,20 @@ def _can_dm(user, other):
         if my_courses & their_courses:
             return True
     return False
+
+
+def _notify_dm_telegram(recipient, sender, text, has_file):
+    """Shaxsiy (1:1) chatga yangi xabar kelganda, agar qabul qiluvchi
+    Telegram botga ulangan bo'lsa — unga bildirishnoma yuboradi."""
+    if not recipient.telegram_id:
+        return
+    preview = html.escape(text[:150], quote=False) if text else "📎 Fayl yubordi"
+    notify_user(
+        recipient.telegram_id,
+        f"💬 <b>Sizga yangi xabar bor!</b>\n\n"
+        f"👤 {html.escape(sender.full_name or sender.username, quote=False)}\n"
+        f"💭 {preview}"
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -330,6 +346,7 @@ def direct_send(request, user_pk):
         message=text, file=up_file if up_file else None,
         reply_to=reply_obj,
     )
+    _notify_dm_telegram(other, request.user, text, bool(up_file))
     return _ok({'message': _serialize_dm(msg, request)})
 
 
@@ -520,6 +537,7 @@ def message_forward(request, kind, msg_id):
             message=msg.message, file=msg.file or None,
             is_forwarded=True, forwarded_sender_name=original_sender_name,
         )
+        _notify_dm_telegram(target_user, request.user, msg.message, bool(msg.file))
         return _ok({'message': _serialize_dm(new_msg, request)})
 
     target_group = get_object_or_404(Profession, pk=to_id)

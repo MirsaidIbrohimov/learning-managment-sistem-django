@@ -21,7 +21,7 @@ window.MZChat = (function(){
     var state = {
         cfg: null, items: [], extraUsers: [], filter: 'all',
         currentKind: null, currentId: null, currentCanModerate: false,
-        msgCache: {}, seenMsgIds: {}, lastMsgId: 0,
+        msgCache: {}, msgRaw: {}, seenMsgIds: {}, lastMsgId: 0,
         replyTo: null, editingId: null, sending: false,
         pollTimer: null, typingTimer: null,
         forwardId: null, forwardKind: null,
@@ -137,6 +137,7 @@ window.MZChat = (function(){
         state.currentKind = kind;
         state.currentId = id;
         state.msgCache = {};
+        state.msgRaw = {};
         state.seenMsgIds = {};
         state.lastMsgId = 0;
         dom.body.innerHTML = '<div class="mz-empty" id="mzBodyLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>';
@@ -145,6 +146,7 @@ window.MZChat = (function(){
         dom.foot.style.display = '';
         dom.placeholder.style.display = 'none';
         dom.typing.style.display = 'none';
+        if(dom.scrollBtn) dom.scrollBtn.classList.remove('show', 'has-new');
 
         var item = itemData || findItem(kind, id);
         state.currentCanModerate = item ? !!item.can_moderate :
@@ -177,6 +179,7 @@ window.MZChat = (function(){
         dom.foot.style.display = 'none';
         dom.typing.style.display = 'none';
         dom.placeholder.style.display = 'flex';
+        if(dom.scrollBtn) dom.scrollBtn.classList.remove('show', 'has-new');
         document.querySelectorAll('.mz-row').forEach(function(r){ r.classList.remove('active'); });
         if(pushHistory) history.pushState({}, '', state.cfg.urls.inboxPage);
     }
@@ -209,6 +212,13 @@ window.MZChat = (function(){
     function atBottom(){ return dom.body.scrollHeight - dom.body.scrollTop - dom.body.clientHeight < 150; }
     function scrollDown(){ dom.body.scrollTop = dom.body.scrollHeight; }
 
+    function updateScrollBtn(){
+        if(!dom.scrollBtn) return;
+        var near = atBottom();
+        dom.scrollBtn.classList.toggle('show', !near);
+        if(near) dom.scrollBtn.classList.remove('has-new');
+    }
+
     function reconcile(list, forceScroll){
         var loading = document.getElementById('mzBodyLoading');
         if(loading) loading.remove();
@@ -225,15 +235,23 @@ window.MZChat = (function(){
 
         var freshIds = {};
         var ids = [];
+        var hasNew = false;
         list.forEach(function(m){
             freshIds[m.id] = true;
             ids.push(m.id);
+            var nextRaw = JSON.stringify(m);
+            var changed = state.msgRaw[m.id] !== nextRaw;
             state.msgCache[m.id] = m;
+            state.msgRaw[m.id] = nextRaw;
             var existing = document.getElementById('mzMsg'+m.id);
             if(existing){
-                existing.outerHTML = buildMsgRow(m);
+                // Only touch the DOM when the message actually changed (edit, reaction,
+                // read-receipt, ...) so unchanged bubbles don't replay their entrance
+                // animation on every poll tick.
+                if(changed) existing.outerHTML = buildMsgRow(m);
             } else {
                 dom.body.insertAdjacentHTML('beforeend', buildMsgRow(m));
+                hasNew = true;
             }
             state.seenMsgIds[m.id] = true;
             if(m.id > state.lastMsgId) state.lastMsgId = m.id;
@@ -247,10 +265,16 @@ window.MZChat = (function(){
                 if(el) el.remove();
                 delete state.seenMsgIds[id];
                 delete state.msgCache[id];
+                delete state.msgRaw[id];
             }
         });
 
-        if(stick) scrollDown();
+        if(stick){
+            scrollDown();
+        } else if(hasNew && dom.scrollBtn){
+            dom.scrollBtn.classList.add('has-new');
+        }
+        updateScrollBtn();
     }
 
     function rerenderMsg(id){
@@ -597,6 +621,19 @@ window.MZChat = (function(){
         pollTyping();
         state.typingTimer = setInterval(pollTyping, POLL_TYPING_MS);
     }
+    function setTyping(html){
+        if(html === null){
+            dom.typing.style.display = 'none';
+            dom.typing.innerHTML = '';
+            dom.typing.dataset.cur = '';
+            return;
+        }
+        dom.typing.style.display = '';
+        if(dom.typing.dataset.cur !== html){
+            dom.typing.innerHTML = html;
+            dom.typing.dataset.cur = html;
+        }
+    }
     function pollTyping(){
         if(!state.currentKind) return;
         var url = state.cfg.urls.typingStatus + '?kind=' + state.currentKind + '&target_id=' + state.currentId;
@@ -604,13 +641,12 @@ window.MZChat = (function(){
         .then(function(r){ return r.json(); })
         .then(function(d){
             if(!d.ok) return;
+            var dots = '<span class="mz-typing-dots"><i></i><i></i><i></i></span>';
             if(state.currentKind==='dm'){
-                dom.typing.style.display = d.typing ? '' : 'none';
-                dom.typing.textContent = d.typing ? 'yozyapti...' : '';
+                setTyping(d.typing ? ('yozyapti'+dots) : null);
             } else {
                 var names = d.typing_users || [];
-                dom.typing.style.display = names.length ? '' : 'none';
-                dom.typing.textContent = names.length ? (names.join(', ')+' yozyapti...') : '';
+                setTyping(names.length ? (esc(names.join(', '))+' yozyapti'+dots) : null);
             }
         }).catch(function(){});
     }
@@ -678,6 +714,21 @@ window.MZChat = (function(){
         });
 
         dom.body.addEventListener('click', onBodyClick);
+        dom.body.addEventListener('scroll', updateScrollBtn);
+        if(dom.scrollBtn){
+            dom.scrollBtn.addEventListener('click', function(){
+                dom.body.scrollTo({top: dom.body.scrollHeight, behavior:'smooth'});
+                dom.scrollBtn.classList.remove('has-new');
+            });
+        }
+
+        document.addEventListener('keydown', function(e){
+            if(e.key !== 'Escape') return;
+            if(dom.fwdBackdrop.style.display !== 'none'){ dom.fwdBackdrop.style.display = 'none'; return; }
+            if(dom.emojiPanel.style.display !== 'none'){ dom.emojiPanel.style.display = 'none'; return; }
+            if(document.getElementById('mzReactPop')){ closeReactPicker(); return; }
+            if(state.replyTo || state.editingId){ onReplyClose(); }
+        });
 
         dom.replyClose.addEventListener('click', onReplyClose);
         dom.form.addEventListener('submit', onFormSubmit);
@@ -754,6 +805,7 @@ window.MZChat = (function(){
         dom.fwdClose = document.getElementById('mzFwdClose');
         dom.fwdSearch = document.getElementById('mzFwdSearch');
         dom.fwdList = document.getElementById('mzFwdList');
+        dom.scrollBtn = document.getElementById('mzScrollBottom');
     }
 
     function init(cfg){

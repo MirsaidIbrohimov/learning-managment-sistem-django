@@ -963,9 +963,6 @@
           <a class="nb-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}">
             <i class="bi bi-shop"></i><span>Market</span>
           </a>
-          <a class="nb-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}" href="{% url 'my_deploys' %}">
-            <i class="bi bi-terminal-fill"></i><span>Coding</span>
-          </a>
           <a class="nb-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}">
             <i class="bi bi-question-circle"></i><span>Yordam</span>
           </a>
@@ -1079,6 +1076,7 @@
               <li><a class="dropdown-item" href="{% url 'site_settings' %}"><span class="dd-icon" style="background:rgba(148,163,184,.12);color:#94a3b8;"><i class="bi bi-gear-fill"></i></span>Sozlamalar</a></li>
               {% if user.is_teacher %}<li><a class="dropdown-item" href="{% url 'teacher:dashboard' %}"><span class="dd-icon" style="background:rgba(236,72,153,.15);color:#ec4899;"><i class="bi bi-mortarboard-fill"></i></span>O'qituvchi paneli</a></li>{% endif %}
               {% if user.is_admin %}<li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"><span class="dd-icon" style="background:rgba(244,63,94,.15);color:#f43f5e;"><i class="bi bi-speedometer2"></i></span>Panel</a></li>{% endif %}
+              {% if user.is_assistant_admin %}<li><a class="dropdown-item" href="{% url 'yordamchi_dashboard' %}"><span class="dd-icon" style="background:rgba(244,63,94,.15);color:#f43f5e;"><i class="bi bi-speedometer2"></i></span>Yordamchi panel</a></li>{% endif %}
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><span class="dd-icon" style="background:rgba(239,68,68,.15);color:#ef4444;"><i class="bi bi-box-arrow-right"></i></span>Chiqish</a></li>
             </ul>
@@ -1126,7 +1124,6 @@
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}"><i class="bi bi-trophy-fill"></i>Reyting</a>
         <a class="nb-mobile-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}"><i class="bi bi-newspaper"></i>Postlar</a>
         <a class="nb-mobile-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}"><i class="bi bi-shop"></i>Market</a>
-        <a class="nb-mobile-link {% if 'deploy' in request.resolver_match.url_name or request.path == '/coding/' %}active{% endif %}" href="{% url 'my_deploys' %}"><i class="bi bi-terminal-fill"></i>Coding</a>
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}"><i class="bi bi-question-circle"></i>Yordam</a>
         {% if user.is_teacher or user.is_admin %}
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}"><i class="bi bi-file-check-fill"></i>Vazifalar</a>
@@ -1628,6 +1625,12 @@
                     <span>Panel</span>
                 </a>
                 {% endif %}
+                {% if user.is_assistant_admin %}
+                <a href="{% url 'yordamchi_dashboard' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-speedometer2"></i></div>
+                    <span>Yordamchi panel</span>
+                </a>
+                {% endif %}
             </div>
 
             <!-- Ijtimoiy tarmoqlar -->
@@ -1833,7 +1836,6 @@
             <h4>Imkoniyatlar</h4>
             <a href="{% url 'ai_yordamchi:chat_home' %}">AI Chat</a>
             <a href="{% url 'games:games_list' %}">O'yinlar</a>
-            <a href="{% url 'my_deploys' %}">Coding</a>
             <a href="{% url 'global_search' %}">Qidiruv</a>
           </div>
           <div class="sf-col">
@@ -2124,7 +2126,7 @@
     var T = {
         uz: {
             'nav.home': 'Bosh sahifa', 'nav.courses': 'Kurslar', 'nav.rating': 'Reyting',
-            'nav.posts': 'Postlar', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.posts': 'Postlar', 'nav.market': 'Market',
             'nav.help': 'Yordam', 'nav.tasks': 'Vazifalar', 'nav.balance': 'Balans',
             'menu.profile': 'Profil', 'menu.messages': 'Xabarlar', 'menu.ai_chat': 'AI suhbat',
             'menu.games': "O'yinlar", 'menu.my_homework': 'Vazifalarim',
@@ -2134,7 +2136,7 @@
         },
         ru: {
             'nav.home': 'Главная', 'nav.courses': 'Курсы', 'nav.rating': 'Рейтинг',
-            'nav.posts': 'Посты', 'nav.market': 'Магазин', 'nav.coding': 'Кодинг',
+            'nav.posts': 'Посты', 'nav.market': 'Магазин',
             'nav.help': 'Помощь', 'nav.tasks': 'Задания', 'nav.balance': 'Баланс',
             'menu.profile': 'Профиль', 'menu.messages': 'Сообщения', 'menu.ai_chat': 'AI чат',
             'menu.games': 'Игры', 'menu.my_homework': 'Мои задания',
@@ -2144,7 +2146,7 @@
         },
         en: {
             'nav.home': 'Home', 'nav.courses': 'Courses', 'nav.rating': 'Rating',
-            'nav.posts': 'Posts', 'nav.market': 'Market', 'nav.coding': 'Coding',
+            'nav.posts': 'Posts', 'nav.market': 'Market',
             'nav.help': 'Help', 'nav.tasks': 'Tasks', 'nav.balance': 'Balance',
             'menu.profile': 'Profile', 'menu.messages': 'Messages', 'menu.ai_chat': 'AI Chat',
             'menu.games': 'Games', 'menu.my_homework': 'My Homework',

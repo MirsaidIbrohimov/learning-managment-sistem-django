@@ -604,44 +604,6 @@
 </div>
 {% endif %}
 
-<!-- Deploy loyihalar -->
-{% if deploys %}
-<div class="pf-card pf-sec a-up d6 {% if user.is_premium %}pm-right{% endif %}">
-    <div class="pf-sec-title">
-        <i class="bi bi-code-slash ib" style="background:var(--accent-bg);color:var(--accent);"></i>
-        Deploy qilgan loyihalarim
-        <a href="{% url 'my_deploys' %}" class="btn btn-sm btn-outline-primary rounded-pill ms-auto" style="font-size:.75rem">
-            <i class="bi bi-arrow-right me-1"></i>Barchasi
-        </a>
-    </div>
-    <div class="row g-3">
-    {% for deploy in deploys %}
-    <div class="col-md-6">
-        <div class="pf-mini">
-            <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="rounded-3 p-2" style="background:var(--accent-bg);color:var(--accent);">
-                    <i class="bi bi-filetype-html fs-5"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <b>{{ deploy.title }}</b><br>
-                    <small style="color:var(--muted)"><i class="bi bi-eye me-1"></i>{{ deploy.views_count }} · {{ deploy.created_at|date:"d.m.Y" }}</small>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="{{ deploy.get_url }}" target="_blank" class="btn btn-sm btn-primary rounded-pill flex-grow-1">
-                    <i class="bi bi-box-arrow-up-right me-1"></i>Ko'rish
-                </a>
-                <a href="{% url 'edit_deploy' deploy.pk %}" class="btn btn-sm btn-outline-secondary rounded-pill">
-                    <i class="bi bi-pencil"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-    </div>
-</div>
-{% endif %}
-
 <!-- Sertifikatlar -->
 <div class="pf-card pf-sec a-up d7 {% if user.is_premium %}pm-right{% endif %}">
     <div class="pf-sec-title">

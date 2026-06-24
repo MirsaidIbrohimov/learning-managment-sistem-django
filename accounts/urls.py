@@ -179,6 +179,7 @@ urlpatterns = [
     path('dashboard/users/<int:pk>/', views.admin_user_view, name='admin_user_view'),
     path('dashboard/users/<int:pk>/edit/', views.admin_user_edit, name='admin_user_edit'),
     path('dashboard/users/<int:pk>/block/', views.admin_user_block, name='admin_user_block'),
+    path('dashboard/users/<int:pk>/unlink-telegram/', views.admin_unlink_telegram, name='admin_unlink_telegram'),
     path('dashboard/users/<int:pk>/finished/', views.admin_user_finished, name='admin_user_finished'),
     path('dashboard/users/<int:pk>/delete/', views.admin_user_delete, name='admin_user_delete'),
     path('dashboard/users/<int:pk>/statistics/', views.student_statistics, name='user_statistics'),
@@ -228,20 +229,7 @@ urlpatterns = [
     path('profile/devices/remove-all/', views.remove_all_devices, name='remove_all_devices'),
     path('profile/devices/bulk-remove/', views.bulk_remove_devices, name='bulk_remove_devices'),
     path('profile/sessions/<int:pk>/logout/', views.logout_session, name='logout_session'),
-    
-    # Coding / HTML Deploy
-    path('coding/', views.my_deploys, name='my_deploys'),
-    path('coding/create/', views.create_deploy, name='create_deploy'),
-    path('coding/<int:pk>/edit/', views.edit_deploy, name='edit_deploy'),
-    path('coding/<int:pk>/delete/', views.delete_deploy, name='delete_deploy'),
-    path('coding/<str:username>/<str:folder_name>/', views.view_deployed_page, name='view_deployed_page'),
-    path('coding/<str:username>/<str:folder_name>/<path:filepath>', views.view_deployed_page, name='view_deployed_file'),
-    
-    # Admin: Deploys
-    path('dashboard/deploys/', views.admin_deploys, name='admin_deploys'),
-    path('dashboard/deploys/<int:pk>/toggle/', views.admin_deploy_toggle, name='admin_deploy_toggle'),
-    path('dashboard/deploys/<int:pk>/delete/', views.admin_deploy_delete, name='admin_deploy_delete'),
-    
+
     # Admin: Qurilmalar
     path('dashboard/users/<int:pk>/devices/', views.admin_user_devices, name='admin_user_devices'),
     path('dashboard/users/<int:user_pk>/devices/<int:device_pk>/logout/', views.admin_logout_user_device, name='admin_logout_user_device'),
@@ -345,7 +333,6 @@ urlpatterns = [
     path('dashboard/balans/<int:student_id>/set-fee/', views.admin_balance_set_fee, name='admin_balance_set_fee'),
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
 
-    # Oylik to'lovlar
     # Oylik to'lovlar
     path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
     path('dashboard/tolovlar/<int:pk>/mark-paid/', views.admin_mark_paid, name='admin_mark_paid'),

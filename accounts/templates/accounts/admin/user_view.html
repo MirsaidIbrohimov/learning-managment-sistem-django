@@ -289,6 +289,15 @@
             <a href="{% url 'admin_user_devices' user_obj.pk %}" class="uv-hero-btn primary">
                 <i class="bi bi-laptop"></i> Qurilmalar ({{ user_obj.devices.count }})
             </a>
+            {% if user_obj.telegram_id %}
+            <form method="post" action="{% url 'admin_unlink_telegram' user_obj.pk %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="uv-hero-btn danger"
+                        onclick="return confirm('{{ user_obj.full_name }} ning Telegram ulanishini KODSIZ uzishni tasdiqlaysizmi? Bu amalni faqat foydalanuvchi o\'z Telegramiga kira olmay qolganda ishlating.')">
+                    <i class="bi bi-telegram"></i> Telegramni uzish
+                </button>
+            </form>
+            {% endif %}
         </div>
     </div>
 

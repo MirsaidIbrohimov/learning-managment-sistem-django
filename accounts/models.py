@@ -1261,49 +1261,6 @@ class UserSession(models.Model):
         return timezone.now() > self.expires_at
 
 
-class HTMLDeploy(models.Model):
-    DEPLOY_TYPES = (
-        ('html', 'HTML fayl'),
-        ('project', 'Loyiha (ZIP)'),
-    )
-    
-    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='deploys')
-    profession = models.ForeignKey('Profession', on_delete=models.CASCADE, related_name='deploys', null=True, blank=True)
-    title = models.CharField(max_length=200, verbose_name="Loyiha nomi")
-    deploy_type = models.CharField(max_length=20, choices=DEPLOY_TYPES, default='html', verbose_name="Turi")
-    folder_name = models.CharField(max_length=100, verbose_name="Papka nomi", default='project')
-    entry_file = models.CharField(max_length=100, default='index.html', verbose_name="Asosiy fayl")
-    html_content = models.TextField(blank=True, null=True, verbose_name="HTML kodi")
-    description = models.TextField(blank=True, null=True, verbose_name="Tavsif")
-    is_active = models.BooleanField(default=True, verbose_name="Faol")
-    views_count = models.IntegerField(default=0, verbose_name="Ko'rishlar soni")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together = ['user', 'folder_name']
-        ordering = ['-created_at']
-        verbose_name = "HTML Deploy"
-        verbose_name_plural = "HTML Deploylar"
-    
-    def __str__(self):
-        return f"{self.user.username}/{self.folder_name}"
-    
-    def get_url(self):
-        if self.deploy_type == 'project':
-            return f"/coding/{self.user.username}/{self.folder_name}/{self.entry_file}"
-        return f"/coding/{self.user.username}/{self.folder_name}"
-    
-    def get_folder_path(self):
-        import os
-        from django.conf import settings
-        return os.path.join(settings.MEDIA_ROOT, 'deploys', self.user.username, self.folder_name)
-    
-    @property
-    def full_url(self):
-        return self.get_url()
-
-
 class Discount(models.Model):
     DISCOUNT_TYPES = (
         ('percentage', 'Foiz'),
@@ -1658,7 +1615,6 @@ class BlockedSection(models.Model):
         ('reyting', 'Reyting'),
         ('postlar', 'Postlar'),
         ('market', 'Market'),
-        ('coding', 'Coding'),
         ('yordam', 'Yordam'),
         ('vazifalar', 'Vazifalar'),
         ('xabarlar', 'Xabarlar'),

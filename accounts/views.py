@@ -21,7 +21,7 @@ from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Dictionary, DictionaryWord, Certificate, CertificateRequest, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
-    UserDevice, UserSession, HTMLDeploy, SystemReport, PasswordResetRequest,
+    UserDevice, UserSession, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
     DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken,
@@ -1071,9 +1071,6 @@ def logout_view(request):
 
 
 def home_view(request):
-    # Yordamchi admin -> alohida panel
-    if request.user.is_authenticated and request.user.role == 'assistant_admin':
-        return redirect('yordamchi_dashboard')
     # Landing sahifa — login qilmagan foydalanuvchilar uchun
     if not request.user.is_authenticated:
         landing_professions = Profession.objects.filter(is_blocked=False)[:6]
@@ -4962,9 +4959,6 @@ def profile_view(request):
         else:
             active_courses.append(enrollment)
     
-    # Deploy qilgan loyihalar
-    deploys = HTMLDeploy.objects.filter(user=request.user, is_active=True).order_by('-created_at')[:6]
-    
     # Student balansi
     student_balance = None
     if request.user.role == 'student':
@@ -4998,7 +4992,6 @@ def profile_view(request):
         'enrollments': enrollments,
         'completed_courses': completed_courses,
         'active_courses': active_courses,
-        'deploys': deploys,
         'total_earned_coins': total_earned_coins,
         'total_spent_coins': total_spent_coins,
         'total_tests_taken': total_tests_taken,
@@ -5106,10 +5099,7 @@ def student_public_profile(request, pk):
     
     # Tugallangan kurslar soni
     completed_count = certificates.count()
-    
-    # Deploy qilingan sahifalar
-    deploys = HTMLDeploy.objects.filter(user=student, is_active=True).order_by('-created_at')
-    
+
     # Barcha kurslar (yozilgan)
     all_enrollments = student_enrollments
     
@@ -5127,7 +5117,6 @@ def student_public_profile(request, pk):
         'common_courses': common_courses,
         'certificates': certificates,
         'completed_count': completed_count,
-        'deploys': deploys,
         'all_enrollments': all_enrollments,
         'total_tests_taken': total_tests_taken,
         'avg_test_score': avg_test_score,
@@ -8100,12 +8089,6 @@ def admin_dashboard(request):
     total_purchases = ProductPurchase.objects.count()
     total_coins_spent = ProductPurchase.objects.aggregate(total=Sum('coins_spent'))['total'] or 0
     
-    # Deploy statistikasi
-    total_deploys = HTMLDeploy.objects.count()
-    active_deploys = HTMLDeploy.objects.filter(is_active=True).count()
-    inactive_deploys = HTMLDeploy.objects.filter(is_active=False).count()
-    total_deploy_views = HTMLDeploy.objects.aggregate(total=Sum('views_count'))['total'] or 0
-    
     # Ota-onalar statistikasi
     total_parents = Parent.objects.count()
     active_parents = Parent.objects.filter(is_active=True).count()
@@ -8176,10 +8159,6 @@ def admin_dashboard(request):
         'active_products': active_products,
         'total_purchases': total_purchases,
         'total_coins_spent': total_coins_spent,
-        'total_deploys': total_deploys,
-        'active_deploys': active_deploys,
-        'inactive_deploys': inactive_deploys,
-        'total_deploy_views': total_deploy_views,
         'recent_activities': recent_activities,
         'total_parents': total_parents,
         'active_parents': active_parents,
@@ -9018,6 +8997,51 @@ def admin_user_block(request, pk):
 
     messages.success(request, f"{user.full_name} {'bloklandi' if user.is_blocked else 'blokdan chiqarildi'}!")
     return redirect('admin_users')
+
+
+@login_required
+def admin_unlink_telegram(request, pk):
+    """Admin tomonidan foydalanuvchining Telegram ulanishini KODSIZ uzish.
+
+    Oddiy uzish (profil sahifasidan) tasdiqlash kodini aynan ulangan
+    Telegram akkauntiga yuboradi. Agar foydalanuvchi shu Telegram
+    akkauntiga endi kira olmasa (yo'qotgan, almashtirgan va h.k.), kodni
+    olishning iloji bo'lmaydi — shu sabab faqat admin panel orqali,
+    kodsiz, majburiy uzish imkoniyati beriladi.
+    """
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        return redirect('home')
+
+    if request.method != 'POST':
+        return redirect('admin_user_view', pk=pk)
+
+    user = get_object_or_404(CustomUser, pk=pk)
+
+    if not user.telegram_id:
+        messages.error(request, "Bu foydalanuvchida ulangan Telegram yo'q!")
+        return redirect('admin_user_view', pk=pk)
+
+    old_username = user.telegram_username
+
+    # Foydalanuvchining eski (agar bo'lsa) tasdiqlash kodi keshini ham tozalaymiz
+    cache.delete(f'tg_unlink_code_{user.id}')
+
+    user.telegram_id = None
+    user.telegram_username = None
+    user.save(update_fields=['telegram_id', 'telegram_username'])
+
+    notify_group(
+        f"🔓 <b>Telegram majburiy uzildi (admin tomonidan)</b>\n\n"
+        f"👤 {user.full_name}\n"
+        f"📋 Role: {user.get_role_display()}\n"
+        f"📎 Avvalgi username: {'@' + old_username if old_username else '—'}\n"
+        f"🛠 Admin: {request.user.full_name}\n"
+        f"❗ Tasdiqlash kodisiz, admin panel orqali uzildi."
+    )
+
+    messages.success(request, f"{user.full_name} ning Telegram ulanishi muvaffaqiyatli uzildi! 🔓")
+    return redirect('admin_user_view', pk=pk)
 
 
 @login_required
@@ -9968,416 +9992,6 @@ def admin_discount_delete(request, pk):
     return render(request, 'accounts/admin/discount_delete.html', {'discount': discount})
 
 
-# ==================== CODING / HTML DEPLOY ====================
-
-@login_required
-def my_deploys(request):
-    """O'quvchining deploy qilgan sahifalari"""
-    deploys = HTMLDeploy.objects.filter(user=request.user)
-    return render(request, 'accounts/coding/my_deploys.html', {
-        'deploys': deploys,
-        'is_premium': request.user.is_premium,
-        'user_coins': request.user.coins,
-    })
-
-
-@login_required
-def create_deploy(request):
-    """Yangi HTML deploy qilish"""
-    # Premium tekshiruvi - premium bo'lmaganlar 15 coin to'laydi
-    if not request.user.is_premium:
-        if request.user.coins < 15:
-            messages.error(request, "Sizda yetarli coin yo'q! Deploy qilish uchun 15 coin kerak.")
-            return redirect('my_deploys')
-    
-    import os
-    import zipfile
-    import shutil
-    from django.conf import settings
-    
-    if request.method == 'POST':
-        title = request.POST.get('title', '').strip()
-        folder_name = request.POST.get('folder_name', '').strip()
-        description = request.POST.get('description', '').strip()
-        profession_id = request.POST.get('profession')
-        entry_file = request.POST.get('entry_file', 'index.html').strip()
-        
-        # Fayl yuklash
-        uploaded_file = request.FILES.get('uploaded_file')
-        html_content = request.POST.get('html_content', '').strip()
-        
-        if not title or not folder_name:
-            messages.error(request, "Loyiha nomi va papka nomini kiriting!")
-            return redirect('create_deploy')
-        
-        # Papka nomini tozalash
-        folder_name = folder_name.lower().replace(' ', '_').replace('.', '_')
-        
-        # Mavjudligini tekshirish
-        if HTMLDeploy.objects.filter(user=request.user, folder_name=folder_name).exists():
-            messages.error(request, f"'{folder_name}' nomli loyiha allaqachon mavjud!")
-            return redirect('create_deploy')
-        
-        deploy_type = 'html'
-        
-        if uploaded_file:
-            file_name = uploaded_file.name.lower()
-            
-            # ZIP fayl
-            if file_name.endswith('.zip'):
-                deploy_type = 'project'
-                
-                # Papka yaratish
-                deploy_folder = os.path.join(settings.MEDIA_ROOT, 'deploys', request.user.username, folder_name)
-                
-                # Eski papkani o'chirish
-                if os.path.exists(deploy_folder):
-                    shutil.rmtree(deploy_folder)
-                os.makedirs(deploy_folder, exist_ok=True)
-                
-                # ZIP ni ochish
-                try:
-                    import tempfile
-                    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp:
-                        for chunk in uploaded_file.chunks():
-                            tmp.write(chunk)
-                        tmp_path = tmp.name
-                    
-                    with zipfile.ZipFile(tmp_path, 'r') as zip_ref:
-                        # Barcha fayllarni olish (__MACOSX dan boshqa)
-                        all_files = [f for f in zip_ref.namelist() if not f.startswith('__MACOSX') and not f.startswith('._')]
-                        
-                        # HTML fayllarni topish
-                        html_files = [f for f in all_files if f.lower().endswith('.html')]
-                        
-                        if not html_files:
-                            messages.error(request, "ZIP ichida HTML fayl topilmadi!")
-                            os.unlink(tmp_path)
-                            return redirect('create_deploy')
-                        
-                        # Fayllarni chiqarish
-                        for file_info in zip_ref.infolist():
-                            if file_info.filename.startswith('__MACOSX') or file_info.filename.startswith('._'):
-                                continue
-                            
-                            # Fayl nomini tozalash (papka prefiksini olib tashlash)
-                            original_name = file_info.filename
-                            
-                            # Agar bitta asosiy papka ichida bo'lsa, uni olib tashlash
-                            parts = original_name.split('/')
-                            if len(parts) > 1 and parts[0] and not parts[0].endswith('.html'):
-                                # Birinchi papkani olib tashlash
-                                clean_name = '/'.join(parts[1:])
-                            else:
-                                clean_name = original_name
-                            
-                            if not clean_name or clean_name.endswith('/'):
-                                continue
-                            
-                            # Fayl yo'lini yaratish
-                            target_path = os.path.join(deploy_folder, clean_name)
-                            target_dir = os.path.dirname(target_path)
-                            
-                            if target_dir and not os.path.exists(target_dir):
-                                os.makedirs(target_dir, exist_ok=True)
-                            
-                            # Faylni yozish
-                            with zip_ref.open(file_info) as source, open(target_path, 'wb') as target:
-                                target.write(source.read())
-                        
-                        # Entry file ni aniqlash
-                        if not entry_file or entry_file == 'index.html':
-                            # Deploy papkasida index.html bormi?
-                            if os.path.exists(os.path.join(deploy_folder, 'index.html')):
-                                entry_file = 'index.html'
-                            else:
-                                # Birinchi HTML faylni olish
-                                for root, dirs, files in os.walk(deploy_folder):
-                                    for f in files:
-                                        if f.lower().endswith('.html'):
-                                            rel_path = os.path.relpath(os.path.join(root, f), deploy_folder)
-                                            entry_file = rel_path.replace('\\', '/')
-                                            break
-                                    if entry_file != 'index.html':
-                                        break
-                    
-                    os.unlink(tmp_path)
-                    
-                except Exception as e:
-                    messages.error(request, f"ZIP faylni ochishda xato: {str(e)}")
-                    if os.path.exists(deploy_folder):
-                        shutil.rmtree(deploy_folder)
-                    return redirect('create_deploy')
-            
-            # HTML fayl
-            elif file_name.endswith('.html') or file_name.endswith('.htm'):
-                html_content = uploaded_file.read().decode('utf-8', errors='ignore')
-                entry_file = folder_name + '.html'
-            else:
-                messages.error(request, "Faqat .html yoki .zip fayllar qabul qilinadi!")
-                return redirect('create_deploy')
-        
-        elif not html_content:
-            messages.error(request, "HTML kod yoki fayl yuklang!")
-            return redirect('create_deploy')
-        
-        # Deploy yaratish
-        deploy = HTMLDeploy.objects.create(
-            user=request.user,
-            profession_id=profession_id if profession_id else None,
-            title=title,
-            deploy_type=deploy_type,
-            folder_name=folder_name,
-            entry_file=entry_file,
-            html_content=html_content if deploy_type == 'html' else None,
-            description=description,
-        )
-        
-        # Premium bo'lmaganlardan coin yechish
-        if not request.user.is_premium:
-            request.user.remove_coins(15, f"'{title}' loyihasini deploy qilish")
-        
-        # Barcha foydalanuvchilarga xabar yuborish
-        all_users = CustomUser.objects.filter(role='student', is_blocked=False).exclude(pk=request.user.pk)
-        for user in all_users:
-            Message.objects.create(
-                sender=request.user,
-                recipient=user,
-                title=f"🚀 Yangi loyiha: {title}",
-                content=f"{request.user.full_name} yangi loyiha ishga tushirdi!\n\n📦 {title}\n\n🔗 Ko'rish uchun: {deploy.get_url()}",
-                message_type='system'
-            )
-        
-        # Activity log
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='deploy_create',
-            description=f"'{title}' loyihasini deploy qildi",
-            ip_address=request.META.get('REMOTE_ADDR')
-        )
-        
-        messages.success(request, f"Loyiha muvaffaqiyatli deploy qilindi! URL: {deploy.get_url()}")
-        return redirect('my_deploys')
-    
-    professions = Profession.objects.all()
-    return render(request, 'accounts/coding/create_deploy.html', {'professions': professions})
-
-
-@login_required
-def edit_deploy(request, pk):
-    """Deploy qilingan sahifani tahrirlash"""
-    deploy = get_object_or_404(HTMLDeploy, pk=pk, user=request.user)
-    
-    if request.method == 'POST':
-        deploy.title = request.POST.get('title', '').strip()
-        deploy.description = request.POST.get('description', '').strip()
-        profession_id = request.POST.get('profession')
-        deploy.profession_id = profession_id if profession_id else None
-        
-        # Fayl yuklash yoki matn kiritish
-        html_file = request.FILES.get('html_file')
-        html_content = request.POST.get('html_content', '').strip()
-        
-        if html_file:
-            deploy.html_content = html_file.read().decode('utf-8', errors='ignore')
-        elif html_content:
-            deploy.html_content = html_content
-        
-        deploy.is_active = 'is_active' in request.POST
-        deploy.save()
-        
-        # Activity log
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='deploy_edit',
-            description=f"'{deploy.title}' loyihasini tahrirladi",
-            ip_address=request.META.get('REMOTE_ADDR')
-        )
-        
-        messages.success(request, "Sahifa yangilandi!")
-        return redirect('my_deploys')
-    
-    professions = Profession.objects.all()
-    return render(request, 'accounts/coding/edit_deploy.html', {
-        'deploy': deploy,
-        'professions': professions,
-    })
-
-
-@login_required
-def delete_deploy(request, pk):
-    """Deploy qilingan sahifani o'chirish"""
-    import os
-    import shutil
-    
-    deploy = get_object_or_404(HTMLDeploy, pk=pk, user=request.user)
-    
-    if request.method == 'POST':
-        deploy_title = deploy.title
-        
-        # Agar loyiha bo'lsa, papkani o'chirish
-        if deploy.deploy_type == 'project':
-            folder_path = deploy.get_folder_path()
-            if os.path.exists(folder_path):
-                shutil.rmtree(folder_path)
-        
-        deploy.delete()
-        
-        # Activity log
-        ActivityLog.objects.create(
-            user=request.user,
-            action_type='deploy_delete',
-            description=f"'{deploy_title}' loyihasini o'chirdi",
-            ip_address=request.META.get('REMOTE_ADDR')
-        )
-        
-        messages.success(request, "Loyiha o'chirildi!")
-        return redirect('my_deploys')
-    
-    return render(request, 'accounts/coding/delete_deploy.html', {'deploy': deploy})
-
-
-def view_deployed_page(request, username, folder_name, filepath=None):
-    """Deploy qilingan sahifani ko'rsatish (login talab qilinmaydi)"""
-    import os
-    import mimetypes
-    from django.conf import settings
-    
-    user = get_object_or_404(CustomUser, username=username)
-    deploy = get_object_or_404(HTMLDeploy, user=user, folder_name=folder_name, is_active=True)
-    
-    # Ko'rishlar sonini oshirish (faqat asosiy sahifa uchun)
-    if not filepath or filepath == deploy.entry_file:
-        deploy.views_count += 1
-        deploy.save(update_fields=['views_count'])
-    
-    # HTML fayl (oddiy deploy)
-    if deploy.deploy_type == 'html':
-        return HttpResponse(deploy.html_content, content_type='text/html')
-    
-    # Loyiha (ZIP dan)
-    if not filepath:
-        filepath = deploy.entry_file
-    
-    # filepath ni tozalash (/ va \ ni to'g'rilash)
-    filepath = filepath.replace('\\', '/').lstrip('/')
-    
-    # Fayl yo'lini tuzish
-    deploy_folder = deploy.get_folder_path()
-    file_path = os.path.join(deploy_folder, filepath.replace('/', os.sep))
-    
-    # Xavfsizlik tekshiruvi - papkadan tashqariga chiqmaslik
-    try:
-        real_path = os.path.realpath(file_path)
-        real_deploy_folder = os.path.realpath(deploy_folder)
-        if not real_path.startswith(real_deploy_folder):
-            return HttpResponse("Ruxsat berilmagan", status=403)
-    except:
-        return HttpResponse("Xato yo'l", status=400)
-    
-    if not os.path.exists(file_path):
-        # index.html ni izlash
-        possible_index = os.path.join(deploy_folder, 'index.html')
-        if os.path.exists(possible_index):
-            file_path = possible_index
-        else:
-            # Yo'l ma'lumotini foydalanuvchiga ko'rsatmaslik (ma'lumot oqishi)
-            return HttpResponse("Fayl topilmadi", status=404)
-
-    # MIME turini aniqlash
-    mime_type, _ = mimetypes.guess_type(file_path)
-    if not mime_type:
-        if file_path.endswith('.css'):
-            mime_type = 'text/css'
-        elif file_path.endswith('.js'):
-            mime_type = 'application/javascript'
-        elif file_path.endswith('.html') or file_path.endswith('.htm'):
-            mime_type = 'text/html'
-        elif file_path.endswith('.json'):
-            mime_type = 'application/json'
-        elif file_path.endswith('.svg'):
-            mime_type = 'image/svg+xml'
-        else:
-            mime_type = 'application/octet-stream'
-
-    # Faylni o'qish va qaytarish — xato xabari orqali yo'l chiqmasin
-    try:
-        with open(file_path, 'rb') as f:
-            content = f.read()
-        return HttpResponse(content, content_type=mime_type)
-    except Exception:
-        return HttpResponse("Faylni o'qishda xato yuz berdi", status=500)
-
-
-# ==================== ADMIN: HTML DEPLOYS ====================
-
-@login_required
-def admin_deploys(request):
-    """Admin: Barcha deploylar"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    deploys = HTMLDeploy.objects.select_related('user', 'profession').all()
-    
-    # Filterlar
-    user_id = request.GET.get('user')
-    if user_id:
-        deploys = deploys.filter(user_id=user_id)
-    
-    status = request.GET.get('status')
-    if status == 'active':
-        deploys = deploys.filter(is_active=True)
-    elif status == 'inactive':
-        deploys = deploys.filter(is_active=False)
-    
-    q = request.GET.get('q')
-    if q:
-        deploys = deploys.filter(title__icontains=q)
-    
-    users = CustomUser.objects.filter(deploys__isnull=False).distinct()
-    
-    context = {
-        'deploys': deploys,
-        'users': users,
-        'total_deploys': HTMLDeploy.objects.count(),
-        'active_deploys': HTMLDeploy.objects.filter(is_active=True).count(),
-        'total_views': HTMLDeploy.objects.aggregate(total=Sum('views_count'))['total'] or 0,
-    }
-    return render(request, 'accounts/admin/deploys.html', context)
-
-
-@login_required
-def admin_deploy_toggle(request, pk):
-    """Admin: Deploy faolligini o'zgartirish"""
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    deploy = get_object_or_404(HTMLDeploy, pk=pk)
-    deploy.is_active = not deploy.is_active
-    deploy.save()
-    
-    status = "faollashtirildi" if deploy.is_active else "o'chirildi"
-    messages.success(request, f"'{deploy.title}' {status}!")
-    return redirect('admin_deploys')
-
-
-@login_required
-def admin_deploy_delete(request, pk):
-    """Admin: Deployni o'chirish"""
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    deploy = get_object_or_404(HTMLDeploy, pk=pk)
-    
-    if request.method == 'POST':
-        deploy.delete()
-        messages.success(request, "Deploy o'chirildi!")
-        return redirect('admin_deploys')
-    
-    return render(request, 'accounts/admin/deploy_delete.html', {'deploy': deploy})
-
-
 # ==================== ADMIN: DARSLAR STATISTIKASI ====================
 
 @login_required
@@ -11110,11 +10724,11 @@ def generate_report(request):
         homework_submissions = HomeworkSubmission.objects.filter(submitted_at__date__gte=date_from, submitted_at__date__lte=date_to).count()
         video_views = VideoProgress.objects.filter(watched_at__date__gte=date_from, watched_at__date__lte=date_to, watched=True).count()
         
-        # Deploy
-        total_deploys = HTMLDeploy.objects.count()
-        new_deploys = HTMLDeploy.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).count()
-        deploy_views = HTMLDeploy.objects.aggregate(total=Sum('views_count'))['total'] or 0
-        
+        # Deploy (Coding tizimi olib tashlandi — 0 qoldiriladi)
+        total_deploys = 0
+        new_deploys = 0
+        deploy_views = 0
+
         # Coin
         total_coins = CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0
         coins_earned = CoinTransaction.objects.filter(
@@ -11258,19 +10872,8 @@ def generate_report_pdf(report):
     elements.append(create_table(activity_data))
     elements.append(Spacer(1, 15))
     
-    # 4. Deploy
-    elements.append(Paragraph("4. Coding / Deploy", heading_style))
-    deploy_data = [
-        ["Ko'rsatkich", 'Soni'],
-        ['Jami loyihalar', str(report.total_deploys)],
-        ['Yangi loyihalar (davr)', str(report.new_deploys)],
-        ["Jami ko'rishlar", str(report.deploy_views)],
-    ]
-    elements.append(create_table(deploy_data))
-    elements.append(Spacer(1, 15))
-    
-    # 5. Coinlar
-    elements.append(Paragraph("5. Coin statistikasi", heading_style))
+    # 4. Coinlar
+    elements.append(Paragraph("4. Coin statistikasi", heading_style))
     coin_data = [
         ["Ko'rsatkich", 'Qiymat'],
         ['Jami coinlar (hozir)', str(report.total_coins)],
@@ -11280,8 +10883,8 @@ def generate_report_pdf(report):
     elements.append(create_table(coin_data))
     elements.append(Spacer(1, 15))
     
-    # 6. Sertifikatlar
-    elements.append(Paragraph("6. Sertifikatlar", heading_style))
+    # 5. Sertifikatlar
+    elements.append(Paragraph("5. Sertifikatlar", heading_style))
     cert_data = [
         ["Ko'rsatkich", 'Soni'],
         ['Jami sertifikatlar', str(report.total_certificates)],
@@ -12795,7 +12398,7 @@ def toggle_section_block(request, section):
         try:
             ActivityLog.objects.create(
                 user=request.user,
-                action_type='deploy_edit',  # Deploy related action, yoki custom qo'shish kerak
+                action_type='other',
                 description=message
             )
         except Exception as e:
