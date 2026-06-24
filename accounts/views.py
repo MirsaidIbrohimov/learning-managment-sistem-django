@@ -14596,6 +14596,8 @@ def group_chat_view(request, pk):
 @login_required
 def direct_chat_view(request, pk):
     """Ikki foydalanuvchi o'rtasidagi shaxsiy chat xonasi — unified Messenger-style sahifa."""
+    from accounts.api.chat_views import _online_sub
+
     other = get_object_or_404(CustomUser, pk=pk)
     if other.pk == request.user.pk:
         return redirect('chat_inbox')
@@ -14603,6 +14605,7 @@ def direct_chat_view(request, pk):
         'initial_kind': 'dm',
         'initial_id': other.pk,
         'initial_partner': other,
+        'initial_partner_sub': _online_sub(other),
         'is_admin_global': _chat_is_admin(request.user),
         'initial_filter': 'all',
     })

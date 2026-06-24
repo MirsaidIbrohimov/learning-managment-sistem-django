@@ -29,7 +29,7 @@ class Command(BaseCommand):
             self.stderr.write("SITE_URL sozlanmagan!")
             return
 
-        webhook_url = f"{site_url}/telegram/webhook/"
+        webhook_url = f"{site_url}/telegrambotlms/webhook/"
 
         # Info — faqat holatni ko'rsatish
         if options['info']:

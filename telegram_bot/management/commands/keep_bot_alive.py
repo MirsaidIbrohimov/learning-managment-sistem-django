@@ -47,7 +47,7 @@ class Command(BaseCommand):
     def _do_keepalive(self, bot_token, site_url):
         # 1. Saytga ping — sleep mode'dan uyg'otish
         try:
-            resp = requests.get(f"{site_url}/telegram/health/", timeout=15)
+            resp = requests.get(f"{site_url}/telegrambotlms/health/", timeout=15)
             self.stdout.write(f"Ping: {resp.status_code}")
         except Exception as e:
             self.stderr.write(f"Ping xatolik: {e}")
@@ -58,7 +58,7 @@ class Command(BaseCommand):
                 pass
 
         # 2. Webhook holatini tekshirish
-        webhook_url = f"{site_url}/telegram/webhook/"
+        webhook_url = f"{site_url}/telegrambotlms/webhook/"
         try:
             resp = requests.get(
                 f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",

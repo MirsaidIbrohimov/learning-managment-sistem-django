@@ -1,8 +1,11 @@
+import logging
 import threading
 import requests
 from django.conf import settings
 
 from telegram_bot import premium
+
+logger = logging.getLogger(__name__)
 
 
 def notify_admins(text):
@@ -18,7 +21,7 @@ def notify_admins(text):
             try:
                 premium.send_message(bot_token, admin.telegram_id, text)
             except Exception:
-                pass
+                logger.exception("notify_admins: yuborishda xatolik (telegram_id=%s)", admin.telegram_id)
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -35,7 +38,7 @@ def notify_group(text, inline_keyboard=None):
             reply_markup = {'inline_keyboard': inline_keyboard} if inline_keyboard else None
             premium.send_message(bot_token, group_chat_id, text, reply_markup=reply_markup)
         except Exception:
-            pass
+            logger.exception("notify_group: yuborishda xatolik (chat_id=%s)", group_chat_id)
 
     threading.Thread(target=_send, daemon=True).start()
 
@@ -50,7 +53,7 @@ def notify_user(telegram_id, text):
         try:
             premium.send_message(bot_token, telegram_id, text)
         except Exception:
-            pass
+            logger.exception("notify_user: yuborishda xatolik (telegram_id=%s)", telegram_id)
 
     threading.Thread(target=_send, daemon=True).start()
 

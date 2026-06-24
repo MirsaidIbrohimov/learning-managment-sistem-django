@@ -121,6 +121,7 @@ def _user_brief(u, request):
         'initials': u.get_initials(),
         'role': u.role,
         'is_online': u.is_online,
+        'sub': _online_sub(u),
     }
 
 
@@ -701,6 +702,36 @@ def _format_relative_time(dt):
     return local.strftime('%d.%m.%y')
 
 
+def _format_last_seen(dt):
+    """Telegram-style 'oxirgi marta onlayn bo'lgan vaqt' matni:
+    'hozirgina', '5 daqiqa oldin', 'bugun soat 14:32da',
+    'kecha soat 09:10da', 'Dushanba kuni soat 18:00da' yoki 'dd.mm.yyyy'."""
+    if not dt:
+        return "hech qachon"
+    local = timezone.localtime(dt)
+    now = timezone.localtime(timezone.now())
+    seconds = (now - local).total_seconds()
+    if seconds < 60:
+        return "hozirgina"
+    if seconds < 3600:
+        return f"{int(seconds // 60)} daqiqa oldin"
+    delta_days = (now.date() - local.date()).days
+    if delta_days == 0:
+        return f"bugun soat {local.strftime('%H:%M')}da"
+    if delta_days == 1:
+        return f"kecha soat {local.strftime('%H:%M')}da"
+    if delta_days < 7:
+        return f"{_WEEKDAYS_UZ[local.weekday()]} kuni soat {local.strftime('%H:%M')}da"
+    return local.strftime('%d.%m.%Y')
+
+
+def _online_sub(user):
+    """DM hamsuhbat uchun header/sidebar subtitle:
+    'Online • @user' yoki 'Oxirgi faollik: ... • @user'."""
+    status = 'Online' if user.is_online else f"Oxirgi faollik: {_format_last_seen(user.last_activity)}"
+    return f"{status} • @{user.username}"
+
+
 def _group_initials(name):
     parts = [p for p in (name or '').split() if p]
     if len(parts) >= 2:
@@ -742,7 +773,7 @@ def sidebar(request):
             'photo': photo,
             'initials': partner.get_initials(),
             'is_online': partner.is_online,
-            'sub': ('Online' if partner.is_online else 'Oflayn') + ' • @' + partner.username,
+            'sub': _online_sub(partner),
             'last_message': (m.message[:60] if m.message else ('📎 Fayl' if m.file else '')),
             'is_mine_last': m.sender_id == me.pk,
             'last_at': _format_relative_time(m.created_at),

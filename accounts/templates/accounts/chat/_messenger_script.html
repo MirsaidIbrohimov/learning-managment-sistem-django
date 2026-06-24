@@ -55,6 +55,11 @@ window.MZChat = (function(){
             if(!d.ok) return;
             state.items = d.items;
             renderSidebar();
+            // Suhbat ochiq bo'lsa — "oxirgi faollik" matnini jonli yangilab turamiz
+            if(state.currentKind==='dm' && state.currentId){
+                var cur = findItem('dm', state.currentId);
+                if(cur) updateHeaderSub(cur);
+            }
         }).catch(function(){});
     }
 
@@ -102,7 +107,7 @@ window.MZChat = (function(){
             state.extraUsers.forEach(function(u){
                 dom.list.appendChild(buildRow({
                     kind:'dm', id:u.id, name:u.name, photo:u.photo, initials:u.initials,
-                    is_online:u.is_online, last_message:'', last_at:'', unread:0, pinned:false
+                    is_online:u.is_online, sub:u.sub, last_message:'', last_at:'', unread:0, pinned:false
                 }));
             });
         }
@@ -187,7 +192,11 @@ window.MZChat = (function(){
     function renderHeader(item, kind){
         if(!item) return;
         dom.headName.textContent = item.name;
-        dom.headSub.innerHTML = (kind==='dm' ? ('<span class="mz-dot '+(item.is_online?'on':'off')+'"></span>') : '') + esc(item.sub||'');
+        if(kind==='dm'){
+            dom.headSub.innerHTML = '<span class="mz-dot '+(item.is_online?'on':'off')+'"></span><span id="mzHeadSubText" class="mz-sub-fade">'+esc(item.sub||'')+'</span>';
+        } else {
+            dom.headSub.textContent = item.sub||'';
+        }
         if(item.photo){
             dom.headAva.outerHTML = '<img src="'+esc(item.photo)+'" class="mz-ava" id="mzHeadAva">';
         } else {
@@ -195,6 +204,17 @@ window.MZChat = (function(){
         }
         dom.headAva = document.getElementById('mzHeadAva');
         dom.pinBtn.classList.toggle('pinned', !!item.pinned);
+    }
+
+    // Ochiq DM suhbat headerida "Online / Oxirgi faollik: ..." matnini
+    // faqat qiymat haqiqatan o'zgarganda (animatsiyali) yangilaydi —
+    // har 8 soniyalik sidebar poll'da bekorga qayta chizilmasin.
+    function updateHeaderSub(item){
+        var textEl = document.getElementById('mzHeadSubText');
+        if(!textEl) return;
+        var nextSub = item.sub||'';
+        if(textEl.textContent === nextSub) return;
+        dom.headSub.innerHTML = '<span class="mz-dot '+(item.is_online?'on':'off')+'"></span><span id="mzHeadSubText" class="mz-sub-fade">'+esc(nextSub)+'</span>';
     }
 
     // ───────────────────────── Messages ─────────────────────────

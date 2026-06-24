@@ -22,7 +22,7 @@ Bot to'xtab qolmasligi uchun quyidagi usullardan BIRINI tanlang:
 Hosting panelingizda Cron Jobs bo'limiga kiring va
 har 5 daqiqada ishlaydigan cron qo'shing:
 
-  */5 * * * * curl -s {site_url}/telegram/health/ > /dev/null 2>&1
+  */5 * * * * curl -s {site_url}/telegrambotlms/health/ > /dev/null 2>&1
 
 Yoki Django management command bilan:
 
@@ -38,23 +38,23 @@ a) UptimeRobot (https://uptimerobot.com):
    - Ro'yxatdan o'ting
    - "Add New Monitor" bosing
    - Monitor Type: HTTP(s)
-   - URL: {site_url}/telegram/health/
+   - URL: {site_url}/telegrambotlms/health/
    - Monitoring Interval: 5 minutes
 
 b) cron-job.org (https://cron-job.org):
    - Ro'yxatdan o'ting
    - "Create Cronjob" bosing
-   - URL: {site_url}/telegram/health/
+   - URL: {site_url}/telegrambotlms/health/
    - Schedule: Har 5 daqiqada
 
 c) Freshping (https://freshping.io):
    - Bepul 50 ta check
-   - URL: {site_url}/telegram/health/
+   - URL: {site_url}/telegrambotlms/health/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ESLATMA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Health check URL: {site_url}/telegram/health/
-Webhook URL: {site_url}/telegram/webhook/
+Health check URL: {site_url}/telegrambotlms/health/
+Webhook URL: {site_url}/telegrambotlms/webhook/
 """.format(site_url=site_url)))
