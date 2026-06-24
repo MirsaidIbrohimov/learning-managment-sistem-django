@@ -17,6 +17,44 @@ from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, Co
 logger = logging.getLogger(__name__)
 
 
+def _resolve_bot_username():
+    """Bot username'ni aniqlash.
+
+    Avval settings'dan oladi; bo'lmasa TELEGRAM_BOT_TOKEN orqali
+    Telegram getMe API'dan o'qiydi va keshlaydi.
+    """
+    from django.conf import settings
+    from django.core.cache import cache
+
+    username = (getattr(settings, 'TELEGRAM_BOT_USERNAME', '') or '').strip()
+    if username:
+        return username
+
+    cached = cache.get('telegram_bot_username')
+    if cached:
+        return cached
+
+    token = (getattr(settings, 'TELEGRAM_BOT_TOKEN', '') or '').strip()
+    if not token:
+        return ''
+
+    try:
+        import requests
+        resp = requests.get(
+            f"https://api.telegram.org/bot{token}/getMe", timeout=10
+        )
+        data = resp.json()
+        if data.get('ok'):
+            username = data['result'].get('username', '')
+            if username:
+                cache.set('telegram_bot_username', username, 60 * 60 * 24)
+                return username
+    except Exception as e:
+        logger.error("Bot username aniqlanmadi (getMe): %s", e)
+
+    return ''
+
+
 @login_required
 def link_telegram(request):
     """Profildan Telegramni ulash — tokenli link yaratib botga yo'naltirish"""
@@ -32,6 +70,10 @@ def link_telegram(request):
     TelegramLinkToken.objects.create(user=request.user, token=token)
 
     bot_username = getattr(settings, 'TELEGRAM_BOT_USERNAME', '')
+    if not bot_username:
+        # Username sozlanmagan bo'lsa — tokendan getMe orqali avtomatik aniqlaymiz
+        bot_username = _resolve_bot_username()
+
     if not bot_username:
         messages.error(request, "Telegram bot sozlanmagan!")
         return redirect('profile')
