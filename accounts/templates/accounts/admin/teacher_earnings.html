@@ -5,1131 +5,348 @@
 
 {% block extra_css %}
 <style>
-/* ═══════════════════════════════════════════════════
-   HERO DASHBOARD
-   ═══════════════════════════════════════════════════ */
-.hero-dashboard {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    border-radius: 28px;
-    padding: 2.5rem 3rem;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-    animation: heroSlide 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 20px 60px -15px rgba(102, 126, 234, 0.5);
+/* ===== Theme tokens (light + dark via admin panel) ===== */
+.te-wrap {
+    --te-primary: #0d6efd;
+    --te-primary-dark: #0a58ca;
+    --te-card: var(--card-bg, #ffffff);
+    --te-text: var(--text-color, #1f2937);
+    --te-border: var(--border-color, #e5e7eb);
+    --te-muted: #6b7280;
+    --te-surface: rgba(15, 23, 42, .035);
+    --te-soft: rgba(13, 110, 253, .07);
+    --te-green: #16a34a; --te-green-bg: rgba(22,163,74,.12);
+    --te-amber: #d97706; --te-amber-bg: rgba(217,119,6,.12);
+    --te-red: #dc2626;   --te-red-bg: rgba(220,38,38,.12);
+    --te-purple: #9333ea;
+}
+[data-bs-theme="dark"] .te-wrap {
+    --te-muted: #9aa4b2;
+    --te-surface: rgba(255, 255, 255, .045);
+    --te-soft: rgba(13, 110, 253, .16);
+    --te-green-bg: rgba(22,163,74,.18);
+    --te-amber-bg: rgba(217,119,6,.18);
+    --te-red-bg: rgba(220,38,38,.18);
+}
+.te-wrap { color: var(--te-text); }
+
+/* ===== Hero ===== */
+.te-hero {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0a2a6b 0%, var(--te-primary) 55%, #4c8dff 100%);
+    border-radius: 22px; padding: 1.9rem 2.2rem; margin-bottom: 1.5rem; color: #fff;
+    box-shadow: 0 18px 44px -20px rgba(13,110,253,.65);
+    animation: teUp .5s ease;
+}
+.te-hero::after {
+    content: ''; position: absolute; top: -55%; right: -6%;
+    width: 320px; height: 320px; background: rgba(255,255,255,.08); border-radius: 50%;
+}
+.te-hero-top {
+    position: relative; z-index: 1; display: flex; justify-content: space-between;
+    align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.6rem;
+}
+.te-hero-title { font-size: 1.6rem; font-weight: 800; margin: 0; letter-spacing: -.02em; }
+.te-hero-sub { font-size: .9rem; opacity: .85; margin: .25rem 0 0; }
+.te-hero-btn {
+    background: rgba(255,255,255,.18); color: #fff; border: 1px solid rgba(255,255,255,.35);
+    border-radius: 14px; padding: .7rem 1.5rem; font-weight: 700; font-size: .9rem;
+    display: inline-flex; align-items: center; gap: .5rem; cursor: pointer;
+    transition: all .25s ease; text-decoration: none;
+}
+.te-hero-btn:hover { background: rgba(255,255,255,.3); transform: translateY(-2px); color: #fff; }
+
+.te-hero-stats {
+    position: relative; z-index: 1; display: grid;
+    grid-template-columns: repeat(3, 1fr); gap: 1rem;
+}
+.te-hstat {
+    background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 16px; padding: 1.1rem 1.2rem; display: flex; align-items: center; gap: 1rem;
+    transition: background .25s ease, transform .25s ease;
+}
+.te-hstat:hover { background: rgba(255,255,255,.22); transform: translateY(-3px); }
+.te-hstat-icon {
+    width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+    background: rgba(255,255,255,.2);
+}
+.te-hstat-value { font-size: 1.45rem; font-weight: 800; line-height: 1.05; }
+.te-hstat-value small { font-size: .8rem; font-weight: 600; opacity: .85; }
+.te-hstat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; opacity: .85; }
+
+/* ===== Card / surfaces ===== */
+.te-panel {
+    background: var(--te-card); border: 1px solid var(--te-border);
+    border-radius: 18px; margin-bottom: 1.5rem;
 }
 
-.hero-dashboard::before {
-    content: '';
-    position: absolute;
-    top: -40%;
-    right: -15%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: heroFloat 10s ease-in-out infinite;
+/* ===== Filters ===== */
+.te-filters { padding: 1.4rem 1.6rem; animation: teUp .55s ease; }
+.te-filters-title {
+    font-size: 1rem; font-weight: 800; margin-bottom: 1rem;
+    display: flex; align-items: center; gap: .5rem;
+}
+.te-filters-title i { color: var(--te-primary); }
+.te-filter-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: .85rem; margin-bottom: 1rem;
+}
+.te-input {
+    width: 100%; border: 1.5px solid var(--te-border); border-radius: 12px;
+    padding: .65rem .9rem; font-size: .88rem; background: var(--te-surface);
+    color: var(--te-text); font-weight: 500; transition: border-color .2s, box-shadow .2s;
+}
+.te-input:focus {
+    border-color: var(--te-primary); background: var(--te-card);
+    box-shadow: 0 0 0 3px var(--te-soft); outline: none;
+}
+.te-filter-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.te-btn {
+    border-radius: 12px; padding: .65rem 1.3rem; font-weight: 700; font-size: .85rem;
+    border: none; display: inline-flex; align-items: center; gap: .45rem; cursor: pointer;
+    transition: all .25s ease; text-decoration: none;
+}
+.te-btn-primary { background: linear-gradient(135deg, var(--te-primary), var(--te-primary-dark)); color: #fff; box-shadow: 0 4px 14px rgba(13,110,253,.3); }
+.te-btn-primary:hover { transform: translateY(-2px); color: #fff; box-shadow: 0 6px 20px rgba(13,110,253,.42); }
+.te-btn-ghost { background: var(--te-surface); color: var(--te-text); border: 1px solid var(--te-border); }
+.te-btn-ghost:hover { background: var(--te-soft); color: var(--te-primary); }
+
+/* ===== Section header ===== */
+.te-section {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .75rem; flex-wrap: wrap; margin: 0 0 1.1rem;
+}
+.te-section-title { font-size: 1.15rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: .6rem; }
+.te-section-ic {
+    width: 36px; height: 36px; border-radius: 11px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 1rem; color: #fff;
+    background: linear-gradient(135deg, var(--te-primary), var(--te-primary-dark));
+}
+.te-section-badge {
+    background: var(--te-surface); color: var(--te-muted); border: 1px solid var(--te-border);
+    padding: .3rem .8rem; border-radius: 20px; font-size: .74rem; font-weight: 700;
 }
 
-.hero-dashboard::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -10%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: heroFloat 12s ease-in-out infinite reverse;
+/* ===== Teacher cards ===== */
+.te-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 1.3rem; margin-bottom: 2rem;
 }
-
-.hero-top {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
+.te-card {
+    background: var(--te-card); border: 1px solid var(--te-border); border-radius: 18px;
+    overflow: hidden; transition: transform .3s ease, box-shadow .3s ease;
+    animation: teUp .5s ease backwards;
 }
+.te-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px -20px rgba(0,0,0,.35); }
 
-.hero-title {
-    color: #fff;
-    font-size: 2rem;
-    font-weight: 800;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    letter-spacing: -0.02em;
-    margin: 0;
+.te-card-head {
+    display: flex; align-items: center; gap: .85rem; padding: 1.1rem 1.3rem;
+    background: var(--te-surface); border-bottom: 1px solid var(--te-border);
 }
-
-.hero-subtitle {
-    color: rgba(255,255,255,0.85);
-    font-size: 0.95rem;
-    margin: 0.25rem 0 0;
+.te-avatar {
+    width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--te-primary), var(--te-primary-dark));
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.05rem; box-shadow: 0 5px 14px rgba(13,110,253,.32);
 }
+.te-head-info { flex: 1; min-width: 0; }
+.te-head-name { font-weight: 800; font-size: 1rem; }
+.te-head-user { font-size: .78rem; color: var(--te-muted); }
+.te-status { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem .6rem; border-radius: 20px; font-size: .68rem; font-weight: 700; }
+.te-status-on { background: var(--te-green-bg); color: var(--te-green); }
+.te-status-off { background: var(--te-surface); color: var(--te-muted); }
+.te-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.te-status-on .te-dot { animation: tePulse 2s infinite; }
 
-.hero-btn {
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(12px);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 16px;
-    padding: 0.75rem 1.75rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-}
-
-.hero-btn:hover {
-    background: rgba(255,255,255,0.35);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    color: #fff;
-}
-
-.hero-stats {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.25rem;
-}
-
-.hero-stat {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 20px;
-    padding: 1.5rem;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.hero-stat:hover {
-    background: rgba(255,255,255,0.25);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-}
-
-.hero-stat-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-    margin-bottom: 0.75rem;
-    background: rgba(255,255,255,0.2);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.hero-stat-value {
-    font-size: 1.8rem;
-    font-weight: 900;
-    color: #fff;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.hero-stat-label {
-    font-size: 0.8rem;
-    color: rgba(255,255,255,0.8);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* ═══════════════════════════════════════════════════
-   FILTERS
-   ═══════════════════════════════════════════════════ */
-.filters-glass {
-    background: var(--bs-card-bg, rgba(255,255,255,0.95));
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
-    transition: all 0.3s ease;
-}
-
-.filters-glass:hover {
-    box-shadow: 0 12px 48px rgba(0,0,0,0.1);
-}
-
-.filters-glass-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--bs-body-color, #1f2937);
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.filter-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-}
-
-.filter-input {
-    border: 2px solid var(--bs-border-color, #e2e8f0);
-    border-radius: 14px;
-    padding: 0.7rem 1rem;
-    font-size: 0.9rem;
-    background: var(--bs-tertiary-bg, #f8fafc);
-    color: var(--bs-body-color, #1f2937);
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.filter-input:focus {
-    border-color: #667eea;
-    background: var(--bs-body-bg, #fff);
-    box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-.filter-actions {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.btn-filter {
-    border-radius: 14px;
-    padding: 0.7rem 1.5rem;
-    font-weight: 700;
-    font-size: 0.85rem;
-    border: none;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    letter-spacing: 0.3px;
-}
-
-.btn-filter-primary {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    box-shadow: 0 4px 14px rgba(102,126,234,0.35);
-}
-
-.btn-filter-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102,126,234,0.5);
-    color: #fff;
-}
-
-.btn-filter-secondary {
-    background: var(--bs-tertiary-bg, #f1f5f9);
-    color: var(--bs-body-color, #64748b);
-    border: 1px solid var(--bs-border-color, #e2e8f0);
-}
-
-.btn-filter-secondary:hover {
-    background: var(--bs-secondary-bg, #e2e8f0);
-    transform: translateY(-1px);
-    color: var(--bs-body-color, #475569);
-}
-
-/* ═══════════════════════════════════════════════════
-   SECTION HEADER
-   ═══════════════════════════════════════════════════ */
-.section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.section-title {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--bs-body-color, #1f2937);
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin: 0;
-    letter-spacing: -0.01em;
-}
-
-.section-title-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
-}
-
-.section-badge {
-    background: var(--bs-tertiary-bg, #f1f5f9);
-    color: var(--bs-secondary-color, #64748b);
-    padding: 0.3rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-/* ═══════════════════════════════════════════════════
-   TEACHER CARDS GRID
-   ═══════════════════════════════════════════════════ */
-.teachers-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-
-.t-card {
-    background: var(--bs-card-bg, #fff);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
-    border-radius: 24px;
-    overflow: hidden;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    position: relative;
-}
-
-.t-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.t-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-}
-
-.t-card:hover::before {
-    transform: scaleX(1);
-}
-
-/* Card Header */
-.t-card-head {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.25rem 1.5rem;
-    background: var(--bs-tertiary-bg, #fafbfd);
-    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-}
-
-.t-avatar {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    box-shadow: 0 6px 16px rgba(102,126,234,0.35);
-    transition: all 0.3s ease;
-}
-
-.t-card:hover .t-avatar {
-    transform: scale(1.08);
-    box-shadow: 0 8px 24px rgba(102,126,234,0.45);
-}
-
-.t-head-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.t-head-name {
-    font-weight: 800;
-    font-size: 1.05rem;
-    color: var(--bs-body-color, #1f2937);
-    letter-spacing: -0.01em;
-}
-
-.t-head-username {
-    font-size: 0.8rem;
-    color: var(--bs-secondary-color, #94a3b8);
-    font-weight: 500;
-}
-
-.t-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.25rem 0.65rem;
-    border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-
-.t-status-on {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #16a34a;
-}
-
-.t-status-off {
-    background: var(--bs-tertiary-bg, #f1f5f9);
-    color: var(--bs-secondary-color, #94a3b8);
-}
-
-.t-status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-}
-
-.t-status-on .t-status-dot {
-    background: #16a34a;
-    animation: dotPulse 2s infinite;
-}
-
-.t-status-off .t-status-dot {
-    background: #94a3b8;
-}
-
-/* Month Comparison */
-.t-comparison {
-    display: grid;
-    grid-template-columns: 1fr 60px 1fr;
-    gap: 0;
-    padding: 1.25rem 1.5rem;
-    align-items: center;
-}
-
-.t-month-block {
-    text-align: center;
-    padding: 1rem;
-    border-radius: 16px;
-    transition: all 0.3s ease;
-}
-
-.t-month-prev {
-    background: var(--bs-tertiary-bg, #f8fafc);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-}
-
-.t-month-curr {
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    border: 1px solid #bfdbfe;
-}
-
-.t-month-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 0.4rem;
-    color: var(--bs-secondary-color, #94a3b8);
-}
-
-.t-month-curr .t-month-label {
-    color: #3b82f6;
-}
-
-.t-month-amount {
-    font-size: 1.15rem;
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 0.3rem;
-}
-
-.t-month-prev .t-month-amount {
-    color: var(--bs-body-color, #64748b);
-}
-
-.t-month-curr .t-month-amount {
-    color: #1d4ed8;
-}
-
-.t-month-detail {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    font-size: 0.7rem;
-    color: var(--bs-secondary-color, #94a3b8);
-    font-weight: 600;
-}
-
-.t-month-detail-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-}
-
-.t-change-arrow {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-}
-
-.t-change-icon {
-    font-size: 1.6rem;
-    transition: all 0.3s ease;
-}
-
-.t-change-pct {
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 0.15rem 0.5rem;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-.t-change-up { color: #16a34a; }
-.t-change-up .t-change-pct { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #16a34a; }
-.t-change-down { color: #dc2626; }
-.t-change-down .t-change-pct { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
-.t-change-same { color: #94a3b8; }
-.t-change-same .t-change-pct { background: var(--bs-tertiary-bg, #f1f5f9); color: #94a3b8; }
+/* Month comparison */
+.te-compare { display: grid; grid-template-columns: 1fr 54px 1fr; align-items: center; padding: 1.15rem 1.3rem; gap: .3rem; }
+.te-mblock { text-align: center; padding: .85rem .6rem; border-radius: 14px; }
+.te-mprev { background: var(--te-surface); border: 1px solid var(--te-border); }
+.te-mcurr { background: var(--te-soft); border: 1px solid rgba(13,110,253,.25); }
+.te-mlabel { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--te-muted); margin-bottom: .35rem; }
+.te-mcurr .te-mlabel { color: var(--te-primary); }
+.te-mamount { font-size: 1.1rem; font-weight: 800; line-height: 1.1; margin-bottom: .3rem; }
+.te-mcurr .te-mamount { color: var(--te-primary); }
+.te-mdetail { display: flex; justify-content: center; gap: .45rem; font-size: .68rem; color: var(--te-muted); font-weight: 600; }
+.te-arrow { display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+.te-arrow i { font-size: 1.4rem; }
+.te-pct { font-size: .65rem; font-weight: 800; padding: .12rem .45rem; border-radius: 7px; white-space: nowrap; }
+.te-up { color: var(--te-green); } .te-up .te-pct { background: var(--te-green-bg); }
+.te-down { color: var(--te-red); } .te-down .te-pct { background: var(--te-red-bg); }
+.te-same { color: var(--te-muted); } .te-same .te-pct { background: var(--te-surface); }
 
 /* Breakdown */
-.t-breakdown {
-    padding: 0 1.5rem 1rem;
-}
-
-.t-breakdown-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.6rem;
-}
-
-.t-break-item {
-    text-align: center;
-    padding: 0.6rem 0.4rem;
-    border-radius: 12px;
-    background: var(--bs-tertiary-bg, #f8fafc);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-    transition: all 0.3s ease;
-}
-
-.t-break-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
-
-.t-break-icon {
-    font-size: 1.1rem;
-    margin-bottom: 0.2rem;
-}
-
-.t-break-count {
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--bs-body-color, #1f2937);
-}
-
-.t-break-amount {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #16a34a;
-}
-
-.t-break-label {
-    font-size: 0.6rem;
-    color: var(--bs-secondary-color, #94a3b8);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Total Row */
-.t-total-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, var(--bs-tertiary-bg, #f8fafc), var(--bs-secondary-bg, #f1f5f9));
-    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-    font-size: 0.85rem;
-}
-
-.t-total-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.t-total-label {
-    color: var(--bs-secondary-color, #94a3b8);
-    font-weight: 600;
-    font-size: 0.75rem;
-}
-
-.t-total-value {
-    font-weight: 800;
-    font-size: 0.9rem;
-}
-
-.t-total-calc { color: #3b82f6; }
-.t-total-paid { color: #16a34a; }
-
-/* Last Activity */
-.t-activity {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.85rem 1.5rem;
-    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-    background: var(--bs-card-bg, #fff);
-}
-
-.t-activity-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
-
-.t-act-video { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
-.t-act-test { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #9333ea; }
-.t-act-homework { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
-.t-act-default { background: var(--bs-tertiary-bg, #f1f5f9); color: #94a3b8; }
-
-.t-activity-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.t-activity-title {
-    font-weight: 700;
-    font-size: 0.82rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--bs-body-color, #1f2937);
-}
-
-.t-activity-meta {
-    font-size: 0.7rem;
-    color: var(--bs-secondary-color, #94a3b8);
-    font-weight: 500;
-}
-
-/* Card Footer */
-.t-card-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.85rem 1.5rem;
-    border-top: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-    background: var(--bs-card-bg, #fff);
-}
-
-.t-balance {
-    font-weight: 800;
-    font-size: 0.9rem;
-    padding: 0.35rem 1rem;
-    border-radius: 12px;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.t-bal-pos {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #16a34a;
-    border: 1px solid #86efac;
-}
-
-.t-bal-neg {
-    background: linear-gradient(135deg, #fee2e2, #fecaca);
-    color: #dc2626;
-    border: 1px solid #fca5a5;
-}
-
-.t-bal-zero {
-    background: var(--bs-tertiary-bg, #f1f5f9);
-    color: var(--bs-secondary-color, #94a3b8);
-    border: 1px solid var(--bs-border-color, #e2e8f0);
-}
-
-.t-actions {
-    display: flex;
-    gap: 0.4rem;
-}
-
-.t-action-btn {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    font-size: 1rem;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
-
-.t-action-btn:hover {
-    transform: translateY(-3px) scale(1.08);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-}
-
-.t-btn-view {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
-}
-
-.t-btn-pay {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-}
-
-/* ═══════════════════════════════════════════════════
-   PAYMENTS TABLE
-   ═══════════════════════════════════════════════════ */
-.payments-glass {
-    background: var(--bs-card-bg, rgba(255,255,255,0.95));
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.06);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
-    margin-bottom: 2rem;
-}
-
-.payments-glass-header {
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--bs-body-color, #1f2937);
-}
-
-.pay-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.pay-table thead th {
-    background: var(--bs-tertiary-bg, #f8fafc);
-    padding: 1rem 1.25rem;
-    font-weight: 700;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    color: var(--bs-secondary-color, #64748b);
-    border-bottom: 2px solid var(--bs-border-color, #e2e8f0);
-    text-align: left;
-}
-
-.pay-table tbody td {
-    padding: 1rem 1.25rem;
-    vertical-align: middle;
-    border-bottom: 1px solid var(--bs-border-color, rgba(0,0,0,0.04));
-    font-weight: 500;
-    color: var(--bs-body-color, #1f2937);
-    transition: all 0.3s ease;
-}
-
-.pay-table tbody tr:hover td {
-    background: var(--bs-tertiary-bg, rgba(248,250,252,0.8));
-}
-
-.pay-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.pay-teacher {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-}
-
-.pay-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 0.8rem;
-    flex-shrink: 0;
-}
-
-.pay-name {
-    font-weight: 700;
-    font-size: 0.88rem;
-}
-
-.pay-username {
-    font-size: 0.72rem;
-    color: var(--bs-secondary-color, #94a3b8);
-}
-
-.pay-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.75rem;
-    border-radius: 10px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.pay-badge-paid {
-    background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-    color: #16a34a;
-}
-
-.pay-badge-unpaid {
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    color: #d97706;
-}
-
-.pay-amount {
-    font-weight: 800;
-    font-size: 0.95rem;
-}
-
-.pay-receipt {
-    color: #3b82f6;
-    text-decoration: none;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    transition: all 0.2s ease;
-}
-
-.pay-receipt:hover {
-    color: #1d4ed8;
-    text-decoration: underline;
-}
-
-.pay-actions {
-    display: flex;
-    gap: 0.4rem;
-}
-
-.pay-action-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.pay-action-btn:hover {
-    transform: translateY(-2px);
-}
-
-.pay-btn-edit {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-    color: #fff;
-}
-
-.pay-btn-check {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: #fff;
-}
-
-.pay-btn-del {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: #fff;
-}
-
-/* ═══════════════════════════════════════════════════
-   MODAL
-   ═══════════════════════════════════════════════════ */
-.modal-content {
-    border-radius: 24px;
-    border: none;
-    box-shadow: 0 25px 60px rgba(0,0,0,0.2);
-    overflow: hidden;
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    border: none;
-    padding: 1.25rem 1.75rem;
-}
-
-.modal-header .btn-close {
-    filter: brightness(0) invert(1);
-}
-
-.modal-body {
-    padding: 1.75rem;
-}
-
-.modal-footer {
-    border-top: 1px solid var(--bs-border-color, #e2e8f0);
-    padding: 1rem 1.75rem;
-}
-
-/* ═══════════════════════════════════════════════════
-   EMPTY STATE
-   ═══════════════════════════════════════════════════ */
-.empty-modern {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: var(--bs-card-bg, #fff);
-    border-radius: 24px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.04);
-    border: 1px solid var(--bs-border-color, rgba(0,0,0,0.06));
-}
-
-.empty-icon {
-    font-size: 4rem;
-    color: var(--bs-secondary-color, #cbd5e1);
-    margin-bottom: 1rem;
-    opacity: 0.6;
-}
-
-.empty-title {
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--bs-body-color, #475569);
-    margin-bottom: 0.5rem;
-}
-
-.empty-desc {
-    color: var(--bs-secondary-color, #94a3b8);
-    font-size: 0.95rem;
-    margin: 0;
-}
-
-/* ═══════════════════════════════════════════════════
-   ANIMATIONS
-   ═══════════════════════════════════════════════════ */
-@keyframes heroSlide {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes heroFloat {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-25px) rotate(180deg); }
-}
-
-@keyframes dotPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.3); }
-}
-
-@keyframes cardIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.t-card {
-    animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-.t-card:nth-child(1) { animation-delay: 0.05s; }
-.t-card:nth-child(2) { animation-delay: 0.1s; }
-.t-card:nth-child(3) { animation-delay: 0.15s; }
-.t-card:nth-child(4) { animation-delay: 0.2s; }
-.t-card:nth-child(5) { animation-delay: 0.25s; }
-.t-card:nth-child(6) { animation-delay: 0.3s; }
-
-/* ═══════════════════════════════════════════════════
-   DARK MODE
-   ═══════════════════════════════════════════════════ */
-@media (prefers-color-scheme: dark) {
-    .hero-dashboard {
-        background: linear-gradient(135deg, #4c1d95, #6d28d9 50%, #a855f7 100%);
-        box-shadow: 0 20px 60px -15px rgba(76,29,149,0.6);
-    }
-
-    .t-card {
-        background: var(--bs-card-bg, rgba(30,41,59,0.95));
-        border: 1px solid var(--bs-border-color, rgba(255,255,255,0.08));
-    }
-
-    .t-card:hover {
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    }
-
-    .t-card-head {
-        background: var(--bs-tertiary-bg, rgba(30,41,59,0.5));
-    }
-
-    .t-month-prev {
-        background: var(--bs-tertiary-bg, #1e293b);
-        border-color: rgba(255,255,255,0.06);
-    }
-
-    .t-month-curr {
-        background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(37,99,235,0.1));
-        border-color: rgba(59,130,246,0.2);
-    }
-
-    .t-month-prev .t-month-amount {
-        color: var(--bs-body-color, #e2e8f0);
-    }
-
-    .t-break-item {
-        background: var(--bs-tertiary-bg, #1e293b);
-        border-color: rgba(255,255,255,0.06);
-    }
-
-    .t-total-row {
-        background: linear-gradient(135deg, var(--bs-tertiary-bg, #1e293b), var(--bs-secondary-bg, #0f172a));
-    }
-
-    .filters-glass,
-    .payments-glass {
-        background: var(--bs-card-bg, rgba(30,41,59,0.95));
-        border-color: rgba(255,255,255,0.08);
-    }
-
-    .pay-table thead th {
-        background: var(--bs-tertiary-bg, #1e293b);
-        color: var(--bs-secondary-color, #94a3b8);
-    }
-
-    .pay-table tbody td {
-        border-color: rgba(255,255,255,0.06);
-    }
-
-    .empty-modern {
-        background: var(--bs-card-bg, rgba(30,41,59,0.95));
-        border-color: rgba(255,255,255,0.08);
-    }
-}
-
-/* ═══════════════════════════════════════════════════
-   RESPONSIVE
-   ═══════════════════════════════════════════════════ */
+.te-breakdown { padding: 0 1.3rem 1rem; }
+.te-break-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; }
+.te-break {
+    text-align: center; padding: .6rem .4rem; border-radius: 11px;
+    background: var(--te-surface); border: 1px solid var(--te-border);
+}
+.te-break-ic { font-size: 1.05rem; margin-bottom: .15rem; }
+.te-break-count { font-size: .98rem; font-weight: 800; }
+.te-break-amt { font-size: .68rem; font-weight: 600; color: var(--te-green); }
+.te-break-lbl { font-size: .58rem; color: var(--te-muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Totals */
+.te-totals {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .75rem 1.3rem; background: var(--te-surface); border-top: 1px solid var(--te-border);
+}
+.te-tlabel { color: var(--te-muted); font-weight: 600; font-size: .73rem; }
+.te-tval { font-weight: 800; font-size: .9rem; }
+.te-tcalc { color: var(--te-primary); }
+.te-tpaid { color: var(--te-green); }
+
+/* Activity */
+.te-activity { display: flex; align-items: center; gap: .75rem; padding: .8rem 1.3rem; border-top: 1px solid var(--te-border); }
+.te-act-ic { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: .85rem; flex-shrink: 0; }
+.te-act-video { background: rgba(37,99,235,.14); color: #2563eb; }
+.te-act-test { background: rgba(147,51,234,.14); color: var(--te-purple); }
+.te-act-homework { background: rgba(217,119,6,.14); color: var(--te-amber); }
+.te-act-default { background: var(--te-surface); color: var(--te-muted); }
+.te-act-info { flex: 1; min-width: 0; }
+.te-act-title { font-weight: 700; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.te-act-meta { font-size: .68rem; color: var(--te-muted); }
+
+/* Footer */
+.te-foot { display: flex; align-items: center; justify-content: space-between; padding: .8rem 1.3rem; border-top: 1px solid var(--te-border); }
+.te-balance { font-weight: 800; font-size: .88rem; padding: .35rem .9rem; border-radius: 11px; display: inline-flex; align-items: center; gap: .4rem; }
+.te-bal-pos { background: var(--te-green-bg); color: var(--te-green); }
+.te-bal-neg { background: var(--te-red-bg); color: var(--te-red); }
+.te-bal-zero { background: var(--te-surface); color: var(--te-muted); }
+.te-card-actions { display: flex; gap: .4rem; }
+.te-act-btn {
+    width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center;
+    justify-content: center; border: none; font-size: .95rem; cursor: pointer; color: #fff;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.te-act-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.2); }
+.te-btn-view { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.te-btn-pay { background: linear-gradient(135deg, #10b981, #059669); }
+
+/* ===== Payments table ===== */
+.te-table-head {
+    padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--te-border);
+    display: flex; align-items: center; gap: .6rem; font-size: 1rem; font-weight: 800;
+}
+.te-table-head i { color: var(--te-green); }
+.te-tw { overflow-x: auto; }
+.te-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.te-table thead th {
+    background: var(--te-surface); padding: .9rem 1.15rem; font-weight: 700; font-size: .72rem;
+    text-transform: uppercase; letter-spacing: .7px; color: var(--te-muted); text-align: left; white-space: nowrap;
+}
+.te-table tbody td { padding: .85rem 1.15rem; vertical-align: middle; border-top: 1px solid var(--te-border); font-weight: 500; }
+.te-table tbody tr:hover td { background: var(--te-surface); }
+.te-pteacher { display: flex; align-items: center; gap: .6rem; }
+.te-pavatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--te-primary), var(--te-primary-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .78rem; flex-shrink: 0; }
+.te-pname { font-weight: 700; font-size: .86rem; }
+.te-puser { font-size: .7rem; color: var(--te-muted); }
+.te-badge { display: inline-flex; align-items: center; gap: .3rem; padding: .28rem .7rem; border-radius: 9px; font-size: .76rem; font-weight: 700; }
+.te-badge-paid { background: var(--te-green-bg); color: var(--te-green); }
+.te-badge-unpaid { background: var(--te-amber-bg); color: var(--te-amber); }
+.te-pamount { font-weight: 800; font-size: .92rem; }
+.te-receipt { color: var(--te-primary); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: .3rem; }
+.te-receipt:hover { text-decoration: underline; }
+.te-pactions { display: flex; gap: .35rem; }
+.te-pbtn { width: 33px; height: 33px; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: none; font-size: .85rem; cursor: pointer; color: #fff; transition: transform .2s ease; }
+.te-pbtn:hover { transform: translateY(-2px); }
+.te-pbtn-edit { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.te-pbtn-check { background: linear-gradient(135deg, #10b981, #059669); }
+.te-pbtn-del { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+/* ===== Empty ===== */
+.te-empty { text-align: center; padding: 3.5rem 1.5rem; }
+.te-empty i { font-size: 3.2rem; color: var(--te-muted); opacity: .5; }
+.te-empty h4 { font-size: 1.25rem; font-weight: 800; margin: .8rem 0 .3rem; }
+.te-empty p { color: var(--te-muted); margin: 0; font-size: .9rem; }
+
+/* ===== Modal ===== */
+.modal-content { border-radius: 20px; border: none; overflow: hidden; }
+.modal-header { background: linear-gradient(135deg, var(--primary-blue, #0d6efd), var(--dark-blue, #0a58ca)); color: #fff; border: none; padding: 1.15rem 1.6rem; }
+.modal-header .btn-close { filter: brightness(0) invert(1); }
+.modal-body { padding: 1.6rem; }
+.modal-footer { border-top: 1px solid var(--border-color, #e5e7eb); padding: 1rem 1.6rem; }
+
+/* ===== Animations ===== */
+@keyframes teUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes tePulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.3); } }
+.te-card:nth-child(1){animation-delay:.04s}.te-card:nth-child(2){animation-delay:.08s}
+.te-card:nth-child(3){animation-delay:.12s}.te-card:nth-child(4){animation-delay:.16s}
+.te-card:nth-child(5){animation-delay:.2s}.te-card:nth-child(6){animation-delay:.24s}
+
+/* ===== Responsive ===== */
 @media (max-width: 992px) {
-    .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-    .hero-dashboard { padding: 1.75rem; }
-    .hero-title { font-size: 1.6rem; }
-    .hero-stat-value { font-size: 1.4rem; }
-    .teachers-grid { grid-template-columns: 1fr; }
+    .te-hero-stats { gap: .75rem; }
+    .te-hstat { flex-direction: column; text-align: center; gap: .5rem; }
+    .te-grid { grid-template-columns: 1fr; }
 }
-
 @media (max-width: 768px) {
-    .hero-stats { grid-template-columns: 1fr; }
-    .hero-top { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .hero-dashboard { padding: 1.5rem; border-radius: 20px; }
-    .filter-grid { grid-template-columns: 1fr; }
-    .filter-actions { flex-direction: column; }
-    .t-comparison { grid-template-columns: 1fr; gap: 0.5rem; }
-    .t-change-arrow { flex-direction: row; padding: 0.5rem 0; }
-    .t-breakdown-grid { grid-template-columns: repeat(3, 1fr); }
-    .section-header { flex-direction: column; align-items: flex-start; }
-}
-
-@media (max-width: 480px) {
-    .hero-dashboard { padding: 1.25rem; }
-    .hero-title { font-size: 1.3rem; }
-    .hero-stat { padding: 1rem; }
-    .t-card-head { padding: 1rem; }
-    .t-comparison { padding: 1rem; }
-    .t-breakdown { padding: 0 1rem 0.75rem; }
-    .t-card-foot { padding: 0.75rem 1rem; }
+    .te-hero { padding: 1.5rem; }
+    .te-hero-title { font-size: 1.35rem; }
+    .te-hero-stats { grid-template-columns: 1fr; }
+    .te-filter-actions { flex-direction: column; }
+    .te-filter-actions .te-btn { justify-content: center; }
+    .te-compare { grid-template-columns: 1fr; }
+    .te-arrow { flex-direction: row; justify-content: center; padding: .35rem 0; }
 }
 </style>
 {% endblock %}
 
 {% block admin_content %}
-<!-- ════════ HERO DASHBOARD ════════ -->
-<div class="hero-dashboard">
-    <div class="hero-top">
+<div class="te-wrap">
+
+<!-- ════════ HERO ════════ -->
+<div class="te-hero">
+    <div class="te-hero-top">
         <div>
-            <h1 class="hero-title">💰 O'qituvchilar Daromadlari</h1>
-            <p class="hero-subtitle">{{ prev_month_name }} → {{ current_month_name }} {{ current_year }} oylik taqqoslash</p>
+            <h1 class="te-hero-title">💰 O'qituvchilar Daromadlari</h1>
+            <p class="te-hero-sub">{{ prev_month_name }} → {{ current_month_name }} {{ current_year }} — oylik taqqoslash</p>
         </div>
-        <button class="hero-btn" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+        <button class="te-hero-btn" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
             <i class="bi bi-plus-circle"></i> To'lov qo'shish
         </button>
     </div>
-    
-    <div class="hero-stats">
-        <div class="hero-stat">
-            <div class="hero-stat-icon">
-                <i class="bi bi-calculator-fill"></i>
+
+    <div class="te-hero-stats">
+        <div class="te-hstat">
+            <div class="te-hstat-icon"><i class="bi bi-calculator-fill"></i></div>
+            <div>
+                <div class="te-hstat-value">{{ total_calculated|floatformat:0 }} <small>so'm</small></div>
+                <div class="te-hstat-label">Hisoblangan</div>
             </div>
-            <div class="hero-stat-value">{{ total_calculated|floatformat:0 }}</div>
-            <div class="hero-stat-label">Hisoblangan</div>
         </div>
-        <div class="hero-stat">
-            <div class="hero-stat-icon">
-                <i class="bi bi-check2-all"></i>
+        <div class="te-hstat">
+            <div class="te-hstat-icon"><i class="bi bi-check2-all"></i></div>
+            <div>
+                <div class="te-hstat-value">{{ total_paid|floatformat:0 }} <small>so'm</small></div>
+                <div class="te-hstat-label">To'langan</div>
             </div>
-            <div class="hero-stat-value">{{ total_paid|floatformat:0 }}</div>
-            <div class="hero-stat-label">To'langan</div>
         </div>
-        <div class="hero-stat">
-            <div class="hero-stat-icon">
-                <i class="bi bi-wallet2"></i>
+        <div class="te-hstat">
+            <div class="te-hstat-icon"><i class="bi bi-wallet2"></i></div>
+            <div>
+                <div class="te-hstat-value">{{ total_balance|floatformat:0 }} <small>so'm</small></div>
+                <div class="te-hstat-label">Qoldiq</div>
             </div>
-            <div class="hero-stat-value">{{ total_balance|floatformat:0 }}</div>
-            <div class="hero-stat-label">Qoldiq</div>
         </div>
     </div>
 </div>
 
 <!-- ════════ FILTERS ════════ -->
-<div class="filters-glass">
-    <div class="filters-glass-title">
-        <i class="bi bi-funnel-fill" style="color: #667eea;"></i> Filterlar
-    </div>
+<div class="te-panel te-filters">
+    <div class="te-filters-title"><i class="bi bi-funnel-fill"></i> Filterlar</div>
     <form method="GET" class="mb-0">
-        <div class="filter-grid">
-            <input type="text" class="form-control filter-input" name="q" value="{{ search_query }}" 
-                   placeholder="🔍 O'qituvchi ismi yoki username...">
-            
-            <select class="form-select filter-input" name="teacher">
+        <div class="te-filter-grid">
+            <input type="text" class="te-input" name="q" value="{{ search_query }}" placeholder="🔍 O'qituvchi ismi yoki username...">
+            <select class="te-input" name="teacher">
                 <option value="">👨‍🏫 Barcha o'qituvchilar</option>
                 {% for teacher in teachers %}
                 <option value="{{ teacher.id }}" {% if teacher_filter == teacher.id|stringformat:"s" %}selected{% endif %}>{{ teacher.full_name }}</option>
                 {% endfor %}
             </select>
-            
-            <select class="form-select filter-input" name="month">
+            <select class="te-input" name="month">
                 <option value="">📅 Barcha oylar</option>
                 <option value="1" {% if month_filter == '1' %}selected{% endif %}>Yanvar</option>
                 <option value="2" {% if month_filter == '2' %}selected{% endif %}>Fevral</option>
@@ -1144,203 +361,153 @@
                 <option value="11" {% if month_filter == '11' %}selected{% endif %}>Noyabr</option>
                 <option value="12" {% if month_filter == '12' %}selected{% endif %}>Dekabr</option>
             </select>
-            
-            <input type="number" class="form-control filter-input" name="year" value="{{ year_filter }}" 
-                   placeholder="📆 Yil" min="2020" max="{{ current_year }}">
+            <input type="number" class="te-input" name="year" value="{{ year_filter }}" placeholder="📆 Yil" min="2020" max="{{ current_year }}">
         </div>
-        
-        <div class="filter-actions">
-            <button type="submit" class="btn btn-filter btn-filter-primary">
-                <i class="bi bi-search"></i> Qidirish
-            </button>
-            <a href="{% url 'admin_teacher_earnings' %}" class="btn btn-filter btn-filter-secondary">
-                <i class="bi bi-arrow-clockwise"></i> Tozalash
-            </a>
+        <div class="te-filter-actions">
+            <button type="submit" class="te-btn te-btn-primary"><i class="bi bi-search"></i> Qidirish</button>
+            <a href="{% url 'admin_teacher_earnings' %}" class="te-btn te-btn-ghost"><i class="bi bi-arrow-clockwise"></i> Tozalash</a>
         </div>
     </form>
 </div>
 
 <!-- ════════ TEACHER CARDS ════════ -->
-<div class="section-header">
-    <h3 class="section-title">
-        <span class="section-title-icon"><i class="bi bi-people-fill"></i></span>
+<div class="te-section">
+    <h3 class="te-section-title">
+        <span class="te-section-ic"><i class="bi bi-people-fill"></i></span>
         O'qituvchilar daromadi
     </h3>
     {% if teacher_earnings %}
-    <span class="section-badge">{{ teacher_earnings|length }} ta o'qituvchi</span>
+    <span class="te-section-badge">{{ teacher_earnings|length }} ta o'qituvchi</span>
     {% endif %}
 </div>
 
 {% if teacher_earnings %}
-<div class="teachers-grid">
+<div class="te-grid">
     {% for earning in teacher_earnings %}
-    <div class="t-card">
+    <div class="te-card">
         <!-- Header -->
-        <div class="t-card-head">
-            <div class="t-avatar">
-                {{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}
-            </div>
-            <div class="t-head-info">
-                <div class="t-head-name">{{ earning.teacher.full_name }}</div>
-                <div class="t-head-username">@{{ earning.teacher.username }}</div>
+        <div class="te-card-head">
+            <div class="te-avatar">{{ earning.teacher.first_name.0 }}{{ earning.teacher.last_name.0 }}</div>
+            <div class="te-head-info">
+                <div class="te-head-name">{{ earning.teacher.full_name }}</div>
+                <div class="te-head-user">@{{ earning.teacher.username }}</div>
             </div>
             {% if earning.teacher.is_online %}
-            <span class="t-status t-status-on">
-                <span class="t-status-dot"></span> Online
-            </span>
+            <span class="te-status te-status-on"><span class="te-dot"></span> Online</span>
             {% else %}
-            <span class="t-status t-status-off">
-                <span class="t-status-dot"></span> Offline
-            </span>
+            <span class="te-status te-status-off"><span class="te-dot"></span> Offline</span>
             {% endif %}
         </div>
 
-        <!-- Month Comparison -->
-        <div class="t-comparison">
-            <div class="t-month-block t-month-prev">
-                <div class="t-month-label">{{ prev_month_name }}</div>
-                <div class="t-month-amount">{{ earning.prev_month_earnings|floatformat:0 }}</div>
-                <div class="t-month-detail">
-                    <span class="t-month-detail-item">🎬 {{ earning.prev_video_count }}</span>
-                    <span class="t-month-detail-item">📝 {{ earning.prev_test_count }}</span>
-                    <span class="t-month-detail-item">📚 {{ earning.prev_hw_count }}</span>
-                </div>
+        <!-- Month comparison -->
+        <div class="te-compare">
+            <div class="te-mblock te-mprev">
+                <div class="te-mlabel">{{ prev_month_name }}</div>
+                <div class="te-mamount">{{ earning.prev_month_earnings|floatformat:0 }}</div>
+                <div class="te-mdetail"><span>🎬 {{ earning.prev_video_count }}</span><span>📝 {{ earning.prev_test_count }}</span><span>📚 {{ earning.prev_hw_count }}</span></div>
             </div>
-            
-            <div class="t-change-arrow {% if earning.earnings_change > 0 %}t-change-up{% elif earning.earnings_change < 0 %}t-change-down{% else %}t-change-same{% endif %}">
+            <div class="te-arrow {% if earning.earnings_change > 0 %}te-up{% elif earning.earnings_change < 0 %}te-down{% else %}te-same{% endif %}">
                 {% if earning.earnings_change > 0 %}
-                    <i class="bi bi-arrow-up-circle-fill t-change-icon"></i>
-                    <span class="t-change-pct">+{{ earning.earnings_change_percent|floatformat:0 }}%</span>
+                    <i class="bi bi-arrow-up-circle-fill"></i><span class="te-pct">+{{ earning.earnings_change_percent|floatformat:0 }}%</span>
                 {% elif earning.earnings_change < 0 %}
-                    <i class="bi bi-arrow-down-circle-fill t-change-icon"></i>
-                    <span class="t-change-pct">{{ earning.earnings_change_percent|floatformat:0 }}%</span>
+                    <i class="bi bi-arrow-down-circle-fill"></i><span class="te-pct">{{ earning.earnings_change_percent|floatformat:0 }}%</span>
                 {% else %}
-                    <i class="bi bi-dash-circle-fill t-change-icon"></i>
-                    <span class="t-change-pct">0%</span>
+                    <i class="bi bi-dash-circle-fill"></i><span class="te-pct">0%</span>
                 {% endif %}
             </div>
-            
-            <div class="t-month-block t-month-curr">
-                <div class="t-month-label">{{ current_month_name }}</div>
-                <div class="t-month-amount">{{ earning.current_month_earnings|floatformat:0 }}</div>
-                <div class="t-month-detail">
-                    <span class="t-month-detail-item">🎬 {{ earning.current_video_count }}</span>
-                    <span class="t-month-detail-item">📝 {{ earning.current_test_count }}</span>
-                    <span class="t-month-detail-item">📚 {{ earning.current_hw_count }}</span>
-                </div>
+            <div class="te-mblock te-mcurr">
+                <div class="te-mlabel">{{ current_month_name }}</div>
+                <div class="te-mamount">{{ earning.current_month_earnings|floatformat:0 }}</div>
+                <div class="te-mdetail"><span>🎬 {{ earning.current_video_count }}</span><span>📝 {{ earning.current_test_count }}</span><span>📚 {{ earning.current_hw_count }}</span></div>
             </div>
         </div>
 
-        <!-- Content Breakdown -->
-        <div class="t-breakdown">
-            <div class="t-breakdown-grid">
-                <div class="t-break-item">
-                    <div class="t-break-icon">🎬</div>
-                    <div class="t-break-count">{{ earning.video_count }}</div>
-                    <div class="t-break-amount">{% widthratio earning.video_count 1 25000 %}</div>
-                    <div class="t-break-label">Video</div>
+        <!-- Breakdown -->
+        <div class="te-breakdown">
+            <div class="te-break-grid">
+                <div class="te-break">
+                    <div class="te-break-ic">🎬</div>
+                    <div class="te-break-count">{{ earning.video_count }}</div>
+                    <div class="te-break-amt">{% widthratio earning.video_count 1 25000 %}</div>
+                    <div class="te-break-lbl">Video</div>
                 </div>
-                <div class="t-break-item">
-                    <div class="t-break-icon">📝</div>
-                    <div class="t-break-count">{{ earning.test_count }}</div>
-                    <div class="t-break-amount">{% widthratio earning.test_count 1 10000 %}</div>
-                    <div class="t-break-label">Test</div>
+                <div class="te-break">
+                    <div class="te-break-ic">📝</div>
+                    <div class="te-break-count">{{ earning.test_count }}</div>
+                    <div class="te-break-amt">{% widthratio earning.test_count 1 10000 %}</div>
+                    <div class="te-break-lbl">Test</div>
                 </div>
-                <div class="t-break-item">
-                    <div class="t-break-icon">📚</div>
-                    <div class="t-break-count">{{ earning.hw_count }}</div>
-                    <div class="t-break-amount">{% widthratio earning.hw_count 1 10000 %}</div>
-                    <div class="t-break-label">Vazifa</div>
+                <div class="te-break">
+                    <div class="te-break-ic">📚</div>
+                    <div class="te-break-count">{{ earning.hw_count }}</div>
+                    <div class="te-break-amt">{% widthratio earning.hw_count 1 10000 %}</div>
+                    <div class="te-break-lbl">Vazifa</div>
                 </div>
             </div>
         </div>
 
         <!-- Totals -->
-        <div class="t-total-row">
-            <div class="t-total-item">
-                <span class="t-total-label">Hisoblangan:</span>
-                <span class="t-total-value t-total-calc">{{ earning.calculated_earnings|floatformat:0 }} so'm</span>
-            </div>
-            <div class="t-total-item">
-                <span class="t-total-label">To'langan:</span>
-                <span class="t-total-value t-total-paid">{{ earning.paid_amount|floatformat:0 }} so'm</span>
-            </div>
+        <div class="te-totals">
+            <div class="te-tlabel">Hisoblangan: <span class="te-tval te-tcalc">{{ earning.calculated_earnings|floatformat:0 }} so'm</span></div>
+            <div class="te-tlabel">To'langan: <span class="te-tval te-tpaid">{{ earning.paid_amount|floatformat:0 }} so'm</span></div>
         </div>
 
-        <!-- Last Activity -->
-        <div class="t-activity">
+        <!-- Last activity -->
+        <div class="te-activity">
             {% if earning.last_lesson %}
-                <div class="t-activity-icon {% if earning.last_lesson.lesson_type == 'video' %}t-act-video{% elif earning.last_lesson.lesson_type == 'test' %}t-act-test{% elif earning.last_lesson.lesson_type == 'homework' %}t-act-homework{% else %}t-act-default{% endif %}">
-                    {% if earning.last_lesson.lesson_type == 'video' %}
-                        <i class="bi bi-play-btn-fill"></i>
-                    {% elif earning.last_lesson.lesson_type == 'test' %}
-                        <i class="bi bi-pencil-square"></i>
-                    {% elif earning.last_lesson.lesson_type == 'homework' %}
-                        <i class="bi bi-book-fill"></i>
-                    {% else %}
-                        <i class="bi bi-file-earmark"></i>
-                    {% endif %}
+                <div class="te-act-ic {% if earning.last_lesson.lesson_type == 'video' %}te-act-video{% elif earning.last_lesson.lesson_type == 'test' %}te-act-test{% elif earning.last_lesson.lesson_type == 'homework' %}te-act-homework{% else %}te-act-default{% endif %}">
+                    {% if earning.last_lesson.lesson_type == 'video' %}<i class="bi bi-play-btn-fill"></i>
+                    {% elif earning.last_lesson.lesson_type == 'test' %}<i class="bi bi-pencil-square"></i>
+                    {% elif earning.last_lesson.lesson_type == 'homework' %}<i class="bi bi-book-fill"></i>
+                    {% else %}<i class="bi bi-file-earmark"></i>{% endif %}
                 </div>
-                <div class="t-activity-info">
-                    <div class="t-activity-title">{{ earning.last_lesson.title }}</div>
-                    <div class="t-activity-meta">
-                        {{ earning.last_lesson.get_lesson_type_display }} · {{ earning.last_lesson.created_at|date:"d.m.Y H:i" }}
-                    </div>
+                <div class="te-act-info">
+                    <div class="te-act-title">{{ earning.last_lesson.title }}</div>
+                    <div class="te-act-meta">{{ earning.last_lesson.get_lesson_type_display }} · {{ earning.last_lesson.created_at|date:"d.m.Y H:i" }}</div>
                 </div>
             {% else %}
-                <div class="t-activity-icon t-act-default">
-                    <i class="bi bi-dash-lg"></i>
-                </div>
-                <div class="t-activity-info">
-                    <div class="t-activity-title" style="color: var(--bs-secondary-color, #94a3b8);">Hali dars qo'shmagan</div>
-                    <div class="t-activity-meta">Faollik topilmadi</div>
+                <div class="te-act-ic te-act-default"><i class="bi bi-dash-lg"></i></div>
+                <div class="te-act-info">
+                    <div class="te-act-title" style="color: var(--te-muted);">Hali dars qo'shmagan</div>
+                    <div class="te-act-meta">Faollik topilmadi</div>
                 </div>
             {% endif %}
         </div>
 
         <!-- Footer -->
-        <div class="t-card-foot">
-            <span class="t-balance {% if earning.balance > 0 %}t-bal-pos{% elif earning.balance < 0 %}t-bal-neg{% else %}t-bal-zero{% endif %}">
-                <i class="bi bi-wallet2"></i>
-                {{ earning.balance|floatformat:0 }} so'm
+        <div class="te-foot">
+            <span class="te-balance {% if earning.balance > 0 %}te-bal-pos{% elif earning.balance < 0 %}te-bal-neg{% else %}te-bal-zero{% endif %}">
+                <i class="bi bi-wallet2"></i> {{ earning.balance|floatformat:0 }} so'm
             </span>
-            <div class="t-actions">
-                <button class="t-action-btn t-btn-view" onclick="viewEarnings('{{ earning.teacher.id }}')" title="Batafsil">
-                    <i class="bi bi-eye"></i>
-                </button>
-                <button class="t-action-btn t-btn-pay" onclick="addPayment('{{ earning.teacher.id }}')" title="To'lov qo'shish">
-                    <i class="bi bi-plus-lg"></i>
-                </button>
+            <div class="te-card-actions">
+                <button class="te-act-btn te-btn-view" onclick="viewEarnings('{{ earning.teacher.id }}')" title="Batafsil"><i class="bi bi-eye"></i></button>
+                <button class="te-act-btn te-btn-pay" onclick="addPayment('{{ earning.teacher.id }}')" title="To'lov qo'shish"><i class="bi bi-plus-lg"></i></button>
             </div>
         </div>
     </div>
     {% endfor %}
 </div>
 {% else %}
-<div class="empty-modern">
-    <div class="empty-icon">
-        <i class="bi bi-cash-stack"></i>
-    </div>
-    <h4 class="empty-title">Daromat ma'lumotlari topilmadi</h4>
-    <p class="empty-desc">Berilgan filterlar bo'yicha hech qanday daromat yozuvi mavjud emas.</p>
+<div class="te-panel te-empty">
+    <i class="bi bi-cash-stack"></i>
+    <h4>Daromad ma'lumotlari topilmadi</h4>
+    <p>Berilgan filterlar bo'yicha hech qanday daromad yozuvi mavjud emas.</p>
 </div>
 {% endif %}
 
 <!-- ════════ PAYMENTS TABLE ════════ -->
 {% if salaries %}
-<div class="section-header" style="margin-top: 1rem;">
-    <h3 class="section-title">
-        <span class="section-title-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
-            <i class="bi bi-receipt"></i>
-        </span>
-        To'lov Yozuvlari
+<div class="te-section" style="margin-top: 1.5rem;">
+    <h3 class="te-section-title">
+        <span class="te-section-ic" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="bi bi-receipt"></i></span>
+        To'lov yozuvlari
     </h3>
-    <span class="section-badge">{{ salaries|length }} ta yozuv</span>
+    <span class="te-section-badge">{{ salaries|length }} ta yozuv</span>
 </div>
 
-<div class="payments-glass">
-    <div class="table-responsive">
-        <table class="pay-table">
+<div class="te-panel">
+    <div class="te-tw">
+        <table class="te-table">
             <thead>
                 <tr>
                     <th>O'qituvchi</th>
@@ -1357,64 +524,40 @@
                 {% for salary in salaries %}
                 <tr>
                     <td>
-                        <div class="pay-teacher">
-                            <div class="pay-avatar">
-                                {{ salary.teacher.first_name.0 }}{{ salary.teacher.last_name.0 }}
-                            </div>
+                        <div class="te-pteacher">
+                            <div class="te-pavatar">{{ salary.teacher.first_name.0 }}{{ salary.teacher.last_name.0 }}</div>
                             <div>
-                                <div class="pay-name">{{ salary.teacher.full_name }}</div>
-                                <div class="pay-username">@{{ salary.teacher.username }}</div>
+                                <div class="te-pname">{{ salary.teacher.full_name }}</div>
+                                <div class="te-puser">@{{ salary.teacher.username }}</div>
                             </div>
                         </div>
                     </td>
+                    <td><strong>{{ salary.get_month_display }}</strong> {{ salary.year }}</td>
+                    <td><span class="te-badge {% if salary.is_paid %}te-badge-paid{% else %}te-badge-unpaid{% endif %}">{{ salary.get_salary_type_display }}</span></td>
+                    <td><span class="te-pamount">{{ salary.amount|floatformat:0 }} so'm</span></td>
                     <td>
-                        <strong>{{ salary.get_month_display }}</strong> {{ salary.year }}
-                    </td>
-                    <td>
-                        <span class="pay-badge {% if salary.is_paid %}pay-badge-paid{% else %}pay-badge-unpaid{% endif %}">
-                            {{ salary.get_salary_type_display }}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="pay-amount">{{ salary.amount|floatformat:0 }} so'm</span>
-                    </td>
-                    <td>
-                        <span class="pay-badge {% if salary.is_paid %}pay-badge-paid{% else %}pay-badge-unpaid{% endif %}">
-                            {% if salary.is_paid %}
-                                <i class="bi bi-check-circle-fill"></i> To'langan
-                            {% else %}
-                                <i class="bi bi-clock-fill"></i> Kutilmoqda
-                            {% endif %}
+                        <span class="te-badge {% if salary.is_paid %}te-badge-paid{% else %}te-badge-unpaid{% endif %}">
+                            {% if salary.is_paid %}<i class="bi bi-check-circle-fill"></i> To'langan{% else %}<i class="bi bi-clock-fill"></i> Kutilmoqda{% endif %}
                         </span>
                     </td>
                     <td>
                         {% if salary.receipt %}
-                            <a href="{{ salary.receipt.url }}" target="_blank" class="pay-receipt">
-                                <i class="bi bi-file-earmark-pdf"></i> Ko'rish
-                            </a>
+                            <a href="{{ salary.receipt.url }}" target="_blank" class="te-receipt"><i class="bi bi-file-earmark-pdf"></i> Ko'rish</a>
                         {% else %}
-                            <span style="color: var(--bs-secondary-color, #94a3b8); font-size: 0.82rem;">—</span>
+                            <span style="color: var(--te-muted); font-size: .82rem;">—</span>
                         {% endif %}
                     </td>
                     <td>
-                        <div style="font-size: 0.82rem;">{{ salary.paid_date|date:"d.m.Y"|default:"—" }}</div>
-                        {% if salary.created_by %}
-                        <div style="font-size: 0.72rem; color: var(--bs-secondary-color, #94a3b8);">{{ salary.created_by.first_name }}</div>
-                        {% endif %}
+                        <div style="font-size: .82rem;">{{ salary.paid_date|date:"d.m.Y"|default:"—" }}</div>
+                        {% if salary.created_by %}<div style="font-size: .72rem; color: var(--te-muted);">{{ salary.created_by.first_name }}</div>{% endif %}
                     </td>
                     <td>
-                        <div class="pay-actions">
-                            <button class="pay-action-btn pay-btn-edit" onclick="editPayment('{{ salary.id }}')" title="Tahrirlash">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                        <div class="te-pactions">
+                            <button class="te-pbtn te-pbtn-edit" onclick="editPayment('{{ salary.id }}')" title="Tahrirlash"><i class="bi bi-pencil"></i></button>
                             {% if not salary.is_paid %}
-                            <button class="pay-action-btn pay-btn-check" onclick="markAsPaid('{{ salary.id }}')" title="To'langan">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
+                            <button class="te-pbtn te-pbtn-check" onclick="markAsPaid('{{ salary.id }}')" title="To'langan"><i class="bi bi-check-lg"></i></button>
                             {% endif %}
-                            <button class="pay-action-btn pay-btn-del" onclick="deletePayment('{{ salary.id }}')" title="O'chirish">
-                                <i class="bi bi-trash"></i>
-                            </button>
+                            <button class="te-pbtn te-pbtn-del" onclick="deletePayment('{{ salary.id }}')" title="O'chirish"><i class="bi bi-trash"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -1439,7 +582,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">O'qituvchi</label>
-                            <select class="form-select filter-input" name="teacher" required>
+                            <select class="te-input" name="teacher" required>
                                 <option value="">O'qituvchini tanlang</option>
                                 {% for teacher in teachers %}
                                 <option value="{{ teacher.id }}">{{ teacher.full_name }}</option>
@@ -1448,7 +591,7 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Turi</label>
-                            <select class="form-select filter-input" name="salary_type" required>
+                            <select class="te-input" name="salary_type" required>
                                 <option value="oylik">Oylik maosh</option>
                                 <option value="kpi">KPI bonus</option>
                                 <option value="bayram">Bayram puli</option>
@@ -1458,16 +601,14 @@
                             </select>
                         </div>
                     </div>
-                    
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Summa (so'm)</label>
-                            <input type="number" class="form-control filter-input" name="amount" 
-                                   placeholder="0" min="0" step="1000" required>
+                            <input type="number" class="te-input" name="amount" placeholder="0" min="0" step="1000" required>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Oy</label>
-                            <select class="form-select filter-input" name="month" required>
+                            <select class="te-input" name="month" required>
                                 <option value="1">Yanvar</option>
                                 <option value="2">Fevral</option>
                                 <option value="3">Mart</option>
@@ -1484,55 +625,47 @@
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Yil</label>
-                            <input type="number" class="form-control filter-input" name="year" 
-                                   value="{{ current_year }}" min="2020" max="{{ current_year|add:1 }}" required>
+                            <input type="number" class="te-input" name="year" value="{{ current_year }}" min="2020" max="{{ current_year|add:1 }}" required>
                         </div>
                     </div>
-                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Chek/Kvitansiya</label>
-                            <input type="file" class="form-control filter-input" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
+                            <input type="file" class="te-input" name="receipt" accept=".pdf,.jpg,.jpeg,.png">
                             <div class="form-text">PDF, JPG yoki PNG (maks: 5MB)</div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">To'langan</label>
-                            <select class="form-select filter-input" name="is_paid">
+                            <select class="te-input" name="is_paid">
                                 <option value="0">Kutilmoqda</option>
                                 <option value="1">To'langan</option>
                             </select>
                         </div>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label fw-bold">To'langan sana</label>
-                        <input type="date" class="form-control filter-input" name="paid_date">
+                        <input type="date" class="te-input" name="paid_date">
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label fw-bold">Izoh</label>
-                        <textarea class="form-control filter-input" name="description" rows="3" 
-                                  placeholder="Qo'shimcha izoh..." style="border-radius: 14px;"></textarea>
+                        <textarea class="te-input" name="description" rows="3" placeholder="Qo'shimcha izoh..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-filter btn-filter-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-lg"></i> Bekor qilish
-                    </button>
-                    <button type="submit" class="btn btn-filter btn-filter-primary">
-                        <i class="bi bi-check-circle"></i> Saqlash
-                    </button>
+                    <button type="button" class="te-btn te-btn-ghost" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Bekor qilish</button>
+                    <button type="submit" class="te-btn te-btn-primary"><i class="bi bi-check-circle"></i> Saqlash</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+</div><!-- /.te-wrap -->
+
 <script>
 function viewEarnings(teacherId) {
     console.log('View earnings for teacher:', teacherId);
 }
-
 function addPayment(teacherId) {
     const modal = document.getElementById('addPaymentModal');
     const bsModal = new bootstrap.Modal(modal);
@@ -1540,17 +673,14 @@ function addPayment(teacherId) {
     teacherSelect.value = teacherId;
     bsModal.show();
 }
-
 function editPayment(paymentId) {
     console.log('Edit payment:', paymentId);
 }
-
 function markAsPaid(paymentId) {
     if (confirm('Ushbu to\'lovni to\'langan deb belgilashni istaysizmi?')) {
         console.log('Mark as paid:', paymentId);
     }
 }
-
 function deletePayment(paymentId) {
     if (confirm('Ushbu to\'lov yozuvini o\'chirishni istaysizmi?')) {
         console.log('Delete payment:', paymentId);
@@ -1558,3 +688,4 @@ function deletePayment(paymentId) {
 }
 </script>
 {% endblock %}
+</content>
