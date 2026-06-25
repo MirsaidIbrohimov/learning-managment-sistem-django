@@ -533,20 +533,20 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
     </div>
     <div class="posts-grid">
       {% for post in posts %}
-      <div class="card post-card reveal reveal-d{{ forloop.counter }}">
+      <a href="{% url 'blog:post_detail' post.pk %}" class="card post-card reveal reveal-d{{ forloop.counter }}" style="text-decoration:none;color:inherit">
         <div class="post-img-wrap">
-          {% if post.image %}<img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy"/>
+          {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }}" loading="lazy"/>
           {% else %}<i class="bi bi-journal-richtext"></i>{% endif %}
         </div>
         <div class="post-body">
           <span class="post-tag">Blog</span>
           <h3>{{ post.title }}</h3>
-          {% if post.excerpt %}<p>{{ post.excerpt }}</p>{% endif %}
+          {% if post.content %}<p>{{ post.content|striptags|truncatewords:20 }}</p>{% endif %}
           <div class="post-footer">
             <span style="color:#6366f1">O'qish <i class="bi bi-arrow-right"></i></span>
           </div>
         </div>
-      </div>
+      </a>
       {% endfor %}
     </div>
   </div>
@@ -632,9 +632,9 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
         </div>
         <p>O'zbekistonning zamonaviy IT ta'lim platformasi. Frontend, Backend, Mobile, AI va boshqa yo'nalishlar bo'yicha professional ta'lim.</p>
         <div class="footer-socials">
-          <a href="#" class="social-btn"><i class="bi bi-telegram"></i></a>
-          <a href="#" class="social-btn"><i class="bi bi-instagram"></i></a>
-          <a href="#" class="social-btn"><i class="bi bi-youtube"></i></a>
+          <a href="https://t.me/husanbek_coder" target="_blank" rel="noopener" class="social-btn"><i class="bi bi-telegram"></i></a>
+          <a href="https://instagram.com/It_shaharcha_zomin" target="_blank" rel="noopener" class="social-btn"><i class="bi bi-instagram"></i></a>
+          <a href="https://youtube.com/@it_creative" target="_blank" rel="noopener" class="social-btn"><i class="bi bi-youtube"></i></a>
           <a href="#" class="social-btn"><i class="bi bi-linkedin"></i></a>
         </div>
       </div>

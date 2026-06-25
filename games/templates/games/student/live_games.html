@@ -97,6 +97,30 @@
   content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.07);
 }
 
+/* ── GAME-TYPE TABS (alohida UI: o'yinlarni turi bo'yicha ajratish) ── */
+.lg-tabs {
+  display: flex; gap: .6rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+}
+.lg-tab {
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(255,255,255,.04); border: 1px solid var(--lg-border);
+  color: rgba(255,255,255,.55); border-radius: 14px;
+  padding: .55rem 1.1rem; font-size: .84rem; font-weight: 700;
+  cursor: pointer; transition: .18s; font-family: inherit;
+}
+.lg-tab:hover { background: rgba(255,255,255,.08); color: #e0e7ff; }
+.lg-tab.active {
+  background: linear-gradient(135deg, #6366f1, #7c3aed);
+  border-color: transparent; color: #fff;
+  box-shadow: 0 6px 18px rgba(99,102,241,.35);
+}
+.lg-tab-count {
+  background: rgba(255,255,255,.12); border-radius: 10px;
+  padding: .1rem .5rem; font-size: .74rem; font-weight: 800;
+}
+.lg-tab.active .lg-tab-count { background: rgba(255,255,255,.25); }
+.lg-card.lg-hidden { display: none !important; }
+
 /* ── GRID ── */
 .lg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.25rem; }
 
@@ -330,10 +354,24 @@
     <i class="bi bi-controller"></i>
     {{ matches|length }} ta o'yin davom etmoqda
   </div>
-  <div class="lg-grid">
+
+  <!-- Game-type tabs — o'yinlar turi bo'yicha alohida ko'rsatish -->
+  <div class="lg-tabs" id="lg-tabs">
+    <button class="lg-tab active" data-filter="all" type="button">
+      <i class="bi bi-grid-fill"></i> Barchasi <span class="lg-tab-count">{{ matches|length }}</span>
+    </button>
+    <button class="lg-tab" data-filter="shaxmat" type="button">
+      <i class="bi bi-grid-3x3-gap-fill"></i> Shaxmat <span class="lg-tab-count">{{ chess_count }}</span>
+    </button>
+    <button class="lg-tab" data-filter="shashka" type="button">
+      <i class="bi bi-circle-fill"></i> Shashka <span class="lg-tab-count">{{ checkers_count }}</span>
+    </button>
+  </div>
+
+  <div class="lg-grid" id="lg-grid">
     {% for match in matches %}
-    
-    <a href="{% url 'games:spectate_match' match.id %}" class="lg-card">
+
+    <a href="{% url 'games:spectate_match' match.id %}" class="lg-card" data-game="{% if "shaxmat" in match.game.slug %}shaxmat{% else %}shashka{% endif %}">
 
       <!-- move progress bar -->
       <div class="lg-move-bar">
@@ -417,6 +455,13 @@
     {% endfor %}
   </div>
 
+  <!-- Shown when a tab filter matches zero cards -->
+  <div class="lg-empty" id="lg-empty-filtered" style="display:none;">
+    <div class="lg-empty-icon"><i class="bi bi-filter-circle"></i></div>
+    <h3>Bu turdagi jonli o'yin yo'q</h3>
+    <p>Boshqa bo'limni tanlang yoki "Barchasi"ni bosing</p>
+  </div>
+
   {% else %}
   <div class="lg-grid">
     <div class="lg-empty">
@@ -455,5 +500,31 @@ function refreshPage(btn) {
   if (icon) icon.style.transform = 'rotate(360deg)';
   setTimeout(() => location.reload(), 300);
 }
+
+// ── Game-type tabs: Shaxmat / Shashka / Barchasi ─────────────────────
+// Bitta umumiy ro'yxat o'rniga foydalanuvchi xohlagan o'yin turini
+// alohida ko'rishi mumkin — bu o'yinlar "chalkashib ketgan" tuyg'usini
+// oldini oladi.
+(function () {
+  const tabs = document.querySelectorAll('#lg-tabs .lg-tab');
+  const cards = document.querySelectorAll('#lg-grid .lg-card');
+  const emptyFiltered = document.getElementById('lg-empty-filtered');
+  if (!tabs.length) return;
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.dataset.filter;
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const match = (filter === 'all' || card.dataset.game === filter);
+        card.classList.toggle('lg-hidden', !match);
+        if (match) visibleCount++;
+      });
+      if (emptyFiltered) emptyFiltered.style.display = visibleCount === 0 ? 'block' : 'none';
+    });
+  });
+})();
 </script>
 {% endblock %}

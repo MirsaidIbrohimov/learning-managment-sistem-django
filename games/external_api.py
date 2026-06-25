@@ -38,6 +38,12 @@ NONCE_CACHE_PREFIX = 'ext_game_used_nonce:'
 # Har bir o'yin uchun config.service_fee_percent orqali o'zgartirilishi mumkin.
 SERVICE_FEE_PERCENT = 15
 
+# Multiplayer matchda harakatsizlik chegarasi (daqiqa). Shu vaqtdan ortiq
+# hech qanday yurish bo'lmasa, match "zombie" hisoblanadi va avtomatik
+# yakunlanadi — aks holda u "active" bo'lib qolib, jonli o'yinlar
+# ro'yxatida abadiy ko'rinib turadi (aslida tugagan bo'lsa ham).
+MP_INACTIVITY_MINUTES = 5
+
 
 def _get_secret(game: Game) -> bytes:
     """O'yin uchun HMAC kalit. Game.config'da 'secret' bo'lsa undan, aks holda
@@ -567,6 +573,70 @@ def _serialize_match(match: BoardMatch, viewer_role: str | None = None):
     }
 
 
+def expire_stale_match(match: 'BoardMatch') -> bool:
+    """Agar match 'active' bo'lsa va MP_INACTIVITY_MINUTES'dan ortiq vaqt
+    davomida hech qanday harakat bo'lmasa — uni avtomatik "durang" bilan
+    yakunlaydi (coinlar bo'lsa qaytariladi, GameAttempt yoziladi).
+
+    Bu funksiya chaqirilmasa, ikkala o'yinchi ham sahifani yopib ketganda
+    match doim "active" bo'lib qolaveradi — chunki holatni faqat
+    o'yinchilarning o'zi polling qilganda tekshiramiz. Natijada bunday
+    "zombie" matchlar jonli o'yinlar ro'yxatida tugamagandek ko'rinib
+    turadi. Shu sabab bu tekshiruv ro'yxat/spectate sahifalarida ham
+    proaktiv chaqiriladi (faqat ishtirokchi poll qilgandagina emas).
+
+    Qaytaradi: True — match shu chaqiruvda yakunlangan bo'lsa.
+    """
+    if match.status != 'active':
+        return False
+    if match.move_count <= 0:
+        return False
+
+    from django.utils import timezone
+    from datetime import timedelta
+
+    cutoff = timezone.now() - timedelta(minutes=MP_INACTIVITY_MINUTES)
+    if match.last_activity_at >= cutoff:
+        return False
+
+    match.status = 'ended'
+    match.winner = 'draw'
+    match.ended_at = timezone.now()
+    match.save(update_fields=['status', 'winner', 'ended_at'])
+    _save_mp_attempts(match)
+
+    if match.mode == 'coin' and match.wager_coins > 0 and not match.coins_settled:
+        try:
+            match.white_player.add_coins(match.wager_coins, f"{match.game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
+            if match.black_player:
+                match.black_player.add_coins(match.wager_coins, f"{match.game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
+            match.coins_settled = True
+            match.save(update_fields=['coins_settled'])
+        except Exception:
+            pass
+
+    return True
+
+
+def expire_stale_matches(game=None):
+    """Barcha 'active' deb belgilangan, lekin aslida harakatsiz qolgan
+    (zombie) matchlarni topib yakunlaydi. Jonli o'yinlar ro'yxati va
+    matchmaking har safar ishlatilishidan oldin chaqiriladi — shunda
+    foydalanuvchilarga faqat haqiqatan davom etayotgan o'yinlar
+    ko'rsatiladi."""
+    from django.utils import timezone
+    from datetime import timedelta
+
+    cutoff = timezone.now() - timedelta(minutes=MP_INACTIVITY_MINUTES)
+    qs = BoardMatch.objects.filter(
+        status='active', move_count__gt=0, last_activity_at__lt=cutoff,
+    ).select_related('white_player', 'black_player', 'game')
+    if game is not None:
+        qs = qs.filter(game=game)
+    for m in qs:
+        expire_stale_match(m)
+
+
 @csrf_exempt
 def mp_find(request):
     """
@@ -645,6 +715,13 @@ def mp_find(request):
     from django.db import transaction
     from django.utils import timezone
     from datetime import timedelta
+
+    # Avval shu o'yin bo'yicha "zombie" (texnik faol, aslida tashlab
+    # ketilgan) matchlarni yakunlaymiz. Aks holda quyidagi "o'z matchi"
+    # qidiruvi eski, allaqachon tashlab ketilgan matchni topib, foydalanuvchini
+    # yangi o'yin o'rniga eski/raqibsiz matchga qaytarib yuborishi mumkin —
+    # aynan shu narsa o'yinlarni "chalkashtirib yuborish" hissini beradi.
+    expire_stale_matches(game=game)
 
     # 1. Foydalanuvchining hali tugamagan o'z matchi bormi?
     own = BoardMatch.objects.filter(
@@ -765,29 +842,8 @@ def mp_state(request):
     if not role:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Siz bu o'yin ishtirokchisi emassiz"}, status=403), request)
 
-    # ── Inactivity timeout: 5 daqiqa harakatsizlik → avtomatik durang ──
-    INACTIVITY_MINUTES = 5
-    if match.status == 'active':
-        from django.utils import timezone
-        from datetime import timedelta
-        inactivity_cutoff = timezone.now() - timedelta(minutes=INACTIVITY_MINUTES)
-        if match.last_activity_at < inactivity_cutoff and match.move_count > 0:
-            match.status = 'ended'
-            match.winner = 'draw'
-            from django.utils import timezone as tz
-            match.ended_at = tz.now()
-            match.save(update_fields=['status', 'winner', 'ended_at'])
-            _save_mp_attempts(match)
-            # Coin tikishda qaytarish
-            if match.mode == 'coin' and match.wager_coins > 0 and not match.coins_settled:
-                try:
-                    match.white_player.add_coins(match.wager_coins, f"{game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
-                    if match.black_player:
-                        match.black_player.add_coins(match.wager_coins, f"{game.title}: 5 daqiqa harakatsizlik — durang, coin qaytarildi")
-                    match.coins_settled = True
-                    match.save(update_fields=['coins_settled'])
-                except Exception:
-                    pass
+    # ── Inactivity timeout: harakatsiz qolgan matchni avtomatik yakunlash ──
+    expire_stale_match(match)
 
     return _cors_headers(JsonResponse({
         'ok': True, 'match': _serialize_match(match, role)

@@ -1842,9 +1842,22 @@ def _finish_stale_live_matches(matches):
 
 @login_required
 def live_games(request):
-    """Hozir o'ynalayotgan barcha taxta o'yinlarini (shaxmat + shashka) ko'rsatadi."""
+    """Hozir o'ynalayotgan barcha taxta o'yinlarini (shaxmat + shashka) ko'rsatadi.
+
+    Ko'rsatishdan oldin "zombie" matchlarni (texnik holati "active",
+    lekin haqiqatda harakatsiz qolib ketgan — masalan ikki o'yinchi ham
+    sahifani yopib ketgan) avtomatik yakunlaymiz. Aks holda ular tugagan
+    bo'lishiga qaramay jonli o'yinlar ro'yxatida ko'rinishda davom etardi.
+    """
     from .models import BoardMatch
+<<<<<<< Updated upstream
     matches = list(
+=======
+    from .external_api import expire_stale_matches
+    expire_stale_matches()
+
+    active_matches = list(
+>>>>>>> Stashed changes
         BoardMatch.objects
         .filter(
             status='active',
@@ -1856,6 +1869,7 @@ def live_games(request):
         .select_related('white_player', 'black_player', 'game')
         .order_by('-last_activity_at')
     )
+<<<<<<< Updated upstream
 
     matches = [match for match in matches if _is_spectatable_board_match(match)]
     _finish_stale_live_matches(matches)
@@ -1867,6 +1881,15 @@ def live_games(request):
             1 for match in active_matches
             if match.mode == 'coin' and match.wager_coins
         ),
+=======
+    chess_count = sum(1 for m in active_matches if 'shaxmat' in m.game.slug)
+    checkers_count = len(active_matches) - chess_count
+
+    return render(request, 'games/student/live_games.html', {
+        'matches': active_matches,
+        'chess_count': chess_count,
+        'checkers_count': checkers_count,
+>>>>>>> Stashed changes
     })
 
 
@@ -1875,6 +1898,7 @@ def spectate_match(request, match_id):
     """Bitta o'yinni tomosha qilish sahifasi (read-only, polling)."""
     import json as _json
     from .models import BoardMatch
+<<<<<<< Updated upstream
     match = get_object_or_404(BoardMatch.objects.select_related('white_player', 'black_player', 'game'), pk=match_id)
     if not _is_spectatable_board_match(match):
         messages.info(request, "Bu live tomosha sahifasi faqat shaxmat va shashka o'yinlari uchun.")
@@ -1885,6 +1909,11 @@ def spectate_match(request, match_id):
         messages.info(request, "Bu o'yin tugagan, live ro'yxatdan olib tashlandi.")
         return redirect('games:live_games')
 
+=======
+    from .external_api import expire_stale_match
+    match = get_object_or_404(BoardMatch, pk=match_id)
+    expire_stale_match(match)
+>>>>>>> Stashed changes
     return render(request, 'games/student/spectate.html', {
         'match': match,
         'is_player': (
@@ -1900,15 +1929,20 @@ def spectate_match(request, match_id):
 def spectate_state(request, match_id):
     """AJAX polling endpoint — match holati (board_state, turn, status)."""
     from .models import BoardMatch
+    from .external_api import expire_stale_match
     try:
         match = BoardMatch.objects.select_related('white_player', 'black_player', 'game').get(pk=match_id)
     except BoardMatch.DoesNotExist:
         return JsonResponse({'ok': False, 'error': 'Match topilmadi'}, status=404)
 
+<<<<<<< Updated upstream
     if not _is_spectatable_board_match(match):
         return JsonResponse({'ok': False, 'error': "Bu o'yinni live tomosha qilish qo'llab-quvvatlanmaydi"}, status=400)
 
     _finish_stale_live_matches([match])
+=======
+    expire_stale_match(match)
+>>>>>>> Stashed changes
 
     return JsonResponse({
         'ok': True,
