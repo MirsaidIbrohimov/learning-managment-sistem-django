@@ -25,6 +25,7 @@ window.MZChat = (function(){
         replyTo: null, editingId: null, sending: false,
         pollTimer: null, typingTimer: null,
         forwardId: null, forwardKind: null,
+        infoTab: 'members', members: [], dividerDone: false,
     };
 
     function esc(s){
@@ -33,6 +34,44 @@ window.MZChat = (function(){
         });
     }
     function escAttr(s){ return esc(s).replace(/\n/g,' '); }
+
+    // ── Lightweight premium toast (for quick-actions / coming-soon notices) ──
+    function mzToast(msg, icon){
+        var wrap = document.getElementById('mzToastWrap');
+        if(!wrap){
+            wrap = document.createElement('div');
+            wrap.id = 'mzToastWrap';
+            wrap.style.cssText = 'position:fixed;bottom:22px;left:50%;transform:translateX(-50%);z-index:3000;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;';
+            document.body.appendChild(wrap);
+        }
+        var t = document.createElement('div');
+        t.className = 'mz-toast';
+        t.innerHTML = '<i class="bi '+(icon||'bi-info-circle')+'"></i><span>'+esc(msg)+'</span>';
+        wrap.appendChild(t);
+        setTimeout(function(){ t.classList.add('hide'); setTimeout(function(){ t.remove(); }, 300); }, 2600);
+    }
+
+    // ── Skeleton loaders ──
+    function skelSidebar(n){
+        var h = '';
+        for(var i=0;i<(n||7);i++){
+            h += '<div class="mz-skel-row">'+
+                '<div class="mz-skel mz-skel-ava"></div>'+
+                '<div class="mz-skel-lines">'+
+                    '<div class="mz-skel mz-skel-line w70"></div>'+
+                    '<div class="mz-skel mz-skel-line w45"></div>'+
+                '</div></div>';
+        }
+        return h;
+    }
+    function skelMessages(){
+        var rows = [['other','40%'],['other','62%'],['me','50%'],['other','55%'],['me','38%']];
+        var h = '';
+        rows.forEach(function(r){
+            h += '<div class="mz-skel mz-skel-msg '+r[0]+'" style="width:'+r[1]+'"></div>';
+        });
+        return h;
+    }
 
     function urlFor(key, id, kind){
         var u = state.cfg.urls[key];
@@ -73,11 +112,18 @@ window.MZChat = (function(){
         var dotHtml = it.kind==='dm' ? ('<span class="mz-row-dot '+(it.is_online?'on':'off')+'"></span>') : '';
         var kindBadge = it.kind==='group' ? '<span class="mz-row-kind group"><i class="bi bi-people-fill"></i></span>' : '';
         var pre = it.is_mine_last ? 'Siz: ' : '';
+        // last-message type icon (file / photo) → clearer preview
+        var lastTxt = it.last_message || '';
+        var lastIc = '';
+        if(/📎|📷|🖼/.test(lastTxt)){
+            lastIc = '<i class="bi bi-paperclip mz-row-last-ic"></i>';
+            lastTxt = lastTxt.replace(/^\s*(📎|📷|🖼)\s*/,'');
+        }
         row.innerHTML =
             '<div style="position:relative;flex:0 0 48px;">'+avaHtml+dotHtml+kindBadge+'</div>'+
             '<div class="mz-row-body">'+
                 '<div class="mz-row-top"><div class="mz-row-name">'+esc(it.name)+'</div><div class="mz-row-time">'+esc(it.last_at||'')+'</div></div>'+
-                '<div class="mz-row-bottom"><div class="mz-row-last">'+esc(pre)+esc(it.last_message||'')+'</div>'+
+                '<div class="mz-row-bottom"><div class="mz-row-last">'+lastIc+esc(pre)+esc(lastTxt)+'</div>'+
                     (it.pinned ? '<i class="bi bi-pin-angle-fill mz-row-pin"></i>' : '') +
                     (it.unread ? '<div class="mz-row-badge">'+it.unread+'</div>' : '') +
                 '</div>'+
@@ -86,18 +132,47 @@ window.MZChat = (function(){
         return row;
     }
 
+    function sectionLabel(icon, text){
+        var el = document.createElement('div');
+        el.className = 'mz-sec-label';
+        el.innerHTML = '<i class="bi '+icon+'"></i>'+esc(text);
+        return el;
+    }
+
+    function updateUnreadFilterCount(){
+        if(!dom.unreadCount) return;
+        var n = (state.items||[]).reduce(function(a,it){ return a + (it.unread||0); }, 0);
+        dom.unreadCount.textContent = n > 99 ? '99+' : n;
+        dom.unreadCount.classList.toggle('show', n > 0);
+    }
+
     function renderSidebar(){
         var q = (dom.search.value||'').trim().toLowerCase();
         var list = (state.items||[]).filter(function(it){
-            if(state.filter!=='all' && it.kind!==state.filter) return false;
+            if(state.filter==='unread'){ if(!it.unread) return false; }
+            else if(state.filter!=='all' && it.kind!==state.filter) return false;
             if(q && it.name.toLowerCase().indexOf(q)===-1) return false;
             return true;
         });
+        updateUnreadFilterCount();
         dom.list.innerHTML = '';
         if(!list.length && !(q && state.extraUsers && state.extraUsers.length)){
-            dom.list.innerHTML = '<div class="mz-empty"><i class="bi bi-inbox"></i>Hozircha suhbatlar yo\'q.</div>';
+            var emptyMsg = state.filter==='unread'
+                ? '<div class="mz-empty"><i class="bi bi-check2-circle"></i>O\'qilmagan xabar yo\'q 🎉</div>'
+                : '<div class="mz-empty"><i class="bi bi-inbox"></i>Hozircha suhbatlar yo\'q.</div>';
+            dom.list.innerHTML = emptyMsg;
         } else {
-            list.forEach(function(it){ dom.list.appendChild(buildRow(it)); });
+            // Split pinned vs rest → labelled sections (only in default view)
+            var pinned = list.filter(function(it){ return it.pinned; });
+            var rest = list.filter(function(it){ return !it.pinned; });
+            if(pinned.length && !q && state.filter!=='unread'){
+                dom.list.appendChild(sectionLabel('bi-pin-angle-fill', 'Mahkamlangan'));
+                pinned.forEach(function(it){ dom.list.appendChild(buildRow(it)); });
+                if(rest.length) dom.list.appendChild(sectionLabel('bi-chat-dots', 'Suhbatlar'));
+                rest.forEach(function(it){ dom.list.appendChild(buildRow(it)); });
+            } else {
+                list.forEach(function(it){ dom.list.appendChild(buildRow(it)); });
+            }
         }
         if(q && state.extraUsers && state.extraUsers.length){
             var hdr = document.createElement('div');
@@ -145,7 +220,8 @@ window.MZChat = (function(){
         state.msgRaw = {};
         state.seenMsgIds = {};
         state.lastMsgId = 0;
-        dom.body.innerHTML = '<div class="mz-empty" id="mzBodyLoading"><i class="bi bi-hourglass-split"></i> Yuklanmoqda...</div>';
+        state.dividerDone = false;
+        dom.body.innerHTML = skelMessages();
         dom.body.style.display = '';
         dom.head.style.display = '';
         dom.foot.style.display = '';
@@ -157,6 +233,12 @@ window.MZChat = (function(){
         state.currentCanModerate = item ? !!item.can_moderate :
             ((kind===state.cfg.initialKind && String(id)===String(state.cfg.initialId)) ? state.cfg.initialCanModerate : false);
         renderHeader(item, kind);
+        syncInfoHero();
+        state.members = [];
+        if(dom.paneMembers) dom.paneMembers.innerHTML = '';
+        if(dom.paneFiles) dom.paneFiles.innerHTML = '';
+        switchInfoTab('members');
+        if(isInfoOpen()) refreshInfoContent();
 
         dom.shell.classList.add('mz-chat-open');
         document.querySelectorAll('.mz-row').forEach(function(r){
@@ -176,6 +258,7 @@ window.MZChat = (function(){
 
     function closeConversation(pushHistory){
         state.currentKind = null; state.currentId = null;
+        closeInfo();
         if(state.pollTimer) clearInterval(state.pollTimer);
         if(state.typingTimer) clearInterval(state.typingTimer);
         dom.shell.classList.remove('mz-chat-open');
@@ -289,12 +372,37 @@ window.MZChat = (function(){
             }
         });
 
+        applyGrouping();
+        if(forceScroll && !state.dividerDone){ insertNewDivider(); state.dividerDone = true; }
+
         if(stick){
             scrollDown();
         } else if(hasNew && dom.scrollBtn){
             dom.scrollBtn.classList.add('has-new');
         }
         updateScrollBtn();
+        if(hasNew && isInfoOpen() && state.infoTab==='files') renderFiles();
+    }
+
+    // Insert a "New messages" divider before the first unread incoming message
+    // (only once, on conversation open). Skipped if nothing is unread.
+    function insertNewDivider(){
+        var old = dom.body.querySelector('.mz-new-divider');
+        if(old) old.remove();
+        var rows = dom.body.querySelectorAll('.mz-row-msg');
+        var anchor = null, hasReadBefore = false;
+        for(var i=0;i<rows.length;i++){
+            var m = state.msgCache[rows[i].dataset.id];
+            if(!m) continue;
+            if(m.is_me || m.is_read){ hasReadBefore = true; continue; }
+            anchor = rows[i]; break;
+        }
+        if(anchor && hasReadBefore){
+            var div = document.createElement('div');
+            div.className = 'mz-new-divider';
+            div.innerHTML = '<span>Yangi xabarlar</span>';
+            anchor.parentNode.insertBefore(div, anchor);
+        }
     }
 
     function rerenderMsg(id){
@@ -362,7 +470,7 @@ window.MZChat = (function(){
             bubble += '<div class="mz-quote" data-goto="'+m.reply_to.id+'"><span class="qn">'+esc(m.reply_to.sender_name)+'</span><span class="qs">'+esc(m.reply_to.snippet)+'</span></div>';
         }
         if(m.message){
-            bubble += '<div class="mz-msg-text">'+esc(m.message).replace(/\n/g,'<br>')+'</div>';
+            bubble += '<div class="mz-msg-text">'+linkify(esc(m.message)).replace(/\n/g,'<br>')+'</div>';
         }
         bubble += fileHtml(m);
         if(m.is_forwarded){
@@ -379,7 +487,32 @@ window.MZChat = (function(){
 
         var senderName = (isGroup && m.sender) ? m.sender.name : '';
         return '<div class="'+cls+'" id="mzMsg'+m.id+'" data-id="'+m.id+'" data-kind="'+state.currentKind+'" '+
-               'data-text="'+escAttr(m.message||'')+'" data-sender="'+escAttr(senderName)+'">'+avaHtml+bubble+'</div>';
+               'data-ts="'+(m.ts||0)+'" data-text="'+escAttr(m.message||'')+'" data-sender="'+escAttr(senderName)+'">'+avaHtml+bubble+'</div>';
+    }
+
+    // Convert bare URLs (already HTML-escaped) into clickable links.
+    function linkify(escaped){
+        return escaped.replace(/(https?:\/\/[^\s<]+)/g, function(u){
+            return '<a href="'+u+'" target="_blank" rel="noopener noreferrer" class="mz-link">'+u+'</a>';
+        });
+    }
+
+    // Telegram/Discord-style grouping: collapse consecutive same-sender bubbles
+    // (within 5 min) by tagging .mz-grouped. Runs after every reconcile so it
+    // stays correct as messages are added/edited/removed incrementally.
+    function applyGrouping(){
+        var prev = null;
+        dom.body.querySelectorAll('.mz-row-msg').forEach(function(row){
+            var grouped = false;
+            if(prev){
+                var sameSide = prev.classList.contains('me') === row.classList.contains('me');
+                var sameSender = (prev.dataset.sender||'') === (row.dataset.sender||'');
+                var gap = Math.abs(parseInt(row.dataset.ts||0,10) - parseInt(prev.dataset.ts||0,10));
+                if(sameSide && sameSender && gap > 0 && gap < 300) grouped = true;
+            }
+            row.classList.toggle('mz-grouped', grouped);
+            prev = row;
+        });
     }
 
     // ───────────────────────── Message actions ─────────────────────────
@@ -709,6 +842,173 @@ window.MZChat = (function(){
         autoGrow();
     }
 
+    // ───────────────────────────── Info panel (o'ng) ─────────────────────────
+    function openInfo(){
+        if(!state.currentKind) return;
+        dom.shell.classList.add('mz-info-open');
+        if(dom.infoBtn) dom.infoBtn.classList.add('active');
+        syncInfoHero();
+        refreshInfoContent();
+    }
+    function refreshInfoContent(){
+        if(state.currentKind==='group'){
+            loadGroupMembers(state.currentId);
+        } else if(state.currentKind==='dm'){
+            hideInfoStats();
+            var it = findItem('dm', state.currentId);
+            renderMembers(it ? [{
+                name: it.name, photo: it.photo, initials: it.initials,
+                is_online: it.is_online, role_label: ''
+            }] : []);
+        }
+        if(state.infoTab==='files') renderFiles();
+    }
+    function closeInfo(){
+        dom.shell.classList.remove('mz-info-open');
+        if(dom.infoBtn) dom.infoBtn.classList.remove('active');
+    }
+    function toggleInfo(){
+        if(dom.shell.classList.contains('mz-info-open')) closeInfo(); else openInfo();
+    }
+    function isInfoOpen(){ return dom.shell.classList.contains('mz-info-open'); }
+
+    // Info-panel "hero" qismini ochiq suhbat headeridan ko'chiradi.
+    // Shu tarzda serverda render qilingan boshlang'ich suhbat uchun ham ishlaydi.
+    function syncInfoHero(){
+        if(!dom.infoName) return;
+        if(dom.headName) dom.infoName.textContent = dom.headName.textContent;
+        var ha = document.getElementById('mzHeadAva');
+        if(ha && dom.infoAva){
+            if(ha.tagName === 'IMG'){
+                dom.infoAva.outerHTML = '<img src="'+ha.getAttribute('src')+'" class="mz-info-ava" id="mzInfoAva">';
+            } else {
+                dom.infoAva.outerHTML = '<div class="mz-info-ava" id="mzInfoAva">'+ha.innerHTML+'</div>';
+            }
+            dom.infoAva = document.getElementById('mzInfoAva');
+        }
+        if(dom.headSub && dom.infoSub) dom.infoSub.innerHTML = dom.headSub.innerHTML;
+    }
+
+    function switchInfoTab(tab){
+        state.infoTab = tab;
+        dom.infoTabs.forEach(function(t){ t.classList.toggle('active', t.dataset.tab===tab); });
+        dom.paneMembers.style.display = (tab==='members') ? '' : 'none';
+        dom.paneFiles.style.display   = (tab==='files')   ? '' : 'none';
+        if(tab==='files') renderFiles();
+    }
+
+    function loadGroupMembers(id){
+        dom.paneMembers.innerHTML = skelSidebar(5);
+        fetch(urlFor('groupMembers', id), {headers:{'X-Requested-With':'XMLHttpRequest'}})
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+            if(!d.ok){ dom.paneMembers.innerHTML = '<div class="mz-info-empty"><i class="bi bi-people"></i>A\'zolar topilmadi</div>'; return; }
+            // only update if still viewing same group
+            if(state.currentKind!=='group' || String(state.currentId)!==String(id)) return;
+            state.members = d.members || [];
+            if(d.group){
+                var sub = (d.group.members_count||0) + " a'zo";
+                if(d.group.online_count) sub += ', ' + d.group.online_count + ' online';
+                dom.infoSub.textContent = sub;
+            }
+            var onlineCount = (d.group && d.group.online_count != null)
+                ? d.group.online_count
+                : state.members.filter(function(m){ return m.is_online; }).length;
+            renderInfoStats({
+                members: (d.group && d.group.members_count != null) ? d.group.members_count : state.members.length,
+                online: onlineCount
+            });
+            renderMembers(state.members);
+        }).catch(function(){
+            dom.paneMembers.innerHTML = '<div class="mz-info-empty"><i class="bi bi-wifi-off"></i>Tarmoq xatosi</div>';
+        });
+    }
+
+    function fileCount(){
+        var n = 0;
+        Object.keys(state.msgCache).forEach(function(k){ if(state.msgCache[k] && state.msgCache[k].file_url) n++; });
+        return n;
+    }
+    function renderInfoStats(s){
+        if(!dom.infoStats) return;
+        var files = fileCount();
+        dom.infoStats.innerHTML =
+            '<div class="mz-stat"><div class="mz-stat-num">'+(s.members||0)+'</div><div class="mz-stat-lbl">A\'zo</div></div>'+
+            '<div class="mz-stat"><div class="mz-stat-num online">'+(s.online||0)+'</div><div class="mz-stat-lbl">Online</div></div>'+
+            '<div class="mz-stat"><div class="mz-stat-num">'+files+'</div><div class="mz-stat-lbl">Fayl</div></div>';
+        dom.infoStats.style.display = 'flex';
+    }
+    function hideInfoStats(){
+        if(dom.infoStats){ dom.infoStats.style.display = 'none'; dom.infoStats.innerHTML = ''; }
+    }
+
+    function memberCard(m){
+        var roleCls = (m.role==='admin'||m.role==='assistant_admin') ? 'admin' : (m.role==='teacher' ? 'teacher' : 'student');
+        var pic = m.photo
+            ? '<img class="mz-member-ava" src="'+esc(m.photo)+'">'
+            : '<div class="mz-member-ava-fb">'+esc(m.initials||'?')+'</div>';
+        var status = m.is_online ? 'Online' : 'Oflayn';
+        var roleLabel = m.role_label || '';
+        return '<div class="mz-member">'+
+            '<div class="mz-member-pic">'+pic+'<span class="mz-member-dot '+(m.is_online?'on':'')+'"></span></div>'+
+            '<div class="mz-member-body">'+
+                '<div class="mz-member-name">'+esc(m.name||'')+'</div>'+
+                '<div class="mz-member-status">'+esc(status)+'</div>'+
+            '</div>'+
+            (roleLabel ? '<span class="mz-member-role '+roleCls+'">'+esc(roleLabel)+'</span>' : '')+
+        '</div>';
+    }
+
+    function renderMembers(members){
+        if(!members || !members.length){
+            dom.paneMembers.innerHTML = '<div class="mz-info-empty"><i class="bi bi-people"></i>A\'zolar yo\'q</div>';
+            return;
+        }
+        var html = '<div class="mz-info-section-label">A\'zolar ('+members.length+')</div>';
+        members.forEach(function(m){ html += memberCard(m); });
+        dom.paneMembers.innerHTML = html;
+    }
+
+    function renderFiles(){
+        var files = [];
+        Object.keys(state.msgCache).forEach(function(k){
+            var m = state.msgCache[k];
+            if(m && m.file_url) files.push(m);
+        });
+        files.sort(function(a,b){ return (b.ts||0) - (a.ts||0); });
+        if(!files.length){
+            dom.paneFiles.innerHTML = '<div class="mz-info-empty"><i class="bi bi-folder2-open"></i>Hozircha fayl yo\'q</div>';
+            return;
+        }
+        var imgRe = /\.(png|jpe?g|gif|webp)$/i;
+        var images = files.filter(function(m){ return imgRe.test(m.file_url); });
+        var docs   = files.filter(function(m){ return !imgRe.test(m.file_url); });
+        var html = '';
+        // Media gallery grid (images)
+        if(images.length){
+            html += '<div class="mz-info-section-label">Media ('+images.length+')</div>';
+            html += '<div class="mz-media-grid">';
+            images.forEach(function(m){
+                html += '<a class="mz-media-cell" href="'+esc(m.file_url)+'" target="_blank"><img src="'+esc(m.file_url)+'" loading="lazy"></a>';
+            });
+            html += '</div>';
+        }
+        // Document/file list
+        if(docs.length){
+            html += '<div class="mz-info-section-label">Fayllar ('+docs.length+')</div>';
+            docs.forEach(function(m){
+                var name = m.file_name || 'Fayl';
+                var who = (m.sender && m.sender.name) ? m.sender.name : '';
+                html += '<a class="mz-filecard" href="'+esc(m.file_url)+'" target="_blank">'+
+                    '<div class="mz-filecard-ic"><i class="bi bi-file-earmark-text"></i></div>'+
+                    '<div class="mz-filecard-body"><div class="mz-filecard-name">'+esc(name)+'</div>'+
+                    (who ? '<div class="mz-filecard-meta">'+esc(who)+'</div>' : '')+'</div>'+
+                    '<i class="bi bi-download" style="color:var(--mz-muted);"></i></a>';
+            });
+        }
+        dom.paneFiles.innerHTML = html;
+    }
+
     function wireEvents(){
         dom.search.addEventListener('input', onSidebarSearchInput);
         dom.filters.forEach(function(btn){
@@ -733,6 +1033,19 @@ window.MZChat = (function(){
             }).catch(function(){});
         });
 
+        if(dom.callBtn) dom.callBtn.addEventListener('click', function(){
+            mzToast("Audio qo'ng'iroq tez kunda qo'shiladi", 'bi-telephone');
+        });
+        if(dom.videoBtn) dom.videoBtn.addEventListener('click', function(){
+            mzToast("Video qo'ng'iroq tez kunda qo'shiladi", 'bi-camera-video');
+        });
+        if(dom.infoBtn) dom.infoBtn.addEventListener('click', toggleInfo);
+        if(dom.infoClose) dom.infoClose.addEventListener('click', closeInfo);
+        if(dom.infoBackdrop) dom.infoBackdrop.addEventListener('click', closeInfo);
+        dom.infoTabs.forEach(function(t){
+            t.addEventListener('click', function(){ switchInfoTab(t.dataset.tab); });
+        });
+
         dom.body.addEventListener('click', onBodyClick);
         dom.body.addEventListener('scroll', updateScrollBtn);
         if(dom.scrollBtn){
@@ -745,6 +1058,7 @@ window.MZChat = (function(){
         document.addEventListener('keydown', function(e){
             if(e.key !== 'Escape') return;
             if(dom.fwdBackdrop.style.display !== 'none'){ dom.fwdBackdrop.style.display = 'none'; return; }
+            if(isInfoOpen()){ closeInfo(); return; }
             if(dom.emojiPanel.style.display !== 'none'){ dom.emojiPanel.style.display = 'none'; return; }
             if(document.getElementById('mzReactPop')){ closeReactPicker(); return; }
             if(state.replyTo || state.editingId){ onReplyClose(); }
@@ -796,6 +1110,7 @@ window.MZChat = (function(){
         dom.side = document.getElementById('mzSide');
         dom.search = document.getElementById('mzSearch');
         dom.filters = document.querySelectorAll('.mz-filter');
+        dom.unreadCount = document.getElementById('mzUnreadCount');
         dom.list = document.getElementById('mzList');
         dom.main = document.getElementById('mzMain');
         dom.head = document.getElementById('mzHead');
@@ -826,6 +1141,19 @@ window.MZChat = (function(){
         dom.fwdSearch = document.getElementById('mzFwdSearch');
         dom.fwdList = document.getElementById('mzFwdList');
         dom.scrollBtn = document.getElementById('mzScrollBottom');
+        dom.infoBtn = document.getElementById('mzInfoBtn');
+        dom.callBtn = document.getElementById('mzCallBtn');
+        dom.videoBtn = document.getElementById('mzVideoBtn');
+        dom.infoStats = document.getElementById('mzInfoStats');
+        dom.info = document.getElementById('mzInfo');
+        dom.infoClose = document.getElementById('mzInfoClose');
+        dom.infoBackdrop = document.getElementById('mzInfoBackdrop');
+        dom.infoAva = document.getElementById('mzInfoAva');
+        dom.infoName = document.getElementById('mzInfoName');
+        dom.infoSub = document.getElementById('mzInfoSub');
+        dom.infoTabs = Array.prototype.slice.call(document.querySelectorAll('.mz-info-tab'));
+        dom.paneMembers = document.getElementById('mzPaneMembers');
+        dom.paneFiles = document.getElementById('mzPaneFiles');
     }
 
     function init(cfg){
@@ -838,6 +1166,7 @@ window.MZChat = (function(){
         cacheDom();
         wireEvents();
         buildEmojiPanel();
+        if(dom.list) dom.list.innerHTML = skelSidebar(7);
         loadSidebar();
         setInterval(loadSidebar, POLL_SIDEBAR_MS);
 

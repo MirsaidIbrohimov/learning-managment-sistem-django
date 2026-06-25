@@ -20,6 +20,7 @@
         </div>
         <div class="mz-filters">
             <div class="mz-filter {% if not initial_filter or initial_filter == 'all' %}active{% endif %}" data-filter="all">Hammasi</div>
+            <div class="mz-filter {% if initial_filter == 'unread' %}active{% endif %}" data-filter="unread">O'qilmagan<span class="mz-filter-count" id="mzUnreadCount"></span></div>
             <div class="mz-filter {% if initial_filter == 'dm' %}active{% endif %}" data-filter="dm">Shaxsiy</div>
             <div class="mz-filter {% if initial_filter == 'group' %}active{% endif %}" data-filter="group">Guruhlar</div>
         </div>
@@ -49,7 +50,12 @@
                     <div class="mz-h-sub" id="mzHeadSub">{{ members_count }} a'zo</div>
                 </div>
             {% endif %}
-            <div class="mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+            <div class="mz-head-actions">
+                <div class="mz-icon-btn mz-optional" id="mzCallBtn" title="Audio qo'ng'iroq"><i class="bi bi-telephone"></i></div>
+                <div class="mz-icon-btn mz-optional" id="mzVideoBtn" title="Video qo'ng'iroq"><i class="bi bi-camera-video"></i></div>
+                <div class="mz-icon-btn" id="mzInfoBtn" title="Ma'lumot"><i class="bi bi-info-circle"></i></div>
+                <div class="mz-icon-btn mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+            </div>
         </div>
         {% else %}
         <div class="mz-head" id="mzHead" style="display:none;">
@@ -59,7 +65,12 @@
                 <div class="mz-h-name text-truncate" id="mzHeadName"></div>
                 <div class="mz-h-sub" id="mzHeadSub"></div>
             </div>
-            <div class="mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+            <div class="mz-head-actions">
+                <div class="mz-icon-btn mz-optional" id="mzCallBtn" title="Audio qo'ng'iroq"><i class="bi bi-telephone"></i></div>
+                <div class="mz-icon-btn mz-optional" id="mzVideoBtn" title="Video qo'ng'iroq"><i class="bi bi-camera-video"></i></div>
+                <div class="mz-icon-btn" id="mzInfoBtn" title="Ma'lumot"><i class="bi bi-info-circle"></i></div>
+                <div class="mz-icon-btn mz-pin-btn" id="mzPinBtn" title="Pin"><i class="bi bi-pin-angle"></i></div>
+            </div>
         </div>
         {% endif %}
 
@@ -104,6 +115,29 @@
         </div>
     </main>
 
+    <!-- ============ INFO PANEL (o'ng) ============ -->
+    <aside class="mz-info" id="mzInfo">
+        <div class="mz-info-head">
+            <span class="mz-info-title">Ma'lumot</span>
+            <span class="mz-info-x" id="mzInfoClose"><i class="bi bi-x-lg"></i></span>
+        </div>
+        <div class="mz-info-hero">
+            <div class="mz-info-ava" id="mzInfoAva"><i class="bi bi-people-fill"></i></div>
+            <div class="mz-info-name" id="mzInfoName"></div>
+            <div class="mz-info-sub" id="mzInfoSub"></div>
+        </div>
+        <div class="mz-info-stats" id="mzInfoStats" style="display:none;"></div>
+        <div class="mz-info-tabs">
+            <div class="mz-info-tab active" data-tab="members" id="mzTabMembers">A'zolar</div>
+            <div class="mz-info-tab" data-tab="files" id="mzTabFiles">Fayllar</div>
+        </div>
+        <div class="mz-info-scroll" id="mzInfoScroll">
+            <div class="mz-info-pane" id="mzPaneMembers"></div>
+            <div class="mz-info-pane" id="mzPaneFiles" style="display:none;"></div>
+        </div>
+    </aside>
+    <div class="mz-info-backdrop" id="mzInfoBackdrop"></div>
+
     <!-- ============ FORWARD MODAL ============ -->
     <div class="mz-modal-backdrop" id="mzFwdBackdrop" style="display:none;">
         <div class="mz-modal">
@@ -139,6 +173,7 @@ MZChat.init({
         dmMessages:    "{% url 'api_chat_direct_messages' 999999999 %}",
         dmSend:        "{% url 'api_chat_direct_send' 999999999 %}",
         groupMessages: "{% url 'api_chat_group_messages' 999999999 %}",
+        groupMembers:  "{% url 'api_chat_group_members' 999999999 %}",
         groupSend:     "{% url 'api_chat_group_send' 999999999 %}",
         msgEdit:       "{% url 'api_chat_msg_edit' 'KIND' 999999999 %}",
         msgDelete:     "{% url 'api_chat_msg_delete' 'KIND' 999999999 %}",

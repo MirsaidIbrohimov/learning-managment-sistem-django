@@ -5,227 +5,288 @@
 
 {% block teacher_content %}
 <style>
-.e-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
-    animation: fadeInUp 0.4s ease;
-}
-.e-header h1 { font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: .5rem; margin: 0; }
+    :root {
+        --e-radius: 18px;
+        --e-radius-sm: 12px;
+        --e-video: #8b5cf6;
+        --e-test: #3b82f6;
+        --e-hw: #f59e0b;
+        --e-paid: #10b981;
+        --e-unpaid: #f59e0b;
+    }
 
-.e-price-cards {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
-    margin-bottom: 1.5rem; animation: fadeInUp 0.45s ease;
-}
-@media (max-width: 768px) { .e-price-cards { grid-template-columns: 1fr; } }
-.e-price-card {
-    border-radius: 16px; padding: 1.2rem 1.5rem;
-    border: 1px solid var(--bs-border-color);
-    background: var(--bs-body-bg); text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.e-price-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
-.e-price-icon { font-size: 2rem; margin-bottom: .5rem; }
-.e-price-label { font-size: .8rem; color: var(--bs-secondary-color); margin-bottom: .2rem; }
-.e-price-value { font-size: 1.3rem; font-weight: 800; }
+    /* ===== Header ===== */
+    .e-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;
+        animation: fadeInUp .4s ease;
+    }
+    .e-header h1 {
+        font-size: 1.45rem; font-weight: 800; display: flex; align-items: center;
+        gap: .6rem; margin: 0;
+    }
+    .e-header .e-sub { font-size: .85rem; color: var(--bs-secondary-color); margin-top: .15rem; }
 
-.e-total-card {
-    background: linear-gradient(135deg, #1a1a2e, #0a58ca);
-    border-radius: 18px; padding: 2rem; color: #fff;
-    margin-bottom: 2rem; position: relative; overflow: hidden;
-    animation: fadeInUp 0.5s ease;
-}
-.e-total-card::before {
-    content: ''; position: absolute; top: -60%; right: -15%;
-    width: 250px; height: 250px;
-    background: rgba(255,255,255,0.06); border-radius: 50%;
-}
-.e-total-card::after {
-    content: ''; position: absolute; bottom: -40%; left: -10%;
-    width: 200px; height: 200px;
-    background: rgba(255,255,255,0.04); border-radius: 50%;
-}
-.e-total-row { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem; position: relative; z-index: 1; }
-.e-total-label { font-size: .85rem; opacity: .8; margin-bottom: .3rem; }
-.e-total-value { font-size: 2.2rem; font-weight: 800; }
-.e-total-change {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700;
-}
-.e-change-up { background: rgba(13, 110, 253,0.2); color: #9ec5fe; }
-.e-change-down { background: rgba(239,68,68,0.2); color: #fca5a5; }
-.e-change-zero { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+    /* ===== Hero / Summary ===== */
+    .e-hero {
+        position: relative; overflow: hidden; border-radius: var(--e-radius);
+        background: linear-gradient(135deg, #0b1437 0%, #0a58ca 60%, #2563eb 100%);
+        color: #fff; padding: 1.8rem 2rem; margin-bottom: 1.5rem;
+        box-shadow: 0 18px 40px -18px rgba(13,110,253,.6);
+        animation: fadeInUp .45s ease;
+    }
+    .e-hero::before {
+        content: ''; position: absolute; top: -55%; right: -8%;
+        width: 280px; height: 280px; background: rgba(255,255,255,.07); border-radius: 50%;
+    }
+    .e-hero::after {
+        content: ''; position: absolute; bottom: -60%; left: 25%;
+        width: 220px; height: 220px; background: rgba(255,255,255,.05); border-radius: 50%;
+    }
+    .e-hero-grid {
+        position: relative; z-index: 1; display: grid;
+        grid-template-columns: 1.4fr 1fr 1fr; gap: 1.5rem; align-items: center;
+    }
+    .e-hero-label { font-size: .8rem; opacity: .75; margin-bottom: .35rem; display: flex; align-items: center; gap: .35rem; }
+    .e-hero-value { font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
+    .e-hero-value small { font-size: 1rem; font-weight: 600; opacity: .8; }
+    .e-hero-divider { border-left: 1px solid rgba(255,255,255,.15); padding-left: 1.5rem; }
+    .e-hero-mini { font-size: 1.4rem; font-weight: 800; }
+    .e-change {
+        display: inline-flex; align-items: center; gap: 3px; margin-top: .5rem;
+        padding: 4px 12px; border-radius: 30px; font-size: .8rem; font-weight: 700;
+    }
+    .e-change-up { background: rgba(16,185,129,.25); color: #6ee7b7; }
+    .e-change-down { background: rgba(239,68,68,.25); color: #fca5a5; }
+    .e-change-zero { background: rgba(255,255,255,.15); color: rgba(255,255,255,.8); }
 
-.e-compare-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-@media (max-width: 768px) { .e-compare-grid { grid-template-columns: 1fr; } }
-.e-month-card {
-    border-radius: 18px; border: 1px solid var(--bs-border-color);
-    background: var(--bs-body-bg); overflow: hidden;
-    animation: fadeInUp 0.55s ease;
-}
-.e-month-header {
-    padding: 1.2rem 1.5rem; font-weight: 800; font-size: 1.05rem;
-    display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--bs-border-color);
-}
-.e-month-badge {
-    padding: 3px 10px; border-radius: 20px; font-size: .7rem; font-weight: 700;
-}
-.e-month-current .e-month-header { background: linear-gradient(135deg, rgba(6,78,59,0.08), rgba(13, 110, 253,0.08)); }
-.e-month-current .e-month-badge { background: rgba(13, 110, 253,0.15); color: #0d6efd; }
-.e-month-prev .e-month-header { background: var(--bs-tertiary-bg); }
-.e-month-prev .e-month-badge { background: rgba(107,114,128,0.15); color: #6b7280; }
+    @media (max-width: 900px) {
+        .e-hero-grid { grid-template-columns: 1fr 1fr; }
+        .e-hero-main { grid-column: 1 / -1; }
+        .e-hero-divider { border-left: none; padding-left: 0; }
+    }
+    @media (max-width: 520px) {
+        .e-hero { padding: 1.4rem; }
+        .e-hero-grid { grid-template-columns: 1fr; }
+        .e-hero-value { font-size: 1.7rem; }
+    }
 
-.e-stat-rows { padding: 0; }
-.e-stat-row {
-    display: flex; align-items: center; padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--bs-border-color);
-    transition: background 0.2s;
-}
-.e-stat-row:last-child { border-bottom: none; }
-.e-stat-row:hover { background: var(--bs-tertiary-bg); }
-.e-stat-icon-box {
-    width: 42px; height: 42px; border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; flex-shrink: 0; margin-right: 1rem;
-}
-.e-stat-info { flex: 1; }
-.e-stat-name { font-weight: 700; font-size: .9rem; }
-.e-stat-desc { font-size: .75rem; color: var(--bs-secondary-color); }
-.e-stat-count { text-align: right; margin-right: 1rem; }
-.e-stat-count-val { font-weight: 800; font-size: 1.1rem; }
-.e-stat-count-label { font-size: .7rem; color: var(--bs-secondary-color); }
-.e-stat-amount { text-align: right; min-width: 100px; }
-.e-stat-amount-val { font-weight: 800; font-size: 1rem; color: #0d6efd; }
+    /* ===== Price reference chips ===== */
+    .e-prices {
+        display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.8rem;
+        animation: fadeInUp .5s ease;
+    }
+    .e-price-chip {
+        display: inline-flex; align-items: center; gap: .55rem;
+        padding: .55rem .9rem; border-radius: 50px;
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        font-size: .82rem; font-weight: 600;
+    }
+    .e-price-chip i { font-size: 1rem; }
+    .e-price-chip b { font-weight: 800; }
 
-.e-stat-total {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 1.2rem 1.5rem; background: var(--bs-tertiary-bg);
-    font-weight: 800;
-}
-.e-stat-total-label { font-size: .95rem; }
-.e-stat-total-value { font-size: 1.2rem; color: #0d6efd; }
+    /* ===== Section title ===== */
+    .e-section-title {
+        font-size: 1.05rem; font-weight: 800; margin: 0 0 1rem;
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .e-section-title i { color: var(--t-primary, #0d6efd); }
 
-.e-details { margin-bottom: 2rem; animation: fadeInUp 0.6s ease; }
-.e-details-title {
-    font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;
-    display: flex; align-items: center; gap: .5rem;
-}
-.e-detail-table {
-    width: 100%; border-collapse: separate; border-spacing: 0;
-    background: var(--bs-body-bg); border-radius: 16px;
-    border: 1px solid var(--bs-border-color); overflow: hidden;
-}
-.e-detail-table thead th {
-    padding: 12px 14px; font-size: .72rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .5px;
-    color: var(--bs-secondary-color); background: var(--bs-tertiary-bg);
-    border-bottom: 2px solid var(--bs-border-color);
-}
-.e-detail-table tbody td {
-    padding: 12px 14px; font-size: .85rem;
-    border-bottom: 1px solid var(--bs-border-color);
-}
-.e-detail-table tbody tr:last-child td { border-bottom: none; }
-.e-detail-table tbody tr:hover { background: var(--bs-tertiary-bg); }
-.e-type-badge {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 3px 10px; border-radius: 8px; font-size: .75rem; font-weight: 600;
-}
-.e-type-video { background: rgba(139,92,246,0.12); color: #8b5cf6; }
-.e-type-test { background: rgba(59,130,246,0.12); color: #3b82f6; }
-.e-type-hw { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    /* ===== Month comparison ===== */
+    .e-compare-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;
+    }
+    @media (max-width: 768px) { .e-compare-grid { grid-template-columns: 1fr; } }
 
-.e-empty {
-    text-align: center; padding: 2rem;
-    color: var(--bs-secondary-color); font-size: .9rem;
-}
-@media (max-width: 768px) {
-    .e-total-value { font-size: 1.6rem; }
-    .e-stat-row { flex-wrap: wrap; gap: .5rem; }
-    .e-stat-amount { min-width: auto; }
-}
+    .e-month-card {
+        border-radius: var(--e-radius); border: 1px solid var(--bs-border-color);
+        background: var(--bs-body-bg); overflow: hidden;
+        transition: transform .2s, box-shadow .2s; animation: fadeInUp .55s ease;
+    }
+    .e-month-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -16px rgba(0,0,0,.25); }
+    .e-month-header {
+        padding: 1.1rem 1.4rem; font-weight: 800; font-size: 1rem;
+        display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid var(--bs-border-color);
+    }
+    .e-month-badge { padding: 4px 12px; border-radius: 30px; font-size: .68rem; font-weight: 700; }
+    .e-month-current .e-month-header { background: linear-gradient(135deg, rgba(37,99,235,.10), rgba(124,58,237,.08)); }
+    .e-month-current .e-month-badge { background: rgba(13,110,253,.15); color: #0d6efd; }
+    .e-month-prev .e-month-header { background: var(--bs-tertiary-bg); }
+    .e-month-prev .e-month-badge { background: rgba(107,114,128,.18); color: #6b7280; }
+
+    .e-stat-row {
+        display: flex; align-items: center; padding: .95rem 1.4rem;
+        border-bottom: 1px solid var(--bs-border-color); transition: background .2s;
+    }
+    .e-stat-row:hover { background: var(--bs-tertiary-bg); }
+    .e-stat-icon-box {
+        width: 42px; height: 42px; border-radius: 12px; display: flex;
+        align-items: center; justify-content: center; font-size: 1.15rem;
+        flex-shrink: 0; margin-right: 1rem;
+    }
+    .e-stat-info { flex: 1; min-width: 0; }
+    .e-stat-name { font-weight: 700; font-size: .9rem; }
+    .e-stat-desc { font-size: .72rem; color: var(--bs-secondary-color); }
+    .e-stat-count { text-align: center; margin-right: 1rem; }
+    .e-stat-count-val { font-weight: 800; font-size: 1.05rem; }
+    .e-stat-count-label { font-size: .68rem; color: var(--bs-secondary-color); }
+    .e-stat-amount { text-align: right; min-width: 110px; }
+    .e-stat-amount-val { font-weight: 800; font-size: .95rem; color: #0d6efd; }
+
+    .e-stat-total {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 1.1rem 1.4rem; background: var(--bs-tertiary-bg); font-weight: 800;
+    }
+    .e-stat-total-label { font-size: .92rem; }
+    .e-stat-total-value { font-size: 1.15rem; color: #0d6efd; }
+
+    /* ===== Tables ===== */
+    .e-card {
+        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
+        border-radius: var(--e-radius); overflow: hidden; margin-bottom: 2rem;
+        animation: fadeInUp .6s ease;
+    }
+    .e-card-head {
+        padding: 1.1rem 1.4rem; border-bottom: 1px solid var(--bs-border-color);
+        display: flex; align-items: center; gap: .5rem; font-weight: 800; font-size: 1rem;
+    }
+    .e-card-head i { color: var(--t-primary, #0d6efd); }
+    .e-card-head .e-count-pill {
+        margin-left: auto; font-size: .72rem; font-weight: 700; padding: 3px 10px;
+        border-radius: 30px; background: var(--bs-tertiary-bg); color: var(--bs-secondary-color);
+    }
+
+    .e-table-wrap { overflow-x: auto; }
+    .e-detail-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .e-detail-table thead th {
+        padding: 12px 16px; font-size: .7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: .5px; color: var(--bs-secondary-color);
+        background: var(--bs-tertiary-bg); white-space: nowrap; text-align: left;
+    }
+    .e-detail-table tbody td {
+        padding: 13px 16px; font-size: .85rem; border-top: 1px solid var(--bs-border-color);
+        vertical-align: middle;
+    }
+    .e-detail-table tbody tr:hover { background: var(--bs-tertiary-bg); }
+    .e-amount-cell { font-weight: 800; color: #0d6efd; white-space: nowrap; }
+
+    .e-type-badge {
+        display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px;
+        border-radius: 8px; font-size: .74rem; font-weight: 600; white-space: nowrap;
+    }
+    .e-type-video { background: rgba(139,92,246,.12); color: var(--e-video); }
+    .e-type-test  { background: rgba(59,130,246,.12); color: var(--e-test); }
+    .e-type-hw    { background: rgba(245,158,11,.12); color: var(--e-hw); }
+    .e-type-paid  { background: rgba(16,185,129,.12); color: var(--e-paid); }
+    .e-type-info  { background: rgba(59,130,246,.12); color: var(--e-test); }
+
+    .e-receipt-link {
+        display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px;
+        border-radius: 8px; font-size: .76rem; font-weight: 600; text-decoration: none;
+        background: rgba(16,185,129,.12); color: var(--e-paid); transition: background .2s;
+    }
+    .e-receipt-link:hover { background: rgba(16,185,129,.22); color: var(--e-paid); }
+
+    /* ===== Payment summary cards ===== */
+    .e-pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    @media (max-width: 768px) { .e-pay-grid { grid-template-columns: 1fr; } }
+    .e-pay-card {
+        position: relative; overflow: hidden; border-radius: var(--e-radius);
+        border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
+        padding: 1.6rem; display: flex; align-items: center; gap: 1.2rem;
+        transition: transform .2s, box-shadow .2s; animation: fadeInUp .55s ease;
+    }
+    .e-pay-card:hover { transform: translateY(-3px); box-shadow: 0 14px 30px -16px rgba(0,0,0,.25); }
+    .e-pay-icon {
+        width: 56px; height: 56px; border-radius: 16px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+    }
+    .e-pay-label { font-size: .82rem; color: var(--bs-secondary-color); }
+    .e-pay-value { font-size: 1.7rem; font-weight: 800; line-height: 1.1; margin-top: .15rem; }
+    .e-pay-value small { font-size: .95rem; font-weight: 600; }
+
+    /* ===== Empty ===== */
+    .e-empty {
+        text-align: center; padding: 2.5rem 1.5rem; color: var(--bs-secondary-color);
+        font-size: .9rem; border: 1px dashed var(--bs-border-color); border-radius: var(--e-radius);
+        background: var(--bs-body-bg);
+    }
+    .e-empty i { font-size: 2.2rem; opacity: .35; display: block; margin-bottom: .5rem; }
+
+    @media (max-width: 768px) {
+        .e-stat-row { flex-wrap: wrap; gap: .4rem; }
+        .e-stat-amount { min-width: auto; }
+    }
 </style>
 
+<!-- Header -->
 <div class="e-header">
-    <h1><i class="bi bi-cash-coin" style="color: var(--t-primary);"></i> Daromadlarim</h1>
+    <div>
+        <h1><i class="bi bi-cash-coin" style="color: var(--t-primary, #0d6efd);"></i> Daromadlarim</h1>
+        <div class="e-sub">Video, test va vazifalardan tushgan daromad hamda maosh to'lovlari</div>
+    </div>
 </div>
 
-<div class="e-total-card">
-    <div class="e-total-row">
-        <div>
-            <div class="e-total-label">{{ current_month_name }} {{ current_year }} - joriy oy daromadi</div>
-            <div class="e-total-value">{{ current_data.grand_total|floatformat:0 }} so'm</div>
+<!-- Hero summary -->
+<div class="e-hero">
+    <div class="e-hero-grid">
+        <div class="e-hero-main">
+            <div class="e-hero-label"><i class="bi bi-calendar-check"></i> {{ current_month_name }} {{ current_year }} — joriy oy daromadi</div>
+            <div class="e-hero-value">{{ current_data.grand_total|floatformat:0 }} <small>so'm</small></div>
+            {% if change_pct > 0 %}
+            <span class="e-change e-change-up"><i class="bi bi-arrow-up-short"></i> +{{ change_pct }}% o'tgan oyga nisbatan</span>
+            {% elif change_pct < 0 %}
+            <span class="e-change e-change-down"><i class="bi bi-arrow-down-short"></i> {{ change_pct }}% o'tgan oyga nisbatan</span>
+            {% else %}
+            <span class="e-change e-change-zero"><i class="bi bi-dash"></i> O'zgarishsiz</span>
+            {% endif %}
+        </div>
+        <div class="e-hero-divider">
+            <div class="e-hero-label"><i class="bi bi-check-circle"></i> Jami to'langan</div>
+            <div class="e-hero-mini">{{ total_paid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">so'm</small></div>
         </div>
         <div>
-            {% if change_pct > 0 %}
-            <span class="e-total-change e-change-up"><i class="bi bi-arrow-up-short"></i> +{{ change_pct }}%</span>
-            {% elif change_pct < 0 %}
-            <span class="e-total-change e-change-down"><i class="bi bi-arrow-down-short"></i> {{ change_pct }}%</span>
-            {% else %}
-            <span class="e-total-change e-change-zero"><i class="bi bi-dash"></i> 0%</span>
-            {% endif %}
-            <div style="font-size:.75rem; opacity:.7; text-align:right; margin-top:4px;">o'tgan oyga nisbatan</div>
+            <div class="e-hero-label"><i class="bi bi-hourglass-split"></i> To'lanmagan</div>
+            <div class="e-hero-mini">{{ total_unpaid_amount|floatformat:0 }} <small style="font-size:.85rem;opacity:.8;">so'm</small></div>
         </div>
     </div>
 </div>
 
+<!-- Price reference -->
+<div class="e-prices">
+    <span class="e-price-chip"><i class="bi bi-play-circle-fill" style="color: var(--e-video);"></i> Video dars <b>{{ VIDEO_PRICE|floatformat:0 }} so'm</b></span>
+    <span class="e-price-chip"><i class="bi bi-clipboard-check-fill" style="color: var(--e-test);"></i> Test <b>{{ TEST_PRICE|floatformat:0 }} so'm</b></span>
+    <span class="e-price-chip"><i class="bi bi-journal-text" style="color: var(--e-hw);"></i> Uyga vazifa <b>{{ HOMEWORK_PRICE|floatformat:0 }} so'm</b></span>
+</div>
+
+<!-- Month comparison -->
+<h2 class="e-section-title"><i class="bi bi-bar-chart-line"></i> Oylik taqqoslash</h2>
 <div class="e-compare-grid">
+    <!-- Current month -->
     <div class="e-month-card e-month-current">
         <div class="e-month-header">
             <span><i class="bi bi-calendar-check me-1"></i> {{ current_month_name }} {{ current_year }}</span>
             <span class="e-month-badge">Joriy oy</span>
         </div>
-        <div class="e-stat-rows">
+        <div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-                    <i class="bi bi-play-circle-fill"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Video darslar</div>
-                    <div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ current_data.video_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ current_data.video_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-                    <i class="bi bi-clipboard-check-fill"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Testlar</div>
-                    <div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ current_data.test_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ current_data.test_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                    <i class="bi bi-journal-text"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Uyga vazifalar</div>
-                    <div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ current_data.hw_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div></div>
             </div>
         </div>
         <div class="e-stat-total">
@@ -234,59 +295,30 @@
         </div>
     </div>
 
+    <!-- Previous month -->
     <div class="e-month-card e-month-prev">
         <div class="e-month-header">
             <span><i class="bi bi-calendar3 me-1"></i> {{ prev_month_name }} {{ prev_year }}</span>
             <span class="e-month-badge">O'tgan oy</span>
         </div>
-        <div class="e-stat-rows">
+        <div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
-                    <i class="bi bi-play-circle-fill"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Video darslar</div>
-                    <div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ prev_data.video_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ prev_data.video_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
-                    <i class="bi bi-clipboard-check-fill"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Testlar</div>
-                    <div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ prev_data.test_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ prev_data.test_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
-                <div class="e-stat-icon-box" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
-                    <i class="bi bi-journal-text"></i>
-                </div>
-                <div class="e-stat-info">
-                    <div class="e-stat-name">Uyga vazifalar</div>
-                    <div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div>
-                </div>
-                <div class="e-stat-count">
-                    <div class="e-stat-count-val">{{ prev_data.hw_count }}</div>
-                    <div class="e-stat-count-label">ta</div>
-                </div>
-                <div class="e-stat-amount">
-                    <div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div>
-                </div>
+                <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div></div>
             </div>
         </div>
         <div class="e-stat-total">
@@ -296,231 +328,208 @@
     </div>
 </div>
 
-<div class="e-details">
-    <div class="e-details-title">
-        <i class="bi bi-list-ul" style="color: var(--t-primary);"></i>
-        {{ current_month_name }} - batafsil ro'yxat
+<!-- Current month detailed list -->
+<div class="e-card">
+    <div class="e-card-head">
+        <i class="bi bi-list-ul"></i> {{ current_month_name }} — batafsil ro'yxat
+        <span class="e-count-pill">{{ current_data.total_items }} ta</span>
     </div>
     {% if current_data.video_list or current_data.test_list or current_data.hw_list %}
-    <div style="overflow-x: auto;">
+    <div class="e-table-wrap">
         <table class="e-detail-table">
             <thead>
                 <tr>
-                    <th style="text-align:left;">Nomi</th>
+                    <th>Nomi</th>
                     <th>Kurs</th>
                     <th>Turi</th>
                     <th>Sana</th>
-                    <th>Summa</th>
+                    <th style="text-align:right;">Summa</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in current_data.video_list %}
                 <tr>
-                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td style="font-weight:600;">{{ item.title }}</td>
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-video"><i class="bi bi-play-circle"></i> Video</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td style="font-weight:700; color:#0d6efd;">{{ VIDEO_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ VIDEO_PRICE|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.test_list %}
                 <tr>
-                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td style="font-weight:600;">{{ item.title }}</td>
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-test"><i class="bi bi-clipboard-check"></i> Test</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td style="font-weight:700; color:#0d6efd;">{{ TEST_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ TEST_PRICE|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.hw_list %}
                 <tr>
-                    <td style="font-weight:600; text-align:left;">{{ item.title }}</td>
+                    <td style="font-weight:600;">{{ item.title }}</td>
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-hw"><i class="bi bi-journal-text"></i> Vazifa</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td style="font-weight:700; color:#0d6efd;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <div class="e-empty" style="border: 1px solid var(--bs-border-color); border-radius: 16px;">
-        <i class="bi bi-inbox" style="font-size: 2rem; opacity: .4;"></i>
-        <p style="margin: .5rem 0 0;">Bu oy hali hech narsa qo'shilmagan</p>
+    <div style="padding: 1.4rem;">
+        <div class="e-empty">
+            <i class="bi bi-inbox"></i>
+            Bu oy hali hech narsa qo'shilmagan
+        </div>
     </div>
     {% endif %}
 </div>
 
-<!-- To'lovlar bo'limi -->
-<div class="e-payments" style="animation: fadeInUp 0.7s ease;">
-    <div class="e-details-title">
-        <i class="bi bi-cash-stack" style="color: var(--t-primary);"></i>
-        To'lovlar va Cheklar
-    </div>
-    
-    <div class="e-compare-grid" style="margin-bottom: 2rem;">
-        <div class="e-month-card">
-            <div class="e-month-header">
-                <span><i class="bi bi-check-circle-fill me-1"></i> To'langan summa</span>
-                <span class="e-month-badge" style="background: rgba(13, 110, 253,0.15); color: #0d6efd;">To'langan</span>
-            </div>
-            <div style="padding: 2rem; text-align: center;">
-                <div style="font-size: 2rem; font-weight: 800; color: #0d6efd;">{{ total_paid_amount|floatformat:0 }} so'm</div>
-                <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">Jami to'langan pul</div>
-            </div>
-        </div>
-        
-        <div class="e-month-card">
-            <div class="e-month-header">
-                <span><i class="bi bi-clock-fill me-1"></i> To'lanmagan summa</span>
-                <span class="e-month-badge" style="background: rgba(245,158,11,0.15); color: #f59e0b;">Kutilmoqda</span>
-            </div>
-            <div style="padding: 2rem; text-align: center;">
-                <div style="font-size: 2rem; font-weight: 800; color: #f59e0b;">{{ total_unpaid_amount|floatformat:0 }} so'm</div>
-                <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">To'lanishi kerak</div>
-            </div>
+<!-- Payments overview -->
+<h2 class="e-section-title"><i class="bi bi-cash-stack"></i> To'lovlar va cheklar</h2>
+<div class="e-pay-grid">
+    <div class="e-pay-card">
+        <div class="e-pay-icon" style="background: rgba(16,185,129,.12); color: var(--e-paid);"><i class="bi bi-check-circle-fill"></i></div>
+        <div>
+            <div class="e-pay-label">Jami to'langan pul</div>
+            <div class="e-pay-value" style="color: var(--e-paid);">{{ total_paid_amount|floatformat:0 }} <small>so'm</small></div>
         </div>
     </div>
-
-    <!-- To'langan maoshlar -->
-    {% if paid_salaries %}
-    <div style="margin-bottom: 2rem;">
-        <h5 style="font-weight: 700; margin-bottom: 1rem; color: #0d6efd;">
-            <i class="bi bi-check-circle-fill me-2"></i>To'langan maoshlar
-        </h5>
-        <div style="overflow-x: auto;">
-            <table class="e-detail-table">
-                <thead>
-                    <tr>
-                        <th style="text-align:left;">Oy/Yil</th>
-                        <th>Turi</th>
-                        <th>Summa</th>
-                        <th>Izoh</th>
-                        <th>Chek</th>
-                        <th>To'langan sana</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for salary in paid_salaries %}
-                    <tr>
-                        <td style="font-weight:600; text-align:left;">{{ salary.get_month_display }} {{ salary.year }}</td>
-                        <td><span class="e-type-badge" style="background: rgba(13, 110, 253,0.12); color: #0d6efd;">{{ salary.get_salary_type_display }}</span></td>
-                        <td style="font-weight:700; color:#0d6efd;">{{ salary.amount|floatformat:0 }} so'm</td>
-                        <td>{{ salary.description|default:"-" }}</td>
-                        <td>
-                            {% if salary.receipt %}
-                                <a href="{{ salary.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-file-earmark-pdf"></i> Chekni ko'rish
-                                </a>
-                            {% else %}
-                                <span class="text-muted">Chek yo'q</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ salary.paid_date|date:"d.m.Y"|default:"-" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="e-pay-card">
+        <div class="e-pay-icon" style="background: rgba(245,158,11,.12); color: var(--e-unpaid);"><i class="bi bi-clock-fill"></i></div>
+        <div>
+            <div class="e-pay-label">To'lanishi kerak</div>
+            <div class="e-pay-value" style="color: var(--e-unpaid);">{{ total_unpaid_amount|floatformat:0 }} <small>so'm</small></div>
         </div>
     </div>
-    {% endif %}
-
-    <!-- To'lanmagan maoshlar -->
-    {% if unpaid_salaries %}
-    <div>
-        <h5 style="font-weight: 700; margin-bottom: 1rem; color: #f59e0b;">
-            <i class="bi bi-clock-fill me-2"></i>To'lanmagan maoshlar
-        </h5>
-        <div style="overflow-x: auto;">
-            <table class="e-detail-table">
-                <thead>
-                    <tr>
-                        <th style="text-align:left;">Oy/Yil</th>
-                        <th>Turi</th>
-                        <th>Summa</th>
-                        <th>Izoh</th>
-                        <th>Yaratilgan sana</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for salary in unpaid_salaries %}
-                    <tr>
-                        <td style="font-weight:600; text-align:left;">{{ salary.get_month_display }} {{ salary.year }}</td>
-                        <td><span class="e-type-badge" style="background: rgba(245,158,11,0.12); color: #f59e0b;">{{ salary.get_salary_type_display }}</span></td>
-                        <td style="font-weight:700; color:#f59e0b;">{{ salary.amount|floatformat:0 }} so'm</td>
-                        <td>{{ salary.description|default:"-" }}</td>
-                        <td>{{ salary.created_at|date:"d.m.Y" }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
-
-    {% if not paid_salaries and not unpaid_salaries %}
-    <div class="e-empty" style="border: 1px solid var(--bs-border-color); border-radius: 16px;">
-        <i class="bi bi-cash-stack" style="font-size: 2rem; opacity: .4;"></i>
-        <p style="margin: .5rem 0 0;">Hali hech qanday to'lov ma'lumoti yo'q</p>
-    </div>
-    {% endif %}
 </div>
 
-<!-- Admin tomonidan yuklangan cheklar -->
-{% if admin_receipts %}
-<div class="e-payments" style="animation: fadeInUp 0.8s ease;">
-    <div class="e-details-title">
-        <i class="bi bi-file-earmark-text" style="color: var(--t-primary);"></i>
-        Admin tomonidan yuklangan cheklar
+<!-- Paid salaries -->
+{% if paid_salaries %}
+<div class="e-card">
+    <div class="e-card-head" style="color: var(--e-paid);">
+        <i class="bi bi-check-circle-fill" style="color: var(--e-paid);"></i> To'langan maoshlar
+        <span class="e-count-pill">{{ paid_salaries|length }} ta</span>
     </div>
-    
-    <div style="overflow-x: auto;">
+    <div class="e-table-wrap">
         <table class="e-detail-table">
             <thead>
                 <tr>
-                    <th style="text-align:left;">Oy/Yil</th>
+                    <th>Oy/Yil</th>
                     <th>Turi</th>
-                    <th>Summa</th>
+                    <th style="text-align:right;">Summa</th>
+                    <th>Izoh</th>
                     <th>Chek</th>
-                    <th>Yuklangan sana</th>
-                    <th>Yukladi</th>
-                    <th>Amallar</th>
+                    <th>To'langan sana</th>
                 </tr>
             </thead>
             <tbody>
-                {% for receipt in admin_receipts %}
+                {% for salary in paid_salaries %}
                 <tr>
-                    <td style="font-weight:600; text-align:left;">{{ receipt.get_month_display }} {{ receipt.year }}</td>
-                    <td><span class="e-type-badge" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">{{ receipt.get_salary_type_display }}</span></td>
-                    <td style="font-weight:700; color:#3b82f6;">{{ receipt.amount|floatformat:0 }} so'm</td>
+                    <td style="font-weight:600;">{{ salary.get_month_display }} {{ salary.year }}</td>
+                    <td><span class="e-type-badge e-type-paid">{{ salary.get_salary_type_display }}</span></td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-paid);">{{ salary.amount|floatformat:0 }} so'm</td>
+                    <td>{{ salary.description|default:"-" }}</td>
                     <td>
-                        {% if receipt.receipt %}
-                            <a href="{{ receipt.receipt.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-file-earmark-pdf"></i> Chekni ko'rish
-                            </a>
+                        {% if salary.receipt %}
+                            <a href="{{ salary.receipt.url }}" target="_blank" class="e-receipt-link"><i class="bi bi-file-earmark-pdf"></i> Chek</a>
                         {% else %}
-                            <span class="text-muted">Chek yo'q</span>
+                            <span class="text-muted">—</span>
                         {% endif %}
                     </td>
-                    <td>{{ receipt.created_at|date:"d.m.Y" }}</td>
-                    <td>{{ receipt.created_by.first_name|default:"Admin" }}</td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-outline-secondary" 
-                                    onclick="viewReceipt('{{ receipt.id }}')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    onclick="deleteReceipt('{{ receipt.id }}')">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
+                    <td>{{ salary.paid_date|date:"d.m.Y"|default:"-" }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+</div>
+{% endif %}
+
+<!-- Unpaid salaries -->
+{% if unpaid_salaries %}
+<div class="e-card">
+    <div class="e-card-head" style="color: var(--e-unpaid);">
+        <i class="bi bi-clock-fill" style="color: var(--e-unpaid);"></i> To'lanmagan maoshlar
+        <span class="e-count-pill">{{ unpaid_salaries|length }} ta</span>
+    </div>
+    <div class="e-table-wrap">
+        <table class="e-detail-table">
+            <thead>
+                <tr>
+                    <th>Oy/Yil</th>
+                    <th>Turi</th>
+                    <th style="text-align:right;">Summa</th>
+                    <th>Izoh</th>
+                    <th>Yaratilgan sana</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for salary in unpaid_salaries %}
+                <tr>
+                    <td style="font-weight:600;">{{ salary.get_month_display }} {{ salary.year }}</td>
+                    <td><span class="e-type-badge e-type-hw">{{ salary.get_salary_type_display }}</span></td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-unpaid);">{{ salary.amount|floatformat:0 }} so'm</td>
+                    <td>{{ salary.description|default:"-" }}</td>
+                    <td>{{ salary.created_at|date:"d.m.Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if not paid_salaries and not unpaid_salaries %}
+<div class="e-empty" style="margin-bottom: 2rem;">
+    <i class="bi bi-cash-stack"></i>
+    Hali hech qanday to'lov ma'lumoti yo'q
+</div>
+{% endif %}
+
+<!-- Admin uploaded receipts -->
+{% if admin_receipts %}
+<div class="e-card">
+    <div class="e-card-head">
+        <i class="bi bi-file-earmark-text"></i> Admin tomonidan yuklangan cheklar
+        <span class="e-count-pill">{{ admin_receipts|length }} ta</span>
+    </div>
+    <div class="e-table-wrap">
+        <table class="e-detail-table">
+            <thead>
+                <tr>
+                    <th>Oy/Yil</th>
+                    <th>Turi</th>
+                    <th style="text-align:right;">Summa</th>
+                    <th>Chek</th>
+                    <th>Yuklangan sana</th>
+                    <th>Yukladi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for receipt in admin_receipts %}
+                <tr>
+                    <td style="font-weight:600;">{{ receipt.get_month_display }} {{ receipt.year }}</td>
+                    <td><span class="e-type-badge e-type-info">{{ receipt.get_salary_type_display }}</span></td>
+                    <td class="e-amount-cell" style="text-align:right; color: var(--e-test);">{{ receipt.amount|floatformat:0 }} so'm</td>
+                    <td>
+                        {% if receipt.receipt %}
+                            <a href="{{ receipt.receipt.url }}" target="_blank" class="e-receipt-link" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-file-earmark-pdf"></i> Chek</a>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ receipt.created_at|date:"d.m.Y" }}</td>
+                    <td>{{ receipt.created_by.first_name|default:"Admin" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endif %}
 {% endblock %}
+</content>
+</invoke>

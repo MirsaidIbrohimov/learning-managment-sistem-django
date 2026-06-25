@@ -232,6 +232,67 @@ def group_messages(request, profession_pk):
     })
 
 
+_ROLE_LABELS = {
+    'admin': 'Admin',
+    'assistant_admin': 'Admin',
+    'teacher': "O'qituvchi",
+    'student': "O'quvchi",
+}
+
+
+@login_required
+@rate_limited('chat_group_list')
+@require_http_methods(["GET"])
+def group_members(request, profession_pk):
+    """Guruh (kurs) a'zolari: biriktirilgan o'qituvchilar + yozilgan o'quvchilar.
+    O'ng paneldagi 'A'zolar' ro'yxati uchun ishlatiladi."""
+    profession = get_object_or_404(Profession, pk=profession_pk)
+    if not _can_access_group(request.user, profession):
+        return _err("Bu guruh chatiga ruxsatingiz yo'q", 403)
+
+    seen = set()
+    members = []
+
+    def _add(u):
+        if not u or u.pk in seen:
+            return
+        seen.add(u.pk)
+        brief = _user_brief(u, request)
+        brief['role_label'] = _ROLE_LABELS.get(u.role, u.role or '')
+        members.append(brief)
+
+    # O'qituvchilar avval
+    for t in profession.teachers.all():
+        _add(t)
+    # Keyin yozilgan o'quvchilar
+    enrollments = (
+        CourseEnrollment.objects
+        .filter(profession=profession)
+        .select_related('user')
+    )
+    for e in enrollments:
+        _add(e.user)
+
+    # Tartib: avval rol (admin/o'qituvchi yuqorida), keyin online, keyin ism
+    role_rank = {'admin': 0, 'assistant_admin': 0, 'teacher': 1, 'student': 2}
+    members.sort(key=lambda m: (
+        role_rank.get(m.get('role'), 3),
+        0 if m.get('is_online') else 1,
+        (m.get('name') or '').lower(),
+    ))
+
+    online_count = sum(1 for m in members if m.get('is_online'))
+    return _ok({
+        'group': {
+            'id': profession.pk,
+            'name': profession.name,
+            'members_count': len(members),
+            'online_count': online_count,
+        },
+        'members': members,
+    })
+
+
 @login_required
 @csrf_protect
 @rate_limited('chat_group_send')
