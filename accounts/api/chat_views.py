@@ -103,6 +103,49 @@ def _notify_dm_telegram(recipient, sender, text, has_file):
     )
 
 
+def _notify_group_telegram(profession, sender, text, has_file):
+    """Guruh (kurs) chatiga yangi xabar kelganda — biriktirilgan o'qituvchilar
+    va yozilgan o'quvchilardan Telegram botga ulangan barchasiga (yuboruvchidan
+    boshqa) bildirishnoma yuboradi."""
+    teacher_ids = set(
+        profession.teachers.exclude(pk=sender.pk)
+        .exclude(telegram_id__isnull=True)
+        .values_list('pk', flat=True)
+    )
+    student_ids = set(
+        CourseEnrollment.objects.filter(profession=profession)
+        .exclude(user__pk=sender.pk)
+        .exclude(user__telegram_id__isnull=True)
+        .values_list('user_id', flat=True)
+    )
+    recipient_ids = teacher_ids | student_ids
+    if not recipient_ids:
+        return
+
+    recipients = CustomUser.objects.filter(
+        pk__in=recipient_ids, telegram_id__isnull=False, is_blocked=False
+    ).values_list('telegram_id', flat=True)
+
+    course_name = html.escape(profession.name or '', quote=False)
+    sender_name = html.escape(sender.full_name or sender.username, quote=False)
+    if text:
+        preview = html.escape(text[:200], quote=False)
+        if len(text) > 200:
+            preview += '…'
+    else:
+        preview = "📎 Fayl yubordi" if has_file else ""
+
+    body = (
+        f"👥 <b>Guruh chatda yangi xabar</b>\n\n"
+        f"📚 Kurs: <b>{course_name}</b>\n"
+        f"👤 {sender_name}\n"
+        f"💭 {preview}"
+    )
+
+    for tg_id in recipients:
+        notify_user(tg_id, body)
+
+
 # ──────────────────────────────────────────────────────────────────────
 # Serializers
 # ──────────────────────────────────────────────────────────────────────
@@ -328,6 +371,7 @@ def group_send(request, profession_pk):
         message=text, file=up_file if up_file else None,
         reply_to=reply_obj,
     )
+    _notify_group_telegram(profession, request.user, text, bool(up_file))
     return _ok({'message': _serialize_group_msg(msg, request)})
 
 
@@ -610,6 +654,7 @@ def message_forward(request, kind, msg_id):
         message=msg.message, file=msg.file or None,
         is_forwarded=True, forwarded_sender_name=original_sender_name,
     )
+    _notify_group_telegram(target_group, request.user, msg.message, bool(msg.file))
     return _ok({'message': _serialize_group_msg(new_msg, request)})
 
 

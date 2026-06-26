@@ -1568,6 +1568,8 @@ def teacher_add_speaking(request, pk):
         max_duration = request.POST.get('max_duration', 120)
         max_score = request.POST.get('max_score', 100)
         ai_check = request.POST.get('ai_check') == 'on'
+        if _teacher_ai_blocked(request):
+            ai_check = False
         criteria = request.POST.get('criteria', '').strip()
         due_date = request.POST.get('due_date')
         
