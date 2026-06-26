@@ -55,15 +55,25 @@ def _resolve_bot_username():
     return ''
 
 
+def _safe_next(request, default='profile'):
+    """So'rovdan xavfsiz qaytish manzilini olish (faqat ichki sahifalar)."""
+    nxt = (request.POST.get('next') or request.GET.get('next') or '').strip()
+    if nxt.startswith('/') and not nxt.startswith('//'):
+        return nxt
+    return default
+
+
 @login_required
 def link_telegram(request):
     """Profildan Telegramni ulash — tokenli link yaratib botga yo'naltirish"""
     from django.conf import settings
 
+    next_url = _safe_next(request)
+
     # Agar allaqachon ulangan bo'lsa
     if request.user.telegram_id:
         messages.info(request, "Telegram allaqachon ulangan! ✅")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Yangi token yaratish
     token = TelegramLinkToken.generate_token()
@@ -76,7 +86,7 @@ def link_telegram(request):
 
     if not bot_username:
         messages.error(request, "Telegram bot sozlanmagan!")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Botga deep link bilan yo'naltirish
     telegram_url = f"https://t.me/{bot_username}?start=link_{token}"
@@ -124,25 +134,27 @@ def confirm_unlink_telegram(request):
     """Telegramni uzish — kodni tasdiqlash"""
     from django.core.cache import cache
 
+    next_url = _safe_next(request)
+
     if not request.user.telegram_id:
         messages.error(request, "Telegram ulanmagan!")
-        return redirect('profile')
+        return redirect(next_url)
 
     code = request.POST.get('unlink_code', '').strip()
     if not code:
         messages.error(request, "Kodni kiriting!")
-        return redirect('profile')
+        return redirect(next_url)
 
     cache_key = f'tg_unlink_code_{request.user.id}'
     correct_code = cache.get(cache_key)
 
     if not correct_code:
         messages.error(request, "Kod muddati tugagan! Qaytadan urinib ko'ring.")
-        return redirect('profile')
+        return redirect(next_url)
 
     if code != correct_code:
         messages.error(request, "Kod noto'g'ri!")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Kod to'g'ri — uzish
     cache.delete(cache_key)
@@ -150,7 +162,7 @@ def confirm_unlink_telegram(request):
     request.user.telegram_username = None
     request.user.save(update_fields=['telegram_id', 'telegram_username'])
     messages.success(request, "Telegram muvaffaqiyatli uzildi! 🔓")
-    return redirect('profile')
+    return redirect(next_url)
 
 
 def set_webhook(request):
