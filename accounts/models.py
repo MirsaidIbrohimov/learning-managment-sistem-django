@@ -130,6 +130,11 @@ class CustomUser(AbstractUser):
 
     is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
     is_finished = models.BooleanField(default=False, verbose_name="Kursni tugatgan o'quvchi")
+    can_use_ai = models.BooleanField(
+        default=True,
+        verbose_name="AI dan foydalanishi mumkin",
+        help_text="O'chirilsa, o'qituvchi AI (vazifa tekshirish, test generatsiya va h.k.) dan foydalana olmaydi",
+    )
     last_activity = models.DateTimeField(null=True, blank=True, verbose_name="Oxirgi faollik", db_index=True)
 
     bio = models.TextField(blank=True, null=True, verbose_name="O'zi haqida")

@@ -108,6 +108,11 @@
 .tp-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
 .tp-act-block { color: #f59e0b; border-color: rgba(245,158,11,.3); }
 .tp-act-block:hover { background: rgba(245,158,11,.06); color: #f59e0b; }
+.tp-ai-form { flex: 1; display: inline-flex; }
+.tp-act-ai { width: 100%; color: #10b981; border-color: rgba(16,185,129,.3); }
+.tp-act-ai:hover { background: rgba(16,185,129,.06); color: #10b981; }
+.tp-act-ai.tp-act-ai-off { color: #ef4444; border-color: rgba(239,68,68,.3); }
+.tp-act-ai.tp-act-ai-off:hover { background: rgba(239,68,68,.06); color: #ef4444; }
 
 /* Expand/Collapse */
 .tp-toggle-btn {
@@ -269,6 +274,14 @@
             <div class="tp-actions" style="margin-top: 8px;">
                 <a href="{% url 'admin_user_view' td.user.pk %}" class="tp-act tp-act-view"><i class="bi bi-eye"></i> Ko'rish</a>
                 <a href="{% url 'admin_user_edit' td.user.pk %}" class="tp-act tp-act-edit"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <form method="post" action="{% url 'admin_toggle_teacher_ai' td.user.pk %}" class="tp-ai-form" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="tp-act tp-act-ai {% if not td.user.can_use_ai %}tp-act-ai-off{% endif %}"
+                            data-name="{{ td.user.full_name }}" data-on="{{ td.user.can_use_ai|yesno:'1,0' }}">
+                        <i class="bi bi-robot"></i>
+                        {% if td.user.can_use_ai %}AI yoqilgan{% else %}AI o'chirilgan{% endif %}
+                    </button>
+                </form>
                 <a href="{% url 'admin_user_block' td.user.pk %}" class="tp-act tp-act-block">
                     <i class="bi bi-{% if td.user.is_blocked %}unlock{% else %}lock{% endif %}"></i>
                     {% if td.user.is_blocked %}Ochish{% else %}Bloklash{% endif %}
@@ -300,5 +313,20 @@ function toggleDetails(pk, btn) {
         btn.innerHTML = '<i class="bi bi-chevron-up"></i> Yopish';
     }
 }
+
+// AI ruxsatini almashtirishdan oldin tasdiqlash
+document.querySelectorAll('.tp-ai-form').forEach(function(f){
+    f.addEventListener('submit', function(e){
+        var btn = f.querySelector('button');
+        var name = btn.getAttribute('data-name') || "o'qituvchi";
+        var isOn = btn.getAttribute('data-on') === '1';
+        var msg = isOn
+            ? name + " uchun AI dan foydalanishni o'chirmoqchimisiz?"
+            : name + " uchun AI dan foydalanishni yoqmoqchimisiz?";
+        if (!confirm(msg)) {
+            e.preventDefault();
+        }
+    });
+});
 </script>
 {% endblock %}

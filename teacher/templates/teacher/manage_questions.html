@@ -56,9 +56,11 @@
     <div class="t-mq-header">
         <h1>{{ test.lesson.title }} — Savollar</h1>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            {% if user.can_use_ai %}
             <button type="button" class="t-btn" style="background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);" onclick="document.getElementById('aiTestModal').style.display='flex'">
                 <i class="bi bi-robot"></i> AI orqali yaratish
             </button>
+            {% endif %}
             <a href="{% url 'teacher:import_questions' test.pk %}" class="t-btn t-btn-outline" style="border-color:#0d6efd;color:#0d6efd;">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import
             </a>

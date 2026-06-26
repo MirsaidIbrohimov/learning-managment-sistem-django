@@ -172,6 +172,7 @@ urlpatterns = [
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),
     path('dashboard/teachers/export-pdf/', views.export_teachers_pdf, name='export_teachers_pdf'),
     path('dashboard/teachers/<int:pk>/profile/', views.admin_teacher_profile, name='admin_teacher_profile'),
+    path('dashboard/teachers/<int:pk>/toggle-ai/', views.admin_toggle_teacher_ai, name='admin_toggle_teacher_ai'),
     path('dashboard/teachers/certificates/', views.admin_teacher_certificates, name='admin_teacher_certificates'),
     path('dashboard/teachers/attendance/', views.admin_teacher_attendance, name='admin_teacher_attendance'),
     path('dashboard/teachers/earnings/', views.admin_teacher_earnings, name='admin_teacher_earnings'),

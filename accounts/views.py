@@ -9000,6 +9000,52 @@ def admin_user_block(request, pk):
 
 
 @login_required
+def admin_toggle_teacher_ai(request, pk):
+    """Admin: o'qituvchiga AI dan foydalanish ruxsatini yoqish/o'chirish."""
+    if not request.user.is_admin:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': "Ruxsat yo'q!"}, status=403)
+        return redirect('home')
+
+    user = get_object_or_404(CustomUser, pk=pk)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    user.can_use_ai = not user.can_use_ai
+    user.save(update_fields=['can_use_ai'])
+
+    state_text = "yoqildi" if user.can_use_ai else "o'chirildi"
+
+    if user.telegram_id:
+        try:
+            if user.can_use_ai:
+                notify_user(
+                    user.telegram_id,
+                    "🤖 <b>AI ruxsati yoqildi</b>\n\n"
+                    "Endi AI yordamida vazifa tekshirish, test/vazifa yuklash va boshqa "
+                    "imkoniyatlardan foydalanishingiz mumkin."
+                )
+            else:
+                notify_user(
+                    user.telegram_id,
+                    "🚫 <b>AI ruxsati o'chirildi</b>\n\n"
+                    "Administrator hisobingiz uchun AI imkoniyatlarini o'chirib qo'ydi. "
+                    "Endi AI (vazifa tekshirish, test generatsiya va h.k.) dan foydalana olmaysiz."
+                )
+        except Exception:
+            pass
+
+    if is_ajax:
+        return JsonResponse({
+            'success': True,
+            'can_use_ai': user.can_use_ai,
+            'message': f"{user.full_name} uchun AI {state_text}!",
+        })
+
+    messages.success(request, f"{user.full_name} uchun AI {state_text}!")
+    return redirect('admin_teachers')
+
+
+@login_required
 def admin_unlink_telegram(request, pk):
     """Admin tomonidan foydalanuvchining Telegram ulanishini KODSIZ uzish.
 

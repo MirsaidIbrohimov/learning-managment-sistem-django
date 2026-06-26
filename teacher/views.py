@@ -26,6 +26,18 @@ def teacher_required(view_func):
     return wrapper
 
 
+AI_DISABLED_MESSAGE = (
+    "AI dan foydalanish administrator tomonidan o'chirib qo'yilgan. "
+    "Iltimos, administrator bilan bog'laning."
+)
+
+
+def _teacher_ai_blocked(request):
+    """O'qituvchiga AI taqiqlangan bo'lsa True qaytaradi (adminlar cheklanmaydi)."""
+    user = request.user
+    return user.role == 'teacher' and not getattr(user, 'can_use_ai', True)
+
+
 @teacher_required
 def teacher_dashboard(request):
     user = request.user
@@ -802,6 +814,9 @@ def teacher_grade_homework(request, pk):
         action = request.POST.get('action', 'grade')
         
         if action == 'ai_grade':
+            if _teacher_ai_blocked(request):
+                messages.error(request, AI_DISABLED_MESSAGE)
+                return redirect('teacher:grade_homework', pk=pk)
             from accounts.views import (
                 _read_submission_content, _get_ai_grade,
                 _check_ai_generated, _check_similarity_with_others
@@ -1242,6 +1257,9 @@ def teacher_import_questions(request, pk):
 @teacher_required
 def teacher_generate_ai_test(request, pk):
     """AI orqali test savollari yaratish"""
+    if _teacher_ai_blocked(request):
+        return JsonResponse({'error': AI_DISABLED_MESSAGE}, status=403)
+
     professions = request.user.teaching_professions.all()
     test = get_object_or_404(Test, pk=pk, lesson__profession__in=professions)
     
@@ -1436,6 +1454,9 @@ def teacher_grade_speaking(request, pk):
         action = request.POST.get('action', 'grade')
         
         if action == 'ai_grade':
+            if _teacher_ai_blocked(request):
+                messages.error(request, AI_DISABLED_MESSAGE)
+                return redirect('teacher:grade_speaking', pk=pk)
             ai_result = _ai_grade_speaking(submission)
             if not ai_result:
                 messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi.")
@@ -1906,6 +1927,10 @@ def teacher_reject_final_payment(request, pk):
 @teacher_required
 def teacher_ai_checker(request):
     """O'qituvchi uchun AI Tekshiruvchi boshqaruvi"""
+    if _teacher_ai_blocked(request):
+        messages.error(request, AI_DISABLED_MESSAGE)
+        return redirect('teacher:dashboard')
+
     professions = request.user.teaching_professions.all()
     
     # Filter by profession
@@ -1974,6 +1999,9 @@ def teacher_ai_checker_toggle(request):
     """O'qituvchi uchun AI tekshiruvchini yoqish/o'chirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
+
+    if _teacher_ai_blocked(request):
+        return JsonResponse({'error': AI_DISABLED_MESSAGE}, status=403)
     
     professions = request.user.teaching_professions.all()
     
@@ -2039,6 +2067,9 @@ def teacher_file_only_toggle(request):
     """O'qituvchi uchun AI faqat fayl tekshiruvini yoqish/o'chirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
+
+    if _teacher_ai_blocked(request):
+        return JsonResponse({'error': AI_DISABLED_MESSAGE}, status=403)
     
     professions = request.user.teaching_professions.all()
     
