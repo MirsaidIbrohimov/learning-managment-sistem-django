@@ -1252,6 +1252,45 @@ def admin_telegram_users(request):
 
 
 @login_required
+@require_POST
+def admin_unlink_user_telegram(request, pk):
+    """Admin: boshqa foydalanuvchining (o'qituvchi/o'quvchi) Telegramini uzish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        return redirect('home')
+
+    next_url = _safe_next(request, default='telegram_bot:admin_telegram')
+
+    target = CustomUser.objects.filter(pk=pk).first()
+    if not target:
+        messages.error(request, "Foydalanuvchi topilmadi!")
+        return redirect(next_url)
+
+    if not target.telegram_id:
+        messages.error(request, "Bu foydalanuvchining Telegrami ulanmagan!")
+        return redirect(next_url)
+
+    # Foydalanuvchini ogohlantirish (xato bo'lsa ham uzishni davom ettiramiz)
+    try:
+        from .utils import notify_user
+        notify_user(
+            target.telegram_id,
+            "🔓 <b>Telegramingiz uzildi</b>\n\n"
+            "Administrator hisobingiz bilan bog'langan Telegramni uzdi.\n"
+            "Kerak bo'lsa profilingiz orqali qaytadan ulashingiz mumkin."
+        )
+    except Exception as e:
+        logger.error("Foydalanuvchini ogohlantirib bo'lmadi: %s", e)
+
+    full_name = (f"{target.first_name} {target.last_name}").strip() or target.username
+    target.telegram_id = None
+    target.telegram_username = None
+    target.save(update_fields=['telegram_id', 'telegram_username'])
+    messages.success(request, f"{full_name} ning Telegrami uzildi! 🔓")
+    return redirect(next_url)
+
+
+@login_required
 def admin_contact_detail(request, pk):
     """Admin: Aloqa xabarini ko'rish va javob berish"""
     if not request.user.is_admin:
