@@ -135,6 +135,18 @@
             <i class="bi bi-robot" style="color: #8b5cf6;"></i> AI bilan baholash
         </div>
         <div style="padding: 24px;">
+            {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+            <div style="display:flex;align-items:flex-start;gap:.75rem;padding:14px 16px;border-radius:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);margin-bottom:1rem;">
+                <i class="bi bi-shield-lock-fill" style="font-size:1.4rem;color:#ef4444;flex-shrink:0;margin-top:2px;"></i>
+                <div style="font-size:.88rem;line-height:1.5;color:var(--bs-body-color);">
+                    <strong style="color:#ef4444;">AI funksiyasi bloklangan</strong><br>
+                    AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.
+                </div>
+            </div>
+            <button type="button" class="t-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; width: 100%; justify-content: center; color:#fff; cursor:not-allowed;" onclick="showAiBlockedNotice()">
+                <i class="bi bi-shield-lock-fill"></i> AI bloklangan
+            </button>
+            {% else %}
             <p style="font-size: 0.85rem; color: var(--bs-secondary-color); margin-bottom: 1rem;">
                 AI o'quvchining javobini tekshirib, avtomatik baho (1-10), holat va izoh beradi.
             </p>
@@ -145,6 +157,7 @@
                     <i class="bi bi-robot"></i> AI bilan baholash
                 </button>
             </form>
+            {% endif %}
         </div>
     </div>
 
@@ -197,6 +210,32 @@
         var txt = box.innerText, done = function () { btn.classList.add('copied'); btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi'; setTimeout(function () { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i> Nusxalash'; }, 1600); };
         if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(done).catch(function () {}); }
         else { try { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); } catch (e) {} }
+    }
+
+    function showAiBlockedNotice(customMsg) {
+        const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.";
+        let backdrop = document.getElementById('aiBlockedBackdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'aiBlockedBackdrop';
+            backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;';
+            backdrop.innerHTML = `
+                <div style="background:var(--bs-body-bg,#fff);border:1px solid var(--bs-border-color,#e5e7eb);border-radius:22px;padding:1.75rem;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.25);text-align:center;">
+                    <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;margin:0 auto 1rem;box-shadow:0 8px 22px rgba(239,68,68,.35);">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <h3 style="margin:0 0 .5rem;font-size:1.2rem;font-weight:800;">AI funksiyasi bloklangan</h3>
+                    <p id="aiBlockedMsg" style="margin:0 0 1.25rem;font-size:.92rem;color:var(--bs-secondary-color,#666);line-height:1.5;"></p>
+                    <button type="button" onclick="document.getElementById('aiBlockedBackdrop').remove()" style="padding:.7rem 1.5rem;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);">
+                        Tushunarli
+                    </button>
+                </div>`;
+            document.body.appendChild(backdrop);
+            backdrop.addEventListener('click', function(e) {
+                if (e.target === this) this.remove();
+            });
+        }
+        document.getElementById('aiBlockedMsg').textContent = msg;
     }
 </script>
 {% endblock %}

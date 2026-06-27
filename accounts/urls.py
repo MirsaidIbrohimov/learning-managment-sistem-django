@@ -171,6 +171,7 @@ urlpatterns = [
     # Admin: O'qituvchilar boshqaruvi
     path('dashboard/teachers/', views.admin_teachers, name='admin_teachers'),
     path('dashboard/teachers/export-pdf/', views.export_teachers_pdf, name='export_teachers_pdf'),
+    path('dashboard/teachers/<int:pk>/ai-toggle/', views.admin_teacher_ai_toggle, name='admin_teacher_ai_toggle'),
     path('dashboard/teachers/<int:pk>/profile/', views.admin_teacher_profile, name='admin_teacher_profile'),
     path('dashboard/teachers/certificates/', views.admin_teacher_certificates, name='admin_teacher_certificates'),
     path('dashboard/teachers/attendance/', views.admin_teacher_attendance, name='admin_teacher_attendance'),

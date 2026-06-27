@@ -26,6 +26,22 @@ def teacher_required(view_func):
     return wrapper
 
 
+AI_BLOCKED_MESSAGE = (
+    "AI funksiyasi sizga admin tomonidan bloklangan. "
+    "Bu funksiyadan foydalanish uchun admin bilan bog'laning."
+)
+
+
+def _teacher_ai_blocked(user):
+    """Admin tomonidan bu o'qituvchiga AI bloklanganmi?
+    Admin va yordamchi adminlar uchun har doim ruxsat beriladi."""
+    if not user or not user.is_authenticated:
+        return True
+    if user.role in ('admin', 'assistant_admin'):
+        return False
+    return not getattr(user, 'ai_access_enabled', True)
+
+
 @teacher_required
 def teacher_dashboard(request):
     user = request.user
@@ -800,8 +816,11 @@ def teacher_grade_homework(request, pk):
     
     if request.method == 'POST':
         action = request.POST.get('action', 'grade')
-        
+
         if action == 'ai_grade':
+            if _teacher_ai_blocked(request.user):
+                messages.error(request, AI_BLOCKED_MESSAGE)
+                return redirect('teacher:grade_homework', pk=pk)
             from accounts.views import (
                 _read_submission_content, _get_ai_grade,
                 _check_ai_generated, _check_similarity_with_others
@@ -1242,9 +1261,15 @@ def teacher_import_questions(request, pk):
 @teacher_required
 def teacher_generate_ai_test(request, pk):
     """AI orqali test savollari yaratish"""
+    if _teacher_ai_blocked(request.user):
+        return JsonResponse({
+            'error': AI_BLOCKED_MESSAGE,
+            'ai_blocked': True,
+        }, status=403)
+
     professions = request.user.teaching_professions.all()
     test = get_object_or_404(Test, pk=pk, lesson__profession__in=professions)
-    
+
     if request.method != 'POST':
         return JsonResponse({'error': 'POST talab qilinadi'}, status=405)
     
@@ -1434,8 +1459,11 @@ def teacher_grade_speaking(request, pk):
     
     if request.method == 'POST':
         action = request.POST.get('action', 'grade')
-        
+
         if action == 'ai_grade':
+            if _teacher_ai_blocked(request.user):
+                messages.error(request, AI_BLOCKED_MESSAGE)
+                return redirect('teacher:grade_speaking', pk=pk)
             ai_result = _ai_grade_speaking(submission)
             if not ai_result:
                 messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi.")
@@ -1974,7 +2002,14 @@ def teacher_ai_checker_toggle(request):
     """O'qituvchi uchun AI tekshiruvchini yoqish/o'chirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
-    
+
+    if _teacher_ai_blocked(request.user):
+        return JsonResponse({
+            'success': False,
+            'error': AI_BLOCKED_MESSAGE,
+            'ai_blocked': True,
+        }, status=403)
+
     professions = request.user.teaching_professions.all()
     
     task_type = request.POST.get('type')

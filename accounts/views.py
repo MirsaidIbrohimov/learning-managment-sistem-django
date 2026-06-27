@@ -13004,6 +13004,38 @@ def export_teachers_pdf(request):
 
 
 @login_required
+def admin_teacher_ai_toggle(request, pk):
+    """O'qituvchining AI funksiyasidan foydalanish ruxsatini yoqish/o'chirish (AJAX yoki POST)."""
+    if not request.user.is_admin:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Ruxsat yo\'q'}, status=403)
+        return redirect('home')
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': "POST so'rov kerak"}, status=405)
+
+    teacher = get_object_or_404(CustomUser, pk=pk, role='teacher')
+    teacher.ai_access_enabled = not teacher.ai_access_enabled
+    teacher.save(update_fields=['ai_access_enabled'])
+
+    new_state = teacher.ai_access_enabled
+    msg = (
+        f"{teacher.full_name} uchun AI funksiyasi "
+        f"{'yoqildi' if new_state else 'bloklandi'}."
+    )
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'new_state': new_state,
+            'message': msg,
+        })
+
+    messages.success(request, msg)
+    return redirect('admin_teachers')
+
+
+@login_required
 def admin_teacher_profile(request, pk):
     if not request.user.is_admin:
         return redirect('home')

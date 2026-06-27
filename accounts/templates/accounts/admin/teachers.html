@@ -108,6 +108,17 @@
 .tp-act-edit:hover { background: rgba(99,102,241,.06); color: #6366f1; }
 .tp-act-block { color: #f59e0b; border-color: rgba(245,158,11,.3); }
 .tp-act-block:hover { background: rgba(245,158,11,.06); color: #f59e0b; }
+.tp-act-ai { color: #af52de; border-color: rgba(175,82,222,.3); }
+.tp-act-ai:hover { background: rgba(175,82,222,.08); color: #af52de; }
+.tp-act-ai.is-off { color: #ef4444; border-color: rgba(239,68,68,.3); }
+.tp-act-ai.is-off:hover { background: rgba(239,68,68,.08); color: #ef4444; }
+.tp-ai-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 6px; font-size: .68rem; font-weight: 700;
+    margin-left: 4px;
+}
+.tp-ai-status.on { background: rgba(175,82,222,.12); color: #af52de; }
+.tp-ai-status.off { background: rgba(239,68,68,.12); color: #ef4444; }
 
 /* Expand/Collapse */
 .tp-toggle-btn {
@@ -174,6 +185,12 @@
                         {% else %}
                             Hali faollik yo'q
                         {% endif %}
+                    </div>
+                    <div style="margin-top:4px;">
+                        <span class="tp-ai-status {% if td.user.ai_access_enabled %}on{% else %}off{% endif %}" id="ai-status-{{ td.user.pk }}">
+                            <i class="bi bi-robot"></i>
+                            AI: <span class="tp-ai-status-text">{% if td.user.ai_access_enabled %}Yoqilgan{% else %}Bloklangan{% endif %}</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -274,6 +291,18 @@
                     {% if td.user.is_blocked %}Ochish{% else %}Bloklash{% endif %}
                 </a>
             </div>
+            <div class="tp-actions" style="margin-top: 6px;">
+                <button type="button"
+                        class="tp-act tp-act-ai {% if not td.user.ai_access_enabled %}is-off{% endif %}"
+                        id="ai-toggle-{{ td.user.pk }}"
+                        data-teacher-id="{{ td.user.pk }}"
+                        data-teacher-name="{{ td.user.full_name|escapejs }}"
+                        data-url="{% url 'admin_teacher_ai_toggle' td.user.pk %}"
+                        onclick="toggleTeacherAi(this)">
+                    <i class="bi bi-robot"></i>
+                    {% if td.user.ai_access_enabled %}AI ni bloklash{% else %}AI ni yoqish{% endif %}
+                </button>
+            </div>
         </div>
         {% endfor %}
     </div>
@@ -299,6 +328,85 @@ function toggleDetails(pk, btn) {
         icon.className = 'bi bi-chevron-up';
         btn.innerHTML = '<i class="bi bi-chevron-up"></i> Yopish';
     }
+}
+
+function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
+}
+
+function toggleTeacherAi(btn) {
+    const pk = btn.dataset.teacherId;
+    const name = btn.dataset.teacherName;
+    const url = btn.dataset.url;
+    const wasOff = btn.classList.contains('is-off');
+    const confirmMsg = wasOff
+        ? `"${name}" uchun AI funksiyasini YOQMOQCHIMISIZ?`
+        : `"${name}" uchun AI funksiyasini BLOKLAMOQCHIMISIZ?\n\nO'qituvchi AI orqali test yaratish va vazifa baholay olmaydi.`;
+    if (!confirm(confirmMsg)) return;
+
+    btn.disabled = true;
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> ...';
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            const isOn = data.new_state;
+            // Update button
+            if (isOn) {
+                btn.classList.remove('is-off');
+                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni bloklash';
+            } else {
+                btn.classList.add('is-off');
+                btn.innerHTML = '<i class="bi bi-robot"></i> AI ni yoqish';
+            }
+            // Update status badge
+            const badge = document.getElementById('ai-status-' + pk);
+            if (badge) {
+                badge.classList.toggle('on', isOn);
+                badge.classList.toggle('off', !isOn);
+                const txt = badge.querySelector('.tp-ai-status-text');
+                if (txt) txt.textContent = isOn ? 'Yoqilgan' : 'Bloklangan';
+            }
+            showToast(data.message || 'Yangilandi', 'success');
+        } else {
+            btn.innerHTML = oldHtml;
+            showToast(data.error || 'Xatolik', 'error');
+        }
+        btn.disabled = false;
+    })
+    .catch(() => {
+        btn.disabled = false;
+        btn.innerHTML = oldHtml;
+        showToast('Tarmoq xatoligi', 'error');
+    });
+}
+
+function showToast(msg, type) {
+    let t = document.getElementById('__tp_toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = '__tp_toast';
+        t.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 18px;border-radius:12px;font-weight:700;font-size:.85rem;z-index:99999;box-shadow:0 8px 24px rgba(0,0,0,.15);transition:all .3s;opacity:0;transform:translateY(-10px);';
+        document.body.appendChild(t);
+    }
+    t.style.background = type === 'error' ? '#ef4444' : '#10b981';
+    t.style.color = '#fff';
+    t.textContent = msg;
+    requestAnimationFrame(() => { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
+    clearTimeout(t.__hideTimer);
+    t.__hideTimer = setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(-10px)';
+    }, 3000);
 }
 </script>
 {% endblock %}

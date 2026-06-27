@@ -56,9 +56,15 @@
     <div class="t-mq-header">
         <h1>{{ test.lesson.title }} — Savollar</h1>
         <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+            {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+            <button type="button" class="t-btn" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);" onclick="showAiBlockedNotice()" title="AI funksiyasi admin tomonidan bloklangan">
+                <i class="bi bi-shield-lock-fill"></i> AI bloklangan
+            </button>
+            {% else %}
             <button type="button" class="t-btn" style="background:linear-gradient(135deg,#af52de,#bf5af2);color:#fff;border:none;cursor:pointer;box-shadow:0 4px 14px rgba(175,82,222,0.3);" onclick="document.getElementById('aiTestModal').style.display='flex'">
                 <i class="bi bi-robot"></i> AI orqali yaratish
             </button>
+            {% endif %}
             <a href="{% url 'teacher:import_questions' test.pk %}" class="t-btn t-btn-outline" style="border-color:#0d6efd;color:#0d6efd;">
                 <i class="bi bi-file-earmark-spreadsheet"></i> Excel dan import
             </a>
@@ -180,6 +186,11 @@ function generateAiTest() {
         if (data.success) {
             location.reload();
         } else {
+            if (data.ai_blocked) {
+                document.getElementById('aiTestModal').style.display = 'none';
+                showAiBlockedNotice(data.error);
+                return;
+            }
             errorDiv.textContent = data.error || 'Xatolik yuz berdi';
             errorDiv.style.display = 'block';
             btn.disabled = false;
@@ -197,5 +208,31 @@ function generateAiTest() {
 document.getElementById('aiTestModal').addEventListener('click', function(e) {
     if (e.target === this) this.style.display = 'none';
 });
+
+function showAiBlockedNotice(customMsg) {
+    const msg = customMsg || "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.";
+    let backdrop = document.getElementById('aiBlockedBackdrop');
+    if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'aiBlockedBackdrop';
+        backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;animation:fadeIn .25s ease;';
+        backdrop.innerHTML = `
+            <div style="background:var(--bs-body-bg,#fff);border:1px solid var(--bs-border-color,#e5e7eb);border-radius:22px;padding:1.75rem;max-width:440px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,0.25);text-align:center;animation:popIn .3s ease;">
+                <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#ef4444,#dc2626);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;margin:0 auto 1rem;box-shadow:0 8px 22px rgba(239,68,68,.35);">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h3 style="margin:0 0 .5rem;font-size:1.2rem;font-weight:800;color:var(--bs-body-color,#111);">AI funksiyasi bloklangan</h3>
+                <p id="aiBlockedMsg" style="margin:0 0 1.25rem;font-size:.92rem;color:var(--bs-secondary-color,#666);line-height:1.5;"></p>
+                <button type="button" onclick="document.getElementById('aiBlockedBackdrop').remove()" style="padding:.7rem 1.5rem;border:none;border-radius:14px;background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;font-size:.9rem;cursor:pointer;box-shadow:0 4px 14px rgba(239,68,68,0.3);">
+                    Tushunarli
+                </button>
+            </div>`;
+        document.body.appendChild(backdrop);
+        backdrop.addEventListener('click', function(e) {
+            if (e.target === this) this.remove();
+        });
+    }
+    document.getElementById('aiBlockedMsg').textContent = msg;
+}
 </script>
 {% endblock %}
