@@ -179,6 +179,7 @@
                     </div>
                     <div class="t-add-field"></div>
                 </div>
+                {% if user.ai_access_enabled %}
                 <div class="t-add-field">
                     <div class="t-switch">
                         <input type="checkbox" name="ai_check" id="aiCheck" checked>
@@ -186,6 +187,14 @@
                     </div>
                     <div class="t-help">Yoqilsa, o'quvchi topshirganda AI avtomatik tekshiradi va baho beradi</div>
                 </div>
+                {% else %}
+                <div class="t-add-field">
+                    <div class="t-help" style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #b91c1c; padding: 10px 14px; border-radius: 10px; display: flex; align-items: center; gap: .5rem;">
+                        <i class="bi bi-robot"></i>
+                        <span>AI dan foydalanish administrator tomonidan o'chirib qo'yilgan. Vazifa AI siz yaratiladi.</span>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="t-add-field">
                     <label>Baholash mezonlari</label>
                     <textarea name="criteria" class="t-input" rows="3" placeholder="AI yoki ustoz nimaga e'tibor berishi kerak..."></textarea>

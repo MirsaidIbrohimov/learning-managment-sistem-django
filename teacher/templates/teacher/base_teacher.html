@@ -157,9 +157,11 @@
             <a href="{% url 'teacher:test_results' %}" class="nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}" data-title="Test natijalari">
                 <div class="nav-icon-wrap"><i class="bi bi-clipboard-data"></i></div><span>Test natijalari</span>
             </a>
+            {% if user.ai_access_enabled %}
             <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
                 <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div><span>AI Tekshiruvchi</span>
             </a>
+            {% endif %}
             <div class="sidebar-group-label">Moliya & Hujjatlar</div>
             <a href="{% url 'teacher:earnings' %}" class="nav-link {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}" data-title="Daromadlarim">
                 <div class="nav-icon-wrap"><i class="bi bi-cash-stack"></i></div><span>Daromadlarim</span>

@@ -55,15 +55,25 @@ def _resolve_bot_username():
     return ''
 
 
+def _safe_next(request, default='profile'):
+    """So'rovdan xavfsiz qaytish manzilini olish (faqat ichki sahifalar)."""
+    nxt = (request.POST.get('next') or request.GET.get('next') or '').strip()
+    if nxt.startswith('/') and not nxt.startswith('//'):
+        return nxt
+    return default
+
+
 @login_required
 def link_telegram(request):
     """Profildan Telegramni ulash — tokenli link yaratib botga yo'naltirish"""
     from django.conf import settings
 
+    next_url = _safe_next(request)
+
     # Agar allaqachon ulangan bo'lsa
     if request.user.telegram_id:
         messages.info(request, "Telegram allaqachon ulangan! ✅")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Yangi token yaratish
     token = TelegramLinkToken.generate_token()
@@ -76,7 +86,7 @@ def link_telegram(request):
 
     if not bot_username:
         messages.error(request, "Telegram bot sozlanmagan!")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Botga deep link bilan yo'naltirish
     telegram_url = f"https://t.me/{bot_username}?start=link_{token}"
@@ -124,25 +134,27 @@ def confirm_unlink_telegram(request):
     """Telegramni uzish — kodni tasdiqlash"""
     from django.core.cache import cache
 
+    next_url = _safe_next(request)
+
     if not request.user.telegram_id:
         messages.error(request, "Telegram ulanmagan!")
-        return redirect('profile')
+        return redirect(next_url)
 
     code = request.POST.get('unlink_code', '').strip()
     if not code:
         messages.error(request, "Kodni kiriting!")
-        return redirect('profile')
+        return redirect(next_url)
 
     cache_key = f'tg_unlink_code_{request.user.id}'
     correct_code = cache.get(cache_key)
 
     if not correct_code:
         messages.error(request, "Kod muddati tugagan! Qaytadan urinib ko'ring.")
-        return redirect('profile')
+        return redirect(next_url)
 
     if code != correct_code:
         messages.error(request, "Kod noto'g'ri!")
-        return redirect('profile')
+        return redirect(next_url)
 
     # Kod to'g'ri — uzish
     cache.delete(cache_key)
@@ -150,7 +162,7 @@ def confirm_unlink_telegram(request):
     request.user.telegram_username = None
     request.user.save(update_fields=['telegram_id', 'telegram_username'])
     messages.success(request, "Telegram muvaffaqiyatli uzildi! 🔓")
-    return redirect('profile')
+    return redirect(next_url)
 
 
 def set_webhook(request):
@@ -1237,6 +1249,45 @@ def admin_telegram_users(request):
         'telegram_contact_count': ContactMessage.objects.filter(subject='Telegram xabar').count(),
     }
     return render(request, 'telegram_bot/admin_telegram.html', context)
+
+
+@login_required
+@require_POST
+def admin_unlink_user_telegram(request, pk):
+    """Admin: boshqa foydalanuvchining (o'qituvchi/o'quvchi) Telegramini uzish"""
+    if not request.user.is_admin:
+        messages.error(request, "Sizda bu amalni bajarish huquqi yo'q!")
+        return redirect('home')
+
+    next_url = _safe_next(request, default='telegram_bot:admin_telegram')
+
+    target = CustomUser.objects.filter(pk=pk).first()
+    if not target:
+        messages.error(request, "Foydalanuvchi topilmadi!")
+        return redirect(next_url)
+
+    if not target.telegram_id:
+        messages.error(request, "Bu foydalanuvchining Telegrami ulanmagan!")
+        return redirect(next_url)
+
+    # Foydalanuvchini ogohlantirish (xato bo'lsa ham uzishni davom ettiramiz)
+    try:
+        from .utils import notify_user
+        notify_user(
+            target.telegram_id,
+            "🔓 <b>Telegramingiz uzildi</b>\n\n"
+            "Administrator hisobingiz bilan bog'langan Telegramni uzdi.\n"
+            "Kerak bo'lsa profilingiz orqali qaytadan ulashingiz mumkin."
+        )
+    except Exception as e:
+        logger.error("Foydalanuvchini ogohlantirib bo'lmadi: %s", e)
+
+    full_name = (f"{target.first_name} {target.last_name}").strip() or target.username
+    target.telegram_id = None
+    target.telegram_username = None
+    target.save(update_fields=['telegram_id', 'telegram_username'])
+    messages.success(request, f"{full_name} ning Telegrami uzildi! 🔓")
+    return redirect(next_url)
 
 
 @login_required

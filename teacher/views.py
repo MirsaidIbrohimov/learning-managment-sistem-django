@@ -1575,6 +1575,8 @@ def teacher_add_speaking(request, pk):
         max_duration = request.POST.get('max_duration', 120)
         max_score = request.POST.get('max_score', 100)
         ai_check = request.POST.get('ai_check') == 'on'
+        if _teacher_ai_blocked(request.user):
+            ai_check = False
         criteria = request.POST.get('criteria', '').strip()
         due_date = request.POST.get('due_date')
         
@@ -1934,6 +1936,10 @@ def teacher_reject_final_payment(request, pk):
 @teacher_required
 def teacher_ai_checker(request):
     """O'qituvchi uchun AI Tekshiruvchi boshqaruvi"""
+    if _teacher_ai_blocked(request.user):
+        messages.error(request, AI_BLOCKED_MESSAGE)
+        return redirect('teacher:dashboard')
+
     professions = request.user.teaching_professions.all()
     
     # Filter by profession
@@ -2074,6 +2080,9 @@ def teacher_file_only_toggle(request):
     """O'qituvchi uchun AI faqat fayl tekshiruvini yoqish/o'chirish (AJAX)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST kerak'}, status=400)
+
+    if _teacher_ai_blocked(request.user):
+        return JsonResponse({'error': AI_BLOCKED_MESSAGE}, status=403)
     
     professions = request.user.teaching_professions.all()
     

@@ -91,9 +91,43 @@
 }
 .tg-pagination .active { background: #0088cc; color: #fff; border-color: #0088cc; }
 
+/* Mening Telegramim kartasi */
+.tg-self-card {
+    display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+    border-radius: 14px; margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, rgba(0,136,204,0.08), rgba(0,170,255,0.05));
+    border: 1px solid rgba(0,136,204,0.25);
+}
+.tg-self-icon {
+    width: 46px; height: 46px; border-radius: 12px; flex: 0 0 auto;
+    background: linear-gradient(135deg, #0088cc, #00aaff); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+}
+.tg-self-info { flex: 1; min-width: 0; }
+.tg-self-title { font-weight: 800; font-size: 0.95rem; }
+.tg-self-status { font-size: 0.85rem; color: var(--bs-secondary-color); font-weight: 600; }
+.tg-self-status.connected { color: #16a34a; }
+.tg-self-btn {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px;
+    border-radius: 10px; font-weight: 700; font-size: 0.85rem; border: none;
+    cursor: pointer; text-decoration: none; transition: all 0.2s;
+}
+.tg-self-btn.danger { background: #dc2626; color: #fff; }
+.tg-self-btn.danger:hover { background: #b91c1c; }
+.tg-self-btn.connect { background: linear-gradient(135deg,#0088cc,#00aaff); color: #fff; }
+.tg-self-btn.connect:hover { filter: brightness(1.05); }
+
+/* Uzish tasdiqlash overlay */
+.tg-unlink-overlay { position: fixed; inset: 0; z-index: 999999; background: rgba(0,0,0,.6); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 1rem; }
+.tg-unlink-overlay.show { display: flex; }
+.tg-unlink-box { background: var(--bs-body-bg,#fff); border-radius: 20px; width: 100%; max-width: 360px; padding: 2rem 1.5rem; text-align: center; }
+.tg-unlink-box input[type="text"] { width: 100%; height: 52px; border: 2px solid var(--bs-border-color,#dee2e6); border-radius: 14px; font-size: 1.5rem; font-weight: 800; text-align: center; letter-spacing: .4em; background: var(--bs-body-bg,#fff); color: var(--bs-body-color,#333); outline: none; transition: border-color .2s; }
+.tg-unlink-box input[type="text"]:focus { border-color: #0088cc; box-shadow: 0 0 0 3px rgba(0,136,204,.15); }
+
 @media (max-width: 768px) {
     .tg-table-wrap { overflow-x: auto; }
     .tg-stats { flex-direction: column; }
+    .tg-self-card { flex-wrap: wrap; }
 }
 </style>
 
@@ -107,6 +141,39 @@
     </a>
 </div>
 <p class="tg-sub">Ulangan telegramlar va bot xabarlari</p>
+
+<!-- Mening Telegramim (admin shaxsiy ulanishi) -->
+<div class="tg-self-card" id="tgSelfCard">
+    <div class="tg-self-icon"><i class="bi bi-telegram"></i></div>
+    <div class="tg-self-info">
+        <div class="tg-self-title">Mening Telegramim</div>
+        {% if user.telegram_id %}
+        <div class="tg-self-status connected">
+            <i class="bi bi-check-circle-fill"></i>
+            {% if user.telegram_username %}@{{ user.telegram_username }}{% else %}Ulangan{% endif %}
+        </div>
+        {% else %}
+        <div class="tg-self-status">
+            <i class="bi bi-dash-circle"></i> Ulanmagan
+        </div>
+        {% endif %}
+    </div>
+    <div class="tg-self-action">
+        {% if user.telegram_id %}
+        <form method="POST" action="{% url 'telegram_bot:unlink_telegram' %}" id="tgSelfUnlinkForm">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'telegram_bot:admin_telegram' %}">
+            <button type="submit" class="tg-self-btn danger">
+                <i class="bi bi-x-lg"></i> Uzish
+            </button>
+        </form>
+        {% else %}
+        <a href="{% url 'telegram_bot:link_telegram' %}?next={% url 'telegram_bot:admin_telegram' %}" class="tg-self-btn connect">
+            <i class="bi bi-telegram"></i> Telegram ulash
+        </a>
+        {% endif %}
+    </div>
+</div>
 
 <!-- Stats -->
 <div class="tg-stats">
@@ -221,6 +288,7 @@
         <th>Rol</th>
         <th>Telegram ID</th>
         <th>Oxirgi faollik</th>
+        <th>Amal</th>
     </tr>
 </thead>
 <tbody>
@@ -257,9 +325,23 @@
     <td class="tg-time">
         {% if u.last_activity %}{{ u.last_activity|timesince }} oldin{% else %}-{% endif %}
     </td>
+    <td>
+        {% if u.id == user.id %}
+            <span class="text-muted small">Siz</span>
+        {% else %}
+        <form method="POST" action="{% url 'telegram_bot:admin_unlink_user' u.id %}" class="tg-user-unlink-form d-inline"
+              data-name="{{ u.first_name }} {{ u.last_name }}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'telegram_bot:admin_telegram' %}">
+            <button type="submit" class="tg-self-btn danger" style="padding:6px 12px;font-size:0.78rem;">
+                <i class="bi bi-x-lg"></i> Uzish
+            </button>
+        </form>
+        {% endif %}
+    </td>
 </tr>
 {% empty %}
-<tr><td colspan="5">
+<tr><td colspan="6">
     <div class="tg-empty">
         <i class="bi bi-telegram"></i>
         Hech kim Telegram ulamagan
@@ -351,4 +433,95 @@
 {% endif %}
 
 </div>
+
+<script>
+// Boshqa foydalanuvchi telegramini uzishdan oldin tasdiqlash
+document.querySelectorAll('.tg-user-unlink-form').forEach(function(f){
+    f.addEventListener('submit', function(e){
+        var name = f.getAttribute('data-name') || 'foydalanuvchi';
+        if (!confirm(name + ' ning Telegramini uzmoqchimisiz?')) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+
+{% if user.telegram_id %}
+<!-- Telegram uzish tasdiqlash overlay -->
+<div class="tg-unlink-overlay" id="tgUnlinkOverlay">
+    <div class="tg-unlink-box">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(0,136,204,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+            <i class="bi bi-telegram" style="font-size:1.8rem;color:#0088cc;"></i>
+        </div>
+        <h6 class="fw-bold mb-1">Telegramni uzish</h6>
+        <p class="text-muted small mb-3">Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
+        <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'telegram_bot:admin_telegram' %}">
+            <input type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-danger rounded-pill fw-bold py-2">
+                    <i class="bi bi-check-lg me-1"></i> Tasdiqlash
+                </button>
+                <button type="button" class="btn btn-light rounded-pill py-2" onclick="document.getElementById('tgUnlinkOverlay').classList.remove('show')">Bekor qilish</button>
+            </div>
+        </form>
+        <div class="text-muted mt-2" style="font-size:.72rem;"><i class="bi bi-clock"></i> Kod 5 daqiqa amal qiladi</div>
+    </div>
+</div>
+
+<script>
+(function(){
+    var form = document.getElementById('tgSelfUnlinkForm');
+    if (!form) return;
+    var overlay = document.getElementById('tgUnlinkOverlay');
+    var codeInput = document.getElementById('tgUnlinkCodeInput');
+
+    codeInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.classList.remove('show');
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('show')) {
+            overlay.classList.remove('show');
+        }
+    });
+
+    // Uzish tugmasi — kod yuborish va overlay ochish
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var btn = form.querySelector('button[type="submit"]');
+        var orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        }).then(function(r) {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            if (r.ok) {
+                codeInput.value = '';
+                overlay.classList.add('show');
+                setTimeout(function(){ codeInput.focus(); }, 100);
+            } else {
+                alert("Xatolik yuz berdi!");
+            }
+        }).catch(function() {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            alert("Server bilan aloqa yo'q!");
+        });
+    });
+})();
+</script>
+{% endif %}
+
 {% endblock %}

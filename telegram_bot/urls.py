@@ -12,6 +12,7 @@ urlpatterns = [
     path('health/', views.bot_health, name='bot_health'),
     path('admin/contact/<int:pk>/', views.admin_contact_detail, name='admin_contact_detail'),
     path('admin/broadcast/', views.admin_send_broadcast, name='admin_send_broadcast'),
+    path('admin/unlink-user/<int:pk>/', views.admin_unlink_user_telegram, name='admin_unlink_user'),
     path('admin/', views.admin_telegram_users, name='admin_telegram'),
     path('contact/', views.send_contact_message, name='send_contact'),
     path('phone-link/', views.phone_link, name='phone_link'),
