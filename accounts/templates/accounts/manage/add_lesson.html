@@ -470,9 +470,16 @@
                     <span>Bo'lim tanlang va AI vazifa yaratsin. Keyin matnni tahrirlashingiz mumkin.</span>
                 </div>
 
+                {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+                <div class="al-info-card" style="background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); margin-top: 0.5rem; color: #b91c1c;">
+                    <i class="bi bi-shield-lock-fill" style="color: #ef4444;"></i>
+                    <span>AI funksiyasi sizga admin tomonidan bloklangan. AI orqali vazifa yarata olmaysiz.</span>
+                </div>
+                {% else %}
                 <button type="button" class="al-btn" id="aiHomeworkBtn" onclick="generateAIHomework()" style="background: linear-gradient(135deg, #8b5cf6, #3b82f6); color: #fff; border: none; margin-top: 0.5rem; width: 100%; padding: 0.85rem; border-radius: 14px; font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.3s;">
                     <i class="bi bi-robot"></i> 🤖 AI orqali vazifa yaratish
                 </button>
+                {% endif %}
 
                 <!-- AI tekshirish -->
                 <div class="al-group">

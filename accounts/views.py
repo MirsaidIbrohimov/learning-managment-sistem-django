@@ -127,6 +127,13 @@ def generate_ai_homework(request):
     """Bo'lim nomiga qarab AI orqali uyga vazifa yaratish"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
         return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
+        return JsonResponse({
+            'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
+                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+            'ai_blocked': True,
+        }, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'error': 'POST talab qilinadi'}, status=405)
@@ -241,6 +248,13 @@ def generate_ai_test(request):
     """AI orqali test savollari yaratish"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
         return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
+        return JsonResponse({
+            'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
+                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+            'ai_blocked': True,
+        }, status=403)
     
     if request.method != 'POST':
         return JsonResponse({'error': 'POST talab qilinadi'}, status=405)

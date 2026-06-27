@@ -444,9 +444,15 @@
                 <div class="tq-subtitle">{{ test.lesson.profession.name }} • Test savollari</div>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+                <button type="button" class="tq-add-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px rgba(239,68,68,0.3); border: none; cursor: not-allowed; opacity: 0.85;" onclick="alert('AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog\'laning.')">
+                    <i class="bi bi-shield-lock-fill"></i> AI bloklangan
+                </button>
+                {% else %}
                 <button type="button" class="tq-add-btn" style="background: linear-gradient(135deg, #af52de, #bf5af2); box-shadow: 0 4px 14px rgba(175,82,222,0.3); border: none; cursor: pointer;" onclick="document.getElementById('aiTestModal').style.display='flex'">
                     <i class="bi bi-robot"></i> AI orqali yaratish
                 </button>
+                {% endif %}
                 <a href="{% url 'import_test_questions' test.pk %}" class="tq-add-btn" style="background: linear-gradient(135deg, #34c759, #30d158); box-shadow: 0 4px 14px rgba(52,199,89,0.3);">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Excel import
                 </a>
