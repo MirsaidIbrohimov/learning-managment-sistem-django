@@ -2973,11 +2973,29 @@ def lesson_view(request, pk):
     
     elif lesson.lesson_type == 'test':
         quiz = getattr(lesson, 'quiz', None)
+        test = getattr(lesson, 'test', None)
         is_staff = request.user.is_admin or request.user.is_assistant_admin or request.user.is_teacher
+        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi)
         if quiz:
             if is_staff:
                 return redirect('quizui:quiz_edit', pk=quiz.pk)
             return redirect('quizui:quiz_take', pk=quiz.pk)
+        # Eski test tizimi
+        if test:
+            result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
+            context['test'] = test
+            context['result'] = result
+            if test.test_type == 'final':
+                pending_payment = FinalTestPayment.objects.filter(
+                    student=request.user, test=test, status='pending'
+                ).exists() if result else False
+                approved_payment = FinalTestPayment.objects.filter(
+                    student=request.user, test=test, status='approved'
+                ).exists() if result else False
+                context['pending_payment'] = pending_payment
+                context['approved_payment'] = approved_payment
+                return render(request, 'accounts/lessons/final_test_lesson.html', context)
+            return render(request, 'accounts/lessons/test_lesson.html', context)
         if is_staff:
             messages.warning(request, "Bu dars uchun quiz yaratilmagan. Quiz yarating.")
             return redirect('quizui:quiz_create')
@@ -4692,8 +4710,26 @@ def student_lesson_view(request, token):
 
     elif lesson.lesson_type == 'test':
         quiz = getattr(lesson, 'quiz', None)
+        test = getattr(lesson, 'test', None)
+        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi)
         if quiz:
             return redirect('quizui:quiz_take', pk=quiz.pk)
+        # Eski test tizimi
+        if test:
+            result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
+            context['test'] = test
+            context['result'] = result
+            if test.test_type == 'final':
+                pending_payment = FinalTestPayment.objects.filter(
+                    student=request.user, test=test, status='pending'
+                ).exists() if result else False
+                approved_payment = FinalTestPayment.objects.filter(
+                    student=request.user, test=test, status='approved'
+                ).exists() if result else False
+                context['pending_payment'] = pending_payment
+                context['approved_payment'] = approved_payment
+                return render(request, 'accounts/lessons/final_test_lesson.html', context)
+            return render(request, 'accounts/lessons/test_lesson.html', context)
         messages.error(request, "Bu test hali tayyor emas.")
         return redirect('profession_detail', pk=profession.pk)
 
