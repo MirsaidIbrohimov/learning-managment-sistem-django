@@ -129,6 +129,7 @@ class CustomUser(AbstractUser):
     )
 
     is_blocked = models.BooleanField(default=False, verbose_name="Bloklangan")
+    can_use_ai = models.BooleanField(default=True)
     ai_access_enabled = models.BooleanField(
         default=True,
         verbose_name="AI funksiyasidan foydalanish ruxsati",
