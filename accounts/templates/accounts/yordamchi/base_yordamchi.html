@@ -12,144 +12,440 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <script>
-        // Avvaldan tema o'rnatish (flash oldini olish uchun)
+        // Temani flashsiz oldindan o'rnatish
         (function(){
             var t = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-bs-theme', t);
+            document.documentElement.style.colorScheme = t;
         })();
     </script>
 
     <style>
-        :root {
-            --yo-primary: #10b981;
-            --yo-primary-dark: #059669;
-            --yo-accent: #0d9488;
-            --yo-card-bg: #ffffff;
-            --yo-page-bg: #f0fdf4;
-            --yo-border: rgba(0, 0, 0, .08);
-            --yo-text-muted: #6b7280;
-            --yo-topbar-bg: #022c22;
-            --yo-input-bg: #ffffff;
-            --yo-input-text: #111827;
-        }
-        [data-bs-theme="dark"] {
-            --yo-card-bg: #1e293b;
-            --yo-page-bg: #071a10;
-            --yo-border: rgba(255, 255, 255, .08);
-            --yo-text-muted: #94a3b8;
-            --yo-topbar-bg: #022c22;
-            --yo-input-bg: #0f172a;
-            --yo-input-text: #f1f5f9;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--yo-page-bg);
-            color: var(--yo-input-text);
-            min-height: 100vh;
-        }
+    /* ============================================================
+       YORDAMCHI ADMIN — "EMERALD GLASS" DESIGN SYSTEM
+       Glassmorphism · emerald identity · light/dark adaptiv
+       ============================================================ */
 
-        /* Sidebar — yashil emerald gradient */
-        .yo-sidebar {
-            position: fixed;
-            inset: 0 auto 0 0;
-            width: 260px;
-            background: linear-gradient(180deg, #022c22 0%, #064e3b 55%, #065f46 100%);
-            color: #a7f3d0;
-            padding: 1.25rem 0;
-            display: flex;
-            flex-direction: column;
-            z-index: 1000;
-            transition: transform .25s ease;
-            overflow-y: auto;
-        }
-        .yo-sidebar::-webkit-scrollbar { width: 3px; }
-        .yo-sidebar::-webkit-scrollbar-thumb { background: rgba(16,185,129,.3); border-radius: 2px; }
+    /* ---------- TOKENLAR: LIGHT ---------- */
+    :root{
+        --em-50:#ecfdf5; --em-100:#d1fae5; --em-300:#6ee7b7; --em-400:#34d399;
+        --em-500:#10b981; --em-600:#059669; --em-700:#047857; --em-900:#022c22;
+        --teal:#14b8a6; --gold:#f59e0b; --gold-600:#d97706;
+        --danger:#ef4444; --danger-600:#dc2626; --info:#0ea5e9;
 
-        .yo-brand { padding: 0 1.25rem 1rem; border-bottom: 1px solid rgba(16,185,129,.15); display: flex; align-items: center; gap: .65rem; }
-        .yo-brand-icon { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,.35); }
-        .yo-brand-text { color: #fff; font-weight: 700; line-height: 1.1; }
-        .yo-brand-text small { color: #6ee7b7; font-weight: 400; font-size: .7rem; }
+        --accent:var(--em-500);
+        --accent-grad:linear-gradient(135deg,#10b981 0%,#059669 60%,#0d9488 100%);
+        --accent-soft:rgba(16,185,129,.10);
+        --accent-line:rgba(16,185,129,.22);
 
-        .yo-nav { padding: .75rem 0; flex: 1; }
-        .yo-nav-label { padding: .5rem 1.25rem .35rem; font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: #34d399; font-weight: 700; opacity: 0.6; }
-        .yo-nav-link { display: flex; align-items: center; gap: .7rem; padding: .65rem 1.25rem; color: #a7f3d0; text-decoration: none; font-size: .9rem; border-left: 3px solid transparent; transition: all .15s; }
-        .yo-nav-link:hover { background: rgba(16,185,129,.08); color: #ecfdf5; }
-        .yo-nav-link.active { background: rgba(16,185,129,.18); color: #ecfdf5; border-left-color: #34d399; font-weight: 600; }
-        .yo-nav-link i { font-size: 1.05rem; width: 20px; text-align: center; }
+        /* sahifa foni + glow */
+        --page-bg:#eef6f1;
+        --glow-1:rgba(16,185,129,.18);
+        --glow-2:rgba(20,184,166,.14);
+        --glow-3:rgba(110,231,183,.18);
 
-        .yo-user-card { margin: auto 1rem 0; padding: .85rem; background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.15); border-radius: 12px; display: flex; align-items: center; gap: .65rem; }
-        .yo-user-ava { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: .9rem; flex-shrink: 0; box-shadow: 0 0 0 2px rgba(16,185,129,.35); }
-        .yo-user-info { min-width: 0; flex: 1; }
-        .yo-user-name { color: #fff; font-weight: 600; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .yo-user-role { color: #6ee7b7; font-size: .72rem; }
+        /* shisha yuzalar */
+        --glass:rgba(255,255,255,.72);
+        --glass-strong:rgba(255,255,255,.85);
+        --glass-2:rgba(255,255,255,.55);
+        --border:rgba(6,78,59,.10);
+        --border-soft:rgba(6,78,59,.07);
+        --hi:rgba(255,255,255,.7);              /* top highlight */
+        --shadow:0 10px 30px -12px rgba(6,78,59,.22);
+        --shadow-lg:0 24px 60px -20px rgba(6,78,59,.30);
 
-        /* Topbar — light mode */
-        .yo-topbar {
-            position: fixed; top: 0; left: 260px; right: 0; height: 60px;
-            background: #ffffff;
-            border-bottom: 1px solid #d1fae5;
-            box-shadow: 0 1px 12px rgba(16,185,129,0.08);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 1.25rem; z-index: 998;
-            transition: background 0.3s ease;
-        }
-        .yo-topbar::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
-        }
+        --text:#0f2a20;
+        --text-soft:#3f5b50;
+        --text-muted:#6b8378;
 
-        /* Topbar — dark mode */
-        [data-bs-theme="dark"] .yo-topbar {
-            background: linear-gradient(135deg, #022c22 0%, #064e3b 60%, #065f46 100%);
-            border-bottom: none;
-            box-shadow: 0 2px 20px rgba(0,0,0,0.25);
-        }
+        --sidebar-1:#022c22; --sidebar-2:#064e3b; --sidebar-3:#065f46;
+        --sidebar-text:#a7f3d0;
 
-        .yo-toggle { display: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid rgba(16,185,129,.25); background: rgba(16,185,129,.08); color: #059669; font-size: 1.3rem; cursor: pointer; }
-        [data-bs-theme="dark"] .yo-toggle { background: rgba(16,185,129,.12); color: #6ee7b7; border-color: rgba(16,185,129,.3); }
+        --radius:18px; --radius-sm:12px; --radius-pill:999px;
 
-        .yo-page-title { font-weight: 700; margin: 0; font-size: 1.05rem; color: #022c22; }
-        [data-bs-theme="dark"] .yo-page-title { color: #ecfdf5; }
+        /* Orqaga-muvofiqlik: eski sahifalardagi --yo-* o'zgaruvchilar
+           (var() ishlatish paytida hisoblanadi — temaga avtomatik moslashadi) */
+        --yo-border:var(--border);
+        --yo-text-muted:var(--text-muted);
+        --yo-text:var(--text);
+        --yo-input-text:var(--text);
+        --yo-card:var(--glass);
+        --yo-card-bg:var(--glass);
+        --yo-input-bg:var(--glass-2);
+        --yo-primary:var(--accent);
+        --yo-page-bg:var(--page-bg);
+    }
 
-        .yo-topbar-actions { display: flex; align-items: center; gap: .5rem; }
+    /* ---------- TOKENLAR: DARK ---------- */
+    [data-bs-theme="dark"]{
+        --accent:var(--em-400);
+        --accent-grad:linear-gradient(135deg,#34d399 0%,#10b981 60%,#0d9488 100%);
+        --accent-soft:rgba(16,185,129,.16);
+        --accent-line:rgba(52,211,153,.30);
 
-        .yo-topbar-btn { padding: .45rem .85rem; border-radius: 8px; border: 1px solid #d1fae5; background: transparent; color: #065f46; text-decoration: none; font-size: .85rem; display: inline-flex; align-items: center; gap: .35rem; cursor: pointer; transition: all .15s; }
-        .yo-topbar-btn:hover { background: rgba(16,185,129,.08); color: #059669; border-color: #10b981; }
-        .yo-topbar-btn.danger { color: #dc2626; border-color: rgba(220,38,38,.25); }
-        .yo-topbar-btn.danger:hover { background: rgba(239,68,68,.07); color: #b91c1c; }
+        --page-bg:#04130d;
+        --glow-1:rgba(16,185,129,.20);
+        --glow-2:rgba(13,148,136,.16);
+        --glow-3:rgba(5,150,105,.18);
 
-        [data-bs-theme="dark"] .yo-topbar-btn { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: rgba(255,255,255,.85); backdrop-filter: blur(4px); }
-        [data-bs-theme="dark"] .yo-topbar-btn:hover { background: rgba(16,185,129,.2); color: #ecfdf5; border-color: rgba(16,185,129,.4); }
-        [data-bs-theme="dark"] .yo-topbar-btn.danger { color: #fca5a5; border-color: rgba(252,165,165,.3); }
-        [data-bs-theme="dark"] .yo-topbar-btn.danger:hover { background: rgba(239,68,68,.15); color: #fee2e2; border-color: rgba(252,165,165,.5); }
+        --glass:rgba(18,32,27,.66);
+        --glass-strong:rgba(20,36,30,.82);
+        --glass-2:rgba(255,255,255,.04);
+        --border:rgba(110,231,183,.12);
+        --border-soft:rgba(110,231,183,.08);
+        --hi:rgba(255,255,255,.06);
+        --shadow:0 14px 38px -16px rgba(0,0,0,.6);
+        --shadow-lg:0 30px 70px -22px rgba(0,0,0,.7);
 
-        /* Main */
-        .yo-main { margin-left: 260px; padding-top: 60px; min-height: 100vh; }
-        .yo-content { padding: 1.25rem; }
+        --text:#e7f6ef;
+        --text-soft:#b9d6c9;
+        --text-muted:#7fa394;
 
-        /* Dark-mode adjustments for common components */
-        [data-bs-theme="dark"] .card { background: var(--yo-card-bg); color: var(--yo-input-text); border-color: var(--yo-border); }
-        [data-bs-theme="dark"] .card-header.bg-white, [data-bs-theme="dark"] .card-header { background: var(--yo-card-bg) !important; color: var(--yo-input-text); border-color: var(--yo-border); }
-        [data-bs-theme="dark"] .table { color: var(--yo-input-text); --bs-table-bg: transparent; --bs-table-striped-bg: rgba(255,255,255,.02); --bs-table-hover-bg: rgba(16,185,129,.06); }
-        [data-bs-theme="dark"] .form-control, [data-bs-theme="dark"] .form-select { background: var(--yo-input-bg); color: var(--yo-input-text); border-color: var(--yo-border); }
-        [data-bs-theme="dark"] .text-muted { color: var(--yo-text-muted) !important; }
-        [data-bs-theme="dark"] .badge.bg-light { background: #1a3a2a !important; color: #a7f3d0 !important; }
-        [data-bs-theme="dark"] .text-dark { color: #f1f5f9 !important; }
+        --sidebar-1:#03241b; --sidebar-2:#053b2c; --sidebar-3:#064e3b;
+        --sidebar-text:#a7f3d0;
+    }
 
-        /* Mobile */
-        @media (max-width: 991px) {
-            .yo-sidebar { transform: translateX(-100%); }
-            .yo-sidebar.open { transform: translateX(0); }
-            .yo-topbar, .yo-main { left: 0; margin-left: 0; }
-            .yo-toggle { display: inline-flex; align-items: center; justify-content: center; }
-            .yo-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 999; opacity: 0; pointer-events: none; transition: opacity .2s; }
-            .yo-overlay.show { opacity: 1; pointer-events: auto; }
-        }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+        margin:0;
+        font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+        color:var(--text);
+        background:var(--page-bg);
+        min-height:100vh;
+        -webkit-font-smoothing:antialiased;
+        transition:background-color .35s ease,color .25s ease;
+    }
+    /* Atmosfera glow fon */
+    body::before{
+        content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+        background:
+            radial-gradient(60% 50% at 12% 0%,var(--glow-1),transparent 70%),
+            radial-gradient(45% 45% at 100% 18%,var(--glow-2),transparent 70%),
+            radial-gradient(55% 55% at 85% 100%,var(--glow-3),transparent 70%);
+        opacity:.9;transition:opacity .35s ease;
+    }
+    ::selection{background:rgba(16,185,129,.28)}
+
+    /* Scrollbar */
+    *::-webkit-scrollbar{width:10px;height:10px}
+    *::-webkit-scrollbar-thumb{background:var(--accent-line);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+    *::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+    /* ============================================================
+       SIDEBAR — glass emerald
+       ============================================================ */
+    .yo-sidebar{
+        position:fixed;inset:0 auto 0 0;width:264px;z-index:1000;
+        display:flex;flex-direction:column;padding:1.15rem 0 .9rem;
+        color:var(--sidebar-text);
+        background:linear-gradient(185deg,var(--sidebar-1),var(--sidebar-2) 55%,var(--sidebar-3));
+        border-right:1px solid rgba(16,185,129,.16);
+        box-shadow:14px 0 40px -24px rgba(0,0,0,.6);
+        transition:transform .28s cubic-bezier(.4,0,.2,1);
+        overflow:hidden;
+    }
+    .yo-sidebar::after{ /* nozik yuqori glow */
+        content:'';position:absolute;top:-30%;left:-20%;width:140%;height:50%;
+        background:radial-gradient(circle,rgba(52,211,153,.18),transparent 70%);pointer-events:none;
+    }
+    .yo-brand{
+        position:relative;padding:0 1.25rem 1rem;margin-bottom:.4rem;
+        border-bottom:1px solid rgba(16,185,129,.14);
+        display:flex;align-items:center;gap:.7rem;
+    }
+    .yo-brand-icon{
+        width:42px;height:42px;border-radius:13px;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:#fff;
+        background:linear-gradient(135deg,#10b981,#059669);
+        box-shadow:0 6px 18px rgba(16,185,129,.45),inset 0 1px 0 rgba(255,255,255,.3);
+    }
+    .yo-brand-text{color:#fff;font-weight:800;line-height:1.05;letter-spacing:.2px}
+    .yo-brand-text small{display:block;color:#6ee7b7;font-weight:500;font-size:.68rem;letter-spacing:.3px;margin-top:2px}
+
+    .yo-nav{position:relative;padding:.4rem .6rem;flex:1;overflow-y:auto;overflow-x:hidden}
+    .yo-nav::-webkit-scrollbar{width:4px}
+    .yo-nav::-webkit-scrollbar-thumb{background:rgba(110,231,183,.25)}
+    .yo-nav-label{
+        padding:.85rem .7rem .35rem;font-size:.64rem;text-transform:uppercase;
+        letter-spacing:.12em;color:#5eead4;font-weight:800;opacity:.7;
+    }
+    .yo-nav-link{
+        position:relative;display:flex;align-items:center;gap:.7rem;
+        padding:.6rem .75rem;margin:1px 0;border-radius:11px;
+        color:var(--sidebar-text);text-decoration:none;font-size:.875rem;font-weight:500;
+        transition:background .16s,color .16s,transform .16s;
+    }
+    .yo-nav-link i{font-size:1.05rem;width:22px;text-align:center;opacity:.9}
+    .yo-nav-link span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .yo-nav-link:hover{background:rgba(16,185,129,.12);color:#ecfdf5;transform:translateX(2px)}
+    .yo-nav-link.active{
+        background:linear-gradient(100deg,rgba(16,185,129,.30),rgba(16,185,129,.10));
+        color:#fff;font-weight:700;
+        box-shadow:inset 0 0 0 1px rgba(110,231,183,.25),0 6px 16px -8px rgba(16,185,129,.6);
+    }
+    .yo-nav-link.active::before{
+        content:'';position:absolute;left:-.6rem;top:18%;bottom:18%;width:3.5px;border-radius:4px;
+        background:linear-gradient(180deg,#6ee7b7,#10b981);box-shadow:0 0 10px rgba(52,211,153,.8);
+    }
+    .yo-nav-link.active i{opacity:1;color:#6ee7b7}
+
+    .yo-user-card{
+        margin:.5rem .8rem 0;padding:.8rem;border-radius:14px;display:flex;align-items:center;gap:.65rem;
+        background:rgba(16,185,129,.10);border:1px solid rgba(16,185,129,.18);backdrop-filter:blur(6px);
+    }
+    .yo-user-ava{
+        width:42px;height:42px;border-radius:50%;flex-shrink:0;
+        display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:.9rem;
+        background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 0 0 2px rgba(110,231,183,.4);
+    }
+    .yo-user-info{min-width:0;flex:1}
+    .yo-user-name{color:#fff;font-weight:700;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .yo-user-role{color:#6ee7b7;font-size:.72rem}
+
+    /* ============================================================
+       TOPBAR — glass
+       ============================================================ */
+    .yo-topbar{
+        position:fixed;top:0;left:264px;right:0;height:64px;z-index:998;
+        display:flex;align-items:center;justify-content:space-between;padding:0 1.25rem;
+        background:var(--glass-strong);
+        backdrop-filter:blur(18px) saturate(140%);
+        -webkit-backdrop-filter:blur(18px) saturate(140%);
+        border-bottom:1px solid var(--border);
+        box-shadow:0 8px 30px -18px rgba(6,78,59,.4);
+        transition:background .35s ease,border-color .35s ease;
+    }
+    .yo-topbar::after{
+        content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;
+        background:linear-gradient(90deg,#10b981,#34d399 45%,transparent);opacity:.8;
+    }
+    .yo-page-title{font-weight:800;margin:0;font-size:1.05rem;color:var(--text);letter-spacing:-.01em}
+    .yo-topbar-actions{display:flex;align-items:center;gap:.5rem}
+
+    .yo-toggle{
+        display:none;width:42px;height:42px;border-radius:12px;cursor:pointer;font-size:1.3rem;
+        border:1px solid var(--border);background:var(--glass-2);color:var(--accent);
+    }
+    .yo-icon-btn{
+        width:42px;height:42px;border-radius:12px;flex-shrink:0;cursor:pointer;
+        display:inline-flex;align-items:center;justify-content:center;font-size:1.05rem;
+        border:1px solid var(--border);background:var(--glass-2);color:var(--text-soft);
+        transition:all .18s;
+    }
+    .yo-icon-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line);transform:translateY(-1px)}
+    .yo-topbar-btn{
+        padding:.5rem .9rem;border-radius:12px;font-size:.85rem;font-weight:600;cursor:pointer;
+        display:inline-flex;align-items:center;gap:.4rem;text-decoration:none;
+        border:1px solid var(--border);background:var(--glass-2);color:var(--text-soft);transition:all .18s;
+    }
+    .yo-topbar-btn:hover{background:var(--accent-soft);color:var(--accent);border-color:var(--accent-line);transform:translateY(-1px)}
+    .yo-topbar-btn.danger{color:#e0584f;border-color:rgba(239,68,68,.22)}
+    .yo-topbar-btn.danger:hover{background:rgba(239,68,68,.12);color:#ef4444;border-color:rgba(239,68,68,.4)}
+
+    /* ============================================================
+       MAIN
+       ============================================================ */
+    .yo-main{margin-left:264px;padding-top:64px;min-height:100vh}
+    .yo-content{padding:1.5rem;max-width:1320px;animation:yoFade .45s ease both}
+    @keyframes yoFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+    /* ============================================================
+       GLASS KARTALAR (Bootstrap .card global qayta stillash)
+       ============================================================ */
+    .card{
+        position:relative;border:1px solid var(--border)!important;border-radius:var(--radius)!important;
+        background:var(--glass)!important;color:var(--text)!important;
+        backdrop-filter:blur(14px) saturate(130%);-webkit-backdrop-filter:blur(14px) saturate(130%);
+        box-shadow:var(--shadow)!important;overflow:hidden;
+        transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+    }
+    .card::before{ /* yuqori yorug'lik chizig'i */
+        content:'';position:absolute;top:0;left:0;right:0;height:1px;
+        background:linear-gradient(90deg,transparent,var(--hi),transparent);
+    }
+    .card.border-0{border:1px solid var(--border)!important}
+    .card-header{
+        background:var(--glass-2)!important;color:var(--text)!important;
+        border-bottom:1px solid var(--border)!important;font-weight:600;
+        padding:1rem 1.15rem;
+    }
+    .card-header.bg-white{background:var(--glass-2)!important}
+    .card-body{color:var(--text)}
+    .card-footer{background:var(--glass-2)!important;border-top:1px solid var(--border)!important;color:var(--text)}
+    .card-title{color:var(--text)}
+
+    /* ============================================================
+       JADVALLAR
+       ============================================================ */
+    .table{color:var(--text);--bs-table-bg:transparent;margin-bottom:0;border-color:var(--border-soft)}
+    .table>:not(caption)>*>*{border-color:var(--border-soft);padding:.8rem 1rem}
+    .table thead,.table thead th,.table>thead{
+        background:var(--accent-soft)!important;color:var(--text-soft)!important;
+    }
+    .table thead th{
+        font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;font-weight:800;
+        border-bottom:1px solid var(--border)!important;white-space:nowrap;
+    }
+    .table-hover>tbody>tr{transition:background .14s}
+    .table-hover>tbody>tr:hover>*{background:var(--accent-soft)!important}
+    .table td{vertical-align:middle}
+
+    /* ============================================================
+       TUGMALAR — emerald primary (panelda btn-warning ishlatiladi)
+       ============================================================ */
+    .btn{border-radius:11px;font-weight:600;transition:transform .15s,box-shadow .15s,filter .15s}
+    .btn:active{transform:translateY(1px)}
+    .btn-sm{border-radius:9px}
+    .btn-lg{border-radius:13px}
+
+    .btn-warning,.btn-success,.btn-primary{
+        background:var(--accent-grad)!important;border:none!important;color:#fff!important;
+        box-shadow:0 8px 20px -8px rgba(16,185,129,.6);
+    }
+    .btn-warning:hover,.btn-success:hover,.btn-primary:hover{filter:brightness(1.06);color:#fff!important;box-shadow:0 12px 26px -8px rgba(16,185,129,.7)}
+    .btn-warning:focus,.btn-success:focus,.btn-primary:focus{box-shadow:0 0 0 .2rem var(--accent-soft)}
+
+    .btn-outline-warning,.btn-outline-success,.btn-outline-primary{
+        background:transparent!important;border:1px solid var(--accent-line)!important;color:var(--accent)!important;
+    }
+    .btn-outline-warning:hover,.btn-outline-success:hover,.btn-outline-primary:hover{
+        background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent)!important;
+    }
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626)!important;border:none!important;color:#fff!important;box-shadow:0 8px 20px -8px rgba(239,68,68,.55)}
+    .btn-outline-danger{border:1px solid rgba(239,68,68,.4)!important;color:#ef4444!important;background:transparent!important}
+    .btn-outline-danger:hover{background:rgba(239,68,68,.12)!important;color:#ef4444!important}
+    .btn-outline-secondary{border:1px solid var(--border)!important;color:var(--text-soft)!important;background:var(--glass-2)!important}
+    .btn-outline-secondary:hover{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent-line)!important}
+    .btn-light,.btn-outline-light{background:var(--glass-2)!important;border:1px solid var(--border)!important;color:var(--text)!important}
+    .btn-secondary{background:var(--text-muted)!important;border:none!important;color:#fff!important}
+
+    /* ============================================================
+       BADGE / CHIP
+       ============================================================ */
+    .badge{font-weight:700;border-radius:8px;padding:.4em .65em;letter-spacing:.01em}
+    .badge.bg-success{background:rgba(16,185,129,.16)!important;color:#0c8f63!important}
+    [data-bs-theme="dark"] .badge.bg-success{color:#6ee7b7!important}
+    .badge.bg-danger{background:rgba(239,68,68,.16)!important;color:#dc2626!important}
+    [data-bs-theme="dark"] .badge.bg-danger{color:#fca5a5!important}
+    .badge.bg-warning{background:rgba(245,158,11,.18)!important;color:#b45309!important}
+    [data-bs-theme="dark"] .badge.bg-warning{color:#fcd34d!important}
+    .badge.bg-primary,.badge.bg-info{background:rgba(14,165,233,.16)!important;color:#0284c7!important}
+    [data-bs-theme="dark"] .badge.bg-primary,[data-bs-theme="dark"] .badge.bg-info{color:#7dd3fc!important}
+    .badge.bg-secondary{background:var(--accent-soft)!important;color:var(--text-soft)!important}
+    .badge.bg-light{background:var(--accent-soft)!important;color:var(--text-soft)!important}
+
+    /* ============================================================
+       FORMALAR — glass input
+       ============================================================ */
+    .form-label{font-weight:600;font-size:.85rem;color:var(--text-soft);margin-bottom:.35rem}
+    .form-control,.form-select,.input-group-text{
+        background:var(--glass-2)!important;color:var(--text)!important;
+        border:1px solid var(--border)!important;border-radius:11px!important;
+        transition:border-color .18s,box-shadow .18s,background .18s;
+    }
+    .form-control::placeholder{color:var(--text-muted);opacity:.8}
+    .form-control:focus,.form-select:focus{
+        border-color:var(--accent)!important;background:var(--glass-strong)!important;
+        box-shadow:0 0 0 .22rem var(--accent-soft)!important;
+    }
+    .form-select{background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2310b981' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e")!important}
+    .form-text{color:var(--text-muted)}
+    .form-check-input{background-color:var(--glass-2);border-color:var(--border)}
+    .form-check-input:checked{background-color:var(--accent);border-color:var(--accent)}
+    .input-group-text{color:var(--text-soft)!important}
+
+    /* ============================================================
+       PAGINATION
+       ============================================================ */
+    .pagination{gap:.3rem}
+    .page-link{
+        border:1px solid var(--border)!important;border-radius:10px!important;
+        background:var(--glass-2)!important;color:var(--text-soft)!important;font-weight:600;
+        transition:all .15s;
+    }
+    .page-link:hover{background:var(--accent-soft)!important;color:var(--accent)!important;border-color:var(--accent-line)!important}
+    .page-item.active .page-link,.page-item.disabled .page-link{
+        background:var(--accent-grad)!important;color:#fff!important;border:none!important;
+    }
+    .page-item.disabled .page-link{opacity:.85}
+
+    /* ============================================================
+       ALERT — glass tinted
+       ============================================================ */
+    .alert{border-radius:14px;border:1px solid var(--border);backdrop-filter:blur(10px);color:var(--text);background:var(--glass)}
+    .alert-success{border-color:var(--accent-line);background:var(--accent-soft);color:var(--text)}
+    .alert-danger,.alert-error{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.10)}
+    .alert-warning{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.10)}
+    .alert-info{border-color:rgba(14,165,233,.3);background:rgba(14,165,233,.10)}
+    .dropdown-menu{background:var(--glass-strong);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(14px);box-shadow:var(--shadow-lg)}
+    .dropdown-item{color:var(--text)}
+    .dropdown-item:hover{background:var(--accent-soft);color:var(--accent)}
+    .modal-content{background:var(--glass-strong);border:1px solid var(--border);border-radius:var(--radius);backdrop-filter:blur(16px);color:var(--text)}
+    .text-muted{color:var(--text-muted)!important}
+    a{color:var(--accent)}
+
+    /* Bootstrap utilita klasslarini temaga moslashtirish (eski sahifalar uchun) */
+    .bg-white{background:var(--glass)!important}
+    .bg-light{background:var(--accent-soft)!important}
+    .text-dark,.text-black{color:var(--text)!important}
+    .text-primary,.text-info,.text-success{color:var(--accent)!important}
+    .bg-primary,.bg-info{background:var(--accent)!important}
+    .border{border-color:var(--border)!important}
+    hr{border-color:var(--border);opacity:.5}
+
+    /* ============================================================
+       QAYTA ISHLATILADIGAN UTILITALAR (sahifalar uchun)
+       ============================================================ */
+    .yo-page-head{display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;justify-content:space-between;margin-bottom:1.25rem}
+    .yo-page-head h2{font-size:1.3rem;font-weight:800;margin:0;letter-spacing:-.02em;display:flex;align-items:center;gap:.55rem}
+    .yo-page-head .sub{color:var(--text-muted);font-size:.85rem;margin-top:2px}
+
+    .yo-stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .yo-stat-card{
+        position:relative;display:flex;align-items:center;gap:1rem;padding:1.15rem;
+        border-radius:var(--radius);background:var(--glass);border:1px solid var(--border);
+        backdrop-filter:blur(14px) saturate(130%);box-shadow:var(--shadow);overflow:hidden;
+        transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+    }
+    .yo-stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--hi),transparent)}
+    .yo-stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--accent-line)}
+    .yo-stat-ico{width:50px;height:50px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:#fff;box-shadow:0 8px 18px -8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.25)}
+    .yo-stat-label{font-size:.74rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+    .yo-stat-value{font-size:1.7rem;font-weight:800;line-height:1;margin-top:.25rem;color:var(--text)}
+
+    .yo-quick-links{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.8rem}
+    .yo-quick{
+        display:flex;align-items:center;gap:.8rem;padding:1rem 1.15rem;border-radius:var(--radius-sm);
+        background:var(--glass);border:1px solid var(--border);text-decoration:none;color:inherit;
+        backdrop-filter:blur(12px);transition:all .18s;
+    }
+    .yo-quick:hover{transform:translateY(-3px);border-color:var(--accent-line);box-shadow:var(--shadow);color:inherit}
+    .yo-quick-ico{width:42px;height:42px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.15rem;background:var(--accent-soft);color:var(--accent)}
+    .yo-quick-title{font-weight:700;font-size:.92rem;color:var(--text)}
+    .yo-quick-sub{font-size:.76rem;color:var(--text-muted)}
+
+    .yo-empty{text-align:center;padding:3.5rem 1rem;color:var(--text-muted)}
+    .yo-empty i{font-size:2.8rem;opacity:.35;display:block;margin-bottom:.6rem}
+    .yo-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .7rem;border-radius:var(--radius-pill);background:var(--accent-soft);color:var(--accent);font-size:.76rem;font-weight:700}
+
+    /* ============================================================
+       MOBILE
+       ============================================================ */
+    .yo-overlay{position:fixed;inset:0;background:rgba(2,18,12,.55);backdrop-filter:blur(2px);z-index:999;opacity:0;pointer-events:none;transition:opacity .25s}
+    .yo-overlay.show{opacity:1;pointer-events:auto}
+    @media (max-width:991px){
+        .yo-sidebar{transform:translateX(-100%);box-shadow:24px 0 60px -10px rgba(0,0,0,.6)}
+        .yo-sidebar.open{transform:translateX(0)}
+        .yo-topbar,.yo-main{left:0;margin-left:0}
+        .yo-toggle{display:inline-flex;align-items:center;justify-content:center}
+    }
+    @media (max-width:575px){
+        .yo-content{padding:1rem}
+        .yo-page-title{font-size:.95rem;max-width:48vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .yo-topbar-btn span{display:none}
+    }
+    @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
     </style>
     {% block extra_head %}{% endblock %}
 </head>
@@ -158,7 +454,7 @@
 <aside class="yo-sidebar" id="yoSidebar">
     <div class="yo-brand">
         <div class="yo-brand-icon"><i class="bi bi-person-fill-gear"></i></div>
-        <div class="yo-brand-text">Yordamchi<br><small>Admin paneli</small></div>
+        <div class="yo-brand-text">Yordamchi<small>Admin paneli</small></div>
     </div>
 
     <nav class="yo-nav">
@@ -251,16 +547,16 @@
 <div class="yo-overlay" id="yoOverlay" onclick="yoCloseSidebar()"></div>
 
 <header class="yo-topbar">
-    <div style="display:flex;align-items:center;gap:.75rem;">
+    <div style="display:flex;align-items:center;gap:.75rem;min-width:0;">
         <button class="yo-toggle" onclick="yoOpenSidebar()" aria-label="Menu"><i class="bi bi-list"></i></button>
         <h1 class="yo-page-title">{% block page_title %}Boshqaruv paneli{% endblock %}</h1>
     </div>
     <div class="yo-topbar-actions">
-        <button class="yo-topbar-btn" id="yoThemeBtn" onclick="yoToggleTheme()" title="Tema o'zgartirish">
-            <i class="bi bi-moon-fill" id="yoThemeIcon"></i>
+        <button class="yo-icon-btn" id="yoThemeBtn" onclick="yoToggleTheme()" title="Tema o'zgartirish" aria-label="Tema">
+            <i class="bi bi-moon-stars-fill" id="yoThemeIcon"></i>
         </button>
-        <a href="{% url 'yordamchi_profile_edit' %}" class="yo-topbar-btn"><i class="bi bi-pencil-square"></i> <span class="d-none d-md-inline">Profilim</span></a>
-        <a href="{% url 'logout' %}" class="yo-topbar-btn danger"><i class="bi bi-box-arrow-right"></i> <span class="d-none d-md-inline">Chiqish</span></a>
+        <a href="{% url 'yordamchi_profile_edit' %}" class="yo-topbar-btn"><i class="bi bi-pencil-square"></i> <span>Profilim</span></a>
+        <a href="{% url 'logout' %}" class="yo-topbar-btn danger"><i class="bi bi-box-arrow-right"></i> <span>Chiqish</span></a>
     </div>
 </header>
 
@@ -286,16 +582,22 @@ function yoCloseSidebar(){ document.getElementById('yoSidebar').classList.remove
 function yoApplyThemeIcon(t){
     var ic = document.getElementById('yoThemeIcon');
     if (!ic) return;
-    ic.className = t === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    ic.className = t === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
 }
 function yoToggleTheme(){
     var current = document.documentElement.getAttribute('data-bs-theme') || 'light';
     var next = current === 'dark' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-bs-theme', next);
+    document.documentElement.style.colorScheme = next;
     localStorage.setItem('theme', next);
     yoApplyThemeIcon(next);
 }
 yoApplyThemeIcon(document.documentElement.getAttribute('data-bs-theme'));
+
+// Mobil menyuda link bosilganda yopilsin
+document.querySelectorAll('.yo-nav-link').forEach(function(l){
+    l.addEventListener('click', function(){ if (window.innerWidth < 992) yoCloseSidebar(); });
+});
 </script>
 {% block extra_js %}{% endblock %}
 </body>
