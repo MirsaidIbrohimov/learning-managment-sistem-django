@@ -384,6 +384,15 @@ class QuestionViewSet(viewsets.ModelViewSet):
         """Generate questions via AI but DO NOT save anything. Returns the
         same shape the import preview returns so the UI can reuse one
         renderer for both."""
+        user = request.user
+        if user.is_teacher and not user.is_admin and not user.is_assistant_admin:
+            if not getattr(user, 'ai_access_enabled', True):
+                from rest_framework.response import Response as _R
+                return _R({
+                    'detail': "AI funksiyasi sizga admin tomonidan bloklangan.",
+                    'ai_blocked': True,
+                }, status=403)
+
         from .ai_generator import generate_questions, is_ai_configured
         if not is_ai_configured():
             raise ValidationError({'detail': "AI xizmati sozlanmagan (OPENAI_API_KEY topilmadi)."})
@@ -410,6 +419,14 @@ class QuestionViewSet(viewsets.ModelViewSet):
         """Persist a pre-approved AI batch + optionally attach to a quiz.
         Re-validates every row server-side -- the client can't bypass checks
         by editing the preview JSON in devtools."""
+        user = request.user
+        if user.is_teacher and not user.is_admin and not user.is_assistant_admin:
+            if not getattr(user, 'ai_access_enabled', True):
+                from rest_framework.response import Response as _R
+                return _R({
+                    'detail': "AI funksiyasi sizga admin tomonidan bloklangan.",
+                    'ai_blocked': True,
+                }, status=403)
         return self._persist_question_batch(request)
 
     # ── Excel/CSV/JSON import (preview / commit) ──────────────────────────

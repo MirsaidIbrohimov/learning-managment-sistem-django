@@ -95,6 +95,25 @@ class AIGenerateView(QuizStaffRequiredMixin, TemplateView):
     this quiz" -- without it questions just land in the bank."""
     template_name = 'quiz/ai_generate.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        user = request.user
+        if (
+            user.is_authenticated
+            and user.is_teacher
+            and not user.is_admin
+            and not user.is_assistant_admin
+            and not getattr(user, 'ai_access_enabled', True)
+        ):
+            from django.contrib import messages
+            from django.shortcuts import redirect
+            messages.error(
+                request,
+                "AI funksiyasi sizga admin tomonidan bloklangan. "
+                "Bu funksiyadan foydalanish uchun admin bilan bog'laning."
+            )
+            return redirect('quizui:quiz_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         from .ai_generator import is_ai_configured
