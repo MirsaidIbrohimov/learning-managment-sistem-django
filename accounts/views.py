@@ -12103,7 +12103,7 @@ def admin_book_requests(request):
 @login_required
 def admin_books(request):
     """Kitoblar ro'yxati"""
-    if not (request.user.is_admin or request.user.is_teacher):
+    if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
     books = Book.objects.all()
@@ -12212,7 +12212,7 @@ def book_check_duplicate(request):
 @login_required
 def admin_book_add(request):
     """Yangi kitob qo'shish"""
-    if not (request.user.is_admin or request.user.is_teacher):
+    if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
     if request.method == 'POST':
@@ -12262,7 +12262,7 @@ def admin_book_add(request):
 @login_required
 def admin_book_edit(request, pk):
     """Kitobni tahrirlash"""
-    if not (request.user.is_admin or request.user.is_teacher):
+    if not (request.user.is_admin or request.user.is_teacher or request.user.role == 'assistant_admin'):
         return redirect('home')
     
     book = get_object_or_404(Book, pk=pk)
@@ -12296,7 +12296,7 @@ def admin_book_edit(request, pk):
 @login_required
 def admin_book_delete(request, pk):
     """Kitobni o'chirish"""
-    if not request.user.is_admin:
+    if not (request.user.is_admin or request.user.role == 'assistant_admin'):
         return redirect('home')
     
     book = get_object_or_404(Book, pk=pk)
