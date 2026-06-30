@@ -73,11 +73,18 @@
                                 <i class="bi bi-robot text-primary me-1"></i>AI maqola
                                 {% if lesson.ai_article %}<span class="badge bg-success ms-1">Mavjud</span>{% else %}<span class="badge bg-warning ms-1">Mavjud emas</span>{% endif %}
                             </label>
-                            <button type="button" id="generateArticleBtn" onclick="generateAiArticle()" 
+                            {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+                            <div style="display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;border-radius:12px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);color:#b91c1c;font-size:.9rem;font-weight:600;margin-bottom:.75rem;">
+                                <i class="bi bi-shield-lock-fill" style="color:#ef4444;"></i>
+                                AI funksiyasi sizga admin tomonidan bloklangan.
+                            </div>
+                            {% else %}
+                            <button type="button" id="generateArticleBtn" onclick="generateAiArticle()"
                                     style="display: block; width: 100%; margin-bottom: 0.75rem; padding: 0.75rem; border-radius: 12px; border: 2px dashed rgba(139,92,246,0.3); background: linear-gradient(135deg, rgba(139,92,246,0.05), rgba(59,130,246,0.05)); color: #8b5cf6; font-weight: 600; cursor: pointer; transition: all 0.3s;">
                                 <i class="bi bi-robot me-2"></i>
                                 {% if lesson.ai_article %}🔄 AI maqolani qayta yaratish{% else %}🤖 AI maqola yaratish{% endif %}
                             </button>
+                            {% endif %}
                             <textarea name="ai_article" id="aiArticleTextarea" class="form-control" rows="10" placeholder="AI maqola hali yaratilmagan..." style="font-family: monospace; font-size: 0.85rem;">{{ lesson.ai_article|default:'' }}</textarea>
                             <small class="text-muted d-block mt-1">Video tagida ko'rinadigan maqola. HTML formatda. O'zgartirishingiz mumkin.</small>
                         </div>

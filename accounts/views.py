@@ -410,6 +410,13 @@ def generate_ai_article_view(request, pk):
     """AJAX: AI maqola yaratish yoki qayta yaratish"""
     if not (request.user.is_admin or request.user.is_teacher):
         return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
+        return JsonResponse({
+            'error': "AI funksiyasi sizga admin tomonidan bloklangan. "
+                     "Bu funksiyadan foydalanish uchun admin bilan bog'laning.",
+            'ai_blocked': True,
+        }, status=403)
     
     lesson = get_object_or_404(Lesson, pk=pk)
     
@@ -7353,6 +7360,10 @@ def import_dictionary_words(request, pk):
 def ai_generate_dictionary(request, pk):
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
+
+    if request.user.is_teacher and not getattr(request.user, 'ai_access_enabled', True):
+        messages.error(request, "AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog'laning.")
+        return redirect('manage_dictionary', pk=pk)
 
     dictionary = get_object_or_404(Dictionary, pk=pk)
 
