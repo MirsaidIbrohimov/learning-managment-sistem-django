@@ -10,6 +10,7 @@ urlpatterns = [
     path("ai/", include("ai_yordamchi.urls")),
     path('admin/', admin.site.urls),
     path('api/v1/', include('api.urls')),
+    path('quiz/', include('quiz.page_urls')),
     path('teacher/', include('teacher.urls')),
     path('yordamchi/', include('accounts.yordamchi_urls')),
     path('', include('accounts.urls')),

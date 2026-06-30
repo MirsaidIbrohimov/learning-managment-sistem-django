@@ -578,8 +578,8 @@
                             Uyga vazifa
                         </a>
                         <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=test">
-                            <div class="ls-type-icon test"><i class="bi bi-question-circle-fill"></i></div>
-                            Test
+                            <div class="ls-type-icon" style="background:rgba(99,102,241,0.12);color:#6366f1;"><i class="bi bi-patch-question-fill"></i></div>
+                            Quiz
                         </a>
                         <a class="ls-dropdown-item" href="{% url 'add_lesson' profession.pk %}?type=dictionary">
                             <div class="ls-type-icon dictionary" style="background:rgba(139,92,246,0.1);color:#8b5cf6;"><i class="bi bi-book-fill"></i></div>
@@ -649,11 +649,11 @@
                     <span class="ls-type-badge {{ lesson.lesson_type }}">{{ lesson.get_lesson_type_display }}</span>
                     <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
                     <div class="ls-lesson-actions">
-                        {% if lesson.lesson_type == 'test' and lesson.test %}
-                        <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
-                            <i class="bi bi-list-ol"></i>
+                        {% if lesson.lesson_type == 'test' %}{% with qz=lesson.quiz %}
+                        <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boshqarish" style="color:#6366f1;">
+                            <i class="bi bi-patch-question-fill"></i>
                         </a>
-                        {% endif %}
+                        {% endwith %}{% endif %}
                         {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
                         <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
                             <i class="bi bi-book"></i>
@@ -707,11 +707,11 @@
                 <span class="ls-type-badge {{ lesson.lesson_type }}">{{ lesson.get_lesson_type_display }}</span>
                 <span class="ls-lesson-date">{{ lesson.created_at|date:"d.m.Y" }}</span>
                 <div class="ls-lesson-actions">
-                    {% if lesson.lesson_type == 'test' and lesson.test %}
-                    <a href="{% url 'manage_test_questions' lesson.test.pk %}" class="ls-icon-btn questions" title="Savollar">
-                        <i class="bi bi-list-ol"></i>
+                    {% if lesson.lesson_type == 'test' %}{% with qz=lesson.quiz %}
+                    <a href="{% if qz %}{% url 'quizui:quiz_edit' qz.pk %}{% else %}{% url 'add_lesson' profession.pk %}?type=test{% endif %}" class="ls-icon-btn questions" title="Quiz savollarini boshqarish" style="color:#6366f1;">
+                        <i class="bi bi-patch-question-fill"></i>
                     </a>
-                    {% endif %}
+                    {% endwith %}{% endif %}
                     {% if lesson.lesson_type == 'dictionary' and lesson.dictionary %}
                     <a href="{% url 'manage_dictionary' lesson.dictionary.pk %}" class="ls-icon-btn questions" title="So'zlar" style="color:#8b5cf6;">
                         <i class="bi bi-book"></i>

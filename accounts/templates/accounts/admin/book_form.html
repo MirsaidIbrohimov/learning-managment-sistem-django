@@ -436,6 +436,24 @@
     <div class="bf-layout">
         <!-- Form -->
         <div class="bf-form-card">
+            <!-- Duplicate ogohlantirish (server + JS) -->
+            {% if duplicate %}
+            <div id="dupAlert" style="margin:0 1.5rem 1rem;padding:1rem 1.25rem;background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);border-radius:12px;display:flex;align-items:flex-start;gap:.75rem">
+                <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:1.2rem;flex-shrink:0;margin-top:2px"></i>
+                <div>
+                    <div style="font-weight:800;font-size:.92rem;color:#ef4444;margin-bottom:.3rem">Bu kitob allaqachon kutubxonada bor!</div>
+                    <div style="font-size:.85rem"><strong>{{ duplicate.title }}</strong> — {{ duplicate.author }}</div>
+                    {% if duplicate.isbn %}<div style="font-size:.78rem;color:var(--bs-secondary-color)">ISBN: {{ duplicate.isbn }}</div>{% endif %}
+                    <div style="font-size:.78rem;color:var(--bs-secondary-color)">Mavjud: {{ duplicate.available_copies }}/{{ duplicate.total_copies }} nusxa</div>
+                    <a href="{% url 'admin_book_edit' duplicate.pk %}" style="display:inline-flex;align-items:center;gap:.3rem;margin-top:.6rem;padding:.3rem .75rem;border-radius:7px;background:rgba(99,102,241,.1);font-size:.78rem;font-weight:700;color:#6366f1;text-decoration:none">
+                        <i class="bi bi-pencil"></i> Tahrirlash
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div id="dupAlert" style="display:none;margin:0 1.5rem 1rem"></div>
+            {% endif %}
+
             <form method="post" enctype="multipart/form-data" id="bookForm">
                 {% csrf_token %}
                 <div class="bf-form-body">
@@ -444,8 +462,9 @@
                         <label class="bf-label">
                             <i class="bi bi-book"></i> Kitob nomi <span class="bf-required">*</span>
                         </label>
-                        <input type="text" name="title" class="bf-input" required
-                               value="{{ book.title|default:'' }}" placeholder="Masalan: Python asoslari">
+                        <input type="text" name="title" id="titleInput" class="bf-input" required
+                               value="{{ book.title|default:'' }}" placeholder="Masalan: Python asoslari"
+                               oninput="scheduleDupCheck()">
                     </div>
 
                     <!-- Author -->
@@ -453,8 +472,9 @@
                         <label class="bf-label">
                             <i class="bi bi-person"></i> Muallif <span class="bf-required">*</span>
                         </label>
-                        <input type="text" name="author" class="bf-input" required
-                               value="{{ book.author|default:'' }}" placeholder="Masalan: Abdullayev Vohid">
+                        <input type="text" name="author" id="authorInput" class="bf-input" required
+                               value="{{ book.author|default:'' }}" placeholder="Masalan: Abdullayev Vohid"
+                               oninput="scheduleDupCheck()">
                     </div>
 
                     <!-- ISBN + Copies -->
@@ -463,9 +483,10 @@
                             <label class="bf-label">
                                 <i class="bi bi-upc-scan"></i> ISBN
                             </label>
-                            <input type="text" name="isbn" class="bf-input"
-                                   value="{{ book.isbn|default:'' }}" placeholder="978-3-16-148410-0">
-                            <div class="bf-hint">Ixtiyoriy</div>
+                            <input type="text" name="isbn" id="isbnInput" class="bf-input"
+                                   value="{{ book.isbn|default:'' }}" placeholder="978-3-16-148410-0"
+                                   oninput="scheduleDupCheck()">
+                            <div class="bf-hint">Ixtiyoriy — ISBN bo'yicha ham takrorlash tekshiriladi</div>
                         </div>
                         <div class="bf-group">
                             <label class="bf-label">
@@ -626,6 +647,120 @@
             input.dispatchEvent(new Event('change'));
         }
     });
+})();
+
+/* ─── Duplicate tekshiruvi (add VA edit sahifalari uchun) ─── */
+(function() {
+  const EXCLUDE_ID = '{{ book.pk|default:"" }}';   /* tahrirlashda joriy kitobni o'zi chiqariladi */
+
+  let dupTimer = null;
+
+  window.scheduleDupCheck = function() {
+    clearTimeout(dupTimer);
+    dupTimer = setTimeout(checkDuplicate, 500);
+  };
+
+  /* Sahifa yuklanganda ham bir marta tekshir (tahrirlash uchun) */
+  document.addEventListener('DOMContentLoaded', function() {
+    const t = document.getElementById('titleInput');
+    if (t && t.value.trim().length >= 2) checkDuplicate();
+  });
+
+  async function checkDuplicate() {
+    const title = document.getElementById('titleInput').value.trim();
+    const author = document.getElementById('authorInput').value.trim();
+    const isbn = (document.getElementById('isbnInput')?.value || '').trim();
+    const alertBox = document.getElementById('dupAlert');
+
+    if (title.length < 2 && isbn.length < 3) {
+      alertBox.style.display = 'none';
+      return;
+    }
+
+    try {
+      let url = '/dashboard/books/check/?title=' + encodeURIComponent(title)
+              + '&author=' + encodeURIComponent(author);
+      if (isbn) url += '&isbn=' + encodeURIComponent(isbn);
+      if (EXCLUDE_ID) url += '&exclude_id=' + encodeURIComponent(EXCLUDE_ID);
+
+      const r = await fetch(url, { credentials: 'same-origin' });
+      const d = await r.json();
+
+      const exact = d.exact;
+      const similar = d.similar_books || [];
+
+      // Hech narsa topilmasa — yashir
+      if (!exact && !similar.length) {
+        alertBox.style.display = 'none';
+        return;
+      }
+
+      alertBox.style.display = 'block';
+      let html = '';
+
+      // 1. Exact duplicate — qizil blok (eng yuqorida)
+      if (exact) {
+        const reasonText = d.duplicate_reason === 'isbn'
+          ? `ISBN <strong>${esc(exact.isbn)}</strong> allaqachon mavjud`
+          : 'Nom va muallif bir xil';
+        html += `
+          <div style="background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.3);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.6rem">
+            <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:1.2rem;flex-shrink:0;margin-top:2px"></i>
+            <div style="flex:1">
+              <div style="font-weight:800;font-size:.92rem;color:#ef4444;margin-bottom:.25rem">Bu kitob allaqachon kutubxonada bor!</div>
+              <div style="font-size:.8rem;color:var(--text-color,#212529);margin-bottom:.25rem">${reasonText}</div>
+              <div style="font-size:.88rem;font-weight:600">
+                ${esc(exact.title)} — ${esc(exact.author)}
+                ${exact.isbn ? `<span style="color:var(--bs-secondary-color);font-size:.75rem;font-weight:400;margin-left:.35rem">ISBN: ${esc(exact.isbn)}</span>` : ''}
+              </div>
+              <div style="font-size:.78rem;color:var(--bs-secondary-color);margin-top:.2rem">
+                Mavjud: <strong>${exact.available_copies}/${exact.total_copies}</strong> nusxa
+              </div>
+              <a href="/dashboard/books/${exact.id}/edit/"
+                 style="display:inline-flex;align-items:center;gap:.3rem;margin-top:.55rem;padding:.3rem .75rem;border-radius:7px;background:rgba(99,102,241,.1);font-size:.78rem;font-weight:700;color:#6366f1;text-decoration:none">
+                <i class="bi bi-pencil"></i> Tahrirlash
+              </a>
+            </div>
+          </div>`;
+      }
+
+      // 2. O'xshash kitoblar — har doim ko'rsatiladi (exact bor bo'lsa ham)
+      if (similar.length) {
+        const rows = similar.map(b =>
+          `<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.35rem 0;border-bottom:1px solid rgba(0,0,0,.05)">
+            <div style="min-width:0">
+              <span style="font-size:.82rem;font-weight:600">${esc(b.title)}</span>
+              <span style="font-size:.78rem;color:var(--bs-secondary-color)"> — ${esc(b.author)}</span>
+              ${b.isbn ? `<span style="font-size:.7rem;color:var(--bs-secondary-color)"> · ${esc(b.isbn)}</span>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0">
+              <span style="font-size:.75rem;color:var(--bs-secondary-color);white-space:nowrap">${b.available_copies}/${b.total_copies} nusxa</span>
+              <a href="/dashboard/books/${b.id}/edit/"
+                 style="font-size:.72rem;font-weight:700;color:#6366f1;text-decoration:none;white-space:nowrap">
+                <i class="bi bi-pencil"></i>
+              </a>
+            </div>
+          </div>`).join('');
+
+        html += `
+          <div style="background:rgba(245,158,11,.07);border:1.5px solid rgba(245,158,11,.25);border-radius:12px;padding:.9rem 1.15rem">
+            <div style="font-weight:700;font-size:.82rem;color:#d97706;margin-bottom:.5rem;display:flex;align-items:center;gap:.4rem">
+              <i class="bi bi-search"></i> Kutubxonadagi o'xshash kitoblar
+            </div>
+            ${rows}
+            <div style="font-size:.72rem;color:var(--bs-secondary-color);margin-top:.5rem">
+              Agar haqiqatan yangi kitob bo'lsa — davom eting.
+            </div>
+          </div>`;
+      }
+
+      alertBox.innerHTML = html;
+    } catch (e) { alertBox.style.display = 'none'; }
+  }
+
+  function esc(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
 })();
 </script>
 {% endblock %}

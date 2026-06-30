@@ -17,6 +17,7 @@ from accounts.models import (
     AssistantActionLog,
     Book,
     BookRental,
+    BookRentalRequest,
     CertificateRequest,
     CourseApplication,
     CourseEnrollment,
@@ -26,6 +27,7 @@ from accounts.models import (
     HelpRequest,
     Homework,
     HomeworkSubmission,
+    Message,
     Parent,
     ParentMessage,
     PasswordResetRequest,
@@ -737,3 +739,152 @@ def yordamchi_rental_return(request, pk):
                     description=f"Kitob qaytarildi: {rental.book.title} <- {rental.student.full_name}")
         messages.success(request, f"{rental.book.title} qaytarildi.")
     return redirect(request.META.get('HTTP_REFERER') or 'yordamchi_rentals')
+
+
+# ============================================================
+# KUTUBXONA — KITOB ARIZALARI
+# ============================================================
+
+@login_required
+def yordamchi_book_requests(request):
+    """Kitob ijarasi arizalari ro'yxati — ko'rish va boshqarish."""
+    if not _require_perm(request, 'library.view'):
+        return redirect('home')
+
+    status_filter = request.GET.get('status', '').strip()
+    q = request.GET.get('q', '').strip()
+
+    qs = BookRentalRequest.objects.select_related('book', 'student', 'processed_by')
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if q:
+        qs = qs.filter(
+            Q(book__title__icontains=q)
+            | Q(student__first_name__icontains=q)
+            | Q(student__last_name__icontains=q)
+            | Q(student__phone__icontains=q)
+        )
+
+    paginator = Paginator(qs.order_by('-created_at'), 40)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    can_process = request.user.is_admin or request.user.has_assistant_perm('library.rental_add')
+
+    pending_count  = BookRentalRequest.objects.filter(status='pending').count()
+    approved_count = BookRentalRequest.objects.filter(status='approved').count()
+    rejected_count = BookRentalRequest.objects.filter(status='rejected').count()
+    total_count    = BookRentalRequest.objects.count()
+
+    return render(request, 'accounts/yordamchi/book_requests.html', {
+        'requests': page_obj.object_list,
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'q': q,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'can_process': can_process,
+    })
+
+
+@login_required
+def yordamchi_approve_book_request(request, pk):
+    """Kitob arizasini tasdiqlash va ijara yaratish."""
+    if not _require_perm(request, 'library.rental_add'):
+        return redirect('home')
+    if request.method != 'POST':
+        return redirect('yordamchi_book_requests')
+
+    req = get_object_or_404(BookRentalRequest.objects.select_related('book', 'student'), pk=pk)
+
+    if req.status != 'pending':
+        messages.warning(request, "Bu ariza allaqachon ko'rib chiqilgan.")
+        return redirect('yordamchi_book_requests')
+
+    book = req.book
+    if not book.is_available:
+        messages.error(request, f"«{book.title}» kitobi hozirda mavjud emas.")
+        return redirect('yordamchi_book_requests')
+
+    try:
+        days = max(1, min(int(request.POST.get('days', 14)), 90))
+    except (ValueError, TypeError):
+        days = 14
+    admin_note = request.POST.get('admin_note', '').strip()
+
+    from datetime import date, timedelta
+    return_date = date.today() + timedelta(days=days)
+
+    rental = BookRental.objects.create(
+        book=book,
+        student=req.student,
+        given_by=request.user,
+        return_date=return_date,
+        status='active',
+        notes=admin_note or None,
+    )
+    book.available_copies = max(0, book.available_copies - 1)
+    book.save(update_fields=['available_copies'])
+
+    req.status = 'approved'
+    req.processed_by = request.user
+    req.processed_at = timezone.now()
+    req.admin_note = admin_note
+    req.rental = rental
+    req.save()
+
+    Message.objects.create(
+        sender=request.user,
+        recipient=req.student,
+        message_type='notification',
+        content=(
+            f"✅ Sizning kitob arizangiz tasdiqlandi!\n"
+            f"Kitob: «{book.title}» — {book.author}\n"
+            f"Qaytarish sanasi: {return_date.strftime('%d.%m.%Y')}\n"
+            f"Iltimos, kitobni o'z vaqtida qaytaring!"
+        ),
+    )
+
+    _log_action(request, 'library.rental_add', target_type='BookRentalRequest', target_id=req.pk,
+                description=f"Kitob arizasi tasdiqlandi: {book.title} → {req.student.full_name}")
+    messages.success(request, f"Ariza tasdiqlandi. «{book.title}» {req.student.full_name}ga berildi.")
+    return redirect('yordamchi_book_requests')
+
+
+@login_required
+def yordamchi_reject_book_request(request, pk):
+    """Kitob arizasini rad etish."""
+    if not _require_perm(request, 'library.rental_add'):
+        return redirect('home')
+    if request.method != 'POST':
+        return redirect('yordamchi_book_requests')
+
+    req = get_object_or_404(BookRentalRequest.objects.select_related('book', 'student'), pk=pk)
+
+    if req.status != 'pending':
+        messages.warning(request, "Bu ariza allaqachon ko'rib chiqilgan.")
+        return redirect('yordamchi_book_requests')
+
+    admin_note = request.POST.get('admin_note', '').strip()
+    req.status = 'rejected'
+    req.processed_by = request.user
+    req.processed_at = timezone.now()
+    req.admin_note = admin_note
+    req.save()
+
+    Message.objects.create(
+        sender=request.user,
+        recipient=req.student,
+        message_type='notification',
+        content=(
+            f"❌ Afsuski, kitob arizangiz rad etildi.\n"
+            f"Kitob: «{req.book.title}» — {req.book.author}\n"
+            + (f"Sabab: {admin_note}" if admin_note else "")
+        ),
+    )
+
+    _log_action(request, 'library.view', target_type='BookRentalRequest', target_id=req.pk,
+                description=f"Kitob arizasi rad etildi: {req.book.title} ← {req.student.full_name}")
+    messages.success(request, f"Ariza rad etildi.")
+    return redirect('yordamchi_book_requests')

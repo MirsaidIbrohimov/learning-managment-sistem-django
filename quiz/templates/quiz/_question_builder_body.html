@@ -1,0 +1,141 @@
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<div class="qz-page" id="qbApp" data-question-id="{{ question_id|default:'' }}">
+    <a href="{% url 'quizui:question_bank' %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytish
+    </a>
+
+    <div class="qz-hero">
+        <div class="qz-hero-left">
+            <div class="qz-hero-icon purple"><i class="bi bi-patch-question-fill"></i></div>
+            <div>
+                <h1 class="qz-hero-title" id="qbTitle">Yangi savol</h1>
+                <p class="qz-hero-subtitle">Savol bazasi uchun yangi savol yarating. Bir savol bir nechta testga qo'shilishi mumkin.</p>
+            </div>
+        </div>
+        <div class="qz-hero-actions">
+            <span class="d-none align-self-center" id="qbErrorSummary" style="color:#b91c1c;font-weight:500;font-size:.85rem;"></span>
+            <button class="qz-btn qz-btn-primary" id="qbSaveBtn">
+                <i class="bi bi-check2"></i> Saqlash
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <div class="qz-surface mb-4">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title"><i class="bi bi-card-text"></i> Savol matni</div>
+                </div>
+                <div class="qz-surface-body">
+                    <div class="mb-3">
+                        <label class="form-label">Savol</label>
+                        <textarea class="form-control" id="qbText" rows="3" placeholder="Savolni shu yerga yozing..."></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Izoh <span class="text-muted">(ixtiyoriy — javobdan keyin ko'rsatiladi)</span></label>
+                        <textarea class="form-control" id="qbExplanation" rows="2" placeholder="To'g'ri javobning tushuntirishi..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="qz-surface mb-4">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title"><i class="bi bi-list-check"></i> Javob variantlari</div>
+                    <button class="qz-btn qz-btn-ghost" id="qbAddOption" style="padding:8px 14px;font-size:.85rem;">
+                        <i class="bi bi-plus-lg"></i> Variant qo'shish
+                    </button>
+                </div>
+                <div class="qz-surface-body" id="qbOptionsPanel">
+                    <div id="qbOptionsList"></div>
+                    <p class="text-muted small mb-0 mt-2" id="qbOptionsHint">
+                        <i class="bi bi-info-circle"></i> Yashil belgi qo'yilgan variantlar to'g'ri javob hisoblanadi.
+                    </p>
+                </div>
+            </div>
+
+            <div class="qz-surface mb-4 d-none" id="qbShortAnswerPanel">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title"><i class="bi bi-input-cursor-text"></i> Qabul qilinadigan javoblar</div>
+                    <button class="qz-btn qz-btn-ghost" id="qbAddShortAnswer" style="padding:8px 14px;font-size:.85rem;">
+                        <i class="bi bi-plus-lg"></i> Javob qo'shish
+                    </button>
+                </div>
+                <div class="qz-surface-body">
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-info-circle"></i> Bittasiga to'g'ri kelsa kifoya. Katta-kichik harf farq qilmaydi.
+                    </p>
+                    <div id="qbShortAnswersList"></div>
+                </div>
+            </div>
+
+            <div class="qz-surface d-none" id="qbEssayPanel">
+                <div class="qz-surface-body">
+                    <div class="qz-empty" style="padding:32px 16px;">
+                        <div class="qz-empty-icon" style="width:64px;height:64px;font-size:1.5rem;"><i class="bi bi-pencil-fill"></i></div>
+                        <h4>Esse turi — qo'lda baholanadi</h4>
+                        <p class="mb-0">Esse savollari uchun o'qituvchi har bir javobni alohida baholaydi. Qo'shimcha sozlama talab qilinmaydi.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <div class="qz-surface">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title"><i class="bi bi-sliders"></i> Sozlamalar</div>
+                </div>
+                <div class="qz-surface-body">
+                    <div class="mb-3">
+                        <label class="form-label">Savol turi</label>
+                        <select class="form-select" id="qbType">
+                            <option value="single_choice">Bitta to'g'ri javob</option>
+                            <option value="multiple_choice">Bir nechta to'g'ri javob</option>
+                            <option value="true_false">To'g'ri / Noto'g'ri</option>
+                            <option value="short_answer">Qisqa javob (matn)</option>
+                            <option value="essay">Esse (qo'lda baho)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qiyinlik darajasi</label>
+                        <select class="form-select" id="qbDifficulty">
+                            <option value="easy">Oson</option>
+                            <option value="medium" selected>O'rta</option>
+                            <option value="hard">Qiyin</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ball <span class="text-muted">(standart)</span></label>
+                        <input type="number" min="1" class="form-control" id="qbPoints" value="1">
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Holat</label>
+                        <select class="form-select" id="qbStatus">
+                            <option value="published" selected>Chop etilgan</option>
+                            <option value="draft">Qoralama</option>
+                            <option value="archived">Arxivlangan</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="qbOptionRowTemplate">
+    <div class="qb-option-row">
+        <input type="checkbox" class="form-check-input qb-correct-check" title="To'g'ri javob">
+        <input type="text" class="qb-option-text" placeholder="Javob matni...">
+        <button type="button" class="qb-remove-option" title="O'chirish"><i class="bi bi-trash"></i></button>
+    </div>
+</template>
+
+<template id="qbShortAnswerRowTemplate">
+    <div class="qb-option-row" style="margin-bottom:8px;">
+        <i class="bi bi-card-text" style="color:var(--quizui-text-muted);font-size:1rem;margin-left:4px;"></i>
+        <input type="text" class="qb-option-text qb-short-answer-text" placeholder="Qabul qilinadigan javob...">
+        <button type="button" class="qb-remove-option qb-remove-short-answer" title="O'chirish"><i class="bi bi-trash"></i></button>
+    </div>
+</template>
+
+<div class="quizui-toast-stack" id="quizToastStack"></div>

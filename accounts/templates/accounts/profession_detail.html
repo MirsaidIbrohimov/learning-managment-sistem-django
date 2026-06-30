@@ -616,9 +616,10 @@
 
 .roadmap-nodes {
     display: flex; align-items: flex-start; position: relative;
-    overflow-x: auto; padding: .35rem 0 .5rem;
+    overflow-x: auto; padding: 26px 0 .5rem;
     scrollbar-width: none; -ms-overflow-style: none;
     scroll-snap-type: x proximity;
+    scroll-padding: 0 50%;
 }
 .roadmap-nodes::-webkit-scrollbar { display: none; }
 
@@ -631,7 +632,7 @@
 .roadmap-node:hover { transform: translateY(-4px); }
 
 .roadmap-connector {
-    position: absolute; top: 26px; left: 0; right: 0; height: 4px;
+    position: absolute; top: 52px; left: 0; right: 0; height: 4px;
     z-index: 0; pointer-events: none;
 }
 .roadmap-connector-bg {
@@ -747,6 +748,94 @@
 .roadmap-progress-text {
     font-size: .82rem; font-weight: 800; color: #10b981;
     min-width: 40px; text-align: right;
+}
+
+/* ── ROADMAP (enhanced UX) ─────────────────────────────── */
+.roadmap-scroll { position: relative; }
+
+/* Chap/o'ng surish tugmalari */
+.rm-scroll-btn {
+    position: absolute; top: 52px; transform: translateY(-50%);
+    z-index: 6; width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--card-border); background: var(--card-bg);
+    color: #6366f1; font-size: 1rem; cursor: pointer; padding: 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,.12);
+    transition: opacity .25s, transform .2s, background .2s, color .2s;
+}
+.rm-scroll-btn:hover { background: #6366f1; color: #fff; transform: translateY(-50%) scale(1.08); }
+.rm-scroll-btn:active { transform: translateY(-50%) scale(.94); }
+.rm-scroll-btn[hidden] { display: none; }
+.rm-scroll-prev { left: -6px; }
+.rm-scroll-next { right: -6px; }
+[data-bs-theme="dark"] .rm-scroll-btn { box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+
+/* Header percent chip */
+.rm-head-pct {
+    flex-shrink: 0; font-size: .8rem; font-weight: 800; color: #10b981;
+    background: rgba(16,185,129,.12); padding: .28rem .6rem; border-radius: 999px;
+    line-height: 1; min-width: 44px; text-align: center;
+}
+[data-bs-theme="dark"] .rm-head-pct { background: rgba(16,185,129,.18); color: #4ade80; }
+
+/* "Siz shu yerda" pill above the active node */
+.rn-here {
+    position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+    display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+    font-size: .6rem; font-weight: 800; letter-spacing: .2px;
+    color: #fff; background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    padding: .18rem .45rem; border-radius: 999px; z-index: 5;
+    box-shadow: 0 4px 10px rgba(99,102,241,.4);
+    animation: rnHereBob 2s ease-in-out infinite;
+}
+.rn-here::after {
+    content: ''; position: absolute; bottom: -3px; left: 50%; transform: translateX(-50%) rotate(45deg);
+    width: 7px; height: 7px; background: #7c5cf0;
+}
+@keyframes rnHereBob { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-3px); } }
+
+/* Lesson-count meta under each label */
+.rn-meta {
+    font-size: .62rem; font-weight: 700; color: #b0b0b8;
+    background: var(--card-border); border-radius: 999px;
+    padding: .08rem .42rem; line-height: 1.4;
+}
+[data-bs-theme="dark"] .rn-meta { color: #94a3b8; }
+.roadmap-node.rn-completed .rn-meta { color: #10b981; background: rgba(16,185,129,.12); }
+.roadmap-node.rn-active .rn-meta { color: #6366f1; background: rgba(99,102,241,.12); }
+[data-bs-theme="dark"] .roadmap-node.rn-completed .rn-meta { color: #4ade80; }
+[data-bs-theme="dark"] .roadmap-node.rn-active .rn-meta { color: #a5b4fc; }
+
+/* Upcoming nodes: clear "not yet started" affordance */
+.roadmap-node.rn-upcoming .rn-circle { border-style: dashed; color: #b0b0b8; }
+.roadmap-node:not(.rn-locked):hover .rn-circle {
+    border-color: #6366f1; box-shadow: 0 6px 18px rgba(99,102,241,.25);
+}
+.roadmap-node:focus-visible { outline: none; }
+.roadmap-node:focus-visible .rn-circle {
+    box-shadow: 0 0 0 3px var(--card-bg), 0 0 0 5px #6366f1;
+}
+
+/* Locked node shake on click */
+@keyframes rnShake {
+    10%,90% { transform: translateX(-1px); }
+    20%,80% { transform: translateX(2px); }
+    30%,50%,70% { transform: translateX(-4px); }
+    40%,60% { transform: translateX(4px); }
+}
+.roadmap-node.rn-shake { animation: rnShake .5s cubic-bezier(.36,.07,.19,.97); }
+
+/* Target-section flash highlight when arriving from a node */
+@keyframes rmFlash {
+    0% { box-shadow: 0 0 0 0 rgba(99,102,241,.5); }
+    100% { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+}
+.section-card.rm-flash { animation: rmFlash 1s ease-out; border-color: #6366f1 !important; }
+
+@media (max-width: 480px) {
+    .roadmap-node { min-width: 72px; }
+    .rn-circle { width: 46px; height: 46px; }
+    .roadmap-connector { top: 49px; }
 }
 
 /* ── CERTIFICATE SECTION ───────────────────────────────── */
@@ -1014,30 +1103,41 @@
         {% if sections or lessons_without_section %}
 
         <!-- Course Roadmap Nodes -->
-        {% if sections %}
-        <div class="roadmap-card" id="courseRoadmap">
+        {% if course_roadmap.nodes %}
+        <div class="roadmap-card" id="courseRoadmap" data-progress="{{ course_roadmap.progress }}">
             <div class="roadmap-wrap">
                 <div class="roadmap-head">
                     <div class="rm-head-icon"><i class="bi bi-signpost-split-fill"></i></div>
                     <div class="rm-head-text">
                         <div class="roadmap-title">Kurs yo'l xaritasi</div>
-                        <div class="roadmap-subtitle">Bo'limni bosib, darslarga o'ting</div>
+                        <div class="roadmap-subtitle">{{ course_roadmap.completed_count }}/{{ course_roadmap.total }} bo'lim tugallandi · bosib o'ting</div>
                     </div>
+                    <div class="rm-head-pct" id="rmHeadPct">0%</div>
                 </div>
-                <div style="position:relative;">
+                <div class="roadmap-scroll">
+                    <button type="button" class="rm-scroll-btn rm-scroll-prev" id="rmScrollPrev" aria-label="Chapga surish" hidden>
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="rm-scroll-btn rm-scroll-next" id="rmScrollNext" aria-label="O'ngga surish" hidden>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
                     <div class="roadmap-connector">
                         <div class="roadmap-connector-bg"></div>
                         <div class="roadmap-connector-fill" id="rmConnectorFill"></div>
                     </div>
                     <div class="roadmap-nodes" id="rmNodes">
-                        {% for section in sections %}
-                        <div class="roadmap-node" data-section-idx="{{ forloop.counter0 }}" data-section-id="{{ section.id }}" id="rmNode{{ forloop.counter0 }}">
+                        {% for node in course_roadmap.nodes %}
+                        <div class="roadmap-node rn-{{ node.state }}" data-section-id="{{ node.id }}" data-state="{{ node.state }}"
+                             id="rmNode{{ forloop.counter0 }}" tabindex="0" role="button"
+                             title="{{ node.title }}" aria-label="{{ node.num }}. {{ node.title }}">
+                            {% if node.state == 'active' %}<span class="rn-here"><i class="bi bi-geo-alt-fill"></i> Siz shu yerda</span>{% endif %}
                             <div class="rn-circle">
-                                <span class="rn-num">{{ forloop.counter }}</span>
-                                <div class="rn-check"><i class="bi bi-check"></i></div>
+                                <span class="rn-num">{{ node.num }}</span>
+                                <div class="rn-check"><i class="bi bi-check-lg"></i></div>
                                 <div class="rn-lock"><i class="bi bi-lock-fill"></i></div>
                             </div>
-                            <div class="rn-label">{{ section.title|truncatechars:20 }}</div>
+                            <div class="rn-label">{{ node.title|truncatechars:22 }}</div>
+                            <div class="rn-meta">{{ node.lessons_count }} dars</div>
                         </div>
                         {% endfor %}
                     </div>
@@ -1069,7 +1169,7 @@
         <!-- Sections -->
         {% for section in sections %}
         {% with section_locked=section_is_locked|get_item:section.id daily_locked=section_daily_locked|get_item:section.id %}
-        <div class="section-card {% if section_locked %}section-locked{% endif %}">
+        <div class="section-card {% if section_locked %}section-locked{% endif %}" id="section-{{ section.id }}">
             <div class="section-header {% if forloop.first and not section_locked %}active{% endif %}" onclick="{% if not section_locked %}toggleSection(this){% endif %}">
                 <h6 class="section-title">
                     <div class="section-icon {% if section_locked %}opacity-50{% endif %}">
@@ -1128,6 +1228,7 @@
                 {% endfor %}
                 {% elif section.lessons.all %}
                     {% for lesson in section.lessons.all %}
+                    {% if lesson.lesson_type != 'test' or lesson.test.test_type != 'final' %}
                     {% with lock_status=lesson_is_locked|get_item:lesson.pk %}
                     {% if lock_status == 'sequential' %}
                     <div class="lesson-item" style="opacity:0.5;cursor:not-allowed;pointer-events:none;">
@@ -1244,6 +1345,7 @@
                     </a>
                     {% endif %}
                     {% endwith %}
+                    {% endif %}
                     {% endfor %}
                 {% else %}
                     <div class="empty-section">
@@ -1262,7 +1364,7 @@
                             <i class="bi bi-pencil me-1"></i>Vazifa
                         </a>
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=test" class="btn btn-sm btn-outline-success rounded-pill">
-                            <i class="bi bi-patch-question me-1"></i>Test
+                            <i class="bi bi-patch-question-fill me-1"></i>Quiz
                         </a>
                         <a href="{% url 'add_lesson' profession.pk %}?section={{ section.pk }}&type=dictionary" class="btn btn-sm btn-outline-info rounded-pill">
                             <i class="bi bi-translate me-1"></i>Lug'at
@@ -1306,6 +1408,7 @@
                 </div>
                 {% else %}
                 {% for lesson in lessons_without_section %}
+                {% if lesson.lesson_type == 'test' and lesson.test.test_type == 'final' %}{% else %}
                 {% if request.user.is_student and token_map %}
                 <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
                 {% else %}
@@ -1376,13 +1479,14 @@
                         {% endwith %}
                     </div>
                 </a>
+                {% endif %}
                 {% endfor %}
                 {% endif %}
             </div>
         </div>
         {% endwith %}
         {% endif %}
-        
+
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
@@ -1394,6 +1498,147 @@
             {% endif %}
         </div>
         {% endif %}
+
+        <!-- ── YAKUNIY TEST SECTION ─────────────────────── -->
+        {% if final_test_lessons %}
+        <div style="margin-top:1.25rem;">
+            <div style="
+                background: linear-gradient(135deg, rgba(239,68,68,0.08), rgba(185,28,28,0.04));
+                border: 2px solid rgba(239,68,68,0.25);
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 4px 24px rgba(239,68,68,0.1);
+            ">
+                <!-- Header -->
+                <div style="
+                    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+                    padding: 1rem 1.25rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.75rem;
+                    position: relative;
+                    overflow: hidden;
+                ">
+                    <div style="
+                        width: 42px; height: 42px;
+                        background: rgba(255,255,255,0.18);
+                        border-radius: 12px;
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 1.3rem;
+                        border: 1px solid rgba(255,255,255,0.25);
+                        flex-shrink: 0;
+                    ">
+                        <i class="bi bi-shield-lock-fill text-white"></i>
+                    </div>
+                    <div>
+                        <div style="color:#fff;font-weight:800;font-size:1rem;letter-spacing:.03em;">
+                            YAKUNIY TEST
+                        </div>
+                        <div style="color:rgba(255,255,255,0.8);font-size:0.78rem;">
+                            Kursni yakunlash uchun majburiy imtihon
+                        </div>
+                    </div>
+                    <div style="margin-left:auto;">
+                        <span style="
+                            background: rgba(255,255,255,0.2);
+                            border: 1px solid rgba(255,255,255,0.3);
+                            border-radius: 20px;
+                            padding: 0.25rem 0.75rem;
+                            font-size: 0.72rem;
+                            font-weight: 700;
+                            color: #fff;
+                            letter-spacing: .04em;
+                        ">{{ final_test_lessons|length }} test</span>
+                    </div>
+                </div>
+
+                <!-- Test items -->
+                <div style="padding: 0.5rem 0;">
+                {% for item in final_test_lessons %}
+                {% with lesson=item.lesson test=item.test payment_status=item.payment_status progress=item.progress %}
+                {% if request.user.is_student and item.token %}
+                <a href="{% url 'student_lesson_view' item.token.token %}" style="text-decoration:none;">
+                {% else %}
+                <a href="{% url 'lesson_view' lesson.pk %}" style="text-decoration:none;">
+                {% endif %}
+                    <div style="
+                        display: flex;
+                        align-items: center;
+                        gap: 1rem;
+                        padding: 0.9rem 1.25rem;
+                        border-bottom: 1px solid rgba(239,68,68,0.08);
+                        transition: background 0.2s;
+                    " onmouseover="this.style.background='rgba(239,68,68,0.05)'" onmouseout="this.style.background='transparent'">
+                        <!-- Icon -->
+                        <div style="
+                            width: 44px; height: 44px;
+                            background: linear-gradient(135deg, #ef4444, #dc2626);
+                            border-radius: 12px;
+                            display: flex; align-items: center; justify-content: center;
+                            font-size: 1.2rem;
+                            color: #fff;
+                            flex-shrink: 0;
+                            box-shadow: 0 3px 10px rgba(239,68,68,0.35);
+                        ">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <!-- Info -->
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                {{ lesson.title }}
+                            </div>
+                            <div style="font-size: 0.75rem; color: #ef4444; font-weight: 600; margin-top: 0.1rem;">
+                                <i class="bi bi-award-fill me-1"></i>Yakuniy imtihon · {{ test.time_limit }} daqiqa · {{ test.passing_score }}% o'tish bali
+                            </div>
+                        </div>
+                        <!-- Status badge -->
+                        <div style="flex-shrink:0;">
+                            {% if payment_status == 'pending' %}
+                            <span style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-hourglass-split me-1"></i>To'lov kutilmoqda
+                            </span>
+                            {% elif payment_status == 'approved' %}
+                            <span style="background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Tasdiqlangan
+                            </span>
+                            {% elif progress and progress.passed %}
+                            <span style="background:rgba(16,185,129,0.12);color:#059669;border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-trophy-fill me-1"></i>O'tdi ({{ progress.score }}%)
+                            </span>
+                            {% elif progress and not progress.passed %}
+                            <span style="background:rgba(239,68,68,0.1);color:#dc2626;border:1px solid rgba(239,68,68,0.25);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-x-circle-fill me-1"></i>Qayta topshiring
+                            </span>
+                            {% else %}
+                            <span style="background:rgba(99,102,241,0.1);color:#6366f1;border:1px solid rgba(99,102,241,0.25);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-play-fill me-1"></i>Topshirish
+                            </span>
+                            {% endif %}
+                        </div>
+                        <i class="bi bi-chevron-right" style="color:rgba(239,68,68,0.5);font-size:.8rem;flex-shrink:0;"></i>
+                    </div>
+                </a>
+                {% endwith %}
+                {% endfor %}
+                </div>
+
+                <!-- Footer info -->
+                <div style="
+                    background: rgba(239,68,68,0.04);
+                    border-top: 1px solid rgba(239,68,68,0.12);
+                    padding: 0.75rem 1.25rem;
+                    display: flex; align-items: center; gap: 0.5rem;
+                ">
+                    <i class="bi bi-info-circle-fill" style="color:#ef4444;font-size:0.85rem;flex-shrink:0;"></i>
+                    <span style="font-size:0.78rem;color:var(--text-muted);line-height:1.4;">
+                        Yakuniy test birinchi marta bepul topshiriladi. Qayta topshirish uchun <strong style="color:#ef4444;">43,000 so'm</strong> to'lov kerak.
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <!-- ── /YAKUNIY TEST SECTION ──────────────────────── -->
+
     </div><!-- /cd-main-body -->
 </div><!-- /cd-main -->
 
@@ -1590,136 +1835,137 @@ if (ueOverlay) {
 }
 
 // ===== Course Roadmap Nodes Engine =====
+// Holatlar (completed/active/locked/upcoming) server tomonda hisoblanib,
+// markupga rn-* klass sifatida qo'yiladi. Bu yer faqat animatsiya va
+// interaktivlik bilan shug'ullanadi (mijozda holatni qayta hisoblamaymiz).
 (function() {
     var roadmap = document.getElementById('courseRoadmap');
     if (!roadmap) return;
 
-    var nodes = document.querySelectorAll('#rmNodes .roadmap-node');
+    var scroller = document.getElementById('rmNodes');
+    var nodes = roadmap.querySelectorAll('.roadmap-node');
     var connectorFill = document.getElementById('rmConnectorFill');
     var progressFill = document.getElementById('rmProgressFill');
     var progressText = document.getElementById('rmProgressText');
-    var totalSections = nodes.length;
-    if (totalSections === 0) return;
+    var headPct = document.getElementById('rmHeadPct');
+    if (!nodes.length) return;
 
-    // Analyze each section's completion by scanning lesson-items inside section-body
-    var sectionCards = document.querySelectorAll('.section-card');
-    var sectionStates = []; // 'completed' | 'active' | 'locked'
+    var progress = parseInt(roadmap.dataset.progress || '0', 10);
+    if (isNaN(progress)) progress = 0;
 
-    sectionCards.forEach(function(card, idx) {
-        if (idx >= totalSections) return; // skip "Boshqa darslar"
+    // Faol nodegacha bo'lgan ulanish chizig'i to'ldiriladi
+    var states = Array.prototype.map.call(nodes, function(n) { return n.dataset.state; });
+    var total = states.length;
+    var activeIdx = states.indexOf('active');
+    var completedCount = states.filter(function(s) { return s === 'completed'; }).length;
 
-        if (card.classList.contains('section-locked')) {
-            sectionStates.push('locked');
-            return;
-        }
-
-        var lessons = card.querySelectorAll('.lesson-item');
-        var completedBadges = card.querySelectorAll('.status-badge.completed, .status-badge.graded');
-        var totalLessons = lessons.length;
-        var completedCount = completedBadges.length;
-
-        if (totalLessons === 0) {
-            sectionStates.push('active');
-        } else if (completedCount >= totalLessons) {
-            sectionStates.push('completed');
-        } else {
-            sectionStates.push('active');
-        }
-    });
-
-    // Fill remaining if fewer section cards
-    while (sectionStates.length < totalSections) {
-        sectionStates.push('locked');
+    function connectorTarget() {
+        if (total <= 1) return completedCount > 0 ? 100 : 0;
+        var reach = activeIdx >= 0 ? activeIdx : completedCount; // faol node markazigacha
+        return Math.min(100, (reach / (total - 1)) * 100);
     }
 
-    // Find first non-completed section (active one)
-    var activeIdx = -1;
-    var completedSections = 0;
-    for (var i = 0; i < sectionStates.length; i++) {
-        if (sectionStates[i] === 'completed') {
-            completedSections++;
-        } else if (activeIdx === -1 && sectionStates[i] !== 'locked') {
-            activeIdx = i;
-        }
-    }
-    // If all completed
-    if (completedSections === totalSections) {
-        activeIdx = -1; // no active, all done
-    }
+    // ---- Animatsiyalar (sahifa ko'ringanda) ----
+    function animate() {
+        connectorFill.style.width = connectorTarget() + '%';
+        progressFill.style.width = progress + '%';
 
-    // Apply states to nodes with staggered animation
-    nodes.forEach(function(node, idx) {
-        setTimeout(function() {
-            if (sectionStates[idx] === 'completed') {
-                node.classList.add('rn-completed');
-            } else if (idx === activeIdx) {
-                node.classList.add('rn-active');
-            } else if (sectionStates[idx] === 'locked') {
-                node.classList.add('rn-locked');
-            }
-        }, idx * 120);
-    });
-
-    // Animate connector fill
-    setTimeout(function() {
-        if (totalSections <= 1) {
-            if (completedSections > 0) {
-                connectorFill.style.width = '100%';
-            }
-            return;
-        }
-        var fillTo = completedSections > 0 ? ((completedSections - 1) / (totalSections - 1)) * 100 : 0;
-        if (activeIdx > 0) {
-            fillTo = Math.max(fillTo, ((activeIdx - 0.5) / (totalSections - 1)) * 100);
-        }
-        var bgEl = connectorFill.previousElementSibling;
-        if (bgEl) {
-            var bgWidth = bgEl.offsetWidth;
-            connectorFill.style.width = Math.min(fillTo, 100) + '%';
-        } else {
-            connectorFill.style.width = Math.min(fillTo, 100) + '%';
-        }
-    }, 300);
-
-    // Animate progress bar
-    var pct = totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
-    setTimeout(function() {
-        progressFill.style.width = pct + '%';
-        // Count up animation
         var current = 0;
-        var step = Math.max(1, Math.ceil(pct / 30));
-        var countInterval = setInterval(function() {
-            current += step;
-            if (current >= pct) {
-                current = pct;
-                clearInterval(countInterval);
-            }
+        var step = Math.max(1, Math.ceil(progress / 28));
+        var timer = setInterval(function() {
+            current = Math.min(progress, current + step);
             progressText.textContent = current + '%';
-        }, 40);
-    }, 500);
+            if (headPct) headPct.textContent = current + '%';
+            if (current >= progress) clearInterval(timer);
+        }, 35);
+    }
 
-    // Click on node → scroll to and open that section
-    nodes.forEach(function(node, idx) {
-        node.addEventListener('click', function() {
-            if (idx >= sectionCards.length) return;
-            var card = sectionCards[idx];
-            if (card.classList.contains('section-locked')) return;
+    var started = false;
+    function trigger() {
+        if (started) return;
+        started = true;
+        setTimeout(animate, 250);
+    }
 
-            // Close all, open clicked
-            document.querySelectorAll('.section-header').forEach(function(h) { h.classList.remove('active'); });
-            document.querySelectorAll('.section-body').forEach(function(b) { b.classList.remove('show'); });
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function(entries) {
+            entries.forEach(function(e) {
+                if (e.isIntersecting) { trigger(); io.disconnect(); }
+            });
+        }, { threshold: 0.25 });
+        io.observe(roadmap);
+    } else {
+        trigger();
+    }
 
-            var header = card.querySelector('.section-header');
-            var body = card.querySelector('.section-body');
-            if (header) header.classList.add('active');
-            if (body) body.classList.add('show');
+    // ---- Faol nodeni gorizontal markazga keltirish ----
+    if (scroller) {
+        var activeNode = roadmap.querySelector('.roadmap-node.rn-active') ||
+                         roadmap.querySelector('.roadmap-node.rn-upcoming');
+        if (activeNode) {
+            var offset = activeNode.offsetLeft - (scroller.clientWidth / 2) + (activeNode.clientWidth / 2);
+            scroller.scrollTo({ left: Math.max(0, offset), behavior: 'smooth' });
+        }
+    }
 
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // ---- Chap/o'ng surish tugmalari ----
+    if (scroller) {
+        var btnPrev = document.getElementById('rmScrollPrev');
+        var btnNext = document.getElementById('rmScrollNext');
 
-            // Ripple effect on node circle
-            var circle = node.querySelector('.rn-circle');
+        function updateScrollBtns() {
+            var max = scroller.scrollWidth - scroller.clientWidth;
+            var canScroll = max > 4;
+            var x = scroller.scrollLeft;
+            if (btnPrev) btnPrev.hidden = !canScroll || x <= 2;
+            if (btnNext) btnNext.hidden = !canScroll || x >= max - 2;
+        }
+        function scrollByStep(dir) {
+            var step = Math.max(140, scroller.clientWidth * 0.7);
+            scroller.scrollBy({ left: dir * step, behavior: 'smooth' });
+        }
+        if (btnPrev) btnPrev.addEventListener('click', function() { scrollByStep(-1); });
+        if (btnNext) btnNext.addEventListener('click', function() { scrollByStep(1); });
+        scroller.addEventListener('scroll', updateScrollBtns, { passive: true });
+        window.addEventListener('resize', updateScrollBtns);
+        setTimeout(updateScrollBtns, 400); // markazlash animatsiyasidan keyin
+    }
+
+    // ---- Node bosilganda: bo'limga o'tish + akkordeonni ochish ----
+    function goToSection(node) {
+        if (node.dataset.state === 'locked') {
+            node.classList.remove('rn-shake');
+            void node.offsetWidth; // reflow → animatsiyani qayta ishga tushirish
+            node.classList.add('rn-shake');
+            return;
+        }
+        var card = document.getElementById('section-' + node.dataset.sectionId);
+        if (!card || card.classList.contains('section-locked')) return;
+
+        document.querySelectorAll('.section-header').forEach(function(h) { h.classList.remove('active'); });
+        document.querySelectorAll('.section-body').forEach(function(b) { b.classList.remove('show'); });
+
+        var header = card.querySelector('.section-header');
+        var body = card.querySelector('.section-body');
+        if (header) header.classList.add('active');
+        if (body) body.classList.add('show');
+
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.remove('rm-flash');
+        void card.offsetWidth;
+        card.classList.add('rm-flash');
+
+        var circle = node.querySelector('.rn-circle');
+        if (circle) {
             circle.style.transform = 'scale(0.85)';
             setTimeout(function() { circle.style.transform = ''; }, 200);
+        }
+    }
+
+    nodes.forEach(function(node) {
+        node.addEventListener('click', function() { goToSection(node); });
+        node.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goToSection(node); }
         });
     });
 })();

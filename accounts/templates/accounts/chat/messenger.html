@@ -13,6 +13,10 @@
     <!-- ============ SIDEBAR ============ -->
     <aside class="mz-side" id="mzSide">
         <div class="mz-side-head">
+            <div class="mz-side-top-row">
+                <div class="mz-side-title">Suhbatlar</div>
+                <div class="mz-compose-btn" title="Yangi xabar" id="mzComposeBtn"><i class="bi bi-pencil-square"></i></div>
+            </div>
             <div class="mz-search">
                 <i class="bi bi-search"></i>
                 <input type="text" id="mzSearch" placeholder="Qidiruv yoki yangi xabar...">
@@ -105,8 +109,21 @@
         </div>
 
         <div class="mz-placeholder" id="mzPlaceholder" {% if initial_kind %}style="display:none;"{% endif %}>
-            <i class="bi bi-chat-heart"></i>
-            <div>Suhbatni tanlang</div>
+            <div class="mz-placeholder-scene">
+                <span class="mz-ph-dot"></span>
+                <span class="mz-ph-dot"></span>
+                <span class="mz-ph-dot"></span>
+                <div class="mz-placeholder-icon-wrap">
+                    <i class="bi bi-chat-heart-fill"></i>
+                </div>
+            </div>
+            <h3>Suhbatni tanlang</h3>
+            <p>Chap tomondagi ro'yxatdan suhbat tanlang yoki yangi xabar boshlang</p>
+            <div class="mz-ph-chips">
+                <span class="mz-ph-chip"><i class="bi bi-search"></i> Qidirish</span>
+                <span class="mz-ph-chip"><i class="bi bi-pencil-square"></i> Yangi xabar</span>
+                <span class="mz-ph-chip"><i class="bi bi-people-fill"></i> Guruhlar</span>
+            </div>
         </div>
 
         <div class="mz-scroll-bottom" id="mzScrollBottom" title="Pastga tushish">
@@ -157,6 +174,11 @@
 {% block extra_js %}
 {% include 'accounts/chat/_messenger_script.html' %}
 <script>
+document.getElementById('mzComposeBtn')?.addEventListener('click', () => {
+    const s = document.getElementById('mzSearch');
+    if (s) { s.value = ''; s.focus(); s.dispatchEvent(new Event('input')); }
+});
+
 MZChat.init({
     initialKind: {% if initial_kind %}"{{ initial_kind }}"{% else %}null{% endif %},
     initialId: {% if initial_id %}{{ initial_id }}{% else %}null{% endif %},

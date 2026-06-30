@@ -1,0 +1,285 @@
+{% extends 'accounts/yordamchi/base_yordamchi.html' %}
+{% block title %}Kitob arizalari{% endblock %}
+{% block page_title %}Kitob ijarasi arizalari{% endblock %}
+
+{% block extra_head %}
+<style>
+.brq-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:.85rem; margin-bottom:1.5rem; }
+@media(max-width:640px){ .brq-stats { grid-template-columns:repeat(2,1fr); } }
+.brq-stat {
+    background:var(--yo-card-bg); border:1px solid var(--yo-border); border-radius:14px;
+    padding:1rem 1.1rem; text-align:center; cursor:pointer; text-decoration:none;
+    display:flex; flex-direction:column; align-items:center; gap:.3rem;
+    transition:transform .2s,box-shadow .2s;
+}
+.brq-stat:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,.09); }
+.brq-stat-icon { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; }
+.brq-stat.all   .brq-stat-icon { background:rgba(99,102,241,.12); color:#6366f1; }
+.brq-stat.pend  .brq-stat-icon { background:rgba(245,158,11,.12); color:#f59e0b; }
+.brq-stat.appr  .brq-stat-icon { background:rgba(16,185,129,.12); color:#10b981; }
+.brq-stat.rej   .brq-stat-icon { background:rgba(239,68,68,.12);  color:#ef4444; }
+.brq-stat-val { font-size:1.65rem; font-weight:800; color:var(--yo-input-text); line-height:1; }
+.brq-stat-label { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--yo-text-muted); }
+
+.brq-badge {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.2rem .6rem; border-radius:7px; font-size:.75rem; font-weight:700;
+}
+.brq-badge.pending  { background:rgba(245,158,11,.12); color:#b45309; }
+.brq-badge.approved { background:rgba(16,185,129,.12);  color:#065f46; }
+.brq-badge.rejected { background:rgba(239,68,68,.12);   color:#991b1b; }
+.brq-badge.cancelled{ background:rgba(107,114,128,.12); color:#374151; }
+
+.brq-action-btn {
+    display:inline-flex; align-items:center; gap:.3rem;
+    padding:.3rem .75rem; border-radius:8px; font-size:.78rem; font-weight:600;
+    border:none; cursor:pointer; text-decoration:none; transition:all .2s;
+}
+.brq-action-btn.approve { background:#10b981; color:#fff; }
+.brq-action-btn.approve:hover { background:#059669; color:#fff; transform:translateY(-1px); }
+.brq-action-btn.reject  { background:transparent; color:#ef4444; border:1.5px solid rgba(239,68,68,.4); }
+.brq-action-btn.reject:hover { background:rgba(239,68,68,.07); }
+
+.brq-modal-backdrop {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:2000;
+    align-items:center; justify-content:center; padding:1rem;
+}
+.brq-modal-backdrop.open { display:flex; }
+.brq-modal {
+    background:var(--yo-card-bg); border-radius:18px; padding:1.75rem;
+    max-width:480px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+.brq-modal h5 { margin:0 0 1rem; font-size:1.05rem; font-weight:700; }
+.brq-modal textarea { width:100%; border-radius:10px; border:1.5px solid var(--yo-border); background:var(--yo-input-bg); color:var(--yo-input-text); padding:.65rem .85rem; font-size:.88rem; resize:vertical; min-height:90px; }
+.brq-modal textarea:focus { outline:none; border-color:#6366f1; }
+.brq-modal-footer { display:flex; gap:.75rem; justify-content:flex-end; margin-top:1.1rem; }
+.brq-modal input[type=number] { width:100%; border-radius:10px; border:1.5px solid var(--yo-border); background:var(--yo-input-bg); color:var(--yo-input-text); padding:.55rem .85rem; font-size:.88rem; }
+.brq-modal input[type=number]:focus { outline:none; border-color:#10b981; }
+.brq-modal label { display:block; font-size:.78rem; font-weight:700; color:var(--yo-text-muted); margin-bottom:.35rem; text-transform:uppercase; letter-spacing:.3px; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Statistika -->
+<div class="brq-stats">
+    <a href="?status=" class="brq-stat all">
+        <div class="brq-stat-icon"><i class="bi bi-inbox"></i></div>
+        <div class="brq-stat-val">{{ total_count }}</div>
+        <div class="brq-stat-label">Jami arizalar</div>
+    </a>
+    <a href="?status=pending" class="brq-stat pend">
+        <div class="brq-stat-icon"><i class="bi bi-hourglass-split"></i></div>
+        <div class="brq-stat-val">{{ pending_count }}</div>
+        <div class="brq-stat-label">Kutilmoqda</div>
+    </a>
+    <a href="?status=approved" class="brq-stat appr">
+        <div class="brq-stat-icon"><i class="bi bi-check-circle"></i></div>
+        <div class="brq-stat-val">{{ approved_count }}</div>
+        <div class="brq-stat-label">Tasdiqlangan</div>
+    </a>
+    <a href="?status=rejected" class="brq-stat rej">
+        <div class="brq-stat-icon"><i class="bi bi-x-circle"></i></div>
+        <div class="brq-stat-val">{{ rejected_count }}</div>
+        <div class="brq-stat-label">Rad etilgan</div>
+    </a>
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm mb-3">
+    <div class="card-body py-2 px-3">
+        <form method="get" class="d-flex gap-2 flex-wrap align-items-end">
+            <div style="flex:1;min-width:220px;">
+                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+                       placeholder="🔍 O'quvchi ismi, telefon, kitob nomi...">
+            </div>
+            <div>
+                <select name="status" class="form-select form-select-sm" style="min-width:160px;">
+                    <option value="" {% if not status_filter %}selected{% endif %}>— Barchasi —</option>
+                    <option value="pending"   {% if status_filter == 'pending'   %}selected{% endif %}>Kutilmoqda</option>
+                    <option value="approved"  {% if status_filter == 'approved'  %}selected{% endif %}>Tasdiqlangan</option>
+                    <option value="rejected"  {% if status_filter == 'rejected'  %}selected{% endif %}>Rad etilgan</option>
+                    <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Bekor qilingan</option>
+                </select>
+            </div>
+            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i> Filtr</button>
+            {% if q or status_filter %}
+            <a href="?" class="btn btn-outline-secondary btn-sm">Tozalash</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Jadval -->
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        {% if requests %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle" style="font-size:.88rem;">
+                <thead style="background:rgba(99,102,241,0.06);">
+                    <tr>
+                        <th style="padding:.75rem 1rem;">#</th>
+                        <th>Kitob</th>
+                        <th>O'quvchi</th>
+                        <th>Ariza sanasi</th>
+                        <th>Holat</th>
+                        <th>Izoh</th>
+                        {% if can_process %}<th class="text-end" style="padding-right:1rem;">Amal</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                {% for req in requests %}
+                    <tr>
+                        <td style="padding:.75rem 1rem;color:var(--yo-text-muted);">{{ req.id }}</td>
+
+                        <td>
+                            <strong>{{ req.book.title }}</strong><br>
+                            <small class="text-muted">{{ req.book.author }}</small>
+                            {% if req.book.is_available %}
+                                <br><span style="font-size:.72rem;color:#10b981;">
+                                    <i class="bi bi-check-circle-fill"></i> {{ req.book.available_copies }} nusxa mavjud
+                                </span>
+                            {% else %}
+                                <br><span style="font-size:.72rem;color:#ef4444;">
+                                    <i class="bi bi-x-circle-fill"></i> Nusxa yo'q
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a href="{% url 'yordamchi_student_detail' req.student.pk %}" class="text-decoration-none fw-600">
+                                {{ req.student.full_name }}
+                            </a><br>
+                            <small class="text-muted">{{ req.student.phone|default:"—" }}</small>
+                        </td>
+
+                        <td style="white-space:nowrap;">
+                            {{ req.created_at|date:"d.m.Y" }}<br>
+                            <small class="text-muted">{{ req.created_at|date:"H:i" }}</small>
+                        </td>
+
+                        <td>
+                            <span class="brq-badge {{ req.status }}">
+                                {% if req.status == 'pending' %}
+                                    <i class="bi bi-hourglass-split"></i> Kutilmoqda
+                                {% elif req.status == 'approved' %}
+                                    <i class="bi bi-check-circle"></i> Tasdiqlangan
+                                {% elif req.status == 'rejected' %}
+                                    <i class="bi bi-x-circle"></i> Rad etilgan
+                                {% else %}
+                                    <i class="bi bi-slash-circle"></i> Bekor qilingan
+                                {% endif %}
+                            </span>
+                            {% if req.processed_by %}
+                                <br><small class="text-muted" style="font-size:.7rem;">
+                                    {{ req.processed_by.full_name }}, {{ req.processed_at|date:"d.m.Y" }}
+                                </small>
+                            {% endif %}
+                        </td>
+
+                        <td style="max-width:180px;">
+                            {% if req.message %}
+                                <span style="font-size:.8rem;color:var(--yo-text-muted);">{{ req.message|truncatechars:60 }}</span>
+                            {% endif %}
+                            {% if req.admin_note %}
+                                <span style="font-size:.78rem;font-style:italic;color:var(--yo-text-muted);">
+                                    <i class="bi bi-chat-left-text"></i> {{ req.admin_note|truncatechars:60 }}
+                                </span>
+                            {% endif %}
+                            {% if not req.message and not req.admin_note %}—{% endif %}
+                        </td>
+
+                        {% if can_process %}
+                        <td class="text-end" style="padding-right:1rem;white-space:nowrap;">
+                            {% if req.status == 'pending' %}
+                            <button class="brq-action-btn approve"
+                                    onclick="openApprove({{ req.id }}, '{{ req.book.title|escapejs }}', '{{ req.student.full_name|escapejs }}')">
+                                <i class="bi bi-check2-circle"></i> Tasdiqlash
+                            </button>
+                            <button class="brq-action-btn reject"
+                                    onclick="openReject({{ req.id }}, '{{ req.book.title|escapejs }}', '{{ req.student.full_name|escapejs }}')">
+                                <i class="bi bi-x-lg"></i> Rad
+                            </button>
+                            {% else %}—{% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
+            <p class="mt-2 mb-0">Arizalar yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tasdiqlash modal -->
+<div class="brq-modal-backdrop" id="approveModal">
+    <div class="brq-modal">
+        <h5><i class="bi bi-check2-circle text-success me-2"></i>Arizani tasdiqlash</h5>
+        <p id="approveDesc" style="font-size:.88rem;color:var(--yo-text-muted);margin-bottom:1rem;"></p>
+        <form method="post" id="approveForm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label>Ijara muddati (kunlarda)</label>
+                <input type="number" name="days" value="14" min="1" max="90">
+            </div>
+            <div class="mb-1">
+                <label>Admin izohi (ixtiyoriy)</label>
+                <textarea name="admin_note" placeholder="O'quvchiga xabarda ko'rsatiladigan izoh..."></textarea>
+            </div>
+            <div class="brq-modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeModals()">Bekor qilish</button>
+                <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check2-circle"></i> Tasdiqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Rad etish modal -->
+<div class="brq-modal-backdrop" id="rejectModal">
+    <div class="brq-modal">
+        <h5><i class="bi bi-x-circle text-danger me-2"></i>Arizani rad etish</h5>
+        <p id="rejectDesc" style="font-size:.88rem;color:var(--yo-text-muted);margin-bottom:1rem;"></p>
+        <form method="post" id="rejectForm">
+            {% csrf_token %}
+            <div class="mb-1">
+                <label>Rad etish sababi (ixtiyoriy)</label>
+                <textarea name="admin_note" placeholder="O'quvchiga xabarda ko'rsatiladigan sabab..."></textarea>
+            </div>
+            <div class="brq-modal-footer">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeModals()">Bekor qilish</button>
+                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-x-circle"></i> Rad etish</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openApprove(id, book, student) {
+    document.getElementById('approveDesc').textContent = '"' + book + '" kitobi — ' + student;
+    document.getElementById('approveForm').action = '/yordamchi/kitob-arizalar/' + id + '/tasdiqlash/';
+    document.getElementById('approveModal').classList.add('open');
+}
+function openReject(id, book, student) {
+    document.getElementById('rejectDesc').textContent = '"' + book + '" kitobi — ' + student;
+    document.getElementById('rejectForm').action = '/yordamchi/kitob-arizalar/' + id + '/rad/';
+    document.getElementById('rejectModal').classList.add('open');
+}
+function closeModals() {
+    document.getElementById('approveModal').classList.remove('open');
+    document.getElementById('rejectModal').classList.remove('open');
+}
+document.querySelectorAll('.brq-modal-backdrop').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) closeModals(); });
+});
+</script>
+{% endblock %}

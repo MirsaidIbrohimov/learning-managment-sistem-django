@@ -1,0 +1,164 @@
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<div class="qz-page" id="aiApp"
+     data-quiz-id="{{ quiz_id|default:'' }}"
+     data-quiz-title="{{ quiz_title|escapejs|default:'' }}"
+     data-lesson-title="{{ lesson_title|escapejs|default:'' }}">
+    {% if quiz_id %}
+    <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytish
+    </a>
+    {% else %}
+    <a href="{% url 'quizui:question_bank' %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytish
+    </a>
+    {% endif %}
+
+    <div class="qz-hero">
+        <div class="qz-hero-left">
+            <div class="qz-hero-icon orange"><i class="bi bi-stars"></i></div>
+            <div>
+                <h1 class="qz-hero-title">AI orqali test yaratish</h1>
+                <p class="qz-hero-subtitle">Mavzu va sozlamalarni kiriting — AI savol variantlarini taklif qiladi. Saqlamasdan oldin har birini ko'rib chiqing va tahrirlang.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if not ai_configured %}
+    <div class="qz-surface mb-4" style="border-color:rgb(239 68 68 / 30%);">
+        <div class="qz-surface-body">
+            <div style="display:flex;align-items:flex-start;gap:14px;">
+                <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:1.5rem;"></i>
+                <div>
+                    <strong style="color:#b91c1c;">AI xizmati sozlanmagan</strong>
+                    <div class="text-muted small mt-1">OPENAI_API_KEY sozlamasi yo'q. Admin bilan bog'laning.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Settings panel -->
+        <div class="col-12 col-lg-4">
+            <div class="qz-surface" style="position:sticky;top:88px;">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title"><i class="bi bi-sliders"></i> Sozlamalar</div>
+                </div>
+                <div class="qz-surface-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mavzu <span style="color:#ef4444;">*</span></label>
+                        <input type="text" class="form-control" id="aiTopic"
+                               placeholder="Masalan: Django ORM asoslari"
+                               {% if lesson_title %}value="{{ lesson_title }}"{% endif %}>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Qo'shimcha kontekst <span class="text-muted">(ixtiyoriy)</span></label>
+                        <textarea class="form-control" id="aiContext" rows="3"
+                                  placeholder="Aniqlashtirish, qaysi qism, qaysi versiya, va h.k."></textarea>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Savollar soni</label>
+                            <input type="number" min="1" max="30" class="form-control" id="aiCount" value="5">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Variantlar</label>
+                            <input type="number" min="2" max="6" class="form-control" id="aiOptionsCount" value="4">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Savol turi</label>
+                        <select class="form-select" id="aiType">
+                            <option value="single_choice" selected>Bitta to'g'ri javob</option>
+                            <option value="multiple_choice">Bir nechta to'g'ri</option>
+                            <option value="true_false">To'g'ri / Noto'g'ri</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Qiyinlik</label>
+                        <select class="form-select" id="aiDifficulty">
+                            <option value="easy">Oson</option>
+                            <option value="medium" selected>O'rta</option>
+                            <option value="hard">Qiyin</option>
+                        </select>
+                    </div>
+                    <button class="qz-btn qz-btn-primary w-100" id="aiGenerateBtn"
+                            {% if not ai_configured %}disabled{% endif %}>
+                        <i class="bi bi-magic"></i> Yaratish
+                    </button>
+                    <p class="text-muted small mb-0 mt-2" style="text-align:center;">
+                        <i class="bi bi-shield-check"></i> Natijalar saqlanmaydi — siz tasdiqlamaguningizcha.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview panel -->
+        <div class="col-12 col-lg-8">
+            <div class="qz-surface" id="aiPreviewWrap">
+                <div class="qz-surface-head">
+                    <div class="qz-surface-title">
+                        <i class="bi bi-eye"></i> Oldindan ko'rish
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small d-none" id="aiSelectedSummary"></span>
+                        <button class="qz-btn qz-btn-success d-none" id="aiSaveBtn">
+                            <i class="bi bi-check2-circle"></i> Tanlanganlarni saqlash
+                        </button>
+                    </div>
+                </div>
+                <div class="qz-surface-body" id="aiPreviewBody">
+                    <div class="qz-empty">
+                        <div class="qz-empty-icon"><i class="bi bi-stars"></i></div>
+                        <h4>Hali natija yo'q</h4>
+                        <p>Chap tarafdagi form'ni to'ldiring va "Yaratish" tugmasini bosing.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- One preview card -->
+<template id="aiPreviewCardTpl">
+    <div class="ai-card qz-surface" style="border-radius:14px;margin-bottom:14px;animation:qzFadeUp .4s ease both;">
+        <div class="qz-surface-head">
+            <label class="d-flex align-items-center gap-2" style="cursor:pointer;flex:1;min-width:0;">
+                <input type="checkbox" class="form-check-input ai-card-check" checked>
+                <span class="ai-card-label fw-bold" style="font-size:.95rem;">Savol #<span class="ai-card-num"></span></span>
+                <span class="qz-badge info ai-card-type"></span>
+                <span class="qz-badge warning ai-card-errors d-none"></span>
+            </label>
+            <button class="qz-icon-btn delete ai-card-remove" title="Olib tashlash"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="qz-surface-body">
+            <div class="mb-2">
+                <label class="form-label small">Savol matni</label>
+                <textarea class="form-control ai-card-text" rows="2"></textarea>
+            </div>
+            <div class="mb-2 ai-card-options-wrap">
+                <label class="form-label small mb-1">Javob variantlari <span class="text-muted">(yashil belgi = to'g'ri)</span></label>
+                <div class="ai-card-options"></div>
+                <button class="qz-btn qz-btn-ghost mt-2 ai-card-add-option" style="padding:6px 12px;font-size:.8rem;">
+                    <i class="bi bi-plus-lg"></i> Variant
+                </button>
+            </div>
+            <div class="mb-0">
+                <label class="form-label small">Izoh</label>
+                <input type="text" class="form-control ai-card-explanation" placeholder="Tushuntirish (ixtiyoriy)">
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- One option row inside a preview card -->
+<template id="aiOptionRowTpl">
+    <div class="qb-option-row" style="margin-bottom:6px;">
+        <input type="checkbox" class="form-check-input qb-correct-check ai-opt-correct" title="To'g'ri javob">
+        <input type="text" class="qb-option-text ai-opt-text" placeholder="Javob matni...">
+        <button type="button" class="qb-remove-option ai-opt-remove" title="O'chirish"><i class="bi bi-trash"></i></button>
+    </div>
+</template>
+
+<div class="quizui-toast-stack" id="quizToastStack"></div>

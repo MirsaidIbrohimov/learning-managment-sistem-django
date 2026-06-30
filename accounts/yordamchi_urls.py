@@ -29,6 +29,9 @@ urlpatterns = [
     path('ijaralar/qoshish/', v.yordamchi_rental_add, name='yordamchi_rental_add'),
     path('ijaralar/<int:pk>/qaytarish/', v.yordamchi_rental_return, name='yordamchi_rental_return'),
     path('ijaralar/kechikkan/', v.yordamchi_rentals_overdue, name='yordamchi_rentals_overdue'),
+    path('kitob-arizalar/', v.yordamchi_book_requests, name='yordamchi_book_requests'),
+    path('kitob-arizalar/<int:pk>/tasdiqlash/', v.yordamchi_approve_book_request, name='yordamchi_approve_book_request'),
+    path('kitob-arizalar/<int:pk>/rad/', v.yordamchi_reject_book_request, name='yordamchi_reject_book_request'),
 
     # So'rovlar & yordam
     path('sorovlar/', v.yordamchi_requests, name='yordamchi_requests'),

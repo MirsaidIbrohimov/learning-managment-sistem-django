@@ -58,12 +58,66 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 .nav-links a:hover{color:#fff;background:rgba(255,255,255,.06)}
 .nav-cta{display:flex;align-items:center;gap:10px}
 .nav-cta .btn{padding:10px 20px;font-size:.88rem;border-radius:10px}
-#nav-toggle{display:none;background:none;border:1px solid var(--c-border);border-radius:8px;padding:8px 10px;color:var(--c-text);font-size:1.2rem}
-#nav-mobile{display:none}
+/* Mobile hamburger (animated) */
+#nav-toggle{display:none;width:46px;height:46px;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--c-border);border-radius:13px;transition:transform .2s ease,background .25s ease,box-shadow .25s ease}
+#nav-toggle:active{transform:scale(.9)}
+#nav-toggle span{display:block;width:21px;height:2px;border-radius:3px;background:var(--c-text);transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .2s ease,background .25s}
+#nav-toggle.active{background:var(--grad-main);border-color:transparent;box-shadow:0 8px 22px rgba(99,102,241,.5)}
+#nav-toggle.active span{background:#fff}
+#nav-toggle.active span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+#nav-toggle.active span:nth-child(2){opacity:0;transform:scaleX(0)}
+#nav-toggle.active span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Mobile drawer */
+#nav-overlay{position:fixed;inset:0;z-index:1090;background:rgba(3,5,12,.55);backdrop-filter:blur(6px);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility .35s ease}
+#nav-overlay.open{opacity:1;visibility:visible}
+#nav-mobile{position:fixed;top:0;right:0;bottom:0;z-index:1100;width:min(84vw,335px);display:flex;flex-direction:column;background:linear-gradient(170deg,#0b1124 0%,#070a14 60%,#05080f 100%);border-left:1px solid var(--c-border);box-shadow:-30px 0 90px rgba(0,0,0,.65);transform:translateX(106%);transition:transform .45s cubic-bezier(.22,1,.36,1)}
+#nav-mobile.open{transform:translateX(0)}
+#nav-mobile::before{content:"";position:absolute;top:-40%;right:-40%;width:280px;height:280px;background:radial-gradient(circle,rgba(99,102,241,.28),transparent 70%);filter:blur(20px);pointer-events:none}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--c-border);position:relative}
+.drawer-close{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid var(--c-border);color:var(--c-text);font-size:1.15rem;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.drawer-close:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.45);color:#f87171;transform:rotate(90deg)}
+.drawer-links{display:flex;flex-direction:column;gap:7px;padding:22px 16px;flex:1;overflow-y:auto;position:relative}
+.drawer-links a{display:flex;align-items:center;gap:14px;padding:13px 14px;border-radius:14px;font-size:1rem;font-weight:500;color:#cbd5e1;border:1px solid transparent;background:rgba(255,255,255,.025);opacity:0;transform:translateX(26px)}
+#nav-mobile.open .drawer-links a{opacity:1;transform:translateX(0);transition:opacity .45s ease,transform .5s cubic-bezier(.22,1,.36,1),background .2s,border-color .2s,color .2s}
+#nav-mobile.open .drawer-links a:nth-child(1){transition-delay:.09s}
+#nav-mobile.open .drawer-links a:nth-child(2){transition-delay:.15s}
+#nav-mobile.open .drawer-links a:nth-child(3){transition-delay:.21s}
+#nav-mobile.open .drawer-links a:nth-child(4){transition-delay:.27s}
+#nav-mobile.open .drawer-links a:nth-child(5){transition-delay:.33s}
+.drawer-links a i{width:38px;height:38px;flex-shrink:0;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;background:rgba(99,102,241,.12);color:#a5b4fc;transition:all .25s}
+.drawer-links a:hover,.drawer-links a:active{color:#fff;background:rgba(99,102,241,.1);border-color:rgba(99,102,241,.28);transform:translateX(4px)}
+.drawer-links a:hover i{background:var(--grad-main);color:#fff;transform:scale(1.06)}
+.drawer-foot{padding:16px 18px 24px;border-top:1px solid var(--c-border);display:flex;flex-direction:column;gap:10px;position:relative}
+.drawer-foot .btn{width:100%;justify-content:center;padding:14px}
+.drawer-social{display:flex;justify-content:center;gap:12px;margin-top:8px}
+.drawer-social a{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid var(--c-border);color:#94a3b8;font-size:1.05rem;transition:all .25s}
+.drawer-social a:hover{color:#fff;background:var(--grad-main);border-color:transparent;transform:translateY(-3px)}
 
 /* HERO */
 #hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 0 80px;position:relative;overflow:hidden;text-align:center}
 #hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(99,102,241,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.06) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);animation:gridMove 20s linear infinite}
+/* Interaktiv yulduz fon */
+.hero-particles{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.9}
+/* Ikki ustunli hero */
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:48px;width:100%}
+#hero .hero-grid .hero-content{text-align:left;max-width:none;margin:0}
+#hero .hero-grid .hero-sub{margin-left:0;margin-right:0}
+#hero .hero-grid .hero-btns{justify-content:flex-start}
+/* 3D globus konteyneri */
+.hero-visual{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;animation:slideUp .9s .35s both ease}
+.hero-globe-wrap{position:relative;width:min(480px,92%);aspect-ratio:1/1;transform-style:preserve-3d;will-change:transform}
+#heroGlobe{display:block;width:100%;height:100%;cursor:grab}
+#heroGlobe:active{cursor:grabbing}
+.hero-globe-halo{position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle at 50% 45%,rgba(99,102,241,.28),rgba(139,92,246,.12) 45%,transparent 70%);filter:blur(26px);z-index:-1;animation:haloPulse 5s ease-in-out infinite}
+@keyframes haloPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+/* Suzuvchi texno-chiplar */
+.hero-globe-badge{position:absolute;display:inline-flex;align-items:center;gap:6px;padding:7px 13px;font-family:var(--mono);font-size:.72rem;font-weight:600;color:#dae2fd;background:rgba(23,31,51,.72);border:1px solid rgba(255,255,255,.1);border-radius:100px;backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.35);white-space:nowrap;z-index:2;will-change:transform;animation:badgeFloat 6s ease-in-out infinite}
+.hero-globe-badge i{font-size:.85rem}
+.hero-globe-badge.gb-1{top:6%;right:-6%;color:#c0c1ff}
+.hero-globe-badge.gb-2{bottom:14%;left:-10%;animation-delay:-2s}
+.hero-globe-badge.gb-3{bottom:-2%;right:8%;color:#ffb783;animation-delay:-4s}
+@keyframes badgeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 @keyframes gridMove{to{transform:translateY(-60px)}}
 .hero-orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
 .hero-orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(99,102,241,.2),transparent 70%);top:-200px;left:50%;transform:translateX(-50%)}
@@ -75,6 +129,16 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 .hero-announce .dot{width:6px;height:6px;border-radius:50%;background:#3b82f6;box-shadow:0 0 8px #3b82f6;animation:blink 1.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .hero-title{margin-bottom:24px;animation:slideUp .8s .1s both ease}
+/* Alohida chiqadigan "tarif" so'zi — shaffof gradient quti */
+.hero-word{display:inline-block;margin-top:14px;padding:6px 24px;border-radius:16px;
+  font-weight:800;color:#fff;letter-spacing:-.01em;
+  background:linear-gradient(120deg,rgba(99,102,241,.30),rgba(139,92,246,.22) 48%,rgba(103,232,249,.16));
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:0 10px 30px rgba(99,102,241,.22),inset 0 1px 0 rgba(255,255,255,.12);
+  backdrop-filter:blur(8px);
+  transition:opacity .35s ease,transform .35s ease;
+  text-shadow:0 2px 18px rgba(99,102,241,.45)}
+.hero-word.swap{opacity:0;transform:translateY(8px)}
 .hero-sub{font-size:1.15rem;color:#94a3b8;line-height:1.7;max-width:620px;margin:0 auto 40px;animation:slideUp .8s .2s both ease}
 .hero-btns{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;animation:slideUp .8s .3s both ease}
 .hero-code{position:relative;z-index:1;margin:72px auto 0;max-width:680px;animation:slideUp .9s .4s both ease}
@@ -208,6 +272,15 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 .reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}.reveal-d3{transition-delay:.3s}
 
 /* RESPONSIVE */
+@media(max-width:992px){
+  .hero-grid{grid-template-columns:1fr;gap:8px;text-align:center}
+  #hero .hero-grid .hero-content{text-align:center;order:1}
+  #hero .hero-grid .hero-sub{margin-left:auto;margin-right:auto}
+  #hero .hero-grid .hero-btns{justify-content:center}
+  .hero-visual{order:2;margin-top:24px}
+  .hero-globe-wrap{width:min(360px,84vw)}
+  .hero-globe-badge{font-size:.66rem;padding:6px 11px}
+}
 @media(max-width:1024px){
   .features-grid{grid-template-columns:1fr;gap:40px}
   .cta-grid{grid-template-columns:1fr;gap:40px}
@@ -216,14 +289,16 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 }
 @media(max-width:768px){
   .section{padding:72px 0}
+  .hero-globe-wrap{width:min(300px,78vw)}
+  .hero-globe-badge.gb-1{right:-2%}
+  .hero-globe-badge.gb-2{left:-4%}
   .stats-grid{grid-template-columns:repeat(2,1fr)}
   .stat-block:nth-child(2){border-right:none}
   .stat-block:nth-child(3){border-top:1px solid var(--c-border)}
   .nav-links,.nav-cta{display:none}
-  #nav-toggle{display:block}
-  #nav-mobile.open{display:flex;flex-direction:column;gap:4px;position:fixed;top:70px;left:0;right:0;z-index:1001;background:#050810;border-bottom:1px solid var(--c-border);padding:16px 24px 24px;box-shadow:0 20px 40px rgba(0,0,0,.5)}
-  #nav-mobile a{padding:12px 16px;border-radius:10px;font-size:.95rem;display:block;color:#94a3b8;border:1px solid transparent}
-  #nav-mobile a:hover{color:#fff;background:rgba(255,255,255,.05)}
+  #nav-toggle{display:flex}
+  #nav{background:rgba(5,8,16,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--c-border)}
+  #nav.scrolled{background:rgba(5,8,16,.96)}
   .courses-header,.blog-header{flex-direction:column;align-items:flex-start}
   .form-row{grid-template-columns:1fr}
   .footer-grid{grid-template-columns:1fr;gap:36px}
@@ -254,60 +329,71 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
         <a href="{% url 'login' %}" class="btn btn-ghost">Kirish</a>
         <a href="#cta" class="btn btn-primary">Boshlash <i class="bi bi-arrow-right"></i></a>
       </div>
-      <button id="nav-toggle" onclick="toggleMobile()"><i class="bi bi-list"></i></button>
+      <button id="nav-toggle" onclick="toggleMobile()" aria-label="Menyu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </nav>
-<div id="nav-mobile">
-  <a href="#courses" onclick="toggleMobile()">Kurslar</a>
-  <a href="#features" onclick="toggleMobile()">Afzalliklar</a>
-  <a href="#process" onclick="toggleMobile()">Jarayon</a>
-  <a href="#blog" onclick="toggleMobile()">Blog</a>
-  <a href="{% url 'login' %}" onclick="toggleMobile()">Kirish</a>
-  <a href="#cta" onclick="toggleMobile()" style="background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff;border-color:transparent;margin-top:6px">Ariza topshirish</a>
-</div>
+<!-- MOBILE DRAWER -->
+<div id="nav-overlay" onclick="toggleMobile()"></div>
+<aside id="nav-mobile" aria-label="Mobil menyu">
+  <div class="drawer-head">
+    <a href="#" class="nav-logo" onclick="toggleMobile()">
+      <div class="nav-logo-badge"><i class="bi bi-code-slash"></i></div>
+      <span>IT <strong>Shaharcha</strong></span>
+    </a>
+    <button class="drawer-close" onclick="toggleMobile()" aria-label="Yopish"><i class="bi bi-x-lg"></i></button>
+  </div>
+  <nav class="drawer-links">
+    <a href="#courses" onclick="toggleMobile()"><i class="bi bi-mortarboard"></i> Kurslar</a>
+    <a href="#features" onclick="toggleMobile()"><i class="bi bi-stars"></i> Afzalliklar</a>
+    <a href="#process" onclick="toggleMobile()"><i class="bi bi-diagram-3"></i> Jarayon</a>
+    <a href="#blog" onclick="toggleMobile()"><i class="bi bi-journal-text"></i> Blog</a>
+    <a href="#cta" onclick="toggleMobile()"><i class="bi bi-send"></i> Ariza</a>
+  </nav>
+  <div class="drawer-foot">
+    <a href="{% url 'login' %}" class="btn btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Kirish</a>
+    <a href="#cta" class="btn btn-primary" onclick="toggleMobile()">Boshlash <i class="bi bi-arrow-right"></i></a>
+    <div class="drawer-social">
+      <a href="#" aria-label="Telegram"><i class="bi bi-telegram"></i></a>
+      <a href="#" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+      <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+    </div>
+  </div>
+</aside>
 
 <!-- HERO -->
 <section id="hero">
-  <div class="hero-orb hero-orb-1"></div>
-  <div class="hero-orb hero-orb-2"></div>
-  <div class="hero-orb hero-orb-3"></div>
+  <canvas id="heroParticles" class="hero-particles"></canvas>
+  <div class="hero-orb hero-orb-1" data-depth="0.5"></div>
+  <div class="hero-orb hero-orb-2" data-depth="1.4"></div>
+  <div class="hero-orb hero-orb-3" data-depth="1.1"></div>
   <div class="container">
-    <div class="hero-content">
-      <div class="hero-announce">
-        <span class="dot"></span>
-        O'zbekistoning №1 IT ta'lim platformasi
-        <i class="bi bi-arrow-right" style="font-size:.75rem"></i>
-      </div>
-      <h1 class="h1 hero-title">
-        <span class="gradient-text">Kelajak</span> kodlanadi —<br/>
-        siz uni <span id="typed-word" class="cursor-blink gradient-text">yaratishni</span> o'rganing
-      </h1>
-      <p class="hero-sub">Real loyihalar, AI yordamchi va sertifikatlar bilan IT sohasida karyerangizni boshlang. Frontend, Backend, UI/UX, Mobile, AI — barchasi bir platformada.</p>
-      <div class="hero-btns">
-        <a href="#cta" class="btn btn-primary btn-lg"><i class="bi bi-rocket-takeoff-fill"></i> Bepul boshlash</a>
-        <a href="#courses" class="btn btn-ghost btn-lg"><i class="bi bi-play-circle-fill"></i> Kurslarni ko'rish</a>
-      </div>
-    </div>
-    <div class="hero-code">
-      <div class="code-window">
-        <div class="code-topbar">
-          <span class="code-dot r"></span><span class="code-dot y"></span><span class="code-dot g"></span>
-          <span class="code-filename">your-future.js</span>
+    <div class="hero-grid">
+      <div class="hero-content">
+        <div class="hero-announce">
+          <span class="dot"></span>
+          O'zbekistoning №1 IT ta'lim platformasi
+          <i class="bi bi-arrow-right" style="font-size:.75rem"></i>
         </div>
-        <div class="code-body">
-          <div><span class="code-ln">1</span><span class="cm">// IT Shaharcha — kelajagingizni kod bilan yozing</span></div>
-          <div><span class="code-ln">2</span></div>
-          <div><span class="code-ln">3</span><span class="kw">const</span> <span class="var">student</span> = {</div>
-          <div><span class="code-ln">4</span>&nbsp;&nbsp;<span class="fn">ism</span>: <span class="str">"Sizning ismingiz"</span>,</div>
-          <div><span class="code-ln">5</span>&nbsp;&nbsp;<span class="fn">maqsad</span>: <span class="str">"IT mutaxassisi bo'lish"</span>,</div>
-          <div><span class="code-ln">6</span>&nbsp;&nbsp;<span class="fn">skills</span>: [<span class="str">"HTML"</span>, <span class="str">"CSS"</span>, <span class="str">"JavaScript"</span>],</div>
-          <div><span class="code-ln">7</span>};</div>
-          <div><span class="code-ln">8</span></div>
-          <div><span class="code-ln">9</span><span class="kw">async function</span> <span class="fn">startJourney</span>() {</div>
-          <div><span class="code-ln">10</span>&nbsp;&nbsp;<span class="kw">await</span> <span class="fn">ITShaharcha</span>.<span class="fn">enroll</span>(student);</div>
-          <div><span class="code-ln">11</span>&nbsp;&nbsp;<span class="kw">return</span> <span class="str">"🚀 Karyerangiz boshlandi!"</span>;</div>
-          <div><span class="code-ln">12</span>}</div>
+        <h1 class="h1 hero-title">
+          IT Shaharcha bu<br/>
+          <span id="typed-word" class="hero-word">Imkoniyat</span>
+        </h1>
+        <p class="hero-sub">Real loyihalar, AI yordamchi va sertifikatlar bilan IT sohasida karyerangizni boshlang. Frontend, Backend, UI/UX, Mobile, AI — barchasi bir platformada.</p>
+        <div class="hero-btns">
+          <a href="#cta" class="btn btn-primary btn-lg"><i class="bi bi-rocket-takeoff-fill"></i> Bepul boshlash</a>
+          <a href="#courses" class="btn btn-ghost btn-lg"><i class="bi bi-play-circle-fill"></i> Kurslarni ko'rish</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-globe-wrap" id="heroGlobeWrap">
+          <span class="hero-globe-halo"></span>
+          <canvas id="heroGlobe"></canvas>
+          <span class="hero-globe-badge gb-1" data-depth="2.2"><i class="bi bi-cpu"></i> AI</span>
+          <span class="hero-globe-badge gb-2" data-depth="3.0"><i class="bi bi-braces"></i> Code</span>
+          <span class="hero-globe-badge gb-3" data-depth="2.6"><i class="bi bi-shield-lock"></i> Secure</span>
         </div>
       </div>
     </div>
@@ -674,20 +760,37 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 // NAV scroll
 window.addEventListener('scroll',()=>document.getElementById('nav').classList.toggle('scrolled',scrollY>40));
 
-// Mobile nav
-function toggleMobile(){document.getElementById('nav-mobile').classList.toggle('open')}
-
-// Typing effect
-const words=['yaratishni',"o'rganishni",'sevishni','boshlashni'];
-let wi=0,ci=0,del=false;
-const el=document.getElementById('typed-word');
-function type(){
-  const word=words[wi];
-  if(!del){el.textContent=word.slice(0,++ci);if(ci===word.length){del=true;setTimeout(type,1800);return}}
-  else{el.textContent=word.slice(0,--ci);if(ci===0){del=false;wi=(wi+1)%words.length}}
-  setTimeout(type,del?60:90);
+// Mobile nav (slide-in drawer)
+function toggleMobile(){
+  const d=document.getElementById('nav-mobile'),
+        o=document.getElementById('nav-overlay'),
+        t=document.getElementById('nav-toggle');
+  const open=d.classList.toggle('open');
+  o.classList.toggle('open',open);
+  t.classList.toggle('active',open);
+  t.setAttribute('aria-expanded',open);
+  document.body.style.overflow=open?'hidden':'';
 }
-setTimeout(type,1200);
+// Close drawer with Escape key
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('nav-mobile').classList.contains('open'))toggleMobile();
+});
+
+// "Tarif" so'zini silliq almashtirish
+const words=['Imkoniyat','Qulaylik','Ishonch','Yechim'];
+let wi=0;
+const el=document.getElementById('typed-word');
+if(el){
+  el.textContent=words[0];
+  setInterval(()=>{
+    el.classList.add('swap');                       // fade-out
+    setTimeout(()=>{
+      wi=(wi+1)%words.length;
+      el.textContent=words[wi];
+      el.classList.remove('swap');                  // fade-in
+    },350);
+  },2400);
+}
 
 // Scroll reveal
 const observer=new IntersectionObserver(entries=>{
@@ -708,6 +811,191 @@ const statObs=new IntersectionObserver(entries=>{
 },{threshold:0.5});
 const statsSection=document.getElementById('stats');
 if(statsSection)statObs.observe(statsSection);
+</script>
+
+<!-- 3D model uchun Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ============================================================
+   HERO — interaktiv 3D globus + jonli orqa fon
+   Kursor harakatiga qarab globus egiladi/aylanadi, fon parallaks bo'ladi.
+   ============================================================ */
+(function(){
+  const hero = document.getElementById('hero');
+  if(!hero) return;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Kursor holati (normalizatsiya [-1..1]) — barcha effektlar shu yerdan o'qiydi
+  const pointer = { x:0, y:0, tx:0, ty:0, active:false };
+  hero.addEventListener('pointermove', (e)=>{
+    const r = hero.getBoundingClientRect();
+    pointer.tx = ((e.clientX - r.left) / r.width) * 2 - 1;
+    pointer.ty = ((e.clientY - r.top) / r.height) * 2 - 1;
+    pointer.active = true;
+  });
+  hero.addEventListener('pointerleave', ()=>{ pointer.tx = 0; pointer.ty = 0; pointer.active = false; });
+
+  /* ---------- 1) ORQA FON: yulduzlar + parallaks ---------- */
+  (function bgStars(){
+    const canvas = document.getElementById('heroParticles');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w=0, h=0, dpr=Math.min(window.devicePixelRatio||1, 2), stars=[];
+
+    function build(){
+      w = hero.clientWidth; h = hero.clientHeight;
+      canvas.width = w*dpr; canvas.height = h*dpr;
+      canvas.style.width = w+'px'; canvas.style.height = h+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      const count = Math.min(150, Math.round(w*h/9000));
+      const palette = ['#c0c1ff','#8b5cf6','#6366f1','#67e8f9','#ffffff'];
+      stars = Array.from({length:count}, ()=>({
+        x:Math.random()*w, y:Math.random()*h,
+        z:Math.random()*1+0.2,                 // chuqurlik (parallaks kuchi)
+        r:Math.random()*1.6+0.3,
+        c:palette[(Math.random()*palette.length)|0],
+        tw:Math.random()*Math.PI*2,            // miltillash fazasi
+        vy:(Math.random()*0.12+0.02)           // sekin pastga oqim
+      }));
+    }
+
+    function frame(t){
+      ctx.clearRect(0,0,w,h);
+      const ox = pointer.x * 26, oy = pointer.y * 18;   // kursor parallaks siljishi
+      for(const s of stars){
+        if(!reduceMotion){ s.y += s.vy; if(s.y > h+4){ s.y=-4; s.x=Math.random()*w; } s.tw += 0.03; }
+        const px = s.x + ox * s.z, py = s.y + oy * s.z;
+        const alpha = 0.35 + (reduceMotion ? 0.3 : Math.sin(s.tw)*0.3+0.3);
+        ctx.globalAlpha = Math.max(0.1, Math.min(1, alpha)) * (0.5 + s.z*0.5);
+        ctx.beginPath();
+        ctx.arc(px, py, s.r, 0, Math.PI*2);
+        ctx.fillStyle = s.c;
+        ctx.shadowColor = s.c; ctx.shadowBlur = 6;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+      requestAnimationFrame(frame);
+    }
+
+    build();
+    window.addEventListener('resize', build);
+    requestAnimationFrame(frame);
+  })();
+
+  /* ---------- 2) 3D GLOBUS (Three.js) ---------- */
+  (function globe(){
+    const canvas = document.getElementById('heroGlobe');
+    const wrap = document.getElementById('heroGlobeWrap');
+    if(!canvas || !wrap || !window.THREE) return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.z = 3.5;
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const R = 1.28, N = 280;
+    const verts = [];
+    const positions = [];
+    for(let i=0;i<N;i++){
+      const y = 1 - (i/(N-1))*2;
+      const rad = Math.sqrt(Math.max(0,1-y*y));
+      const theta = i * Math.PI * (3 - Math.sqrt(5));
+      const x = Math.cos(theta)*rad, z = Math.sin(theta)*rad;
+      verts.push(new THREE.Vector3(x*R, y*R, z*R));
+      positions.push(x*R, y*R, z*R);
+    }
+
+    // Yumaloq porlovchi nuqta teksturasi
+    function dotTexture(){
+      const c = document.createElement('canvas'); c.width=c.height=64;
+      const g = c.getContext('2d');
+      const grd = g.createRadialGradient(32,32,0,32,32,32);
+      grd.addColorStop(0,'rgba(255,255,255,1)');
+      grd.addColorStop(0.35,'rgba(192,193,255,0.9)');
+      grd.addColorStop(1,'rgba(99,102,241,0)');
+      g.fillStyle = grd; g.beginPath(); g.arc(32,32,32,0,Math.PI*2); g.fill();
+      const tex = new THREE.CanvasTexture(c); return tex;
+    }
+
+    const pGeo = new THREE.BufferGeometry();
+    pGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions,3));
+    const pMat = new THREE.PointsMaterial({
+      size:0.085, map:dotTexture(), transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, color:0xc0c1ff
+    });
+    const points = new THREE.Points(pGeo, pMat);
+    group.add(points);
+
+    // Yaqin nuqtalarni bog'lovchi "tarmoq" chiziqlari
+    const linePos = [];
+    const maxD = R*0.46;
+    for(let i=0;i<verts.length;i++){
+      for(let j=i+1;j<verts.length;j++){
+        if(verts[i].distanceTo(verts[j]) < maxD){
+          linePos.push(verts[i].x,verts[i].y,verts[i].z, verts[j].x,verts[j].y,verts[j].z);
+        }
+      }
+    }
+    const lGeo = new THREE.BufferGeometry();
+    lGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos,3));
+    const lMat = new THREE.LineBasicMaterial({ color:0x6366f1, transparent:true, opacity:0.2, blending:THREE.AdditiveBlending });
+    group.add(new THREE.LineSegments(lGeo, lMat));
+
+    // Ichki yumshoq yadro
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(R*0.92, 32, 32),
+      new THREE.MeshBasicMaterial({ color:0x1a1f47, transparent:true, opacity:0.4 })
+    );
+    group.add(core);
+
+    function resize(){
+      const s = wrap.clientWidth;
+      renderer.setSize(s, s, false);
+      camera.aspect = 1; camera.updateProjectionMatrix();
+    }
+    resize();
+    if('ResizeObserver' in window){ new ResizeObserver(resize).observe(wrap); }
+    else { window.addEventListener('resize', resize); }
+
+    let spin = 0;
+    function loop(){
+      // kursor qiymatlarini yumshoq (lerp) kuzatish
+      pointer.x += (pointer.tx - pointer.x) * 0.06;
+      pointer.y += (pointer.ty - pointer.y) * 0.06;
+
+      if(!reduceMotion) spin += 0.0022;
+      group.rotation.y = spin + pointer.x * 0.7;     // doimiy aylanish + kursor
+      group.rotation.x = 0.32 + pointer.y * 0.45;    // kursorga egilish
+      lMat.opacity = 0.16 + (Math.sin(spin*8)*0.5+0.5)*0.12;
+      pMat.size = 0.082 + (Math.sin(spin*6)*0.5+0.5)*0.02;
+
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+    loop();
+  })();
+
+  /* ---------- 3) Orb va chiplar parallaksi ---------- */
+  (function parallax(){
+    // Mustaqil `translate` xususiyati — transform asosidagi animatsiyalarni buzmaydi
+    const items = hero.querySelectorAll('[data-depth]');
+    function frame(){
+      const x = pointer.x, y = pointer.y;
+      items.forEach(el=>{
+        const d = parseFloat(el.dataset.depth)||1;
+        el.style.translate = `${x*d*8}px ${y*d*8}px`;
+      });
+      requestAnimationFrame(frame);
+    }
+    if(!reduceMotion) requestAnimationFrame(frame);
+  })();
+})();
 </script>
 </body>
 </html>

@@ -729,6 +729,15 @@
                 {% endif %}
                     <span><i class="bi bi-play-fill"></i> Testni boshlash</span>
                 </a>
+                {% if test.lesson.quiz %}
+                <a href="{% url 'quizui:quiz_take' test.lesson.quiz.pk %}" class="start-btn" style="margin-top:12px;background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 8px 32px rgba(16,185,129,.35);">
+                    <span><i class="bi bi-lightning-fill"></i> Yangi versiyada topshirish</span>
+                </a>
+                <div class="fullscreen-note" style="color:#10b981;">
+                    <i class="bi bi-stars"></i>
+                    Yangi versiyada qulay interfeys, savol navigatori va avtomatik saqlash mavjud.
+                </div>
+                {% endif %}
                 <div class="fullscreen-note">
                     <i class="bi bi-fullscreen"></i>
                     Test boshlanganda sahifa avtomatik <strong>to'liq ekranga</strong> o'tadi.

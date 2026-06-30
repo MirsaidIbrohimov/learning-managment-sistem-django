@@ -1,0 +1,495 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Kitob arizalari{% endblock %}
+
+{% block admin_content %}
+<style>
+.brq-page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+@keyframes brqSlideIn { from { opacity:0; transform:translateY(15px); } to { opacity:1; transform:translateY(0); } }
+@keyframes brqFadeIn  { from { opacity:0; } to { opacity:1; } }
+
+.brq-header {
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+  gap:1rem; padding:1.5rem; border-radius:16px; margin-bottom:1.75rem;
+  border:1px solid var(--border-color,#dee2e6); background:var(--card-bg,#fff);
+  animation: brqSlideIn .4s ease-out;
+}
+.brq-header-left h1 { font-size:1.5rem; font-weight:800; margin:0; display:flex; align-items:center; gap:.75rem; color:var(--text-color,#212529); }
+.brq-header-left h1 i { color:#6366f1; font-size:1.75rem; }
+.brq-header-sub { font-size:.85rem; color:var(--bs-secondary-color,#6c757d); margin-top:.35rem; }
+.brq-header-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+
+.brq-btn { display:inline-flex; align-items:center; gap:.4rem; padding:.55rem 1.1rem; border-radius:10px; font-size:.85rem; font-weight:600; text-decoration:none; border:none; cursor:pointer; transition:all .25s; }
+.brq-btn-primary { background:#6366f1; color:#fff; }
+.brq-btn-primary:hover { background:#4f46e5; color:#fff; transform:translateY(-2px); box-shadow:0 4px 12px rgba(99,102,241,.35); }
+.brq-btn-outline { background:transparent; color:#6366f1; border:1.5px solid #6366f1; }
+.brq-btn-outline:hover { background:rgba(99,102,241,.08); color:#4f46e5; transform:translateY(-2px); }
+
+/* Stats */
+.brq-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.75rem; }
+.brq-stat-card {
+  display:flex; flex-direction:column; align-items:center; padding:1.25rem 1rem;
+  border-radius:14px; border:1px solid var(--border-color,#dee2e6); background:var(--card-bg,#fff);
+  text-align:center; animation:brqSlideIn .5s ease-out backwards; transition:all .3s;
+}
+.brq-stat-card:nth-child(1) { animation-delay:.05s; }
+.brq-stat-card:nth-child(2) { animation-delay:.1s; }
+.brq-stat-card:nth-child(3) { animation-delay:.15s; }
+.brq-stat-card:nth-child(4) { animation-delay:.2s; }
+.brq-stat-card:hover { transform:translateY(-4px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+.brq-stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.25rem; margin-bottom:.6rem; }
+.brq-stat-icon.primary { background:rgba(99,102,241,.12); color:#6366f1; }
+.brq-stat-icon.warning { background:rgba(245,158,11,.12); color:#f59e0b; }
+.brq-stat-icon.success { background:rgba(16,185,129,.12); color:#10b981; }
+.brq-stat-icon.danger  { background:rgba(239,68,68,.12); color:#ef4444; }
+.brq-stat-val { font-size:1.75rem; font-weight:800; color:var(--text-color,#212529); }
+.brq-stat-label { font-size:.72rem; font-weight:700; color:var(--bs-secondary-color,#6c757d); text-transform:uppercase; letter-spacing:.5px; margin-top:.15rem; }
+
+/* Filter */
+.brq-filter { background:var(--card-bg,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:14px; padding:1.25rem; margin-bottom:1.5rem; animation:brqSlideIn .4s ease-out .1s backwards; }
+.brq-filter-row { display:flex; gap:.75rem; flex-wrap:wrap; align-items:flex-end; }
+.brq-filter-group { flex:1; min-width:150px; }
+.brq-filter-group label { display:block; font-size:.78rem; font-weight:700; color:var(--bs-secondary-color,#6c757d); text-transform:uppercase; letter-spacing:.3px; margin-bottom:.4rem; }
+.brq-filter-group input, .brq-filter-group select {
+  width:100%; padding:.55rem .85rem; border:1.5px solid var(--border-color,#dee2e6);
+  border-radius:10px; font-size:.88rem; background:var(--bg-color,#f8f9fa); color:var(--text-color,#212529); transition:all .2s;
+}
+.brq-filter-group input:focus, .brq-filter-group select:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+.brq-filter-btn { padding:.55rem 1.25rem; border-radius:10px; border:none; background:#6366f1; color:#fff; font-size:.85rem; font-weight:600; cursor:pointer; transition:all .25s; display:inline-flex; align-items:center; gap:.35rem; white-space:nowrap; }
+.brq-filter-btn:hover { background:#4f46e5; transform:translateY(-1px); }
+
+/* Table card */
+.brq-table-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:16px; overflow:hidden; animation:brqFadeIn .4s ease-out .15s backwards; }
+.brq-table { width:100%; border-collapse:collapse; }
+.brq-table th { padding:.75rem 1rem; font-size:.75rem; font-weight:700; color:var(--bs-secondary-color,#6c757d); text-transform:uppercase; letter-spacing:.4px; border-bottom:1px solid var(--border-color,#dee2e6); white-space:nowrap; background:var(--bg-color,#f8f9fa); }
+.brq-table td { padding:.85rem 1rem; font-size:.85rem; color:var(--text-color,#212529); border-bottom:1px solid var(--border-color,#f0f0f0); vertical-align:middle; }
+.brq-table tr:last-child td { border-bottom:none; }
+.brq-table tbody tr { transition:background .15s; }
+.brq-table tbody tr:hover { background:rgba(99,102,241,.025); }
+
+/* Book info cell */
+.brq-book-cell { display:flex; align-items:center; gap:.75rem; }
+.brq-book-cover { width:38px; height:50px; border-radius:6px; object-fit:cover; flex-shrink:0; }
+.brq-book-cover-ph { width:38px; height:50px; border-radius:6px; background:rgba(99,102,241,.08); display:flex; align-items:center; justify-content:center; color:#6366f1; font-size:.9rem; flex-shrink:0; }
+.brq-book-title { font-weight:700; font-size:.88rem; }
+.brq-book-author { font-size:.75rem; color:var(--bs-secondary-color,#6c757d); }
+
+/* Status badges */
+.brq-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.3rem .7rem; border-radius:8px; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; }
+.brq-badge.pending  { background:rgba(245,158,11,.12); color:#f59e0b; }
+.brq-badge.approved { background:rgba(16,185,129,.12); color:#10b981; }
+.brq-badge.rejected { background:rgba(239,68,68,.12); color:#ef4444; }
+.brq-badge.cancelled{ background:rgba(108,117,125,.12); color:#6c757d; }
+
+/* Action buttons */
+.brq-act-wrap { display:flex; gap:.4rem; flex-wrap:nowrap; }
+.brq-act-btn { display:inline-flex; align-items:center; gap:.3rem; padding:.38rem .75rem; border-radius:8px; border:none; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.brq-act-btn.approve { background:rgba(16,185,129,.12); color:#10b981; }
+.brq-act-btn.approve:hover { background:rgba(16,185,129,.25); transform:translateY(-1px); }
+.brq-act-btn.reject  { background:rgba(239,68,68,.12); color:#ef4444; }
+.brq-act-btn.reject:hover  { background:rgba(239,68,68,.25); transform:translateY(-1px); }
+
+/* Empty */
+.brq-empty { text-align:center; padding:3.5rem 1.5rem; animation:brqFadeIn .5s ease-out; }
+.brq-empty i { font-size:3rem; color:var(--bs-secondary-color,#adb5bd); margin-bottom:1rem; display:block; }
+.brq-empty h5 { font-weight:700; color:var(--text-color,#212529); margin-bottom:.4rem; }
+.brq-empty p { color:var(--bs-secondary-color,#6c757d); font-size:.88rem; }
+
+/* Modal */
+.brq-modal-body .form-label { font-size:.8rem; font-weight:700; color:var(--bs-secondary-color,#6c757d); text-transform:uppercase; letter-spacing:.3px; }
+.brq-days-input { display:flex; align-items:center; gap:.5rem; }
+.brq-days-input input { flex:1; padding:.55rem .85rem; border:1.5px solid var(--border-color,#dee2e6); border-radius:10px; font-size:.9rem; background:var(--bg-color,#f8f9fa); color:var(--text-color,#212529); }
+.brq-days-input input:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 3px rgba(99,102,241,.15); }
+
+/* Responsive */
+@media (max-width:767px) {
+  .brq-stats { grid-template-columns:repeat(2,1fr); }
+  .brq-filter-row { flex-direction:column; }
+  .brq-table { display:none; }
+  .brq-mobile-list { display:block !important; }
+}
+@media (min-width:768px) {
+  .brq-mobile-list { display:none; }
+}
+
+/* Mobile cards */
+.brq-mobile-list { display:none; }
+.brq-m-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#dee2e6); border-radius:14px; padding:1rem; margin-bottom:.85rem; animation:brqSlideIn .35s ease-out backwards; }
+.brq-m-card:nth-child(1) { animation-delay:.0s; }
+.brq-m-card:nth-child(2) { animation-delay:.05s; }
+.brq-m-card:nth-child(3) { animation-delay:.1s; }
+</style>
+
+<div class="brq-page">
+  <!-- Header -->
+  <div class="brq-header">
+    <div class="brq-header-left">
+      <h1><i class="bi bi-send"></i> Kitob arizalari</h1>
+      <div class="brq-header-sub">O'quvchilarning kitob ijarasi arizalari</div>
+    </div>
+    <div class="brq-header-actions">
+      <a href="{% url 'admin_books' %}" class="brq-btn brq-btn-outline"><i class="bi bi-book"></i> Kitoblar</a>
+      <a href="{% url 'admin_book_rentals' %}" class="brq-btn brq-btn-outline"><i class="bi bi-arrow-left-right"></i> Ijaralar</a>
+    </div>
+  </div>
+
+  <!-- Stats (API orqali to'ldiriladi) -->
+  <div class="brq-stats" id="statsRow">
+    <div class="brq-stat-card">
+      <div class="brq-stat-icon warning"><i class="bi bi-clock"></i></div>
+      <div class="brq-stat-val" id="sPending">—</div>
+      <div class="brq-stat-label">Kutilmoqda</div>
+    </div>
+    <div class="brq-stat-card">
+      <div class="brq-stat-icon success"><i class="bi bi-check-circle"></i></div>
+      <div class="brq-stat-val" id="sApproved">—</div>
+      <div class="brq-stat-label">Tasdiqlangan</div>
+    </div>
+    <div class="brq-stat-card">
+      <div class="brq-stat-icon danger"><i class="bi bi-x-circle"></i></div>
+      <div class="brq-stat-val" id="sRejected">—</div>
+      <div class="brq-stat-label">Rad etilgan</div>
+    </div>
+    <div class="brq-stat-card">
+      <div class="brq-stat-icon primary"><i class="bi bi-list-ul"></i></div>
+      <div class="brq-stat-val" id="sTotal">—</div>
+      <div class="brq-stat-label">Jami</div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="brq-filter">
+    <div class="brq-filter-row">
+      <div class="brq-filter-group" style="flex:3">
+        <label><i class="bi bi-search"></i> Qidirish</label>
+        <input type="text" id="searchInput" placeholder="Kitob nomi yoki o'quvchi..." oninput="debounce()">
+      </div>
+      <div class="brq-filter-group" style="flex:1.5; min-width:130px;">
+        <label><i class="bi bi-funnel"></i> Holat</label>
+        <select id="statusFilter" onchange="loadRequests()">
+          <option value="">Barchasi</option>
+          <option value="pending">Kutilmoqda</option>
+          <option value="approved">Tasdiqlangan</option>
+          <option value="rejected">Rad etilgan</option>
+          <option value="cancelled">Bekor qilingan</option>
+        </select>
+      </div>
+      <button class="brq-filter-btn" onclick="loadRequests()"><i class="bi bi-search"></i> Qidirish</button>
+    </div>
+  </div>
+
+  <!-- Table (desktop) -->
+  <div class="brq-table-card">
+    <div id="tableWrap">
+      <div style="text-align:center;padding:3rem"><div class="spinner-border" style="color:#6366f1"></div></div>
+    </div>
+  </div>
+
+  <!-- Mobile list -->
+  <div class="brq-mobile-list" id="mobileList"></div>
+</div>
+
+<!-- Tasdiqlash modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:1px solid var(--border-color,#dee2e6)">
+      <div class="modal-header" style="border-bottom:1px solid var(--border-color,#dee2e6)">
+        <h5 class="modal-title fw-bold"><i class="bi bi-check-circle text-success me-2"></i>Arizani tasdiqlash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="approveBookInfo" class="mb-3"></div>
+        <div class="brq-modal-body">
+          <div class="mb-3">
+            <label class="form-label">Qaytarish muddati (kun)</label>
+            <div class="brq-days-input">
+              <input type="number" id="approveDays" value="14" min="1" max="90">
+              <span style="color:var(--bs-secondary-color,#6c757d);font-size:.85rem">kun</span>
+            </div>
+          </div>
+          <div class="mb-1">
+            <label class="form-label">Admin izohi (ixtiyoriy)</label>
+            <textarea id="approveNote" class="form-control" rows="2" placeholder="Izoh..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid var(--border-color,#dee2e6)">
+        <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Bekor</button>
+        <button class="btn btn-success rounded-3 fw-bold" id="approveConfirmBtn" onclick="confirmApprove()">
+          <i class="bi bi-check-lg me-1"></i>Tasdiqlash
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rad etish modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius:16px;border:1px solid var(--border-color,#dee2e6)">
+      <div class="modal-header" style="border-bottom:1px solid var(--border-color,#dee2e6)">
+        <h5 class="modal-title fw-bold"><i class="bi bi-x-circle text-danger me-2"></i>Arizani rad etish</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="rejectBookInfo" class="mb-3"></div>
+        <div class="brq-modal-body">
+          <label class="form-label">Rad etish sababi (ixtiyoriy)</label>
+          <textarea id="rejectNote" class="form-control" rows="2" placeholder="Sabab..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top:1px solid var(--border-color,#dee2e6)">
+        <button class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Bekor</button>
+        <button class="btn btn-danger rounded-3 fw-bold" id="rejectConfirmBtn" onclick="confirmReject()">
+          <i class="bi bi-x-lg me-1"></i>Rad etish
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/api/v1/library/';
+const CSRF = '{{ csrf_token }}';
+let searchTimer = null;
+let pendingId = null;
+
+async function apiFetch(url, opts = {}) {
+  return fetch(url, {
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json', ...(opts.headers||{}) },
+    ...opts,
+  });
+}
+
+async function loadStats() {
+  const [rPending, rApproved, rRejected, rAll] = await Promise.all([
+    apiFetch(API + 'admin/requests/?status=pending'),
+    apiFetch(API + 'admin/requests/?status=approved'),
+    apiFetch(API + 'admin/requests/?status=rejected'),
+    apiFetch(API + 'admin/requests/'),
+  ]);
+  try {
+    const dp = await rPending.json();
+    document.getElementById('sPending').textContent = dp.count ?? '—';
+    const da = await rApproved.json();
+    document.getElementById('sApproved').textContent = da.count ?? '—';
+    const dr = await rRejected.json();
+    document.getElementById('sRejected').textContent = dr.count ?? '—';
+    const dt = await rAll.json();
+    document.getElementById('sTotal').textContent = dt.count ?? '—';
+  } catch {}
+}
+
+async function loadRequests() {
+  const tw = document.getElementById('tableWrap');
+  const ml = document.getElementById('mobileList');
+  tw.innerHTML = '<div style="text-align:center;padding:3rem"><div class="spinner-border" style="color:#6366f1"></div></div>';
+  ml.innerHTML = '';
+
+  const search = document.getElementById('searchInput').value.trim();
+  const status = document.getElementById('statusFilter').value;
+  let url = API + 'admin/requests/?';
+  if (search) url += 'search=' + encodeURIComponent(search) + '&';
+  if (status) url += 'status=' + status + '&';
+
+  try {
+    const r = await apiFetch(url);
+    const d = await r.json();
+    renderTable(d.results || []);
+    renderMobile(d.results || []);
+  } catch {
+    tw.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--bs-secondary-color)"><i class="bi bi-wifi-off fs-1 d-block mb-2"></i>Xatolik yuz berdi</div>';
+  }
+}
+
+function renderTable(reqs) {
+  const tw = document.getElementById('tableWrap');
+  if (!reqs.length) {
+    tw.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar topilmadi</h5><p>Hali hech qanday ariza yo\'q.</p></div>';
+    return;
+  }
+
+  const rows = reqs.map(r => `
+    <tr>
+      <td>
+        <div class="brq-book-cell">
+          ${r.book_cover
+            ? `<img src="${r.book_cover}" class="brq-book-cover" alt="">`
+            : `<div class="brq-book-cover-ph"><i class="bi bi-book"></i></div>`}
+          <div>
+            <div class="brq-book-title">${esc(r.book_title)}</div>
+            <div class="brq-book-author">${esc(r.book_author)}</div>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="font-weight:600;font-size:.88rem">${esc(r.student_name)}</div>
+        ${r.student_phone ? `<div style="font-size:.75rem;color:var(--bs-secondary-color)">${esc(r.student_phone)}</div>` : ''}
+      </td>
+      <td><span class="brq-badge ${r.status}"><i class="bi bi-${statusIcon(r.status)}"></i> ${esc(r.status_display)}</span></td>
+      <td style="font-size:.8rem;color:var(--bs-secondary-color)">${fmtDate(r.created_at)}</td>
+      <td>
+        ${r.message ? `<div style="font-size:.78rem;color:var(--bs-secondary-color);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.message)}">${esc(r.message)}</div>` : '<span style="color:var(--bs-secondary-color);font-size:.78rem">—</span>'}
+        ${r.admin_note ? `<div style="font-size:.72rem;color:#10b981;margin-top:2px"><i class="bi bi-chat-text"></i> ${esc(r.admin_note)}</div>` : ''}
+      </td>
+      <td>
+        ${r.status === 'pending' ? `
+          <div class="brq-act-wrap">
+            <button class="brq-act-btn approve" onclick="openApprove(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+              <i class="bi bi-check-lg"></i> Tasdiqlash
+            </button>
+            <button class="brq-act-btn reject" onclick="openReject(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+              <i class="bi bi-x-lg"></i> Rad
+            </button>
+          </div>` : '<span style="color:var(--bs-secondary-color);font-size:.78rem">—</span>'}
+      </td>
+    </tr>`).join('');
+
+  tw.innerHTML = `
+    <table class="brq-table">
+      <thead>
+        <tr>
+          <th>Kitob</th><th>O'quvchi</th><th>Holat</th><th>Sana</th><th>Izoh</th><th>Amal</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderMobile(reqs) {
+  const ml = document.getElementById('mobileList');
+  if (!reqs.length) {
+    ml.innerHTML = '<div class="brq-empty"><i class="bi bi-send"></i><h5>Arizalar yo\'q</h5></div>';
+    return;
+  }
+  ml.innerHTML = reqs.map((r, i) => `
+    <div class="brq-m-card" style="animation-delay:${i*40}ms">
+      <div style="display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.6rem">
+        ${r.book_cover ? `<img src="${r.book_cover}" class="brq-book-cover" alt="">` : `<div class="brq-book-cover-ph"><i class="bi bi-book"></i></div>`}
+        <div style="flex:1;min-width:0">
+          <div class="brq-book-title">${esc(r.book_title)}</div>
+          <div class="brq-book-author">${esc(r.book_author)}</div>
+          <div style="margin-top:.3rem;font-size:.82rem;font-weight:600">${esc(r.student_name)}</div>
+        </div>
+        <span class="brq-badge ${r.status}"><i class="bi bi-${statusIcon(r.status)}"></i> ${esc(r.status_display)}</span>
+      </div>
+      <div style="font-size:.75rem;color:var(--bs-secondary-color);margin-bottom:.75rem">${fmtDate(r.created_at)}</div>
+      ${r.status === 'pending' ? `
+        <div class="brq-act-wrap">
+          <button class="brq-act-btn approve" style="flex:1;justify-content:center" onclick="openApprove(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+            <i class="bi bi-check-lg"></i> Tasdiqlash
+          </button>
+          <button class="brq-act-btn reject" style="flex:1;justify-content:center" onclick="openReject(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+            <i class="bi bi-x-lg"></i> Rad etish
+          </button>
+        </div>` : ''}
+    </div>`).join('');
+}
+
+function openApprove(id, bookTitle, studentName) {
+  pendingId = id;
+  document.getElementById('approveBookInfo').innerHTML = `
+    <div style="background:rgba(16,185,129,.08);border-radius:10px;padding:.75rem 1rem;border:1px solid rgba(16,185,129,.2)">
+      <div style="font-weight:700;font-size:.95rem">${esc(bookTitle)}</div>
+      <div style="font-size:.82rem;color:var(--bs-secondary-color)">O'quvchi: ${esc(studentName)}</div>
+    </div>`;
+  document.getElementById('approveDays').value = 14;
+  document.getElementById('approveNote').value = '';
+  new bootstrap.Modal(document.getElementById('approveModal')).show();
+}
+
+async function confirmApprove() {
+  if (!pendingId) return;
+  const btn = document.getElementById('approveConfirmBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saqlanmoqda...';
+  const days = document.getElementById('approveDays').value || 14;
+  const note = document.getElementById('approveNote').value || '';
+  try {
+    const r = await apiFetch(API + 'admin/requests/' + pendingId + '/approve/', {
+      method: 'POST',
+      body: JSON.stringify({ days, admin_note: note }),
+    });
+    const d = await r.json();
+    bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+    if (r.ok) {
+      showToast('Ariza tasdiqlandi!', 'success');
+      loadRequests();
+      loadStats();
+    } else {
+      showToast(d.detail || 'Xatolik.', 'danger');
+    }
+  } catch { showToast('Xatolik.', 'danger'); }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Tasdiqlash';
+}
+
+function openReject(id, bookTitle, studentName) {
+  pendingId = id;
+  document.getElementById('rejectBookInfo').innerHTML = `
+    <div style="background:rgba(239,68,68,.08);border-radius:10px;padding:.75rem 1rem;border:1px solid rgba(239,68,68,.2)">
+      <div style="font-weight:700;font-size:.95rem">${esc(bookTitle)}</div>
+      <div style="font-size:.82rem;color:var(--bs-secondary-color)">O'quvchi: ${esc(studentName)}</div>
+    </div>`;
+  document.getElementById('rejectNote').value = '';
+  new bootstrap.Modal(document.getElementById('rejectModal')).show();
+}
+
+async function confirmReject() {
+  if (!pendingId) return;
+  const btn = document.getElementById('rejectConfirmBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>...';
+  const note = document.getElementById('rejectNote').value || '';
+  try {
+    const r = await apiFetch(API + 'admin/requests/' + pendingId + '/reject/', {
+      method: 'POST',
+      body: JSON.stringify({ admin_note: note }),
+    });
+    const d = await r.json();
+    bootstrap.Modal.getInstance(document.getElementById('rejectModal')).hide();
+    if (r.ok) {
+      showToast('Ariza rad etildi.', 'warning');
+      loadRequests();
+      loadStats();
+    } else {
+      showToast(d.detail || 'Xatolik.', 'danger');
+    }
+  } catch { showToast('Xatolik.', 'danger'); }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Rad etish';
+}
+
+function debounce() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadRequests, 380);
+}
+
+function statusIcon(s) {
+  return { pending:'clock', approved:'check-circle-fill', rejected:'x-circle-fill', cancelled:'dash-circle' }[s] || 'question';
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, type = 'success') {
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;top:1.5rem;right:1.5rem;z-index:9999';
+  wrap.innerHTML = `<div class="alert alert-${type} fw-semibold shadow" style="border-radius:12px;min-width:240px;animation:brqSlideIn .3s ease-out">${msg}</div>`;
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 3500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadRequests();
+});
+</script>
+{% endblock %}

@@ -714,8 +714,8 @@ def hw_grade(request, sub_pk):
     sub.graded_at  = timezone.now()
     sub.save(update_fields=['grade', 'feedback', 'status', 'graded_by', 'graded_at'])
 
-    # Award coins on graded/accepted
-    if status in ('graded', 'accepted') and not sub.coin_awarded and grade is not None:
+    # Award coins on graded/accepted (faqat birinchi baholashda: revision_count == 0)
+    if status in ('graded', 'accepted') and not sub.coin_awarded and sub.revision_count == 0 and grade is not None:
         coin_amount = 5
         if not sub.is_late:
             coin_amount = 10

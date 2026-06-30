@@ -1,0 +1,209 @@
+{% load static %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<style>
+.imp-step { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.imp-step-item {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-radius: 12px;
+    background: var(--quizui-card-bg); border: 1.5px solid var(--quizui-border);
+    transition: all .2s;
+}
+.imp-step-item.active { border-color: var(--quizui-primary); background: rgb(13 110 253 / 4%); }
+.imp-step-item.done { border-color: #10b981; background: rgb(16 185 129 / 5%); }
+.imp-step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--quizui-border); color: var(--quizui-text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .9rem; flex-shrink: 0;
+}
+.imp-step-item.active .imp-step-num { background: var(--quizui-primary); color: #fff; }
+.imp-step-item.done .imp-step-num { background: #10b981; color: #fff; }
+.imp-step-label { font-weight: 600; font-size: .9rem; color: var(--quizui-text); }
+.imp-step-arrow { color: var(--quizui-text-muted); flex-shrink: 0; }
+
+.imp-drop {
+    border: 2px dashed var(--quizui-border);
+    border-radius: 16px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .25s;
+    background: var(--quizui-bg);
+}
+.imp-drop:hover, .imp-drop.dragover {
+    border-color: var(--quizui-primary);
+    background: rgb(13 110 253 / 4%);
+}
+.imp-drop-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: linear-gradient(135deg, rgb(13 110 253 / 12%), rgb(88 86 214 / 12%));
+    color: var(--quizui-primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 2rem; margin-bottom: 16px;
+}
+.imp-drop h4 { font-size: 1.1rem; font-weight: 700; color: var(--quizui-text); margin: 0 0 6px; }
+.imp-drop p { color: var(--quizui-text-muted); margin: 0; font-size: .9rem; }
+
+.imp-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px;
+    border: 1px solid var(--quizui-border);
+    border-radius: 12px;
+    background: var(--quizui-card-bg);
+    margin-bottom: 10px;
+    transition: all .15s;
+}
+.imp-row.has-error { border-color: rgb(239 68 68 / 35%); background: rgb(239 68 68 / 3%); }
+.imp-row-no {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--quizui-bg); color: var(--quizui-text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .8rem;
+}
+.imp-row-text { font-weight: 600; color: var(--quizui-text); margin-bottom: 4px; font-size: .95rem; }
+.imp-row-options { font-size: .8rem; color: var(--quizui-text-muted); margin-bottom: 4px; }
+.imp-row-opt { display: inline-block; margin-right: 8px; }
+.imp-row-opt.correct { color: #10b981; font-weight: 600; }
+.imp-row-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.imp-row-errors { font-size: .8rem; color: #b91c1c; margin-top: 4px; }
+.imp-row-errors i { margin-right: 4px; }
+</style>
+
+<div class="qz-page" id="impApp"
+     data-quiz-id="{{ quiz_id|default:'' }}"
+     data-quiz-title="{{ quiz_title|escapejs|default:'' }}">
+    {% if quiz_id %}
+    <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytish
+    </a>
+    {% else %}
+    <a href="{% url 'quizui:question_bank' %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytish
+    </a>
+    {% endif %}
+
+    <div class="qz-hero">
+        <div class="qz-hero-left">
+            <div class="qz-hero-icon green"><i class="bi bi-file-earmark-arrow-up-fill"></i></div>
+            <div>
+                <h1 class="qz-hero-title">Savollarni import qilish</h1>
+                <p class="qz-hero-subtitle">Excel (.xlsx), CSV (.csv) yoki JSON (.json) fayl orqali savollarni bazaga qo'shing.</p>
+            </div>
+        </div>
+        <div class="qz-hero-actions">
+            <div class="dropdown">
+                <button class="qz-btn qz-btn-ghost dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-download"></i> Namuna yuklab olish
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="border-radius:12px;border-color:var(--quizui-border);">
+                    <li><a class="dropdown-item" href="{% static 'quiz/samples/quiz_import_template.xlsx' %}" download>
+                        <i class="bi bi-file-earmark-excel" style="color:#10b981;"></i> Excel namuna (.xlsx)
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% static 'quiz/samples/quiz_import_template.csv' %}" download>
+                        <i class="bi bi-file-earmark-text" style="color:#007aff;"></i> CSV namuna (.csv)
+                    </a></li>
+                    <li><a class="dropdown-item" href="{% static 'quiz/samples/quiz_import_template.json' %}" download>
+                        <i class="bi bi-file-earmark-code" style="color:#8b5cf6;"></i> JSON namuna (.json)
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step indicator -->
+    <div class="imp-step">
+        <div class="imp-step-item active" id="impStep1">
+            <div class="imp-step-num">1</div>
+            <div class="imp-step-label">Fayl tanlash</div>
+        </div>
+        <i class="bi bi-chevron-right imp-step-arrow"></i>
+        <div class="imp-step-item" id="impStep2">
+            <div class="imp-step-num">2</div>
+            <div class="imp-step-label">Ko'rib chiqish</div>
+        </div>
+        <i class="bi bi-chevron-right imp-step-arrow"></i>
+        <div class="imp-step-item" id="impStep3">
+            <div class="imp-step-num">3</div>
+            <div class="imp-step-label">Saqlash</div>
+        </div>
+    </div>
+
+    <!-- Step 1: file upload -->
+    <div class="qz-surface" id="impStage1">
+        <div class="qz-surface-body">
+            <label class="imp-drop" id="impDrop">
+                <input type="file" id="impFile" accept=".xlsx,.csv,.json" hidden>
+                <div class="imp-drop-icon"><i class="bi bi-cloud-arrow-up-fill"></i></div>
+                <h4>Fayl tanlang yoki shu yerga torting</h4>
+                <p>.xlsx, .csv yoki .json — maksimum 5 MB</p>
+                <p class="mt-2 mb-0"><small>Birinchi marta? <strong>Namuna yuklab olib</strong> formatini ko'ring.</small></p>
+            </label>
+            <div class="mt-3 small text-muted">
+                <i class="bi bi-info-circle"></i>
+                <strong>Eslatma:</strong> Yuklash faqat ko'rib chiqishni boshlaydi. Saqlash uchun keyingi qadamda tasdiqlashingiz kerak.
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: preview -->
+    <div class="qz-surface d-none" id="impStage2">
+        <div class="qz-surface-head">
+            <div class="qz-surface-title">
+                <i class="bi bi-eye"></i> Ko'rib chiqish — <span id="impPreviewFile" class="text-muted"></span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="qz-badge success d-none" id="impStatOk"></span>
+                <span class="qz-badge danger d-none" id="impStatErr"></span>
+                <button class="qz-btn qz-btn-ghost" id="impReset" style="padding:8px 14px;font-size:.85rem;">
+                    <i class="bi bi-arrow-clockwise"></i> Boshqa fayl
+                </button>
+                <button class="qz-btn qz-btn-success" id="impCommitBtn">
+                    <i class="bi bi-check2-circle"></i> To'g'rilarni saqlash
+                </button>
+            </div>
+        </div>
+        <div class="qz-surface-body" id="impPreviewList"></div>
+    </div>
+
+    <!-- Step 3: result -->
+    <div class="qz-surface d-none" id="impStage3">
+        <div class="qz-surface-body">
+            <div class="qz-empty">
+                <div class="qz-empty-icon" style="background:rgb(16 185 129 / 12%);color:#10b981;">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+                <h4 id="impResultTitle">Saqlandi!</h4>
+                <p id="impResultMsg"></p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    {% if quiz_id %}
+                    <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-btn qz-btn-primary">
+                        <i class="bi bi-arrow-left"></i> Testga qaytish
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'quizui:question_bank' %}" class="qz-btn qz-btn-ghost">
+                        <i class="bi bi-collection"></i> Savollar bazasi
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="impRowTpl">
+    <div class="imp-row">
+        <div class="imp-row-no"></div>
+        <div class="min-w-0">
+            <div class="imp-row-text"></div>
+            <div class="imp-row-options"></div>
+            <div class="imp-row-meta"></div>
+            <div class="imp-row-errors d-none"></div>
+        </div>
+        <button class="qz-icon-btn delete imp-row-skip" title="O'tkazib yuborish"><i class="bi bi-x-lg"></i></button>
+    </div>
+</template>
+
+<div class="quizui-toast-stack" id="quizToastStack"></div>

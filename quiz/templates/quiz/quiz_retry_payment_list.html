@@ -1,0 +1,24 @@
+{% extends parent_template %}
+{% load static %}
+
+{% block title %}To'lov so'rovlari - LMS{% endblock %}
+{% block topbar_title %}To'lov so'rovlari{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_ui.css' %}">
+{% endblock %}
+
+{% block teacher_content %}{% include 'quiz/_quiz_retry_payment_list_body.html' %}{% endblock %}
+{% block admin_content %}{% include 'quiz/_quiz_retry_payment_list_body.html' %}{% endblock %}
+
+{% block extra_js %}
+<script>
+function showReceipt(url) {
+    document.getElementById('receiptImg').src = url;
+    document.getElementById('receiptModal').classList.add('show');
+}
+function hideReceipt() {
+    document.getElementById('receiptModal').classList.remove('show');
+}
+</script>
+{% endblock %}

@@ -26,14 +26,29 @@
         right: 0;
         left: 280px;
         height: 64px;
-        background: var(--card-bg);
-        border-bottom: 1px solid var(--border-color);
+        background: #ffffff;
+        border-bottom: 1px solid #e5e7eb;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 24px;
         z-index: 999;
-        transition: left 0.3s ease;
+        transition: left 0.3s ease, background 0.3s ease;
+        box-shadow: 0 1px 12px rgba(99, 102, 241, 0.07);
+    }
+
+    .admin-topbar::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+    }
+
+    [data-bs-theme="dark"] .admin-topbar {
+        background: linear-gradient(135deg, #0d1b3e 0%, #1a1856 50%, #0f172a 100%);
+        border-bottom: none;
+        box-shadow: 0 2px 24px rgba(0, 0, 0, 0.3);
     }
 
     .admin-topbar-left {
@@ -54,17 +69,35 @@
         justify-content: center;
         width: 42px;
         height: 42px;
-        border: none;
+        border: 1px solid rgba(99, 102, 241, 0.25);
         border-radius: 12px;
-        background: rgba(13, 110, 253, 0.08);
-        color: var(--primary-blue);
+        background: rgba(99, 102, 241, 0.07);
+        color: #6366f1;
         font-size: 1.3rem;
         cursor: pointer;
         transition: all 0.2s ease;
     }
 
+    .sidebar-toggle:hover {
+        background: rgba(99, 102, 241, 0.14);
+        color: #4f46e5;
+        border-color: rgba(99, 102, 241, 0.4);
+    }
+
     .sidebar-toggle:active {
         transform: scale(0.92);
+    }
+
+    [data-bs-theme="dark"] .sidebar-toggle {
+        background: rgba(99, 102, 241, 0.12);
+        border-color: rgba(99, 102, 241, 0.3);
+        color: #a5b4fc;
+    }
+
+    [data-bs-theme="dark"] .sidebar-toggle:hover {
+        background: rgba(99, 102, 241, 0.25);
+        color: #fff;
+        border-color: rgba(99, 102, 241, 0.5);
     }
 
     /* Desktop sidebar collapsed state */
@@ -133,8 +166,13 @@
 
     .topbar-title {
         font-weight: 700;
-        font-size: 1.1rem;
-        color: var(--text-color);
+        font-size: 1.05rem;
+        color: #1e1b4b;
+        letter-spacing: 0.2px;
+    }
+
+    [data-bs-theme="dark"] .topbar-title {
+        color: #e2e8f0;
     }
 
     .topbar-profile-btn {
@@ -142,45 +180,65 @@
         align-items: center;
         gap: 10px;
         padding: 6px 14px 6px 6px;
-        border: 1px solid var(--border-color);
+        border: 1px solid #e5e7eb;
         border-radius: 50px;
         background: transparent;
         cursor: pointer;
         transition: all 0.2s ease;
         text-decoration: none;
-        color: var(--text-color);
+        color: #374151;
     }
 
     .topbar-profile-btn:hover {
-        background: rgba(13, 110, 253, 0.05);
-        border-color: var(--primary-blue);
+        background: rgba(99, 102, 241, 0.06);
+        border-color: #6366f1;
+        color: #4f46e5;
+    }
+
+    [data-bs-theme="dark"] .topbar-profile-btn {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.06);
+        color: #e2e8f0;
+        backdrop-filter: blur(8px);
+    }
+
+    [data-bs-theme="dark"] .topbar-profile-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.45);
+        color: #fff;
     }
 
     .topbar-avatar {
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         font-size: 0.8rem;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
     }
 
     .topbar-name {
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
+        color: #374151;
+    }
+
+    [data-bs-theme="dark"] .topbar-name {
+        color: rgba(255, 255, 255, 0.9);
     }
 
     .admin-theme-btn {
         width: 40px;
         height: 40px;
         border-radius: 12px;
-        border: 1px solid var(--border-color);
+        border: 1px solid #e5e7eb;
         background: transparent;
-        color: var(--text-color);
+        color: #6b7280;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -190,8 +248,21 @@
     }
 
     .admin-theme-btn:hover {
-        background: rgba(13, 110, 253, 0.08);
-        color: var(--primary-blue);
+        background: rgba(99, 102, 241, 0.08);
+        color: #6366f1;
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    [data-bs-theme="dark"] .admin-theme-btn {
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.75);
+    }
+
+    [data-bs-theme="dark"] .admin-theme-btn:hover {
+        background: rgba(99, 102, 241, 0.2);
+        color: #c4b5fd;
+        border-color: rgba(99, 102, 241, 0.4);
     }
 
     .main-content {
@@ -301,6 +372,41 @@
             padding: 78px 14px 20px;
         }
     }
+
+    /* Dropdown menu — light mode */
+    .admin-topbar .dropdown-menu {
+        border: 1px solid rgba(99,102,241,0.15);
+        border-radius: 14px;
+    }
+    .admin-topbar .dropdown-item:hover {
+        background: rgba(99,102,241,0.07);
+        color: #4f46e5;
+    }
+
+    /* Dropdown menu — dark mode */
+    [data-bs-theme="dark"] .admin-topbar .dropdown-menu {
+        background: #1e1b4b;
+        border-color: rgba(99,102,241,0.2);
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-item {
+        color: #cbd5e1;
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-item:hover {
+        background: rgba(99,102,241,0.15);
+        color: #fff;
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-divider {
+        border-color: rgba(99,102,241,0.15);
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-menu .fw-bold {
+        color: #fff;
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-item.text-danger {
+        color: #f87171 !important;
+    }
+    [data-bs-theme="dark"] .admin-topbar .dropdown-item.text-danger:hover {
+        background: rgba(239,68,68,0.12);
+    }
     </style>
 
     {% block extra_css %}{% endblock %}
@@ -362,9 +468,17 @@
                 <div class="nav-icon-wrap"><i class="bi bi-bar-chart"></i></div>
                 <span>Darslar tahlili</span>
             </a>
-            <a href="{% url 'admin_test_analytics' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_test_analytics' %}active{% endif %}" data-title="Test hulosalari">
-                <div class="nav-icon-wrap"><i class="bi bi-journal-check"></i></div>
-                <span>Test hulosalari</span>
+            <a href="{% url 'quizui:question_bank' %}" class="nav-link {% if 'question_bank' in request.resolver_match.url_name or 'question_create' in request.resolver_match.url_name or 'question_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Savollar bazasi">
+                <div class="nav-icon-wrap"><i class="bi bi-patch-question-fill"></i></div>
+                <span>Savollar bazasi</span>
+            </a>
+            <a href="{% url 'quizui:quiz_list' %}" class="nav-link {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz boshqaruv">
+                <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div>
+                <span>Quizlar</span>
+            </a>
+            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz to'lovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div>
+                <span>Quiz to'lovlari</span>
             </a>
             <a href="{% url 'homework_submissions' %}" class="nav-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" data-title="Vazifalar">
                 <div class="nav-icon-wrap"><i class="bi bi-file-check"></i></div>
@@ -382,10 +496,6 @@
             <a href="{% url 'admin_certificate_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_certificate_requests' %}active{% endif %}" data-title="Sertifikat so'rovlari">
                 <div class="nav-icon-wrap"><i class="bi bi-mortarboard-fill"></i></div>
                 <span>Sertifikat so'rovlari</span>
-            </a>
-            <a href="{% url 'admin_final_test_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_final_test_payments' %}active{% endif %}" data-title="Yakuniy test to'lovlar">
-                <div class="nav-icon-wrap"><i class="bi bi-credit-card"></i></div>
-                <span>Yakuniy test to'lovlar</span>
             </a>
 
             <div class="sidebar-group-label">Foydalanuvchilar</div>
@@ -507,9 +617,13 @@
                 <div class="nav-icon-wrap"><i class="bi bi-incognito"></i></div>
                 <span>Shaxsiy chatlar</span>
             </a>
-            <a href="{% url 'admin_books' %}" class="nav-link {% if 'book' in request.resolver_match.url_name or 'admin_book' in request.resolver_match.url_name %}active{% endif %}" data-title="Kutubxona">
+            <a href="{% url 'admin_books' %}" class="nav-link {% if request.resolver_match.url_name in 'admin_books,admin_book_add,admin_book_edit,admin_book_delete,admin_book_rentals,admin_give_book,admin_return_book' %}active{% endif %}" data-title="Kutubxona kitoblari">
                 <div class="nav-icon-wrap"><i class="bi bi-book"></i></div>
                 <span>Kutubxona</span>
+            </a>
+            <a href="{% url 'admin_book_requests' %}" class="nav-link {% if request.resolver_match.url_name == 'admin_book_requests' %}active{% endif %}" data-title="Kitob arizalari" style="position:relative">
+                <div class="nav-icon-wrap"><i class="bi bi-send"></i></div>
+                <span>Kitob arizalari</span>
             </a>
             <a href="{% url 'blog:admin_posts' %}" class="nav-link {% if 'blog' in request.path %}active{% endif %}" data-title="Blog">
                 <div class="nav-icon-wrap"><i class="bi bi-newspaper"></i></div>

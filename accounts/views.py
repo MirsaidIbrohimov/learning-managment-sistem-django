@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_GET
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Q, Sum, Avg
@@ -31,6 +32,7 @@ from django.contrib.auth.hashers import make_password
 from .security import get_client_ip, check_rate_limit
 from coin.models import ActivityLog, CoinTransaction
 from blog.models import Post
+from quiz.models import Attempt, Quiz, QuizSettings
 
 from django.core.management import call_command
 from django.core.cache import cache
@@ -1975,6 +1977,61 @@ def professions_view(request):
     })
 
 
+def _build_course_roadmap(sections, section_completed=None, section_is_locked=None, section_daily_locked=None):
+    """Kurs yo'l xaritasi (roadmap) uchun node holatlari va umumiy progressni qaytaradi.
+
+    Har bir node holati:
+      - 'completed' : bo'lim to'liq tugallangan
+      - 'active'    : birinchi tugallanmagan va ochiq bo'lim (foydalanuvchi shu yerda)
+      - 'locked'    : qulflangan yoki kunlik cheklov tufayli yopiq
+      - 'upcoming'  : navbatdagi ochiq bo'lim (hali boshlanmagan)
+    """
+    section_completed = section_completed or {}
+    section_is_locked = section_is_locked or {}
+    section_daily_locked = section_daily_locked or {}
+
+    nodes = []
+    active_assigned = False
+    completed_count = 0
+
+    for idx, section in enumerate(sections):
+        sid = section.id
+        lessons_count = sum(1 for l in section.lessons.all() if l.lesson_type != 'dictionary')
+        is_done = bool(section_completed.get(sid))
+        is_locked = bool(section_is_locked.get(sid)) or bool(section_daily_locked.get(sid))
+
+        if is_done:
+            state = 'completed'
+            completed_count += 1
+        elif is_locked:
+            state = 'locked'
+        elif not active_assigned:
+            state = 'active'
+            active_assigned = True
+        else:
+            state = 'upcoming'
+
+        nodes.append({
+            'id': sid,
+            'title': section.title,
+            'num': idx + 1,
+            'state': state,
+            'lessons_count': lessons_count,
+        })
+
+    total = len(nodes)
+    progress = round(completed_count * 100 / total) if total else 0
+    active_index = next((n['num'] - 1 for n in nodes if n['state'] == 'active'), None)
+
+    return {
+        'nodes': nodes,
+        'progress': progress,
+        'completed_count': completed_count,
+        'total': total,
+        'active_index': active_index,
+    }
+
+
 @login_required
 def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
@@ -2041,13 +2098,27 @@ def profession_detail(request, pk):
                 student=request.user,
                 test__lesson__profession=profession
             ).order_by('test__lesson_id', '-completed_at')
-            
+
             # Har bir test uchun eng oxirgi natijani saqlash
             latest_test_results = {}
             for tr in test_results:
                 if tr.test.lesson_id not in latest_test_results:
                     latest_test_results[tr.test.lesson_id] = tr
-            
+
+            # Quiz Attempt natijalari (legacy_test_id bo'lmagan yangi quizlar uchun)
+            # TestResult yo'q bo'lgan test darslari uchun Attempt dan foydalanamiz
+            from quiz.models import Attempt as QuizAttempt
+            quiz_attempts = QuizAttempt.objects.filter(
+                student=request.user,
+                quiz__lesson__profession=profession,
+                status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+            ).select_related('quiz').order_by('quiz__lesson_id', '-started_at')
+            latest_quiz_attempts = {}
+            for qa in quiz_attempts:
+                lid = qa.quiz.lesson_id
+                if lid and lid not in latest_quiz_attempts:
+                    latest_quiz_attempts[lid] = qa
+
             # Homework submissions - eng oxirgi topshiriqni olish
             hw_submissions = HomeworkSubmission.objects.filter(
                 student=request.user,
@@ -2070,7 +2141,18 @@ def profession_detail(request, pk):
                     'score': tr.score,
                     'attempted': True,
                 }
-            
+
+            # Yangi quizlar uchun Attempt natijasini qo'shish (TestResult bo'lmagan darslar)
+            for lesson_id, qa in latest_quiz_attempts.items():
+                if lesson_id not in lesson_progress:
+                    lesson_progress[lesson_id] = {
+                        'completed': qa.passed,
+                        'type': 'test',
+                        'passed': qa.passed,
+                        'score': qa.score,
+                        'attempted': True,
+                    }
+
             for lesson_id, hw in latest_hw_submissions.items():
                 is_completed = hw.status in ('accepted', 'graded')
                 lesson_progress[lesson_id] = {
@@ -2261,6 +2343,35 @@ def profession_detail(request, pk):
         # Sertifikat so'rovi mavjudmi
         certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession).first()
 
+    # Yakuniy testlar — alohida UI uchun
+    final_test_lessons = []
+    if is_enrolled or is_teaching or request.user.is_admin:
+        final_test_qs = Lesson.objects.filter(
+            profession=profession,
+            lesson_type='test',
+            test__test_type='final'
+        ).select_related('test')
+        for _fl in final_test_qs:
+            _payment_status = None
+            if request.user.is_authenticated and request.user.is_student:
+                _pay = FinalTestPayment.objects.filter(
+                    student=request.user, test=_fl.test
+                ).order_by('-created_at').first()
+                if _pay:
+                    _payment_status = _pay.status
+            final_test_lessons.append({
+                'lesson': _fl,
+                'test': _fl.test,
+                'payment_status': _payment_status,
+                'progress': lesson_progress.get(_fl.pk),
+                'token': token_map.get(_fl.pk),
+            })
+
+    _roadmap_completed = section_completed if isinstance(locals().get('section_completed'), dict) else {}
+    course_roadmap = _build_course_roadmap(
+        sections, _roadmap_completed, section_is_locked, section_daily_locked,
+    )
+
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
@@ -2270,6 +2381,7 @@ def profession_detail(request, pk):
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
+        'course_roadmap': course_roadmap,
         'section_is_locked': section_is_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
         'section_daily_locked': section_daily_locked if (is_enrolled or is_teaching or request.user.is_admin) else {},
         'daily_section_today': daily_section_today if (is_enrolled and request.user.is_student) else None,
@@ -2282,6 +2394,7 @@ def profession_detail(request, pk):
         'certificate_request': certificate_request,
         'lesson_is_locked': lesson_is_locked,
         'token_map': token_map,
+        'final_test_lessons': final_test_lessons,
     })
 
 
@@ -2629,6 +2742,11 @@ def request_certificate(request, pk):
         passed_tests = set(TestResult.objects.filter(
             student=request.user, test__lesson__profession=profession, passed=True
         ).values_list('test__lesson_id', flat=True))
+        from quiz.models import Attempt as QuizAttempt
+        passed_tests |= set(QuizAttempt.objects.filter(
+            student=request.user, quiz__lesson__profession=profession, passed=True,
+            status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+        ).values_list('quiz__lesson_id', flat=True))
         accepted_homeworks = set(HomeworkSubmission.objects.filter(
             student=request.user, homework__lesson__profession=profession,
             status__in=['accepted', 'graded']
@@ -2767,6 +2885,11 @@ def _is_section_locked_for_student(user, section, profession):
     passed_tests = set(TestResult.objects.filter(
         student=user, test__lesson__profession=profession, passed=True
     ).values_list('test__lesson_id', flat=True))
+    from quiz.models import Attempt as QuizAttempt
+    passed_tests |= set(QuizAttempt.objects.filter(
+        student=user, quiz__lesson__profession=profession, passed=True,
+        status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+    ).values_list('quiz__lesson_id', flat=True))
     accepted_homeworks = set(HomeworkSubmission.objects.filter(
         student=user, homework__lesson__profession=profession,
         status__in=['accepted', 'graded']
@@ -2849,23 +2972,18 @@ def lesson_view(request, pk):
         return render(request, 'accounts/lessons/homework_lesson.html', context)
     
     elif lesson.lesson_type == 'test':
-        test = lesson.test
-        result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
-        context['test'] = test
-        context['result'] = result
-        if test.test_type == 'final':
-            # Yakuniy test uchun qo'shimcha ma'lumotlar
-            pending_payment = FinalTestPayment.objects.filter(
-                student=request.user, test=test, status='pending'
-            ).exists() if result else False
-            approved_payment = FinalTestPayment.objects.filter(
-                student=request.user, test=test, status='approved'
-            ).exists() if result else False
-            context['pending_payment'] = pending_payment
-            context['approved_payment'] = approved_payment
-            return render(request, 'accounts/lessons/final_test_lesson.html', context)
-        return render(request, 'accounts/lessons/test_lesson.html', context)
-    
+        quiz = getattr(lesson, 'quiz', None)
+        is_staff = request.user.is_admin or request.user.is_assistant_admin or request.user.is_teacher
+        if quiz:
+            if is_staff:
+                return redirect('quizui:quiz_edit', pk=quiz.pk)
+            return redirect('quizui:quiz_take', pk=quiz.pk)
+        if is_staff:
+            messages.warning(request, "Bu dars uchun quiz yaratilmagan. Quiz yarating.")
+            return redirect('quizui:quiz_create')
+        messages.error(request, "Bu test hali tayyor emas.")
+        return redirect('profession_detail', pk=lesson.profession.pk)
+
     elif lesson.lesson_type == 'dictionary':
         dictionary = lesson.dictionary
         words = dictionary.words.all()
@@ -3371,7 +3489,89 @@ def _get_student_writing_profile(student, current_submission_pk=None):
     return previous_answers
 
 
-def _check_ai_generated(homework_description, student_answer, student=None, current_submission_pk=None):
+def _get_student_academic_context(student, homework):
+    """O'quvchining o'quv faoliyatini yig'ish — AI adolatli qaror qabul qilishi uchun"""
+    ctx = {
+        'avg_grade': None,
+        'total_graded': 0,
+        'is_strong_student': False,
+        'revision_submissions_count': 0,
+        'has_revision_history': False,
+        'course_passed_quizzes': 0,
+    }
+
+    # Umumiy o'rtacha baho (oxirgi 30 ta baholangan vazifa)
+    graded_grades = list(
+        HomeworkSubmission.objects.filter(
+            student=student,
+            status__in=['graded', 'accepted'],
+            grade__isnull=False,
+        ).values_list('grade', flat=True)[:30]
+    )
+    if graded_grades:
+        ctx['avg_grade'] = round(sum(graded_grades) / len(graded_grades), 1)
+        ctx['total_graded'] = len(graded_grades)
+        ctx['is_strong_student'] = ctx['avg_grade'] >= 7.0
+
+    # Qayta ishlash tarixi — ko'p marta qayta ishlagan o'quvchi odatda halolroq
+    rev_count = HomeworkSubmission.objects.filter(
+        student=student, revision_count__gt=0
+    ).count()
+    ctx['revision_submissions_count'] = rev_count
+    ctx['has_revision_history'] = rev_count > 0
+
+    # Kurs bo'yicha o'tilgan testlar soni
+    try:
+        from quiz.models import QuizAttempt
+        ctx['course_passed_quizzes'] = QuizAttempt.objects.filter(
+            student=student,
+            quiz__lesson__profession=homework.lesson.profession,
+            passed=True,
+        ).count()
+    except Exception:
+        pass
+
+    return ctx
+
+
+def _notify_ai_penalty(submission, penalty_coins, suspicion_reasons):
+    """AI jarima qo'yganda o'quvchiga saytda xabar va Telegram orqali bildirish"""
+    student = submission.student
+    lesson = submission.homework.lesson.title
+    profession = submission.homework.lesson.profession.name
+
+    reasons_text = '\n'.join(f"• {r}" for r in suspicion_reasons)
+    penalty_line = f"\n💸 Jarima: -{penalty_coins} coin ayirildi." if penalty_coins > 0 else ""
+
+    content = (
+        f"⚠️ '{lesson}' darsiga uy vazifangizda shubhali belgilar aniqlandi.\n\n"
+        f"🔍 Sabab:\n{reasons_text}"
+        f"{penalty_line}\n\n"
+        f"📝 Vazifangiz qayta ishlashga qaytarildi. "
+        f"Iltimos, vazifani O'ZINGIZ bajaring va qayta yuboring!\n\n"
+        f"💡 Eslatma: O'zingizning tushunishingiz eng muhim — AI nusxasi emas."
+    )
+
+    Message.objects.create(
+        recipient=student,
+        title="⚠️ Vazifada shubhali belgilar — qayta ishlash kerak",
+        content=content,
+        message_type='warning',
+    )
+
+    tg_penalty = f"\n💸 <b>Jarima:</b> -{penalty_coins} coin ayirildi" if penalty_coins > 0 else ""
+    notify_user(
+        student.telegram_id,
+        f"⚠️ <b>Vazifada shubhali belgilar aniqlandi!</b>\n\n"
+        f"📚 {profession}\n"
+        f"📖 {lesson}\n\n"
+        f"🔍 <b>Sabab:</b>\n{reasons_text}"
+        f"{tg_penalty}\n\n"
+        f"📝 Vazifangiz qayta ishlashga qaytarildi. O'ZINGIZ bajaring!"
+    )
+
+
+def _check_ai_generated(homework_description, student_answer, student=None, current_submission_pk=None, academic_context=None):
     """Javob suniy intellekt yordamida yozilganligini tekshirish — QATTIQ REJIM + o'quvchi profili"""
     import json
     from django.conf import settings
@@ -3409,6 +3609,39 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
             "Shuning uchun faqat AI belgilariga qarab tekshiring.\n"
         )
 
+    # O'quvchining akademik faoliyati bo'limi
+    academic_section = ""
+    is_strong = False
+    if academic_context:
+        lines = []
+        total = academic_context.get('total_graded', 0)
+        avg = academic_context.get('avg_grade')
+        if total > 0 and avg is not None:
+            lines.append(f"- O'quvchi o'rtacha bahosi: {avg}/10 ({total} ta baholangan vazifa)")
+            if academic_context.get('is_strong_student'):
+                is_strong = True
+                lines.append("- ⭐ Bu KUCHLI o'quvchi — u o'z bilimi bilan yaxshi yozishi mumkin!")
+        rev = academic_context.get('revision_submissions_count', 0)
+        if academic_context.get('has_revision_history') and rev > 0:
+            lines.append(f"- Bu o'quvchi ilgari {rev} marta qayta ishlagan — bu HALOLLIK belgisi!")
+        quizzes = academic_context.get('course_passed_quizzes', 0)
+        if quizzes > 0:
+            lines.append(f"- Kurs bo'yicha {quizzes} ta testdan o'tgan (mavzuni biladi!)")
+        if lines:
+            academic_section = (
+                "\n\n📈 O'QUVCHINING O'QUV FAOLIYATI (adolatli baholash uchun):\n"
+                + "\n".join(lines)
+                + "\n🔑 Agar o'quvchi kuchli va tarix halollikni ko'rsatsa — ishonch chegarasini OSHIRING!"
+            )
+
+    # Kuchli o'quvchilar uchun ishonch chegarasini oshirish (false positive kamaytirish)
+    confidence_note = ""
+    if is_strong:
+        confidence_note = (
+            "\n⭐ DIQQAT: Bu kuchli o'quvchi (avg >= 7). "
+            "Uning uchun is_ai=true deyish uchun confidence >= 85 bo'lishi KERAK (odatdagi 75 emas)!\n"
+        )
+
     try:
         from openai import OpenAI
         client = OpenAI(api_key=api_key.strip(), timeout=60)
@@ -3422,7 +3655,8 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                         "Boshlang'ich dasturlash o'quvchilarining javoblarini tekshirasiz.\n\n"
                         "⚠️ MUHIM: Siz faqat ANIQ AI belgilari bo'lgandagina flaglashingiz kerak. "
                         "Shubha bo'lsa — o'quvchi foydasiga hal qiling! "
-                        "O'quvchilar o'rganmoqda, ular ham yaxshi kod yozishi mumkin.\n\n"
+                        "Noto'g'ri flag qo'yish o'quvchini jarimaga tortadi — ehtiyot bo'ling!\n"
+                        f"{confidence_note}\n"
                         "🔍 FAQAT shu hollarda AI deb belgilang (kamida 3 tasi bir vaqtda bo'lishi kerak):\n"
                         "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'I'd be happy to', "
                         "'Let's break this down', 'Note that', 'Feel free' kabi iboralar\n"
@@ -3442,7 +3676,7 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                         '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida sabab>", '
                         '"style_match": "<oldingi javoblar bilan solishtirish>"}\n\n'
                         "- is_ai: faqat 3+ aniq belgi bo'lganda true\n"
-                        "- confidence: 75 dan past bo'lsa is_ai: false bo'lishi KERAK\n"
+                        "- confidence: odatda 75 dan past bo'lsa is_ai: false bo'lishi KERAK\n"
                         "- reason: O'zbek tilida qisqa izoh\n"
                         "- style_match: Oldingi javoblar bilan solishtirish"
                     )
@@ -3453,6 +3687,7 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                         f"Vazifa tavsifi:\n{homework_description}\n\n"
                         f"O'quvchining hozirgi javobi:\n{student_answer}"
                         f"{profile_section}"
+                        f"{academic_section}"
                     )
                 }
             ],
@@ -4136,6 +4371,24 @@ def student_course_view(request, token):
                 'attempted': True,
             }
 
+        # Yangi quizlar uchun Attempt natijasini qo'shish (TestResult bo'lmagan darslar)
+        from quiz.models import Attempt as QuizAttempt
+        quiz_attempts = QuizAttempt.objects.filter(
+            student=request.user,
+            quiz__lesson__profession=profession,
+            status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+        ).select_related('quiz').order_by('quiz__lesson_id', '-started_at')
+        for qa in quiz_attempts:
+            lid = qa.quiz.lesson_id
+            if lid and lid not in lesson_progress:
+                lesson_progress[lid] = {
+                    'completed': qa.passed,
+                    'type': 'test',
+                    'passed': qa.passed,
+                    'score': qa.score,
+                    'attempted': True,
+                }
+
         # Homework submissions
         hw_submissions = HomeworkSubmission.objects.filter(
             student=request.user, homework__lesson__profession=profession
@@ -4192,6 +4445,7 @@ def student_course_view(request, token):
             lid for lid, prog in lesson_progress.items() if prog.get('completed')
         )
         ordered_sections = list(sections)
+        section_completed_map = {}
         for idx, section in enumerate(ordered_sections):
             section_lesson_ids = set(
                 section.lessons.exclude(lesson_type='dictionary').values_list('pk', flat=True)
@@ -4199,10 +4453,12 @@ def student_course_view(request, token):
             if not section_lesson_ids:
                 section_is_locked[section.id] = False
                 section_daily_locked[section.id] = False
+                section_completed_map[section.id] = True
                 continue
 
             section_completed = section_lesson_ids.issubset(completed_lesson_ids)
             section_started = bool(section_lesson_ids & completed_lesson_ids)
+            section_completed_map[section.id] = section_completed
 
             if section_completed or section_started:
                 section_is_locked[section.id] = False
@@ -4241,6 +4497,29 @@ def student_course_view(request, token):
         certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
         certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
 
+    # Yakuniy testlar — alohida UI uchun
+    final_test_lessons = []
+    if is_enrolled:
+        final_test_qs = Lesson.objects.filter(
+            profession=profession,
+            lesson_type='test',
+            test__test_type='final'
+        ).select_related('test')
+        for _fl in final_test_qs:
+            _payment_status = None
+            _pay = FinalTestPayment.objects.filter(
+                student=request.user, test=_fl.test
+            ).order_by('-created_at').first()
+            if _pay:
+                _payment_status = _pay.status
+            final_test_lessons.append({
+                'lesson': _fl,
+                'test': _fl.test,
+                'payment_status': _payment_status,
+                'progress': lesson_progress.get(_fl.pk),
+                'token': token_map.get(_fl.pk),
+            })
+
     return render(request, 'accounts/profession_detail.html', {
         'profession': profession,
         'is_enrolled': is_enrolled,
@@ -4250,6 +4529,11 @@ def student_course_view(request, token):
         'sections': sections,
         'lessons_without_section': lessons_without_section,
         'lesson_progress': lesson_progress,
+        'course_roadmap': _build_course_roadmap(
+            sections,
+            locals().get('section_completed_map') if isinstance(locals().get('section_completed_map'), dict) else {},
+            section_is_locked, section_daily_locked,
+        ),
         'section_is_locked': section_is_locked,
         'section_daily_locked': section_daily_locked,
         'daily_section_today': daily_section_today if is_enrolled else None,
@@ -4263,6 +4547,7 @@ def student_course_view(request, token):
         'lesson_is_locked': lesson_is_locked,
         'token_map': token_map,
         'course_token': token_obj,
+        'final_test_lessons': final_test_lessons,
     })
 
 
@@ -4285,9 +4570,16 @@ def student_lesson_view(request, token):
             user=request.user, watched=True,
             video__lesson__profession=profession
         ).values_list('video__lesson_id', flat=True))
-        passed_tests = set(TestResult.objects.filter(
+        passed_legacy = set(TestResult.objects.filter(
             student=request.user, test__lesson__profession=profession, passed=True
         ).values_list('test__lesson_id', flat=True))
+        passed_quiz = set(Attempt.objects.filter(
+            student=request.user,
+            quiz__lesson__profession=profession,
+            passed=True,
+            status__in=[Attempt.Status.SUBMITTED, Attempt.Status.GRADED],
+        ).values_list('quiz__lesson_id', flat=True))
+        passed_tests = passed_legacy | passed_quiz
         accepted_homeworks = set(HomeworkSubmission.objects.filter(
             student=request.user, homework__lesson__profession=profession,
             status__in=['accepted', 'graded']
@@ -4399,21 +4691,11 @@ def student_lesson_view(request, token):
         return render(request, 'accounts/lessons/homework_lesson.html', context)
 
     elif lesson.lesson_type == 'test':
-        test = lesson.test
-        result = TestResult.objects.filter(test=test, student=request.user).order_by('-completed_at').first()
-        context['test'] = test
-        context['result'] = result
-        if test.test_type == 'final':
-            pending_payment = FinalTestPayment.objects.filter(
-                student=request.user, test=test, status='pending'
-            ).exists() if result else False
-            approved_payment = FinalTestPayment.objects.filter(
-                student=request.user, test=test, status='approved'
-            ).exists() if result else False
-            context['pending_payment'] = pending_payment
-            context['approved_payment'] = approved_payment
-            return render(request, 'accounts/lessons/final_test_lesson.html', context)
-        return render(request, 'accounts/lessons/test_lesson.html', context)
+        quiz = getattr(lesson, 'quiz', None)
+        if quiz:
+            return redirect('quizui:quiz_take', pk=quiz.pk)
+        messages.error(request, "Bu test hali tayyor emas.")
+        return redirect('profession_detail', pk=profession.pk)
 
     elif lesson.lesson_type == 'dictionary':
         dictionary = lesson.dictionary
@@ -6405,25 +6687,32 @@ def add_lesson(request, pk):
                     lesson_type='test',
                     created_by=request.user
                 )
-                Test.objects.create(
+                is_final = form.cleaned_data.get('test_type') == 'final'
+                quiz = Quiz.objects.create(
                     lesson=lesson,
-                    test_type=form.cleaned_data['test_type'],
-                    time_limit=form.cleaned_data['time_limit'],
+                    title=form.cleaned_data['title'],
+                    status=Quiz.Status.DRAFT,
+                    created_by=request.user,
+                )
+                QuizSettings.objects.create(
+                    quiz=quiz,
+                    time_limit_minutes=form.cleaned_data['time_limit'],
                     passing_score=form.cleaned_data['passing_score'],
-                    allow_retry=form.cleaned_data.get('allow_retry', False),
+                    allow_retry=True,
+                    attempts_allowed=0,
                     shuffle_questions=form.cleaned_data.get('shuffle_questions', False),
                     shuffle_answers=form.cleaned_data.get('shuffle_answers', False),
                     question_count=form.cleaned_data.get('question_count') or 0,
+                    retry_payment_required=is_final,
                 )
-                # Xabar yuborish
                 send_course_notification(
                     profession=profession,
-                    title=f"📋 Yangi test: {lesson.title}",
-                    content=f"'{profession.name}' kursiga yangi test qo'shildi:\n\n📚 {lesson.title}\n\nTestni yechish uchun kursga kiring!",
+                    title=f"Quiz: {lesson.title}",
+                    content=f"'{profession.name}' kursiga yangi quiz qo'shildi:\n\n{lesson.title}\n\nQuizni yechish uchun kursga kiring!",
                     sender=request.user
                 )
-                messages.success(request, "Test qo'shildi! Endi savollarni qo'shing.")
-                return redirect('manage_test_questions', pk=lesson.test.pk)
+                messages.success(request, "Quiz qo'shildi! Endi savollarni qo'shing.")
+                return redirect('quizui:quiz_edit', pk=quiz.pk)
         
         elif lesson_type == 'dictionary':
             form = DictionaryForm(request.POST)
@@ -6594,8 +6883,9 @@ def edit_lesson(request, pk):
             else:
                 return redirect('manage_lessons', pk=lesson.profession.pk)
         else:
-            if hasattr(lesson, 'test') and lesson.test:
-                return redirect('manage_test_questions', pk=lesson.test.pk)
+            quiz = getattr(lesson, 'quiz', None)
+            if quiz:
+                return redirect('quizui:quiz_edit', pk=quiz.pk)
             else:
                 return redirect('manage_lessons', pk=lesson.profession.pk)
     
@@ -7204,6 +7494,12 @@ def homework_submissions(request):
             'pending': p_pending,
         })
     
+    # AI ruxsatini tekshirish: admin har doim, o'qituvchi faqat ai_access_enabled bo'lsa
+    if request.user.is_admin:
+        user_ai_enabled = True
+    else:
+        user_ai_enabled = getattr(request.user, 'ai_access_enabled', False)
+
     return render(request, 'accounts/manage/homework_submissions.html', {
         'submissions': submissions,
         'stats': stats,
@@ -7214,6 +7510,7 @@ def homework_submissions(request):
         'profession_filter': profession_filter,
         'sort_by': sort_by,
         'total_count': total_count,
+        'user_ai_enabled': user_ai_enabled,
     })
 
 
@@ -7337,7 +7634,7 @@ def grade_homework(request, pk):
             submission.graded_at = timezone.now()
             submission.save()
             
-            if not submission.coin_awarded:
+            if not submission.coin_awarded and submission.revision_count == 0:
                 coin_amount = 5
                 if not submission.is_late:
                     coin_amount = 10
@@ -7346,7 +7643,7 @@ def grade_homework(request, pk):
                 submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                 submission.coin_awarded = True
                 submission.save()
-                
+
                 ActivityLog.objects.create(
                     user=submission.student,
                     action_type='homework_graded',
@@ -7379,7 +7676,7 @@ def grade_homework(request, pk):
             submission.graded_at = timezone.now()
             submission.save()
             
-            if ai_result['status'] == 'graded' and not submission.coin_awarded:
+            if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
                 coin_amount = 5
                 if not submission.is_late:
                     coin_amount = 10
@@ -7397,7 +7694,7 @@ def grade_homework(request, pk):
                     action_type='homework_graded',
                     description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
                 )
-            
+
             if ai_result['status'] == 'graded':
                 _notify_ai_graded(submission, ai_result)
                 messages.success(request, f"AI baholadi: {submission.grade} ball!")
@@ -7429,33 +7726,28 @@ def grade_homework(request, pk):
                 submission.graded_at = timezone.now()
                 submission.save()
                 
-                # Coin berish
-                if not submission.coin_awarded:
-                    # Vaqtida topshirganlar uchun bonus
+                # Coin berish (faqat birinchi baholashda: revision_count == 0)
+                if not submission.coin_awarded and submission.revision_count == 0:
                     coin_amount = 5
                     if not submission.is_late:
                         coin_amount = 10
-                    
-                    # Yaxshi baho uchun bonus
                     if submission.grade >= 9:
                         coin_amount += 5
                     elif submission.grade >= 8:
                         coin_amount += 3
-                    
-                    # Premium 2x bonus
                     if submission.student.is_premium:
                         coin_amount *= 2
-                    
+
                     submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                     submission.coin_awarded = True
                     submission.save()
-                    
+
                     ActivityLog.objects.create(
                         user=submission.student,
                         action_type='homework_graded',
                         description=f"Vazifa baholandi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
                     )
-                
+
                 # Notification
                 from .notifications import on_homework_graded
                 on_homework_graded(submission.student, submission, submission.grade)
@@ -7469,7 +7761,7 @@ def grade_homework(request, pk):
                     f"👨‍🏫 Baholadi: {request.user.first_name} {request.user.last_name}\n\n"
                     f"{'💬 <b>Izoh:</b>' + chr(10) + feedback if feedback else ''}"
                 )
-                
+
                 messages.success(request, f"Vazifa baholandi: {submission.grade} ball!")
                 return redirect('homework_submissions')
     
@@ -7477,6 +7769,94 @@ def grade_homework(request, pk):
         'submission': submission,
         'chat_messages': chat_messages,
         'revisions': revisions,
+    })
+
+
+@login_required
+def bulk_ai_grade(request):
+    """Kurs bo'yicha barcha kutilayotgan vazifalarni AI bilan ommaviy baholash"""
+    if not (request.user.is_admin or request.user.is_teacher):
+        return JsonResponse({'error': 'Ruxsat yo\'q'}, status=403)
+
+    if request.user.is_teacher and not request.user.is_admin:
+        if not getattr(request.user, 'ai_access_enabled', False):
+            return JsonResponse({'error': 'Sizda AI funksiyasidan foydalanish ruxsati yo\'q'}, status=403)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST so\'rovi kerak'}, status=405)
+
+    profession_id = request.POST.get('profession_id', '').strip()
+    if not profession_id:
+        return JsonResponse({'error': 'Kurs tanlanmagan'}, status=400)
+
+    if request.user.is_teacher and not request.user.is_admin:
+        if not request.user.teaching_professions.filter(pk=profession_id).exists():
+            return JsonResponse({'error': 'Sizda bu kursga kirish huquqi yo\'q'}, status=403)
+
+    submissions = HomeworkSubmission.objects.filter(
+        homework__lesson__profession_id=profession_id,
+        status__in=['pending', 'reviewing'],
+    ).select_related('homework__lesson__profession', 'student')[:30]
+
+    graded_count = 0
+    revision_count = 0
+    skipped_count = 0
+
+    for submission in submissions:
+        student_answer = _read_submission_content(submission)
+        if not student_answer:
+            skipped_count += 1
+            continue
+
+        ai_result = _get_ai_grade(submission.homework.description, student_answer)
+        if not ai_result:
+            skipped_count += 1
+            continue
+
+        submission.grade = ai_result['grade']
+        submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+        submission.status = ai_result['status']
+        submission.graded_by = request.user
+        submission.graded_at = timezone.now()
+        submission.save()
+
+        if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
+            coin_amount = 5
+            if not submission.is_late:
+                coin_amount = 10
+            if submission.grade >= 9:
+                coin_amount += 5
+            elif submission.grade >= 8:
+                coin_amount += 3
+            if submission.student.is_premium:
+                coin_amount *= 2
+            submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+            submission.coin_awarded = True
+            submission.save()
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Vazifa AI (ommaviy) baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
+            )
+
+        if ai_result['status'] == 'graded':
+            _notify_ai_graded(submission, ai_result)
+            graded_count += 1
+        else:
+            Message.objects.create(
+                title="Vazifani qayta ishlang",
+                content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
+                message_type='warning',
+                recipient=submission.student
+            )
+            _notify_ai_revision(submission, ai_result)
+            revision_count += 1
+
+    return JsonResponse({
+        'graded': graded_count,
+        'revision': revision_count,
+        'skipped': skipped_count,
+        'total': graded_count + revision_count + skipped_count,
     })
 
 
@@ -7517,8 +7897,8 @@ def homework_chat(request, pk):
             has_new_content = new_file or new_text
             
             if has_new_content:
-                # Qayta topshirish uchun coin yechish
-                resubmit_cost = 3 if request.user.is_premium else 5
+                # Qayta topshirish uchun coin yechish (premium: 30, oddiy: 50)
+                resubmit_cost = 30 if request.user.is_premium else 50
                 request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
                 
                 from .models import HomeworkRevision
@@ -7602,7 +7982,7 @@ def homework_chat(request, pk):
                 messages.error(request, "Fayl yoki matn kiriting!")
             return redirect('homework_chat', pk=pk)
     
-    resubmit_cost = 3 if request.user.is_premium else 5
+    resubmit_cost = 30 if request.user.is_premium else 50
     return render(request, 'accounts/homework_chat.html', {
         'submission': submission,
         'chat_messages': chat_messages,
@@ -11656,7 +12036,16 @@ def admin_parent_delete(request, pk):
 
 # ============ KITOBXONA / BOOK RENTAL ============
 
-from .models import Book, BookRental
+from .models import Book, BookRental, BookRentalRequest
+
+
+@login_required
+def admin_book_requests(request):
+    """Admin: kitob ijarasi arizalari sahifasi (API orqali)"""
+    if not (request.user.is_admin or request.user.role == 'assistant_admin'):
+        return redirect('home')
+    return render(request, 'accounts/admin/book_requests.html')
+
 
 @login_required
 def admin_books(request):
@@ -11704,19 +12093,103 @@ def admin_books(request):
 
 
 @login_required
+@require_GET
+def book_check_duplicate(request):
+    """Kitob duplicate tekshiruvi — oddiy Django JSON view (DRF yoki token kerak emas)."""
+    from django.http import JsonResponse
+    from django.db.models import Q as _DQ
+
+    title      = request.GET.get('title', '').strip()
+    author     = request.GET.get('author', '').strip()
+    isbn       = request.GET.get('isbn', '').strip()
+    exclude_id = request.GET.get('exclude_id', '').strip()  # tahrirlashda o'zini chiqarib tashlaydi
+
+    empty = JsonResponse({'has_exact_duplicate': False, 'duplicate_reason': None, 'exact': None, 'similar_books': []})
+    if not title and not isbn:
+        return empty
+
+    # exclude_id ni int ga aylantiramiz
+    exclude_pk = None
+    if exclude_id.isdigit():
+        exclude_pk = int(exclude_id)
+
+    def bdict(b):
+        return {
+            'id': b.pk,
+            'title': b.title,
+            'author': b.author,
+            'isbn': b.isbn or '',
+            'total_copies': b.total_copies,
+            'available_copies': b.available_copies,
+        }
+
+    def base_qs():
+        qs = Book.objects.all()
+        if exclude_pk:
+            qs = qs.exclude(pk=exclude_pk)
+        return qs
+
+    # Exact: ISBN ustuvori, so'ng nom+muallif
+    isbn_exact  = base_qs().filter(isbn__iexact=isbn).first() if isbn else None
+    title_exact = base_qs().filter(title__iexact=title, author__iexact=author).first() if (title and author) else None
+    primary = isbn_exact or title_exact
+    duplicate_reason = 'isbn' if isbn_exact else ('title_author' if title_exact else None)
+
+    # O'xshash kitoblar (icontains, title YOKI author)
+    similar_list = []
+    if title or author:
+        q = _DQ()
+        if title:
+            q |= _DQ(title__icontains=title)
+        if author:
+            q |= _DQ(author__icontains=author)
+        qs = base_qs().filter(q)
+        if primary:
+            qs = qs.exclude(pk=primary.pk)
+        similar_list = [bdict(b) for b in qs[:8]]
+
+    return JsonResponse({
+        'has_exact_duplicate': primary is not None,
+        'duplicate_reason': duplicate_reason,
+        'exact': bdict(primary) if primary else None,
+        'similar_books': similar_list,
+    })
+
+
+@login_required
 def admin_book_add(request):
     """Yangi kitob qo'shish"""
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
     
     if request.method == 'POST':
-        title = request.POST.get('title')
-        author = request.POST.get('author')
-        isbn = request.POST.get('isbn', '')
+        title = request.POST.get('title', '').strip()
+        author = request.POST.get('author', '').strip()
+        isbn = request.POST.get('isbn', '').strip()
         description = request.POST.get('description', '')
         total_copies = int(request.POST.get('total_copies', 1))
         cover_image = request.FILES.get('cover_image')
-        
+
+        # Duplicate tekshiruv: bir xil nom+muallif YOKI bir xil ISBN
+        from django.db.models import Q as _Q2
+        dup_q = _Q2(title__iexact=title, author__iexact=author)
+        if isbn:
+            dup_q |= _Q2(isbn__iexact=isbn)
+        existing = Book.objects.filter(dup_q).first()
+        if existing:
+            if isbn and existing.isbn and existing.isbn.lower() == isbn.lower():
+                reason = f"ISBN «{isbn}» allaqachon mavjud"
+            else:
+                reason = f"Nom va muallif bir xil"
+            messages.error(
+                request,
+                f"Bu kitob allaqachon kutubxonada bor! ({reason}): «{existing.title}» — {existing.author}"
+            )
+            return render(request, 'accounts/admin/book_form.html', {
+                'action': 'add',
+                'duplicate': existing,
+            })
+
         book = Book.objects.create(
             title=title,
             author=author,
@@ -11724,9 +12197,9 @@ def admin_book_add(request):
             description=description,
             total_copies=total_copies,
             available_copies=total_copies,
-            cover_image=cover_image
+            cover_image=cover_image,
         )
-        
+
         messages.success(request, f"'{book.title}' kitobi muvaffaqiyatli qo'shildi!")
         return redirect('admin_books')
     
@@ -11959,18 +12432,15 @@ def admin_return_book(request, pk):
 # O'quvchi uchun
 @login_required
 def my_book_rentals(request):
-    """O'quvchining ijaradagi kitoblari"""
-    rentals = BookRental.objects.filter(student=request.user).select_related('book', 'given_by')
-    
-    # Faol va muddati o'tgan (hali qaytarilmagan) kitoblar
-    active_rentals = rentals.filter(status__in=['active', 'overdue'])
-    returned_rentals = rentals.filter(status='returned')
-    
-    context = {
-        'active_rentals': active_rentals,
-        'returned_rentals': returned_rentals,
-    }
-    return render(request, 'accounts/my_book_rentals.html', context)
+    """O'quvchining ijaradagi kitoblari (eski URL — library sahifasiga yo'naltiradi)"""
+    from django.shortcuts import redirect
+    return redirect('student_library')
+
+
+@login_required
+def student_library(request):
+    """O'quvchilar uchun kutubxona sahifasi — API orqali ishlaydi"""
+    return render(request, 'accounts/library.html')
 
 
 def send_book_reminders():

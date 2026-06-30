@@ -1,0 +1,108 @@
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<div class="qz-page">
+    <div class="qz-hero">
+        <div class="qz-hero-left">
+            <div class="qz-hero-icon blue"><i class="bi bi-ui-checks-grid"></i></div>
+            <div>
+                <h1 class="qz-hero-title">Testlar</h1>
+                <p class="qz-hero-subtitle">Savollar bazasidan test/imtihon yarating va boshqaring.</p>
+            </div>
+        </div>
+        <div class="qz-hero-actions">
+            <a href="{% url 'quizui:question_bank' %}" class="qz-btn qz-btn-ghost">
+                <i class="bi bi-collection"></i> Savollar bazasi
+            </a>
+            <a href="{% url 'quizui:quiz_create' %}" class="qz-btn qz-btn-primary">
+                <i class="bi bi-plus-lg"></i> Yangi test
+            </a>
+        </div>
+    </div>
+
+    <div class="qz-stats">
+        <div class="qz-stat">
+            <div class="qz-stat-icon blue"><i class="bi bi-ui-checks-grid"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="quizStatTotal">—</div>
+                <div class="qz-stat-label">Jami testlar</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon green"><i class="bi bi-cloud-check-fill"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="quizStatPublished">—</div>
+                <div class="qz-stat-label">Chop etilgan</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon orange"><i class="bi bi-pencil-square"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="quizStatDraft">—</div>
+                <div class="qz-stat-label">Qoralamada</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon gray"><i class="bi bi-archive-fill"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="quizStatArchived">—</div>
+                <div class="qz-stat-label">Arxivlangan</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="qz-filterbar">
+        <div class="qz-pills" id="quizStatusPills">
+            <button class="qz-pill active" data-status="">Barchasi</button>
+            <button class="qz-pill" data-status="published">Chop etilgan</button>
+            <button class="qz-pill" data-status="draft">Qoralama</button>
+            <button class="qz-pill" data-status="archived">Arxiv</button>
+        </div>
+        <input type="search" id="quizSearch" class="form-control flex-grow-1" placeholder="Test nomi bo'yicha qidiruv..." style="min-width:220px;">
+    </div>
+
+    <div class="qz-surface">
+        <div class="table-responsive">
+            <table class="qz-table quizui-table" id="quizTable">
+                <thead>
+                    <tr>
+                        <th>Test nomi</th>
+                        <th>Dars</th>
+                        <th>Savollar</th>
+                        <th>Vaqt</th>
+                        <th>Holat</th>
+                        <th style="width:160px;text-align:right;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="quizTableBody">
+                    <tr><td colspan="6" class="text-center text-muted py-4">Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="qz-surface-foot qz-pager">
+            <span class="text-muted small" id="quizResultCount"></span>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary" id="quizPrevPage"><i class="bi bi-chevron-left"></i> Oldingi</button>
+                <button class="btn btn-outline-secondary" id="quizNextPage">Keyingi <i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="quizRowTemplate">
+    <tr>
+        <td><a class="qz-row-title quiz-edit-link"></a></td>
+        <td class="quiz-lesson-cell text-muted small"></td>
+        <td class="quiz-questions-cell"></td>
+        <td class="quiz-time-cell text-muted small"></td>
+        <td><span class="qz-badge quiz-status-cell"></span></td>
+        <td class="text-end">
+            <div class="qz-row-actions">
+                <button class="qz-icon-btn publish quiz-publish-btn" title="Chop etish"><i class="bi bi-cloud-upload"></i></button>
+                <button class="qz-icon-btn archive quiz-archive-btn" title="Arxivlash"><i class="bi bi-archive"></i></button>
+                <button class="qz-icon-btn restore quiz-restore-btn" title="Qoralamaga qaytarish"><i class="bi bi-arrow-counterclockwise"></i></button>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<div class="quizui-toast-stack" id="quizToastStack"></div>

@@ -872,8 +872,8 @@ def teacher_grade_homework(request, pk):
             submission.graded_at = timezone.now()
             submission.save()
             
-            # AI baholashda coin berish
-            if ai_result['status'] == 'graded' and not submission.coin_awarded:
+            # AI baholashda coin berish (faqat birinchi baholashda: revision_count == 0)
+            if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
                 coin_amount = 5
                 if not submission.is_late:
                     coin_amount = 10
@@ -924,8 +924,8 @@ def teacher_grade_homework(request, pk):
             submission.feedback_file = feedback_file
         submission.save()
         
-        # Coin berish
-        if status == 'graded' and not submission.coin_awarded:
+        # Coin berish (faqat birinchi baholashda: revision_count == 0)
+        if status == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
             coin_amount = 5
             if not submission.is_late:
                 coin_amount = 10

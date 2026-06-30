@@ -1,0 +1,991 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Kutubxona{% endblock %}
+
+{% block content %}
+<style>
+/* ═══════════════════════════════════════════════════════
+   LIBRARY PAGE — VARIABLES
+═══════════════════════════════════════════════════════ */
+:root {
+  --lib-primary: #6366f1;
+  --lib-primary-dark: #4f46e5;
+  --lib-primary-soft: rgba(99,102,241,0.10);
+  --lib-green: #10b981;
+  --lib-green-soft: rgba(16,185,129,0.10);
+  --lib-orange: #f59e0b;
+  --lib-orange-soft: rgba(245,158,11,0.10);
+  --lib-red: #ef4444;
+  --lib-red-soft: rgba(239,68,68,0.10);
+  --lib-blue: #3b82f6;
+  --lib-blue-soft: rgba(59,130,246,0.10);
+  --lib-bg: #f8f9fa;
+  --lib-card: #ffffff;
+  --lib-border: #e9ecef;
+  --lib-text: #212529;
+  --lib-muted: #6c757d;
+  --lib-radius: 16px;
+  --lib-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+[data-bs-theme="dark"] {
+  --lib-bg: #111827;
+  --lib-card: #1f2937;
+  --lib-border: #374151;
+  --lib-text: #f9fafb;
+  --lib-muted: #9ca3af;
+  --lib-shadow: 0 4px 24px rgba(0,0,0,0.25);
+}
+
+/* ─── Layout ─── */
+.lib-wrap { max-width: 1280px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+/* ─── Header ─── */
+.lib-hero {
+  background: linear-gradient(135deg, var(--lib-primary) 0%, #8b5cf6 100%);
+  border-radius: var(--lib-radius);
+  padding: 2rem 2rem 1.5rem;
+  color: #fff;
+  margin-bottom: 1.75rem;
+  position: relative;
+  overflow: hidden;
+}
+.lib-hero::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.lib-hero-title { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.5px; }
+.lib-hero-sub { font-size: 0.9rem; opacity: 0.85; margin-top: 0.25rem; }
+.lib-hero-stats { display: flex; gap: 1.5rem; margin-top: 1.25rem; flex-wrap: wrap; }
+.lib-hero-stat { text-align: center; }
+.lib-hero-stat-val { font-size: 1.5rem; font-weight: 800; }
+.lib-hero-stat-lbl { font-size: 0.72rem; opacity: 0.75; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ─── Tabs ─── */
+.lib-tabs { display: flex; gap: 0; background: var(--lib-card); border-radius: 14px; border: 1px solid var(--lib-border); padding: 5px; margin-bottom: 1.5rem; overflow-x: auto; }
+.lib-tab {
+  flex: 1; min-width: 110px; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.6rem 1rem; border-radius: 10px; border: none; background: transparent;
+  color: var(--lib-muted); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s; white-space: nowrap;
+}
+.lib-tab.active { background: var(--lib-primary); color: #fff; }
+.lib-tab:not(.active):hover { background: var(--lib-primary-soft); color: var(--lib-primary); }
+.lib-tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px; font-size: 0.68rem; font-weight: 700;
+  background: var(--lib-red); color: #fff;
+}
+.lib-tab.active .lib-tab-badge { background: rgba(255,255,255,0.3); }
+
+/* ─── Search bar ─── */
+.lib-searchbar {
+  display: flex; gap: 0.5rem; align-items: center;
+  background: var(--lib-card); border: 1px solid var(--lib-border);
+  border-radius: 12px; padding: 0.6rem 1rem; margin-bottom: 1.25rem;
+}
+.lib-searchbar input {
+  flex: 1; border: none; background: transparent; outline: none;
+  font-size: 0.9rem; color: var(--lib-text);
+}
+.lib-searchbar input::placeholder { color: var(--lib-muted); }
+.lib-searchbar-icon { color: var(--lib-muted); font-size: 1rem; }
+.lib-avail-toggle {
+  display: flex; align-items: center; gap: 0.4rem;
+  padding: 0.4rem 0.85rem; border-radius: 8px;
+  border: 1.5px solid var(--lib-border); background: transparent;
+  font-size: 0.8rem; font-weight: 600; cursor: pointer; color: var(--lib-muted);
+  transition: all 0.2s; white-space: nowrap;
+}
+.lib-avail-toggle.active { border-color: var(--lib-green); color: var(--lib-green); background: var(--lib-green-soft); }
+
+/* ─── Sort strip ─── */
+.lib-sort { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; overflow-x: auto; padding-bottom: 2px; align-items: center; }
+.lib-sort-lbl { font-size: 0.75rem; font-weight: 700; color: var(--lib-muted); text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; margin-right: 0.25rem; }
+.lib-sort-btn {
+  display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.35rem 0.75rem; border-radius: 8px;
+  border: 1.5px solid var(--lib-border); background: transparent;
+  font-size: 0.78rem; font-weight: 600; cursor: pointer; color: var(--lib-muted);
+  transition: all 0.2s; white-space: nowrap; text-decoration: none;
+}
+.lib-sort-btn.active { border-color: var(--lib-primary); color: var(--lib-primary); background: var(--lib-primary-soft); }
+.lib-sort-btn:hover:not(.active) { border-color: var(--lib-primary); color: var(--lib-primary); }
+
+/* ─── Duplicate group ─── */
+.lib-dup-group {
+  margin-bottom: 1.5rem;
+}
+.lib-dup-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  background: rgba(239,68,68,0.07);
+  border: 1.5px solid rgba(239,68,68,0.22);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  font-size: 0.78rem; font-weight: 700;
+  color: #dc2626;
+}
+.lib-dup-header i { font-size: 0.9rem; }
+.lib-dup-body {
+  border: 1.5px solid rgba(239,68,68,0.22);
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 0.85rem;
+  background: rgba(239,68,68,0.03);
+}
+.lib-dup-body .lib-grid { margin: 0; }
+.lib-book-card.is-dup {
+  border-color: rgba(239,68,68,0.30);
+}
+.lib-book-card.is-dup:hover {
+  border-color: #ef4444;
+  box-shadow: 0 8px 28px rgba(239,68,68,0.15);
+}
+.lib-dup-badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.2rem 0.55rem; border-radius: 6px;
+  font-size: 0.68rem; font-weight: 700;
+  background: rgba(239,68,68,0.1); color: #dc2626;
+  margin-bottom: 0.4rem;
+}
+
+/* ─── Dup warning banner ─── */
+.lib-dup-banner {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 12px; margin-bottom: 1.25rem;
+  background: rgba(239,68,68,0.07);
+  border: 1.5px solid rgba(239,68,68,0.22);
+  font-size: 0.82rem; color: #dc2626; font-weight: 600;
+}
+.lib-dup-banner i { font-size: 1rem; flex-shrink: 0; }
+
+/* ─── Book grid ─── */
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+.lib-book-card {
+  background: var(--lib-card);
+  border: 1px solid var(--lib-border);
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex; flex-direction: column;
+}
+.lib-book-card:hover {
+  border-color: var(--lib-primary);
+  box-shadow: 0 8px 28px rgba(99,102,241,0.15);
+  transform: translateY(-5px);
+}
+.lib-book-cover {
+  width: 100%; height: 180px; object-fit: cover; display: block;
+}
+.lib-book-cover-ph {
+  width: 100%; height: 180px; display: flex; align-items: center; justify-content: center;
+  font-size: 3.5rem; color: var(--lib-muted);
+  background: linear-gradient(135deg, var(--lib-primary-soft), rgba(139,92,246,0.08));
+}
+.lib-book-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+.lib-book-title { font-size: 0.92rem; font-weight: 700; color: var(--lib-text); margin-bottom: 0.2rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.lib-book-author { font-size: 0.78rem; color: var(--lib-muted); margin-bottom: 0.75rem; }
+.lib-book-desc { font-size: 0.75rem; color: var(--lib-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.75rem; line-height: 1.4; }
+.lib-book-footer { margin-top: auto; }
+.lib-avail-badge {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.28rem 0.6rem; border-radius: 7px;
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.lib-avail-badge.yes { background: var(--lib-green-soft); color: var(--lib-green); }
+.lib-avail-badge.no { background: var(--lib-red-soft); color: var(--lib-red); }
+.lib-request-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.28rem 0.6rem; border-radius: 7px; font-size: 0.7rem; font-weight: 700; }
+.lib-request-badge.pending { background: var(--lib-orange-soft); color: var(--lib-orange); }
+.lib-request-badge.approved { background: var(--lib-green-soft); color: var(--lib-green); }
+.lib-request-badge.rented { background: var(--lib-blue-soft); color: var(--lib-blue); }
+
+/* ─── Empty state ─── */
+.lib-empty { text-align: center; padding: 3rem 1.5rem; background: var(--lib-card); border: 1px solid var(--lib-border); border-radius: var(--lib-radius); }
+.lib-empty i { font-size: 3rem; color: var(--lib-muted); display: block; margin-bottom: 1rem; }
+.lib-empty h5 { font-weight: 700; color: var(--lib-text); margin-bottom: 0.4rem; }
+.lib-empty p { color: var(--lib-muted); font-size: 0.88rem; }
+
+/* ─── Spinner ─── */
+.lib-spinner { text-align: center; padding: 3rem; color: var(--lib-muted); }
+.lib-spinner .spinner-border { width: 2.5rem; height: 2.5rem; color: var(--lib-primary); }
+
+/* ─── Request list ─── */
+.lib-req-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.lib-req-card {
+  background: var(--lib-card); border: 1px solid var(--lib-border);
+  border-radius: 14px; padding: 1.1rem 1.25rem;
+  display: flex; align-items: center; gap: 1rem;
+  transition: box-shadow 0.2s;
+}
+.lib-req-card:hover { box-shadow: var(--lib-shadow); }
+.lib-req-cover {
+  width: 48px; height: 64px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+}
+.lib-req-cover-ph {
+  width: 48px; height: 64px; border-radius: 8px; background: var(--lib-primary-soft);
+  display: flex; align-items: center; justify-content: center; color: var(--lib-primary);
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.lib-req-info { flex: 1; min-width: 0; }
+.lib-req-title { font-size: 0.92rem; font-weight: 700; color: var(--lib-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-req-author { font-size: 0.78rem; color: var(--lib-muted); }
+.lib-req-meta { font-size: 0.75rem; color: var(--lib-muted); margin-top: 0.35rem; }
+.lib-req-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 0.4rem; flex-shrink: 0; }
+.lib-cancel-btn {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.35rem 0.75rem; border-radius: 8px;
+  border: 1.5px solid var(--lib-border); background: transparent;
+  color: var(--lib-red); font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.lib-cancel-btn:hover { border-color: var(--lib-red); background: var(--lib-red-soft); }
+
+/* ─── Rental card ─── */
+.lib-rental-list { display: flex; flex-direction: column; gap: 0.85rem; }
+.lib-rental-card {
+  background: var(--lib-card); border: 1px solid var(--lib-border);
+  border-radius: 14px; padding: 1.1rem 1.25rem;
+  display: flex; align-items: flex-start; gap: 1rem;
+  transition: box-shadow 0.2s;
+}
+.lib-rental-card.overdue { border-color: var(--lib-red); background: linear-gradient(135deg, var(--lib-card), rgba(239,68,68,0.03)); }
+.lib-rental-card:hover { box-shadow: var(--lib-shadow); }
+.lib-rental-info { flex: 1; min-width: 0; }
+.lib-rental-dates { display: flex; gap: 0.75rem; margin-top: 0.6rem; flex-wrap: wrap; }
+.lib-date-chip { display: flex; flex-direction: column; padding: 0.5rem 0.85rem; border-radius: 10px; background: var(--lib-bg); }
+.lib-date-chip.danger-bg { background: var(--lib-red-soft); }
+.lib-date-lbl { font-size: 0.68rem; color: var(--lib-muted); text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
+.lib-date-val { font-size: 0.85rem; font-weight: 700; color: var(--lib-text); }
+.lib-date-val.danger { color: var(--lib-red); }
+
+/* ─── Modal ─── */
+.lib-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1050;
+  background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.lib-modal-overlay.open { display: flex; }
+.lib-modal {
+  background: var(--lib-card); border-radius: 20px;
+  width: 100%; max-width: 520px; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  animation: libModalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes libModalIn {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.lib-modal-cover {
+  width: 100%; height: 240px; object-fit: cover;
+  border-radius: 20px 20px 0 0;
+}
+.lib-modal-cover-ph {
+  width: 100%; height: 200px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 5rem; color: var(--lib-muted);
+  background: linear-gradient(135deg, var(--lib-primary-soft), rgba(139,92,246,0.08));
+  border-radius: 20px 20px 0 0;
+}
+.lib-modal-body { padding: 1.5rem; }
+.lib-modal-title { font-size: 1.2rem; font-weight: 800; color: var(--lib-text); margin-bottom: 0.25rem; }
+.lib-modal-author { font-size: 0.9rem; color: var(--lib-muted); margin-bottom: 1rem; }
+.lib-modal-desc { font-size: 0.85rem; color: var(--lib-muted); line-height: 1.6; margin-bottom: 1rem; }
+.lib-modal-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1.25rem; }
+.lib-modal-tag {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.3rem 0.75rem; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 600;
+  background: var(--lib-bg); color: var(--lib-muted);
+  border: 1px solid var(--lib-border);
+}
+.lib-modal-close {
+  position: absolute; top: 1rem; right: 1rem;
+  width: 36px; height: 36px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.35); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1rem; transition: background 0.2s;
+}
+.lib-modal-close:hover { background: rgba(0,0,0,0.55); }
+.lib-modal-header-wrap { position: relative; }
+
+/* ─── Request form ─── */
+.lib-request-form textarea {
+  width: 100%; border: 1.5px solid var(--lib-border); border-radius: 10px;
+  padding: 0.75rem; font-size: 0.88rem; color: var(--lib-text);
+  background: var(--lib-bg); resize: vertical; min-height: 80px; outline: none;
+  transition: border-color 0.2s;
+}
+.lib-request-form textarea:focus { border-color: var(--lib-primary); }
+.lib-request-form label { font-size: 0.8rem; font-weight: 700; color: var(--lib-muted); text-transform: uppercase; letter-spacing: 0.3px; display: block; margin-bottom: 0.4rem; }
+
+/* ─── Action button ─── */
+.lib-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.65rem 1.5rem; border-radius: 12px; border: none;
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1); width: 100%; justify-content: center;
+}
+.lib-btn-primary { background: var(--lib-primary); color: #fff; }
+.lib-btn-primary:hover:not(:disabled) { background: var(--lib-primary-dark); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.35); }
+.lib-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.lib-btn-outline { background: transparent; color: var(--lib-primary); border: 1.5px solid var(--lib-primary); }
+.lib-btn-outline:hover { background: var(--lib-primary-soft); }
+
+/* ─── Alert ─── */
+.lib-alert {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.75rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 500;
+  margin-bottom: 1rem;
+}
+.lib-alert.info { background: var(--lib-blue-soft); color: var(--lib-blue); }
+.lib-alert.success { background: var(--lib-green-soft); color: var(--lib-green); }
+.lib-alert.warning { background: var(--lib-orange-soft); color: var(--lib-orange); }
+.lib-alert.danger { background: var(--lib-red-soft); color: var(--lib-red); }
+
+/* ─── Similar ─── */
+.lib-similar { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 4px; }
+.lib-similar-card {
+  flex-shrink: 0; width: 100px; cursor: pointer;
+  border: 1px solid var(--lib-border); border-radius: 10px;
+  overflow: hidden; transition: all 0.2s;
+}
+.lib-similar-card:hover { border-color: var(--lib-primary); transform: translateY(-2px); }
+.lib-similar-img { width: 100%; height: 70px; object-fit: cover; }
+.lib-similar-ph { width: 100%; height: 70px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--lib-muted); background: var(--lib-primary-soft); }
+.lib-similar-name { font-size: 0.7rem; font-weight: 600; padding: 0.4rem; color: var(--lib-text); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ─── Section divider ─── */
+.lib-divider { font-size: 0.78rem; font-weight: 700; color: var(--lib-muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--lib-border); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+
+/* ─── Responsive ─── */
+@media (max-width: 767px) {
+  .lib-hero { padding: 1.5rem 1.25rem 1.25rem; }
+  .lib-hero-title { font-size: 1.35rem; }
+  .lib-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 0.85rem; }
+  .lib-book-cover, .lib-book-cover-ph { height: 140px; }
+  .lib-book-cover-ph { font-size: 2.5rem; }
+  .lib-req-card { flex-wrap: wrap; }
+  .lib-req-actions { flex-direction: row; }
+}
+@media (max-width: 480px) {
+  .lib-wrap { padding: 1rem 0.5rem; }
+  .lib-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .lib-book-cover, .lib-book-cover-ph { height: 120px; }
+  .lib-book-cover-ph { font-size: 2rem; }
+  .lib-book-body { padding: 0.75rem; }
+  .lib-book-title { font-size: 0.82rem; }
+}
+
+/* ─── Animations ─── */
+@keyframes libFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lib-animate { animation: libFadeUp 0.35s ease forwards; opacity: 0; }
+</style>
+
+<div class="lib-wrap">
+
+  <!-- Hero -->
+  <div class="lib-hero">
+    <div class="lib-hero-title"><i class="bi bi-book me-2"></i>Kutubxona</div>
+    <div class="lib-hero-sub">Kitob toping, ariza bering va ijaraga oling</div>
+    <div class="lib-hero-stats" id="heroStats">
+      <div class="lib-hero-stat">
+        <div class="lib-hero-stat-val" id="statBooks">—</div>
+        <div class="lib-hero-stat-lbl">Jami kitoblar</div>
+      </div>
+      <div class="lib-hero-stat">
+        <div class="lib-hero-stat-val" id="statAvail">—</div>
+        <div class="lib-hero-stat-lbl">Mavjud nusxalar</div>
+      </div>
+      <div class="lib-hero-stat">
+        <div class="lib-hero-stat-val" id="statMyReq">—</div>
+        <div class="lib-hero-stat-lbl">Arizalarim</div>
+      </div>
+      <div class="lib-hero-stat">
+        <div class="lib-hero-stat-val" id="statMyRental">—</div>
+        <div class="lib-hero-stat-lbl">Ijaradagi kitoblarim</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="lib-tabs" role="tablist">
+    <button class="lib-tab active" data-tab="books" onclick="switchTab('books')">
+      <i class="bi bi-grid-3x3-gap"></i> Barcha kitoblar
+    </button>
+    <button class="lib-tab" data-tab="requests" onclick="switchTab('requests')">
+      <i class="bi bi-send"></i> Arizalarim
+      <span class="lib-tab-badge" id="reqBadge" style="display:none">0</span>
+    </button>
+    <button class="lib-tab" data-tab="rentals" onclick="switchTab('rentals')">
+      <i class="bi bi-book-half"></i> Ijaradagilar
+    </button>
+  </div>
+
+  <!-- TAB: BOOKS -->
+  <div id="tabBooks">
+    <!-- Search -->
+    <div class="lib-searchbar">
+      <i class="bi bi-search lib-searchbar-icon"></i>
+      <input type="text" id="bookSearch" placeholder="Kitob nomi yoki muallif..." oninput="debounceSearch()">
+      <button class="lib-avail-toggle" id="availBtn" onclick="toggleAvail()">
+        <i class="bi bi-check-circle"></i> Faqat mavjud
+      </button>
+    </div>
+    <!-- Sort -->
+    <div class="lib-sort">
+      <span class="lib-sort-lbl"><i class="bi bi-sort-down"></i></span>
+      <button class="lib-sort-btn active" data-sort="title" onclick="setSort(this,'title')"><i class="bi bi-sort-alpha-down"></i> A–Z</button>
+      <button class="lib-sort-btn" data-sort="-title" onclick="setSort(this,'-title')"><i class="bi bi-sort-alpha-up"></i> Z–A</button>
+      <button class="lib-sort-btn" data-sort="author" onclick="setSort(this,'author')"><i class="bi bi-person"></i> Muallif</button>
+      <button class="lib-sort-btn" data-sort="available" onclick="setSort(this,'available')"><i class="bi bi-check2-circle"></i> Mavjud</button>
+      <button class="lib-sort-btn" data-sort="newest" onclick="setSort(this,'newest')"><i class="bi bi-clock"></i> Yangi</button>
+    </div>
+    <!-- Grid -->
+    <div id="booksGrid"></div>
+  </div>
+
+  <!-- TAB: REQUESTS -->
+  <div id="tabRequests" style="display:none">
+    <div id="requestsList"></div>
+  </div>
+
+  <!-- TAB: RENTALS -->
+  <div id="tabRentals" style="display:none">
+    <div id="rentalsList"></div>
+  </div>
+
+</div><!-- /lib-wrap -->
+
+<!-- ══════════ BOOK DETAIL MODAL ══════════ -->
+<div class="lib-modal-overlay" id="bookModal" onclick="closeModalOutside(event)">
+  <div class="lib-modal" id="modalContent"></div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────
+   STATE
+────────────────────────────────────────── */
+const API = '/api/v1/library/';
+const CSRF = '{{ csrf_token }}';
+let currentSort = 'title';
+let availOnly = false;
+let searchTimer = null;
+let currentTab = 'books';
+
+/* ──────────────────────────────────────────
+   FETCH HELPER
+────────────────────────────────────────── */
+async function apiFetch(url, opts = {}) {
+  const defaultHeaders = { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' };
+  const res = await fetch(url, {
+    headers: { ...defaultHeaders, ...(opts.headers || {}) },
+    ...opts,
+  });
+  return res;
+}
+
+/* ──────────────────────────────────────────
+   INIT
+────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  loadBooks();
+});
+
+/* ──────────────────────────────────────────
+   STATS
+────────────────────────────────────────── */
+async function loadStats() {
+  try {
+    const r = await apiFetch(API + 'stats/');
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('statBooks').textContent = d.total_books;
+    document.getElementById('statAvail').textContent = d.available_copies;
+  } catch {}
+
+  try {
+    const [rq, rn] = await Promise.all([
+      apiFetch(API + 'my/requests/'),
+      apiFetch(API + 'my/rentals/'),
+    ]);
+    if (rq.ok) {
+      const d = await rq.json();
+      document.getElementById('statMyReq').textContent = d.count;
+      const pending = (d.results || []).filter(r => r.status === 'pending').length;
+      const badge = document.getElementById('reqBadge');
+      if (pending) { badge.textContent = pending; badge.style.display = ''; }
+    }
+    if (rn.ok) {
+      const d = await rn.json();
+      document.getElementById('statMyRental').textContent = d.active_count;
+    }
+  } catch {}
+}
+
+/* ──────────────────────────────────────────
+   TABS
+────────────────────────────────────────── */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.lib-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.getElementById('tabBooks').style.display = tab === 'books' ? '' : 'none';
+  document.getElementById('tabRequests').style.display = tab === 'requests' ? '' : 'none';
+  document.getElementById('tabRentals').style.display = tab === 'rentals' ? '' : 'none';
+
+  if (tab === 'requests') loadRequests();
+  if (tab === 'rentals') loadRentals();
+}
+
+/* ──────────────────────────────────────────
+   BOOKS
+────────────────────────────────────────── */
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadBooks, 380);
+}
+
+function setSort(btn, sort) {
+  document.querySelectorAll('.lib-sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentSort = sort;
+  loadBooks();
+}
+
+function toggleAvail() {
+  availOnly = !availOnly;
+  document.getElementById('availBtn').classList.toggle('active', availOnly);
+  loadBooks();
+}
+
+async function loadBooks() {
+  const grid = document.getElementById('booksGrid');
+  grid.innerHTML = '<div class="lib-spinner"><div class="spinner-border"></div></div>';
+
+  const search = document.getElementById('bookSearch').value.trim();
+  let url = API + 'books/?sort=' + currentSort;
+  if (search) url += '&search=' + encodeURIComponent(search);
+  if (availOnly) url += '&available=1';
+
+  try {
+    const r = await apiFetch(url);
+    const d = await r.json();
+    renderBooks(d.results || []);
+  } catch {
+    grid.innerHTML = '<div class="lib-empty"><i class="bi bi-wifi-off"></i><h5>Xatolik</h5><p>Ma\'lumot yuklanmadi.</p></div>';
+  }
+}
+
+function bookCardHtml(b, i, isDup) {
+  return `
+    <div class="lib-book-card lib-animate${isDup ? ' is-dup' : ''}" style="animation-delay:${i * 40}ms" onclick="openBook(${b.id})">
+      ${b.cover_image_url
+        ? `<img src="${b.cover_image_url}" class="lib-book-cover" alt="${esc(b.title)}">`
+        : `<div class="lib-book-cover-ph"><i class="bi bi-book"></i></div>`}
+      <div class="lib-book-body">
+        ${isDup ? '<span class="lib-dup-badge"><i class="bi bi-exclamation-triangle-fill"></i> Takroriy yozuv</span>' : ''}
+        <div class="lib-book-title">${esc(b.title)}</div>
+        <div class="lib-book-author"><i class="bi bi-pen me-1"></i>${esc(b.author)}</div>
+        ${b.description ? `<div class="lib-book-desc">${esc(b.description)}</div>` : ''}
+        <div class="lib-book-footer">
+          ${availBadge(b)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderBooks(books) {
+  const grid = document.getElementById('booksGrid');
+  if (!books.length) {
+    grid.innerHTML = '<div class="lib-empty"><i class="bi bi-search"></i><h5>Kitob topilmadi</h5><p>Boshqa kalit so\'z bilan sinab ko\'ring.</p></div>';
+    return;
+  }
+
+  // Group by normalised title+author key
+  const groups = new Map();
+  books.forEach(b => {
+    const key = b.title.trim().toLowerCase() + '||' + b.author.trim().toLowerCase();
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(b);
+  });
+
+  const hasDups = [...groups.values()].some(g => g.length > 1);
+
+  let html = '';
+
+  // Top warning banner if any duplicates exist
+  if (hasDups) {
+    html += `<div class="lib-dup-banner">
+      <i class="bi bi-exclamation-triangle-fill" style="font-size:1.1rem;flex-shrink:0"></i>
+      <span>Ba'zi kitoblar kutubxonada bir necha marta qo'shilgan. Takroriy yozuvlar qizil ramka bilan ajratib ko'rsatilgan.</span>
+    </div>`;
+  }
+
+  html += '<div class="lib-grid">';
+  let cardIndex = 0;
+
+  groups.forEach(group => {
+    if (group.length === 1) {
+      html += bookCardHtml(group[0], cardIndex++, false);
+    } else {
+      // Close the current grid, render a dup group, then reopen grid
+      html += '</div>'; // close lib-grid
+
+      html += `<div class="lib-dup-group">
+        <div class="lib-dup-header">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          ${group.length} ta o'xshash yozuv: "${esc(group[0].title)}" — ${esc(group[0].author)}
+        </div>
+        <div class="lib-dup-body">
+          <div class="lib-grid">`;
+
+      group.forEach(b => {
+        html += bookCardHtml(b, cardIndex++, true);
+      });
+
+      html += `</div></div></div>`; // close lib-grid, lib-dup-body, lib-dup-group
+
+      html += '<div class="lib-grid">'; // reopen lib-grid for subsequent singles
+    }
+  });
+
+  html += '</div>'; // close final lib-grid
+  grid.innerHTML = html;
+}
+
+function availBadge(b) {
+  if (b.my_active_rental) return '<span class="lib-request-badge rented"><i class="bi bi-book-half"></i> Ijaradagi</span>';
+  if (b.my_request_status) {
+    if (b.my_request_status.status === 'pending') return '<span class="lib-request-badge pending"><i class="bi bi-clock"></i> Ariza berilgan</span>';
+    if (b.my_request_status.status === 'approved') return '<span class="lib-request-badge approved"><i class="bi bi-check-circle"></i> Tasdiqlangan</span>';
+  }
+  if (b.available_copies > 0) return `<span class="lib-avail-badge yes"><i class="bi bi-check-circle"></i> ${b.available_copies}/${b.total_copies} mavjud</span>`;
+  return `<span class="lib-avail-badge no"><i class="bi bi-x-circle"></i> Mavjud emas (${b.total_copies} ta)</span>`;
+}
+
+/* ──────────────────────────────────────────
+   BOOK MODAL
+────────────────────────────────────────── */
+async function openBook(id) {
+  const overlay = document.getElementById('bookModal');
+  const content = document.getElementById('modalContent');
+  overlay.classList.add('open');
+  content.innerHTML = '<div class="lib-spinner" style="padding:4rem"><div class="spinner-border"></div></div>';
+
+  try {
+    const r = await apiFetch(API + 'books/' + id + '/');
+    if (!r.ok) throw new Error();
+    const b = await r.json();
+    renderModal(b);
+  } catch {
+    content.innerHTML = '<div class="lib-modal-body"><p class="text-danger">Xatolik yuz berdi.</p></div>';
+  }
+}
+
+function renderModal(b) {
+  const content = document.getElementById('modalContent');
+  const myRental = b.my_active_rental;
+  const myReq = b.my_request_status;
+
+  let actionHtml = '';
+  if (myRental) {
+    const daysLeft = myRental.days_until_return;
+    const overdue = myRental.is_overdue;
+    actionHtml = `
+      <div class="lib-alert ${overdue ? 'danger' : 'info'}">
+        <i class="bi bi-book-half"></i>
+        <span>
+          ${overdue
+            ? `Bu kitobni ${Math.abs(daysLeft)} kun oldin qaytarishingiz kerak edi! Iltimos, kutubxonaga toping.`
+            : `Bu kitob sizda ijarada. Qaytarish sanasi: ${myRental.return_date} (${daysLeft} kun qoldi)`}
+        </span>
+      </div>`;
+  } else if (myReq) {
+    const icon = myReq.status === 'pending' ? 'clock' : myReq.status === 'approved' ? 'check-circle' : 'x-circle';
+    const cls = myReq.status === 'pending' ? 'warning' : myReq.status === 'approved' ? 'success' : 'danger';
+    actionHtml = `
+      <div class="lib-alert ${cls}">
+        <i class="bi bi-${icon}"></i>
+        <span>Ariza holati: <strong>${myReq.status_display}</strong></span>
+      </div>`;
+  } else if (b.available_copies > 0) {
+    actionHtml = `
+      <div id="requestForm" class="lib-request-form">
+        <div class="lib-alert info" style="margin-bottom:0.75rem">
+          <i class="bi bi-info-circle"></i>
+          <span>Ariza bersangiz, admin ko'rib chiqib tasdiqlaydi.</span>
+        </div>
+        <label>Izoh (ixtiyoriy)</label>
+        <textarea id="reqMessage" placeholder="Nima uchun bu kitobni o'qimoqchisiz?"></textarea>
+        <button class="lib-btn lib-btn-primary mt-2" onclick="submitRequest(${b.id})">
+          <i class="bi bi-send"></i> Ariza berish
+        </button>
+      </div>`;
+  } else {
+    actionHtml = `
+      <div class="lib-alert danger">
+        <i class="bi bi-x-circle"></i>
+        <span>Hozirda barcha nusxalar ijarada. Keyinroq kiring.</span>
+      </div>`;
+  }
+
+  const similar = b.similar_books || [];
+
+  content.innerHTML = `
+    <div class="lib-modal-header-wrap">
+      ${b.cover_image_url
+        ? `<img src="${b.cover_image_url}" class="lib-modal-cover" alt="${esc(b.title)}">`
+        : `<div class="lib-modal-cover-ph"><i class="bi bi-book"></i></div>`}
+      <button class="lib-modal-close" onclick="closeModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="lib-modal-body">
+      <div class="lib-modal-title">${esc(b.title)}</div>
+      <div class="lib-modal-author"><i class="bi bi-pen me-1"></i>${esc(b.author)}</div>
+      <div class="lib-modal-meta">
+        ${b.isbn ? `<span class="lib-modal-tag"><i class="bi bi-upc"></i> ${esc(b.isbn)}</span>` : ''}
+        <span class="lib-modal-tag"><i class="bi bi-stack"></i> ${b.total_copies} nusxa</span>
+        <span class="lib-modal-tag ${b.available_copies > 0 ? 'text-success' : 'text-danger'} border-0">
+          <i class="bi bi-${b.available_copies > 0 ? 'check-circle-fill' : 'x-circle-fill'}"></i>
+          ${b.available_copies} ta mavjud
+        </span>
+      </div>
+      ${b.description ? `<div class="lib-modal-desc">${esc(b.description)}</div>` : ''}
+      <hr style="border-color:var(--lib-border)">
+      ${actionHtml}
+      ${similar.length ? `
+        <div class="lib-divider mt-3">Shu muallifning boshqa kitoblari</div>
+        <div class="lib-similar">
+          ${similar.map(s => `
+            <div class="lib-similar-card" onclick="closeModal();setTimeout(()=>openBook(${s.id}),150)">
+              ${s.cover_image_url
+                ? `<img src="${s.cover_image_url}" class="lib-similar-img" alt="">`
+                : `<div class="lib-similar-ph"><i class="bi bi-book"></i></div>`}
+              <div class="lib-similar-name">${esc(s.title)}</div>
+            </div>`).join('')}
+        </div>` : ''}
+    </div>`;
+}
+
+async function submitRequest(bookId) {
+  const msg = document.getElementById('reqMessage')?.value || '';
+  const btn = document.querySelector('#requestForm .lib-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Yuborilmoqda...'; }
+
+  try {
+    const r = await apiFetch(API + 'books/' + bookId + '/request/', {
+      method: 'POST',
+      body: JSON.stringify({ message: msg }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      // Refresh modal
+      openBook(bookId);
+      loadStats();
+      if (currentTab === 'books') loadBooks();
+      if (currentTab === 'requests') loadRequests();
+    } else {
+      const errMsg = typeof d === 'object' ? Object.values(d).flat().join(' ') : 'Xatolik yuz berdi.';
+      alert('❌ ' + errMsg);
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza berish'; }
+    }
+  } catch {
+    alert('❌ Tarmoq xatosi.');
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Ariza berish'; }
+  }
+}
+
+function closeModal() {
+  document.getElementById('bookModal').classList.remove('open');
+}
+function closeModalOutside(e) {
+  if (e.target === document.getElementById('bookModal')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ──────────────────────────────────────────
+   REQUESTS
+────────────────────────────────────────── */
+async function loadRequests() {
+  const container = document.getElementById('requestsList');
+  container.innerHTML = '<div class="lib-spinner"><div class="spinner-border"></div></div>';
+
+  try {
+    const r = await apiFetch(API + 'my/requests/');
+    const d = await r.json();
+    renderRequests(d.results || []);
+  } catch {
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-wifi-off"></i><h5>Xatolik</h5></div>';
+  }
+}
+
+function renderRequests(reqs) {
+  const container = document.getElementById('requestsList');
+  if (!reqs.length) {
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-send"></i><h5>Hali ariza yo\'q</h5><p>Kitob tanlang va ariza bering — admin ko\'rib chiqadi.</p></div>';
+    return;
+  }
+
+  const statusColor = { pending: 'warning', approved: 'success', rejected: 'danger', cancelled: 'secondary' };
+  const statusIcon = { pending: 'clock', approved: 'check-circle-fill', rejected: 'x-circle-fill', cancelled: 'dash-circle' };
+
+  container.innerHTML = '<div class="lib-req-list">' + reqs.map(r => `
+    <div class="lib-req-card lib-animate">
+      ${r.book_cover
+        ? `<img src="${r.book_cover}" class="lib-req-cover" alt="">`
+        : `<div class="lib-req-cover-ph"><i class="bi bi-book"></i></div>`}
+      <div class="lib-req-info">
+        <div class="lib-req-title">${esc(r.book_title)}</div>
+        <div class="lib-req-author"><i class="bi bi-pen me-1"></i>${esc(r.book_author)}</div>
+        <div class="lib-req-meta">
+          <span class="lib-request-badge ${r.status}">
+            <i class="bi bi-${statusIcon[r.status] || 'question'}"></i>
+            ${esc(r.status_display)}
+          </span>
+          · ${formatDate(r.created_at)}
+          ${r.admin_note ? ` · <em>${esc(r.admin_note)}</em>` : ''}
+        </div>
+      </div>
+      <div class="lib-req-actions">
+        ${r.can_cancel ? `<button class="lib-cancel-btn" onclick="cancelRequest(${r.id})"><i class="bi bi-x-lg"></i> Bekor</button>` : ''}
+      </div>
+    </div>
+  `).join('') + '</div>';
+}
+
+async function cancelRequest(id) {
+  if (!confirm('Arizani bekor qilmoqchimisiz?')) return;
+  try {
+    const r = await apiFetch(API + 'my/requests/' + id + '/cancel/', { method: 'POST' });
+    if (r.ok) { loadRequests(); loadStats(); loadBooks(); }
+    else { const d = await r.json(); alert(d.detail || 'Xatolik.'); }
+  } catch { alert('Xatolik.'); }
+}
+
+/* ──────────────────────────────────────────
+   RENTALS
+────────────────────────────────────────── */
+async function loadRentals() {
+  const container = document.getElementById('rentalsList');
+  container.innerHTML = '<div class="lib-spinner"><div class="spinner-border"></div></div>';
+
+  try {
+    const r = await apiFetch(API + 'my/rentals/');
+    const d = await r.json();
+    renderRentals(d);
+  } catch {
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-wifi-off"></i><h5>Xatolik</h5></div>';
+  }
+}
+
+function renderRentals(d) {
+  const container = document.getElementById('rentalsList');
+  const active = d.active || [];
+  const returned = d.returned || [];
+
+  if (!active.length && !returned.length) {
+    container.innerHTML = '<div class="lib-empty"><i class="bi bi-book-half"></i><h5>Hali ijara yo\'q</h5><p>Ariza berib, admindan kitob ijaraga oling.</p></div>';
+    return;
+  }
+
+  let html = '';
+
+  if (active.length) {
+    html += '<div class="lib-divider">Faol ijaralar</div><div class="lib-rental-list">';
+    active.forEach((rn, i) => {
+      html += rentalCard(rn, i);
+    });
+    html += '</div>';
+  }
+
+  if (returned.length) {
+    html += '<div class="lib-divider mt-3">Qaytarilganlar</div><div class="lib-rental-list">';
+    returned.forEach((rn, i) => {
+      html += rentalCard(rn, i, true);
+    });
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function rentalCard(rn, i, isReturned = false) {
+  const overdue = rn.is_overdue;
+  const daysLeft = rn.days_until_return;
+  let statusBadge = '';
+  if (isReturned) {
+    statusBadge = '<span class="lib-request-badge approved"><i class="bi bi-check-circle-fill"></i> Qaytarilgan</span>';
+  } else if (overdue) {
+    statusBadge = '<span class="lib-request-badge" style="background:var(--lib-red-soft);color:var(--lib-red)"><i class="bi bi-exclamation-triangle-fill"></i> Kechikkan</span>';
+  } else if (daysLeft <= 3) {
+    statusBadge = '<span class="lib-request-badge pending"><i class="bi bi-clock-fill"></i> ' + daysLeft + ' kun qoldi</span>';
+  } else {
+    statusBadge = '<span class="lib-request-badge" style="background:var(--lib-blue-soft);color:var(--lib-blue)"><i class="bi bi-hourglass-split"></i> Faol</span>';
+  }
+
+  return `
+    <div class="lib-rental-card ${overdue ? 'overdue' : ''} lib-animate" style="animation-delay:${i * 40}ms">
+      ${rn.book_cover
+        ? `<img src="${rn.book_cover}" class="lib-req-cover" alt="">`
+        : `<div class="lib-req-cover-ph"><i class="bi bi-book"></i></div>`}
+      <div class="lib-rental-info">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">
+          <div>
+            <div class="lib-req-title">${esc(rn.book_title)}</div>
+            <div class="lib-req-author"><i class="bi bi-pen me-1"></i>${esc(rn.book_author)}</div>
+          </div>
+          ${statusBadge}
+        </div>
+        <div class="lib-rental-dates">
+          <div class="lib-date-chip">
+            <div class="lib-date-lbl">Berilgan</div>
+            <div class="lib-date-val">${formatDateShort(rn.given_date)}</div>
+          </div>
+          ${isReturned
+            ? `<div class="lib-date-chip">
+                 <div class="lib-date-lbl">Qaytarilgan</div>
+                 <div class="lib-date-val">${formatDateShort(rn.actual_return_date)}</div>
+               </div>`
+            : `<div class="lib-date-chip ${overdue ? 'danger-bg' : ''}">
+                 <div class="lib-date-lbl">Qaytarish</div>
+                 <div class="lib-date-val ${overdue ? 'danger' : ''}">${formatDateShort(rn.return_date)}</div>
+               </div>`}
+        </div>
+        ${overdue ? `<div class="lib-alert danger mt-2 mb-0"><i class="bi bi-x-circle-fill"></i> ${Math.abs(daysLeft)} kun kechikdi — tezroq kutubxonaga qaytaring!</div>` : ''}
+      </div>
+    </div>`;
+}
+
+/* ──────────────────────────────────────────
+   UTILS
+────────────────────────────────────────── */
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('uz-UZ', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+function formatDateShort(s) {
+  if (!s) return '—';
+  const parts = s.split('-');
+  if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+  return s;
+}
+</script>
+{% endblock %}

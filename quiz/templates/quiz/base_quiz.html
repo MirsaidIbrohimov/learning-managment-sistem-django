@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Savollar bazasi{% endblock %} - IT Shaharcha Zomin LMS</title>
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'quiz/css/quiz_ui.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand quizui-topbar">
+        <div class="container-fluid px-3 px-lg-4">
+            <a class="navbar-brand quizui-brand" href="{% url 'quizui:question_bank' %}">
+                <i class="bi bi-patch-question-fill"></i> Savollar &amp; Testlar
+            </a>
+            <div class="quizui-topnav">
+                <a href="{% url 'quizui:question_bank' %}" class="quizui-topnav-link {% block nav_questions_active %}{% endblock %}">
+                    <i class="bi bi-collection"></i> Savollar bazasi
+                </a>
+                <a href="{% url 'quizui:quiz_list' %}" class="quizui-topnav-link {% block nav_quizzes_active %}{% endblock %}">
+                    <i class="bi bi-ui-checks-grid"></i> Testlar
+                </a>
+                <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="quizui-topnav-link {% block nav_payments_active %}{% endblock %}">
+                    <i class="bi bi-credit-card-2-front"></i> To'lov so'rovlari
+                </a>
+            </div>
+            <div class="quizui-topnav-user">
+                <span class="quizui-user-pill"><i class="bi bi-person-circle"></i> {{ request.user.get_full_name|default:request.user.username }}</span>
+                {% if request.user.is_teacher %}
+                    <a href="{% url 'teacher:dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Panelga</a>
+                {% else %}
+                    <a href="{% url 'admin_dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i> Panelga</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="quizui-main">
+        <div class="container-fluid px-3 px-lg-4 py-4">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <div class="quizui-toast-stack" id="quizToastStack"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'quiz/js/api.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

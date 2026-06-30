@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{{ bootstrap.quiz_title }} - Test | IT Shaharcha Zomin LMS</title>
+    <meta name="theme-color" content="#050510">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'quiz/css/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'quiz/css/quiz_take.css' %}">
+</head>
+<body>
+
+    <div class="qt-bg-orbs" aria-hidden="true">
+        <span class="qt-orb qt-orb-1"></span>
+        <span class="qt-orb qt-orb-2"></span>
+        <span class="qt-orb qt-orb-3"></span>
+    </div>
+    <div class="qt-bg-grid" aria-hidden="true"></div>
+
+    <!-- Fullscreen enforcement gate: shown over everything while the exam
+         screen is active and the browser isn't in fullscreen. -->
+    <div class="qt-fs-gate" id="fullscreenGate" hidden>
+        <!-- animated background blobs -->
+        <div class="qt-fs-blob qt-fs-blob-1" aria-hidden="true"></div>
+        <div class="qt-fs-blob qt-fs-blob-2" aria-hidden="true"></div>
+
+        <div class="qt-fs-card">
+            <!-- pulsing rings -->
+            <div class="qt-fs-rings" aria-hidden="true">
+                <span class="qt-fs-ring qt-fs-ring-1"></span>
+                <span class="qt-fs-ring qt-fs-ring-2"></span>
+                <span class="qt-fs-ring qt-fs-ring-3"></span>
+                <div class="qt-fs-icon-wrap">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                </div>
+            </div>
+
+            <div class="qt-fs-body">
+                <div class="qt-fs-badge">
+                    <i class="bi bi-shield-lock-fill"></i> Xavfsizlik rejimi
+                </div>
+                <h2 class="qt-fs-title">To'liq ekran talab qilinadi</h2>
+                <p class="qt-fs-desc">
+                    Test nazoratli muhitda ishlaydi. Davom etish uchun brauzeringizni
+                    to'liq ekran rejimiga olib o'ting.
+                </p>
+
+                <div class="qt-fs-rules">
+                    <div class="qt-fs-rule">
+                        <i class="bi bi-eye-slash-fill"></i>
+                        <span>Boshqa oynaga o'tish kuzatiladi</span>
+                    </div>
+                    <div class="qt-fs-rule">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span>3 ta ogohlantirish — test avtomatik yakunlanadi</span>
+                    </div>
+                    <div class="qt-fs-rule">
+                        <i class="bi bi-save-fill"></i>
+                        <span>Javoblar avtomatik saqlanadi</span>
+                    </div>
+                </div>
+
+                <button type="button" class="qt-fs-btn" id="btnReenterFullscreen">
+                    <i class="bi bi-arrows-fullscreen"></i>
+                    <span>To'liq ekranga kirish</span>
+                    <div class="qt-fs-btn-shine"></div>
+                </button>
+
+                <p class="qt-fs-hint">
+                    <i class="bi bi-keyboard"></i>
+                    <kbd>F11</kbd> yoki yuqoridagi tugmani bosing
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anti-screenshot/leak deterrent watermark, toggled on by JS only
+         while the exam screen is visible. -->
+    <div class="qt-watermark" id="watermarkOverlay" aria-hidden="true"></div>
+
+    <!-- 3-strike cheating-warning modal. -->
+    <div class="qt-modal-backdrop" id="warningModal" hidden>
+        <div class="qt-modal-card qt-modal-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <h3 id="warningModalTitle">Diqqat!</h3>
+            <p id="warningModalText"></p>
+            <button type="button" class="qt-btn qt-btn-danger" id="btnAckWarning">Tushunarli</button>
+        </div>
+    </div>
+
+    <!-- Submit confirmation modal. -->
+    <div class="qt-modal-backdrop" id="submitConfirmModal" hidden>
+        <div class="qt-modal-card">
+            <i class="bi bi-send-check"></i>
+            <h3>Testni topshirasizmi?</h3>
+            <p id="submitConfirmText">Javoblaringizni qayta ko'rib chiqish imkoni bo'lmaydi.</p>
+            <div class="qt-modal-actions">
+                <button type="button" class="qt-btn qt-btn-ghost" id="btnCancelSubmit">Bekor qilish</button>
+                <button type="button" class="qt-btn qt-btn-primary" id="btnConfirmSubmit">Ha, topshirish</button>
+            </div>
+        </div>
+    </div>
+
+    <main id="appRoot" class="qt-main">
+
+        <!-- ===================== INTRO SCREEN ===================== -->
+        <section class="qt-screen qt-screen-active" id="screen-intro">
+            <div class="qt-container qt-container-narrow">
+                <a href="javascript:void(0)" onclick="history.back()" class="qt-back-link">
+                    <i class="bi bi-arrow-left"></i> Orqaga
+                </a>
+
+                <div class="qt-card qt-intro-card">
+                    <div class="qt-intro-header">
+                        <span class="qt-intro-kicker">
+                            {% if bootstrap.profession_name %}{{ bootstrap.profession_name }}{% else %}Test{% endif %}
+                        </span>
+                        <h1 class="qt-intro-title">{{ bootstrap.quiz_title }}</h1>
+                        {% if bootstrap.quiz_description %}
+                            <p class="qt-intro-desc">{{ bootstrap.quiz_description }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="qt-stats-grid">
+                        <div class="qt-stat">
+                            <i class="bi bi-clock-history"></i>
+                            <span class="qt-stat-value">{{ bootstrap.time_limit_minutes|default:"—" }}</span>
+                            <span class="qt-stat-label">daqiqa</span>
+                        </div>
+                        <div class="qt-stat">
+                            <i class="bi bi-bullseye"></i>
+                            <span class="qt-stat-value">{{ bootstrap.passing_score|default:"—" }}%</span>
+                            <span class="qt-stat-label">o'tish balli</span>
+                        </div>
+                        <div class="qt-stat">
+                            <i class="bi bi-list-ol"></i>
+                            <span class="qt-stat-value">{{ bootstrap.question_count }}</span>
+                            <span class="qt-stat-label">savol</span>
+                        </div>
+                        <div class="qt-stat">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span class="qt-stat-value">
+                                {% if bootstrap.attempts_allowed %}{{ bootstrap.attempts_allowed }}{% else %}∞{% endif %}
+                            </span>
+                            <span class="qt-stat-label">urinish</span>
+                        </div>
+                    </div>
+
+                    {% if bootstrap.prior_attempt_count > 0 %}
+                        <div class="qt-prev-result" id="prevResultCard">
+                            <div class="qt-prev-result-row">
+                                <span>So'nggi natija</span>
+                                <strong>{{ bootstrap.last_score }}%</strong>
+                            </div>
+                            <div class="qt-prev-result-row">
+                                <span>Eng yaxshi natija</span>
+                                <strong>{{ bootstrap.best_score }}%</strong>
+                            </div>
+                            <div class="qt-prev-result-row">
+                                <span>Urinishlar</span>
+                                <strong>{{ bootstrap.prior_attempt_count }}{% if bootstrap.attempts_allowed %} / {{ bootstrap.attempts_allowed }}{% endif %}</strong>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if bootstrap.blocked_reason %}
+                        <div class="qt-banner qt-banner-warning">
+                            <i class="bi bi-exclamation-triangle"></i> {{ bootstrap.blocked_reason }}
+                        </div>
+                    {% else %}
+                        <div class="qt-rules">
+                            <h3><i class="bi bi-shield-check"></i> Test qoidalari</h3>
+                            <ul>
+                                <li>Test davomida to'liq ekran rejimidan chiqmang.</li>
+                                <li>Boshqa oyna/tabga o'tish, nusxa ko'chirish va ekran tasvirini olish kuzatiladi.</li>
+                                <li>3 marta qoida buzilsa, test avtomatik topshiriladi.</li>
+                                <li>Vaqt tugaganda test avtomatik topshiriladi.</li>
+                                <li>Javoblar avtomatik saqlanadi — bog'lanish uzilsa, testni davom ettirish mumkin.</li>
+                            </ul>
+                        </div>
+                        <div class="qt-coin-info">
+                            <div class="qt-coin-info-row">
+                                <i class="bi bi-coin"></i>
+                                <span>Har bir to'g'ri javob uchun
+                                    <strong>{{ bootstrap.coin_per_correct }} coin</strong>
+                                    {% if bootstrap.is_premium %}<span class="qt-premium-badge"><i class="bi bi-stars"></i> Premium</span>{% endif %}
+                                    (faqat <strong>birinchi</strong> muvaffaqiyatli urinishda beriladi)
+                                </span>
+                            </div>
+                            {% if bootstrap.prior_attempt_count > 0 and not bootstrap.retry_payment_required %}
+                            <div class="qt-coin-info-row">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span>Qayta urinish narxi: <strong>{{ bootstrap.retry_cost }} coin</strong>
+                                    (yetishmasa coiniz minusga o'tadi)</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="qt-action-row">
+                        <button type="button" class="qt-btn qt-btn-primary qt-btn-lg" id="btnStartExam"
+                                {% if bootstrap.blocked_reason %}disabled{% endif %}>
+                            <span id="btnStartExamLabel">
+                                {% if bootstrap.resume_attempt_id %}
+                                    <i class="bi bi-play-fill"></i> Testni davom ettirish
+                                {% elif bootstrap.prior_attempt_count > 0 and bootstrap.retry_payment_required %}
+                                    <i class="bi bi-credit-card-2-front"></i> Qayta urinish (to'lov talab qilinadi)
+                                {% elif bootstrap.prior_attempt_count > 0 %}
+                                    <i class="bi bi-arrow-repeat"></i> Qayta urinish ({{ bootstrap.retry_cost }} coin)
+                                {% else %}
+                                    <i class="bi bi-play-fill"></i> Testni boshlash
+                                {% endif %}
+                            </span>
+                        </button>
+                        {% if bootstrap.prior_attempt_count > 0 and not bootstrap.resume_attempt_id %}
+                            {% if bootstrap.retry_payment_required %}
+                                <span class="qt-coin-balance"><i class="bi bi-cash-coin"></i> {{ bootstrap.retry_payment_amount|floatformat:0 }} so'm</span>
+                            {% else %}
+                                <span class="qt-coin-balance"><i class="bi bi-coin"></i> {{ bootstrap.student_coins }} coin</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    <div class="qt-inline-error" id="introError" hidden></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================== EXAM SCREEN ===================== -->
+        <section class="qt-screen" id="screen-exam" hidden>
+            <header class="qt-exam-header">
+                <div class="qt-exam-header-inner">
+                    <div class="qt-exam-progress-wrap">
+                        <div class="qt-exam-progress-bar"><div class="qt-exam-progress-fill" id="examProgressFill"></div></div>
+                        <span class="qt-exam-progress-label" id="examProgressLabel">0 / 0</span>
+                    </div>
+                    <div class="qt-exam-timer" id="examTimer">
+                        <i class="bi bi-stopwatch"></i> <span id="examTimerValue">--:--</span>
+                    </div>
+                    <button type="button" class="qt-btn qt-btn-primary qt-btn-sm" id="btnSubmitExam">
+                        <i class="bi bi-send-check"></i> Topshirish
+                    </button>
+                </div>
+            </header>
+
+            <div class="qt-container">
+                <nav class="qt-nav-grid" id="questionNavGrid" aria-label="Savollar ro'yxati"></nav>
+                <div class="qt-questions" id="questionsContainer"></div>
+            </div>
+
+            <div class="qt-exam-bottombar">
+                <div class="qt-exam-timer qt-exam-timer-mobile">
+                    <i class="bi bi-stopwatch"></i> <span id="examTimerValueMobile">--:--</span>
+                </div>
+                <button type="button" class="qt-btn qt-btn-primary" id="btnSubmitExamMobile">
+                    <i class="bi bi-send-check"></i> Topshirish
+                </button>
+            </div>
+        </section>
+
+        <!-- ===================== RESULT SCREEN ===================== -->
+        <section class="qt-screen" id="screen-result" hidden>
+            <div class="qt-container qt-container-narrow">
+                <div class="qt-card qt-result-card" id="resultCard"></div>
+            </div>
+        </section>
+
+        <!-- ===================== REVIEW SCREEN ===================== -->
+        <section class="qt-screen" id="screen-review" hidden>
+            <div class="qt-container qt-container-narrow">
+                <button type="button" class="qt-back-link" id="btnBackToResult">
+                    <i class="bi bi-arrow-left"></i> Natijaga qaytish
+                </button>
+                <div id="reviewList" class="qt-review-list"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="quizui-toast-stack" id="quizToastStack"></div>
+
+    {{ bootstrap|json_script:"quiz-bootstrap" }}
+    <script src="{% static 'quiz/js/api.js' %}"></script>
+    <script src="{% static 'quiz/js/quiz_take.js' %}"></script>
+</body>
+</html>

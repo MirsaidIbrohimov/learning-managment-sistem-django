@@ -154,8 +154,14 @@
                 <div class="nav-icon-wrap"><i class="bi bi-mic"></i></div><span>Speaking vazifalar</span>
                 {% if pending_speakings_count %}<span class="sidebar-badge" style="background:#8b5cf6;">{{ pending_speakings_count }}</span>{% endif %}
             </a>
-            <a href="{% url 'teacher:test_results' %}" class="nav-link {% if 'test' in request.resolver_match.url_name %}active{% endif %}" data-title="Test natijalari">
-                <div class="nav-icon-wrap"><i class="bi bi-clipboard-data"></i></div><span>Test natijalari</span>
+            <a href="{% url 'quizui:question_bank' %}" class="nav-link {% if 'question_bank' in request.resolver_match.url_name or 'question_create' in request.resolver_match.url_name or 'question_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Savollar bazasi">
+                <div class="nav-icon-wrap"><i class="bi bi-patch-question-fill"></i></div><span>Savollar bazasi</span>
+            </a>
+            <a href="{% url 'quizui:quiz_list' %}" class="nav-link {% if 'quiz_list' in request.resolver_match.url_name or 'quiz_create' in request.resolver_match.url_name or 'quiz_edit' in request.resolver_match.url_name %}active{% endif %}" data-title="Quizlar">
+                <div class="nav-icon-wrap"><i class="bi bi-ui-checks-grid"></i></div><span>Quizlar</span>
+            </a>
+            <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz to'lovlari">
+                <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div><span>Quiz to'lovlari</span>
             </a>
             {% if user.ai_access_enabled %}
             <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
@@ -165,9 +171,6 @@
             <div class="sidebar-group-label">Moliya & Hujjatlar</div>
             <a href="{% url 'teacher:earnings' %}" class="nav-link {% if request.resolver_match.url_name == 'earnings' %}active{% endif %}" data-title="Daromadlarim">
                 <div class="nav-icon-wrap"><i class="bi bi-cash-stack"></i></div><span>Daromadlarim</span>
-            </a>
-            <a href="{% url 'teacher:final_test_payments' %}" class="nav-link {% if request.resolver_match.url_name == 'final_test_payments' %}active{% endif %}" data-title="Yakuniy test to'lovlari">
-                <div class="nav-icon-wrap"><i class="bi bi-credit-card"></i></div><span>Yakuniy test to'lovlari</span>
             </a>
             <a href="{% url 'teacher:certificates' %}" class="nav-link {% if 'certificate' in request.resolver_match.url_name %}active{% endif %}" data-title="Sertifikatlarim">
                 <div class="nav-icon-wrap"><i class="bi bi-award"></i></div><span>Sertifikatlarim</span>

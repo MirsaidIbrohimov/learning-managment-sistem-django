@@ -350,6 +350,15 @@
         </a>
     </div>
 
+    <!-- AI ommaviy baholash tugmasi -->
+    {% if user_ai_enabled %}
+    <div style="margin-bottom:0.75rem;">
+        <button type="button" id="bulkAiBtn" class="hw-btn" style="background:rgba(16,185,129,0.1);color:#059669;padding:0.5rem 1rem;font-size:0.85rem;">
+            <i class="bi bi-robot"></i> Barchasini AI bilan baholash
+        </button>
+    </div>
+    {% endif %}
+
     <!-- Controls -->
     <form method="GET" id="hwForm">
     <input type="hidden" name="profession" value="{{ profession_filter }}">
@@ -488,11 +497,115 @@
 </div>
 
 {% if profession_filter %}
+<!-- AI ommaviy baholash modali -->
+<div id="bulkAiModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:var(--card-bg,#fff);border-radius:18px;padding:2rem 2rem 1.5rem;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div id="bulkAiConfirm">
+            <div style="text-align:center;margin-bottom:1.25rem;">
+                <div style="width:56px;height:56px;border-radius:14px;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 0.75rem;">🤖</div>
+                <h5 style="font-weight:800;margin:0 0 0.35rem;">AI bilan ommaviy baholash</h5>
+                <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.85rem;margin:0;">
+                    Ushbu kursning barcha <strong>kutilayotgan</strong> va <strong>ko'rilayotgan</strong> vazifalarini AI avtomatik baholaydi (har safar 30 tagacha).
+                </p>
+            </div>
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:0.75rem 1rem;font-size:0.8rem;color:#b45309;margin-bottom:1.25rem;">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Bu amal ortga qaytarib bo'lmaydi. O'quvchilarga xabar yuboriladi.
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button type="button" id="bulkAiCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qilish</button>
+                <button type="button" id="bulkAiConfirmBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Boshlash</button>
+            </div>
+        </div>
+        <div id="bulkAiLoading" style="display:none;text-align:center;padding:0.5rem 0;">
+            <div style="width:48px;height:48px;border-radius:50%;border:4px solid rgba(16,185,129,0.2);border-top-color:#10b981;animation:bulkSpin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+            <p style="font-weight:700;margin:0 0 0.25rem;">AI baholayapti...</p>
+            <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin:0;">Bu bir necha daqiqa vaqt olishi mumkin</p>
+        </div>
+        <div id="bulkAiResult" style="display:none;text-align:center;">
+            <div id="bulkAiResultIcon" style="font-size:2rem;margin-bottom:0.5rem;"></div>
+            <div id="bulkAiResultText" style="font-weight:700;font-size:1rem;margin-bottom:0.35rem;"></div>
+            <div id="bulkAiResultSub" style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin-bottom:1.25rem;"></div>
+            <button type="button" id="bulkAiCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopish</button>
+        </div>
+    </div>
+</div>
+<style>
+@keyframes bulkSpin{to{transform:rotate(360deg)}}
+</style>
 <script>
 (function(){
     var q=document.getElementById('hwQ'), x=document.getElementById('hwX'), f=document.getElementById('hwForm'), t;
     x.onclick=function(){ q.value=''; x.classList.remove('on'); f.submit(); };
     q.oninput=function(){ x.classList.toggle('on',q.value.length>0); clearTimeout(t); t=setTimeout(function(){f.submit();},600); };
+
+    // Bulk AI grading
+    var modal=document.getElementById('bulkAiModal');
+    var btn=document.getElementById('bulkAiBtn');
+    var cancelBtn=document.getElementById('bulkAiCancelBtn');
+    var confirmBtn=document.getElementById('bulkAiConfirmBtn');
+    var closeBtn=document.getElementById('bulkAiCloseBtn');
+    var confirmDiv=document.getElementById('bulkAiConfirm');
+    var loadingDiv=document.getElementById('bulkAiLoading');
+    var resultDiv=document.getElementById('bulkAiResult');
+
+    function showModal(){ modal.style.display='flex'; confirmDiv.style.display=''; loadingDiv.style.display='none'; resultDiv.style.display='none'; }
+    function hideModal(){ modal.style.display='none'; }
+
+    if(btn){ btn.onclick=showModal; }
+    if(cancelBtn){ cancelBtn.onclick=hideModal; }
+    modal && modal.addEventListener('click', function(e){ if(e.target===modal) hideModal(); });
+
+    if(confirmBtn){
+        confirmBtn.onclick=function(){
+            confirmDiv.style.display='none';
+            loadingDiv.style.display='';
+            confirmBtn.disabled=true;
+
+            var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+            var token = csrfToken ? csrfToken.value : '{{ csrf_token }}';
+
+            fetch('{% url "bulk_ai_grade" %}', {
+                method: 'POST',
+                headers: {'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken': token},
+                body: 'profession_id={{ profession_filter }}'
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                loadingDiv.style.display='none';
+                resultDiv.style.display='';
+                var icon=document.getElementById('bulkAiResultIcon');
+                var text=document.getElementById('bulkAiResultText');
+                var sub=document.getElementById('bulkAiResultSub');
+                if(data.error){
+                    icon.textContent='❌';
+                    text.textContent='Xatolik yuz berdi';
+                    sub.textContent=data.error;
+                } else {
+                    icon.textContent='✅';
+                    text.textContent=data.graded+' ta vazifa baholandi';
+                    var parts=[];
+                    if(data.revision>0) parts.push(data.revision+' ta qayta ishlashga yuborildi');
+                    if(data.skipped>0) parts.push(data.skipped+' ta o\'tkazib yuborildi (fayl formati)');
+                    sub.textContent=parts.join(' · ') || 'Hamma vazifa muvaffaqiyatli qayta ishlandi';
+                }
+            })
+            .catch(function(){
+                loadingDiv.style.display='none';
+                resultDiv.style.display='';
+                document.getElementById('bulkAiResultIcon').textContent='❌';
+                document.getElementById('bulkAiResultText').textContent='Tarmoq xatosi';
+                document.getElementById('bulkAiResultSub').textContent='Qayta urinib ko\'ring';
+            });
+        };
+    }
+
+    if(closeBtn){
+        closeBtn.onclick=function(){
+            hideModal();
+            window.location.reload();
+        };
+    }
 })();
 </script>
 {% endif %}

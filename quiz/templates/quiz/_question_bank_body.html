@@ -1,0 +1,130 @@
+<meta name="csrf-token" content="{{ csrf_token }}">
+
+<div class="qz-page">
+    <div class="qz-hero">
+        <div class="qz-hero-left">
+            <div class="qz-hero-icon purple"><i class="bi bi-collection-fill"></i></div>
+            <div>
+                <h1 class="qz-hero-title">Savollar bazasi</h1>
+                <p class="qz-hero-subtitle">Barcha savol turlari uchun yagona bank. Cheksiz javob variantlari va qayta ishlatish.</p>
+            </div>
+        </div>
+        <div class="qz-hero-actions">
+            <a href="{% url 'quizui:ai_generate' %}" class="qz-btn qz-btn-warning">
+                <i class="bi bi-stars"></i> AI orqali
+            </a>
+            <a href="{% url 'quizui:import_questions' %}" class="qz-btn qz-btn-ghost">
+                <i class="bi bi-file-earmark-arrow-up"></i> Import
+            </a>
+            <a href="{% url 'quizui:question_create' %}" class="qz-btn qz-btn-primary">
+                <i class="bi bi-plus-lg"></i> Yangi savol
+            </a>
+        </div>
+    </div>
+
+    <div class="qz-stats">
+        <div class="qz-stat">
+            <div class="qz-stat-icon purple"><i class="bi bi-collection"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="qStatTotal">—</div>
+                <div class="qz-stat-label">Jami savollar</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon green"><i class="bi bi-cloud-check-fill"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="qStatPublished">—</div>
+                <div class="qz-stat-label">Chop etilgan</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon orange"><i class="bi bi-pencil-square"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="qStatDraft">—</div>
+                <div class="qz-stat-label">Qoralamada</div>
+            </div>
+        </div>
+        <div class="qz-stat">
+            <div class="qz-stat-icon gray"><i class="bi bi-archive-fill"></i></div>
+            <div class="qz-stat-body">
+                <div class="qz-stat-value" id="qStatArchived">—</div>
+                <div class="qz-stat-label">Arxivlangan</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="qz-filterbar">
+        <div class="position-relative flex-grow-1" style="min-width:220px;">
+            <i class="bi bi-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--quizui-text-muted);font-size:.95rem;"></i>
+            <input type="search" id="qSearch" class="form-control" placeholder="Savol matnidan qidirish..." style="padding-left:36px;">
+        </div>
+        <select id="qTypeFilter" class="form-select" style="max-width:200px;">
+            <option value="">Barcha turlar</option>
+            <option value="single_choice">Bitta tanlov</option>
+            <option value="multiple_choice">Ko'p tanlov</option>
+            <option value="true_false">To'g'ri / Noto'g'ri</option>
+            <option value="short_answer">Qisqa javob</option>
+            <option value="essay">Esse</option>
+        </select>
+        <select id="qStatusFilter" class="form-select" style="max-width:180px;">
+            <option value="">Barcha holatlar</option>
+            <option value="draft">Qoralama</option>
+            <option value="published">Chop etilgan</option>
+            <option value="archived">Arxivlangan</option>
+        </select>
+        <div class="d-flex gap-2 ms-auto">
+            <button class="qz-btn qz-btn-ghost" id="qBulkArchive" disabled style="padding:8px 14px;font-size:.85rem;">
+                <i class="bi bi-archive"></i> Arxivlash
+            </button>
+            <button class="qz-btn qz-btn-danger" id="qBulkDelete" disabled style="padding:8px 14px;font-size:.85rem;">
+                <i class="bi bi-trash"></i> O'chirish
+            </button>
+        </div>
+    </div>
+
+    <div class="qz-surface">
+        <div class="table-responsive">
+            <table class="qz-table">
+                <thead>
+                    <tr>
+                        <th style="width:42px;"><input type="checkbox" class="form-check-input" id="qSelectAll"></th>
+                        <th>Savol matni</th>
+                        <th>Turi</th>
+                        <th>Qiyinlik</th>
+                        <th>Holat</th>
+                        <th>Ishlatilgan</th>
+                        <th style="width:96px;text-align:right;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="qTableBody">
+                    <tr><td colspan="7" class="text-center text-muted py-4">Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="qz-surface-foot qz-pager">
+            <span class="text-muted small" id="qResultCount"></span>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary" id="qPrevPage"><i class="bi bi-chevron-left"></i> Oldingi</button>
+                <button class="btn btn-outline-secondary" id="qNextPage">Keyingi <i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="qRowTemplate">
+    <tr>
+        <td><input type="checkbox" class="form-check-input q-row-check"></td>
+        <td><a class="qz-row-title q-edit-link q-text-cell" style="text-decoration:none;"></a></td>
+        <td><span class="qz-badge info q-type-cell"></span></td>
+        <td class="q-difficulty-cell"></td>
+        <td><span class="qz-badge q-status-cell"></span></td>
+        <td class="q-usage-cell text-muted small"></td>
+        <td class="text-end">
+            <div class="qz-row-actions">
+                <button class="qz-icon-btn duplicate q-duplicate-btn" title="Nusxalash"><i class="bi bi-files"></i></button>
+            </div>
+        </td>
+    </tr>
+</template>
+
+<div class="quizui-toast-stack" id="quizToastStack"></div>

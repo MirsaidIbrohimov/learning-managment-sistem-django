@@ -1,0 +1,17 @@
+{% extends parent_template %}
+{% load static %}
+
+{% block title %}{% if question_id %}Savolni tahrirlash{% else %}Yangi savol{% endif %} - LMS{% endblock %}
+{% block topbar_title %}Savol muharriri{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_ui.css' %}">
+{% endblock %}
+
+{% block teacher_content %}{% include 'quiz/_question_builder_body.html' %}{% endblock %}
+{% block admin_content %}{% include 'quiz/_question_builder_body.html' %}{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'quiz/js/api.js' %}"></script>
+<script src="{% static 'quiz/js/question_builder.js' %}"></script>
+{% endblock %}

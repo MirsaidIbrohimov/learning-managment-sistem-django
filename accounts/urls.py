@@ -95,6 +95,7 @@ urlpatterns = [
     # Teacher panel
     path('homework-submissions/', views.homework_submissions, name='homework_submissions'),
     path('homework/<int:pk>/grade/', views.grade_homework, name='grade_homework'),
+    path('homework/bulk-ai-grade/', views.bulk_ai_grade, name='bulk_ai_grade'),
     path('test-results/', views.all_test_results, name='all_test_results'),
     
     # Student test results
@@ -262,6 +263,8 @@ urlpatterns = [
     
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),
+    path('dashboard/books/check/', views.book_check_duplicate, name='book_check_duplicate'),
+    path('dashboard/book-requests/', views.admin_book_requests, name='admin_book_requests'),
     path('dashboard/books/add/', views.admin_book_add, name='admin_book_add'),
     path('dashboard/books/<int:pk>/edit/', views.admin_book_edit, name='admin_book_edit'),
     path('dashboard/books/<int:pk>/delete/', views.admin_book_delete, name='admin_book_delete'),
@@ -274,7 +277,8 @@ urlpatterns = [
     path('dashboard/premium/<int:pk>/approve/', views.approve_premium_request, name='approve_premium_request'),
     path('dashboard/premium/<int:pk>/reject/', views.reject_premium_request, name='reject_premium_request'),
     
-    # O'quvchi: Ijaradagi kitoblar
+    # O'quvchi: Kutubxona sahifasi (API orqali)
+    path('library/', views.student_library, name='student_library'),
     path('my-books/', views.my_book_rentals, name='my_book_rentals'),
 
     # Premium reklama flagini tozalash

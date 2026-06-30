@@ -37,6 +37,14 @@ urlpatterns = [
     # Yordamchi admin (assistant_admin) boshqaruv API
     path('assistant/', include('api.assistant.urls')),
 
+    # Library (kutubxona) — books, rental requests, admin CRUD
+    path('library/', include('api.library.urls')),
+
+    # Quiz & Examination module (question bank + quiz CRUD) — see
+    # docs/QUIZ_MODULE_REDESIGN.md. Replaces the duplicated form-based flows
+    # in accounts/views.py and teacher/views.py.
+    path('quiz/', include('quiz.urls')),
+
     # External Games (tashqi o'yinlar uchun SSO + result API)
     path('games/external/verify/', games_external_api.verify, name='external_game_verify'),
     path('games/external/result/', games_external_api.submit_result, name='external_game_result'),

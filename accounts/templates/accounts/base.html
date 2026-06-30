@@ -729,6 +729,34 @@
       box-shadow: 0 20px 56px rgba(0,0,0,0.10), 0 0 0 1px rgba(99,102,241,0.06) !important;
     }
     @keyframes dropIn { from{opacity:0;transform:translateY(-8px) scale(0.96);} to{opacity:1;transform:translateY(0) scale(1);} }
+    /* ── Scrollable user dropdown ── */
+    .nb-user-menu {
+      max-height: min(80vh, 540px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(99,102,241,0.75) transparent;
+    }
+    .nb-user-menu::-webkit-scrollbar { width: 8px; }
+    .nb-user-menu::-webkit-scrollbar-track { background: transparent; margin: 8px 0; }
+    .nb-user-menu::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #6366f1, #8b5cf6);
+      border-radius: 10px; border: 2px solid transparent; background-clip: padding-box;
+    }
+    .nb-user-menu::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #818cf8, #a78bfa); background-clip: padding-box;
+    }
+    /* Sticky user card header while the list scrolls */
+    .nb-user-menu .nb-user-card-li {
+      position: sticky; top: -5px; z-index: 3;
+      margin: -5px -5px 3px; padding: 5px 5px 0;
+      background: rgba(8,11,22,0.92);
+      backdrop-filter: blur(32px) saturate(160%);
+      -webkit-backdrop-filter: blur(32px) saturate(160%);
+    }
+    [data-bs-theme="light"] .nb-user-menu .nb-user-card-li {
+      background: rgba(255,255,255,0.94);
+    }
     .nb-dropdown .dropdown-item {
       border-radius: 11px; padding: 0.50rem 0.80rem;
       font-weight: 500; font-size: 0.85rem; color: var(--text);
@@ -1045,8 +1073,8 @@
               <span class="nb-online-dot"></span>
               <i class="bi bi-chevron-down nb-chevron"></i>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end nb-dropdown">
-              <li>
+            <ul class="dropdown-menu dropdown-menu-end nb-dropdown nb-user-menu">
+              <li class="nb-user-card-li">
                 <div class="nb-user-card">
                   {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-user-card-avatar">
                   {% else %}<div class="nb-user-card-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
@@ -1071,7 +1099,7 @@
               <li><a class="dropdown-item" href="{% url 'games:games_list' %}"><span class="dd-icon" style="background:rgba(139,92,246,.15);color:#8b5cf6;"><i class="bi bi-controller"></i></span>O'yinlar</a></li>
               <li><a class="dropdown-item" href="{% url 'games:live_games' %}"><span class="dd-icon" style="background:rgba(239,68,68,.15);color:#ef4444;position:relative;"><i class="bi bi-broadcast"></i><span style="position:absolute;top:1px;right:1px;width:5px;height:5px;border-radius:50%;background:#ef4444;animation:nb-live-dot 1.2s ease-in-out infinite;"></span></span>Jonli o'yinlar</a></li>
               <li><a class="dropdown-item" href="{% url 'my_homework_list' %}"><span class="dd-icon" style="background:rgba(245,158,11,.15);color:#f59e0b;"><i class="bi bi-journal-check"></i></span>Vazifalarim</a></li>
-              <li><a class="dropdown-item" href="{% url 'my_book_rentals' %}"><span class="dd-icon" style="background:rgba(20,184,166,.15);color:#14b8a6;"><i class="bi bi-book-fill"></i></span>Ijaradagi kitoblarim</a></li>
+              <li><a class="dropdown-item" href="{% url 'student_library' %}"><span class="dd-icon" style="background:rgba(20,184,166,.15);color:#14b8a6;"><i class="bi bi-book-fill"></i></span>Kutubxona</a></li>
               <li><a class="dropdown-item" href="{% url 'my_devices' %}"><span class="dd-icon" style="background:rgba(100,116,139,.15);color:#64748b;"><i class="bi bi-laptop-fill"></i></span>Qurilmalar</a></li>
               <li><a class="dropdown-item" href="{% url 'site_settings' %}"><span class="dd-icon" style="background:rgba(148,163,184,.12);color:#94a3b8;"><i class="bi bi-gear-fill"></i></span>Sozlamalar</a></li>
               {% if user.is_teacher %}<li><a class="dropdown-item" href="{% url 'teacher:dashboard' %}"><span class="dd-icon" style="background:rgba(236,72,153,.15);color:#ec4899;"><i class="bi bi-mortarboard-fill"></i></span>O'qituvchi paneli</a></li>{% endif %}
@@ -1601,9 +1629,9 @@
                     <div class="mob-menu-icon mob-icon-purple"><i class="bi bi-journal-check"></i></div>
                     <span>Vazifalarim</span>
                 </a>
-                <a href="{% url 'my_book_rentals' %}" class="mob-menu-item">
+                <a href="{% url 'student_library' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-orange"><i class="bi bi-book-half"></i></div>
-                    <span>Kitoblarim</span>
+                    <span>Kutubxona</span>
                 </a>
                 <a href="{% url 'my_devices' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-cyan"><i class="bi bi-laptop"></i></div>

@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Shaxmat — IT Shaharcha LMS</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<link rel="stylesheet" href="../shashka/style.css?v=3">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="../shashka/style.css?v=11">
+<link rel="stylesheet" href="style.css?v=11">
 <link rel="stylesheet" href="../_shared/gamify.css?v=1">
 <script>
 (function(){try{var m=localStorage.getItem('shaxmat_mode');if(m!=='light'&&m!=='dark'){m=(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-mode',m);}catch(e){document.documentElement.setAttribute('data-mode','dark');}})();
@@ -144,6 +144,7 @@
 
 <!-- ============== GAME SCREEN ============== -->
 <div id="game-screen" class="screen hidden">
+    <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
     <header class="topbar">
         <div class="player-block player-self" id="player-self">
             <span class="role-chip" id="role-self"><i class="bi bi-square"></i></span>
@@ -187,7 +188,7 @@
             <div class="board-container">
                 <div class="coords-top" id="coords-top"></div>
                 <div class="coords-left" id="coords-left"></div>
-                <div id="board"></div>
+                <div id="board" role="grid" aria-label="Shaxmat taxtasi"></div>
                 <div class="coords-right" id="coords-right"></div>
                 <div class="coords-bottom" id="coords-bottom"></div>
             </div>
@@ -195,7 +196,10 @@
 
         <aside class="side-panel right-panel">
             <div class="moves-panel">
-                <h4><i class="bi bi-list-ol"></i> Yurishlar tarixi</h4>
+                <h4>
+                    <span><i class="bi bi-list-ol"></i> Yurishlar tarixi</span>
+                    <button class="moves-copy-btn" id="btn-copy-moves" title="Nusxalash" aria-label="Yurishlar tarixini nusxalash"><i class="bi bi-clipboard"></i></button>
+                </h4>
                 <ol id="moves-list"></ol>
             </div>
             <div class="game-actions">

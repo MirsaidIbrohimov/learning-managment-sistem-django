@@ -28,10 +28,10 @@ let SERVICE_FEE_PCT = 15;   // coin tikilganda g'oliblikdan ushlanadigan xizmat 
 
 // ============== TEMA TIZIMI ==============
 const THEME_KEY = 'shashka_theme';
-const THEMES = ['emerald', 'classic', 'ocean', 'galaxy', 'fire'];
+const THEMES = ['premium', 'emerald', 'classic', 'ocean', 'galaxy', 'fire'];
 
 function applyTheme(theme) {
-    if (!THEMES.includes(theme)) theme = 'emerald';
+    if (!THEMES.includes(theme)) theme = 'premium';
     document.body.setAttribute('data-theme', theme);
     localStorage.setItem(THEME_KEY, theme);
     // Faol swatch belgilash
@@ -41,7 +41,7 @@ function applyTheme(theme) {
 }
 
 function initThemePicker() {
-    const saved = localStorage.getItem(THEME_KEY) || 'emerald';
+    const saved = localStorage.getItem(THEME_KEY) || 'premium';
     applyTheme(saved);
     document.querySelectorAll('.theme-swatch').forEach(btn => {
         btn.addEventListener('click', () => applyTheme(btn.dataset.theme));
@@ -50,12 +50,58 @@ function initThemePicker() {
 
 // Sahifa yuklanganda darhol tema qo'llanilsin (flash oldini olish)
 (function() {
-    const t = localStorage.getItem(THEME_KEY) || 'emerald';
+    const t = localStorage.getItem(THEME_KEY) || 'premium';
     document.body.setAttribute('data-theme', t);
 })();
 
 // ============== STATE ==============
 const $ = (id) => document.getElementById(id);
+// Screen-reader announcer — pushes short status text into the live region (#sr-announcer)
+function announce(text) { const el = $('sr-announcer'); if (el) el.textContent = text; }
+// Appends a move <li>, keeping a single 'latest' highlight on the most recent entry
+function appendMoveLi(li) {
+    const list = $('moves-list');
+    const prev = list.lastElementChild;
+    if (prev) prev.classList.remove('latest');
+    li.classList.add('latest');
+    list.appendChild(li);
+    list.scrollTop = list.scrollHeight;
+}
+// Copies the move history (PGN-like plain text) to the clipboard for export/sharing
+function copyMoveHistory() {
+    const lines = Array.from($('moves-list').children).map((li, i) => `${i + 1}. ${li.textContent}`);
+    const text = lines.join('\n') || 'Yurishlar yo\'q';
+    const btn = $('btn-copy-moves');
+    const flash = () => {
+        if (!btn) return;
+        btn.classList.add('copied');
+        btn.innerHTML = '<i class="bi bi-check-lg"></i>';
+        setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="bi bi-clipboard"></i>'; }, 1200);
+    };
+    if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(flash).catch(flash);
+    } else {
+        flash();
+    }
+}
+
+// Consecutive failed mp-state polls before we tell the player their connection may have dropped
+let mpPollFailCount = 0;
+const MP_POLL_FAIL_THRESHOLD = 2;
+function showReconnectOverlay() {
+    const overlay = $('wait-overlay');
+    if (!overlay) return;
+    $('wait-text').innerHTML = '<i class="bi bi-wifi-off"></i> Aloqa uzildi, qayta ulanmoqda...';
+    overlay.classList.remove('hidden');
+    overlay.classList.add('reconnecting');
+    announce('Aloqa uzildi, qayta ulanishga harakat qilinmoqda');
+}
+function hideReconnectOverlay() {
+    const overlay = $('wait-overlay');
+    if (!overlay) return;
+    overlay.classList.add('hidden');
+    overlay.classList.remove('reconnecting');
+}
 
 const screens = {
     auth:  $('auth-screen'),
@@ -181,6 +227,7 @@ let gameStartTs = 0;
 let resultSubmitted = false;
 let capturedByWhite = [];   // black pieces eaten by white
 let capturedByBlack = [];
+let mpCaptureAccum = 0;      // captures made since the last sendMpMove (multi-jump chains can hold several)
 
 // ============== AUTH ==============
 function updateCompetitionReplay(data) {
@@ -351,6 +398,7 @@ if ($('menu-mode')) { updateModeBtn(document.documentElement.getAttribute('data-
 $('btn-cancel-mm').onclick = cancelMatchmaking;
 $('btn-fullscreen').onclick = toggleFullscreen;
 $('btn-resign').onclick = resignGame;
+if ($('btn-copy-moves')) $('btn-copy-moves').onclick = copyMoveHistory;
 $('btn-menu').onclick = async () => {
     const ok = await showConfirm({
         icon: "bi-arrow-left-circle", title: "Menyuga qaytasizmi?",
@@ -432,7 +480,8 @@ function startGame(initialState = null) {
     $('submit-status').className = 'submit-status';
     $('submit-status').innerHTML = '<i class="bi bi-broadcast"></i> Natija yuborilmoqda...';
     $('move-counter').textContent = '0';
-    $('wait-overlay').classList.add('hidden');
+    mpPollFailCount = 0;
+    hideReconnectOverlay();
 
     showScreen('game');
     renderCoords();
@@ -480,7 +529,18 @@ function renderBoard() {
             const isDark = (r + c) % 2 === 1;
             cell.className = 'cell ' + (isDark ? 'dark' : 'light');
             cell.dataset.r = r; cell.dataset.c = c;
-            if (isDark) cell.onclick = () => onCellClick(r, c);
+            const square = String.fromCharCode(97 + c) + (8 - r);
+            if (isDark) {
+                cell.onclick = () => onCellClick(r, c);
+                cell.tabIndex = 0;
+                cell.setAttribute('role', 'gridcell');
+                cell.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick(r, c); }
+                });
+            } else {
+                cell.tabIndex = -1;
+                cell.setAttribute('aria-hidden', 'true');
+            }
 
             // Last move highlight
             const last = moveHistory[moveHistory.length - 1];
@@ -503,6 +563,12 @@ function renderBoard() {
                     p.classList.add('capturable');
                 }
                 cell.appendChild(p);
+                if (isDark) {
+                    const pieceLabel = piece.king ? (piece.color === 'white' ? 'oq damka' : 'qora damka') : (piece.color === 'white' ? 'oq dona' : 'qora dona');
+                    cell.setAttribute('aria-label', `${square}, ${pieceLabel}`);
+                }
+            } else if (isDark) {
+                cell.setAttribute('aria-label', `${square}, bo'sh`);
             }
             boardEl.appendChild(cell);
         }
@@ -525,7 +591,8 @@ function updateTurnUI() {
         indicator.classList.remove('opponent');
         $('player-self').classList.add('active');
         $('player-opp').classList.remove('active');
-        $('wait-overlay').classList.add('hidden');
+        hideReconnectOverlay();
+        announce('Sizning yurishingiz');
     } else {
         const oppLabel = MODE === 'ai'
             ? '<i class="bi bi-robot"></i> AI o\'ylayapti...'
@@ -534,8 +601,8 @@ function updateTurnUI() {
         indicator.classList.add('opponent');
         $('player-self').classList.remove('active');
         $('player-opp').classList.add('active');
-        // wait-overlay olib tashlandi — turn-pill o'zi raqibning yurishini ko'rsatadi
-        $('wait-overlay').classList.add('hidden');
+        // Reconnect banner (if any) is owned by pollMatchState; turn-pill itself shows opponent's-turn state
+        announce(MODE === 'ai' ? 'AI o\'ylayapti' : `${OPPONENT.name} yurmoqda`);
     }
     $('move-counter').textContent = moveHistory.length;
 }
@@ -627,6 +694,7 @@ function doMove(fromR, fromC, move, isRemote = false) {
         if (eaten) {
             if (piece.color === 'white') capturedByWhite.push(eaten);
             else capturedByBlack.push(eaten);
+            if (!isRemote) mpCaptureAccum++; // tracked so multi-jump chains report their full capture count to the opponent
         }
         board[cap.r][cap.c] = null;
     }
@@ -693,8 +761,7 @@ function logMove(color, fr, fc, tr, tc, cap, king) {
     const sym = color === 'white' ? 'O' : 'X';     // O = oq, X = qora
     const notation = `${sym}: ${String.fromCharCode(97 + fc)}${8 - fr}${cap ? 'x' : '-'}${String.fromCharCode(97 + tc)}${8 - tr}${king ? ' [Damka]' : ''}`;
     li.textContent = notation;
-    $('moves-list').appendChild(li);
-    $('moves-list').scrollTop = $('moves-list').scrollHeight;
+    appendMoveLi(li);
     moveHistory.push({ color, from: [fr, fc], to: [tr, tc], capture: cap, king });
 }
 
@@ -851,67 +918,130 @@ function _applyFullMoveOnBoard(b, am) {
     b[am.move.r][am.move.c] = piece;
 }
 
-// === Boyitilgan eval ===
+// === Kuchaytirilgan eval ===
 function _evalBoard(b, aiColor) {
     let s = 0;
     const oppColor = aiColor === 'white' ? 'black' : 'white';
-    let aiCount = 0, oppCount = 0;
-    let aiKings = 0, oppKings = 0;
+    let aiCount = 0, oppCount = 0, aiKings = 0, oppKings = 0;
 
     for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
         const pc = b[r][c];
         if (!pc) continue;
-        // Material
-        let pv = pc.king ? 250 : 100;
-        // Advancement (oddiy dona uchun)
+
+        // Material: shoh = 3x qimmatroq
+        let pv = pc.king ? 300 : 100;
+
         if (!pc.king) {
+            // Oldinga yurish bonusi (promotsiyaga yaqin)
             const advRow = pc.color === 'white' ? (7 - r) : r;
-            pv += advRow * 5; // promotsiyaga yaqin → bonus
-            // Yana qaytmas qatorda turish (back row) — boshlanishida himoya
-            if ((pc.color === 'white' && r === 7) || (pc.color === 'black' && r === 0)) pv += 8;
+            pv += advRow * 8;
+            // Oxirgi qatorda tura (xavfsiz)
+            if ((pc.color === 'white' && r === 7) || (pc.color === 'black' && r === 0)) pv += 15;
+        } else {
+            // Shoh: markazga yaqinroq bo'lishi kerak
+            const cr = Math.abs(3.5 - r), cc2 = Math.abs(3.5 - c);
+            pv += (7 - cr - cc2) * 3;
         }
-        // Markaz nazorati
-        const centerDist = Math.abs(3.5 - r) + Math.abs(3.5 - c);
-        pv += Math.max(0, 7 - centerDist) * 1.5;
-        // Chekka donalar (men) himoyalanganroq
-        if (!pc.king && (c === 0 || c === 7)) pv += 4;
-        // Donalar guruhi (qo'shni do'st)
-        const friends = [
-            [r-1,c-1],[r-1,c+1],[r+1,c-1],[r+1,c+1]
-        ].filter(([rr,cc]) => rr>=0 && rr<8 && cc>=0 && cc<8 && b[rr][cc]?.color === pc.color).length;
-        pv += friends * 2;
+
+        // Markaz nazorati (3x4 markaziy maydon)
+        if (r >= 2 && r <= 5 && c >= 2 && c <= 5) pv += 10;
+        if (r >= 3 && r <= 4 && c >= 3 && c <= 4) pv += 8;
+
+        // Chekka — donalar kamroq xatarli
+        if (c === 0 || c === 7) pv += 6;
+
+        // Qo'shni do'stlar guruhi
+        const friends = [[r-1,c-1],[r-1,c+1],[r+1,c-1],[r+1,c+1]]
+            .filter(([rr,cc]) => rr>=0&&rr<8&&cc>=0&&cc<8&&b[rr][cc]?.color===pc.color).length;
+        pv += friends * 4;
+
+        // Raqib tomoniga yaqin — hujum bonusi
+        const aggRow = pc.color === 'white' ? (7 - r) : r;
+        if (aggRow >= 5) pv += 12;
 
         if (pc.color === aiColor) {
-            s += pv;
-            aiCount++;
+            s += pv; aiCount++;
             if (pc.king) aiKings++;
         } else {
-            s -= pv;
-            oppCount++;
+            s -= pv; oppCount++;
             if (pc.king) oppKings++;
         }
     }
-    // Materialdagi katta farq — agressivlik (kam donali raqibga bosim)
-    if (aiCount > oppCount) s += (aiCount - oppCount) * 15;
+
+    // Moddiy ustunlik bonusi (raqibdan ko'p dona — bosim)
+    const matDiff = aiCount - oppCount;
+    if (matDiff > 0) s += matDiff * 25;
+
+    // Shoh ustunligi
+    const kingDiff = aiKings - oppKings;
+    if (kingDiff > 0) s += kingDiff * 40;
+
+    // Endgame: raqibning ozgina donasi qolsa — tezroq yutish
+    if (oppCount <= 3) s += (4 - oppCount) * 30;
+
     return s;
 }
 
 // Negamax + alpha-beta (sideToMove perspektivasidan)
-function _negamax(b, depth, alpha, beta, sideToMove, aiColor) {
-    const moves = _getAllMovesForSearch(b, sideToMove);
-    if (moves.length === 0) {
-        // Yurishi yo'q — yutqazgan (shashkada yuradigan tomon yutqazadi)
-        return -90000 + (10 - depth);
+// ====== AI qidiruv ======
+let _searchDeadline = 0;
+let _searchAborted = false;
+function _isLowPowerDevice() {
+    const cores = (typeof navigator !== 'undefined' && navigator.hardwareConcurrency) || 4;
+    const mobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad|iPod|Tablet/i.test(navigator.userAgent || '');
+    return mobile || cores <= 4;
+}
+
+// ===== Transposition Table (shashka) =====
+const _TTc = new Map();
+const _TTC_MAX = 400000;
+const TTC_EXACT = 0, TTC_LOWER = 1, TTC_UPPER = 2;
+
+function _ttcKey(b, color) {
+    let k = color[0];
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = b[r][c];
+        if (!p) { k += '.'; continue; }
+        k += p.color === 'white' ? (p.king ? 'W' : 'w') : (p.king ? 'B' : 'b');
     }
+    return k;
+}
+
+function _negamax(b, depth, alpha, beta, sideToMove, aiColor) {
+    if (performance.now() > _searchDeadline) {
+        _searchAborted = true;
+        const sign = sideToMove === aiColor ? 1 : -1;
+        return sign * _evalBoard(b, aiColor);
+    }
+
+    const origAlpha = alpha;
+    const oppColor = sideToMove === 'white' ? 'black' : 'white';
+
+    // --- Transposition table lookup ---
+    const ttKey = _ttcKey(b, sideToMove);
+    const tte = _TTc.get(ttKey);
+    if (tte && tte.depth >= depth) {
+        if (tte.flag === TTC_EXACT) return tte.score;
+        if (tte.flag === TTC_LOWER && tte.score > alpha) alpha = tte.score;
+        if (tte.flag === TTC_UPPER && tte.score < beta)  beta  = tte.score;
+        if (alpha >= beta) return tte.score;
+    }
+
+    const moves = _getAllMovesForSearch(b, sideToMove);
+    if (moves.length === 0) return -90000 + depth;
     if (depth === 0) {
         const sign = sideToMove === aiColor ? 1 : -1;
         return sign * _evalBoard(b, aiColor);
     }
 
-    // Move ordering: ko'p capture → birinchi
-    moves.sort((a, b) => (b.move.captures?.length || 0) - (a.move.captures?.length || 0));
+    // Move ordering: ko'p yutish → birinchi; so'ng king promotion
+    moves.sort((a, bb) => {
+        const capA = a.move.captures?.length || 0;
+        const capB = bb.move.captures?.length || 0;
+        if (capB !== capA) return capB - capA;
+        return (bb.becameKing ? 1 : 0) - (a.becameKing ? 1 : 0);
+    });
 
-    const oppColor = sideToMove === 'white' ? 'black' : 'white';
     let best = -Infinity;
     for (const am of moves) {
         const nb = _cloneBoardOf(b);
@@ -920,7 +1050,14 @@ function _negamax(b, depth, alpha, beta, sideToMove, aiColor) {
         if (v > best) best = v;
         if (best > alpha) alpha = best;
         if (alpha >= beta) break;
+        if (_searchAborted) break;
     }
+
+    if (!_searchAborted && _TTc.size < _TTC_MAX) {
+        const flag = best <= origAlpha ? TTC_UPPER : best >= beta ? TTC_LOWER : TTC_EXACT;
+        _TTc.set(ttKey, { depth, score: best, flag });
+    }
+
     return best;
 }
 
@@ -1007,32 +1144,56 @@ function aiMove() {
             chosen = allMoves[Math.floor(Math.random() * allMoves.length)];
         }
     } else {
-        // medium: depth 3, hard: depth 5 (alpha-beta + boyitilgan eval + zanjirli yurishlar)
-        const depth = DIFFICULTY === 'medium' ? 3 : 5;
+        // Iterativ chuqurlashtirish + vaqt byudjeti.
+        const lowPower = _isLowPowerDevice();
+        // O'rta: chuqurlik 6, 2s | Qiyin: chuqurlik 24, 20s — TT bilan deyarli yengilmas
+        const maxDepth = DIFFICULTY === 'medium'
+            ? (lowPower ? 5 : 7)
+            : (lowPower ? 14 : 24);
+        const budgetMs = DIFFICULTY === 'medium'
+            ? (lowPower ? 1500 : 2500)
+            : (lowPower ? 8000 : 20000);
+        // Qiyin darajada TT'ni tozalamaymiz — keyingi yurish uchun kesh saqlanadi
+        if (DIFFICULTY === 'hard' && _TTc.size > _TTC_MAX * 0.85) _TTc.clear();
+        _searchDeadline = performance.now() + budgetMs;
+
         // Move ordering: ko'p capture → birinchi
         allMoves.sort((a, b) => (b.move.captures.length || 0) - (a.move.captures.length || 0));
-
         const oppColor = aiColor === 'white' ? 'black' : 'white';
-        let bestScore = -Infinity;
-        const candidates = [];
-        let alpha = -Infinity;
-        const beta = Infinity;
 
-        for (const am of allMoves) {
-            const nb = _cloneBoardOf(board);
-            _applyFullMoveOnBoard(nb, am);
-            const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, aiColor);
-            if (v > bestScore) {
-                bestScore = v;
-                candidates.length = 0;
-                candidates.push(am);
-            } else if (v >= bestScore - 5) {
-                // Yaqin variantlar orasidan tasodifiy (variativlik uchun)
-                candidates.push(am);
+        let bestChosen = allMoves[0];
+        for (let depth = 2; depth <= maxDepth; depth++) {
+            _searchAborted = false;
+            let bestScore = -Infinity;
+            const candidates = [];
+            let alpha = -Infinity;
+            const beta = Infinity;
+
+            for (const am of allMoves) {
+                const nb = _cloneBoardOf(board);
+                _applyFullMoveOnBoard(nb, am);
+                const v = -_negamax(nb, depth - 1, -beta, -alpha, oppColor, aiColor);
+                if (v > bestScore) {
+                    bestScore = v;
+                    candidates.length = 0;
+                    candidates.push(am);
+                } else if (DIFFICULTY !== 'hard' && v >= bestScore - 5) {
+                    // Faqat O'rta darajada variativlik — Qiyin har doim eng yaxshisini tanlaydi
+                    candidates.push(am);
+                }
+                if (bestScore > alpha) alpha = bestScore;
+                if (performance.now() > _searchDeadline) { _searchAborted = true; break; }
             }
-            if (bestScore > alpha) alpha = bestScore;
+
+            if (candidates.length) {
+                bestChosen = DIFFICULTY === 'hard'
+                    ? candidates[0]
+                    : candidates[Math.floor(Math.random() * candidates.length)];
+            }
+            // Vaqt tugab, chuqurlik to'liq tugamagan bo'lsa — chuqurlashtirishni to'xtatamiz
+            if (_searchAborted || performance.now() > _searchDeadline) break;
         }
-        chosen = candidates[Math.floor(Math.random() * candidates.length)] || allMoves[0];
+        chosen = bestChosen;
     }
 
     // Zanjir bo'lsa, qolgan qadamlarni rejaga qo'yamiz
@@ -1109,6 +1270,7 @@ function endGame(winner) {
 
     if (window.Gamify) Gamify.onResult(result, score, MODE === 'ai' ? 'ai' : 'mp');
 
+    announce(result === 'win' ? 'O\'yin tugadi: siz g\'alaba qozondingiz!' : result === 'lose' ? 'O\'yin tugadi: siz mag\'lub bo\'ldingiz' : 'O\'yin tugadi: durang');
     showResult(result, score, elapsed);
 
     // Submit
@@ -1224,6 +1386,8 @@ async function resignGame() {
 function leaveGame() {
     clearInterval(timerInterval);
     clearInterval(pollInterval);
+    mpPollFailCount = 0;
+    hideReconnectOverlay();
     if (MODE === 'mp' && MATCH_ID && !resultSubmitted && !_endPauseStarted) {
         fetch(URLS.mpResign, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1254,7 +1418,13 @@ async function findMultiplayerMatch(mpMode = 'casual', wager = 0) {
     }, 500);
 
     // Poll find endpoint until match is 'active'
+    // BUG FIX: guard against overlapping calls — without it, a slow tryFind()
+    // still in-flight when the 3s mmPoll interval fires again could trigger a
+    // second concurrent mpFind request before MATCH_ID is set.
+    let mmFindInFlight = false;
     async function tryFind() {
+        if (mmFindInFlight) return;
+        mmFindInFlight = true;
         try {
             const res = await fetch(URLS.mpFind, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1280,6 +1450,8 @@ async function findMultiplayerMatch(mpMode = 'casual', wager = 0) {
             }
         } catch (e) {
             $('mm-status').innerHTML = '<i class="bi bi-wifi-off"></i> Tarmoq xatosi';
+        } finally {
+            mmFindInFlight = false;
         }
     }
     tryFind();
@@ -1302,7 +1474,7 @@ async function findMultiplayerMatch(mpMode = 'casual', wager = 0) {
                     startGame(data.match.board);
                 }
             } catch (e) {}
-        } else {
+        } else if (!mmFindInFlight) {
             tryFind();
         }
     }, 3000);
@@ -1329,6 +1501,7 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     selected = null; possibleMoves = []; captureChainPiece = null;
     // Polling va timer'larni to'xtatamiz — taxta holati o'zgarmaydi
     if (pollInterval) clearInterval(pollInterval);
+    hideReconnectOverlay();
 
     const overlay = document.createElement('div');
     overlay.id = 'end-pause-overlay';
@@ -1349,6 +1522,18 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
         </button>`;
     document.body.appendChild(overlay);
 
+    // Urgency styling for the countdown (last 10s) — injected once, reused by every review overlay
+    if (!document.getElementById('eg-urgent-style')) {
+        const urgentStyle = document.createElement('style');
+        urgentStyle.id = 'eg-urgent-style';
+        urgentStyle.textContent = `
+            @keyframes egUrgentPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
+            #end-pause-timer.eg-urgent { color: #f87171; font-weight: 800; display: inline-block; animation: egUrgentPulse 0.6s ease-in-out infinite; }
+            #end-pause-overlay.eg-urgent { border-color: rgba(239,68,68,0.55) !important; box-shadow: 0 12px 32px rgba(239,68,68,0.3) !important; }
+        `;
+        document.head.appendChild(urgentStyle);
+    }
+
     const timerEl = overlay.querySelector('#end-pause-timer');
     const finalize = () => {
         if (_endPauseTimer) { clearInterval(_endPauseTimer); _endPauseTimer = null; }
@@ -1358,6 +1543,9 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     _endPauseTimer = setInterval(() => {
         remaining--;
         if (timerEl) timerEl.textContent = remaining;
+        const urgent = remaining <= 10 && remaining > 0;
+        if (timerEl) timerEl.classList.toggle('eg-urgent', urgent);
+        overlay.classList.toggle('eg-urgent', urgent);
         if (remaining <= 0) finalize();
     }, 1000);
     overlay.querySelector('#end-pause-skip').onclick = finalize;
@@ -1374,6 +1562,9 @@ async function pollMatchState() {
             body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
         });
         const data = await res.json();
+        // A response arrived — connection is fine, clear any reconnect warning
+        mpPollFailCount = 0;
+        hideReconnectOverlay();
         if (!data.ok) return;
         const m = data.match;
         const hasNewMove = m.move_count > lastSeenMoveCount;
@@ -1388,9 +1579,22 @@ async function pollMatchState() {
                 const li = document.createElement('li');
                 li.classList.add('opp');
                 li.textContent = m.last_move.notation;
-                $('moves-list').appendChild(li);
-                $('moves-list').scrollTop = $('moves-list').scrollHeight;
+                appendMoveLi(li);
                 moveHistory.push({ ...m.last_move, color: m.last_move.color });
+                // BUG FIX: opponent's capture(s) must be recorded here too —
+                // doMove() only runs for our own local moves, so without this
+                // the captured-pieces panel never reflects pieces the opponent took.
+                // last_move.capture is a boolean only (no piece type), so the eaten
+                // piece's color is simply the opposite of the mover's color. A multi-jump
+                // chain can take several pieces in one turn — last_move.captures (added
+                // above in sendMpMove) carries that count; older payloads fall back to 1.
+                if (m.last_move.capture) {
+                    const n = m.last_move.captures || 1;
+                    for (let i = 0; i < n; i++) {
+                        if (m.last_move.color === 'white') capturedByWhite.push({ color: 'black' });
+                        else capturedByBlack.push({ color: 'white' });
+                    }
+                }
             }
             lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
             renderBoard();
@@ -1400,7 +1604,11 @@ async function pollMatchState() {
             // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi chiqsin
             requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
         }
-    } catch (e) {}
+    } catch (e) {
+        // Network/parse failure — after a couple of consecutive misses, warn the player
+        mpPollFailCount++;
+        if (mpPollFailCount >= MP_POLL_FAIL_THRESHOLD) showReconnectOverlay();
+    }
 }
 
 async function sendMpMove(winner = null) {
@@ -1408,6 +1616,9 @@ async function sendMpMove(winner = null) {
     const last = moveHistory[moveHistory.length - 1];
     const sym = last.color === 'white' ? 'O' : 'X';
     const notation = `${sym}: ${String.fromCharCode(97 + last.from[1])}${8 - last.from[0]}${last.capture ? 'x' : '-'}${String.fromCharCode(97 + last.to[1])}${8 - last.to[0]}${last.king ? ' [Damka]' : ''}`;
+    // captures = total pieces taken this turn (a multi-jump chain can capture more than one)
+    const captureCount = mpCaptureAccum;
+    mpCaptureAccum = 0;
 
     try {
         const res = await fetch(URLS.mpMove, {
@@ -1415,7 +1626,7 @@ async function sendMpMove(winner = null) {
             body: JSON.stringify({
                 token: TOKEN, game: GAME, match_id: MATCH_ID,
                 board: board,
-                last_move: { ...last, notation },
+                last_move: { ...last, notation, captures: captureCount },
                 game_over: !!winner,
                 winner: winner || null,
             })

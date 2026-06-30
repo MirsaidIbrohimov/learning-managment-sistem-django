@@ -30,7 +30,9 @@
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
+  animation: slideDown 0.6s ease-out;
 }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
 .lg-hero::before {
   content: '';
   position: absolute;
@@ -131,14 +133,25 @@
   border: 1px solid var(--lg-border);
   border-radius: 22px;
   overflow: hidden;
-  transition: transform .22s, box-shadow .22s, border-color .22s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   backdrop-filter: blur(12px);
+  animation: cardSlideUp 0.6s ease-out both;
 }
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.lg-card:nth-child(1) { animation-delay: 0.05s; }
+.lg-card:nth-child(2) { animation-delay: 0.1s; }
+.lg-card:nth-child(3) { animation-delay: 0.15s; }
+.lg-card:nth-child(4) { animation-delay: 0.2s; }
+.lg-card:nth-child(5) { animation-delay: 0.25s; }
+.lg-card:nth-child(6) { animation-delay: 0.3s; }
 .lg-card:hover {
-  transform: translateY(-5px) scale(1.01);
-  box-shadow: 0 20px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(99,102,241,.35);
-  border-color: rgba(99,102,241,.3);
+  transform: translateY(-10px) scale(1.03);
+  box-shadow: 0 30px 70px rgba(0,0,0,.5), 0 0 0 2px rgba(99,102,241,.6);
+  border-color: rgba(99,102,241,.6);
 }
 .lg-card::before {
   content: '';
@@ -444,6 +457,7 @@
       <div class="lg-card-footer">
         <span class="lg-footer-stat"><i class="bi bi-clock-history"></i> {{ match.started_at|default:match.created_at|timesince }} davom etmoqda</span>
         <span class="lg-footer-stat"><i class="bi bi-arrow-left-right"></i> {{ match.move_count }} yurish</span>
+        <span class="lg-footer-stat"><i class="bi bi-eye"></i> {{ match.spectator_count }} tomosha</span>
         {% if match.mode == 'coin' and match.wager_coins %}
         <span class="lg-footer-stat gold"><i class="bi bi-coin"></i> {{ match.wager_coins }} coin tikilgan</span>
         {% else %}

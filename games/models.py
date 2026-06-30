@@ -325,6 +325,9 @@ class BoardMatch(models.Model):
     # Random matchmaking matchlarida bo'sh (null) bo'ladi.
     room_code = models.CharField(max_length=8, null=True, blank=True, db_index=True, verbose_name="Xona kodi")
 
+    # Tomoshabinlar ro'yxati (user ID lar JSON array sifatida)
+    spectator_ids = models.JSONField(default=list, blank=True, verbose_name="Tomoshabinlar ID lari")
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     started_at = models.DateTimeField(null=True, blank=True, verbose_name="Boshlangan vaqt")
     last_activity_at = models.DateTimeField(auto_now=True, db_index=True, verbose_name="Oxirgi faollik")
@@ -393,6 +396,23 @@ class BoardMatch(models.Model):
         if self.winner == 'black':
             return self.black_player
         return None
+
+    def add_spectator(self, user_id):
+        """Tomoshabinni qo'shish"""
+        if user_id not in self.spectator_ids:
+            self.spectator_ids.append(user_id)
+            self.save(update_fields=['spectator_ids'])
+
+    def remove_spectator(self, user_id):
+        """Tomoshabinni olib tashlash"""
+        if user_id in self.spectator_ids:
+            self.spectator_ids.remove(user_id)
+            self.save(update_fields=['spectator_ids'])
+
+    @property
+    def spectator_count(self):
+        """Tomoshabinlar soni"""
+        return len(self.spectator_ids) if self.spectator_ids else 0
 
     @property
     def winner_net(self):

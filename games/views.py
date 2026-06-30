@@ -1896,14 +1896,21 @@ def spectate_match(request, match_id):
         messages.info(request, "Bu o'yin tugagan, live ro'yxatdan olib tashlandi.")
         return redirect('games:live_games')
 
+    # Tomoshabinni qo'shish
+    is_player = request.user == match.white_player or request.user == match.black_player
+    if not is_player:
+        match.add_spectator(request.user.id)
+
+    # Tomoshabinlar ro'yxati
+    from accounts.models import CustomUser
+    spectator_users = CustomUser.objects.filter(id__in=match.spectator_ids).only('id', 'first_name', 'last_name', 'username')[:20]
+
     return render(request, 'games/student/spectate.html', {
         'match': match,
-        'is_player': (
-            request.user == match.white_player or
-            request.user == match.black_player
-        ),
+        'is_player': is_player,
         'board_state_json': _json.dumps(match.board_state or []),
         'last_move_json': _json.dumps(match.last_move or None),
+        'spectators': spectator_users,
     })
 
 
@@ -1911,6 +1918,7 @@ def spectate_match(request, match_id):
 def spectate_state(request, match_id):
     """AJAX polling endpoint — match holati (board_state, turn, status)."""
     from .models import BoardMatch
+    from accounts.models import CustomUser
     try:
         match = BoardMatch.objects.select_related('white_player', 'black_player', 'game').get(pk=match_id)
     except BoardMatch.DoesNotExist:
@@ -1920,6 +1928,12 @@ def spectate_state(request, match_id):
         return JsonResponse({'ok': False, 'error': "Bu o'yinni live tomosha qilish qo'llab-quvvatlanmaydi"}, status=400)
 
     _finish_stale_live_matches([match])
+
+    # Tomoshabinlar ro'yxati
+    spectators = []
+    if match.spectator_ids:
+        spectator_users = CustomUser.objects.filter(id__in=match.spectator_ids).only('id', 'first_name', 'last_name', 'username')[:20]
+        spectators = [{'id': u.id, 'name': u.get_full_name() or u.username} for u in spectator_users]
 
     return JsonResponse({
         'ok': True,
@@ -1942,4 +1956,6 @@ def spectate_state(request, match_id):
         } if match.black_player_id else None,
         'mode': match.mode,
         'wager_coins': match.wager_coins,
+        'spectator_count': match.spectator_count,
+        'spectators': spectators,
     })
