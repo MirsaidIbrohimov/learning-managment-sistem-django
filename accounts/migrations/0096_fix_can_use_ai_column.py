@@ -3,9 +3,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     """
-    can_use_ai DB ustuni hali mavjud (NOT NULL, default yo'q).
-    Bu migration faqat Django state'iga qaytaradi — DB'ga tegmaydi.
-    Shu tufayli barcha INSERT lar can_use_ai=True kiritadi va xatolik yo'qoladi.
+    0093 migration ustunni DB dan o'chirdi, lekin state bilan nomuvofiqlik qoldi.
+    Bu migration state'ni DB bilan moslashtiradi — DB'ga tegmaydi.
     """
 
     dependencies = [
@@ -13,6 +12,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Avval state'ga qo'shamiz (0093 uni state'dan olgan edi)
         migrations.SeparateDatabaseAndState(
             state_operations=[
                 migrations.AddField(
@@ -21,6 +21,16 @@ class Migration(migrations.Migration):
                     field=models.BooleanField(default=True),
                 ),
             ],
-            database_operations=[],  # DB ustuni allaqachon bor — tegmaymiz
+            database_operations=[],
+        ),
+        # Keyin state'dan o'chiramiz (DB'da ustun yo'q — tegmaymiz)
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.RemoveField(
+                    model_name='customuser',
+                    name='can_use_ai',
+                ),
+            ],
+            database_operations=[],
         ),
     ]
