@@ -587,7 +587,9 @@ def yordamchi_books(request):
     paginator = Paginator(qs.order_by('title'), 30)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    can_add = request.user.is_admin or request.user.has_assistant_perm('library.book_add')
+    can_add    = request.user.is_admin or request.user.has_assistant_perm('library.book_add')
+    can_edit   = request.user.is_admin or request.user.has_assistant_perm('library.book_edit')
+    can_delete = request.user.is_admin or request.user.has_assistant_perm('library.book_delete')
 
     return render(request, 'accounts/yordamchi/books_list.html', {
         'books': page_obj.object_list,
@@ -595,6 +597,8 @@ def yordamchi_books(request):
         'q': q,
         'total_count': paginator.count,
         'can_add': can_add,
+        'can_edit': can_edit,
+        'can_delete': can_delete,
     })
 
 
@@ -629,7 +633,66 @@ def yordamchi_book_add(request):
         messages.success(request, f'Kitob "{book.title}" qo\'shildi!')
         return redirect('yordamchi_books')
 
-    return render(request, 'accounts/yordamchi/book_form.html', {})
+    return render(request, 'accounts/yordamchi/book_form.html', {'action': 'add'})
+
+
+@login_required
+def yordamchi_book_edit(request, pk):
+    """Kitobni tahrirlash."""
+    if not _require_perm(request, 'library.book_edit'):
+        return redirect('home')
+
+    book = get_object_or_404(Book, pk=pk)
+
+    if request.method == 'POST':
+        title  = request.POST.get('title', '').strip()
+        author = request.POST.get('author', '').strip()
+        isbn   = request.POST.get('isbn', '').strip()
+        description = request.POST.get('description', '').strip()
+        try:
+            new_total = max(1, int(request.POST.get('total_copies', '1')))
+        except ValueError:
+            new_total = 1
+
+        if not title or not author:
+            messages.error(request, "Kitob nomi va muallif majburiy!")
+            return render(request, 'accounts/yordamchi/book_form.html', {'book': book, 'action': 'edit'})
+
+        difference = new_total - book.total_copies
+        book.title  = title
+        book.author = author
+        book.isbn   = isbn or None
+        book.description = description or None
+        book.total_copies = new_total
+        book.available_copies = max(0, book.available_copies + difference)
+        if request.FILES.get('cover_image'):
+            book.cover_image = request.FILES['cover_image']
+        book.save()
+
+        _log_action(request, 'library.book_edit', target_type='Book', target_id=book.pk,
+                    description=f"Kitob tahrirlandi: {book.title}")
+        messages.success(request, f'"{book.title}" yangilandi!')
+        return redirect('yordamchi_books')
+
+    return render(request, 'accounts/yordamchi/book_form.html', {'book': book, 'action': 'edit'})
+
+
+@login_required
+def yordamchi_book_delete(request, pk):
+    """Kitobni o'chirish."""
+    if not _require_perm(request, 'library.book_delete'):
+        return redirect('home')
+
+    book = get_object_or_404(Book, pk=pk)
+
+    if request.method == 'POST':
+        title = book.title
+        _log_action(request, 'library.book_delete', target_type='Book', target_id=book.pk,
+                    description=f"Kitob o'chirildi: {title}")
+        book.delete()
+        messages.success(request, f'"{title}" o\'chirildi!')
+
+    return redirect('yordamchi_books')
 
 
 # ============================================================

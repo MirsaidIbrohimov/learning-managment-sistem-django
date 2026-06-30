@@ -25,14 +25,28 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
                 <thead style="background:rgba(245,158,11,0.06);">
-                    <tr><th>Kitob</th><th>Muallif</th><th>ISBN</th><th>Jami</th><th>Mavjud</th><th>Holat</th></tr>
+                    <tr>
+                        <th>Kitob</th>
+                        <th>Muallif</th>
+                        <th>ISBN</th>
+                        <th>Jami</th>
+                        <th>Mavjud</th>
+                        <th>Holat</th>
+                        {% if can_edit or can_delete %}<th>Amallar</th>{% endif %}
+                    </tr>
                 </thead>
                 <tbody>
                 {% for b in books %}
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                {% if b.cover_image %}<img src="{{ b.cover_image.url }}" style="width:36px;height:50px;object-fit:cover;border-radius:4px;">{% else %}<div style="width:36px;height:50px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-book text-muted"></i></div>{% endif %}
+                                {% if b.cover_image %}
+                                    <img src="{{ b.cover_image.url }}" style="width:36px;height:50px;object-fit:cover;border-radius:4px;">
+                                {% else %}
+                                    <div style="width:36px;height:50px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="bi bi-book text-muted"></i>
+                                    </div>
+                                {% endif %}
                                 <strong>{{ b.title }}</strong>
                             </div>
                         </td>
@@ -41,15 +55,46 @@
                         <td>{{ b.total_copies }}</td>
                         <td><strong>{{ b.available_copies }}</strong></td>
                         <td>
-                            {% if b.is_available %}<span class="badge bg-success">Mavjud</span>{% else %}<span class="badge bg-secondary">Tugagan</span>{% endif %}
+                            {% if b.is_available %}
+                                <span class="badge bg-success">Mavjud</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Tugagan</span>
+                            {% endif %}
                         </td>
+                        {% if can_edit or can_delete %}
+                        <td>
+                            <div class="d-flex gap-1">
+                                {% if can_edit %}
+                                <a href="{% url 'yordamchi_book_edit' b.pk %}"
+                                   class="btn btn-sm btn-outline-warning" title="Tahrirlash">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                {% endif %}
+                                {% if can_delete %}
+                                <form method="post" action="{% url 'yordamchi_book_delete' b.pk %}"
+                                      onsubmit="return confirm('Haqiqatan «{{ b.title }}» kitobini o\'chirmoqchimisiz?')"
+                                      style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="O'chirish">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Kitoblar yo'q</p></div>{% endif %}
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i>
+            <p class="mt-2 mb-0">Kitoblar yo'q</p>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

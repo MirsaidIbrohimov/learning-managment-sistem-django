@@ -25,6 +25,8 @@ urlpatterns = [
     # Kutubxona
     path('kitoblar/', v.yordamchi_books, name='yordamchi_books'),
     path('kitoblar/qoshish/', v.yordamchi_book_add, name='yordamchi_book_add'),
+    path('kitoblar/<int:pk>/tahrirlash/', v.yordamchi_book_edit, name='yordamchi_book_edit'),
+    path('kitoblar/<int:pk>/ochirish/', v.yordamchi_book_delete, name='yordamchi_book_delete'),
     path('ijaralar/', v.yordamchi_rentals, name='yordamchi_rentals'),
     path('ijaralar/qoshish/', v.yordamchi_rental_add, name='yordamchi_rental_add'),
     path('ijaralar/<int:pk>/qaytarish/', v.yordamchi_rental_return, name='yordamchi_rental_return'),
