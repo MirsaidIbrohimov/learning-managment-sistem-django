@@ -1016,10 +1016,11 @@ def teacher_manage_questions(request, pk):
     professions = request.user.teaching_professions.all()
     test = get_object_or_404(Test, pk=pk, lesson__profession__in=professions)
     questions = test.questions.prefetch_related('answers').all()
-    
+
     return render(request, 'teacher/manage_questions.html', {
         'test': test,
         'questions': questions,
+        'ai_blocked': _teacher_ai_blocked(request.user),
     })
 
 

@@ -6975,13 +6975,19 @@ def delete_lesson(request, pk):
 def manage_test_questions(request, pk):
     if not (request.user.is_admin or request.user.is_teacher):
         return redirect('home')
-    
+
     test = get_object_or_404(Test, pk=pk)
     questions = test.questions.all()
-    
+
+    ai_blocked = (
+        request.user.is_teacher
+        and not getattr(request.user, 'ai_access_enabled', True)
+    )
+
     return render(request, 'accounts/manage/test_questions.html', {
         'test': test,
         'questions': questions,
+        'ai_blocked': ai_blocked,
     })
 
 

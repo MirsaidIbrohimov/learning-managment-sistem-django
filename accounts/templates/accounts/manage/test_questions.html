@@ -455,7 +455,7 @@
                 <div class="tq-subtitle">{{ test.lesson.profession.name }} • Test savollari</div>
             </div>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                {% if request.user.is_teacher and not request.user.ai_access_enabled %}
+                {% if ai_blocked %}
                 <button type="button" class="tq-add-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 14px rgba(239,68,68,0.3); border: none; cursor: not-allowed; opacity: 0.85;" onclick="alert('AI funksiyasi sizga admin tomonidan bloklangan. Bu funksiyadan foydalanish uchun admin bilan bog\'laning.')">
                     <i class="bi bi-shield-lock-fill"></i> AI bloklangan
                 </button>
@@ -653,6 +653,8 @@
 </div>
 
 <script>
+const AI_BLOCKED = {{ ai_blocked|yesno:"true,false" }};
+
 function confirmDelete(btn) {
     if (btn.classList.contains('confirming')) {
         const card = btn.closest('.tq-question');
@@ -673,6 +675,11 @@ function confirmDelete(btn) {
 }
 
 function generateAiTest() {
+    if (AI_BLOCKED) {
+        alert('AI funksiyasi sizga admin tomonidan bloklangan.');
+        return;
+    }
+
     const btn = document.getElementById('aiTestSubmitBtn');
     const errorDiv = document.getElementById('aiTestError');
     const count = document.getElementById('aiQuestionCount').value;
