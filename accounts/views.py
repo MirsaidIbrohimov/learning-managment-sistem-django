@@ -2073,6 +2073,7 @@ def profession_detail(request, pk):
     lesson_progress = {}
     daily_section_today = None
     daily_limit_section_name = None
+    section_is_locked = {}
     section_daily_locked = {}
     lesson_is_locked = {}
     daily_lesson_today = None
