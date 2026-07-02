@@ -16,10 +16,16 @@ QUESTION_TYPE_RULES = {
 
 
 class AnswerOptionSerializer(serializers.ModelSerializer):
+    # Writable (not the default read-only pk field) so QuestionSerializer.update()
+    # can tell "this option already exists, keep its row (and image)" apart from
+    # "this is a brand new option" -- see _sync_options below. Never trusted
+    # blindly: _sync_options only honours an id that's already among this
+    # specific question's own options.
+    id = serializers.IntegerField(required=False)
+
     class Meta:
         model = AnswerOption
         fields = ['id', 'text', 'image', 'is_correct', 'order']
-        read_only_fields = ['id']
 
 
 class QuestionSerializer(serializers.ModelSerializer):
@@ -78,8 +84,7 @@ class QuestionSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
         instance.save()
         if options_data is not None:
-            instance.options.all().delete()
-            self._save_options(instance, options_data)
+            self._sync_options(instance, options_data)
         return instance
 
     @staticmethod
@@ -94,6 +99,52 @@ class QuestionSerializer(serializers.ModelSerializer):
             )
             for i, opt in enumerate(options_data)
         ])
+
+    @staticmethod
+    def _sync_options(question, options_data):
+        """
+        Diffs incoming options against the question's existing rows by id
+        instead of the old delete-all-then-recreate approach. That approach
+        silently wiped every AnswerOption.image on every edit (a fresh row
+        has no image until someone re-uploads one) -- see the Phase 1 known
+        limitation noted in docs/QUIZ_MODULE_REDESIGN.md. Preserving row
+        identity for options the client still references keeps a previously
+        uploaded image intact across unrelated edits (e.g. fixing a typo).
+
+        An incoming id is only honoured if it's already one of *this*
+        question's own options -- there is no path for a client to hijack
+        another question's option row by guessing its id.
+        """
+        existing = {o.id: o for o in question.options.all()}
+        seen_ids = set()
+        to_create = []
+
+        for i, opt in enumerate(options_data):
+            order = opt.get('order', i)
+            opt_id = opt.get('id')
+            row = existing.get(opt_id) if opt_id else None
+            if row is not None:
+                row.text = opt.get('text', row.text)
+                row.is_correct = opt.get('is_correct', row.is_correct)
+                row.order = order
+                row.save(update_fields=['text', 'is_correct', 'order'])
+                seen_ids.add(opt_id)
+            else:
+                to_create.append(AnswerOption(
+                    question=question,
+                    text=opt.get('text', ''),
+                    is_correct=opt.get('is_correct', False),
+                    order=order,
+                ))
+
+        if to_create:
+            AnswerOption.objects.bulk_create(to_create)
+
+        removed_ids = set(existing) - seen_ids
+        if removed_ids:
+            for oid in removed_ids:
+                existing[oid].image.delete(save=False)  # don't orphan the file on disk
+            AnswerOption.objects.filter(id__in=removed_ids).delete()
 
 
 class QuestionDuplicateOptionSerializer(serializers.Serializer):

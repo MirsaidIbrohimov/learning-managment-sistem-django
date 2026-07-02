@@ -1260,6 +1260,21 @@
                             </span>
                         </div>
                     </div>
+                    {% elif lock_status == 'homework' %}
+                    <div class="lesson-item" style="opacity:0.5;cursor:not-allowed;pointer-events:none;">
+                        <div class="lesson-icon {{ lesson.lesson_type }}" style="opacity:0.5;">
+                            <i class="bi bi-journal-x text-danger"></i>
+                        </div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">{{ lesson.title }}</div>
+                            <div class="lesson-type text-danger">🔒 Avval vazifangiz tasdiqlanishi kerak</div>
+                        </div>
+                        <div class="lesson-status">
+                            <span class="status-badge" style="background:rgba(220,53,69,0.1);color:#dc3545;">
+                                <i class="bi bi-journal-x"></i>Vazifa kutilmoqda
+                            </span>
+                        </div>
+                    </div>
                     {% else %}
                     {% if request.user.is_student and token_map %}
                     <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">

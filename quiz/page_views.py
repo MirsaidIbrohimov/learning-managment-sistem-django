@@ -67,11 +67,23 @@ class QuestionBankView(QuizStaffRequiredMixin, TemplateView):
 
 
 class QuestionBuilderView(QuizStaffRequiredMixin, TemplateView):
+    """Create/edit a bank question. Also reached quiz-scoped (see
+    quiz_question_create in page_urls.py) via the `quiz_pk` kwarg -- when
+    present the JS side saves-and-attaches to that quiz and returns to its
+    builder instead of the bank, exactly like AIGenerateView/ImportView
+    already do for the AI and import entry points."""
     template_name = 'quiz/question_builder.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['question_id'] = self.kwargs.get('pk')
+        quiz_pk = self.kwargs.get('quiz_pk')
+        context['quiz_id'] = quiz_pk
+        context['quiz_title'] = ''
+        if quiz_pk:
+            quiz = Quiz.objects.filter(pk=quiz_pk).first()
+            if quiz:
+                context['quiz_title'] = quiz.title
         return context
 
 

@@ -1,19 +1,39 @@
 <meta name="csrf-token" content="{{ csrf_token }}">
 
-<div class="qz-page" id="qbApp" data-question-id="{{ question_id|default:'' }}">
+<div class="qz-page" id="qbApp" data-question-id="{{ question_id|default:'' }}" data-quiz-id="{{ quiz_id|default:'' }}">
+    {% if quiz_id %}
+    <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-back">
+        <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytish
+    </a>
+    {% else %}
     <a href="{% url 'quizui:question_bank' %}" class="qz-back">
         <i class="bi bi-arrow-left"></i> Savollar bazasiga qaytish
     </a>
+    {% endif %}
 
     <div class="qz-hero">
         <div class="qz-hero-left">
             <div class="qz-hero-icon purple"><i class="bi bi-patch-question-fill"></i></div>
             <div>
                 <h1 class="qz-hero-title" id="qbTitle">Yangi savol</h1>
-                <p class="qz-hero-subtitle">Savol bazasi uchun yangi savol yarating. Bir savol bir nechta testga qo'shilishi mumkin.</p>
+                <p class="qz-hero-subtitle">
+                    {% if quiz_id %}
+                        "{{ quiz_title }}" testi uchun savol qo'lda kiritilyapti — saqlagach avtomatik shu testga qo'shiladi.
+                    {% else %}
+                        Savol bazasi uchun yangi savol yarating. Bir savol bir nechta testga qo'shilishi mumkin.
+                    {% endif %}
+                </p>
             </div>
         </div>
         <div class="qz-hero-actions">
+            <label class="qb-quick-toggle d-none" id="qbQuickToggleWrap">
+                <input type="checkbox" id="qbQuickMode">
+                <span>Ketma-ket qo'shish rejimi</span>
+            </label>
+            <span class="qz-badge success d-none" id="qbQuickCounter">Qo'shildi: 0</span>
+            <button class="qz-btn qz-btn-ghost d-none" id="qbQuickFinishBtn">
+                <i class="bi bi-check2-circle"></i> Tugatish
+            </button>
             <span class="d-none align-self-center" id="qbErrorSummary" style="color:#b91c1c;font-weight:500;font-size:.85rem;"></span>
             <button class="qz-btn qz-btn-primary" id="qbSaveBtn">
                 <i class="bi bi-check2"></i> Saqlash
@@ -32,9 +52,27 @@
                         <label class="form-label">Savol</label>
                         <textarea class="form-control" id="qbText" rows="3" placeholder="Savolni shu yerga yozing..."></textarea>
                     </div>
-                    <div class="mb-0">
+                    <div class="mb-3">
                         <label class="form-label">Izoh <span class="text-muted">(ixtiyoriy — javobdan keyin ko'rsatiladi)</span></label>
                         <textarea class="form-control" id="qbExplanation" rows="2" placeholder="To'g'ri javobning tushuntirishi..."></textarea>
+                    </div>
+                    <div class="mb-0">
+                        <label class="form-label">Savol rasmi <span class="text-muted">(ixtiyoriy)</span></label>
+                        <p class="text-muted small mb-2 d-none" id="qbImageHint">
+                            <i class="bi bi-info-circle"></i> Rasm qo'shish uchun avval savolni saqlang — saqlagach shu yerda rasm biriktirasiz.
+                        </p>
+                        <div class="qb-image-control d-none" id="qbImageControl">
+                            <img id="qbImagePreview" class="qb-image-preview d-none" alt="Savol rasmi">
+                            <div class="d-flex gap-2">
+                                <button type="button" class="qz-btn qz-btn-ghost" id="qbImageUploadBtn" style="padding:8px 14px;font-size:.85rem;">
+                                    <i class="bi bi-image"></i> Rasm yuklash
+                                </button>
+                                <button type="button" class="qz-btn qz-btn-ghost d-none" id="qbImageRemoveBtn" style="padding:8px 14px;font-size:.85rem;color:#ef4444;">
+                                    <i class="bi bi-trash"></i> O'chirish
+                                </button>
+                            </div>
+                            <input type="file" id="qbImageInput" class="d-none" accept=".jpg,.jpeg,.png">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -126,6 +164,12 @@
     <div class="qb-option-row">
         <input type="checkbox" class="form-check-input qb-correct-check" title="To'g'ri javob">
         <input type="text" class="qb-option-text" placeholder="Javob matni...">
+        <div class="qb-option-image-wrap">
+            <img class="qb-option-thumb d-none" alt="">
+            <button type="button" class="qb-option-image-btn d-none" title="Rasm qo'shish"><i class="bi bi-image"></i></button>
+            <button type="button" class="qb-option-image-remove d-none" title="Rasmni o'chirish"><i class="bi bi-x-circle-fill"></i></button>
+            <input type="file" class="qb-option-image-input d-none" accept=".jpg,.jpeg,.png">
+        </div>
         <button type="button" class="qb-remove-option" title="O'chirish"><i class="bi bi-trash"></i></button>
     </div>
 </template>

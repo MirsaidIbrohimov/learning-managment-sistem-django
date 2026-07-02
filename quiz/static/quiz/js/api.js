@@ -22,19 +22,28 @@
      * @param {string} path - relative to /api/v1/quiz/, e.g. "questions/" or "quizzes/3/publish/"
      * @param {object} [options]
      * @param {string} [options.method]
-     * @param {object} [options.body] - plain object, will be JSON-encoded
+     * @param {object|FormData} [options.body] - plain object gets JSON-encoded;
+     *        a FormData instance (image uploads) is sent as-is so the browser
+     *        sets the multipart Content-Type + boundary itself.
      */
     async function request(path, options = {}) {
         const { method = 'GET', body } = options;
+        const headers = {
+            'X-CSRFToken': CSRF_TOKEN,
+            'X-Requested-With': 'XMLHttpRequest',
+        };
+        let fetchBody;
+        if (body instanceof FormData) {
+            fetchBody = body;
+        } else if (body !== undefined) {
+            headers['Content-Type'] = 'application/json';
+            fetchBody = JSON.stringify(body);
+        }
         const response = await fetch(API_ROOT + path, {
             method,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRF_TOKEN,
-                'X-Requested-With': 'XMLHttpRequest',
-            },
+            headers,
             credentials: 'same-origin',
-            body: body !== undefined ? JSON.stringify(body) : undefined,
+            body: fetchBody,
         });
 
         if (response.status === 204) {
@@ -87,6 +96,8 @@
         post: (path, body) => request(path, { method: 'POST', body }),
         patch: (path, body) => request(path, { method: 'PATCH', body }),
         delete: (path) => request(path, { method: 'DELETE' }),
+        /** Image/file uploads -- pass a FormData instance. */
+        upload: (path, formData, method = 'POST') => request(path, { method, body: formData }),
         toast,
         ApiError,
     };

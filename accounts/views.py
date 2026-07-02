@@ -1984,6 +1984,38 @@ def professions_view(request):
     })
 
 
+def _homework_locked_lesson_ids(lessons, completed_lesson_ids):
+    """
+    Given an ordered sequence of lessons (one section's lessons, dictionary
+    type already excluded), returns (locked_ids, blocking_lesson): a
+    homework-type lesson that hasn't been approved yet (its latest
+    HomeworkSubmission.status not in accepted/graded -- i.e. still pending
+    review, or sent back with 'revision' by a teacher/admin/AI) blocks every
+    lesson that comes *after* it in this sequence.
+
+    This exists because section-level unlocking (section_started /
+    section_completed, computed by each caller) only tracks whether the
+    *section* has been started -- once true, it stays true forever, so a
+    rejected or still-pending homework mid-section previously let a student
+    click straight through to later lessons in the same section without
+    ever resubmitting. This helper adds the missing per-lesson check on top
+    of that section-level result; it does not decide whether the section
+    itself is open.
+
+    The homework lesson itself is never locked by this -- a student must
+    still be able to open it to submit or resubmit.
+    """
+    locked_ids = set()
+    blocking_lesson = None
+    for l in lessons:
+        if blocking_lesson is not None:
+            locked_ids.add(l.pk)
+            continue
+        if l.lesson_type == 'homework' and l.pk not in completed_lesson_ids:
+            blocking_lesson = l
+    return locked_ids, blocking_lesson
+
+
 def _build_course_roadmap(sections, section_completed=None, section_is_locked=None, section_daily_locked=None):
     """Kurs yo'l xaritasi (roadmap) uchun node holatlari va umumiy progressni qaytaradi.
 
@@ -2301,8 +2333,9 @@ def profession_detail(request, pk):
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'daily'
             else:
+                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids)
                 for l in section_lessons:
-                    lesson_is_locked[l.pk] = False
+                    lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
 
         # Daily limit banner
         if today_section_access:
@@ -2976,6 +3009,13 @@ def lesson_view(request, pk):
         submission = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         context['homework'] = homework
         context['submission'] = submission
+        # Sidebar'dagi "Keyingi dars" kartasi shu bayroqqa qarab
+        # ko'rsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bo'lsa
+        # (pending/reviewing/revision) keyingi darsga o'tish tugmasi
+        # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
+        # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
+        # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
+        context['homework_approved'] = bool(submission and submission.status in ('accepted', 'graded'))
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
     
@@ -4505,6 +4545,26 @@ def student_course_view(request, token):
                     else:
                         section_daily_locked[section.id] = False
 
+        # Darslar holati — bo'lim holatiga qarab (profession_detail bilan bir xil
+        # mantiq). Bo'lim ochiq bo'lsa ham, tasdiqlanmagan (pending/revision)
+        # vazifadan keyingi darslar alohida qulflanadi -- shu joy avval
+        # to'ldirilmagan bo'sh lesson_is_locked qoldirilgani sabab vazifa
+        # rad etilgan taqdirda ham keyingi darsga o'tib bo'lardi.
+        for section in ordered_sections:
+            s_locked = section_is_locked.get(section.id)
+            s_daily = section_daily_locked.get(section.id)
+            section_lessons = [l for l in section.lessons.all() if l.lesson_type != 'dictionary']
+            if s_locked:
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = 'sequential'
+            elif s_daily:
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = 'daily'
+            else:
+                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids)
+                for l in section_lessons:
+                    lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
+
         # Classmates
         classmates = CustomUser.objects.filter(
             enrollments__profession=profession, role='student'
@@ -4625,6 +4685,30 @@ def student_lesson_view(request, token):
                 section_started = bool(section_lessons_ids & completed_lesson_ids)
                 section_completed = section_lessons_ids.issubset(completed_lesson_ids)
 
+                # Vazifa (uy ishi) tasdiqlanmaguncha undan keyingi darsga
+                # o'tib bo'lmasligi kerak -- section_started True bo'lgach
+                # (bo'lim ichida boshqa bir dars bajarilgan bo'lsa) doim
+                # shunday bo'lib qoladi va pastdagi tekshiruv ishlamay
+                # qoladi, shu sabab bu yerda alohida, bo'lim holatidan
+                # qat'i nazar ishlaydigan tekshiruv qo'shildi. Ustoz/admin
+                # yoki AI vazifani "qayta ishlang" (revision) deb qaytarsa
+                # yoki u hali ko'rib chiqilmagan bo'lsa, shu vazifadan
+                # keyingi darslar aynan shu joyda qulflanadi.
+                section_lessons_ordered = list(
+                    current_section.lessons.exclude(lesson_type='dictionary').order_by('order')
+                )
+                homework_locked_ids, blocking_hw_lesson = _homework_locked_lesson_ids(
+                    section_lessons_ordered, completed_lesson_ids,
+                )
+                if lesson.pk in homework_locked_ids and blocking_hw_lesson:
+                    messages.warning(
+                        request,
+                        f"Avval \"{blocking_hw_lesson.title}\" vazifasini tasdiqlatishingiz kerak. "
+                        "Iltimos, uni qayta ko'rib chiqib qayta topshiring! 📝"
+                    )
+                    hw_token = StudentLessonToken.get_or_create_for_lesson(request.user, blocking_hw_lesson)
+                    return redirect('student_lesson_view', token=hw_token.token)
+
                 if not section_completed and not section_started:
                     all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
                     section_idx = None
@@ -4713,6 +4797,13 @@ def student_lesson_view(request, token):
         submission = HomeworkSubmission.objects.filter(homework=homework, student=request.user).first()
         context['homework'] = homework
         context['submission'] = submission
+        # Sidebar'dagi "Keyingi dars" kartasi shu bayroqqa qarab
+        # ko'rsatiladi/berkitiladi -- vazifa hali tasdiqlanmagan bo'lsa
+        # (pending/reviewing/revision) keyingi darsga o'tish tugmasi
+        # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
+        # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
+        # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
+        context['homework_approved'] = bool(submission and submission.status in ('accepted', 'graded'))
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
 

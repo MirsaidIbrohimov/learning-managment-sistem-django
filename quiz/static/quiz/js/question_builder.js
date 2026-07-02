@@ -9,6 +9,17 @@
  * Client-side validation intentionally mirrors quiz/serializers.py
  * QUESTION_TYPE_RULES so the user sees the same rule before submitting
  * that the API would otherwise reject after a round trip.
+ *
+ * Three additions on top of the original Phase 1 builder:
+ *  - Quiz-scoped create (data-quiz-id set): saving attaches the new question
+ *    to that quiz in the same request and returns to its builder.
+ *  - Quick-add mode: after saving a *new* question, the form resets instead
+ *    of navigating away, so a teacher can enter several questions back to
+ *    back without re-opening the page each time.
+ *  - Image upload for the question itself and for individual options. Only
+ *    available once a row has a real database id (i.e. after the first
+ *    save) -- there's nothing to attach a file to before that, so the
+ *    create-mode form shows a "save first" hint instead of a broken control.
  */
 (function () {
     'use strict';
@@ -21,9 +32,12 @@
         essay: { requiresOptions: false },
     };
 
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB — mirrors quiz/views.py MAX_IMAGE_UPLOAD_SIZE
+
     const app = document.getElementById('qbApp');
-    const questionId = app.dataset.questionId || null;
-    const isEdit = Boolean(questionId);
+    let questionId = app.dataset.questionId || null;
+    let isEdit = Boolean(questionId);
+    const quizId = app.dataset.quizId || null;
 
     const els = {
         title: document.getElementById('qbTitle'),
@@ -43,11 +57,22 @@
         shortAnswersList: document.getElementById('qbShortAnswersList'),
         addShortAnswerBtn: document.getElementById('qbAddShortAnswer'),
         essayPanel: document.getElementById('qbEssayPanel'),
+        quickToggleWrap: document.getElementById('qbQuickToggleWrap'),
+        quickMode: document.getElementById('qbQuickMode'),
+        quickCounter: document.getElementById('qbQuickCounter'),
+        quickFinishBtn: document.getElementById('qbQuickFinishBtn'),
+        imageHint: document.getElementById('qbImageHint'),
+        imageControl: document.getElementById('qbImageControl'),
+        imagePreview: document.getElementById('qbImagePreview'),
+        imageUploadBtn: document.getElementById('qbImageUploadBtn'),
+        imageRemoveBtn: document.getElementById('qbImageRemoveBtn'),
+        imageInput: document.getElementById('qbImageInput'),
     };
     const optionRowTpl = document.getElementById('qbOptionRowTemplate');
     const shortAnswerRowTpl = document.getElementById('qbShortAnswerRowTemplate');
 
-    let options = []; // [{text, is_correct}]
+    let options = []; // [{id, text, is_correct, image}] -- id/image only present once persisted
+    let quickCount = 0;
 
     function currentRules() {
         return RULES[els.type.value];
@@ -73,6 +98,45 @@
         renderOptions();
     }
 
+    function validateImageFile(file) {
+        if (!/\.(jpe?g|png)$/i.test(file.name)) {
+            return "Faqat .jpg, .jpeg, .png fayllar qabul qilinadi.";
+        }
+        if (file.size > MAX_IMAGE_SIZE) {
+            return "Rasm hajmi 5 MB dan oshmasligi kerak.";
+        }
+        return null;
+    }
+
+    async function uploadOptionImage(opt, file, thumbEl, uploadBtnEl, removeBtnEl) {
+        const err = validateImageFile(file);
+        if (err) { window.QuizApi.toast(err, 'error'); return; }
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const data = await window.QuizApi.upload(`questions/${questionId}/options/${opt.id}/image/`, formData);
+            opt.image = data.image;
+            thumbEl.src = data.image;
+            thumbEl.classList.remove('d-none');
+            removeBtnEl.classList.remove('d-none');
+            window.QuizApi.toast('Rasm yuklandi.');
+        } catch (e) {
+            window.QuizApi.toast(e.message, 'error');
+        }
+    }
+
+    async function removeOptionImage(opt, thumbEl, removeBtnEl) {
+        try {
+            await window.QuizApi.delete(`questions/${questionId}/options/${opt.id}/image/`);
+            opt.image = null;
+            thumbEl.src = '';
+            thumbEl.classList.add('d-none');
+            removeBtnEl.classList.add('d-none');
+        } catch (e) {
+            window.QuizApi.toast(e.message, 'error');
+        }
+    }
+
     function renderOptions() {
         els.optionsList.innerHTML = '';
         const rules = currentRules();
@@ -81,6 +145,10 @@
             const textInput = node.querySelector('.qb-option-text');
             const checkbox = node.querySelector('.qb-correct-check');
             const removeBtn = node.querySelector('.qb-remove-option');
+            const imageBtn = node.querySelector('.qb-option-image-btn');
+            const imageRemoveBtn = node.querySelector('.qb-option-image-remove');
+            const imageInput = node.querySelector('.qb-option-image-input');
+            const thumb = node.querySelector('.qb-option-thumb');
 
             textInput.value = opt.text;
             textInput.disabled = Boolean(rules.fixedLabels);
@@ -91,6 +159,26 @@
             if (rules.fixedLabels || (rules.maxOptions && options.length <= rules.minOptions)) {
                 removeBtn.classList.add('d-none');
             }
+
+            // Image upload needs a real option id to attach the file to --
+            // only available once this row has been saved at least once.
+            if (isEdit && opt.id) {
+                imageBtn.classList.remove('d-none');
+                if (opt.image) {
+                    thumb.src = opt.image;
+                    thumb.classList.remove('d-none');
+                    imageRemoveBtn.classList.remove('d-none');
+                }
+                imageBtn.addEventListener('click', () => imageInput.click());
+                imageInput.addEventListener('change', async () => {
+                    const file = imageInput.files[0];
+                    imageInput.value = '';
+                    if (!file) return;
+                    await uploadOptionImage(opt, file, thumb, imageBtn, imageRemoveBtn);
+                });
+                imageRemoveBtn.addEventListener('click', () => removeOptionImage(opt, thumb, imageRemoveBtn));
+            }
+
             els.optionsList.appendChild(node);
         });
 
@@ -144,6 +232,69 @@
         }
     }
 
+    // ── Question image (edit mode only — needs a saved question id) ───────
+    function syncImageBlockVisibility() {
+        els.imageHint.classList.toggle('d-none', isEdit);
+        els.imageControl.classList.toggle('d-none', !isEdit);
+    }
+
+    els.imageUploadBtn.addEventListener('click', () => els.imageInput.click());
+    els.imageInput.addEventListener('change', async () => {
+        const file = els.imageInput.files[0];
+        els.imageInput.value = '';
+        if (!file) return;
+        const err = validateImageFile(file);
+        if (err) { window.QuizApi.toast(err, 'error'); return; }
+        const formData = new FormData();
+        formData.append('image', file);
+        try {
+            const data = await window.QuizApi.upload(`questions/${questionId}/image/`, formData);
+            els.imagePreview.src = data.image;
+            els.imagePreview.classList.remove('d-none');
+            els.imageRemoveBtn.classList.remove('d-none');
+            window.QuizApi.toast('Rasm yuklandi.');
+        } catch (e) {
+            window.QuizApi.toast(e.message, 'error');
+        }
+    });
+    els.imageRemoveBtn.addEventListener('click', async () => {
+        try {
+            await window.QuizApi.delete(`questions/${questionId}/image/`);
+            els.imagePreview.src = '';
+            els.imagePreview.classList.add('d-none');
+            els.imageRemoveBtn.classList.add('d-none');
+        } catch (e) {
+            window.QuizApi.toast(e.message, 'error');
+        }
+    });
+
+    // ── Quick-add mode (create-only) ───────────────────────────────────────
+    function updateQuickUI() {
+        els.quickCounter.textContent = `Qo'shildi: ${quickCount}`;
+        els.quickCounter.classList.toggle('d-none', quickCount === 0);
+        els.quickFinishBtn.classList.toggle('d-none', quickCount === 0);
+    }
+
+    function resetFormForNext() {
+        els.text.value = '';
+        els.explanation.value = '';
+        options = [];
+        syncPanelsToType();
+        els.errorSummary.classList.add('d-none');
+        updateQuickUI();
+        els.text.focus();
+    }
+
+    function backTarget() {
+        return quizId ? `/quiz/quizzes/${quizId}/edit/` : '/quiz/questions/';
+    }
+
+    if (!isEdit) {
+        els.quickToggleWrap.classList.remove('d-none');
+        els.quickFinishBtn.addEventListener('click', () => { window.location.href = backTarget(); });
+    }
+
+    // ── Build / validate / save ────────────────────────────────────────────
     function buildPayload() {
         const payload = {
             type: els.type.value,
@@ -156,11 +307,16 @@
         const rules = currentRules();
         if (rules.requiresOptions) {
             payload.options = options
-                .map((o, i) => ({ text: o.text.trim(), is_correct: o.is_correct, order: i }))
+                .map((o, i) => {
+                    const row = { text: o.text.trim(), is_correct: o.is_correct, order: i };
+                    if (o.id) row.id = o.id;
+                    return row;
+                })
                 .filter((o) => o.text.length > 0);
         } else if (els.type.value === 'short_answer') {
             payload.metadata = { correct_answers: getShortAnswers() };
         }
+        if (quizId && !isEdit) payload.quiz_id = Number(quizId);
         return payload;
     }
 
@@ -202,7 +358,9 @@
             els.status.value = question.status;
 
             if (RULES[question.type].requiresOptions) {
-                options = (question.options || []).map((o) => ({ text: o.text, is_correct: o.is_correct }));
+                options = (question.options || []).map((o) => ({
+                    id: o.id, text: o.text, is_correct: o.is_correct, image: o.image || null,
+                }));
                 renderOptions();
             } else if (question.type === 'short_answer') {
                 els.shortAnswersList.innerHTML = '';
@@ -210,6 +368,12 @@
                 (answers.length ? answers : ['']).forEach((a) => addShortAnswer(a));
             }
             syncPanelsToType();
+
+            if (question.image) {
+                els.imagePreview.src = question.image;
+                els.imagePreview.classList.remove('d-none');
+                els.imageRemoveBtn.classList.remove('d-none');
+            }
         } catch (err) {
             window.QuizApi.toast(err.message, 'error');
         }
@@ -227,11 +391,23 @@
             if (isEdit) {
                 await window.QuizApi.patch(`questions/${questionId}/`, payload);
                 window.QuizApi.toast('Savol yangilandi.');
+                // Options may have been added/removed -- re-sync ids/images
+                // from the server response instead of trusting local state.
+                await loadExisting();
             } else {
                 const created = await window.QuizApi.post('questions/', payload);
-                window.QuizApi.toast('Savol yaratildi.');
-                window.location.href = `/quiz/questions/${created.id}/edit/`;
-                return;
+                quickCount += 1;
+                if (els.quickMode.checked) {
+                    const attachedMsg = quizId ? ' va testga qo\'shildi' : '';
+                    window.QuizApi.toast(`Savol saqlandi${attachedMsg} (${quickCount}-ta). Keyingisini kiriting.`);
+                    resetFormForNext();
+                } else {
+                    window.QuizApi.toast(quizId ? "Savol yaratildi va testga qo'shildi." : 'Savol yaratildi.');
+                    setTimeout(() => {
+                        window.location.href = quizId ? backTarget() : `/quiz/questions/${created.id}/edit/`;
+                    }, 600);
+                    return;
+                }
             }
         } catch (err) {
             els.errorSummary.classList.remove('d-none');
@@ -246,6 +422,11 @@
     els.addShortAnswerBtn.addEventListener('click', () => addShortAnswer());
     els.saveBtn.addEventListener('click', save);
 
+    if (!isEdit && quizId) {
+        els.saveBtn.innerHTML = '<i class="bi bi-check2"></i> Saqlash va testga qo\'shish';
+    }
+
+    syncImageBlockVisibility();
     if (isEdit) {
         loadExisting();
     } else {

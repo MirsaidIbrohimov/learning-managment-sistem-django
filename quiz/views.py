@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import timedelta
 
@@ -24,6 +25,20 @@ AUTO_GRADABLE_TYPES = {
     QuestionType.SINGLE_CHOICE, QuestionType.MULTIPLE_CHOICE,
     QuestionType.TRUE_FALSE, QuestionType.SHORT_ANSWER,
 }
+
+# Mirrors the extension whitelist already used for homework-submission
+# uploads in accounts/views.py -- same rule, same user-facing message, so a
+# teacher doesn't hit two different "allowed formats" conventions in one app.
+ALLOWED_IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png')
+MAX_IMAGE_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+def _validate_image_upload(file_obj):
+    ext = os.path.splitext(file_obj.name)[1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        raise ValidationError({'image': "Faqat rasm formatida (.jpg, .jpeg, .png) qabul qilinadi."})
+    if file_obj.size > MAX_IMAGE_UPLOAD_SIZE:
+        raise ValidationError({'image': "Rasm hajmi 5 MB dan oshmasligi kerak."})
 
 
 def _select_questions_for_attempt(quiz):
@@ -316,6 +331,78 @@ class QuestionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        """Standard bank create, plus one convenience the quiz builder's
+        "Yangi savol" button relies on: if the client passes `quiz_id`, the
+        new question is attached to that quiz in the same request instead of
+        a separate create-then-attach round trip. Wrapped in one transaction
+        so a permission slip or attach failure can never leave an orphan
+        question that was created but not actually attached anywhere."""
+        quiz = None
+        quiz_id = request.data.get('quiz_id')
+        if quiz_id:
+            quiz = get_object_or_404(Quiz, pk=quiz_id)
+            user = request.user
+            if not (user.is_admin or user.is_assistant_admin) and not can_access_quiz(user, quiz):
+                raise PermissionDenied("Bu testni o'zgartirish huquqi yo'q.")
+
+        with transaction.atomic():
+            response = super().create(request, *args, **kwargs)
+            if quiz is not None:
+                question = Question.objects.get(pk=response.data['id'])
+                QuizQuestion.objects.get_or_create(
+                    quiz=quiz, question=question,
+                    defaults={'order': quiz.quiz_questions.count()},
+                )
+                Question.objects.filter(pk=question.pk).update(
+                    usage_count=db_models.F('usage_count') + 1, last_used_at=timezone.now(),
+                )
+                response.data['attached_to_quiz'] = quiz.id
+        return response
+
+    @action(detail=True, methods=['post', 'delete'], url_path='image')
+    def image(self, request, pk=None):
+        """Upload or remove the question's own illustrative image. Requires
+        the question to already exist (there has to be a row to attach the
+        file to) -- the question builder page only shows this control once
+        in edit mode for exactly that reason. Options have the equivalent
+        nested action below since AnswerOption has no ViewSet of its own."""
+        question = self.get_object()
+        if request.method == 'DELETE':
+            question.image.delete(save=False)
+            question.image = None
+            question.save(update_fields=['image'])
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        file_obj = request.FILES.get('image')
+        if not file_obj:
+            raise ValidationError({'image': "Rasm fayli yuklanmagan."})
+        _validate_image_upload(file_obj)
+        question.image = file_obj
+        question.save(update_fields=['image'])
+        return Response({'image': question.image.url})
+
+    @action(detail=True, methods=['post', 'delete'], url_path=r'options/(?P<option_pk>\d+)/image')
+    def option_image(self, request, pk=None, option_pk=None):
+        """Same as `image` above, scoped to one answer option. get_object()
+        (overridden on this viewset) enforces the same ownership check for
+        both the question and, transitively, its options."""
+        question = self.get_object()
+        option = get_object_or_404(AnswerOption, pk=option_pk, question=question)
+        if request.method == 'DELETE':
+            option.image.delete(save=False)
+            option.image = None
+            option.save(update_fields=['image'])
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        file_obj = request.FILES.get('image')
+        if not file_obj:
+            raise ValidationError({'image': "Rasm fayli yuklanmagan."})
+        _validate_image_upload(file_obj)
+        option.image = file_obj
+        option.save(update_fields=['image'])
+        return Response({'image': option.image.url})
 
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None):

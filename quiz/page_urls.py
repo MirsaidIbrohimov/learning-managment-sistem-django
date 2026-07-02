@@ -24,6 +24,13 @@ urlpatterns = [
     path('quizzes/new/', QuizBuilderView.as_view(), name='quiz_create'),
     path('quizzes/<int:pk>/edit/', QuizBuilderView.as_view(), name='quiz_edit'),
 
+    # Manual question creation, scoped to one quiz -- same view as
+    # question_create, but `quiz_pk` (not `pk`, which is reserved for
+    # question_edit's question id) tells the page to save-and-attach and
+    # return to this quiz instead of the bank. Mirrors the quiz_ai_generate /
+    # quiz_import dual-entry pattern below.
+    path('quizzes/<int:quiz_pk>/questions/new/', QuestionBuilderView.as_view(), name='quiz_question_create'),
+
     # AI generation pages -- with or without an attaching quiz context.
     path('ai-generate/', AIGenerateView.as_view(), name='ai_generate'),
     path('quizzes/<int:pk>/ai-generate/', AIGenerateView.as_view(), name='quiz_ai_generate'),
