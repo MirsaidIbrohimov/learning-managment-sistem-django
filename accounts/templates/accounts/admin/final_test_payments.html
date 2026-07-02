@@ -149,21 +149,25 @@
                 <td>
                     {% if payment.status == 'pending' %}
                     <div class="ftp-actions">
-                        <form method="POST" action="{% url 'approve_final_test_payment' payment.pk %}">
+                        <form method="POST" action="{% url 'approve_final_test_payment' payment.pk %}"
+                              onsubmit="return confirm('{{ payment.student.full_name|escapejs }}ning to\'lovini tasdiqlaysizmi?');">
                             {% csrf_token %}
                             <button type="submit" class="ftp-btn ftp-btn-approve" title="Tasdiqlash">
                                 <i class="bi bi-check-lg"></i>
                             </button>
                         </form>
-                        <form method="POST" action="{% url 'reject_final_test_payment' payment.pk %}">
-                            {% csrf_token %}
-                            <button type="submit" class="ftp-btn ftp-btn-reject" title="Rad etish">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                        </form>
+                        <button type="button" class="ftp-btn ftp-btn-reject" title="Rad etish"
+                                onclick="openReject('{% url 'reject_final_test_payment' payment.pk %}', '{{ payment.student.full_name|escapejs }}')">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
                     </div>
                     {% elif payment.reviewed_by %}
                     <span style="font-size: 0.8rem; color: var(--text-muted);">{{ payment.reviewed_by.full_name }}</span>
+                    {% if payment.status == 'rejected' and payment.reject_reason %}
+                    <div style="font-size: 0.75rem; color: #ef4444; margin-top: 2px;" title="Rad etish sababi">
+                        <i class="bi bi-chat-left-text"></i> {{ payment.reject_reason|truncatechars:60 }}
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </td>
             </tr>
@@ -184,6 +188,58 @@
     <img id="receiptImg" src="" alt="Chek">
 </div>
 
+<!-- Reject Modal -->
+<div class="reject-modal" id="rejectModal">
+    <div class="reject-modal-box">
+        <div class="reject-modal-title">
+            <i class="bi bi-x-octagon" style="color:#ef4444;"></i>
+            To'lovni rad etish
+        </div>
+        <p class="reject-modal-sub" id="rejectModalSub"></p>
+        <form method="POST" id="rejectForm">
+            {% csrf_token %}
+            <textarea name="reason" id="rejectReason" rows="3" maxlength="500"
+                      placeholder="Rad etish sababi (o'quvchiga ko'rsatiladi)..."></textarea>
+            <div class="reject-modal-actions">
+                <button type="button" class="ftp-btn" onclick="closeReject()"
+                        style="background: var(--border-color); color: var(--text-color);">Bekor qilish</button>
+                <button type="submit" class="ftp-btn ftp-btn-reject">
+                    <i class="bi bi-x-lg"></i> Rad etish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.reject-modal {
+    display: none; position: fixed; inset: 0; z-index: 9998;
+    background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 1rem;
+}
+.reject-modal.show { display: flex; }
+.reject-modal-box {
+    width: 100%; max-width: 400px;
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 16px; padding: 1.5rem;
+}
+.reject-modal-title {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-weight: 800; font-size: 1rem; margin-bottom: 0.35rem;
+}
+.reject-modal-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; }
+.reject-modal-box textarea {
+    width: 100%; resize: vertical;
+    padding: 0.6rem 0.8rem; border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: transparent; color: var(--text-color);
+    font-family: inherit; font-size: 0.88rem; outline: none;
+    margin-bottom: 1rem;
+}
+.reject-modal-box textarea:focus { border-color: #ef4444; }
+.reject-modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+.reject-modal-actions .ftp-btn { padding: 0.5rem 1rem; }
+</style>
+
 <script>
 function showReceipt(url) {
     document.getElementById('receiptImg').src = url;
@@ -192,5 +248,23 @@ function showReceipt(url) {
 function hideReceipt() {
     document.getElementById('receiptModal').classList.remove('show');
 }
+function openReject(actionUrl, studentName) {
+    var modal = document.getElementById('rejectModal');
+    document.getElementById('rejectForm').action = actionUrl;
+    document.getElementById('rejectModalSub').textContent =
+        studentName + "ning to'lov cheki rad etiladi. Sababini yozib qoldiring.";
+    document.getElementById('rejectReason').value = '';
+    modal.classList.add('show');
+    document.getElementById('rejectReason').focus();
+}
+function closeReject() {
+    document.getElementById('rejectModal').classList.remove('show');
+}
+document.getElementById('rejectModal').addEventListener('click', function (e) {
+    if (e.target === this) closeReject();
+});
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeReject();
+});
 </script>
 {% endblock %}

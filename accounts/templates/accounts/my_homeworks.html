@@ -256,11 +256,78 @@
 .talaba-vazifa-element {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1rem;
     padding: 1.25rem;
     border-bottom: 2px solid var(--talaba-chegara);
     transition: all 0.3s ease;
     position: relative;
+}
+
+/* ==================== IZOH VA ESLATMA ==================== */
+.talaba-izoh-qator {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.talaba-izoh-quti {
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    background: var(--talaba-yumshoq);
+    border-left: 3px solid var(--talaba-binafsha);
+}
+
+.talaba-izoh-sarlavha {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--talaba-binafsha);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+}
+
+.talaba-izoh-muallif {
+    font-weight: 600;
+    color: var(--talaba-ikkilamchi);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.talaba-izoh-matn {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--talaba-matn);
+    white-space: pre-line;
+}
+
+.talaba-qayta-eslatma {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    color: var(--talaba-matn);
+}
+
+.talaba-qayta-eslatma i {
+    color: var(--talaba-qizil);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.talaba-qayta-eslatma a {
+    color: var(--talaba-qizil);
+    font-weight: 700;
 }
 
 .talaba-vazifa-element::before {
@@ -487,43 +554,34 @@
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
-.talaba-chat-tugma.qayta-yuborish {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(248, 113, 113, 0.12));
-    border-color: var(--talaba-qirmizi);
-    color: var(--talaba-qirmizi);
-}
-
-.talaba-chat-tugma.qayta-yuborish:hover {
-    background: var(--talaba-qirmizi);
-    color: white;
-    border-color: var(--talaba-qirmizi);
-}
-
 @media (max-width: 768px) {
     .talaba-vazifa-element {
-        flex-wrap: wrap;
         gap: 0.75rem;
     }
-    
+
     .talaba-vazifa-belgi {
         width: 48px;
         height: 48px;
         font-size: 1.25rem;
     }
-    
+
     .talaba-vazifa-malumot {
         flex-basis: 100%;
         order: 2;
     }
-    
+
     .talaba-vazifa-meta {
         order: 1;
     }
-    
+
     .talaba-chat-tugma {
         flex-basis: 100%;
         order: 3;
         justify-content: center;
+    }
+
+    .talaba-izoh-qator {
+        order: 4;
     }
 }
 
@@ -695,15 +753,30 @@
                     {% endif %}
                 </div>
                 
-                <a href="{% url 'homework_chat' sub.pk %}" class="talaba-chat-tugma {% if sub.status == 'revision' %}qayta-yuborish{% endif %}">
-                    {% if sub.status == 'revision' %}
-                        <i class="bi bi-arrow-repeat"></i>
-                        Qayta topshirish
-                    {% else %}
-                        <i class="bi bi-chat-dots"></i>
-                        Ko'rish
-                    {% endif %}
+                <a href="{% url 'homework_chat' sub.pk %}" class="talaba-chat-tugma">
+                    <i class="bi bi-chat-dots"></i>
+                    Ko'rish
                 </a>
+
+                {% if sub.feedback or sub.status == 'revision' %}
+                <div class="talaba-izoh-qator">
+                    {% if sub.feedback %}
+                    <div class="talaba-izoh-quti">
+                        <div class="talaba-izoh-sarlavha">
+                            <i class="bi bi-chat-quote-fill"></i> O'qituvchi izohi
+                            {% if sub.graded_by %}<span class="talaba-izoh-muallif">— {{ sub.graded_by.full_name }}</span>{% endif %}
+                        </div>
+                        <p class="talaba-izoh-matn">{{ sub.feedback }}</p>
+                    </div>
+                    {% endif %}
+                    {% if sub.status == 'revision' %}
+                    <div class="talaba-qayta-eslatma">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>Qayta topshirish uchun <a href="{% url 'homework_chat' sub.pk %}">"Ko'rish" sahifasiga o'ting</a> — u yerda tuzatilgan javobingizni yuborasiz.</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
             </div>
             {% endfor %}
         {% else %}

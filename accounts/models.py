@@ -905,7 +905,7 @@ class FinalTestPayment(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='final_test_payments')
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='payments')
     receipt_image = models.ImageField(upload_to='final_test_receipts/', verbose_name="To'lov cheki")
-    amount = models.DecimalField(max_digits=15, decimal_places=0, default=43000, verbose_name="To'lov summasi")
+    amount = models.DecimalField(max_digits=15, decimal_places=0, default=65000, verbose_name="To'lov summasi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="Holat")
     reviewed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_final_payments', verbose_name="Tekshiruvchi")
     reviewed_at = models.DateTimeField(null=True, blank=True, verbose_name="Tekshirilgan sana")

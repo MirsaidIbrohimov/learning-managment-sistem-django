@@ -1,0 +1,115 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Bosh sahifa — O'qituvchi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/role_home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dash rhome">
+  <div class="dash-shell">
+
+    <!-- HERO -->
+    <section class="rh-hero">
+      <div class="rh-hero-main">
+        <span class="rh-eyebrow"><span class="dot"></span> O'qituvchi paneli</span>
+        <h1 class="rh-title">Xush kelibsiz, {{ user.first_name|default:user.username }}! 👋</h1>
+        <p class="rh-sub">
+          Kurslaringiz va o'quvchilaringiz holati bir qarashda.
+          {% if pending_homeworks %}Sizni <b>{{ pending_homeworks }}</b> ta tekshirilmagan vazifa kutmoqda.{% endif %}
+        </p>
+        <div class="rh-cta">
+          <a href="{% url 'teacher:dashboard' %}" class="rh-btn primary"><i class="bi bi-speedometer2"></i> O'qituvchi paneli</a>
+          <a href="{% url 'teacher:homeworks' %}" class="rh-btn ghost">
+            <i class="bi bi-journal-check"></i> Vazifalarni tekshirish
+            {% if pending_homeworks %}<span class="rh-btn-badge">{{ pending_homeworks }}</span>{% endif %}
+          </a>
+          <a href="{% url 'teacher:speaking_tasks' %}" class="rh-btn ghost">
+            <i class="bi bi-mic"></i> Speaking
+            {% if pending_speaking %}<span class="rh-btn-badge">{{ pending_speaking }}</span>{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="rh-hero-side">
+        <div class="rh-bigstat {% if pending_homeworks %}warn{% endif %}">
+          <i class="bi bi-journal-x"></i>
+          <b>{{ pending_homeworks }}</b>
+          <span>Tekshirilmagan vazifa</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATLAR -->
+    <section class="rh-section">
+      <div class="rh-statgrid">
+        {% for c in stat_cards %}
+        <div class="rh-stat {{ c.color }}">
+          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}"></i></div>
+          <b>{{ c.value }}</b>
+          <span>{{ c.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="rh-cols">
+      <!-- KURSLARIM -->
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-collection-play"></i> Kurslarim</h2>
+          <a href="{% url 'teacher:courses' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if my_courses %}
+        <div class="rh-coursegrid">
+          {% for c in my_courses %}
+          <a href="{% url 'manage_lessons' c.id %}" class="rh-course">
+            <div class="rh-course-photo">
+              {% if c.photo %}<img src="{{ c.photo }}" alt="{{ c.name }}" loading="lazy">
+              {% else %}<i class="bi bi-collection-play"></i>{% endif %}
+            </div>
+            <div class="rh-course-body">
+              <b>{{ c.name }}</b>
+              <span><i class="bi bi-journal-bookmark"></i> {{ c.lesson_total }} dars
+                &nbsp;·&nbsp; <i class="bi bi-people"></i> {{ c.student_total }} o'quvchi</span>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="rh-empty"><i class="bi bi-info-circle"></i> Sizga hali kurs biriktirilmagan.</div>
+        {% endif %}
+      </section>
+
+      <!-- SO'NGGI TOPSHIRIQLAR -->
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-inbox"></i> So'nggi topshiriqlar</h2>
+          <a href="{% url 'teacher:homeworks' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_submissions %}
+        <ul class="rh-list">
+          {% for s in recent_submissions %}
+          <li>
+            <a href="{% url 'teacher:grade_homework' s.pk %}" class="rh-list-row">
+              <span class="rh-avatar">{{ s.student.first_name|slice:":1"|default:"?" }}</span>
+              <span class="rh-list-label">
+                {{ s.student.get_full_name|default:s.student.username }}
+                <small>{{ s.homework.lesson.title|truncatechars:40 }}</small>
+              </span>
+              <span class="rh-badge {% if s.status == 'pending' %}hot{% endif %}">{{ s.get_status_display }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hozircha topshiriq yo'q.</div>
+        {% endif %}
+      </section>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

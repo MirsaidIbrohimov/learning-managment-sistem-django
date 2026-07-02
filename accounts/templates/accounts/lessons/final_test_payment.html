@@ -5,563 +5,625 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>To'lov — {{ test.lesson.title }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+    /* Saytdagi tema tanlovini FOUC bo'lmasdan qo'llash (base.html bilan bir xil kalit) */
+    (function () {
+        var t = 'light';
+        try { t = localStorage.getItem('theme') || 'light'; } catch (e) {}
+        document.documentElement.setAttribute('data-theme', t);
+    })();
+    </script>
     <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    /* ─────────────── TOKENS: light (default) / dark ─────────────── */
     :root {
-        --bg: #050510;
-        --bg-card: rgba(15, 18, 35, 0.85);
-        --border: rgba(239, 68, 68, 0.15);
-        --border-hover: rgba(239, 68, 68, 0.4);
-        --text: #eef2ff;
-        --text-muted: #94a3b8;
-        --primary: #ef4444;
-        --primary-glow: rgba(239, 68, 68, 0.4);
-        --success: #10b981;
-        --success-glow: rgba(16, 185, 129, 0.3);
-        --warning: #f59e0b;
-        --warning-glow: rgba(245, 158, 11, 0.3);
-        --glass: rgba(15, 18, 35, 0.6);
-        --glass-border: rgba(255, 255, 255, 0.06);
-        --radius: 16px;
-        --radius-lg: 24px;
+        --bg:          #f1f2f8;
+        --panel:       #ffffff;
+        --panel-2:     #f5f6fa;
+        --panel-3:     #eceef5;
+        --border:      rgba(15, 23, 42, .10);
+        --border-soft: rgba(15, 23, 42, .06);
+        --text:        #101322;
+        --muted:       #5b6478;
+        --muted-2:     #98a0b3;
+
+        --accent:      #e11d48;          /* yakuniy test — qizil aksent */
+        --on-accent:   #ffffff;
+        --accent-soft: rgba(225, 29, 72, .08);
+        --accent-ring: rgba(225, 29, 72, .20);
+
+        --success:      #16a34a;
+        --success-soft: rgba(22, 163, 74, .10);
+        --warn:         #d97706;
+        --warn-soft:    rgba(217, 119, 6, .10);
+
+        --shadow-sm: 0 1px 2px rgba(15, 23, 42, .05);
+        --shadow-md: 0 10px 30px -12px rgba(15, 23, 42, .20);
+
+        --r-lg: 22px;
+        --r-md: 14px;
+        --r-sm: 10px;
+        --ease: cubic-bezier(.4, 0, .2, 1);
+    }
+    [data-theme="dark"] {
+        --bg:          #0b0d13;
+        --panel:       #12141d;
+        --panel-2:     #181b26;
+        --panel-3:     #1f2331;
+        --border:      rgba(255, 255, 255, .10);
+        --border-soft: rgba(255, 255, 255, .06);
+        --text:        #e9ebf3;
+        --muted:       #9aa2b6;
+        --muted-2:     #6a7288;
+
+        --accent:      #fb7185;
+        --on-accent:   #2a0b13;
+        --accent-soft: rgba(251, 113, 133, .12);
+        --accent-ring: rgba(251, 113, 133, .26);
+
+        --success:      #34d399;
+        --success-soft: rgba(52, 211, 153, .12);
+        --warn:         #fbbf24;
+        --warn-soft:    rgba(251, 191, 36, .12);
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, .35);
+        --shadow-md: 0 10px 30px -12px rgba(0, 0, 0, .55);
     }
 
     body {
         background: var(--bg);
         color: var(--text);
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        overflow-x: hidden;
         min-height: 100vh;
     }
-
-    /* ==================== ANIMATED BACKGROUND ==================== */
-    .bg-canvas {
-        position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
-    }
-    .bg-orb {
-        position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.12;
-        animation: orbFloat 20s ease-in-out infinite;
-    }
-    .bg-orb:nth-child(1) {
-        width: 600px; height: 600px; background: #ef4444;
-        top: -200px; left: -100px; animation-delay: 0s;
-    }
-    .bg-orb:nth-child(2) {
-        width: 500px; height: 500px; background: #dc2626;
-        bottom: -150px; right: -100px; animation-delay: -7s;
-    }
-    .bg-orb:nth-child(3) {
-        width: 400px; height: 400px; background: #f87171;
-        top: 50%; left: 50%; transform: translate(-50%, -50%);
-        animation-delay: -14s; opacity: 0.06;
-    }
-    @keyframes orbFloat {
-        0%, 100% { transform: translate(0, 0) scale(1); }
-        33% { transform: translate(30px, -30px) scale(1.05); }
-        66% { transform: translate(-20px, 20px) scale(0.95); }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
     }
 
-    .bg-grid {
-        position: fixed; inset: 0; z-index: 0;
-        background-image:
-            linear-gradient(rgba(239, 68, 68, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(239, 68, 68, 0.03) 1px, transparent 1px);
-        background-size: 60px 60px;
-        pointer-events: none;
+    /* ─────────────── LAYOUT ─────────────── */
+    .wrap {
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 2rem 1rem 3rem;
     }
-
-    /* ==================== LAYOUT ==================== */
-    .page-wrapper {
-        position: relative; z-index: 1;
-        min-height: 100vh; display: flex; align-items: center; justify-content: center;
-        padding: 2rem 1.25rem;
+    .topbar {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 1.25rem;
     }
-    .page-content {
-        width: 100%; max-width: 560px;
-    }
-
-    /* ==================== BACK BUTTON ==================== */
     .back-link {
         display: inline-flex; align-items: center; gap: 0.5rem;
-        padding: 0.625rem 1.25rem; border-radius: 12px;
-        background: var(--bg-card);
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border: 1px solid var(--glass-border);
-        color: var(--text); text-decoration: none; font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        margin-bottom: 1.5rem;
+        padding: 0.55rem 1rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-soft);
+        background: var(--panel);
+        color: var(--muted); text-decoration: none;
+        font-size: 0.86rem; font-weight: 600;
+        transition: color .15s, border-color .15s;
     }
-    .back-link:hover {
-        color: var(--primary); border-color: var(--border-hover);
-        transform: translateX(-4px);
-        box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15);
-    }
-
-    /* ==================== PAYMENT CARD ==================== */
-    .payment-card {
-        background: var(--bg-card);
-        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--glass-border);
-        overflow: hidden;
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
-        animation: cardSlideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    @keyframes cardSlideUp {
-        from { opacity: 0; transform: translateY(30px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ==================== HEADER ==================== */
-    .payment-header {
-        background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-        padding: 2rem; text-align: center; color: #fff;
-        position: relative; overflow: hidden;
-    }
-    .payment-header::before {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
-        animation: headerShine 4s ease-in-out infinite;
-    }
-    @keyframes headerShine {
-        0%, 100% { transform: translateX(-100%) rotate(25deg); }
-        50% { transform: translateX(100%) rotate(25deg); }
-    }
-    .payment-header-icon {
-        width: 70px; height: 70px; border-radius: 20px;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
+    .back-link:hover { color: var(--text); border-color: var(--border); }
+    .theme-toggle {
+        width: 40px; height: 40px;
+        border-radius: 12px; cursor: pointer; border: 1px solid var(--border-soft);
+        background: var(--panel); color: var(--muted);
         display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1rem; font-size: 2rem;
-        position: relative;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .payment-header h2 {
-        font-size: 1.3rem; font-weight: 800; margin: 0;
-        position: relative;
-    }
-    .payment-header p {
-        opacity: 0.85; margin: 0.5rem 0 0; font-size: 0.9rem;
-        position: relative;
-    }
-
-    /* ==================== BODY ==================== */
-    .payment-body { padding: 1.5rem; }
-
-    /* ==================== APPROVED STATE ==================== */
-    .approved-status {
-        text-align: center; padding: 2rem;
-        background: rgba(16, 185, 129, 0.06);
-        border-radius: var(--radius);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        animation: fadeInScale 0.5s ease;
-    }
-    .approved-status .status-icon {
-        width: 80px; height: 80px; border-radius: 50%;
-        background: rgba(16, 185, 129, 0.1);
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1rem;
-        animation: successPulse 2s ease-in-out infinite;
-    }
-    .approved-status .status-icon i { font-size: 2.5rem; color: var(--success); }
-    .approved-status h3 { font-weight: 700; margin: 0 0 0.5rem; color: var(--text); font-size: 1.15rem; }
-    .approved-status p { color: var(--text-muted); margin: 0; font-size: 0.9rem; }
-    .approved-status .start-btn {
-        display: inline-flex; align-items: center; gap: 0.5rem;
-        margin-top: 1.25rem; padding: 0.85rem 2.5rem; border-radius: 14px;
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: #fff; text-decoration: none;
-        font-weight: 700; font-size: 1rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 20px var(--success-glow);
-        border: none;
-    }
-    .approved-status .start-btn:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 8px 32px var(--success-glow);
-    }
-    @keyframes successPulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.3); }
-        50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
-    }
-    @keyframes fadeInScale {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
-    /* ==================== PENDING STATE ==================== */
-    .pending-status {
-        text-align: center; padding: 2rem;
-        background: rgba(245, 158, 11, 0.06);
-        border-radius: var(--radius);
-        border: 1px solid rgba(245, 158, 11, 0.2);
-        animation: fadeInScale 0.5s ease;
-    }
-    .pending-status .status-icon {
-        width: 80px; height: 80px; border-radius: 50%;
-        background: rgba(245, 158, 11, 0.1);
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1rem;
-        animation: pendingSpin 3s linear infinite;
-    }
-    .pending-status .status-icon i { font-size: 2.5rem; color: var(--warning); }
-    .pending-status h3 { font-weight: 700; margin: 0 0 0.5rem; color: var(--text); font-size: 1.15rem; }
-    .pending-status p { color: var(--text-muted); margin: 0; font-size: 0.9rem; line-height: 1.6; }
-    @keyframes pendingSpin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* ==================== PRICE DISPLAY ==================== */
-    .price-display {
-        text-align: center; padding: 1.5rem; margin-bottom: 1.5rem;
-        background: rgba(239, 68, 68, 0.05);
-        border-radius: var(--radius);
-        border: 1px dashed rgba(239, 68, 68, 0.3);
-        position: relative; overflow: hidden;
-    }
-    .price-display::before {
-        content: ''; position: absolute; inset: 0;
-        background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.08), transparent 70%);
-        pointer-events: none;
-    }
-    .price-display .amount {
-        font-size: 2.5rem; font-weight: 900; color: var(--primary);
-        position: relative;
-        text-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
-    }
-    .price-display .label {
-        font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;
-        position: relative;
-    }
-
-    /* ==================== PAYMENT STEPS ==================== */
-    .payment-steps { margin-bottom: 1.5rem; }
-    .payment-step {
-        display: flex; align-items: flex-start; gap: 1rem;
-        padding: 1rem; border-radius: 12px; margin-bottom: 0.5rem;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--glass-border);
-        transition: all 0.3s ease;
-    }
-    .payment-step:hover {
-        background: rgba(239, 68, 68, 0.04);
-        border-color: rgba(239, 68, 68, 0.15);
-        transform: translateX(4px);
-    }
-    .step-number {
-        width: 32px; height: 32px; border-radius: 50%;
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-        color: #fff;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
-        box-shadow: 0 2px 10px rgba(239, 68, 68, 0.3);
-    }
-    .step-text {
-        font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;
-        padding-top: 0.2rem;
-    }
-    .step-text strong { color: var(--primary); }
-
-    /* ==================== UPLOAD AREA ==================== */
-    .upload-area {
-        border: 2px dashed rgba(239, 68, 68, 0.2); border-radius: var(--radius);
-        padding: 2rem; text-align: center; margin-bottom: 1.5rem;
-        transition: all 0.3s ease; cursor: pointer; position: relative;
-        background: rgba(239, 68, 68, 0.02);
-    }
-    .upload-area:hover {
-        border-color: var(--primary);
-        background: rgba(239, 68, 68, 0.05);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(239, 68, 68, 0.1);
-    }
-    .upload-area.file-selected {
-        border-color: var(--success);
-        background: rgba(16, 185, 129, 0.05);
-    }
-    .upload-area input[type="file"] {
-        position: absolute; inset: 0; opacity: 0; cursor: pointer;
-    }
-    .upload-icon {
-        font-size: 3rem; color: var(--text-muted); margin-bottom: 0.5rem;
-        transition: all 0.3s;
-    }
-    .upload-area:hover .upload-icon { color: var(--primary); transform: translateY(-4px); }
-    .upload-area.file-selected .upload-icon { color: var(--success); }
-    .upload-text {
-        font-weight: 600; color: var(--text); margin-bottom: 0.25rem;
-        transition: color 0.3s;
-    }
-    .upload-area.file-selected .upload-text { color: var(--success); }
-    .upload-hint { font-size: 0.8rem; color: var(--text-muted); }
-
-    /* ==================== SUBMIT BUTTON ==================== */
-    .submit-btn {
-        display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-        width: 100%; padding: 1rem; border-radius: 14px;
-        background: linear-gradient(135deg, #ef4444, #b91c1c);
-        color: #fff; font-weight: 700; font-size: 1rem;
-        border: none; cursor: pointer; transition: all 0.3s ease;
-        box-shadow: 0 4px 20px var(--primary-glow);
-        position: relative; overflow: hidden;
-    }
-    .submit-btn::before {
-        content: ''; position: absolute; inset: 0;
-        background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1) 50%, transparent 60%);
-        transform: translateX(-100%) rotate(25deg);
-        transition: transform 0.6s;
-    }
-    .submit-btn:hover::before { transform: translateX(100%) rotate(25deg); }
-    .submit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 32px var(--primary-glow);
-    }
-    .submit-btn:active { transform: translateY(0) scale(0.98); }
-
-    /* ==================== PROCESS NODES ==================== */
-    .process-strip {
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--glass-border);
-        background: rgba(255,255,255,0.02);
-    }
-    .process-nodes {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        position: relative;
-        padding: 0 0.25rem;
-    }
-    .process-nodes::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: calc(12.5% + 4px);
-        right: calc(12.5% + 4px);
-        height: 3px;
-        background: rgba(255,255,255,0.06);
-        z-index: 0;
-    }
-    .process-node {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        flex: 1;
-        position: relative;
-        z-index: 1;
-    }
-    .node-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         font-size: 1rem;
-        border: 2.5px solid rgba(255,255,255,0.08);
-        background: rgba(15, 18, 35, 0.9);
-        color: var(--text-muted);
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        transition: color .15s;
     }
-    .process-node.completed .node-circle {
-        border-color: var(--success);
-        background: var(--success);
-        color: #fff;
-        box-shadow: 0 4px 12px var(--success-glow);
-    }
-    .process-node.active .node-circle {
-        border-color: var(--primary);
-        background: var(--primary);
-        color: #fff;
-        box-shadow: 0 4px 16px var(--primary-glow);
-        animation: nodeActivePulse 2s ease-in-out infinite;
-    }
-    .process-node.pending .node-circle {
-        border-color: var(--warning);
-        background: var(--warning);
-        color: #fff;
-        box-shadow: 0 4px 12px var(--warning-glow);
-    }
-    @keyframes nodeActivePulse {
-        0%, 100% { box-shadow: 0 4px 16px var(--primary-glow); }
-        50% { box-shadow: 0 4px 28px var(--primary-glow); }
-    }
-    .node-label {
-        font-size: 0.68rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-align: center;
-        line-height: 1.3;
-        max-width: 72px;
-    }
-    .process-node.completed .node-label { color: var(--success); }
-    .process-node.active .node-label { color: var(--primary); font-weight: 700; }
-    .process-node.pending .node-label { color: var(--warning); }
+    .theme-toggle:hover { color: var(--accent); }
 
-    /* ==================== RESPONSIVE ==================== */
-    @media (max-width: 640px) {
-        .page-wrapper { padding: 1rem 0.75rem; align-items: flex-start; padding-top: 1.5rem; }
-        .payment-header { padding: 1.5rem 1rem; }
-        .payment-header-icon { width: 56px; height: 56px; border-radius: 16px; font-size: 1.5rem; }
-        .payment-header h2 { font-size: 1.1rem; }
-        .payment-body { padding: 1.25rem; }
-        .price-display .amount { font-size: 2rem; }
-        .payment-step { padding: 0.85rem; }
-        .upload-area { padding: 1.5rem; }
-        .upload-icon { font-size: 2.5rem; }
-        .back-link { font-size: 0.85rem; padding: 0.5rem 1rem; }
-        .node-circle { width: 34px; height: 34px; font-size: 0.9rem; }
-        .node-label { font-size: 0.62rem; max-width: 60px; }
-        .process-nodes::before { top: 17px; }
+    /* ─────────────── CARD ─────────────── */
+    .card {
+        border-radius: var(--r-lg);
+        border: 1px solid var(--border-soft);
+        background: var(--panel);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        animation: cardIn .4s var(--ease);
     }
-    @media (max-width: 380px) {
-        .payment-header { padding: 1.25rem 0.75rem; }
-        .payment-body { padding: 1rem; }
-        .price-display .amount { font-size: 1.75rem; }
-        .step-text { font-size: 0.85rem; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+    .card-head {
+        padding: 1.75rem 1.75rem 1.4rem;
+        text-align: center;
+        border-bottom: 1px solid var(--border-soft);
+    }
+    .head-icon {
+        width: 60px; height: 60px;
+        margin: 0 auto 0.9rem;
+        border-radius: 18px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--accent-soft); color: var(--accent);
+        font-size: 1.6rem;
+    }
+    .card-head h1 { font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; }
+    .card-head p { margin-top: 0.3rem; font-size: 0.85rem; color: var(--muted); }
+
+    /* ─────────────── STEPPER ─────────────── */
+    .stepper {
+        display: flex;
+        padding: 1.1rem 1.25rem;
+        border-bottom: 1px solid var(--border-soft);
+        background: var(--panel-2);
+    }
+    .step {
+        flex: 1; position: relative;
+        display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    }
+    .step:not(:last-child)::after {
+        content: '';
+        position: absolute; top: 16px; left: calc(50% + 22px); right: calc(-50% + 22px);
+        height: 2px; border-radius: 2px;
+        background: var(--border);
+    }
+    .step.done:not(:last-child)::after { background: var(--success); }
+    .step-dot {
+        width: 32px; height: 32px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; z-index: 1;
+        background: var(--panel); color: var(--muted-2);
+        border: 2px solid var(--border);
+    }
+    .step.done .step-dot { background: var(--success); border-color: var(--success); color: #fff; }
+    .step.now .step-dot {
+        background: var(--accent); border-color: var(--accent); color: var(--on-accent);
+        box-shadow: 0 0 0 4px var(--accent-ring);
+    }
+    .step.wait .step-dot { background: var(--warn); border-color: var(--warn); color: #fff; }
+    .step-lbl {
+        font-size: 0.64rem; font-weight: 600; text-align: center;
+        color: var(--muted-2); line-height: 1.3; max-width: 76px;
+    }
+    .step.done .step-lbl { color: var(--success); }
+    .step.now .step-lbl { color: var(--accent); font-weight: 700; }
+    .step.wait .step-lbl { color: var(--warn); }
+
+    .card-body { padding: 1.5rem 1.5rem 1.75rem; }
+
+    /* ─────────────── NARX ─────────────── */
+    .price {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        padding: 1rem 1.25rem;
+        border-radius: var(--r-md);
+        background: var(--accent-soft);
+        border: 1px solid var(--accent-ring);
+        margin-bottom: 1.25rem;
+    }
+    .price-lbl { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+    .price-val {
+        font-size: 1.5rem; font-weight: 800; color: var(--accent);
+        font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .price-val small { font-size: 0.85rem; font-weight: 700; }
+
+    /* ─────────────── KARTALAR ─────────────── */
+    .pay-cards-lbl {
+        font-size: 0.7rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: .08em;
+        color: var(--muted-2);
+        margin-bottom: 0.6rem;
+    }
+    .pay-card {
+        display: flex; align-items: center; gap: 0.85rem;
+        padding: 0.8rem 0.9rem;
+        border-radius: var(--r-md);
+        border: 1px solid var(--border-soft);
+        background: var(--panel-2);
+        margin-bottom: 0.55rem;
+    }
+    .pay-brand {
+        flex-shrink: 0;
+        min-width: 64px; text-align: center;
+        padding: 0.32rem 0.55rem;
+        border-radius: 8px;
+        font-size: 0.68rem; font-weight: 800; letter-spacing: .06em;
+        color: #fff;
+    }
+    .pay-brand.uzcard { background: #1e6fd9; }
+    .pay-brand.humo   { background: #e8842c; }
+    .pay-brand.visa   { background: #1a1f71; }
+    .pay-num {
+        flex: 1; min-width: 0;
+        font-family: 'Courier New', ui-monospace, monospace;
+        font-size: 0.98rem; font-weight: 700; letter-spacing: .06em;
+        color: var(--text);
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .copy-btn {
+        flex-shrink: 0;
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        padding: 0.42rem 0.75rem;
+        border-radius: 9px; border: 1px solid var(--border-soft);
+        background: var(--panel); color: var(--muted);
+        font-size: 0.74rem; font-weight: 700;
+        cursor: pointer;
+        transition: color .15s, border-color .15s, background .15s;
+    }
+    .copy-btn:hover { color: var(--accent); border-color: var(--accent-ring); }
+    .copy-btn.copied { background: var(--success-soft); border-color: var(--success); color: var(--success); }
+    .pay-owner {
+        font-size: 0.8rem; color: var(--muted);
+        margin: 0.5rem 0 1.4rem; text-align: center;
+    }
+    .pay-owner strong { color: var(--text); }
+
+    /* ─────────────── QADAMLAR ─────────────── */
+    .howto {
+        border-radius: var(--r-md);
+        border: 1px solid var(--border-soft);
+        padding: 0.35rem 0;
+        margin-bottom: 1.4rem;
+    }
+    .howto-item {
+        display: flex; align-items: flex-start; gap: 0.8rem;
+        padding: 0.65rem 1rem;
+    }
+    .howto-item + .howto-item { border-top: 1px solid var(--border-soft); }
+    .howto-n {
+        width: 24px; height: 24px; flex-shrink: 0;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--accent-soft); color: var(--accent);
+        font-size: 0.72rem; font-weight: 800;
+        margin-top: 1px;
+    }
+    .howto-t { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+    .howto-t strong { color: var(--text); }
+
+    /* ─────────────── YUKLASH ─────────────── */
+    .upload {
+        position: relative;
+        border: 2px dashed var(--border);
+        border-radius: var(--r-md);
+        padding: 1.6rem 1rem;
+        text-align: center; cursor: pointer;
+        margin-bottom: 1rem;
+        transition: border-color .2s, background .2s;
+    }
+    .upload:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .upload.picked { border-color: var(--success); background: var(--success-soft); border-style: solid; }
+    .upload input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-ic { font-size: 2rem; color: var(--muted-2); transition: color .2s; }
+    .upload:hover .upload-ic { color: var(--accent); }
+    .upload.picked .upload-ic { color: var(--success); }
+    .upload-preview {
+        display: none;
+        max-height: 150px; max-width: 100%;
+        border-radius: 10px; margin: 0 auto 0.6rem;
+    }
+    .upload.picked .upload-preview { display: block; }
+    .upload.picked .upload-ic { display: none; }
+    .upload-t { font-weight: 700; font-size: 0.9rem; margin-top: 0.4rem; word-break: break-all; }
+    .upload.picked .upload-t { color: var(--success); }
+    .upload-hint { font-size: 0.76rem; color: var(--muted-2); margin-top: 0.2rem; }
+
+    .submit-btn {
+        display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+        width: 100%; padding: 0.9rem;
+        border: none; border-radius: var(--r-md); cursor: pointer;
+        background: var(--accent); color: var(--on-accent);
+        font-family: inherit; font-size: 0.95rem; font-weight: 800;
+        transition: opacity .15s, transform .15s var(--ease);
+    }
+    .submit-btn:hover { opacity: .92; }
+    .submit-btn:active { transform: scale(.985); }
+    .submit-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ─────────────── HOLATLAR ─────────────── */
+    .status {
+        text-align: center;
+        padding: 2rem 1.25rem;
+        border-radius: var(--r-md);
+    }
+    .status-ic {
+        width: 68px; height: 68px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.9rem;
+    }
+    .status h2 { font-size: 1.05rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .status p { font-size: 0.86rem; color: var(--muted); line-height: 1.6; max-width: 340px; margin: 0 auto; }
+
+    .status.ok { background: var(--success-soft); }
+    .status.ok .status-ic { background: var(--success); color: #fff; }
+    .status.ok .go-btn {
+        display: inline-flex; align-items: center; gap: 0.5rem;
+        margin-top: 1.25rem; padding: 0.75rem 2rem;
+        border-radius: var(--r-md); text-decoration: none;
+        background: var(--success); color: #fff;
+        font-weight: 800; font-size: 0.92rem;
+        transition: opacity .15s, transform .15s;
+    }
+    .status.ok .go-btn:hover { opacity: .92; transform: translateY(-1px); }
+
+    .status.wait { background: var(--warn-soft); }
+    .status.wait .status-ic {
+        background: var(--warn); color: #fff;
+        animation: waitTilt 2.6s ease-in-out infinite;
+    }
+    @keyframes waitTilt { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(9deg); } 75% { transform: rotate(-9deg); } }
+
+    /* ─────────────── RAD ETILGAN BANNER ─────────────── */
+    .rejected-note {
+        display: flex; align-items: flex-start; gap: 0.7rem;
+        padding: 0.85rem 1rem;
+        border-radius: var(--r-md);
+        border: 1px solid var(--accent-ring);
+        background: var(--accent-soft);
+        font-size: 0.84rem; line-height: 1.55;
+        color: var(--muted);
+        margin-bottom: 1.25rem;
+    }
+    .rejected-note i { color: var(--accent); font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .rejected-note strong { color: var(--text); display: block; }
+    .rejected-note .reason { color: var(--accent); font-weight: 600; }
+
+    /* ─────────────── TOAST ─────────────── */
+    .toast {
+        position: fixed; bottom: 22px; left: 50%;
+        transform: translateX(-50%) translateY(70px);
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.6rem 1.15rem;
+        border-radius: 999px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+        color: var(--text); font-size: 0.84rem; font-weight: 600;
+        z-index: 100; pointer-events: none;
+        opacity: 0;
+        transition: opacity .25s, transform .25s var(--ease);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%); }
+    .toast i { color: var(--success); }
+
+    /* ─────────────── RESPONSIVE ─────────────── */
+    @media (max-width: 480px) {
+        .wrap { padding: 1.1rem 0.75rem 2rem; }
+        .card-head { padding: 1.4rem 1rem 1.1rem; }
+        .card-body { padding: 1.15rem 1rem 1.4rem; }
+        .stepper { padding: 0.9rem 0.5rem; }
+        .step-lbl { max-width: 62px; font-size: 0.6rem; }
+        .price-val { font-size: 1.3rem; }
+        .pay-card { flex-wrap: wrap; row-gap: 0.5rem; }
+        .pay-num { flex-basis: 100%; order: 3; text-align: center; }
+        .copy-btn { margin-left: auto; }
     }
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="bg-canvas">
-        <div class="bg-orb"></div>
-        <div class="bg-orb"></div>
-        <div class="bg-orb"></div>
-    </div>
-    <div class="bg-grid"></div>
+    <div class="wrap">
 
-    <div class="page-wrapper">
-        <div class="page-content">
+        <div class="topbar">
             <a href="{% url 'lesson_view' test.lesson.pk %}" class="back-link">
-                <i class="bi bi-arrow-left"></i>
-                <span>Orqaga</span>
+                <i class="bi bi-arrow-left"></i> Orqaga
             </a>
+            <button type="button" class="theme-toggle" id="themeToggle" title="Tema">
+                <i class="bi bi-moon-stars" id="themeIcon"></i>
+            </button>
+        </div>
 
-            <div class="payment-card">
-                <div class="payment-header">
-                    <div class="payment-header-icon">
-                        <i class="bi bi-credit-card-2-front-fill"></i>
-                    </div>
-                    <h2>Yakuniy test to'lovi</h2>
-                    <p>{{ test.lesson.title }} — {{ test.lesson.profession.name }}</p>
+        <div class="card">
+            <div class="card-head">
+                <div class="head-icon"><i class="bi bi-credit-card-2-front"></i></div>
+                <h1>Yakuniy test to'lovi</h1>
+                <p>{{ test.lesson.title }} — {{ test.lesson.profession.name }}</p>
+            </div>
+
+            <!-- Jarayon -->
+            <div class="stepper">
+                <div class="step done">
+                    <div class="step-dot"><i class="bi bi-check-lg"></i></div>
+                    <div class="step-lbl">Test topshirildi</div>
+                </div>
+                <div class="step {% if approved_payment %}done{% elif pending_payment %}wait{% else %}now{% endif %}">
+                    <div class="step-dot"><i class="bi bi-credit-card"></i></div>
+                    <div class="step-lbl">To'lov</div>
+                </div>
+                <div class="step {% if approved_payment %}done{% elif pending_payment %}now{% endif %}">
+                    <div class="step-dot"><i class="bi bi-patch-check"></i></div>
+                    <div class="step-lbl">Tasdiqlash</div>
+                </div>
+                <div class="step {% if approved_payment %}now{% endif %}">
+                    <div class="step-dot"><i class="bi bi-arrow-repeat"></i></div>
+                    <div class="step-lbl">Qayta topshirish</div>
+                </div>
+            </div>
+
+            <div class="card-body">
+                {% if approved_payment %}
+                <div class="status ok">
+                    <div class="status-ic"><i class="bi bi-check-lg"></i></div>
+                    <h2>To'lov tasdiqlangan!</h2>
+                    <p>Siz yakuniy testni qayta topshirishingiz mumkin. Omad!</p>
+                    <a href="{% url 'start_test' test.pk %}" class="go-btn">
+                        <i class="bi bi-play-fill"></i> Testni boshlash
+                    </a>
                 </div>
 
-                <!-- Process Nodes -->
-                <div class="process-strip">
-                    <div class="process-nodes">
-                        <div class="process-node completed">
-                            <div class="node-circle"><i class="bi bi-shield-lock"></i></div>
-                            <div class="node-label">Test topshirish</div>
-                        </div>
-                        <div class="process-node {% if approved_payment %}completed{% elif pending_payment %}pending{% else %}active{% endif %}">
-                            <div class="node-circle"><i class="bi bi-credit-card"></i></div>
-                            <div class="node-label">To'lov</div>
-                        </div>
-                        <div class="process-node {% if approved_payment %}completed{% elif pending_payment %}active{% endif %}">
-                            <div class="node-circle"><i class="bi bi-check-circle"></i></div>
-                            <div class="node-label">Tasdiqlash</div>
-                        </div>
-                        <div class="process-node {% if approved_payment %}active{% endif %}">
-                            <div class="node-circle"><i class="bi bi-arrow-repeat"></i></div>
-                            <div class="node-label">Qayta topshirish</div>
-                        </div>
+                {% elif pending_payment %}
+                <div class="status wait">
+                    <div class="status-ic"><i class="bi bi-hourglass-split"></i></div>
+                    <h2>To'lov tekshirilmoqda</h2>
+                    <p>Chekingiz qabul qilindi va admin tomonidan ko'rib chiqilmoqda.
+                       Tasdiqlangach testni qayta topshira olasiz.</p>
+                </div>
+
+                {% else %}
+                {% if rejected_payment %}
+                <div class="rejected-note">
+                    <i class="bi bi-x-octagon-fill"></i>
+                    <div>
+                        <strong>Oldingi chekingiz rad etildi</strong>
+                        {% if rejected_payment.reject_reason %}
+                        Sabab: <span class="reason">{{ rejected_payment.reject_reason }}</span>.
+                        {% endif %}
+                        To'lovni tekshirib, to'g'ri chekni qaytadan yuklang.
+                    </div>
+                </div>
+                {% endif %}
+                <!-- Narx -->
+                <div class="price">
+                    <span class="price-lbl">Qayta topshirish narxi</span>
+                    <span class="price-val">65 000 <small>so'm</small></span>
+                </div>
+
+                <!-- To'lov kartalari -->
+                <div class="pay-cards-lbl">To'lov uchun kartalar</div>
+
+                <div class="pay-card">
+                    <span class="pay-brand uzcard">UZCARD</span>
+                    <span class="pay-num">5614 6887 1448 3210</span>
+                    <button type="button" class="copy-btn" data-card="5614688714483210">
+                        <i class="bi bi-copy"></i> Nusxa
+                    </button>
+                </div>
+                <div class="pay-card">
+                    <span class="pay-brand humo">HUMO</span>
+                    <span class="pay-num">9860 3501 4997 0765</span>
+                    <button type="button" class="copy-btn" data-card="9860350149970765">
+                        <i class="bi bi-copy"></i> Nusxa
+                    </button>
+                </div>
+                <div class="pay-card">
+                    <span class="pay-brand visa">VISA</span>
+                    <span class="pay-num">4413 5976 0211 3852</span>
+                    <button type="button" class="copy-btn" data-card="4413597602113852">
+                        <i class="bi bi-copy"></i> Nusxa
+                    </button>
+                </div>
+                <div class="pay-owner">Karta egasi: <strong>Husan Suyunov</strong></div>
+
+                <!-- Qadamlar -->
+                <div class="howto">
+                    <div class="howto-item">
+                        <span class="howto-n">1</span>
+                        <span class="howto-t">Yuqoridagi kartalardan biriga <strong>65 000 so'm</strong> o'tkazing</span>
+                    </div>
+                    <div class="howto-item">
+                        <span class="howto-n">2</span>
+                        <span class="howto-t">To'lov <strong>chekining rasmini</strong> pastga yuklang</span>
+                    </div>
+                    <div class="howto-item">
+                        <span class="howto-n">3</span>
+                        <span class="howto-t">Admin tasdiqlagach — <strong>testni qayta topshiring</strong></span>
                     </div>
                 </div>
 
-                <div class="payment-body">
-                    {% if approved_payment %}
-                    <div class="approved-status">
-                        <div class="status-icon">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </div>
-                        <h3>To'lov tasdiqlangan!</h3>
-                        <p>Siz yakuniy testni qayta topshirishingiz mumkin.</p>
-                        <a href="{% url 'start_test' test.pk %}" class="start-btn">
-                            <i class="bi bi-play-fill"></i> Testni boshlash
-                        </a>
+                <!-- Chek yuklash -->
+                <form method="POST" enctype="multipart/form-data" id="payForm">
+                    {% csrf_token %}
+                    <div class="upload" id="uploadArea">
+                        <input type="file" name="receipt_image" accept="image/*" required id="receiptInput">
+                        <img class="upload-preview" id="uploadPreview" alt="">
+                        <div class="upload-ic"><i class="bi bi-cloud-arrow-up"></i></div>
+                        <div class="upload-t" id="uploadText">To'lov chekini yuklang</div>
+                        <div class="upload-hint">JPG, PNG yoki HEIC — bosing yoki tashlang</div>
                     </div>
-
-                    {% elif pending_payment %}
-                    <div class="pending-status">
-                        <div class="status-icon">
-                            <i class="bi bi-hourglass-split"></i>
-                        </div>
-                        <h3>To'lov kutilmoqda</h3>
-                        <p>To'lov chekingiz admin tomonidan tekshirilmoqda. Iltimos, kuting.</p>
-                    </div>
-
-                    {% else %}
-                    <div class="price-display">
-                        <div class="amount">43,000 so'm</div>
-                        <div class="label">Qayta topshirish narxi</div>
-                    </div>
-
-                    <!-- Card info -->
-                    <div style="background:rgba(239,68,68,0.06);border:1.5px dashed rgba(239,68,68,0.35);border-radius:14px;padding:1.1rem 1.25rem;margin-bottom:1.5rem;">
-                        <div style="font-size:0.78rem;color:#94a3b8;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:.6rem;">To'lov kartasi</div>
-                        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-                            <div style="background:linear-gradient(135deg,#ef4444,#b91c1c);border-radius:10px;padding:.35rem .7rem;font-size:.75rem;font-weight:800;color:#fff;letter-spacing:.08em;">UZCARD</div>
-                            <div style="font-size:1.15rem;font-weight:800;letter-spacing:.12em;color:#eef2ff;font-family:monospace;">5614 6867 0726 6253</div>
-                        </div>
-                        <div style="margin-top:.45rem;font-size:.88rem;color:#94a3b8;">Egasi: <strong style="color:#eef2ff;">Husan Suyunov</strong></div>
-                    </div>
-
-                    <div class="payment-steps">
-                        <div class="payment-step">
-                            <div class="step-number">1</div>
-                            <div class="step-text"><strong>43,000 so'm</strong> miqdorida to'lov qiling</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number">2</div>
-                            <div class="step-text">To'lov <strong>cheki rasmini</strong> pastda yuklang</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number">3</div>
-                            <div class="step-text">Admin <strong>tasdiqlashi</strong>ni kuting</div>
-                        </div>
-                        <div class="payment-step">
-                            <div class="step-number">4</div>
-                            <div class="step-text">Tasdiqlangach — <strong>qayta topshiring!</strong></div>
-                        </div>
-                    </div>
-
-                    <form method="POST" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <div class="upload-area" id="uploadArea">
-                            <input type="file" name="receipt_image" accept="image/*" required id="receiptInput">
-                            <div class="upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                            <div class="upload-text" id="uploadText">To'lov chekini yuklang</div>
-                            <div class="upload-hint">JPG, PNG, HEIC formatda</div>
-                        </div>
-                        <button type="submit" class="submit-btn">
-                            <i class="bi bi-send-fill"></i>
-                            Chekni yuborish
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="bi bi-send"></i> Chekni yuborish
+                    </button>
+                </form>
+                {% endif %}
             </div>
         </div>
     </div>
 
+    <div class="toast" id="toast"><i class="bi bi-check-circle-fill"></i><span id="toastText"></span></div>
+
     <script>
-    document.getElementById('receiptInput')?.addEventListener('change', function() {
-        var text = document.getElementById('uploadText');
-        var area = document.getElementById('uploadArea');
-        if (this.files && this.files[0]) {
-            text.textContent = this.files[0].name;
-            area.classList.add('file-selected');
-        } else {
-            text.textContent = "To'lov chekini yuklang";
-            area.classList.remove('file-selected');
+    (function () {
+        'use strict';
+
+        /* ── Tema almashtirish (base.html bilan bir xil localStorage kaliti) ── */
+        var toggle = document.getElementById('themeToggle');
+        var icon = document.getElementById('themeIcon');
+        function syncIcon() {
+            var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+            icon.className = dark ? 'bi bi-sun' : 'bi bi-moon-stars';
         }
-    });
+        syncIcon();
+        toggle.addEventListener('click', function () {
+            var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            syncIcon();
+        });
+
+        /* ── Toast ── */
+        var toast = document.getElementById('toast');
+        var toastText = document.getElementById('toastText');
+        var toastTimer = null;
+        function showToast(msg) {
+            toastText.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () { toast.classList.remove('show'); }, 2200);
+        }
+
+        /* ── Karta raqamini nusxalash ── */
+        function copyText(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                return navigator.clipboard.writeText(text);
+            }
+            return new Promise(function (resolve, reject) {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;opacity:0;';
+                document.body.appendChild(ta);
+                ta.select();
+                try { document.execCommand('copy') ? resolve() : reject(); }
+                catch (e) { reject(e); }
+                finally { ta.remove(); }
+            });
+        }
+        document.querySelectorAll('.copy-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                copyText(btn.dataset.card).then(function () {
+                    btn.classList.add('copied');
+                    btn.innerHTML = '<i class="bi bi-check-lg"></i> Nusxalandi';
+                    showToast('Karta raqami nusxalandi');
+                    setTimeout(function () {
+                        btn.classList.remove('copied');
+                        btn.innerHTML = '<i class="bi bi-copy"></i> Nusxa';
+                    }, 2000);
+                }).catch(function () {
+                    showToast('Nusxalab bo\'lmadi — qo\'lda kiriting');
+                });
+            });
+        });
+
+        /* ── Chek yuklash: preview + nom ── */
+        var input = document.getElementById('receiptInput');
+        if (input) {
+            var area = document.getElementById('uploadArea');
+            var text = document.getElementById('uploadText');
+            var preview = document.getElementById('uploadPreview');
+            var form = document.getElementById('payForm');
+            var submitBtn = document.getElementById('submitBtn');
+
+            input.addEventListener('change', function () {
+                var f = this.files && this.files[0];
+                if (f) {
+                    text.textContent = f.name;
+                    area.classList.add('picked');
+                    if (f.type.indexOf('image/') === 0) {
+                        preview.src = URL.createObjectURL(f);
+                    }
+                } else {
+                    text.textContent = "To'lov chekini yuklang";
+                    area.classList.remove('picked');
+                    preview.removeAttribute('src');
+                }
+            });
+
+            form.addEventListener('submit', function () {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Yuborilmoqda…';
+            });
+        }
+    })();
     </script>
 </body>
 </html>

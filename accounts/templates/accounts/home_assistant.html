@@ -1,0 +1,93 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Bosh sahifa — Yordamchi admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/role_home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="dash rhome">
+  <div class="dash-shell">
+
+    <!-- HERO -->
+    <section class="rh-hero">
+      <div class="rh-hero-main">
+        <span class="rh-eyebrow"><span class="dot"></span> Yordamchi admin paneli</span>
+        <h1 class="rh-title">Xush kelibsiz, {{ user.first_name|default:user.username }}! 👋</h1>
+        <p class="rh-sub">
+          Sizga biriktirilgan ishlar va so'rovlar holati bir qarashda.
+          {% if pending_total %}Hozirda <b>{{ pending_total }}</b> ta ish ko'rib chiqishni kutmoqda.{% endif %}
+        </p>
+        <div class="rh-cta">
+          <a href="{% url 'yordamchi_dashboard' %}" class="rh-btn primary"><i class="bi bi-speedometer2"></i> Yordamchi paneli</a>
+          <a href="{% url 'yordamchi_students' %}" class="rh-btn ghost"><i class="bi bi-mortarboard"></i> O'quvchilar</a>
+          <a href="{% url 'yordamchi_audit_log' %}" class="rh-btn ghost"><i class="bi bi-clock-history"></i> Harakatlar tarixi</a>
+        </div>
+      </div>
+      <div class="rh-hero-side">
+        <div class="rh-bigstat {% if pending_total %}warn{% endif %}">
+          <i class="bi bi-hourglass-split"></i>
+          <b>{{ pending_total }}</b>
+          <span>Kutilayotgan ishlar</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATLAR -->
+    <section class="rh-section">
+      <div class="rh-statgrid">
+        {% for c in stat_cards %}
+        <div class="rh-stat {{ c.color }}">
+          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}"></i></div>
+          <b>{{ c.value }}</b>
+          <span>{{ c.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- KUTILAYOTGAN ISHLAR -->
+    <section class="rh-card rh-section">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-list-check"></i> Kutilayotgan ishlar</h2>
+      </div>
+      {% if pending_total %}
+      <ul class="rh-list">
+        {% for p in pending %}
+        <li>
+          <a href="{{ p.url }}" class="rh-list-row">
+            <span class="rh-list-ic"><i class="bi bi-{{ p.icon }}"></i></span>
+            <span class="rh-list-label">{{ p.label }}</span>
+            <span class="rh-badge {% if p.count %}hot{% endif %}">{{ p.count }}</span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
+      {% endif %}
+    </section>
+
+    <!-- TEZKOR HAVOLALAR -->
+    <section class="rh-card rh-section">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-lightning-charge"></i> Tezkor havolalar</h2>
+      </div>
+      <div class="rh-quickgrid">
+        <a href="{% url 'yordamchi_students' %}" class="rh-quick"><i class="bi bi-mortarboard"></i> O'quvchilar</a>
+        <a href="{% url 'yordamchi_teachers' %}" class="rh-quick"><i class="bi bi-person-video3"></i> O'qituvchilar</a>
+        <a href="{% url 'yordamchi_parents' %}" class="rh-quick"><i class="bi bi-people"></i> Ota-onalar</a>
+        <a href="{% url 'yordamchi_homework' %}" class="rh-quick"><i class="bi bi-journal-check"></i> Uy vazifalar</a>
+        <a href="{% url 'yordamchi_tests' %}" class="rh-quick"><i class="bi bi-patch-question"></i> Testlar</a>
+        <a href="{% url 'yordamchi_certificates' %}" class="rh-quick"><i class="bi bi-patch-check"></i> Sertifikatlar</a>
+        <a href="{% url 'yordamchi_books' %}" class="rh-quick"><i class="bi bi-book"></i> Kutubxona</a>
+        <a href="{% url 'yordamchi_help' %}" class="rh-quick"><i class="bi bi-life-preserver"></i> Yordam so'rovlari</a>
+      </div>
+    </section>
+
+  </div>
+</div>
+{% endblock %}

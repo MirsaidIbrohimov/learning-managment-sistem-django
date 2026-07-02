@@ -1093,6 +1093,203 @@ def logout_view(request):
     return redirect('login')
 
 
+# ============================================================
+# ROLGA XOS BOSH SAHIFALAR (home_view ichidan chaqiriladi)
+# ============================================================
+
+def _safe_photo_url(obj):
+    """Rasm URL'ini xavfsiz olish (fayl o'chirilgan bo'lsa ham 500 bermaydi)."""
+    try:
+        return obj.photo.url if obj.photo else ''
+    except Exception:
+        return ''
+
+
+def _home_teacher(request):
+    """O'qituvchi uchun bosh sahifa: kurslari, tekshirilmagan vazifalar, faollik."""
+    user = request.user
+    professions = user.teaching_professions.annotate(
+        lesson_total=Count('lessons', distinct=True),
+        student_total=Count(
+            'enrollments',
+            filter=Q(enrollments__user__role='student'),
+            distinct=True,
+        ),
+    )
+    my_courses = []
+    for p in professions[:8]:
+        my_courses.append({
+            'id': p.pk,
+            'name': p.name,
+            'photo': _safe_photo_url(p),
+            'lesson_total': p.lesson_total,
+            'student_total': p.student_total,
+        })
+
+    total_students = CourseEnrollment.objects.filter(
+        profession__teachers=user, user__role='student'
+    ).values('user').distinct().count()
+
+    pending_homeworks = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__teachers=user, status='pending'
+    ).count()
+
+    pending_speaking = 0
+    try:
+        pending_speaking = SpeakingSubmission.objects.filter(
+            speaking_task__lesson__profession__teachers=user, status='pending'
+        ).count()
+    except Exception:
+        pending_speaking = 0
+
+    today = timezone.localdate()
+    tests_today = TestResult.objects.filter(
+        test__lesson__profession__teachers=user, completed_at__date=today
+    ).count()
+
+    recent_submissions = list(
+        HomeworkSubmission.objects.filter(
+            homework__lesson__profession__teachers=user
+        ).select_related(
+            'student', 'homework', 'homework__lesson'
+        ).order_by('-submitted_at')[:6]
+    )
+
+    stat_cards = [
+        {'label': "Kurslarim", 'value': len(my_courses), 'icon': 'collection-play', 'color': 'accent'},
+        {'label': "O'quvchilarim", 'value': total_students, 'icon': 'people', 'color': 'accent2'},
+        {'label': "Tekshirilmagan vazifa", 'value': pending_homeworks, 'icon': 'journal-x', 'color': 'warning'},
+        {'label': "Bugungi test natijalari", 'value': tests_today, 'icon': 'patch-check', 'color': 'success'},
+    ]
+
+    return render(request, 'accounts/home_teacher.html', {
+        'my_courses': my_courses,
+        'stat_cards': stat_cards,
+        'pending_homeworks': pending_homeworks,
+        'pending_speaking': pending_speaking,
+        'recent_submissions': recent_submissions,
+    })
+
+
+def _home_admin(request):
+    """Admin uchun bosh sahifa: umumiy statistika, kutilayotgan ishlar, faollik."""
+    stats = cache.get('home_admin_stats')
+    if stats is None:
+        stats = {
+            'students': CustomUser.objects.filter(role='student').count(),
+            'teachers': CustomUser.objects.filter(role='teacher').count(),
+            'courses': Profession.objects.count(),
+            'lessons': Lesson.objects.count(),
+            'blocked': CustomUser.objects.filter(is_blocked=True).count(),
+            'enrollments': CourseEnrollment.objects.count(),
+        }
+        cache.set('home_admin_stats', stats, 120)
+
+    week_ago = timezone.now() - timedelta(days=7)
+    new_users_week = CustomUser.objects.filter(date_joined__gte=week_ago).count()
+
+    pending_items = [
+        {'label': "Tekshirilmagan uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
+         'url_name': 'admin_dashboard', 'icon': 'journal-x'},
+        {'label': "Sertifikat so'rovlari", 'count': CertificateRequest.objects.filter(status='pending').count(),
+         'url_name': 'admin_certificate_requests', 'icon': 'patch-check'},
+        {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
+         'url_name': 'admin_help_requests', 'icon': 'life-preserver'},
+        {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
+         'url_name': 'admin_applications', 'icon': 'inbox'},
+        {'label': "Parol tiklash so'rovlari", 'count': PasswordResetRequest.objects.filter(status='pending').count(),
+         'url_name': 'admin_password_reset_requests', 'icon': 'key'},
+        {'label': "Kursga yozilish so'rovlari", 'count': CourseEnrollmentRequest.objects.filter(status='pending').count(),
+         'url_name': 'admin_enrollment_requests', 'icon': 'person-plus'},
+        {'label': "Premium so'rovlari", 'count': PremiumRequest.objects.filter(status='pending').count(),
+         'url_name': 'admin_premium_management', 'icon': 'gem'},
+    ]
+    pending = []
+    for item in pending_items:
+        try:
+            item['url'] = reverse(item['url_name'])
+        except Exception:
+            item['url'] = '#'
+        pending.append(item)
+    pending_total = sum(i['count'] for i in pending)
+
+    recent_users = list(
+        CustomUser.objects.order_by('-date_joined')[:6]
+    )
+    recent_activity = list(
+        ActivityLog.objects.select_related('user').order_by('-created_at')[:8]
+    )
+
+    stat_cards = [
+        {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
+        {'label': "O'qituvchilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
+        {'label': "Kurslar", 'value': stats['courses'], 'icon': 'collection-play', 'color': 'success'},
+        {'label': "Darslar", 'value': stats['lessons'], 'icon': 'journal-bookmark', 'color': 'accent'},
+        {'label': "Yozilishlar", 'value': stats['enrollments'], 'icon': 'person-check', 'color': 'accent2'},
+        {'label': "Bloklanganlar", 'value': stats['blocked'], 'icon': 'slash-circle', 'color': 'danger'},
+    ]
+
+    return render(request, 'accounts/home_admin.html', {
+        'stat_cards': stat_cards,
+        'pending': pending,
+        'pending_total': pending_total,
+        'new_users_week': new_users_week,
+        'recent_users': recent_users,
+        'recent_activity': recent_activity,
+    })
+
+
+def _home_assistant(request):
+    """Yordamchi admin uchun bosh sahifa: kutilayotgan ishlar va tezkor havolalar."""
+    pending_items = [
+        {'label': "Uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
+         'url_name': 'yordamchi_homework', 'icon': 'journal-x'},
+        {'label': "Sertifikatlar", 'count': CertificateRequest.objects.filter(status='pending').count(),
+         'url_name': 'yordamchi_certificates', 'icon': 'patch-check'},
+        {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
+         'url_name': 'yordamchi_help', 'icon': 'life-preserver'},
+        {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
+         'url_name': 'yordamchi_applications', 'icon': 'inbox'},
+        {'label': "Boshqa so'rovlar", 'count': (
+            PasswordResetRequest.objects.filter(status='pending').count()
+            + CourseEnrollmentRequest.objects.filter(status='pending').count()
+            + CourseUnenrollRequest.objects.filter(status='pending').count()
+            + PremiumRequest.objects.filter(status='pending').count()
+        ), 'url_name': 'yordamchi_requests', 'icon': 'ui-checks'},
+    ]
+    pending = []
+    for item in pending_items:
+        try:
+            item['url'] = reverse(item['url_name'])
+        except Exception:
+            item['url'] = '#'
+        pending.append(item)
+    pending_total = sum(i['count'] for i in pending)
+
+    stats = cache.get('home_assistant_stats')
+    if stats is None:
+        stats = {
+            'students': CustomUser.objects.filter(role='student').count(),
+            'teachers': CustomUser.objects.filter(role='teacher').count(),
+            'parents': Parent.objects.count(),
+            'blocked': CustomUser.objects.filter(is_blocked=True).count(),
+        }
+        cache.set('home_assistant_stats', stats, 120)
+
+    stat_cards = [
+        {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
+        {'label': "O'qituvchilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
+        {'label': "Ota-onalar", 'value': stats['parents'], 'icon': 'people', 'color': 'success'},
+        {'label': "Bloklanganlar", 'value': stats['blocked'], 'icon': 'slash-circle', 'color': 'danger'},
+    ]
+
+    return render(request, 'accounts/home_assistant.html', {
+        'stat_cards': stat_cards,
+        'pending': pending,
+        'pending_total': pending_total,
+    })
+
+
 def home_view(request):
     # Landing sahifa — login qilmagan foydalanuvchilar uchun
     if not request.user.is_authenticated:
@@ -1142,7 +1339,19 @@ def home_view(request):
             'success': success,
         })
 
-    # --- Asosiy ma'lumotlar (login qilgan foydalanuvchilar) ---
+    # --- Rolga qarab bosh sahifa: har bir rol o'z home ko'rinishini ko'radi ---
+    #   admin           -> accounts/home_admin.html
+    #   assistant_admin -> accounts/home_assistant.html
+    #   teacher         -> accounts/home_teacher.html
+    #   student         -> quyidagi premium home (accounts/home.html)
+    if request.user.role == 'admin':
+        return _home_admin(request)
+    if request.user.role == 'assistant_admin':
+        return _home_assistant(request)
+    if request.user.role == 'teacher':
+        return _home_teacher(request)
+
+    # --- Asosiy ma'lumotlar (login qilgan o'quvchilar uchun) ---
     professions = Profession.objects.prefetch_related('teachers').annotate(
         lesson_count=Count('lessons')
     ).all()[:6]
@@ -8127,6 +8336,7 @@ def homework_chat(request, pk):
                 messages.error(request, "Fayl yoki matn kiriting!")
             return redirect('homework_chat', pk=pk)
     
+
     resubmit_cost = 30 if request.user.is_premium else 50
     return render(request, 'accounts/homework_chat.html', {
         'submission': submission,
@@ -14071,11 +14281,19 @@ def final_test_payment(request, pk):
     approved_payment = FinalTestPayment.objects.filter(
         student=request.user, test=test, status='approved'
     ).exists()
-    
+
+    # Oxirgi rad etilgan to'lov — o'quvchiga sababini ko'rsatish uchun
+    rejected_payment = None
+    if not pending_payment and not approved_payment:
+        rejected_payment = FinalTestPayment.objects.filter(
+            student=request.user, test=test, status='rejected'
+        ).first()
+
     context = {
         'test': test,
         'pending_payment': pending_payment,
         'approved_payment': approved_payment,
+        'rejected_payment': rejected_payment,
     }
     return render(request, 'accounts/lessons/final_test_payment.html', context)
 
