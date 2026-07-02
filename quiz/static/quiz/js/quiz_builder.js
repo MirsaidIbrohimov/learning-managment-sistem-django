@@ -33,9 +33,14 @@
         titleInput: document.getElementById('qzTitleInput'),
         description: document.getElementById('qzDescription'),
         lessonId: document.getElementById('qzLessonId'),
-        lessonSearch: document.getElementById('qzLessonSearch'),
-        lessonResults: document.getElementById('qzLessonResults'),
+        lessonPicker: document.getElementById('qzLessonPicker'),
         lessonSelected: document.getElementById('qzLessonSelected'),
+        courseSelect: document.getElementById('qzCourseSelect'),
+        sectionSelect: document.getElementById('qzSectionSelect'),
+        lessonListWrap: document.getElementById('qzLessonListWrap'),
+        lessonList: document.getElementById('qzLessonList'),
+        newLessonTitle: document.getElementById('qzNewLessonTitle'),
+        createLessonBtn: document.getElementById('qzCreateLessonBtn'),
         timeLimit: document.getElementById('qzTimeLimit'),
         passingScore: document.getElementById('qzPassingScore'),
         attemptsAllowed: document.getElementById('qzAttemptsAllowed'),
@@ -221,11 +226,12 @@
             });
     }
 
+    let courseTree = []; // [{id, name, sections:[{id, title}]}]
+
     function showSelectedLesson(label) {
         els.lessonSelected.innerHTML = `Tanlangan dars: ${label} <a href="#" class="qz-lesson-clear">(bekor qilish)</a>`;
         els.lessonSelected.classList.remove('d-none');
-        els.lessonSearch.value = '';
-        els.lessonResults.classList.add('d-none');
+        els.lessonPicker.classList.add('d-none');
     }
 
     function selectLesson(lesson) {
@@ -238,79 +244,95 @@
         els.lessonId.value = '';
         els.lessonSelected.classList.add('d-none');
         els.lessonSelected.textContent = '';
+        els.lessonPicker.classList.remove('d-none');
     }
 
-    function runLessonSearch() {
-        const term = els.lessonSearch.value.trim();
-        const params = new URLSearchParams();
-        if (term) params.set('search', term);
+    async function loadCourseTree() {
+        try {
+            courseTree = await window.QuizApi.get('quizzes/course-tree/');
+            els.courseSelect.innerHTML = '<option value="">Kurs tanlang...</option>' +
+                courseTree.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+        } catch (err) {
+            window.QuizApi.toast(err.message, 'error');
+        }
+    }
+
+    function onCourseChange() {
+        const profId = Number(els.courseSelect.value) || null;
+        const prof = courseTree.find((p) => p.id === profId);
+
+        els.sectionSelect.innerHTML = '<option value="">Bo\'limsiz</option>' +
+            (prof ? prof.sections.map((s) => `<option value="${s.id}">${escapeHtml(s.title)}</option>`).join('') : '');
+        els.sectionSelect.disabled = !prof;
+        els.newLessonTitle.disabled = !prof;
+        els.createLessonBtn.disabled = !prof;
+
+        if (prof) {
+            loadExistingLessons();
+        } else {
+            els.lessonListWrap.classList.add('d-none');
+        }
+    }
+
+    function onSectionChange() {
+        if (els.courseSelect.value) loadExistingLessons();
+    }
+
+    async function loadExistingLessons() {
+        const profId = els.courseSelect.value;
+        const secId = els.sectionSelect.value;
+        if (!profId) return;
+
+        const params = new URLSearchParams({ profession_id: profId });
+        if (secId) params.set('section_id', secId);
         if (quizId) params.set('current_quiz_id', quizId);
-        els.lessonResults.classList.remove('d-none');
-        els.lessonResults.innerHTML = '<div class="px-3 py-2 text-muted small">Yuklanmoqda...</div>';
-        window.QuizApi.get(`quizzes/available-lessons/?${params.toString()}`)
-            .then((lessons) => {
-                if (!lessons.length) {
-                    els.lessonResults.innerHTML = term
-                        ? '<div class="px-3 py-3 text-muted small text-center">Mos dars topilmadi.</div>'
-                        : '<div class="px-3 py-3 text-muted small text-center">Bo\'sh.</div>';
-                    return;
-                }
-                renderGroupedLessons(lessons);
-            })
-            .catch((err) => {
-                els.lessonResults.innerHTML = `<div class="px-3 py-2 text-danger small">${escapeHtml(err.message)}</div>`;
-            });
+
+        els.lessonListWrap.classList.remove('d-none');
+        els.lessonList.innerHTML = '<div class="text-muted small px-2 py-1">Yuklanmoqda...</div>';
+        try {
+            const lessons = await window.QuizApi.get(`quizzes/available-lessons/?${params.toString()}`);
+            if (!lessons.length) {
+                els.lessonList.innerHTML = '<div class="text-muted small px-2 py-1">Bu bo\'limda bo\'sh test darsi yo\'q — pastdan yangisini yarating.</div>';
+                return;
+            }
+            els.lessonList.innerHTML = '';
+            for (const lesson of lessons) {
+                const item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'list-group-item list-group-item-action py-1 px-2 small';
+                const legacyNote = lesson.has_legacy_test ? ' (eski testi bor)' : '';
+                item.textContent = lesson.title + legacyNote;
+                item.addEventListener('click', () => selectLesson(lesson));
+                els.lessonList.appendChild(item);
+            }
+        } catch (err) {
+            els.lessonList.innerHTML = `<div class="text-danger small px-2">${escapeHtml(err.message)}</div>`;
+        }
     }
 
-    function renderGroupedLessons(lessons) {
-        // Group by profession → section (within profession). Lessons without
-        // a section land in a synthetic "Boshqa darslar" bucket per profession
-        // so the picker still shows them visibly.
-        const byProf = new Map();
-        for (const l of lessons) {
-            if (!byProf.has(l.profession_id)) {
-                byProf.set(l.profession_id, { name: l.profession_name, sections: new Map() });
-            }
-            const prof = byProf.get(l.profession_id);
-            const secKey = l.section_id || '__none__';
-            const secLabel = l.section_name || "Bo'limsiz darslar";
-            if (!prof.sections.has(secKey)) {
-                prof.sections.set(secKey, { name: secLabel, lessons: [] });
-            }
-            prof.sections.get(secKey).lessons.push(l);
+    async function createLessonSlot() {
+        const profId = els.courseSelect.value;
+        const secId = els.sectionSelect.value;
+        const title = els.newLessonTitle.value.trim();
+        if (!profId || !title) {
+            window.QuizApi.toast("Kurs va dars nomini kiriting.", 'error');
+            return;
         }
-
-        const frag = document.createDocumentFragment();
-        for (const [, prof] of byProf) {
-            const profHeader = document.createElement('div');
-            profHeader.className = 'qz-lp-prof';
-            profHeader.innerHTML = `<i class="bi bi-mortarboard-fill"></i> <span>${escapeHtml(prof.name)}</span>`;
-            frag.appendChild(profHeader);
-
-            for (const [, sec] of prof.sections) {
-                const secHeader = document.createElement('div');
-                secHeader.className = 'qz-lp-section';
-                secHeader.innerHTML = `<i class="bi bi-folder2"></i> ${escapeHtml(sec.name)} <span class="qz-lp-count">${sec.lessons.length}</span>`;
-                frag.appendChild(secHeader);
-                for (const lesson of sec.lessons) {
-                    const item = document.createElement('button');
-                    item.type = 'button';
-                    item.className = 'qz-lp-lesson';
-                    const legacyBadge = lesson.has_legacy_test
-                        ? '<span class="qz-lp-tag warning"><i class="bi bi-exclamation-triangle-fill"></i> eski testi bor</span>'
-                        : '';
-                    item.innerHTML = `
-                        <span class="qz-lp-lesson-ico"><i class="bi bi-journal-text"></i></span>
-                        <span class="qz-lp-lesson-text">${escapeHtml(lesson.title)}</span>
-                        ${legacyBadge}
-                    `;
-                    item.addEventListener('click', () => selectLesson(lesson));
-                    frag.appendChild(item);
-                }
-            }
+        els.createLessonBtn.disabled = true;
+        try {
+            const lesson = await window.QuizApi.post('quizzes/create-lesson-slot/', {
+                profession_id: Number(profId),
+                section_id: secId ? Number(secId) : null,
+                title,
+            });
+            window.QuizApi.toast('Yangi dars yaratildi va tanlandi.');
+            els.newLessonTitle.value = '';
+            selectLesson(lesson);
+        } catch (err) {
+            window.QuizApi.toast(err.message, 'error');
+        } finally {
+            els.createLessonBtn.disabled = false;
         }
-        els.lessonResults.innerHTML = '';
-        els.lessonResults.appendChild(frag);
     }
 
     function escapeHtml(s) {
@@ -379,27 +401,18 @@
     });
     attachModalEl.addEventListener('show.bs.modal', runBankSearch);
 
-    let lessonSearchDebounce = null;
-    els.lessonSearch.addEventListener('input', () => {
-        clearTimeout(lessonSearchDebounce);
-        lessonSearchDebounce = setTimeout(runLessonSearch, 300);
-    });
-    els.lessonSearch.addEventListener('focus', () => {
-        if (!els.lessonId.value) runLessonSearch();
-    });
+    els.courseSelect.addEventListener('change', onCourseChange);
+    els.sectionSelect.addEventListener('change', onSectionChange);
+    els.createLessonBtn.addEventListener('click', createLessonSlot);
     els.lessonSelected.addEventListener('click', (e) => {
         if (e.target.closest('.qz-lesson-clear')) {
             e.preventDefault();
             clearLesson();
         }
     });
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('#qzLessonSearch') && !e.target.closest('#qzLessonResults')) {
-            els.lessonResults.classList.add('d-none');
-        }
-    });
 
     async function init() {
+        await loadCourseTree();
         if (!isEdit) return;
         try {
             const quiz = await window.QuizApi.get(`quizzes/${quizId}/`);

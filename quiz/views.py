@@ -727,6 +727,17 @@ class QuizViewSet(viewsets.ModelViewSet):
             taken_lesson_ids = taken_lesson_ids.exclude(pk=current_quiz_id)
         qs = qs.exclude(pk__in=taken_lesson_ids.values_list('lesson_id', flat=True))
 
+        # Exact profession/section filters -- used by the Quiz Builder's
+        # Kurs/Bo'lim pickers to list only the lessons already sitting in
+        # the chosen course+section, as opposed to `search` below which is a
+        # free-text match across all of them.
+        profession_id = request.query_params.get('profession_id')
+        if profession_id:
+            qs = qs.filter(profession_id=profession_id)
+        section_id = request.query_params.get('section_id')
+        if section_id:
+            qs = qs.filter(section_id=section_id)
+
         search = request.query_params.get('search', '').strip()
         if search:
             qs = qs.filter(
@@ -758,6 +769,95 @@ class QuizViewSet(viewsets.ModelViewSet):
             for lesson in qs
         ]
         return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='course-tree')
+    def course_tree(self, request):
+        """
+        Kurs (Profession) -> Bo'lim (Section) daraxti, Quiz Builder'dagi
+        "Dars" tanlagichida ishlatiladi: o'qituvchi/admin avval qaysi kursga,
+        keyin o'sha kursning qaysi bo'limiga testni biriktirishini tanlaydi.
+        Scoping available_lessons bilan bir xil -- admin/yordamchi-admin
+        barcha kurslarni, o'qituvchi faqat teaching_professions'ini ko'radi.
+
+        Barcha bo'limlar bitta so'rovda qaytariladi (kurslar/bo'limlar soni
+        odatda kichik) -- shuning uchun bo'lim tanlanganda alohida so'rov
+        yubormasdan, frontend darhol bo'limlar ro'yxatini ko'rsata oladi.
+        """
+        from accounts.models import Profession
+
+        user = request.user
+        qs = Profession.objects.all()
+        if not (user.is_admin or user.is_assistant_admin):
+            qs = qs.filter(pk__in=user.teaching_professions.values_list('pk', flat=True))
+        qs = qs.order_by('name').prefetch_related('sections')
+
+        data = [
+            {
+                'id': p.id,
+                'name': p.name,
+                'sections': [
+                    {'id': s.id, 'title': s.title}
+                    for s in p.sections.filter(is_active=True).order_by('order', 'title')
+                ],
+            }
+            for p in qs
+        ]
+        return Response(data)
+
+    @action(detail=False, methods=['post'], url_path='create-lesson-slot')
+    def create_lesson_slot(self, request):
+        """
+        Tanlangan kurs (va ixtiyoriy bo'lim) ichida ushbu test uchun yangi
+        'test' turidagi Lesson yaratadi va uni available_lessons bilan bir
+        xil shaklda qaytaradi -- shu sababli frontend uni to'g'ridan-to'g'ri
+        selectLesson() orqali tanlangan dars sifatida ishlata oladi.
+
+        Bungacha "testni biror darsga biriktirish" faqat allaqachon mavjud
+        bo'lgan bo'sh 'test' darsini tanlash orqali ishlar edi -- o'qituvchi
+        avval alohida "Darslarni boshqarish" bo'limiga o'tib bo'sh dars
+        yaratishi, keyin qaytib shu yerdan uni qidirib topishi kerak edi.
+        Bu action o'sha ikki bosqichli ishni bitta qadamga tushiradi.
+
+        Legacy `Test` obyekti atayin yaratilmaydi -- yangi quiz tizimida
+        Quiz.lesson orqali to'g'ridan-to'g'ri bog'lanadi, eski Test modeliga
+        umuman ehtiyoj yo'q (available_lessons ham buni `has_legacy_test`
+        orqali aks ettiradi -- yangi darsda bu doim False).
+        """
+        from accounts.models import Lesson, Profession, Section
+
+        user = request.user
+        profession_id = request.data.get('profession_id')
+        section_id = request.data.get('section_id') or None
+        title = (request.data.get('title') or '').strip()
+
+        if not profession_id or not title:
+            raise ValidationError({'detail': "Kurs va dars nomi kiritilishi shart."})
+
+        profession = get_object_or_404(Profession, pk=profession_id)
+        if not (user.is_admin or user.is_assistant_admin) and not user.teaching_professions.filter(pk=profession.pk).exists():
+            raise PermissionDenied("Bu kursga dars qo'shish huquqingiz yo'q.")
+
+        section = None
+        if section_id:
+            section = get_object_or_404(Section, pk=section_id, profession=profession)
+
+        next_order = (
+            Lesson.objects.filter(profession=profession, section=section)
+            .aggregate(m=db_models.Max('order'))['m'] or 0
+        ) + 1
+        lesson = Lesson.objects.create(
+            profession=profession, section=section, title=title,
+            lesson_type='test', order=next_order, created_by=user,
+        )
+        return Response({
+            'id': lesson.id,
+            'title': lesson.title,
+            'profession_id': profession.id,
+            'profession_name': profession.name,
+            'section_id': section.id if section else None,
+            'section_name': section.title if section else None,
+            'has_legacy_test': False,
+        }, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['get'], url_path='questions')
     def list_questions(self, request, pk=None):

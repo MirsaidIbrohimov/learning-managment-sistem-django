@@ -52,11 +52,38 @@
                     </div>
                     <div class="mb-0">
                         <label class="form-label">Dars <span class="text-muted">(ixtiyoriy — bo'sh qoldirsa mustaqil test)</span></label>
-                        <div class="position-relative">
-                            <input type="text" class="form-control" id="qzLessonSearch" placeholder="Dars nomini qidiring..." autocomplete="off">
-                            <input type="hidden" id="qzLessonId">
-                            <div id="qzLessonResults" class="list-group position-absolute w-100 shadow-sm d-none" style="z-index:1000;max-height:240px;overflow-y:auto;border-radius:10px;"></div>
+                        <input type="hidden" id="qzLessonId">
+
+                        <div id="qzLessonPicker">
+                            <div class="row g-2 mb-2">
+                                <div class="col-6">
+                                    <select class="form-select form-select-sm" id="qzCourseSelect">
+                                        <option value="">Kurs tanlang...</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <select class="form-select form-select-sm" id="qzSectionSelect" disabled>
+                                        <option value="">Avval kursni tanlang</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="qzLessonListWrap" class="d-none mb-2">
+                                <div class="text-muted small mb-1">Ushbu bo'limdagi bo'sh test darslari:</div>
+                                <div id="qzLessonList" class="list-group" style="max-height:180px;overflow-y:auto;"></div>
+                            </div>
+
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" id="qzNewLessonTitle" placeholder="...yoki yangi dars nomini kiriting" disabled autocomplete="off">
+                                <button class="btn btn-outline-primary" type="button" id="qzCreateLessonBtn" disabled>
+                                    <i class="bi bi-plus-lg"></i> Yangi dars sifatida qo'shish
+                                </button>
+                            </div>
+                            <p class="text-muted small mb-0 mt-1">
+                                <i class="bi bi-info-circle"></i> Kursni tanlagach, o'sha bo'limdagi mavjud bo'sh test darsini tanlashingiz yoki yangisini yaratishingiz mumkin.
+                            </p>
                         </div>
+
                         <div class="small text-muted mt-1 d-none" id="qzLessonSelected"></div>
                     </div>
                 </div>
