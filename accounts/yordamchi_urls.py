@@ -39,4 +39,5 @@ urlpatterns = [
     path('sorovlar/', v.yordamchi_requests, name='yordamchi_requests'),
     path('yordam-xatlari/', v.yordamchi_help, name='yordamchi_help'),
     path('arizalar/', v.yordamchi_applications, name='yordamchi_applications'),
+    path('arizalar/<int:pk>/holat/', v.yordamchi_application_status, name='yordamchi_application_status'),
 ]

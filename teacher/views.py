@@ -46,46 +46,161 @@ def _teacher_ai_blocked(user):
 def teacher_dashboard(request):
     user = request.user
     professions = user.teaching_professions.all()
-    
-    total_students = 0
-    for p in professions:
-        total_students += p.enrollments.filter(user__role='student').count()
-    
+    prof_ids = list(professions.values_list('pk', flat=True))
+
+    # Aniq hisob: takrorlanmas o'quvchilar soni (bir o'quvchi bir necha kursda
+    # bo'lsa ham bir marta sanaladi)
+    from accounts.models import CourseEnrollment
+    total_students = CourseEnrollment.objects.filter(
+        profession_id__in=prof_ids, user__role='student'
+    ).values('user').distinct().count()
+
+    hw_qs = HomeworkSubmission.objects.filter(
+        homework__lesson__profession_id__in=prof_ids
+    )
+    tr_qs = TestResult.objects.filter(test__lesson__profession_id__in=prof_ids)
+
     # Pending homeworks
-    pending_homeworks = HomeworkSubmission.objects.filter(
-        homework__lesson__profession__in=professions,
-        status='pending'
-    ).count()
-    
+    pending_homeworks = hw_qs.filter(status='pending').count()
+
     # Test results count
-    total_test_results = TestResult.objects.filter(
-        test__lesson__profession__in=professions
-    ).count()
-    
+    total_test_results = tr_qs.count()
+
     # Recent submissions
-    recent_submissions = HomeworkSubmission.objects.filter(
-        homework__lesson__profession__in=professions
-    ).select_related('student', 'homework__lesson__profession')[:5]
-    
+    recent_submissions = hw_qs.select_related(
+        'student', 'homework__lesson__profession'
+    ).order_by('-submitted_at')[:5]
+
     # Recent test results
-    recent_tests = TestResult.objects.filter(
-        test__lesson__profession__in=professions
-    ).select_related('student', 'test__lesson')[:5]
-    
+    recent_tests = tr_qs.select_related(
+        'student', 'test__lesson'
+    ).order_by('-completed_at')[:5]
+
     # Pending speaking tasks
     pending_speakings = SpeakingSubmission.objects.filter(
-        speaking_task__lesson__profession__in=professions,
+        speaking_task__lesson__profession_id__in=prof_ids,
         status='pending'
     ).count()
-    
+
     # Recent speaking submissions
     recent_speakings = SpeakingSubmission.objects.filter(
-        speaking_task__lesson__profession__in=professions
-    ).select_related('student', 'speaking_task__lesson__profession')[:5]
-    
+        speaking_task__lesson__profession_id__in=prof_ids
+    ).select_related('student', 'speaking_task__lesson__profession').order_by('-submitted_at')[:5]
+
     # Certificates count
     certificates_count = TeacherCertificate.objects.filter(teacher=user).count()
-    
+
+    # ============ KENGAYTIRILGAN ANALITIKA ============
+    from datetime import timedelta
+
+    today = timezone.localdate()
+    now = timezone.now()
+
+    # O'rtacha baho (baholangan vazifalar bo'yicha)
+    avg_grade = hw_qs.filter(
+        status__in=['graded', 'accepted'], grade__isnull=False
+    ).aggregate(a=Avg('grade'))['a'] or 0
+    avg_grade = round(avg_grade, 1)
+
+    # Testdan o'tish darajasi (%)
+    passed_tests = tr_qs.filter(passed=True).count()
+    pass_rate = round(passed_tests / total_test_results * 100) if total_test_results else 0
+
+    # O'rtacha test bali
+    avg_test_score = round(tr_qs.aggregate(a=Avg('score'))['a'] or 0, 1)
+
+    # Bu hafta vs o'tgan hafta topshiriqlar (o'sish %)
+    week_start = now - timedelta(days=7)
+    prev_week_start = now - timedelta(days=14)
+    this_week = hw_qs.filter(submitted_at__gte=week_start).count()
+    prev_week = hw_qs.filter(
+        submitted_at__gte=prev_week_start, submitted_at__lt=week_start
+    ).count()
+    if prev_week:
+        week_change = round((this_week - prev_week) / prev_week * 100)
+    else:
+        week_change = 100 if this_week else 0
+
+    # O'rtacha tekshirish tezligi (soat): graded_at - submitted_at
+    avg_check_hours = None
+    try:
+        checked = hw_qs.filter(
+            graded_at__isnull=False
+        ).values_list('submitted_at', 'graded_at')[:500]
+        deltas = [
+            (g - s).total_seconds() / 3600
+            for s, g in checked if g and s and g >= s
+        ]
+        if deltas:
+            avg_check_hours = round(sum(deltas) / len(deltas), 1)
+    except Exception:
+        avg_check_hours = None
+
+    # 14 kunlik faollik grafigi (topshiriqlar + test natijalari)
+    hw_daily = dict(
+        hw_qs.filter(submitted_at__date__gte=today - timedelta(days=13))
+        .values_list('submitted_at__date').annotate(c=Count('id'))
+        .values_list('submitted_at__date', 'c')
+    )
+    tr_daily = dict(
+        tr_qs.filter(completed_at__date__gte=today - timedelta(days=13))
+        .values_list('completed_at__date').annotate(c=Count('id'))
+        .values_list('completed_at__date', 'c')
+    )
+    activity_days = []
+    _max_day = 1
+    for i in range(13, -1, -1):
+        d = today - timedelta(days=i)
+        total_d = hw_daily.get(d, 0) + tr_daily.get(d, 0)
+        _max_day = max(_max_day, total_d)
+        activity_days.append({'date': d, 'hw': hw_daily.get(d, 0),
+                              'tests': tr_daily.get(d, 0), 'total': total_d})
+    for day in activity_days:
+        day['pct'] = max(4, round(day['total'] / _max_day * 100)) if day['total'] else 4
+
+    # Kurslar bo'yicha batafsil jadval (bitta so'rovlar to'plami bilan)
+    course_rows = []
+    if prof_ids:
+        students_map = dict(
+            CourseEnrollment.objects.filter(
+                profession_id__in=prof_ids, user__role='student'
+            ).values_list('profession_id').annotate(c=Count('user', distinct=True))
+            .values_list('profession_id', 'c')
+        )
+        lessons_map = dict(
+            Lesson.objects.filter(profession_id__in=prof_ids)
+            .values_list('profession_id').annotate(c=Count('id'))
+            .values_list('profession_id', 'c')
+        )
+        pending_map = dict(
+            hw_qs.filter(status='pending')
+            .values_list('homework__lesson__profession_id').annotate(c=Count('id'))
+            .values_list('homework__lesson__profession_id', 'c')
+        )
+        graded_map = dict(
+            hw_qs.filter(status__in=['graded', 'accepted'])
+            .values_list('homework__lesson__profession_id').annotate(c=Count('id'))
+            .values_list('homework__lesson__profession_id', 'c')
+        )
+        score_map = dict(
+            tr_qs.values_list('test__lesson__profession_id').annotate(a=Avg('score'))
+            .values_list('test__lesson__profession_id', 'a')
+        )
+        for p in professions:
+            total_hw_p = pending_map.get(p.pk, 0) + graded_map.get(p.pk, 0)
+            checked_pct = (
+                round(graded_map.get(p.pk, 0) / total_hw_p * 100)
+                if total_hw_p else 0
+            )
+            course_rows.append({
+                'profession': p,
+                'students': students_map.get(p.pk, 0),
+                'lessons': lessons_map.get(p.pk, 0),
+                'pending': pending_map.get(p.pk, 0),
+                'checked_pct': checked_pct,
+                'avg_score': round(score_map.get(p.pk) or 0, 1),
+            })
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -96,8 +211,107 @@ def teacher_dashboard(request):
         'recent_speakings': recent_speakings,
         'recent_tests': recent_tests,
         'certificates_count': certificates_count,
+        # Kengaytirilgan analitika
+        'avg_grade': avg_grade,
+        'pass_rate': pass_rate,
+        'avg_test_score': avg_test_score,
+        'this_week': this_week,
+        'prev_week': prev_week,
+        'week_change': week_change,
+        'avg_check_hours': avg_check_hours,
+        'activity_days': activity_days,
+        'course_rows': course_rows,
     }
     return render(request, 'teacher/dashboard.html', context)
+
+
+@teacher_required
+def teacher_export(request):
+    """O'qituvchi ma'lumotlarini Excel (.xlsx) ko'rinishida yuklab olish.
+
+    ?type=students | test_results | homeworks
+    """
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from django.http import HttpResponse
+    from accounts.models import CourseEnrollment
+
+    export_type = request.GET.get('type', 'students')
+    if export_type not in ('students', 'test_results', 'homeworks'):
+        export_type = 'students'
+
+    user = request.user
+    prof_ids = list(user.teaching_professions.values_list('pk', flat=True))
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    header_fill = PatternFill(start_color='4F46E5', end_color='4F46E5', fill_type='solid')
+    header_font = Font(bold=True, color='FFFFFF')
+
+    def _write_header(titles):
+        ws.append(titles)
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center')
+
+    if export_type == 'students':
+        ws.title = "O'quvchilarim"
+        _write_header(['#', 'Ism', 'Familiya', 'Telefon', 'Kurs', 'Yozilgan sana', 'Coinlar'])
+        rows = CourseEnrollment.objects.filter(
+            profession_id__in=prof_ids, user__role='student'
+        ).select_related('user', 'profession').order_by('profession__name', 'user__first_name')
+        for i, e in enumerate(rows, 1):
+            ws.append([
+                i, e.user.first_name, e.user.last_name, e.user.phone,
+                e.profession.name,
+                e.enrolled_at.strftime('%d.%m.%Y') if getattr(e, 'enrolled_at', None) else '',
+                e.user.coins,
+            ])
+        filename = 'oquvchilarim'
+    elif export_type == 'test_results':
+        ws.title = "Test natijalari"
+        _write_header(['#', "O'quvchi", 'Kurs', 'Dars', 'Ball (%)', "To'g'ri javoblar", "O'tdi", 'Sana'])
+        rows = TestResult.objects.filter(
+            test__lesson__profession_id__in=prof_ids
+        ).select_related('student', 'test__lesson__profession').order_by('-completed_at')[:5000]
+        for i, r in enumerate(rows, 1):
+            ws.append([
+                i, r.student.get_full_name() or r.student.username,
+                r.test.lesson.profession.name, r.test.lesson.title,
+                r.score, f"{r.correct_answers}/{r.total_questions}",
+                'Ha' if r.passed else "Yo'q",
+                r.completed_at.strftime('%d.%m.%Y %H:%M'),
+            ])
+        filename = 'test_natijalari'
+    else:
+        ws.title = "Vazifalar"
+        _write_header(['#', "O'quvchi", 'Kurs', 'Dars', 'Holat', 'Baho', 'Topshirilgan', 'Tekshirilgan'])
+        rows = HomeworkSubmission.objects.filter(
+            homework__lesson__profession_id__in=prof_ids
+        ).select_related('student', 'homework__lesson__profession').order_by('-submitted_at')[:5000]
+        for i, s in enumerate(rows, 1):
+            ws.append([
+                i, s.student.get_full_name() or s.student.username,
+                s.homework.lesson.profession.name, s.homework.lesson.title,
+                s.get_status_display(), s.grade if s.grade is not None else '',
+                s.submitted_at.strftime('%d.%m.%Y %H:%M') if s.submitted_at else '',
+                s.graded_at.strftime('%d.%m.%Y %H:%M') if s.graded_at else '',
+            ])
+        filename = 'vazifalar'
+
+    # Ustun kengliklarini moslash
+    for col in ws.columns:
+        width = max((len(str(c.value)) for c in col if c.value is not None), default=8)
+        ws.column_dimensions[col[0].column_letter].width = min(40, max(10, width + 2))
+
+    stamp = timezone.localdate().strftime('%Y%m%d')
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}_{stamp}.xlsx"'
+    wb.save(response)
+    return response
 
 
 @teacher_required

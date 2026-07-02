@@ -96,6 +96,7 @@ urlpatterns = [
     path('homework-submissions/', views.homework_submissions, name='homework_submissions'),
     path('homework/<int:pk>/grade/', views.grade_homework, name='grade_homework'),
     path('homework/bulk-ai-grade/', views.bulk_ai_grade, name='bulk_ai_grade'),
+    path('homework/notify-teacher/', views.notify_teacher_homework, name='notify_teacher_homework'),
     path('test-results/', views.all_test_results, name='all_test_results'),
     
     # Student test results
@@ -153,6 +154,7 @@ urlpatterns = [
     
     # Admin Panel
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/export-report/', views.admin_export_report, name='admin_export_report'),
     path('dashboard/toggle-maintenance/', views.toggle_maintenance, name='toggle_maintenance'),
     path('dashboard/professions/', views.admin_professions, name='admin_professions'),
     path('dashboard/professions/add/', views.admin_profession_add, name='admin_profession_add'),

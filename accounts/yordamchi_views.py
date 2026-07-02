@@ -499,17 +499,63 @@ def yordamchi_applications(request):
     if not _require_perm(request, 'applications.view'):
         return redirect('home')
     status = request.GET.get('status', '').strip()
-    qs = CourseApplication.objects.all()
+    q = request.GET.get('q', '').strip()
+    qs = CourseApplication.objects.select_related('handled_by').all()
     if status:
         qs = qs.filter(status=status)
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(phone__icontains=q) |
+            Q(course_interest__icontains=q)
+        )
     paginator = Paginator(qs.order_by('-created_at'), 50)
     page_obj = paginator.get_page(request.GET.get('page'))
+
+    base = CourseApplication.objects.all()
+    can_edit = request.user.is_admin or request.user.has_assistant_perm('applications.edit')
+
     return render(request, 'accounts/yordamchi/applications_list.html', {
         'applications': page_obj.object_list,
         'page_obj': page_obj,
         'status': status,
+        'q': q,
         'total_count': paginator.count,
+        'total_all': base.count(),
+        'total_new': base.filter(status='new').count(),
+        'total_contacted': base.filter(status='contacted').count(),
+        'total_enrolled': base.filter(status='enrolled').count(),
+        'total_rejected': base.filter(status='rejected').count(),
+        'can_edit': can_edit,
     })
+
+
+@login_required
+def yordamchi_application_status(request, pk):
+    """Yordamchi admin: ariza statusini o'zgartirish + kim bog'langanini yozib qo'yish."""
+    if not _require_perm(request, 'applications.edit'):
+        return redirect('home')
+
+    application = get_object_or_404(CourseApplication, pk=pk)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        note = request.POST.get('admin_note', '')
+        if new_status in dict(CourseApplication.STATUS_CHOICES):
+            application.status = new_status
+            application.admin_note = note
+            application.handled_by = request.user
+            application.handled_at = timezone.now()
+            application.save()
+            _log_action(
+                request, 'applications.edit',
+                target_type='CourseApplication', target_id=application.pk,
+                description=f"Ariza holati o'zgartirildi: {application.get_status_display()}",
+            )
+            messages.success(request, "Ariza holati yangilandi!")
+
+    return redirect('yordamchi_applications')
 
 
 # ============================================================

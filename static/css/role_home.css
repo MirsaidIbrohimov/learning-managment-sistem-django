@@ -14,6 +14,40 @@
     padding: 28px 0 80px;
 }
 
+/* ------------------- ROLGA XOS RANG USLUBLARI ------------------- */
+/* Admin — binafsha (boshqaruv markazi) */
+.dash.rhome-admin {
+    --dash-accent: #7c3aed;
+    --dash-accent-2: #6366f1;
+}
+
+[data-bs-theme="dark"] .dash.rhome-admin {
+    --dash-accent: #a78bfa;
+    --dash-accent-2: #818cf8;
+}
+
+/* O'qituvchi — zumrad (sinfxona) */
+.dash.rhome-teacher {
+    --dash-accent: #0d9488;
+    --dash-accent-2: #10b981;
+}
+
+[data-bs-theme="dark"] .dash.rhome-teacher {
+    --dash-accent: #2dd4bf;
+    --dash-accent-2: #34d399;
+}
+
+/* Yordamchi admin — amber (operatsiyalar) */
+.dash.rhome-assistant {
+    --dash-accent: #d97706;
+    --dash-accent-2: #f59e0b;
+}
+
+[data-bs-theme="dark"] .dash.rhome-assistant {
+    --dash-accent: #fbbf24;
+    --dash-accent-2: #f59e0b;
+}
+
 .rhome .dash-shell {
     max-width: 1280px;
     margin: 0 auto;
@@ -158,6 +192,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.rh-sidestack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .rh-bigstat {
@@ -424,6 +465,85 @@ a.rh-list-row:hover {
     font-variant-numeric: tabular-nums;
 }
 
+.rh-rank {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 0.82rem;
+    color: var(--dash-accent);
+    background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+    font-variant-numeric: tabular-nums;
+}
+
+.rh-badge.ok {
+    background: color-mix(in srgb, var(--dash-success) 14%, transparent);
+    border-color: color-mix(in srgb, var(--dash-success) 30%, transparent);
+    color: var(--dash-success);
+}
+
+.rh-chip {
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 4px 12px;
+    border-radius: 999px;
+    color: var(--dash-accent);
+    background: color-mix(in srgb, var(--dash-accent) 12%, transparent);
+    white-space: nowrap;
+}
+
+/* ----------------------------- MINI BAR CHART ----------------------------- */
+.rh-chart {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    align-items: end;
+    height: 170px;
+    padding: 8px 4px 0;
+}
+
+.rh-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    height: 100%;
+}
+
+.rh-bar i {
+    display: block;
+    width: 100%;
+    max-width: 38px;
+    min-height: 5px;
+    border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, var(--dash-accent), var(--dash-accent-2));
+    opacity: 0.9;
+    transition: height 0.6s ease;
+}
+
+.rh-bar em {
+    font-style: normal;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--dash-text);
+    font-variant-numeric: tabular-nums;
+    order: -1;
+}
+
+.rh-bar span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--dash-muted);
+}
+
+.rh-statgrid.three {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
 .rh-empty {
     padding: 22px 14px;
     text-align: center;
@@ -611,6 +731,29 @@ a.rh-list-row:hover {
 
     .rh-time {
         display: none;
+    }
+
+    .rh-chart {
+        height: 130px;
+        gap: 6px;
+    }
+
+    .rh-sidestack {
+        flex-direction: row;
+    }
+
+    .rh-sidestack .rh-bigstat {
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 8px;
+    }
+
+    .rh-sidestack .rh-bigstat b {
+        font-size: 1.3rem;
+    }
+
+    .rh-sidestack .rh-bigstat span {
+        font-size: 0.7rem;
     }
 }
 

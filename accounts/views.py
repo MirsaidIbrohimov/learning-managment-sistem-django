@@ -36,7 +36,7 @@ from quiz.models import Attempt, Quiz, QuizSettings
 
 from django.core.management import call_command
 from django.core.cache import cache
-from telegram_bot.utils import notify_admins, notify_user, notify_group
+from telegram_bot.utils import notify_admins, notify_user, notify_group, notify_application_recipients
 
 
 def _to_int(value, default=0):
@@ -1105,6 +1105,38 @@ def _safe_photo_url(obj):
         return ''
 
 
+def _build_quick_actions(items):
+    """(label, url_name, icon) ro'yxatidan xavfsiz quick-action ro'yxati."""
+    out = []
+    for label, url_name, icon in items:
+        try:
+            out.append({'label': label, 'url': reverse(url_name), 'icon': icon})
+        except Exception:
+            continue
+    return out
+
+
+_WEEKDAY_UZ = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya']
+
+
+def _week_bars(date_counts, today):
+    """Oxirgi 7 kun uchun mini bar-chart ma'lumoti: {label, count, pct}."""
+    bars = []
+    try:
+        max_c = max(date_counts.values(), default=0) or 1
+        for i in range(6, -1, -1):
+            d = today - timedelta(days=i)
+            c = date_counts.get(d, 0)
+            bars.append({
+                'label': _WEEKDAY_UZ[d.weekday()],
+                'count': c,
+                'pct': max(4, round(c / max_c * 100)) if c else 4,
+            })
+    except Exception:
+        bars = []
+    return bars
+
+
 def _home_teacher(request):
     """O'qituvchi uchun bosh sahifa: kurslari, tekshirilmagan vazifalar, faollik."""
     user = request.user
@@ -1155,6 +1187,46 @@ def _home_teacher(request):
         ).order_by('-submitted_at')[:6]
     )
 
+    # So'nggi test natijalari
+    recent_tests = list(
+        TestResult.objects.filter(
+            test__lesson__profession__teachers=user
+        ).select_related('student', 'test', 'test__lesson').order_by('-completed_at')[:6]
+    )
+
+    # Oxirgi 7 kunda topshirilgan vazifalar (mini-chart)
+    try:
+        _counts = dict(
+            HomeworkSubmission.objects.filter(
+                homework__lesson__profession__teachers=user,
+                submitted_at__date__gte=today - timedelta(days=6),
+            ).values_list('submitted_at__date').annotate(c=Count('id')).values_list('submitted_at__date', 'c')
+        )
+    except Exception:
+        _counts = {}
+    week_bars = _week_bars(_counts, today)
+    week_total = sum(_counts.values())
+
+    # Eng faol o'quvchilar (coin bo'yicha, faqat o'z kurslaridan)
+    top_students = list(
+        CustomUser.objects.filter(
+            role='student', enrollments__profession__teachers=user
+        ).distinct().order_by('-coins')[:5]
+    )
+
+    quick_actions = _build_quick_actions([
+        ("Kurslarim", 'teacher:courses', 'collection-play'),
+        ("O'quvchilarim", 'teacher:my_students', 'people'),
+        ("Vazifalar", 'teacher:homeworks', 'journal-check'),
+        ("Test natijalari", 'teacher:test_results', 'patch-check'),
+        ("Speaking", 'teacher:speaking_tasks', 'mic'),
+        ("Guruh chatlari", 'teacher:group_chats', 'chat-dots'),
+        ("Daromadlarim", 'teacher:earnings', 'wallet2'),
+        ("Sertifikatlar", 'teacher:certificates', 'award'),
+        ("Statistika", 'teacher:statistics', 'graph-up'),
+        ("AI tekshiruvchi", 'teacher:ai_checker', 'robot'),
+    ])
+
     stat_cards = [
         {'label': "Kurslarim", 'value': len(my_courses), 'icon': 'collection-play', 'color': 'accent'},
         {'label': "O'quvchilarim", 'value': total_students, 'icon': 'people', 'color': 'accent2'},
@@ -1168,6 +1240,11 @@ def _home_teacher(request):
         'pending_homeworks': pending_homeworks,
         'pending_speaking': pending_speaking,
         'recent_submissions': recent_submissions,
+        'recent_tests': recent_tests,
+        'week_bars': week_bars,
+        'week_total': week_total,
+        'top_students': top_students,
+        'quick_actions': quick_actions,
     })
 
 
@@ -1220,6 +1297,53 @@ def _home_admin(request):
         ActivityLog.objects.select_related('user').order_by('-created_at')[:8]
     )
 
+    today = timezone.localdate()
+    logins_today = ActivityLog.objects.filter(
+        action_type='login', created_at__date=today
+    ).count()
+
+    # Oxirgi 7 kunda ro'yxatdan o'tishlar (mini-chart)
+    try:
+        _counts = dict(
+            CustomUser.objects.filter(
+                date_joined__date__gte=today - timedelta(days=6)
+            ).values_list('date_joined__date').annotate(c=Count('id')).values_list('date_joined__date', 'c')
+        )
+    except Exception:
+        _counts = {}
+    week_bars = _week_bars(_counts, today)
+
+    # Eng ommabop kurslar (o'quvchilar soni bo'yicha)
+    top_courses = list(
+        Profession.objects.annotate(
+            student_total=Count(
+                'enrollments',
+                filter=Q(enrollments__user__role='student'),
+                distinct=True,
+            )
+        ).order_by('-student_total')[:5]
+    )
+
+    # So'nggi yangi arizalar
+    recent_applications = list(
+        CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
+    )
+
+    quick_actions = _build_quick_actions([
+        ("Foydalanuvchilar", 'admin_users', 'people'),
+        ("O'qituvchi qo'shish", 'admin_add_teacher', 'person-plus'),
+        ("Kurs qo'shish", 'admin_profession_add', 'folder-plus'),
+        ("Kurslar", 'admin_professions', 'collection-play'),
+        ("To'lovlar", 'admin_payments', 'cash-stack'),
+        ("Coin boshqaruvi", 'admin_manage_coins', 'coin'),
+        ("Xabarlar", 'admin_messages', 'envelope'),
+        ("So'rovnomalar", 'admin_surveys', 'clipboard-data'),
+        ("Hisobotlar", 'admin_reports', 'file-earmark-bar-graph'),
+        ("Kutubxona", 'admin_books', 'book'),
+        ("Xavfsizlik", 'admin_security_events', 'shield-lock'),
+        ("Davomat", 'admin_teacher_attendance', 'calendar-check'),
+    ])
+
     stat_cards = [
         {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
         {'label': "O'qituvchilar", 'value': stats['teachers'], 'icon': 'person-video3', 'color': 'accent2'},
@@ -1236,6 +1360,11 @@ def _home_admin(request):
         'new_users_week': new_users_week,
         'recent_users': recent_users,
         'recent_activity': recent_activity,
+        'logins_today': logins_today,
+        'week_bars': week_bars,
+        'top_courses': top_courses,
+        'recent_applications': recent_applications,
+        'quick_actions': quick_actions,
     })
 
 
@@ -1283,10 +1412,67 @@ def _home_assistant(request):
         {'label': "Bloklanganlar", 'value': stats['blocked'], 'icon': 'slash-circle', 'color': 'danger'},
     ]
 
+    today = timezone.localdate()
+
+    # Bugungi ko'rsatkichlar
+    today_stats = [
+        {'label': "Bugungi arizalar", 'value': CourseApplication.objects.filter(created_at__date=today).count(),
+         'icon': 'inbox'},
+        {'label': "Bugun topshirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(submitted_at__date=today).count(),
+         'icon': 'journal-arrow-up'},
+        {'label': "Bugungi yordam so'rovlari", 'value': HelpRequest.objects.filter(created_at__date=today).count(),
+         'icon': 'life-preserver'},
+    ]
+
+    # Kechikkan kitob ijaralari
+    overdue_rentals = 0
+    try:
+        from .models import BookRental
+        overdue_rentals = BookRental.objects.exclude(status='returned').filter(
+            return_date__lt=today
+        ).count()
+    except Exception:
+        overdue_rentals = 0
+
+    # So'nggi yangi arizalar
+    recent_applications = list(
+        CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
+    )
+
+    # Mening so'nggi harakatlarim (audit)
+    my_actions = []
+    try:
+        from .models import AssistantActionLog
+        my_actions = list(
+            AssistantActionLog.objects.filter(user=request.user).order_by('-created_at')[:6]
+        )
+    except Exception:
+        my_actions = []
+
+    quick_actions = _build_quick_actions([
+        ("O'quvchilar", 'yordamchi_students', 'mortarboard'),
+        ("O'qituvchilar", 'yordamchi_teachers', 'person-video3'),
+        ("Ota-onalar", 'yordamchi_parents', 'people'),
+        ("Uy vazifalar", 'yordamchi_homework', 'journal-check'),
+        ("Testlar", 'yordamchi_tests', 'patch-question'),
+        ("Sertifikatlar", 'yordamchi_certificates', 'patch-check'),
+        ("Kutubxona", 'yordamchi_books', 'book'),
+        ("Ijaralar", 'yordamchi_rentals', 'arrow-left-right'),
+        ("Kechikkan ijaralar", 'yordamchi_rentals_overdue', 'exclamation-triangle'),
+        ("Kitob arizalari", 'yordamchi_book_requests', 'journal-plus'),
+        ("Yordam so'rovlari", 'yordamchi_help', 'life-preserver'),
+        ("Harakatlar tarixi", 'yordamchi_audit_log', 'clock-history'),
+    ])
+
     return render(request, 'accounts/home_assistant.html', {
         'stat_cards': stat_cards,
         'pending': pending,
         'pending_total': pending_total,
+        'today_stats': today_stats,
+        'overdue_rentals': overdue_rentals,
+        'recent_applications': recent_applications,
+        'my_actions': my_actions,
+        'quick_actions': quick_actions,
     })
 
 
@@ -1322,7 +1508,7 @@ def home_view(request):
                     phone=phone,
                     course_interest=course_interest
                 )
-                notify_admins(
+                notify_application_recipients(
                     f"📋 <b>Yangi ariza keldi!</b>\n\n"
                     f"👤 {first_name} {last_name}\n"
                     f"📱 {phone}\n"
@@ -7854,6 +8040,33 @@ def homework_submissions(request):
     else:
         user_ai_enabled = getattr(request.user, 'ai_access_enabled', False)
 
+    # Admin uchun: ustozga eslatma shablonlari (kurs tanlangan bo'lsa)
+    reminder_templates = []
+    course_teachers = []
+    if request.user.is_admin and profession_filter:
+        try:
+            _prof = Profession.objects.prefetch_related('teachers').get(pk=profession_filter)
+            course_teachers = [
+                t.get_full_name() or t.username
+                for t in _prof.teachers.all() if t.role == 'teacher'
+            ]
+            _pending_qs = HomeworkSubmission.objects.filter(
+                homework__lesson__profession_id=profession_filter,
+                status='pending',
+            )
+            _pending_count = _pending_qs.count()
+            _oldest = _pending_qs.order_by('submitted_at').first()
+            _oldest_hours = 0
+            if _oldest:
+                _oldest_hours = int(
+                    (timezone.now() - _oldest.submitted_at).total_seconds() // 3600
+                )
+            reminder_templates = _teacher_reminder_templates(
+                _prof.name, _pending_count, _oldest_hours
+            )
+        except (Profession.DoesNotExist, ValueError):
+            reminder_templates = []
+
     return render(request, 'accounts/manage/homework_submissions.html', {
         'submissions': submissions,
         'stats': stats,
@@ -7865,6 +8078,8 @@ def homework_submissions(request):
         'sort_by': sort_by,
         'total_count': total_count,
         'user_ai_enabled': user_ai_enabled,
+        'reminder_templates': reminder_templates,
+        'course_teachers': course_teachers,
     })
 
 
@@ -8211,6 +8426,133 @@ def bulk_ai_grade(request):
         'revision': revision_count,
         'skipped': skipped_count,
         'total': graded_count + revision_count + skipped_count,
+    })
+
+
+def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
+    """Ustozga eslatma uchun tayyor rasmiy shablon matnlar.
+
+    {ustoz} — yuborishda har bir o'qituvchining ism-familiyasi bilan almashtiriladi.
+    """
+    return [
+        {
+            'key': 'polite',
+            'label': "Muloyim eslatma",
+            'text': (
+                f"Hurmatli {{ustoz}}!\n\n"
+                f"\"{course_name}\" kursida {pending_count} ta uy vazifasi "
+                f"tekshirilishini kutmoqda. O'quvchilar Sizning bahoyingiz va "
+                f"izohlaringizni intiqlik bilan kutishmoqda.\n\n"
+                f"Iltimos, imkon qadar tezroq ko'rib chiqishingizni so'raymiz.\n\n"
+                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+            ),
+        },
+        {
+            'key': 'daily',
+            'label': "1 kundan oshgan vazifalar",
+            'text': (
+                f"Hurmatli {{ustoz}}!\n\n"
+                f"\"{course_name}\" kursida 1 kundan buyon tekshirilmagan uy "
+                f"vazifalari mavjud (jami {pending_count} ta, eng eskisi "
+                f"{oldest_hours} soatdan buyon kutmoqda).\n\n"
+                f"O'quv jarayonining sifatini ta'minlash maqsadida vazifalarni "
+                f"o'z vaqtida tekshirish muhim ekanligini eslatib o'tamiz.\n\n"
+                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+            ),
+        },
+        {
+            'key': 'warning',
+            'label': "Rasmiy ogohlantirish",
+            'text': (
+                f"Hurmatli {{ustoz}}!\n\n"
+                f"\"{course_name}\" kursidagi uy vazifalari muntazam ravishda o'z "
+                f"vaqtida tekshirilmayotgani ma'lum bo'ldi ({pending_count} ta "
+                f"vazifa kutmoqda).\n\n"
+                f"Ushbu holat mehnat majburiyatlariga rioya etmaslik sifatida "
+                f"baholanishi va tegishli choralar (jarima) qo'llanilishi "
+                f"mumkinligini rasman ma'lum qilamiz.\n\n"
+                f"Iltimos, ishga mas'uliyat bilan yondashing.\n\n"
+                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+            ),
+        },
+    ]
+
+
+@login_required
+def notify_teacher_homework(request):
+    """Admin: kurs ustoz(lar)iga tekshirilmagan vazifalar bo'yicha eslatma yuborish.
+
+    Ichki chat (Message) + Telegram orqali yuboriladi. Faqat admin uchun.
+    """
+    if not request.user.is_admin:
+        return JsonResponse({'error': "Faqat admin uchun ruxsat etilgan"}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': "POST so'rovi kerak"}, status=405)
+
+    profession_id = request.POST.get('profession_id', '').strip()
+    text = request.POST.get('text', '').strip()
+    if not profession_id or not text:
+        return JsonResponse({'error': "Kurs va xabar matni kiritilishi shart"}, status=400)
+    if len(text) > 3000:
+        return JsonResponse({'error': "Xabar matni juda uzun (maks. 3000 belgi)"}, status=400)
+
+    from django.conf import settings
+
+    profession = get_object_or_404(Profession, pk=profession_id)
+    teachers = [t for t in profession.teachers.all() if t.role == 'teacher']
+    if not teachers:
+        return JsonResponse({'error': "Bu kursga o'qituvchi biriktirilmagan"}, status=400)
+
+    site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+    sent_chat = 0
+    sent_telegram = 0
+    for teacher in teachers:
+        teacher_name = teacher.get_full_name() or teacher.username
+        personal_text = text.replace('{ustoz}', teacher_name)
+
+        # 1) Ichki chat xabari
+        try:
+            Message.objects.create(
+                title=f"📌 Eslatma: {profession.name} kursi vazifalari",
+                content=personal_text,
+                message_type='reminder',
+                recipient=teacher,
+                sender=request.user,
+            )
+            sent_chat += 1
+        except Exception:
+            pass
+
+        # 2) Telegram xabari
+        if teacher.telegram_id:
+            tg_text = (
+                f"📌 <b>MA'MURIYATDAN ESLATMA</b> ✨\n\n"
+                f"{personal_text}\n\n"
+                f"🔗 Vazifalarni tekshirish: "
+                f"{site_url}/homework-submissions/?profession={profession.pk}"
+            )
+            notify_user(teacher.telegram_id, tg_text)
+            sent_telegram += 1
+
+    # Audit jurnaliga yozish
+    try:
+        from .models import AssistantActionLog
+        AssistantActionLog.objects.create(
+            user=request.user,
+            action_code='homework.remind_teacher',
+            target_type='profession',
+            target_id=str(profession.pk),
+            description=f"'{profession.name}' kursi ustoz(lar)iga vazifa eslatmasi yuborildi",
+            ip_address=request.META.get('REMOTE_ADDR'),
+        )
+    except Exception:
+        pass
+
+    return JsonResponse({
+        'ok': True,
+        'teachers': len(teachers),
+        'chat': sent_chat,
+        'telegram': sent_telegram,
     })
 
 
@@ -8880,9 +9222,99 @@ def admin_dashboard(request):
     
     # Texnik xizmat rejimi
     maintenance = MaintenanceMode.get_instance()
-    
+
+    # ============ MOLIYA VA O'SISH KO'RSATKICHLARI (aniq hisob) ============
+    _now = timezone.now()
+    _cur_m, _cur_y = _now.month, _now.year
+    if _cur_m == 1:
+        _prev_m, _prev_y = 12, _cur_y - 1
+    else:
+        _prev_m, _prev_y = _cur_m - 1, _cur_y
+
+    finance = cache.get('admin_finance_stats')
+    if finance is None:
+        _paid_agg = PaymentRecord.objects.filter(
+            is_paid=True, month=_cur_m, year=_cur_y
+        ).aggregate(s=Sum('paid_amount'), c=Count('id'))
+        _prev_agg = PaymentRecord.objects.filter(
+            is_paid=True, month=_prev_m, year=_prev_y
+        ).aggregate(s=Sum('paid_amount'))
+        _unpaid_agg = PaymentRecord.objects.filter(
+            is_paid=False, month=_cur_m, year=_cur_y
+        ).aggregate(s=Sum('amount'), c=Count('id'))
+        _cur_sum = int(_paid_agg['s'] or 0)
+        _prev_sum = int(_prev_agg['s'] or 0)
+        if _prev_sum:
+            _rev_change = round((_cur_sum - _prev_sum) / _prev_sum * 100)
+        else:
+            _rev_change = 100 if _cur_sum else 0
+        finance = {
+            'month_revenue': _cur_sum,
+            'month_paid_count': _paid_agg['c'] or 0,
+            'prev_revenue': _prev_sum,
+            'revenue_change': _rev_change,
+            'month_unpaid': int(_unpaid_agg['s'] or 0),
+            'month_unpaid_count': _unpaid_agg['c'] or 0,
+        }
+        cache.set('admin_finance_stats', finance, 300)
+
+    growth = cache.get('admin_growth_stats')
+    if growth is None:
+        _month_start = _now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        _new_this_month = CustomUser.objects.filter(date_joined__gte=_month_start).count()
+        _prev_start = (_month_start - timedelta(days=1)).replace(day=1)
+        _new_prev_month = CustomUser.objects.filter(
+            date_joined__gte=_prev_start, date_joined__lt=_month_start
+        ).count()
+        if _new_prev_month:
+            _user_change = round((_new_this_month - _new_prev_month) / _new_prev_month * 100)
+        else:
+            _user_change = 100 if _new_this_month else 0
+        growth = {
+            'new_this_month': _new_this_month,
+            'new_prev_month': _new_prev_month,
+            'user_change': _user_change,
+        }
+        cache.set('admin_growth_stats', growth, 300)
+
+    # Kurslar samaradorligi jadvali (top 10, o'quvchilar soni bo'yicha)
+    course_perf = cache.get('admin_course_perf')
+    if course_perf is None:
+        _perf_qs = Profession.objects.annotate(
+            student_total=Count(
+                'enrollments', filter=Q(enrollments__user__role='student'), distinct=True
+            ),
+            lesson_total=Count('lessons', distinct=True),
+        ).order_by('-student_total')[:10]
+        _perf_ids = [p.pk for p in _perf_qs]
+        _pending_map = dict(
+            HomeworkSubmission.objects.filter(
+                status='pending', homework__lesson__profession_id__in=_perf_ids
+            ).values_list('homework__lesson__profession_id').annotate(c=Count('id'))
+            .values_list('homework__lesson__profession_id', 'c')
+        )
+        _score_map = dict(
+            TestResult.objects.filter(
+                test__lesson__profession_id__in=_perf_ids
+            ).values_list('test__lesson__profession_id').annotate(a=Avg('score'))
+            .values_list('test__lesson__profession_id', 'a')
+        )
+        course_perf = []
+        for p in _perf_qs:
+            course_perf.append({
+                'name': p.name,
+                'students': p.student_total,
+                'lessons': p.lesson_total,
+                'pending': _pending_map.get(p.pk, 0),
+                'avg_score': round(_score_map.get(p.pk) or 0, 1),
+            })
+        cache.set('admin_course_perf', course_perf, 300)
+
     context = {
         'maintenance': maintenance,
+        'finance': finance,
+        'growth': growth,
+        'course_perf': course_perf,
         'total_users': total_users,
         'total_teachers': total_teachers,
         'total_students': total_students,
@@ -8913,6 +9345,155 @@ def admin_dashboard(request):
         'active_parents': active_parents,
     }
     return render(request, 'accounts/admin/dashboard.html', context)
+
+
+@login_required
+def admin_export_report(request):
+    """Admin: tizim hisobotini Excel (.xlsx) ko'rinishida yuklab olish.
+
+    4 varaq: Umumiy, Kurslar, To'lovlar (joriy yil), O'qituvchilar.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+
+    wb = openpyxl.Workbook()
+    header_fill = PatternFill(start_color='4F46E5', end_color='4F46E5', fill_type='solid')
+    header_font = Font(bold=True, color='FFFFFF')
+
+    def _style_header(ws):
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = Alignment(horizontal='center')
+
+    def _fit_columns(ws):
+        for col in ws.columns:
+            width = max((len(str(c.value)) for c in col if c.value is not None), default=8)
+            ws.column_dimensions[col[0].column_letter].width = min(42, max(10, width + 2))
+
+    # ---- 1) Umumiy ----
+    ws1 = wb.active
+    ws1.title = "Umumiy"
+    ws1.append(["Ko'rsatkich", 'Qiymat'])
+    _style_header(ws1)
+    general_rows = [
+        ("Jami foydalanuvchilar", CustomUser.objects.count()),
+        ("O'quvchilar", CustomUser.objects.filter(role='student').count()),
+        ("O'qituvchilar", CustomUser.objects.filter(role='teacher').count()),
+        ("Yordamchi adminlar", CustomUser.objects.filter(role='assistant_admin').count()),
+        ("Bloklangan foydalanuvchilar", CustomUser.objects.filter(is_blocked=True).count()),
+        ("Kurslar", Profession.objects.count()),
+        ("Darslar", Lesson.objects.count()),
+        ("Video darslar", VideoLesson.objects.count()),
+        ("Testlar", Test.objects.count()),
+        ("Kursga yozilishlar", CourseEnrollment.objects.count()),
+        ("Sertifikatlar", Certificate.objects.count()),
+        ("Tekshirilmagan vazifalar", HomeworkSubmission.objects.filter(status='pending').count()),
+    ]
+    for row in general_rows:
+        ws1.append(list(row))
+    _fit_columns(ws1)
+
+    # ---- 2) Kurslar ----
+    ws2 = wb.create_sheet("Kurslar")
+    ws2.append(['#', 'Kurs', "O'quvchilar", 'Darslar', 'Tekshirilmagan vazifa', "O'rtacha test bali (%)", "O'qituvchilar"])
+    _style_header(ws2)
+    profs = Profession.objects.annotate(
+        student_total=Count('enrollments', filter=Q(enrollments__user__role='student'), distinct=True),
+        lesson_total=Count('lessons', distinct=True),
+    ).prefetch_related('teachers').order_by('-student_total')
+    prof_ids = [p.pk for p in profs]
+    pending_map = dict(
+        HomeworkSubmission.objects.filter(
+            status='pending', homework__lesson__profession_id__in=prof_ids
+        ).values_list('homework__lesson__profession_id').annotate(c=Count('id'))
+        .values_list('homework__lesson__profession_id', 'c')
+    )
+    score_map = dict(
+        TestResult.objects.filter(
+            test__lesson__profession_id__in=prof_ids
+        ).values_list('test__lesson__profession_id').annotate(a=Avg('score'))
+        .values_list('test__lesson__profession_id', 'a')
+    )
+    for i, p in enumerate(profs, 1):
+        teacher_names = ", ".join(
+            t.get_full_name() or t.username for t in p.teachers.all()
+        )
+        ws2.append([
+            i, p.name, p.student_total, p.lesson_total,
+            pending_map.get(p.pk, 0), round(score_map.get(p.pk) or 0, 1),
+            teacher_names,
+        ])
+    _fit_columns(ws2)
+
+    # ---- 3) To'lovlar (joriy yil, oylar bo'yicha) ----
+    ws3 = wb.create_sheet("To'lovlar")
+    ws3.append(['Oy', "To'langan (so'm)", "To'lovlar soni", "To'lanmagan (so'm)", "Qarzdorlar soni"])
+    _style_header(ws3)
+    year = timezone.now().year
+    month_names = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+                   'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr', 'Dekabr']
+    paid_rows = {
+        r['month']: r for r in PaymentRecord.objects.filter(is_paid=True, year=year)
+        .values('month').annotate(s=Sum('paid_amount'), c=Count('id'))
+    }
+    unpaid_rows = {
+        r['month']: r for r in PaymentRecord.objects.filter(is_paid=False, year=year)
+        .values('month').annotate(s=Sum('amount'), c=Count('id'))
+    }
+    for m in range(1, 13):
+        p = paid_rows.get(m, {})
+        u = unpaid_rows.get(m, {})
+        ws3.append([
+            month_names[m - 1],
+            int(p.get('s') or 0), p.get('c') or 0,
+            int(u.get('s') or 0), u.get('c') or 0,
+        ])
+    ws3.append([
+        f"JAMI ({year})",
+        sum(int(r.get('s') or 0) for r in paid_rows.values()),
+        sum(r.get('c') or 0 for r in paid_rows.values()),
+        sum(int(r.get('s') or 0) for r in unpaid_rows.values()),
+        sum(r.get('c') or 0 for r in unpaid_rows.values()),
+    ])
+    for cell in ws3[ws3.max_row]:
+        cell.font = Font(bold=True)
+    _fit_columns(ws3)
+
+    # ---- 4) O'qituvchilar ----
+    ws4 = wb.create_sheet("O'qituvchilar")
+    ws4.append(['#', 'Ism-familiya', 'Telefon', 'Kurslari', "O'quvchilari",
+                'Tekshirilmagan vazifa', 'Baholagan vazifalari'])
+    _style_header(ws4)
+    teachers = CustomUser.objects.filter(role='teacher').prefetch_related('teaching_professions')
+    for i, t in enumerate(teachers, 1):
+        t_prof_ids = [p.pk for p in t.teaching_professions.all()]
+        t_students = CourseEnrollment.objects.filter(
+            profession_id__in=t_prof_ids, user__role='student'
+        ).values('user').distinct().count() if t_prof_ids else 0
+        t_pending = HomeworkSubmission.objects.filter(
+            homework__lesson__profession_id__in=t_prof_ids, status='pending'
+        ).count() if t_prof_ids else 0
+        t_graded = HomeworkSubmission.objects.filter(
+            graded_by=t
+        ).count()
+        ws4.append([
+            i, t.get_full_name() or t.username, t.phone,
+            ", ".join(p.name for p in t.teaching_professions.all()),
+            t_students, t_pending, t_graded,
+        ])
+    _fit_columns(ws4)
+
+    stamp = timezone.localdate().strftime('%Y%m%d')
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="tizim_hisoboti_{stamp}.xlsx"'
+    wb.save(response)
+    return response
 
 
 @login_required
@@ -13978,7 +14559,7 @@ def ariza_view(request):
                 course_interest=course_interest
             )
             
-            notify_admins(
+            notify_application_recipients(
                 f"📋 <b>Yangi ariza keldi!</b>\n\n"
                 f"👤 {first_name} {last_name}\n"
                 f"📱 {phone}\n"
@@ -13999,7 +14580,7 @@ def admin_applications(request):
     if not request.user.is_admin:
         return redirect('home')
     
-    applications = CourseApplication.objects.all()
+    applications = CourseApplication.objects.select_related('handled_by').all()
     
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -14026,6 +14607,9 @@ def admin_applications(request):
         'search': q,
         'total_new': CourseApplication.objects.filter(status='new').count(),
         'total_all': CourseApplication.objects.count(),
+        'total_contacted': CourseApplication.objects.filter(status='contacted').count(),
+        'total_enrolled': CourseApplication.objects.filter(status='enrolled').count(),
+        'total_rejected': CourseApplication.objects.filter(status='rejected').count(),
     }
     return render(request, 'accounts/admin/applications.html', context)
 
@@ -14044,6 +14628,8 @@ def admin_application_status(request, pk):
         if new_status in dict(CourseApplication.STATUS_CHOICES):
             application.status = new_status
             application.admin_note = note
+            application.handled_by = request.user
+            application.handled_at = timezone.now()
             application.save()
             messages.success(request, "Ariza holati yangilandi!")
     

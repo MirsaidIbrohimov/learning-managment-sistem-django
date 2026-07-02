@@ -8,7 +8,7 @@
     /* ===== Stats Cards ===== */
     .app-stats {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 16px;
         margin-bottom: 24px;
     }
@@ -47,6 +47,21 @@
 
     .app-stat-icon.new {
         background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: #fff;
+    }
+
+    .app-stat-icon.contacted {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+    }
+
+    .app-stat-icon.enrolled {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: #fff;
+    }
+
+    .app-stat-icon.rejected {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
         color: #fff;
     }
 
@@ -450,9 +465,15 @@
     }
 
     /* ===== Responsive ===== */
+    @media (max-width: 1100px) {
+        .app-stats {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
     @media (max-width: 768px) {
         .app-stats {
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
 
@@ -560,6 +581,33 @@
             <div class="app-stat-label">Yangi arizalar</div>
         </div>
     </div>
+    <div class="app-stat-card">
+        <div class="app-stat-icon contacted">
+            <i class="bi bi-telephone"></i>
+        </div>
+        <div>
+            <div class="app-stat-number">{{ total_contacted|default:"0" }}</div>
+            <div class="app-stat-label">Bog'lanildi</div>
+        </div>
+    </div>
+    <div class="app-stat-card">
+        <div class="app-stat-icon enrolled">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <div>
+            <div class="app-stat-number">{{ total_enrolled|default:"0" }}</div>
+            <div class="app-stat-label">Yozildi</div>
+        </div>
+    </div>
+    <div class="app-stat-card">
+        <div class="app-stat-icon rejected">
+            <i class="bi bi-x-circle"></i>
+        </div>
+        <div>
+            <div class="app-stat-number">{{ total_rejected|default:"0" }}</div>
+            <div class="app-stat-label">Rad etildi</div>
+        </div>
+    </div>
 </div>
 
 <!-- Filter Tabs -->
@@ -607,6 +655,7 @@
                     <th>Telefon</th>
                     <th>Kurs</th>
                     <th>Holat</th>
+                    <th>Kim bog'landi</th>
                     <th>Sana</th>
                     <th>Amallar</th>
                 </tr>
@@ -639,6 +688,20 @@
                         </span>
                     </td>
                     <td>
+                        {% if app.handled_by %}
+                        <div class="d-flex flex-column">
+                            <span class="fw-semibold" style="font-size:0.85rem;">
+                                <i class="bi bi-person-check me-1 text-success"></i>{{ app.handled_by.get_full_name|default:app.handled_by.username }}
+                            </span>
+                            <small class="text-muted">
+                                {% if app.handled_by.is_admin %}Admin{% else %}Yordamchi{% endif %}{% if app.handled_at %} &middot; {{ app.handled_at|date:"d.m.Y H:i" }}{% endif %}
+                            </small>
+                        </div>
+                        {% else %}
+                        <span class="text-muted" style="font-size:0.82rem;"><i class="bi bi-dash-circle me-1"></i>Hali yo'q</span>
+                        {% endif %}
+                    </td>
+                    <td>
                         <span class="text-nowrap">{{ app.created_at|date:"d.m.Y" }}</span>
                         <br>
                         <small class="text-muted">{{ app.created_at|date:"H:i" }}</small>
@@ -661,7 +724,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7">
+                    <td colspan="8">
                         <div class="app-empty">
                             <div class="app-empty-icon">
                                 <i class="bi bi-inbox"></i>
@@ -710,6 +773,14 @@
             <div class="app-mobile-detail">
                 <span class="app-mobile-detail-label">Sana</span>
                 <span class="app-mobile-detail-value">{{ app.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Kim bog'landi</span>
+                <span class="app-mobile-detail-value">
+                    {% if app.handled_by %}
+                    <i class="bi bi-person-check text-success"></i> {{ app.handled_by.get_full_name|default:app.handled_by.username }}
+                    {% else %}—{% endif %}
+                </span>
             </div>
             {% if app.admin_note %}
             <div class="app-mobile-detail">

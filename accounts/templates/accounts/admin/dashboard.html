@@ -1200,6 +1200,9 @@
                 <a href="{% url 'export_system_pdf' %}" class="db-hero-btn">
                     <i class="bi bi-file-pdf"></i> PDF
                 </a>
+                <a href="{% url 'admin_export_report' %}" class="db-hero-btn">
+                    <i class="bi bi-file-earmark-excel"></i> Excel
+                </a>
                 <a href="/admin/" class="db-hero-btn outline" target="_blank">
                     <i class="bi bi-gear"></i>
                 </a>
@@ -1209,6 +1212,71 @@
             <i class="bi bi-calendar3"></i> <span id="liveDateTime"></span>
         </div>
     </div>
+
+    <!-- Moliya va o'sish -->
+    <div class="db-section-header" style="animation-delay:0.05s;">
+        <i class="bi bi-cash-stack"></i>
+        <h2>Moliya va o'sish (joriy oy)</h2>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:1.75rem;">
+        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yig'ilgan to'lovlar</div>
+            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ finance.month_revenue|floatformat:0 }} so'm</div>
+            <div style="font-size:.76rem;font-weight:700;color:{% if finance.revenue_change >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                {% if finance.revenue_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ finance.revenue_change }}%
+                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">o'tgan oyga nisbatan ({{ finance.month_paid_count }} ta to'lov)</span>
+            </div>
+        </div>
+        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">To'lanmagan (qarzdorlik)</div>
+            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;color:{% if finance.month_unpaid %}#ef4444{% else %}#10b981{% endif %};">{{ finance.month_unpaid|floatformat:0 }} so'm</div>
+            <div style="font-size:.76rem;color:var(--bs-secondary-color,#6c757d);">{{ finance.month_unpaid_count }} ta qarzdor</div>
+        </div>
+        <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:18px;">
+            <div style="font-size:.74rem;font-weight:700;color:var(--bs-secondary-color,#6c757d);text-transform:uppercase;letter-spacing:.05em;">Yangi foydalanuvchilar</div>
+            <div style="font-size:1.4rem;font-weight:800;margin:4px 0;">{{ growth.new_this_month }}</div>
+            <div style="font-size:.76rem;font-weight:700;color:{% if growth.user_change >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                {% if growth.user_change >= 0 %}▲ +{% else %}▼ {% endif %}{{ growth.user_change }}%
+                <span style="color:var(--bs-secondary-color,#6c757d);font-weight:500;">o'tgan oyda: {{ growth.new_prev_month }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kurslar samaradorligi -->
+    {% if course_perf %}
+    <div class="db-section-header" style="animation-delay:0.08s;">
+        <i class="bi bi-table"></i>
+        <h2>Kurslar samaradorligi (TOP-10)</h2>
+    </div>
+    <div style="background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:16px;padding:8px 16px;margin-bottom:1.75rem;overflow-x:auto;">
+        <table class="table table-sm align-middle" style="min-width:620px;font-size:.85rem;margin:0;">
+            <thead>
+                <tr style="font-size:.73rem;text-transform:uppercase;letter-spacing:.04em;">
+                    <th>Kurs</th>
+                    <th class="text-center">O'quvchilar</th>
+                    <th class="text-center">Darslar</th>
+                    <th class="text-center">Tekshirilmagan vazifa</th>
+                    <th class="text-center">O'rtacha test bali</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in course_perf %}
+                <tr>
+                    <td style="font-weight:600;">{{ c.name }}</td>
+                    <td class="text-center">{{ c.students }}</td>
+                    <td class="text-center">{{ c.lessons }}</td>
+                    <td class="text-center">
+                        {% if c.pending %}<span style="background:rgba(245,158,11,0.12);color:#b45309;font-weight:700;font-size:.76rem;padding:3px 10px;border-radius:999px;">{{ c.pending }}</span>
+                        {% else %}<span style="background:rgba(16,185,129,0.12);color:#059669;font-weight:700;font-size:.76rem;padding:3px 10px;border-radius:999px;">0</span>{% endif %}
+                    </td>
+                    <td class="text-center" style="font-weight:700;">{{ c.avg_score }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
 
     <!-- Tezkor havolalar -->
     <div class="db-section-header" style="animation-delay:0.1s;">

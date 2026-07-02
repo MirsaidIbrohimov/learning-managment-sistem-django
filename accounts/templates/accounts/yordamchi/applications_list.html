@@ -3,42 +3,135 @@
 {% block page_title %}Kelgan arizalar ({{ total_count }}){% endblock %}
 
 {% block content %}
+<style>
+    .ya-stats {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+    .ya-stat {
+        background: var(--yo-card, #fff);
+        border: 1px solid var(--yo-border, #e5e7eb);
+        border-radius: 14px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .ya-stat .ic {
+        width: 44px; height: 44px; border-radius: 11px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.15rem; color: #fff; flex-shrink: 0;
+    }
+    .ya-stat .ic.total { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+    .ya-stat .ic.new { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+    .ya-stat .ic.contacted { background: linear-gradient(135deg,#f59e0b,#d97706); }
+    .ya-stat .ic.enrolled { background: linear-gradient(135deg,#10b981,#059669); }
+    .ya-stat .ic.rejected { background: linear-gradient(135deg,#ef4444,#dc2626); }
+    .ya-stat .num { font-size: 1.4rem; font-weight: 700; line-height: 1; color: var(--yo-text, #111827); }
+    .ya-stat .lbl { font-size: .75rem; color: var(--yo-text-muted, #6b7280); margin-top: 3px; }
+
+    .ya-status-badge {
+        display: inline-flex; align-items: center; gap: 4px;
+        padding: 4px 10px; border-radius: 8px; font-weight: 600; font-size: .76rem;
+    }
+    .ya-status-badge.new { background: rgba(59,130,246,.12); color: #2563eb; }
+    .ya-status-badge.contacted { background: rgba(245,158,11,.12); color: #d97706; }
+    .ya-status-badge.enrolled { background: rgba(16,185,129,.12); color: #059669; }
+    .ya-status-badge.rejected { background: rgba(239,68,68,.12); color: #dc2626; }
+
+    .ya-handled { font-size: .8rem; }
+    .ya-handled .who { font-weight: 600; color: var(--yo-text, #111827); }
+    .ya-handled .meta { font-size: .72rem; color: var(--yo-text-muted, #6b7280); }
+
+    @media (max-width: 1100px) { .ya-stats { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 640px) { .ya-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+</style>
+
+<!-- Statistika -->
+<div class="ya-stats">
+    <div class="ya-stat"><div class="ic total"><i class="bi bi-file-earmark-text"></i></div><div><div class="num">{{ total_all|default:"0" }}</div><div class="lbl">Jami</div></div></div>
+    <div class="ya-stat"><div class="ic new"><i class="bi bi-bell"></i></div><div><div class="num">{{ total_new|default:"0" }}</div><div class="lbl">Yangi</div></div></div>
+    <div class="ya-stat"><div class="ic contacted"><i class="bi bi-telephone"></i></div><div><div class="num">{{ total_contacted|default:"0" }}</div><div class="lbl">Bog'lanildi</div></div></div>
+    <div class="ya-stat"><div class="ic enrolled"><i class="bi bi-check-circle"></i></div><div><div class="num">{{ total_enrolled|default:"0" }}</div><div class="lbl">Yozildi</div></div></div>
+    <div class="ya-stat"><div class="ic rejected"><i class="bi bi-x-circle"></i></div><div><div class="num">{{ total_rejected|default:"0" }}</div><div class="lbl">Rad etildi</div></div></div>
+</div>
+
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
-        <form method="get" class="d-flex gap-2">
-            <select name="status" class="form-select form-select-sm" style="max-width:200px;">
+        <form method="get" class="d-flex flex-wrap gap-2">
+            <input type="text" name="q" value="{{ q|default:'' }}" class="form-control form-control-sm" style="max-width:240px;" placeholder="Ism, telefon, kurs...">
+            <select name="status" class="form-select form-select-sm" style="max-width:180px;">
                 <option value="">— Barchasi —</option>
                 <option value="new" {% if status == 'new' %}selected{% endif %}>Yangi</option>
                 <option value="contacted" {% if status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
                 <option value="enrolled" {% if status == 'enrolled' %}selected{% endif %}>Yozildi</option>
                 <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rad etildi</option>
             </select>
-            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i></button>
+            <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i> Filtr</button>
         </form>
     </div>
     <div class="card-body p-0">
         {% if applications %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead style="background:rgba(16,185,129,0.06);">
-                    <tr><th>#</th><th>F.I.</th><th>Telefon</th><th>Qiziqish</th><th>Holat</th><th>Sana</th></tr>
+                    <tr>
+                        <th>#</th><th>F.I.</th><th>Telefon</th><th>Qiziqish</th>
+                        <th>Holat</th><th>Kim bog'landi</th><th>Sana</th>
+                        {% if can_edit %}<th>Amal</th>{% endif %}
+                    </tr>
                 </thead>
                 <tbody>
                 {% for a in applications %}
                     <tr>
                         <td>{{ a.id }}</td>
-                        <td>{{ a.first_name }} {{ a.last_name }}</td>
+                        <td class="fw-semibold">{{ a.first_name }} {{ a.last_name }}</td>
                         <td style="font-size:.85rem;">{{ a.phone }}</td>
                         <td style="font-size:.85rem;">{{ a.course_interest|default:"—"|truncatechars:40 }}</td>
-                        <td><span class="badge bg-secondary">{{ a.get_status_display }}</span></td>
-                        <td style="font-size:.78rem;color:#6b7280;">{{ a.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>
+                            <span class="ya-status-badge {{ a.status }}">
+                                {% if a.status == 'new' %}<i class="bi bi-star-fill"></i>
+                                {% elif a.status == 'contacted' %}<i class="bi bi-telephone-fill"></i>
+                                {% elif a.status == 'enrolled' %}<i class="bi bi-check-circle-fill"></i>
+                                {% elif a.status == 'rejected' %}<i class="bi bi-x-circle-fill"></i>{% endif %}
+                                {{ a.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if a.handled_by %}
+                            <div class="ya-handled">
+                                <div class="who"><i class="bi bi-person-check text-success me-1"></i>{{ a.handled_by.get_full_name|default:a.handled_by.username }}</div>
+                                <div class="meta">{% if a.handled_by.is_admin %}Admin{% else %}Yordamchi{% endif %}{% if a.handled_at %} · {{ a.handled_at|date:"d.m.Y H:i" }}{% endif %}</div>
+                            </div>
+                            {% else %}<span class="text-muted" style="font-size:.8rem;">Hali yo'q</span>{% endif %}
+                        </td>
+                        <td style="font-size:.78rem;color:var(--yo-text-muted,#6b7280);">{{ a.created_at|date:"d.m.Y H:i" }}</td>
+                        {% if can_edit %}
+                        <td>
+                            <form method="post" action="{% url 'yordamchi_application_status' a.pk %}" class="d-flex flex-column gap-1" style="min-width:150px;">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm">
+                                    <option value="new" {% if a.status == 'new' %}selected{% endif %}>Yangi</option>
+                                    <option value="contacted" {% if a.status == 'contacted' %}selected{% endif %}>Bog'lanildi</option>
+                                    <option value="enrolled" {% if a.status == 'enrolled' %}selected{% endif %}>Yozildi</option>
+                                    <option value="rejected" {% if a.status == 'rejected' %}selected{% endif %}>Rad etildi</option>
+                                </select>
+                                <textarea name="admin_note" rows="1" class="form-control form-control-sm" placeholder="Izoh...">{{ a.admin_note|default:'' }}</textarea>
+                                <button class="btn btn-success btn-sm"><i class="bi bi-check2"></i> Saqlash</button>
+                            </form>
+                        </td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Arizalar yo'q</p></div>{% endif %}
+        {% else %}
+        <div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Arizalar yo'q</p></div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -26,6 +26,39 @@ def notify_admins(text):
     threading.Thread(target=_send, daemon=True).start()
 
 
+def notify_application_recipients(text):
+    """Yangi ariza haqida adminlar va (applications.view ruxsatiga ega) yordamchi
+    adminlarga Telegram orqali xabar yuborish (background thread)."""
+    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
+    if not bot_token:
+        return
+
+    def _send():
+        from accounts.models import CustomUser
+        recipients = CustomUser.objects.filter(
+            role__in=('admin', 'assistant_admin'),
+            telegram_id__isnull=False,
+            is_blocked=False,
+        )
+        sent_ids = set()
+        for user in recipients:
+            # Yordamchi adminlar faqat 'applications.view' ruxsati bo'lsa oladi
+            if user.role == 'assistant_admin' and not user.has_assistant_perm('applications.view'):
+                continue
+            if user.telegram_id in sent_ids:
+                continue
+            sent_ids.add(user.telegram_id)
+            try:
+                premium.send_message(bot_token, user.telegram_id, text)
+            except Exception:
+                logger.exception(
+                    "notify_application_recipients: yuborishda xatolik (telegram_id=%s)",
+                    user.telegram_id,
+                )
+
+    threading.Thread(target=_send, daemon=True).start()
+
+
 def notify_group(text, inline_keyboard=None):
     """Guruhga Telegram orqali xabar yuborish (background thread)"""
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')

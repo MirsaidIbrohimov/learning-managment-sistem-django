@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="dash rhome">
+<div class="dash rhome rhome-teacher">
   <div class="dash-shell">
 
     <!-- HERO -->
@@ -34,10 +34,17 @@
         </div>
       </div>
       <div class="rh-hero-side">
-        <div class="rh-bigstat {% if pending_homeworks %}warn{% endif %}">
-          <i class="bi bi-journal-x"></i>
-          <b>{{ pending_homeworks }}</b>
-          <span>Tekshirilmagan vazifa</span>
+        <div class="rh-sidestack">
+          <div class="rh-bigstat {% if pending_homeworks %}warn{% endif %}">
+            <i class="bi bi-journal-x"></i>
+            <b>{{ pending_homeworks }}</b>
+            <span>Tekshirilmagan vazifa</span>
+          </div>
+          <div class="rh-bigstat">
+            <i class="bi bi-inbox"></i>
+            <b>{{ week_total }}</b>
+            <span>Haftalik topshiriqlar</span>
+          </div>
         </div>
       </div>
     </section>
@@ -55,34 +62,85 @@
       </div>
     </section>
 
-    <div class="rh-cols">
-      <!-- KURSLARIM -->
+    <!-- TEZKOR HARAKATLAR -->
+    <section class="rh-card rh-section">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-lightning-charge"></i> Tezkor harakatlar</h2>
+      </div>
+      <div class="rh-quickgrid">
+        {% for q in quick_actions %}
+        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}"></i> {{ q.label }}</a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- CHART + TOP O'QUVCHILAR -->
+    <div class="rh-cols rh-section">
       <section class="rh-card">
         <div class="rh-card-head">
-          <h2><i class="bi bi-collection-play"></i> Kurslarim</h2>
-          <a href="{% url 'teacher:courses' %}" class="rh-more">Barchasi</a>
+          <h2><i class="bi bi-bar-chart"></i> Topshirilgan vazifalar (7 kun)</h2>
+          <span class="rh-chip">{{ week_total }} ta</span>
         </div>
-        {% if my_courses %}
-        <div class="rh-coursegrid">
-          {% for c in my_courses %}
-          <a href="{% url 'manage_lessons' c.id %}" class="rh-course">
-            <div class="rh-course-photo">
-              {% if c.photo %}<img src="{{ c.photo }}" alt="{{ c.name }}" loading="lazy">
-              {% else %}<i class="bi bi-collection-play"></i>{% endif %}
-            </div>
-            <div class="rh-course-body">
-              <b>{{ c.name }}</b>
-              <span><i class="bi bi-journal-bookmark"></i> {{ c.lesson_total }} dars
-                &nbsp;·&nbsp; <i class="bi bi-people"></i> {{ c.student_total }} o'quvchi</span>
-            </div>
-          </a>
+        <div class="rh-chart">
+          {% for b in week_bars %}
+          <div class="rh-bar" title="{{ b.count }} ta">
+            <i style="height:{{ b.pct }}%"></i>
+            <em>{{ b.count }}</em>
+            <span>{{ b.label }}</span>
+          </div>
           {% endfor %}
         </div>
-        {% else %}
-        <div class="rh-empty"><i class="bi bi-info-circle"></i> Sizga hali kurs biriktirilmagan.</div>
-        {% endif %}
       </section>
 
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-trophy"></i> Eng faol o'quvchilar</h2>
+          <a href="{% url 'teacher:my_students' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if top_students %}
+        <ul class="rh-list">
+          {% for s in top_students %}
+          <li class="rh-list-row static">
+            <span class="rh-rank">{{ forloop.counter }}</span>
+            <span class="rh-list-label">{{ s.get_full_name|default:s.username }}</span>
+            <span class="rh-badge"><i class="bi bi-coin"></i> {{ s.coins }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Hozircha o'quvchilar yo'q.</div>
+        {% endif %}
+      </section>
+    </div>
+
+    <!-- KURSLARIM -->
+    <section class="rh-card rh-section">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-collection-play"></i> Kurslarim</h2>
+        <a href="{% url 'teacher:courses' %}" class="rh-more">Barchasi</a>
+      </div>
+      {% if my_courses %}
+      <div class="rh-coursegrid">
+        {% for c in my_courses %}
+        <a href="{% url 'manage_lessons' c.id %}" class="rh-course">
+          <div class="rh-course-photo">
+            {% if c.photo %}<img src="{{ c.photo }}" alt="{{ c.name }}" loading="lazy">
+            {% else %}<i class="bi bi-collection-play"></i>{% endif %}
+          </div>
+          <div class="rh-course-body">
+            <b>{{ c.name }}</b>
+            <span><i class="bi bi-journal-bookmark"></i> {{ c.lesson_total }} dars
+              &nbsp;·&nbsp; <i class="bi bi-people"></i> {{ c.student_total }} o'quvchi</span>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="rh-empty"><i class="bi bi-info-circle"></i> Sizga hali kurs biriktirilmagan.</div>
+      {% endif %}
+    </section>
+
+    <div class="rh-cols rh-section">
       <!-- SO'NGGI TOPSHIRIQLAR -->
       <section class="rh-card">
         <div class="rh-card-head">
@@ -106,6 +164,30 @@
         </ul>
         {% else %}
         <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hozircha topshiriq yo'q.</div>
+        {% endif %}
+      </section>
+
+      <!-- SO'NGGI TEST NATIJALARI -->
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-patch-check"></i> So'nggi test natijalari</h2>
+          <a href="{% url 'teacher:test_results' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_tests %}
+        <ul class="rh-list">
+          {% for t in recent_tests %}
+          <li class="rh-list-row static">
+            <span class="rh-avatar">{{ t.student.first_name|slice:":1"|default:"?" }}</span>
+            <span class="rh-list-label">
+              {{ t.student.get_full_name|default:t.student.username }}
+              <small>{{ t.test.lesson.title|truncatechars:40 }}</small>
+            </span>
+            <span class="rh-badge {% if t.passed %}ok{% else %}hot{% endif %}">{{ t.score }}%</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Hozircha test natijasi yo'q.</div>
         {% endif %}
       </section>
     </div>

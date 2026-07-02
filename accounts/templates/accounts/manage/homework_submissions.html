@@ -350,14 +350,19 @@
         </a>
     </div>
 
-    <!-- AI ommaviy baholash tugmasi -->
-    {% if user_ai_enabled %}
-    <div style="margin-bottom:0.75rem;">
+    <!-- AI ommaviy baholash + ustozga eslatma tugmalari -->
+    <div style="margin-bottom:0.75rem;display:flex;gap:0.6rem;flex-wrap:wrap;">
+        {% if user_ai_enabled %}
         <button type="button" id="bulkAiBtn" class="hw-btn" style="background:rgba(16,185,129,0.1);color:#059669;padding:0.5rem 1rem;font-size:0.85rem;">
             <i class="bi bi-robot"></i> Barchasini AI bilan baholash
         </button>
+        {% endif %}
+        {% if request.user.is_admin and reminder_templates %}
+        <button type="button" id="remindBtn" class="hw-btn" style="background:rgba(99,102,241,0.1);color:#4f46e5;padding:0.5rem 1rem;font-size:0.85rem;">
+            <i class="bi bi-send"></i> Ustozga eslatma yuborish
+        </button>
+        {% endif %}
     </div>
-    {% endif %}
 
     <!-- Controls -->
     <form method="GET" id="hwForm">
@@ -608,5 +613,130 @@
     }
 })();
 </script>
+
+{% if request.user.is_admin and reminder_templates %}
+<!-- Ustozga eslatma yuborish modali -->
+{{ reminder_templates|json_script:"remindTemplatesData" }}
+<div id="remindModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;">
+    <div style="background:var(--card-bg,#fff);border-radius:18px;padding:1.75rem;max-width:520px;width:92%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div id="remindForm">
+            <div style="text-align:center;margin-bottom:1rem;">
+                <div style="width:56px;height:56px;border-radius:14px;background:rgba(99,102,241,0.1);display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin:0 auto 0.75rem;">📨</div>
+                <h5 style="font-weight:800;margin:0 0 0.35rem;">Ustozga eslatma yuborish</h5>
+                <p style="color:var(--bs-secondary-color,#6c757d);font-size:0.83rem;margin:0;">
+                    Xabar ichki chat va Telegram orqali yuboriladi.<br>
+                    Qabul qiluvchi: <strong>{{ course_teachers|join:", "|default:"o'qituvchi biriktirilmagan" }}</strong>
+                </p>
+            </div>
+
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.35rem;">Shablon tanlang:</label>
+            <select id="remindTemplate" style="width:100%;padding:0.55rem 0.75rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);color:var(--text-color,#212529);font-size:0.85rem;margin-bottom:0.75rem;">
+                {% for t in reminder_templates %}
+                <option value="{{ forloop.counter0 }}">{{ t.label }}</option>
+                {% endfor %}
+            </select>
+
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.35rem;">
+                Xabar matni <span style="font-weight:500;color:var(--bs-secondary-color,#6c757d);">({ustoz} — har bir o'qituvchi ismi bilan almashadi)</span>:
+            </label>
+            <textarea id="remindText" rows="9" style="width:100%;padding:0.65rem 0.75rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);color:var(--text-color,#212529);font-size:0.84rem;line-height:1.5;resize:vertical;margin-bottom:1rem;"></textarea>
+
+            <div style="display:flex;gap:0.75rem;">
+                <button type="button" id="remindCancelBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--border-color,#dee2e6);background:var(--card-bg,#fff);font-weight:600;font-size:0.85rem;cursor:pointer;color:var(--text-color,#212529);">Bekor qilish</button>
+                <button type="button" id="remindSendBtn" style="flex:1;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;"><i class="bi bi-send"></i> Yuborish</button>
+            </div>
+        </div>
+        <div id="remindLoading" style="display:none;text-align:center;padding:0.5rem 0;">
+            <div style="width:48px;height:48px;border-radius:50%;border:4px solid rgba(99,102,241,0.2);border-top-color:#6366f1;animation:bulkSpin 0.8s linear infinite;margin:0 auto 1rem;"></div>
+            <p style="font-weight:700;margin:0;">Yuborilmoqda...</p>
+        </div>
+        <div id="remindResult" style="display:none;text-align:center;">
+            <div id="remindResultIcon" style="font-size:2rem;margin-bottom:0.5rem;"></div>
+            <div id="remindResultText" style="font-weight:700;font-size:1rem;margin-bottom:0.35rem;"></div>
+            <div id="remindResultSub" style="color:var(--bs-secondary-color,#6c757d);font-size:0.82rem;margin-bottom:1.25rem;"></div>
+            <button type="button" id="remindCloseBtn" style="width:100%;padding:0.6rem;border-radius:10px;border:none;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;font-weight:700;font-size:0.85rem;cursor:pointer;">Yopish</button>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var templates=[];
+    try{ templates=JSON.parse(document.getElementById('remindTemplatesData').textContent); }catch(e){ templates=[]; }
+
+    var modal=document.getElementById('remindModal');
+    var btn=document.getElementById('remindBtn');
+    var sel=document.getElementById('remindTemplate');
+    var txt=document.getElementById('remindText');
+    var formDiv=document.getElementById('remindForm');
+    var loadingDiv=document.getElementById('remindLoading');
+    var resultDiv=document.getElementById('remindResult');
+    var sendBtn=document.getElementById('remindSendBtn');
+    var cancelBtn=document.getElementById('remindCancelBtn');
+    var closeBtn=document.getElementById('remindCloseBtn');
+    if(!modal||!btn) return;
+
+    function applyTemplate(){
+        var i=parseInt(sel.value,10)||0;
+        if(templates[i]) txt.value=templates[i].text;
+    }
+    function showModal(){
+        modal.style.display='flex';
+        formDiv.style.display='';
+        loadingDiv.style.display='none';
+        resultDiv.style.display='none';
+        sendBtn.disabled=false;
+        applyTemplate();
+    }
+    function hideModal(){ modal.style.display='none'; }
+
+    btn.onclick=showModal;
+    sel.onchange=applyTemplate;
+    cancelBtn.onclick=hideModal;
+    modal.addEventListener('click', function(e){ if(e.target===modal) hideModal(); });
+    closeBtn.onclick=hideModal;
+
+    sendBtn.onclick=function(){
+        var text=txt.value.trim();
+        if(!text){ txt.focus(); return; }
+        formDiv.style.display='none';
+        loadingDiv.style.display='';
+        sendBtn.disabled=true;
+
+        var csrfToken=document.querySelector('[name=csrfmiddlewaretoken]');
+        var token=csrfToken?csrfToken.value:'{{ csrf_token }}';
+
+        fetch('{% url "notify_teacher_homework" %}', {
+            method:'POST',
+            headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':token},
+            body:'profession_id={{ profession_filter }}&text='+encodeURIComponent(text)
+        })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+            loadingDiv.style.display='none';
+            resultDiv.style.display='';
+            var icon=document.getElementById('remindResultIcon');
+            var rt=document.getElementById('remindResultText');
+            var sub=document.getElementById('remindResultSub');
+            if(data.error){
+                icon.textContent='❌';
+                rt.textContent='Xatolik yuz berdi';
+                sub.textContent=data.error;
+            } else {
+                icon.textContent='✅';
+                rt.textContent='Eslatma yuborildi!';
+                sub.textContent=data.teachers+' ta ustozga: '+data.chat+' ta chat, '+data.telegram+' ta Telegram xabari';
+            }
+        })
+        .catch(function(){
+            loadingDiv.style.display='none';
+            resultDiv.style.display='';
+            document.getElementById('remindResultIcon').textContent='❌';
+            document.getElementById('remindResultText').textContent='Tarmoq xatosi';
+            document.getElementById('remindResultSub').textContent='Qayta urinib ko\'ring';
+        });
+    };
+})();
+</script>
+{% endif %}
 {% endif %}
 {% endblock %}

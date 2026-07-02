@@ -1727,6 +1727,12 @@ class CourseApplication(models.Model):
     course_interest = models.CharField(max_length=200, blank=True, verbose_name="Qiziqtirgan kurs")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Holat")
     admin_note = models.TextField(blank=True, null=True, verbose_name="Admin izohi")
+    handled_by = models.ForeignKey(
+        'CustomUser', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='handled_applications',
+        verbose_name="Kim bog'landi",
+    )
+    handled_at = models.DateTimeField(null=True, blank=True, verbose_name="Bog'langan vaqt")
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -2567,3 +2573,39 @@ class ChatTypingStatus(models.Model):
 
     def __str__(self):
         return f"{self.user.username} typing..."
+
+
+class HomeworkReminder(models.Model):
+    """Tekshirilmagan vazifa bo'yicha avtomatik eslatmalar holati.
+
+    Soatlik cron (send_homework_reminders) shu jadval orqali qaysi
+    bildirishnoma yuborilganini kuzatib boradi:
+      - teacher_level: ustozga yuborilgan oxirgi bildirishnoma raqami (1..10)
+      - group_notified_at: guruhga xabar yuborilgan vaqt (bir martalik)
+    """
+    submission = models.OneToOneField(
+        HomeworkSubmission,
+        on_delete=models.CASCADE,
+        related_name='reminder_state',
+        verbose_name="Vazifa topshirig'i",
+    )
+    teacher_level = models.PositiveSmallIntegerField(
+        default=0, verbose_name="Ustozga yuborilgan bildirishnoma darajasi"
+    )
+    last_teacher_sent = models.DateTimeField(
+        null=True, blank=True, verbose_name="Ustozga oxirgi yuborilgan vaqt"
+    )
+    group_notified_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Guruhga yuborilgan vaqt"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Vazifa eslatmasi"
+        verbose_name_plural = "Vazifa eslatmalari"
+        indexes = [
+            models.Index(fields=['teacher_level']),
+        ]
+
+    def __str__(self):
+        return f"Reminder #{self.submission_id} (level {self.teacher_level})"

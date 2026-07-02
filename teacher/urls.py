@@ -7,6 +7,7 @@ urlpatterns = [
     # Dashboard
     path('', views.teacher_dashboard, name='dashboard'),
     path('statistics/', views.teacher_statistics, name='statistics'),
+    path('export/', views.teacher_export, name='export'),
 
     # O'quvchilarim
     path('students/', views.teacher_my_students, name='my_students'),

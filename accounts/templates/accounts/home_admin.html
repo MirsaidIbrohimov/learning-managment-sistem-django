@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="dash rhome">
+<div class="dash rhome rhome-admin">
   <div class="dash-shell">
 
     <!-- HERO -->
@@ -28,10 +28,17 @@
         </div>
       </div>
       <div class="rh-hero-side">
-        <div class="rh-bigstat {% if pending_total %}warn{% endif %}">
-          <i class="bi bi-hourglass-split"></i>
-          <b>{{ pending_total }}</b>
-          <span>Kutilayotgan ishlar</span>
+        <div class="rh-sidestack">
+          <div class="rh-bigstat {% if pending_total %}warn{% endif %}">
+            <i class="bi bi-hourglass-split"></i>
+            <b>{{ pending_total }}</b>
+            <span>Kutilayotgan ishlar</span>
+          </div>
+          <div class="rh-bigstat">
+            <i class="bi bi-box-arrow-in-right"></i>
+            <b>{{ logins_today }}</b>
+            <span>Bugungi kirishlar</span>
+          </div>
         </div>
       </div>
     </section>
@@ -49,7 +56,58 @@
       </div>
     </section>
 
-    <div class="rh-cols">
+    <!-- TEZKOR HARAKATLAR -->
+    <section class="rh-card rh-section">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-lightning-charge"></i> Tezkor harakatlar</h2>
+      </div>
+      <div class="rh-quickgrid">
+        {% for q in quick_actions %}
+        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}"></i> {{ q.label }}</a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- CHART + TOP KURSLAR -->
+    <div class="rh-cols rh-section">
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-bar-chart"></i> Ro'yxatdan o'tishlar (7 kun)</h2>
+          <span class="rh-chip">+{{ new_users_week }}</span>
+        </div>
+        <div class="rh-chart">
+          {% for b in week_bars %}
+          <div class="rh-bar" title="{{ b.count }} ta">
+            <i style="height:{{ b.pct }}%"></i>
+            <em>{{ b.count }}</em>
+            <span>{{ b.label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-trophy"></i> Eng ommabop kurslar</h2>
+          <a href="{% url 'admin_professions' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if top_courses %}
+        <ul class="rh-list">
+          {% for c in top_courses %}
+          <li class="rh-list-row static">
+            <span class="rh-rank">{{ forloop.counter }}</span>
+            <span class="rh-list-label">{{ c.name|truncatechars:38 }}</span>
+            <span class="rh-badge">{{ c.student_total }} o'quvchi</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Kurslar hali yo'q.</div>
+        {% endif %}
+      </section>
+    </div>
+
+    <div class="rh-cols rh-section">
       <!-- KUTILAYOTGAN ISHLAR -->
       <section class="rh-card">
         <div class="rh-card-head">
@@ -69,6 +127,27 @@
         </ul>
         {% else %}
         <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
+        {% endif %}
+
+        <div class="rh-card-head" style="margin-top:18px;">
+          <h2><i class="bi bi-inbox"></i> Yangi arizalar</h2>
+          <a href="{% url 'admin_applications' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_applications %}
+        <ul class="rh-list">
+          {% for a in recent_applications %}
+          <li class="rh-list-row static">
+            <span class="rh-avatar">{{ a.first_name|slice:":1"|default:"?" }}</span>
+            <span class="rh-list-label">
+              {{ a.first_name }} {{ a.last_name }}
+              <small>{{ a.course_interest|default:"Kurs belgilanmagan" }} · {{ a.phone }}</small>
+            </span>
+            <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Yangi ariza yo'q.</div>
         {% endif %}
       </section>
 
