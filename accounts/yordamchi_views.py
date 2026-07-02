@@ -18,7 +18,7 @@ from accounts.models import (
     Book,
     BookRental,
     BookRentalRequest,
-    CertificateRequest,
+    Certificate,
     CourseApplication,
     CourseEnrollment,
     CourseEnrollmentRequest,
@@ -92,7 +92,7 @@ def yordamchi_dashboard(request):
         'teachers': CustomUser.objects.filter(role='teacher').count(),
         'blocked': CustomUser.objects.filter(is_blocked=True).count(),
         'homework_pending': HomeworkSubmission.objects.filter(status='pending').count(),
-        'cert_pending': CertificateRequest.objects.filter(status='pending').count(),
+        'cert_issued': Certificate.objects.count(),
         'help_pending': HelpRequest.objects.filter(status='pending').count(),
         'apps_new': CourseApplication.objects.filter(status='new').count(),
         'pw_pending': PasswordResetRequest.objects.filter(status='pending').count(),
@@ -381,16 +381,18 @@ def yordamchi_tests(request):
 
 @login_required
 def yordamchi_certificates(request):
+    """Berilgan sertifikatlar ro'yxati (so'rovlar tizimi olib tashlangan —
+    sertifikatlar yakuniy testdan o'tganda avtomatik beriladi)."""
     if not _require_perm(request, 'certificate_requests.view'):
         return redirect('home')
-    status = request.GET.get('status', 'pending').strip()
-    qs = CertificateRequest.objects.select_related('student', 'profession')
+    status = request.GET.get('status', '').strip()
+    qs = Certificate.objects.select_related('student', 'profession')
     if status:
         qs = qs.filter(status=status)
-    paginator = Paginator(qs.order_by('-created_at'), 50)
+    paginator = Paginator(qs.order_by('-issued_at'), 50)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'accounts/yordamchi/certificates_list.html', {
-        'requests': page_obj.object_list,
+        'certificates': page_obj.object_list,
         'page_obj': page_obj,
         'status': status,
         'total_count': paginator.count,

@@ -18,7 +18,7 @@ from rest_framework.response import Response
 
 from accounts.models import (
     CustomUser, Homework, HomeworkSubmission,
-    TestResult, CertificateRequest,
+    TestResult, Certificate,
     Message, HelpRequest, CourseApplication,
     PasswordResetRequest, Parent, ParentMessage, ParentPasswordResetRequest,
     CourseEnrollmentRequest, CourseUnenrollRequest, PremiumRequest,
@@ -36,7 +36,7 @@ from .serializers import (
     AssistantUserSerializer,
     HomeworkSerializer, HomeworkSubmissionSerializer,
     TestResultDetailSerializer, LessonAnalyticsSerializer,
-    TeacherAttendanceSerializer, CertificateRequestSerializer,
+    TeacherAttendanceSerializer, CertificateSerializer,
     PasswordResetRequestSerializer, ParentSerializer, ParentMessageSerializer,
     ParentPasswordResetRequestSerializer,
     CourseEnrollmentRequestSerializer, CourseUnenrollRequestSerializer,
@@ -150,7 +150,7 @@ def assistant_dashboard(request):
         'learning': {
             'homework_submissions_pending': HomeworkSubmission.objects.filter(status='pending').count(),
             'test_results_total': TestResult.objects.count(),
-            'certificate_requests_pending': CertificateRequest.objects.filter(status='pending').count(),
+            'certificates_issued': Certificate.objects.count(),
         },
         'requests': {
             'password_reset_pending': PasswordResetRequest.objects.filter(status='pending').count(),
@@ -327,35 +327,18 @@ class AttendanceDetailView(generics.RetrieveUpdateDestroyAPIView):
         instance.delete()
 
 
-# ---- Sertifikat so'rovlari ----
+# ---- Sertifikatlar (so'rovlar tizimi olib tashlangan — avtomatik beriladi) ----
 
-class CertificateRequestListView(generics.ListAPIView):
-    serializer_class = CertificateRequestSerializer
+class CertificateListView(generics.ListAPIView):
+    serializer_class = CertificateSerializer
     permission_classes = _perm('certificate_requests.view')
 
     def get_queryset(self):
-        qs = CertificateRequest.objects.select_related('student', 'profession').all()
+        qs = Certificate.objects.select_related('student', 'profession').all()
         status_param = self.request.query_params.get('status')
         if status_param:
             qs = qs.filter(status=status_param)
         return qs
-
-
-@api_view(['POST'])
-@permission_classes(_perm('certificate_requests.review'))
-def certificate_request_review(request, pk):
-    req = get_object_or_404(CertificateRequest, pk=pk)
-    action = request.data.get('action')
-    if action not in ('approve', 'reject'):
-        return Response({'error': "action 'approve' yoki 'reject' bo'lishi kerak"}, status=400)
-    req.status = 'approved' if action == 'approve' else 'rejected'
-    req.admin_message = request.data.get('admin_message', '')
-    req.reviewed_by = request.user
-    req.reviewed_at = timezone.now()
-    req.save()
-    log_action(request, 'certificate_requests.review', target=req,
-               description=f"Sertifikat so'rovi {action}: {req.student.full_name} - {req.profession.name}")
-    return Response(CertificateRequestSerializer(req).data)
 
 
 # ============================================================

@@ -290,13 +290,13 @@ urlpatterns = [
     # Admin: O'quvchi sertifikatlari
     path('dashboard/certificates/', views.admin_certificates, name='admin_certificates'),
     path('dashboard/certificates/issue/', views.admin_certificate_issue, name='admin_certificate_issue'),
+    path('dashboard/certificates/settings/', views.admin_certificate_settings, name='admin_certificate_settings'),
+    path('dashboard/certificates/manual/', views.admin_certificate_manual, name='admin_certificate_manual'),
     path('dashboard/certificates/<int:pk>/status/', views.admin_certificate_status, name='admin_certificate_status'),
+    path('dashboard/certificates/<int:pk>/edit/', views.admin_certificate_edit, name='admin_certificate_edit'),
+    path('dashboard/certificates/<int:pk>/regenerate/', views.admin_certificate_regenerate, name='admin_certificate_regenerate'),
     path('dashboard/certificates/<int:pk>/delete/', views.admin_certificate_delete, name='admin_certificate_delete'),
-    
-    # Admin: Sertifikat so'rovlari
-    path('dashboard/certificate-requests/', views.admin_certificate_requests, name='admin_certificate_requests'),
-    path('dashboard/certificate-requests/<int:pk>/approve/', views.approve_certificate_request, name='approve_certificate_request'),
-    path('dashboard/certificate-requests/<int:pk>/reject/', views.reject_certificate_request, name='reject_certificate_request'),
+    path('certificate/<int:pk>/download/', views.download_certificate, name='download_certificate'),
     
     # Sertifikat tekshirish (login talab qilinmaydi)
     path('verify-certificate/', views.verify_certificate, name='verify_certificate'),

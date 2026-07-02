@@ -6,7 +6,6 @@
     <title>Sertifikat tekshirish | IT Shaharcha Zomin</title>
     <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     {% load static %}
@@ -14,566 +13,545 @@
     <style>
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
+    :root {
+        --acc: #818cf8;
+        --acc2: #38bdf8;
+        --acc3: #a78bfa;
+        --ok: #4ade80;
+        --warn: #fbbf24;
+        --bad: #f87171;
+    }
+
     body {
         font-family: 'Inter', system-ui, sans-serif;
         min-height: 100vh;
-        background: #0a0e1a;
+        background: #070a14;
         color: #e2e8f0;
         overflow-x: hidden;
     }
 
-    .mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* ========== BG GRID ========== */
-    .vc-bg {
-        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    /* ==================== 3D SAHNA (fon) ==================== */
+    .scene {
+        position: fixed; inset: 0; z-index: 0;
+        pointer-events: none;
+        perspective: 900px;
+        overflow: hidden;
         background:
-            linear-gradient(135deg, #0a0e1a 0%, #111827 40%, #0f172a 100%);
+            radial-gradient(900px 500px at 80% -10%, rgba(99,102,241,.16), transparent 60%),
+            radial-gradient(700px 500px at 0% 110%, rgba(56,189,248,.10), transparent 60%),
+            linear-gradient(160deg, #070a14 0%, #0b1022 55%, #0a0e1c 100%);
     }
-    .vc-bg::before {
-        content: '';
+
+    /* Harakatlanuvchi 3D pol (perspektivali to'r) */
+    .floor {
+        position: absolute; left: -60%; right: -60%; bottom: -46%; height: 90%;
+        background:
+            linear-gradient(rgba(99,102,241,.14) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(99,102,241,.14) 1px, transparent 1px);
+        background-size: 46px 46px;
+        transform: perspective(700px) rotateX(74deg);
+        -webkit-mask-image: linear-gradient(transparent 0%, #000 45%);
+        mask-image: linear-gradient(transparent 0%, #000 45%);
+        animation: floorMove 14s linear infinite;
+        opacity: .8;
+    }
+    @keyframes floorMove { to { background-position: 0 46px, 0 0; } }
+
+    /* Yulduzlar */
+    .stars i {
+        position: absolute; width: 3px; height: 3px; border-radius: 50%;
+        background: #cbd5f5;
+        animation: twinkle 4s ease-in-out infinite;
+    }
+    @keyframes twinkle { 0%,100% { opacity: .12; transform: scale(.7);} 50% { opacity: .8; transform: scale(1.15);} }
+
+    /* ---------- 3D obyektlar ---------- */
+    .obj { position: absolute; transform-style: preserve-3d; will-change: transform; }
+
+    /* Aylanuvchi sim-karkas KUB */
+    .cube { width: 84px; height: 84px; animation: spinCube 22s linear infinite; }
+    .cube b {
         position: absolute; inset: 0;
-        background-image:
-            linear-gradient(rgba(99,102,241,.04) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99,102,241,.04) 1px, transparent 1px);
-        background-size: 60px 60px;
+        border: 1.5px solid rgba(129,140,248,.4);
+        background: rgba(99,102,241,.05);
+        box-shadow: inset 0 0 18px rgba(129,140,248,.08);
     }
-    .vc-bg::after {
-        content: '';
-        position: absolute;
-        top: -20%; left: -10%;
-        width: 600px; height: 600px;
-        background: radial-gradient(circle, rgba(99,102,241,.08) 0%, transparent 70%);
-        border-radius: 50%;
-    }
-    .vc-glow-right {
-        position: fixed; top: 20%; right: -10%;
-        width: 500px; height: 500px;
-        background: radial-gradient(circle, rgba(168,85,247,.06) 0%, transparent 70%);
-        border-radius: 50%; z-index: 0; pointer-events: none;
-    }
+    .cube b:nth-child(1) { transform: translateZ(42px); }
+    .cube b:nth-child(2) { transform: rotateY(180deg) translateZ(42px); }
+    .cube b:nth-child(3) { transform: rotateY(90deg) translateZ(42px); }
+    .cube b:nth-child(4) { transform: rotateY(-90deg) translateZ(42px); }
+    .cube b:nth-child(5) { transform: rotateX(90deg) translateZ(42px); }
+    .cube b:nth-child(6) { transform: rotateX(-90deg) translateZ(42px); }
+    @keyframes spinCube { to { transform: rotateX(360deg) rotateY(720deg); } }
 
-    /* ========== LAYOUT ========== */
+    /* GIROSKOP — kesishuvchi halqalar */
+    .gyro { width: 150px; height: 150px; animation: spinGyro 18s linear infinite; }
+    .gyro b {
+        position: absolute; inset: 0; border-radius: 50%;
+        border: 1.5px solid rgba(56,189,248,.45);
+    }
+    .gyro b:nth-child(2) { transform: rotateY(65deg); border-color: rgba(129,140,248,.4); }
+    .gyro b:nth-child(3) { transform: rotateY(-65deg); border-color: rgba(167,139,250,.4); }
+    .gyro b:nth-child(4) { transform: rotateX(78deg); border-color: rgba(56,189,248,.28); }
+    .gyro::after {
+        content: ''; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px;
+        border-radius: 50%; background: var(--acc2);
+        transform: translate(-50%,-50%);
+        box-shadow: 0 0 18px var(--acc2), 0 0 40px rgba(56,189,248,.5);
+    }
+    @keyframes spinGyro { to { transform: rotateX(-360deg) rotateY(360deg); } }
+
+    /* PIRAMIDA */
+    .pyra { width: 0; height: 0; animation: spinPyra 26s linear infinite; }
+    .pyra b {
+        position: absolute; left: -38px; top: -30px;
+        border-left: 38px solid transparent; border-right: 38px solid transparent;
+        border-bottom: 60px solid rgba(167,139,250,.10);
+        filter: drop-shadow(0 0 6px rgba(167,139,250,.25));
+        transform-origin: 50% 100%;
+    }
+    .pyra b:nth-child(1) { transform: translateZ(19px) rotateX(-20deg); }
+    .pyra b:nth-child(2) { transform: rotateY(90deg) translateZ(19px) rotateX(-20deg); }
+    .pyra b:nth-child(3) { transform: rotateY(180deg) translateZ(19px) rotateX(-20deg); }
+    .pyra b:nth-child(4) { transform: rotateY(270deg) translateZ(19px) rotateX(-20deg); }
+    @keyframes spinPyra { to { transform: rotateY(360deg); } }
+
+    /* Suzish harakati (hammasi uchun o'rash) */
+    .float-a { animation: floatA 9s ease-in-out infinite; }
+    .float-b { animation: floatB 12s ease-in-out infinite; }
+    @keyframes floatA { 0%,100% { margin-top: 0; } 50% { margin-top: -26px; } }
+    @keyframes floatB { 0%,100% { margin-top: 0; } 50% { margin-top: 22px; } }
+
+    /* ==================== KONTENT ==================== */
     .vc-wrap {
-        position: relative; z-index: 1;
-        max-width: 640px; margin: 0 auto;
-        padding: 2rem 1rem;
-        min-height: 100vh;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
+        position: relative; z-index: 2;
+        max-width: 720px; margin: 0 auto;
+        padding: 3rem 1.25rem 4rem;
+        display: flex; flex-direction: column; align-items: center;
     }
 
-    /* ========== LOGO ========== */
-    .vc-brand {
-        text-align: center;
-        margin-bottom: 2rem;
-        animation: vcFadeDown .6s ease both;
+    /* ---------- 3D MEDAL ---------- */
+    .medal-stage { perspective: 800px; margin-bottom: 1.1rem; }
+    .medal {
+        width: 108px; height: 108px; position: relative;
+        transform-style: preserve-3d;
+        animation: medalSpin 7s cubic-bezier(.45,.05,.55,.95) infinite;
     }
-    .vc-brand-icon {
-        width: 72px; height: 72px;
-        border-radius: 20px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    .medal .face {
+        position: absolute; inset: 0; border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
-        margin: 0 auto 1rem;
-        font-size: 1.8rem; color: #fff;
-        box-shadow: 0 8px 32px rgba(99,102,241,.3), inset 0 1px 0 rgba(255,255,255,.1);
-        position: relative;
+        font-size: 3rem; color: #fff;
+        background:
+            radial-gradient(circle at 32% 28%, rgba(255,255,255,.35), transparent 42%),
+            linear-gradient(135deg, #6366f1, #8b5cf6 55%, #38bdf8);
+        border: 3px solid rgba(255,255,255,.25);
+        box-shadow: 0 0 0 6px rgba(99,102,241,.15), 0 24px 60px -18px rgba(99,102,241,.75);
+        backface-visibility: hidden;
     }
-    .vc-brand-icon::after {
-        content: ''; position: absolute; inset: -4px;
-        border-radius: 24px;
-        border: 1.5px solid rgba(99,102,241,.2);
-        animation: vcRingPulse 3s ease-in-out infinite;
+    .medal .face.back {
+        transform: rotateY(180deg);
+        background:
+            radial-gradient(circle at 32% 28%, rgba(255,255,255,.3), transparent 42%),
+            linear-gradient(135deg, #38bdf8, #6366f1 60%, #a78bfa);
     }
-    @keyframes vcRingPulse {
-        0%, 100% { transform: scale(1); opacity: .5; }
-        50% { transform: scale(1.08); opacity: 0; }
+    .medal .face.back span {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: .78rem; font-weight: 700; letter-spacing: .08em;
     }
+    @keyframes medalSpin {
+        0%, 12%  { transform: rotateY(0); }
+        45%, 62% { transform: rotateY(180deg); }
+        95%,100% { transform: rotateY(360deg); }
+    }
+    .medal-shadow {
+        width: 90px; height: 14px; margin: 10px auto 0;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(99,102,241,.4), transparent 70%);
+        animation: shadowPulse 7s ease-in-out infinite;
+    }
+    @keyframes shadowPulse { 0%,100% { transform: scaleX(1); opacity:.8;} 50% { transform: scaleX(.72); opacity:.45;} }
+
+    .vc-brand { text-align: center; margin-bottom: 1.9rem; }
     .vc-brand h1 {
-        font-size: 1.4rem; font-weight: 800; letter-spacing: -.5px;
-        background: linear-gradient(90deg, #e2e8f0, #a5b4fc);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        font-size: clamp(1.55rem, 4.5vw, 2.15rem);
+        font-weight: 900; letter-spacing: -.02em;
+        background: linear-gradient(90deg, #e2e8f0 20%, #818cf8 45%, #38bdf8 60%, #e2e8f0 80%);
+        background-size: 220% auto;
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        animation: shineText 5.5s linear infinite;
     }
-    .vc-brand p {
-        font-size: .82rem; color: rgba(255,255,255,.35);
-        font-weight: 500; margin-top: .25rem;
-    }
+    @keyframes shineText { to { background-position: 220% center; } }
+    .vc-brand p { color: rgba(226,232,240,.55); font-weight: 600; margin-top: .3rem; }
     .vc-brand-tag {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 3px 10px; border-radius: 6px; margin-top: .6rem;
-        background: rgba(99,102,241,.1);
-        border: 1px solid rgba(99,102,241,.15);
-        font-size: .7rem; font-weight: 600; color: #818cf8;
+        display: inline-flex; align-items: center; gap: 7px;
+        margin-top: .8rem; padding: .38rem .95rem;
+        border-radius: 999px; font-size: .74rem; font-weight: 600;
+        color: #93c5fd; background: rgba(56,189,248,.08);
+        border: 1px solid rgba(56,189,248,.22);
+        box-shadow: 0 0 24px -8px rgba(56,189,248,.5);
     }
 
-    /* ========== GLASS CARD ========== */
+    /* ---------- SHISHA KARTA (umumiy) ---------- */
     .vc-glass {
         width: 100%;
-        background: rgba(255,255,255,.03);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255,255,255,.06);
-        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(17,24,44,.82), rgba(13,18,36,.88));
+        border: 1px solid rgba(129,140,248,.16);
+        border-radius: 24px;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: 0 30px 80px -30px rgba(0,0,0,.8);
         overflow: hidden;
-        transition: all .3s ease;
-    }
-    .vc-glass:hover {
-        border-color: rgba(99,102,241,.15);
-        box-shadow: 0 8px 40px rgba(99,102,241,.08);
+        position: relative;
     }
 
-    /* ========== SEARCH ========== */
-    .vc-search {
-        padding: 2rem;
-        animation: vcFadeUp .6s ease .1s both;
+    /* 3D tilt qo'llanadigan kartalar */
+    .tilt {
+        transform-style: preserve-3d;
+        transition: transform .18s ease-out, box-shadow .3s ease;
+        will-change: transform;
     }
+    .tilt .glare {
+        position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        background: radial-gradient(560px circle at var(--gx,50%) var(--gy,50%), rgba(148,163,255,.10), transparent 45%);
+        opacity: 0; transition: opacity .3s ease;
+    }
+    .tilt:hover .glare { opacity: 1; }
+
+    /* ---------- QIDIRUV ---------- */
+    .vc-search { padding: 1.6rem 1.75rem 1.75rem; position: relative; z-index: 2; }
     .vc-search-title {
-        font-size: 1rem; font-weight: 700;
-        text-align: center; margin-bottom: 1.5rem;
-        display: flex; align-items: center; justify-content: center; gap: .5rem;
+        font-weight: 800; font-size: .95rem; margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 9px;
     }
-    .vc-search-title i { color: #6366f1; }
-
-    .vc-input-wrap { position: relative; margin-bottom: 1rem; }
-    .vc-input-wrap > .bi-upc-scan {
+    .vc-search-title i { color: var(--acc); }
+    .vc-input-wrap { position: relative; margin-bottom: .9rem; }
+    .vc-input-wrap > i {
         position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
-        color: rgba(255,255,255,.25); font-size: 1.1rem; z-index: 2;
+        color: rgba(148,163,184,.7); font-size: 1.05rem; z-index: 2;
     }
     .vc-input {
-        width: 100%;
-        padding: .85rem 1rem .85rem 48px;
-        background: rgba(255,255,255,.05);
-        border: 1.5px solid rgba(255,255,255,.08);
-        border-radius: 14px;
-        color: #e2e8f0;
-        font-family: 'JetBrains Mono', monospace;
-        font-size: .9rem;
-        font-weight: 500;
-        letter-spacing: .5px;
-        outline: none;
-        transition: all .3s;
+        width: 100%; padding: 1rem 1.1rem 1rem 46px;
+        border-radius: 14px; font-size: 1rem; font-weight: 600;
+        font-family: 'JetBrains Mono', monospace; letter-spacing: .04em;
+        color: #e2e8f0; background: rgba(7,10,20,.7);
+        border: 1.5px solid rgba(129,140,248,.22);
+        outline: none; transition: border-color .25s, box-shadow .25s;
     }
-    .vc-input::placeholder {
-        color: rgba(255,255,255,.2);
-        font-family: 'Inter', sans-serif;
-        font-weight: 400;
-        letter-spacing: 0;
-    }
+    .vc-input::placeholder { color: rgba(100,116,139,.6); font-weight: 500; }
     .vc-input:focus {
-        border-color: rgba(99,102,241,.5);
-        background: rgba(255,255,255,.07);
-        box-shadow: 0 0 0 4px rgba(99,102,241,.1), 0 0 20px rgba(99,102,241,.05);
+        border-color: var(--acc);
+        box-shadow: 0 0 0 4px rgba(129,140,248,.14), 0 0 30px -8px rgba(129,140,248,.55);
     }
-
     .vc-btn {
-        width: 100%;
-        padding: .85rem;
-        border: none; border-radius: 14px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff;
-        font-size: .95rem; font-weight: 700;
-        cursor: pointer;
-        transition: all .3s;
-        position: relative; overflow: hidden;
-        box-shadow: 0 4px 20px rgba(99,102,241,.25);
+        width: 100%; padding: 1rem; border: none; border-radius: 14px;
+        font-size: 1rem; font-weight: 800; color: #fff; cursor: pointer;
+        background: linear-gradient(90deg, #6366f1, #8b5cf6 55%, #38bdf8);
+        background-size: 180% auto;
+        box-shadow: 0 14px 34px -12px rgba(99,102,241,.7);
+        transition: background-position .4s ease, transform .15s ease, box-shadow .3s;
+        display: flex; align-items: center; justify-content: center; gap: 9px;
     }
-    .vc-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(99,102,241,.4);
-    }
-    .vc-btn:active { transform: translateY(0); }
-    .vc-btn::after {
-        content: ''; position: absolute;
-        top: -50%; left: -50%;
-        width: 200%; height: 200%;
-        background: linear-gradient(transparent, rgba(255,255,255,.08), transparent);
-        transform: rotate(45deg);
-        transition: .6s;
-    }
-    .vc-btn:hover::after { left: 100%; }
+    .vc-btn:hover { background-position: 100% center; transform: translateY(-2px); box-shadow: 0 20px 44px -12px rgba(99,102,241,.85); }
+    .vc-btn:active { transform: translateY(0) scale(.985); }
 
-    /* ========== RESULT CARD ========== */
+    /* ---------- NATIJA KARTASI ---------- */
     .vc-result {
-        width: 100%; margin-top: 1.5rem;
-        animation: vcFadeUp .5s ease both;
+        width: 100%; margin-top: 1.6rem;
+        perspective: 1100px;
+    }
+    .vc-result .vc-glass { animation: flipIn .9s cubic-bezier(.2,.85,.3,1.08) both; }
+    @keyframes flipIn {
+        from { transform: rotateX(-38deg) translateY(34px); opacity: 0; }
+        to   { transform: rotateX(0) translateY(0); opacity: 1; }
     }
 
-    .vc-result-top {
-        padding: 2rem 2rem 1.5rem;
-        text-align: center;
-        position: relative; overflow: hidden;
+    /* Holografik yaltirash chizig'i */
+    .holo::before {
+        content: ''; position: absolute; top: 0; bottom: 0; width: 55%;
+        left: -60%; z-index: 4; pointer-events: none;
+        background: linear-gradient(105deg, transparent 15%, rgba(148,163,255,.09) 45%, rgba(56,189,248,.14) 52%, transparent 80%);
+        transform: skewX(-14deg);
+        animation: holoSweep 5.5s ease-in-out infinite;
     }
+    @keyframes holoSweep { 0%, 55%, 100% { left: -60%; } 25%, 35% { left: 105%; } }
+
+    .vc-result-top { padding: 2.1rem 1.75rem 1.6rem; text-align: center; position: relative; }
     .vc-result-top::before {
-        content: ''; position: absolute; inset: 0; opacity: .08;
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
     }
-    .vc-result-top.active::before { background: linear-gradient(135deg, #22c55e, #10b981); }
-    .vc-result-top.expired::before { background: linear-gradient(135deg, #f59e0b, #ef4444); }
-    .vc-result-top.frozen::before { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
-    .vc-result-top.revoked::before { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .vc-result-top.active::before  { background: linear-gradient(90deg, transparent, #22c55e, #10b981, transparent); }
+    .vc-result-top.expired::before { background: linear-gradient(90deg, transparent, #f59e0b, #ef4444, transparent); }
+    .vc-result-top.frozen::before  { background: linear-gradient(90deg, transparent, #3b82f6, #06b6d4, transparent); }
+    .vc-result-top.revoked::before { background: linear-gradient(90deg, transparent, #ef4444, #dc2626, transparent); }
 
-    .vc-cert-icon { font-size: 2.8rem; margin-bottom: .5rem; }
+    /* Pulslanuvchi halqali status ikonkasi */
+    .vc-cert-icon { position: relative; width: 74px; height: 74px; margin: 0 auto .9rem; }
+    .vc-cert-icon i { font-size: 3.4rem; position: relative; z-index: 2; }
+    .vc-cert-icon::before, .vc-cert-icon::after {
+        content: ''; position: absolute; inset: -6px; border-radius: 50%;
+        border: 1.5px solid rgba(129,140,248,.35);
+        animation: ringPulse 2.6s ease-out infinite;
+    }
+    .vc-cert-icon::after { animation-delay: 1.3s; }
+    @keyframes ringPulse {
+        0% { transform: scale(.75); opacity: .9; }
+        100% { transform: scale(1.55); opacity: 0; }
+    }
 
     .vc-cert-id {
         font-family: 'JetBrains Mono', monospace;
-        font-size: 1.1rem; font-weight: 700;
-        letter-spacing: 1px; margin: .5rem 0;
-        color: #e2e8f0;
+        font-size: clamp(1.15rem, 3.4vw, 1.5rem); font-weight: 800; letter-spacing: .05em;
+        margin-bottom: .7rem;
     }
-
     .vc-status {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 5px 16px; border-radius: 50px;
-        font-size: .8rem; font-weight: 700;
-        letter-spacing: .3px;
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: .42rem 1.15rem; border-radius: 999px;
+        font-size: .85rem; font-weight: 800;
     }
-    .vc-status.active {
-        background: rgba(34,197,94,.12); color: #4ade80;
-        border: 1px solid rgba(34,197,94,.2);
-        box-shadow: 0 0 20px rgba(34,197,94,.1);
-    }
-    .vc-status.expired {
-        background: rgba(245,158,11,.12); color: #fbbf24;
-        border: 1px solid rgba(245,158,11,.2);
-    }
-    .vc-status.frozen {
-        background: rgba(59,130,246,.12); color: #60a5fa;
-        border: 1px solid rgba(59,130,246,.2);
-    }
-    .vc-status.revoked {
-        background: rgba(239,68,68,.12); color: #f87171;
-        border: 1px solid rgba(239,68,68,.2);
-    }
+    .vc-status.active  { color: #4ade80; background: rgba(34,197,94,.12); border: 1px solid rgba(34,197,94,.3); box-shadow: 0 0 26px -6px rgba(34,197,94,.5); }
+    .vc-status.expired { color: #fbbf24; background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.3); }
+    .vc-status.frozen  { color: #60a5fa; background: rgba(59,130,246,.12); border: 1px solid rgba(59,130,246,.3); }
+    .vc-status.revoked { color: #f87171; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.3); }
 
-    /* ========== INFO ROWS ========== */
-    .vc-info { padding: .5rem 2rem 1.5rem; }
+    /* Ma'lumot qatorlari */
+    .vc-info { padding: .4rem 1.75rem 1.4rem; position: relative; z-index: 2; }
     .vc-info-row {
-        display: flex; align-items: center; gap: .75rem;
-        padding: .7rem 0;
-        border-bottom: 1px solid rgba(255,255,255,.04);
-        transition: all .2s;
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: .8rem 0;
+        border-bottom: 1px solid rgba(129,140,248,.09);
+        opacity: 0; transform: translateY(10px);
+        animation: rowIn .5s ease forwards;
     }
+    .vc-info-row:nth-child(1) { animation-delay: .25s; }
+    .vc-info-row:nth-child(2) { animation-delay: .35s; }
+    .vc-info-row:nth-child(3) { animation-delay: .45s; }
+    .vc-info-row:nth-child(4) { animation-delay: .55s; }
+    .vc-info-row:nth-child(5) { animation-delay: .65s; }
+    .vc-info-row:nth-child(6) { animation-delay: .75s; }
+    @keyframes rowIn { to { opacity: 1; transform: translateY(0); } }
     .vc-info-row:last-child { border-bottom: none; }
-    .vc-info-row:hover { padding-left: 6px; }
-
     .vc-info-icon {
-        width: 38px; height: 38px; border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: .95rem; flex-shrink: 0;
+        width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center; font-size: 1.05rem;
     }
-    .vc-info-label {
-        font-size: .7rem; color: rgba(255,255,255,.3);
-        font-weight: 500; text-transform: uppercase; letter-spacing: .5px;
-    }
-    .vc-info-value { font-size: .88rem; font-weight: 600; }
+    .vc-info-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(148,163,184,.75); margin-bottom: 2px; }
+    .vc-info-value { font-weight: 700; font-size: .96rem; }
 
-    /* ========== CERT PREVIEW ========== */
-    .vc-preview { padding: 0 2rem 1.5rem; }
-    .vc-preview-title {
-        font-size: .82rem; font-weight: 700;
-        color: rgba(255,255,255,.4); margin-bottom: .75rem;
-        display: flex; align-items: center; gap: .5rem;
-    }
-    .vc-preview-embed {
-        border-radius: 14px; overflow: hidden;
-        border: 1px solid rgba(255,255,255,.06);
-        background: rgba(255,255,255,.03);
-    }
-    .vc-preview-embed img {
-        width: 100%; display: block; border-radius: 14px;
-    }
+    /* ---------- PDF preview ---------- */
+    .vc-preview { padding: 0 1.75rem 1.75rem; position: relative; z-index: 2; }
+    .vc-preview-title { font-weight: 800; font-size: .92rem; margin-bottom: .8rem; display: flex; align-items: center; gap: 8px; }
+    .vc-preview-title i { color: var(--acc); }
     .vc-pdf-placeholder {
-        padding: 2rem; text-align: center;
+        border: 1.5px dashed rgba(129,140,248,.3); border-radius: 16px;
+        padding: 1.6rem; text-align: center; color: rgba(148,163,184,.75);
+        background: rgba(7,10,20,.45);
     }
-    .vc-pdf-placeholder i {
-        font-size: 3.5rem; color: #ef4444; display: block; margin-bottom: .5rem;
-    }
-    .vc-pdf-placeholder p {
-        font-size: .82rem; color: rgba(255,255,255,.35);
-    }
-
-    .vc-actions {
-        display: flex; gap: .75rem; margin-top: 1rem;
-    }
+    .vc-pdf-placeholder i { font-size: 2.2rem; color: #f87171; display: block; margin-bottom: .4rem; }
+    .vc-preview img { width: 100%; border-radius: 16px; border: 1px solid rgba(129,140,248,.2); }
+    .vc-actions { display: flex; gap: .8rem; margin-top: 1rem; flex-wrap: wrap; }
     .vc-dl-btn {
-        flex: 1; display: flex; align-items: center; justify-content: center; gap: .5rem;
-        padding: .75rem 1rem; border-radius: 12px;
-        font-size: .88rem; font-weight: 700;
-        text-decoration: none; border: none; cursor: pointer;
-        transition: all .3s;
+        flex: 1; min-width: 160px; padding: .85rem 1rem; border-radius: 13px;
+        font-weight: 800; font-size: .9rem; text-decoration: none; text-align: center;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        transition: transform .15s ease, box-shadow .3s ease;
     }
     .vc-dl-btn.primary {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff; box-shadow: 0 4px 15px rgba(99,102,241,.25);
+        color: #fff; background: linear-gradient(90deg, #6366f1, #38bdf8);
+        box-shadow: 0 12px 30px -10px rgba(99,102,241,.65);
     }
-    .vc-dl-btn.primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(99,102,241,.4);
-        color: #fff;
-    }
-    .vc-dl-btn.outline {
-        background: rgba(255,255,255,.04);
-        border: 1px solid rgba(255,255,255,.1);
-        color: #e2e8f0;
-    }
-    .vc-dl-btn.outline:hover {
-        background: rgba(255,255,255,.08);
-        transform: translateY(-2px);
-        color: #fff;
-    }
+    .vc-dl-btn.outline { color: #cbd5f5; border: 1.5px solid rgba(129,140,248,.35); background: rgba(129,140,248,.06); }
+    .vc-dl-btn:hover { transform: translateY(-2px); }
 
-    /* ========== STUDENT RESULTS ========== */
-    .vc-results-section {
-        width: 100%; margin-top: 1.5rem;
-        animation: vcFadeUp .5s ease .2s both;
-    }
-
+    /* ---------- O'QUVCHI NATIJALARI ---------- */
+    .vc-results-section { width: 100%; margin-top: 1.6rem; perspective: 1100px; }
+    .vc-results-section .vc-glass { animation: flipIn .9s .15s cubic-bezier(.2,.85,.3,1.08) both; }
     .vc-results-head {
-        padding: 1.5rem 2rem 1rem;
-        font-size: 1rem; font-weight: 800;
-        display: flex; align-items: center; gap: .5rem;
-        border-bottom: 1px solid rgba(255,255,255,.04);
+        padding: 1.3rem 1.75rem .4rem; font-weight: 800; font-size: 1rem;
+        display: flex; align-items: center; gap: 9px;
     }
-    .vc-results-head i { color: #fbbf24; font-size: 1.2rem; }
+    .vc-results-head i { color: var(--warn); }
 
-    /* Score Circle */
-    .vc-score-wrap {
-        padding: 1.5rem 2rem; text-align: center;
-    }
-    .vc-score-circle {
-        position: relative;
-        width: 130px; height: 130px;
-        margin: 0 auto 1rem;
-    }
+    .vc-score-wrap { display: flex; justify-content: center; padding: 1.2rem 1.75rem .6rem; }
+    .vc-score-circle { position: relative; width: 132px; height: 132px; }
     .vc-score-svg { transform: rotate(-90deg); }
-    .vc-score-bg {
-        fill: none; stroke: rgba(255,255,255,.05); stroke-width: 8;
-    }
+    .vc-score-bg { fill: none; stroke: rgba(129,140,248,.12); stroke-width: 9; }
     .vc-score-fill {
-        fill: none; stroke-width: 8; stroke-linecap: round;
-        transition: stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1);
+        fill: none; stroke-width: 9; stroke-linecap: round;
+        transition: stroke-dashoffset 1.6s cubic-bezier(.3,.8,.3,1);
         filter: drop-shadow(0 0 6px currentColor);
     }
-    .vc-score-text {
-        position: absolute; inset: 0;
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-    }
-    .vc-score-num {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 2rem; font-weight: 900; line-height: 1;
-    }
-    .vc-score-label {
-        font-size: .7rem; color: rgba(255,255,255,.3); margin-top: .2rem;
-        font-weight: 500;
-    }
+    .vc-score-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .vc-score-num { font-size: 1.7rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .vc-score-label { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: rgba(148,163,184,.75); }
 
-    /* Stats Grid */
-    .vc-stats {
-        display: grid; grid-template-columns: repeat(3, 1fr);
-        gap: .75rem; padding: 0 2rem 1.5rem;
-    }
+    .vc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; padding: .8rem 1.75rem 1rem; }
     .vc-stat {
-        background: rgba(255,255,255,.03);
-        border: 1px solid rgba(255,255,255,.05);
-        border-radius: 14px; padding: 1rem; text-align: center;
-        transition: all .3s;
+        background: rgba(7,10,20,.5); border: 1px solid rgba(129,140,248,.12);
+        border-radius: 16px; padding: 1rem .7rem; text-align: center;
+        transition: transform .2s ease, border-color .25s ease;
     }
-    .vc-stat:hover {
-        background: rgba(255,255,255,.06);
-        transform: translateY(-2px);
-        border-color: rgba(255,255,255,.1);
-    }
-    .vc-stat-icon {
-        width: 40px; height: 40px; border-radius: 11px;
-        display: flex; align-items: center; justify-content: center;
-        margin: 0 auto .5rem; font-size: 1.1rem;
-    }
-    .vc-stat-num {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 1.3rem; font-weight: 800; line-height: 1;
-    }
-    .vc-stat-label {
-        font-size: .67rem; color: rgba(255,255,255,.3);
-        margin-top: .3rem; font-weight: 500;
-    }
-    .vc-stat-sub {
-        font-size: .62rem; color: rgba(255,255,255,.2); margin-top: .15rem;
-    }
+    .vc-stat:hover { transform: translateY(-4px) scale(1.02); border-color: rgba(129,140,248,.35); }
+    .vc-stat-icon { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; margin: 0 auto .5rem; font-size: 1rem; }
+    .vc-stat-num { font-size: 1.35rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .vc-stat-label { font-size: .72rem; font-weight: 700; margin-top: 2px; }
+    .vc-stat-sub { font-size: .66rem; color: rgba(148,163,184,.7); margin-top: 2px; }
 
-    /* Test List */
-    .vc-tests { padding: 0 2rem 1.5rem; }
-    .vc-tests-title {
-        font-size: .82rem; font-weight: 700;
-        color: rgba(255,255,255,.4); margin-bottom: .75rem;
-        display: flex; align-items: center; gap: .5rem;
-    }
+    .vc-tests { padding: .4rem 1.75rem 1rem; }
+    .vc-tests-title { font-weight: 800; font-size: .9rem; margin-bottom: .7rem; display: flex; align-items: center; gap: 8px; }
+    .vc-tests-title i { color: var(--acc2); }
     .vc-test-row {
-        display: flex; align-items: center; gap: .75rem;
-        padding: .6rem .75rem;
-        background: rgba(255,255,255,.02);
-        border: 1px solid rgba(255,255,255,.04);
-        border-radius: 10px; margin-bottom: .4rem;
-        transition: all .2s;
+        display: flex; align-items: center; gap: 12px;
+        padding: .55rem .7rem; border-radius: 12px; margin-bottom: 4px;
+        transition: background .2s ease, transform .2s ease;
     }
-    .vc-test-row:hover {
-        background: rgba(255,255,255,.05);
-        border-color: rgba(255,255,255,.08);
-    }
+    .vc-test-row:hover { background: rgba(129,140,248,.07); transform: translateX(4px); }
     .vc-test-score {
-        font-family: 'JetBrains Mono', monospace;
-        min-width: 48px; height: 28px; border-radius: 8px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: .78rem; font-weight: 700; flex-shrink: 0;
+        min-width: 52px; text-align: center; padding: .3rem .4rem; border-radius: 9px;
+        font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: .8rem;
     }
-    .vc-test-score.pass {
-        background: rgba(34,197,94,.1); color: #4ade80;
-        border: 1px solid rgba(34,197,94,.15);
-    }
-    .vc-test-score.fail {
-        background: rgba(239,68,68,.1); color: #f87171;
-        border: 1px solid rgba(239,68,68,.15);
-    }
-    .vc-test-name {
-        font-size: .82rem; font-weight: 600; flex: 1;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .vc-test-tag {
-        font-size: .68rem; font-weight: 600;
-        padding: .15rem .5rem; border-radius: 6px;
-    }
-    .vc-test-tag.pass { background: rgba(34,197,94,.1); color: #4ade80; }
-    .vc-test-tag.fail { background: rgba(239,68,68,.1); color: #f87171; }
+    .vc-test-score.pass { color: #4ade80; background: rgba(34,197,94,.1); }
+    .vc-test-score.fail { color: #f87171; background: rgba(239,68,68,.1); }
+    .vc-test-name { flex: 1; font-size: .86rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .vc-test-tag { font-size: .7rem; font-weight: 800; padding: .22rem .6rem; border-radius: 999px; }
+    .vc-test-tag.pass { color: #4ade80; background: rgba(34,197,94,.1); }
+    .vc-test-tag.fail { color: #f87171; background: rgba(239,68,68,.1); }
 
-    /* Average Box */
     .vc-avg-box {
-        margin: 0 2rem 1.5rem;
-        padding: 1rem 1.25rem;
-        background: rgba(255,255,255,.03);
-        border: 1px solid rgba(255,255,255,.06);
-        border-radius: 14px;
-        display: flex; align-items: center; justify-content: space-between;
+        margin: .4rem 1.75rem 1.6rem; padding: 1rem 1.2rem; border-radius: 16px;
+        background: rgba(7,10,20,.5); border: 1px solid rgba(129,140,248,.12);
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-    .vc-avg-left {
-        display: flex; align-items: center; gap: .6rem;
-    }
+    .vc-avg-left { display: flex; align-items: center; gap: 12px; }
     .vc-avg-icon {
-        width: 38px; height: 38px; border-radius: 10px;
-        background: rgba(251,191,36,.1);
+        width: 42px; height: 42px; border-radius: 12px; font-size: 1.1rem;
         display: flex; align-items: center; justify-content: center;
+        color: #fbbf24; background: rgba(251,191,36,.1);
     }
-    .vc-avg-icon i { color: #fbbf24; font-size: .95rem; }
-    .vc-avg-label { font-size: .7rem; color: rgba(255,255,255,.3); }
-    .vc-avg-num {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 1rem; font-weight: 800;
-    }
-    .vc-avg-badge {
-        font-size: .72rem; font-weight: 700;
-        padding: .25rem .65rem; border-radius: 8px;
-    }
+    .vc-avg-label { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: rgba(148,163,184,.75); }
+    .vc-avg-num { font-size: 1.25rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .vc-avg-badge { padding: .45rem 1rem; border-radius: 999px; font-size: .8rem; font-weight: 800; }
 
-    /* ========== ERROR ========== */
-    .vc-error {
-        width: 100%; margin-top: 1.5rem;
-        animation: vcShake .5s ease;
-    }
+    /* ---------- XATO ---------- */
+    .vc-error { width: 100%; margin-top: 1.6rem; }
     .vc-error-card {
-        background: rgba(239,68,68,.06);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(239,68,68,.12);
-        border-radius: 20px; padding: 2rem; text-align: center;
+        text-align: center; padding: 2.4rem 1.75rem;
+        animation: shakeIn .6s cubic-bezier(.36,.07,.19,.97) both;
     }
-    .vc-error-card i {
-        font-size: 3rem; color: #ef4444; display: block; margin-bottom: .75rem;
+    @keyframes shakeIn {
+        0% { transform: translateX(0); opacity: 0; }
+        20% { opacity: 1; }
+        30% { transform: translateX(-9px); }
+        50% { transform: translateX(7px); }
+        70% { transform: translateX(-4px); }
+        100% { transform: translateX(0); }
     }
-    .vc-error-card h5 { font-weight: 700; margin-bottom: .5rem; }
-    .vc-error-card p { color: rgba(255,255,255,.5); font-size: .88rem; }
+    .vc-error-icon { position: relative; width: 70px; height: 70px; margin: 0 auto 1rem; }
+    .vc-error-icon i { font-size: 3.1rem; color: #f87171; position: relative; z-index: 2; }
+    .vc-error-icon::before {
+        content: ''; position: absolute; inset: -6px; border-radius: 50%;
+        border: 1.5px solid rgba(239,68,68,.4);
+        animation: ringPulse 2.2s ease-out infinite;
+    }
+    .vc-error-card h5 { font-weight: 800; margin-bottom: .45rem; }
+    .vc-error-card p { color: rgba(226,232,240,.55); font-size: .88rem; }
 
-    /* ========== FOOTER ========== */
-    .vc-footer {
-        margin-top: 2.5rem; text-align: center;
-        font-size: .76rem; color: rgba(255,255,255,.2);
-        animation: vcFadeUp .6s ease .3s both;
-    }
+    /* ---------- FOOTER ---------- */
+    .vc-footer { margin-top: 2.6rem; text-align: center; font-size: .8rem; color: rgba(148,163,184,.55); }
     .vc-footer a {
-        color: rgba(255,255,255,.35); text-decoration: none;
-        transition: color .3s; display: inline-flex;
-        align-items: center; gap: 4px; margin-top: .4rem;
+        color: #93c5fd; text-decoration: none; font-weight: 700;
+        display: inline-flex; align-items: center; gap: 6px; margin-top: .5rem;
+        transition: color .2s;
     }
-    .vc-footer a:hover { color: #818cf8; }
+    .vc-footer a:hover { color: #c7d2fe; }
 
-    /* ========== ANIMATIONS ========== */
-    @keyframes vcFadeDown {
-        from { opacity:0; transform: translateY(-25px); }
-        to { opacity:1; transform: translateY(0); }
-    }
-    @keyframes vcFadeUp {
-        from { opacity:0; transform: translateY(25px); }
-        to { opacity:1; transform: translateY(0); }
-    }
-    @keyframes vcShake {
-        0%,100% { transform: translateX(0); }
-        20%,60% { transform: translateX(-6px); }
-        40%,80% { transform: translateX(6px); }
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 640px) {
+        .vc-wrap { padding: 2.2rem 1rem 3rem; }
+        .vc-stats { grid-template-columns: 1fr; }
+        .vc-search, .vc-info, .vc-preview { padding-left: 1.2rem; padding-right: 1.2rem; }
+        .vc-result-top { padding: 1.7rem 1.2rem 1.3rem; }
+        .vc-tests { padding-left: 1.2rem; padding-right: 1.2rem; }
+        .vc-avg-box { margin-left: 1.2rem; margin-right: 1.2rem; }
+        .medal { width: 88px; height: 88px; }
+        .medal .face { font-size: 2.4rem; }
+        .obj { display: none; }
     }
 
-    /* ========== RESPONSIVE ========== */
-    @media (max-width: 576px) {
-        .vc-wrap { padding: 1.5rem .75rem; }
-        .vc-search, .vc-info { padding-left: 1.25rem; padding-right: 1.25rem; }
-        .vc-result-top { padding: 1.5rem 1.25rem 1.25rem; }
-        .vc-brand h1 { font-size: 1.2rem; }
-        .vc-cert-id { font-size: .95rem; }
-        .vc-stats { grid-template-columns: repeat(2, 1fr); }
-        .vc-results-head, .vc-score-wrap, .vc-tests, .vc-preview { padding-left: 1.25rem; padding-right: 1.25rem; }
-        .vc-stats { padding: 0 1.25rem 1.25rem; }
-        .vc-avg-box { margin: 0 1.25rem 1.25rem; }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition: none !important; }
+        .vc-info-row { opacity: 1; transform: none; }
+        .vc-result .vc-glass, .vc-results-section .vc-glass { animation: none !important; }
     }
     </style>
 </head>
 <body>
 
-<div class="vc-bg"></div>
-<div class="vc-glow-right"></div>
+<!-- ==================== 3D FON SAHNASI ==================== -->
+<div class="scene" id="scene">
+    <div class="floor"></div>
+    <div class="stars" id="stars"></div>
+
+    <div class="obj float-a" data-depth="26" style="top:12%; left:7%;">
+        <div class="cube"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+    </div>
+    <div class="obj float-b" data-depth="42" style="top:16%; right:6%;">
+        <div class="gyro"><b></b><b></b><b></b><b></b></div>
+    </div>
+    <div class="obj float-a" data-depth="60" style="bottom:24%; left:9%;">
+        <div class="pyra"><b></b><b></b><b></b><b></b></div>
+    </div>
+    <div class="obj float-b" data-depth="34" style="bottom:18%; right:10%;">
+        <div class="cube" style="transform:scale(.6);"><b></b><b></b><b></b><b></b><b></b><b></b></div>
+    </div>
+</div>
 
 <div class="vc-wrap">
 
-    <!-- ===== BRAND ===== -->
-    <div class="vc-brand">
-        <div class="vc-brand-icon">
-            <i class="bi bi-patch-check-fill"></i>
+    <!-- ===== 3D MEDAL + BRAND ===== -->
+    <div class="medal-stage">
+        <div class="medal">
+            <div class="face front"><i class="bi bi-patch-check-fill"></i></div>
+            <div class="face back"><span>IT PARK<br>ZOMIN</span></div>
         </div>
+        <div class="medal-shadow"></div>
+    </div>
+
+    <div class="vc-brand">
         <h1>Sertifikat tekshirish</h1>
         <p>IT Shaharcha Zomin</p>
         <div class="vc-brand-tag mono">
-            <i class="bi bi-terminal-fill"></i> itc-academy.uz
+            <i class="bi bi-shield-lock-fill"></i> Rasmiy tekshirish portali
         </div>
     </div>
 
-    <!-- ===== SEARCH ===== -->
-    <div class="vc-glass">
+    <!-- ===== QIDIRUV ===== -->
+    <div class="vc-glass tilt">
+        <div class="glare"></div>
         <div class="vc-search">
             <div class="vc-search-title">
-                <i class="bi bi-search"></i> Sertifikat ID raqamini kiriting
+                <i class="bi bi-search"></i> Sertifikat seriya raqamini kiriting
             </div>
             <form method="GET" action="{% url 'verify_certificate' %}">
                 <div class="vc-input-wrap">
                     <i class="bi bi-upc-scan"></i>
                     <input type="text" name="id" class="vc-input"
-                           placeholder="CERT-20260324-1234"
+                           placeholder="ZMT-PY-26001"
                            value="{{ cert_id }}" autocomplete="off" required>
                 </div>
                 <button type="submit" class="vc-btn">
-                    <i class="bi bi-shield-check me-2"></i>Tekshirish
+                    <i class="bi bi-shield-check"></i> Tekshirish
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- ===== CERTIFICATE FOUND ===== -->
+    <!-- ===== SERTIFIKAT TOPILDI ===== -->
     {% if searched and certificate %}
     <div class="vc-result">
-        <div class="vc-glass">
+        <div class="vc-glass tilt holo">
+            <div class="glare"></div>
             <div class="vc-result-top {{ certificate.status }}">
                 <div class="vc-cert-icon">
                     {% if certificate.status == 'active' %}
@@ -586,7 +564,7 @@
                     <i class="bi bi-x-octagon-fill" style="color:#f87171"></i>
                     {% endif %}
                 </div>
-                <div class="vc-cert-id">{{ certificate.certificate_id }}</div>
+                <div class="vc-cert-id mono">{{ certificate.certificate_id }}</div>
                 <div class="vc-status {{ certificate.status }}">
                     {% if certificate.status == 'active' %}<i class="bi bi-check-circle-fill"></i> Faol
                     {% elif certificate.status == 'expired' %}<i class="bi bi-clock"></i> Muddati tugagan
@@ -603,7 +581,7 @@
                     </div>
                     <div>
                         <div class="vc-info-label">Egasi</div>
-                        <div class="vc-info-value">{{ certificate.student.full_name }}</div>
+                        <div class="vc-info-value">{{ certificate.recipient_display }}</div>
                     </div>
                 </div>
                 <div class="vc-info-row">
@@ -631,7 +609,14 @@
                     </div>
                     <div>
                         <div class="vc-info-label">Amal qilish muddati</div>
-                        <div class="vc-info-value mono">{{ certificate.valid_until|date:"d.m.Y" }}</div>
+                        <div class="vc-info-value mono">
+                            {{ certificate.valid_until|date:"d.m.Y" }}
+                            {% if certificate.status == 'active' %}
+                            <span style="font-size:.7rem;font-weight:800;color:#4ade80;background:rgba(34,197,94,.1);padding:2px 10px;border-radius:999px;margin-left:6px;">
+                                {{ certificate.valid_until|timeuntil }} qoldi
+                            </span>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -641,7 +626,10 @@
                     </div>
                     <div>
                         <div class="vc-info-label">Kim tomonidan berilgan</div>
-                        <div class="vc-info-value">{{ certificate.issued_by.full_name }}</div>
+                        <div class="vc-info-value">
+                            {% if certificate.issued_by %}{{ certificate.issued_by.full_name }}
+                            {% else %}IT Shaharcha — rasmiy avtomatik tizim{% endif %}
+                        </div>
                     </div>
                 </div>
                 {% if certificate.description %}
@@ -662,16 +650,14 @@
                 <div class="vc-preview-title">
                     <i class="bi bi-file-earmark-richtext"></i> Sertifikat hujjati
                 </div>
-                <div class="vc-preview-embed">
-                    {% if certificate.file.name|lower|slice:"-4:" == ".pdf" %}
-                    <div class="vc-pdf-placeholder">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
-                        <p>PDF sertifikat hujjati</p>
-                    </div>
-                    {% else %}
-                    <img src="{{ certificate.file.url }}" alt="Sertifikat - {{ certificate.certificate_id }}">
-                    {% endif %}
+                {% if certificate.file.name|lower|slice:"-4:" == ".pdf" %}
+                <div class="vc-pdf-placeholder">
+                    <i class="bi bi-file-earmark-pdf-fill"></i>
+                    <p>PDF sertifikat hujjati</p>
                 </div>
+                {% else %}
+                <img src="{{ certificate.file.url }}" alt="Sertifikat - {{ certificate.certificate_id }}">
+                {% endif %}
                 <div class="vc-actions">
                     <a href="{{ certificate.file.url }}" download class="vc-dl-btn primary">
                         <i class="bi bi-download"></i> Yuklab olish
@@ -685,10 +671,11 @@
         </div>
     </div>
 
-    <!-- ===== STUDENT RESULTS ===== -->
+    <!-- ===== O'QUVCHI NATIJALARI ===== -->
     {% if student_results %}
     <div class="vc-results-section">
-        <div class="vc-glass">
+        <div class="vc-glass tilt">
+            <div class="glare"></div>
             <div class="vc-results-head">
                 <i class="bi bi-bar-chart-fill"></i> O'quvchi natijalari
             </div>
@@ -696,12 +683,13 @@
             <div class="vc-score-wrap">
                 {% with score=student_results.overall_avg %}
                 <div class="vc-score-circle">
-                    <svg class="vc-score-svg" width="130" height="130" viewBox="0 0 130 130">
-                        <circle class="vc-score-bg" cx="65" cy="65" r="56"/>
-                        <circle class="vc-score-fill" cx="65" cy="65" r="56"
+                    <svg class="vc-score-svg" width="132" height="132" viewBox="0 0 132 132">
+                        <circle class="vc-score-bg" cx="66" cy="66" r="56"/>
+                        <circle class="vc-score-fill" cx="66" cy="66" r="56"
                             stroke="{% if score >= 80 %}#4ade80{% elif score >= 60 %}#fbbf24{% elif score >= 40 %}#fb923c{% else %}#f87171{% endif %}"
                             stroke-dasharray="351.86"
-                            style="stroke-dashoffset:calc(351.86 - 351.86 * {{ score }} / 100)"/>
+                            data-score="{{ score }}"
+                            style="stroke-dashoffset:351.86"/>
                     </svg>
                     <div class="vc-score-text">
                         <div class="vc-score-num" style="color:{% if score >= 80 %}#4ade80{% elif score >= 60 %}#fbbf24{% elif score >= 40 %}#fb923c{% else %}#f87171{% endif %}">{{ score }}%</div>
@@ -776,13 +764,15 @@
     </div>
     {% endif %}
 
-    <!-- ===== ERROR ===== -->
-    {% elif searched and error %}
+    {% elif searched %}
+    <!-- ===== TOPILMADI ===== -->
     <div class="vc-error">
-        <div class="vc-error-card">
-            <i class="bi bi-exclamation-triangle-fill"></i>
-            <h5>Sertifikat topilmadi</h5>
-            <p>{{ error }}</p>
+        <div class="vc-glass">
+            <div class="vc-error-card">
+                <div class="vc-error-icon"><i class="bi bi-x-octagon-fill"></i></div>
+                <h5>Sertifikat topilmadi</h5>
+                <p>{{ error|default:"Bu seriya raqamiga mos sertifikat mavjud emas. Raqamni tekshirib, qayta urinib ko'ring." }}</p>
+            </div>
         </div>
     </div>
     {% endif %}
@@ -793,6 +783,73 @@
         <a href="{% url 'home' %}"><i class="bi bi-house"></i> Bosh sahifa</a>
     </div>
 </div>
+
+<script>
+(function(){
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* Yulduzlarni sochish */
+    var stars = document.getElementById('stars');
+    if (stars) {
+        for (var i = 0; i < 46; i++) {
+            var s = document.createElement('i');
+            s.style.left = (Math.random() * 100) + '%';
+            s.style.top = (Math.random() * 100) + '%';
+            s.style.animationDelay = (Math.random() * 4) + 's';
+            s.style.animationDuration = (2.6 + Math.random() * 3.5) + 's';
+            stars.appendChild(s);
+        }
+    }
+
+    if (reduced) return;
+
+    /* Sichqoncha parallaksi — 3D obyektlar chuqurlik bo'yicha siljiydi */
+    var objs = document.querySelectorAll('.obj');
+    var mx = 0, my = 0, cx = 0, cy = 0;
+    document.addEventListener('mousemove', function(e){
+        mx = (e.clientX / window.innerWidth) - .5;
+        my = (e.clientY / window.innerHeight) - .5;
+    }, {passive: true});
+    (function loop(){
+        cx += (mx - cx) * .05;
+        cy += (my - cy) * .05;
+        objs.forEach(function(o){
+            var d = parseFloat(o.dataset.depth || 30);
+            o.style.transform = 'translate3d(' + (-cx * d) + 'px,' + (-cy * d) + 'px,0)';
+        });
+        requestAnimationFrame(loop);
+    })();
+
+    /* 3D tilt + glare — kartalar sichqonchaga egiladi */
+    document.querySelectorAll('.tilt').forEach(function(card){
+        var glare = card.querySelector('.glare');
+        card.addEventListener('mousemove', function(e){
+            var r = card.getBoundingClientRect();
+            var px = (e.clientX - r.left) / r.width;
+            var py = (e.clientY - r.top) / r.height;
+            var rx = (py - .5) * -7;
+            var ry = (px - .5) * 9;
+            card.style.transform = 'perspective(1000px) rotateX(' + rx + 'deg) rotateY(' + ry + 'deg)';
+            if (glare) {
+                card.style.setProperty('--gx', (px * 100) + '%');
+                card.style.setProperty('--gy', (py * 100) + '%');
+            }
+        });
+        card.addEventListener('mouseleave', function(){
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+        });
+    });
+
+    /* Ball halqasi animatsiyasi */
+    var fill = document.querySelector('.vc-score-fill');
+    if (fill) {
+        var score = parseFloat(fill.dataset.score || 0);
+        setTimeout(function(){
+            fill.style.strokeDashoffset = (351.86 - 351.86 * score / 100);
+        }, 500);
+    }
+})();
+</script>
 
 </body>
 </html>

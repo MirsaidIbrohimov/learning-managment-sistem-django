@@ -27,9 +27,8 @@ urlpatterns = [
     # Davomat
     path('attendance/', views.AttendanceListCreateView.as_view(), name='attendance'),
     path('attendance/<int:pk>/', views.AttendanceDetailView.as_view(), name='attendance_detail'),
-    # Sertifikat so'rovlari
-    path('certificate-requests/', views.CertificateRequestListView.as_view(), name='certificate_requests'),
-    path('certificate-requests/<int:pk>/review/', views.certificate_request_review, name='certificate_request_review'),
+    # Sertifikatlar (avtomatik beriladi — so'rovlar tizimi olib tashlangan)
+    path('certificates/', views.CertificateListView.as_view(), name='certificates'),
 
     # === FOYDALANUVCHILAR ===
     path('users/', views.UserListView.as_view(), name='users'),

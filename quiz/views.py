@@ -234,6 +234,18 @@ def _finalize_attempt(attempt):
         action_type='submit_test',
         description=f"\"{attempt.quiz.title}\" testini topshirdi: {score}% ({'o‘tdi' if passed else 'o‘tmadi'})",
     )
+
+    # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+    if passed and attempt.quiz.lesson_id and attempt.student.role == 'student':
+        try:
+            lesson = attempt.quiz.lesson
+            legacy_test = getattr(lesson, 'test', None)
+            if legacy_test is not None and legacy_test.test_type == 'final':
+                from accounts.certificates import issue_course_certificate
+                issue_course_certificate(attempt.student, lesson.profession)
+        except Exception:
+            pass
+
     return attempt
 
 

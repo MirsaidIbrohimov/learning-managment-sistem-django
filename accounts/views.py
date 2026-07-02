@@ -21,7 +21,7 @@ from .forms import (
 from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    TestUserAnswer, Dictionary, DictionaryWord, Certificate, CertificateRequest, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
+    TestUserAnswer, Dictionary, DictionaryWord, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
     UserDevice, UserSession, SystemReport, PasswordResetRequest,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
@@ -1268,8 +1268,6 @@ def _home_admin(request):
     pending_items = [
         {'label': "Tekshirilmagan uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
          'url_name': 'admin_dashboard', 'icon': 'journal-x'},
-        {'label': "Sertifikat so'rovlari", 'count': CertificateRequest.objects.filter(status='pending').count(),
-         'url_name': 'admin_certificate_requests', 'icon': 'patch-check'},
         {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
          'url_name': 'admin_help_requests', 'icon': 'life-preserver'},
         {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
@@ -1373,8 +1371,6 @@ def _home_assistant(request):
     pending_items = [
         {'label': "Uy vazifalar", 'count': HomeworkSubmission.objects.filter(status='pending').count(),
          'url_name': 'yordamchi_homework', 'icon': 'journal-x'},
-        {'label': "Sertifikatlar", 'count': CertificateRequest.objects.filter(status='pending').count(),
-         'url_name': 'yordamchi_certificates', 'icon': 'patch-check'},
         {'label': "Yordam so'rovlari", 'count': HelpRequest.objects.filter(status='pending').count(),
          'url_name': 'yordamchi_help', 'icon': 'life-preserver'},
         {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
@@ -2758,7 +2754,6 @@ def profession_detail(request, pk):
     # Kurs tugatilganligini tekshirish va sertifikat so'rovi
     course_completed = False
     certificate = None
-    certificate_request = None
     if is_enrolled and request.user.is_student:
         # Barcha bo'limlardagi barcha darslar (lug'at bundan mustasno) tugatilganmi
         all_lessons = Lesson.objects.filter(profession=profession).exclude(lesson_type='dictionary')
@@ -2776,8 +2771,6 @@ def profession_detail(request, pk):
         
         # Sertifikat mavjudmi
         certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
-        # Sertifikat so'rovi mavjudmi
-        certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession).first()
 
     # Yakuniy testlar — alohida UI uchun
     final_test_lessons = []
@@ -2827,7 +2820,6 @@ def profession_detail(request, pk):
         'course_completed': course_completed,
         'has_empty_section': has_empty_section if is_enrolled and request.user.is_student else False,
         'certificate': certificate,
-        'certificate_request': certificate_request,
         'lesson_is_locked': lesson_is_locked,
         'token_map': token_map,
         'final_test_lessons': final_test_lessons,
@@ -3156,14 +3148,8 @@ def request_certificate(request, pk):
     if Certificate.objects.filter(student=request.user, profession=profession).exists():
         messages.info(request, "Sizga bu kurs uchun allaqachon sertifikat berilgan!")
         return redirect('profession_detail', pk=pk)
-    
-    # Allaqachon so'rov bormi
-    existing = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
-    if existing:
-        messages.info(request, "Sizning sertifikat so'rovingiz allaqachon yuborilgan. Admin tasdiqlashini kuting.")
-        return redirect('profession_detail', pk=pk)
-    
-    # Bo'limlar ichida dars yo'q bo'lsa — so'rov yuborish mumkin emas
+
+    # Bo'limlar ichida dars yo'q bo'lsa — sertifikat olish mumkin emas
     course_sections = profession.sections.filter(is_active=True)
     if course_sections.exists() and any(not s.lessons.exists() for s in course_sections):
         messages.error(request, "Kurs hali to'liq yuklanmagan. Ustoz barcha bo'limlarga dars qo'shishi kerak!")
@@ -3199,105 +3185,218 @@ def request_certificate(request, pk):
                 return redirect('profession_detail', pk=pk)
     
     if request.method == 'POST':
-        # Eski rad etilgan so'rovlarni o'chirish
-        CertificateRequest.objects.filter(
-            student=request.user, profession=profession
-        ).exclude(status='pending').delete()
-        
-        CertificateRequest.objects.create(
-            student=request.user,
-            profession=profession,
+        # 🎓 AVTOMATIK BERISH: so'rov o'rniga sertifikat darhol yaratiladi.
+        # Kurs to'liq tugatilgani (barcha dars/test/vazifa) yuqorida allaqachon
+        # tekshirildi — shu sabab yakuniy test talabi takrorlanmaydi.
+        from .certificates import issue_course_certificate
+        cert, error = issue_course_certificate(
+            request.user, profession, require_final=False
         )
-        
-        from telegram_bot.utils import notify_admins
-        notify_admins(
-            f"🎓 <b>Sertifikat so'rovi!</b>\n\n"
-            f"👤 {request.user.full_name}\n"
-            f"📖 {profession.name}\n"
-            f"📋 O'quvchi kursni tugatdi va sertifikat so'rovi yubordi."
-        )
-        
-        messages.success(request, "Sertifikat so'rovingiz yuborildi! Admin ko'rib chiqishini kuting. 🎓")
+        if cert:
+            messages.success(
+                request,
+                f"🎓 Tabriklaymiz! Sertifikatingiz tayyor (seriya: {cert.certificate_id}). "
+                f"Yuklab olishingiz mumkin!"
+            )
+            return redirect('download_certificate', pk=cert.pk)
+        messages.error(request, error or "Sertifikat berishda xatolik yuz berdi.")
         return redirect('profession_detail', pk=pk)
-    
+
     return redirect('profession_detail', pk=pk)
 
 
 @login_required
-def admin_certificate_requests(request):
-    """Admin: Sertifikat so'rovlarini ko'rish"""
+def download_certificate(request, pk):
+    """Sertifikat PDF faylini yuklab olish (egasi yoki admin)."""
+    cert = get_object_or_404(
+        Certificate.objects.select_related('student', 'profession'), pk=pk
+    )
+    if not (request.user.is_admin or cert.student_id == request.user.pk):
+        messages.error(request, "Bu sertifikat sizga tegishli emas!")
+        return redirect('home')
+
+    # Fayl yo'q yoki eskirgan bo'lsa — qayta yaratish
+    from .certificates import regenerate_certificate_file
+    if not cert.file:
+        if not regenerate_certificate_file(cert):
+            messages.error(request, "Sertifikat faylini yaratishda xatolik. Keyinroq urinib ko'ring.")
+            return redirect('profession_detail', pk=cert.profession_id)
+
+    try:
+        response = HttpResponse(cert.file.read(), content_type='application/pdf')
+        response['Content-Disposition'] = (
+            f'attachment; filename="sertifikat_{cert.certificate_id}.pdf"'
+        )
+        return response
+    except Exception:
+        messages.error(request, "Faylni o'qishda xatolik yuz berdi.")
+        return redirect('profession_detail', pk=cert.profession_id)
+
+
+@login_required
+def admin_certificate_settings(request):
+    """Admin: kurslar bo'yicha sertifikat seriyasi va muddatini sozlash."""
     if not request.user.is_admin:
         return redirect('home')
-    
-    cert_requests = CertificateRequest.objects.select_related('student', 'profession', 'reviewed_by').all()
-    
-    status_filter = request.GET.get('status', '')
-    if status_filter:
-        cert_requests = cert_requests.filter(status=status_filter)
-    
-    return render(request, 'accounts/admin/certificate_requests.html', {
-        'cert_requests': cert_requests,
-        'status_filter': status_filter,
-        'pending_count': CertificateRequest.objects.filter(status='pending').count(),
+
+    from .models import CertificateSettings
+
+    if request.method == 'POST':
+        profession_id = request.POST.get('profession_id', '').strip()
+        series_code = request.POST.get('series_code', '').strip().upper()
+        validity_years = _to_int(request.POST.get('validity_years'), 2)
+        validity_years = min(50, max(1, validity_years))
+
+        profession = get_object_or_404(Profession, pk=profession_id)
+        # Seriya kodi boshqa kursda ishlatilmaganini tekshirish
+        if series_code and CertificateSettings.objects.filter(
+            series_code=series_code
+        ).exclude(profession=profession).exists():
+            messages.error(request, f"\"{series_code}\" seriyasi boshqa kursda ishlatilgan!")
+            return redirect('admin_certificates')
+
+        cfg, _ = CertificateSettings.objects.get_or_create(profession=profession)
+        cfg.series_code = series_code
+        cfg.validity_years = validity_years
+        cfg.save()
+        messages.success(
+            request,
+            f"\"{profession.name}\" kursi sertifikat sozlamalari saqlandi "
+            f"({series_code or 'seriyasiz'}, {validity_years} yil)."
+        )
+    return redirect('admin_certificates')
+
+
+@login_required
+def admin_certificate_edit(request, pk):
+    """Admin: sertifikat ma'lumotlarini tahrirlash (holat, muddat, tavsif).
+
+    O'zgarishdan so'ng PDF avtomatik qayta yaratiladi — sertifikatdagi
+    ma'lumotlar ham yangilanadi.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    cert = get_object_or_404(Certificate, pk=pk)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status', cert.status)
+        valid_until = request.POST.get('valid_until', '').strip()
+        description = request.POST.get('description')
+
+        if new_status in dict(Certificate.STATUS_CHOICES):
+            cert.status = new_status
+        if valid_until:
+            try:
+                from datetime import datetime as _dt
+                cert.valid_until = _dt.strptime(valid_until, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, "Sana formati noto'g'ri!")
+                return redirect('admin_certificates')
+        if description is not None:
+            cert.description = description.strip()
+        cert.save()
+
+        # PDF ni qayta yaratish — ma'lumotlar sertifikatda ham yangilanadi
+        from .certificates import regenerate_certificate_file
+        regenerate_certificate_file(cert)
+
+        # O'quvchiga xabar (platformadagi o'quvchi bo'lsa)
+        if cert.student:
+            Message.objects.create(
+                recipient=cert.student,
+                sender=request.user,
+                title="📋 Sertifikat ma'lumotlari yangilandi",
+                content=(
+                    f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz "
+                    f"ma'lumotlari yangilandi.\n\n"
+                    f"🏅 Seriya: {cert.certificate_id}\n"
+                    f"📌 Holat: {cert.get_status_display()}\n"
+                    f"⏳ Amal qilish muddati: "
+                    f"{cert.valid_until.strftime('%d.%m.%Y') if cert.valid_until else '—'}"
+                ),
+                message_type='system',
+            )
+        messages.success(request, f"Sertifikat {cert.certificate_id} yangilandi va PDF qayta yaratildi!")
+
+    return redirect('admin_certificates')
+
+
+@login_required
+def admin_certificate_manual(request):
+    """Admin: qo'lda sertifikat berish — ism-familiya + kurs => tayyor PDF.
+
+    Ism erkin kiritiladi (platformada bo'lmagan odam uchun ham) yoki
+    mavjud o'quvchi tanlanadi.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    from .models import CertificateSettings
+    _settings_map = {
+        s.profession_id: s for s in CertificateSettings.objects.all()
+    }
+    professions = []
+    for p in Profession.objects.all():
+        s = _settings_map.get(p.pk)
+        professions.append({
+            'obj': p,
+            'series_code': s.series_code if s else '',
+            'validity_years': s.validity_years if s else 2,
+        })
+    students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
+
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        student_id = request.POST.get('student_id', '').strip()
+        profession_id = request.POST.get('profession_id', '').strip()
+
+        if not profession_id:
+            messages.error(request, "Kursni tanlang!")
+            return redirect('admin_certificate_manual')
+
+        profession = get_object_or_404(Profession, pk=profession_id)
+        student = None
+        if student_id:
+            student = get_object_or_404(CustomUser, pk=student_id, role='student')
+
+        from .certificates import issue_manual_certificate
+        cert, error = issue_manual_certificate(
+            profession=profession,
+            issued_by=request.user,
+            first_name=first_name,
+            last_name=last_name,
+            student=student,
+        )
+        if cert and not error:
+            messages.success(
+                request,
+                f"🎓 Sertifikat tayyor! {cert.recipient_display} — "
+                f"{profession.name} (seriya: {cert.certificate_id})"
+            )
+            return redirect('download_certificate', pk=cert.pk)
+        messages.error(request, error or "Sertifikat berishda xatolik yuz berdi.")
+        return redirect('admin_certificate_manual')
+
+    return render(request, 'accounts/admin/certificate_manual.html', {
+        'professions': professions,
+        'students': students,
     })
 
 
 @login_required
-def approve_certificate_request(request, pk):
-    """Admin: Sertifikat so'rovini tasdiqlash - sertifikat berish sahifasiga yo'naltirish"""
+def admin_certificate_regenerate(request, pk):
+    """Admin: sertifikat PDF faylini qo'lda qayta yaratish."""
     if not request.user.is_admin:
         return redirect('home')
-    
-    cert_req = get_object_or_404(CertificateRequest, pk=pk)
-    
-    if request.method == 'POST':
-        cert_req.status = 'approved'
-        cert_req.reviewed_by = request.user
-        cert_req.reviewed_at = timezone.now()
-        cert_req.save()
-        
-        messages.success(request, f"{cert_req.student.full_name} ning sertifikat so'rovi tasdiqlandi! Endi sertifikat bering.")
-        return redirect(f"{reverse('admin_certificate_issue')}?student={cert_req.student.pk}&profession={cert_req.profession.pk}")
-    
-    return redirect('admin_certificate_requests')
-
-
-@login_required
-def reject_certificate_request(request, pk):
-    """Admin: Sertifikat so'rovini rad etish"""
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    cert_req = get_object_or_404(CertificateRequest, pk=pk)
-    
-    if request.method == 'POST':
-        admin_message = request.POST.get('admin_message', "Sertifikat so'rovi rad etildi.")
-        cert_req.status = 'rejected'
-        cert_req.admin_message = admin_message
-        cert_req.reviewed_by = request.user
-        cert_req.reviewed_at = timezone.now()
-        cert_req.save()
-        
-        Message.objects.create(
-            title="Sertifikat so'rovi rad etildi",
-            content=f"Sizning '{cert_req.profession.name}' kursi uchun sertifikat so'rovingiz rad etildi.\n\nSabab: {admin_message}",
-            message_type='personal',
-            recipient=cert_req.student,
-            sender=request.user
-        )
-        
-        if cert_req.student.telegram_id:
-            from telegram_bot.utils import notify_user
-            notify_user(
-                cert_req.student.telegram_id,
-                f"❌ <b>Sertifikat so'rovi rad etildi</b>\n\n"
-                f"📖 <b>{cert_req.profession.name}</b>\n"
-                f"📝 Sabab: {admin_message}"
-            )
-        
-        messages.success(request, f"{cert_req.student.full_name} ning sertifikat so'rovi rad etildi.")
-    
-    return redirect('admin_certificate_requests')
+    cert = get_object_or_404(Certificate, pk=pk)
+    from .certificates import regenerate_certificate_file
+    if regenerate_certificate_file(cert):
+        messages.success(request, f"Sertifikat {cert.certificate_id} PDF fayli qayta yaratildi!")
+    else:
+        messages.error(request, "PDF yaratishda xatolik yuz berdi.")
+    return redirect('admin_certificates')
 
 
 # Lesson views
@@ -4663,18 +4762,34 @@ def submit_test(request, pk):
             request.user.add_coins(correct, f"Test to'g'ri javoblar ({correct} ta): {test.lesson.title}")
             result.coin_awarded = True
             result.save()
-        
+
         # Activity log
         ActivityLog.objects.create(
             user=request.user,
             action_type='submit_test',
             description=f"Test topshirdi: {test.lesson.title} - {correct}/{total} to'g'ri" + (f", +{correct} coin" if is_first_attempt and correct > 0 else "")
         )
-        
+
         if is_first_attempt and correct > 0:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
+
+        # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+        if test.test_type == 'final' and request.user.is_student:
+            try:
+                from .certificates import issue_course_certificate
+                _cert, _cert_err = issue_course_certificate(
+                    request.user, test.lesson.profession
+                )
+                if _cert and _cert.file:
+                    messages.success(
+                        request,
+                        "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
+                        "kurs sahifasidan yuklab olishingiz mumkin!"
+                    )
+            except Exception:
+                pass
     else:
         # Testdan o'tmadi - coin berilmaydi
         ActivityLog.objects.create(
@@ -4794,7 +4909,6 @@ def student_course_view(request, token):
     course_completed = False
     has_empty_section = False
     certificate = None
-    certificate_request = None
     section_is_locked = {}
 
     if is_enrolled:
@@ -4976,7 +5090,6 @@ def student_course_view(request, token):
         )
 
         certificate = Certificate.objects.filter(student=request.user, profession=profession).first()
-        certificate_request = CertificateRequest.objects.filter(student=request.user, profession=profession, status='pending').first()
 
     # Yakuniy testlar — alohida UI uchun
     final_test_lessons = []
@@ -5024,7 +5137,6 @@ def student_course_view(request, token):
         'course_completed': course_completed,
         'has_empty_section': has_empty_section,
         'certificate': certificate,
-        'certificate_request': certificate_request,
         'lesson_is_locked': lesson_is_locked,
         'token_map': token_map,
         'course_token': token_obj,
@@ -5658,6 +5770,22 @@ def student_submit_test(request, token):
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli! +{correct} coin oldingiz (to'g'ri javoblar)!")
         else:
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
+
+        # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
+        if test.test_type == 'final' and request.user.is_student:
+            try:
+                from .certificates import issue_course_certificate
+                _cert, _cert_err = issue_course_certificate(
+                    request.user, test.lesson.profession
+                )
+                if _cert and _cert.file:
+                    messages.success(
+                        request,
+                        "🎓 Tabriklaymiz! Sizga kurs sertifikati berildi — "
+                        "kurs sahifasidan yuklab olishingiz mumkin!"
+                    )
+            except Exception:
+                pass
     else:
         ActivityLog.objects.create(
             user=request.user, action_type='submit_test',
@@ -9048,7 +9176,17 @@ def verify_certificate(request):
             
             student = certificate.student
             profession = certificate.profession
-            
+
+            if student is None:
+                # Qo'lda berilgan sertifikat — o'quvchi natijalari mavjud emas
+                return render(request, 'accounts/verify_certificate.html', {
+                    'certificate': certificate,
+                    'searched': searched,
+                    'error': error,
+                    'cert_id': cert_id,
+                    'student_results': None,
+                })
+
             # Kurs darslari
             lessons = Lesson.objects.filter(profession=profession)
             total_lessons = lessons.count()
@@ -14673,12 +14811,27 @@ def admin_certificates(request):
     
     professions = Profession.objects.all()
     students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
-    
+
+    # Kurslar bo'yicha seriya/muddat sozlamalari (avtomatik berish uchun)
+    from .models import CertificateSettings
+    _settings_map = {
+        s.profession_id: s for s in CertificateSettings.objects.all()
+    }
+    course_settings = []
+    for p in professions:
+        s = _settings_map.get(p.pk)
+        course_settings.append({
+            'profession': p,
+            'series_code': s.series_code if s else '',
+            'validity_years': s.validity_years if s else 2,
+            'issued_count': p.certificates.count(),
+        })
+
     from django.core.paginator import Paginator
     paginator = Paginator(certificates, 20)
     page = request.GET.get('page')
     certificates = paginator.get_page(page)
-    
+
     context = {
         'certificates': certificates,
         'status_filter': status_filter,
@@ -14691,6 +14844,7 @@ def admin_certificates(request):
         'frozen_certificates': frozen_certificates,
         'professions': professions,
         'students': students,
+        'course_settings': course_settings,
     }
     return render(request, 'accounts/admin/certificates.html', context)
 
@@ -14805,16 +14959,24 @@ def admin_certificate_status(request, pk):
             old_status = cert.get_status_display()
             cert.status = new_status
             cert.save()
-            
-            # O'quvchiga xabar
+
+            # PDF ni qayta yaratish — holat sertifikat faylida ham aks etadi
+            try:
+                from .certificates import regenerate_certificate_file
+                regenerate_certificate_file(cert)
+            except Exception:
+                pass
+
+            # O'quvchiga xabar (platformadagi o'quvchi bo'lsa)
             status_display = cert.get_status_display()
-            Message.objects.create(
-                recipient=cert.student,
-                sender=request.user,
-                title="📋 Sertifikat holati o'zgardi",
-                content=f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz holati o'zgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
-                message_type='system'
-            )
+            if cert.student:
+                Message.objects.create(
+                    recipient=cert.student,
+                    sender=request.user,
+                    title="📋 Sertifikat holati o'zgardi",
+                    content=f"Sizning \"{cert.profession.name}\" kursi bo'yicha sertifikatingiz holati o'zgardi.\n\nSertifikat ID: {cert.certificate_id}\nOldingi holat: {old_status}\nYangi holat: {status_display}",
+                    message_type='system'
+                )
             
             messages.success(request, f"Sertifikat holati \"{status_display}\" ga o'zgartirildi!")
     

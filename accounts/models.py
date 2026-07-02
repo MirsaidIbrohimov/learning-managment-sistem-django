@@ -1022,7 +1022,14 @@ class Certificate(models.Model):
         ('revoked', 'Bekor qilingan'),
     )
     
-    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='certificates')
+    student = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='certificates',
+        null=True, blank=True, verbose_name="O'quvchi (platformada)"
+    )
+    recipient_name = models.CharField(
+        max_length=150, blank=True, default='',
+        verbose_name="Qabul qiluvchi (qo'lda kiritilgan ism)"
+    )
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='certificates')
     certificate_id = models.CharField(max_length=50, unique=True, blank=True, verbose_name="Sertifikat ID")
     file = models.FileField(upload_to='certificates/', verbose_name="Sertifikat fayli (PDF)")
@@ -1056,7 +1063,16 @@ class Certificate(models.Model):
     @property
     def is_active(self):
         return self.status == 'active'
-    
+
+    @property
+    def recipient_display(self):
+        """Sertifikat egasining ismi: qo'lda kiritilgan yoki platformadagi."""
+        if self.recipient_name:
+            return self.recipient_name
+        if self.student:
+            return self.student.get_full_name() or self.student.username
+        return '—'
+
     @property
     def status_color(self):
         colors = {
@@ -1066,9 +1082,9 @@ class Certificate(models.Model):
             'revoked': '#ff3b30',
         }
         return colors.get(self.status, '#86868b')
-    
+
     def __str__(self):
-        return f"{self.certificate_id} - {self.student.full_name} - {self.profession.name}"
+        return f"{self.certificate_id} - {self.recipient_display} - {self.profession.name}"
 
 
 class CertificateRequest(models.Model):
@@ -2609,3 +2625,52 @@ class HomeworkReminder(models.Model):
 
     def __str__(self):
         return f"Reminder #{self.submission_id} (level {self.teacher_level})"
+
+
+class CertificateSettings(models.Model):
+    """Har bir kurs uchun sertifikat seriyasi va amal qilish muddati sozlamalari.
+
+    Seriya formati: {series_code}-{YY}{NNN}  (masalan: ZMT-PY-26038)
+      YY  — berilgan yilning oxirgi 2 raqami
+      NNN — shu kurs bo'yicha tartib raqami (3 xonali)
+    """
+    profession = models.OneToOneField(
+        Profession,
+        on_delete=models.CASCADE,
+        related_name='certificate_settings',
+        verbose_name="Kurs",
+    )
+    series_code = models.CharField(
+        max_length=20,
+        blank=True,
+        default='',
+        verbose_name="Seriya kodi",
+        help_text="Masalan: ZMT-PY. Bo'sh bo'lsa avtomatik berish ishlamaydi.",
+    )
+    validity_years = models.PositiveSmallIntegerField(
+        default=2, verbose_name="Amal qilish muddati (yil)"
+    )
+    next_number = models.PositiveIntegerField(
+        default=1, verbose_name="Keyingi tartib raqami"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Sertifikat sozlamasi"
+        verbose_name_plural = "Sertifikat sozlamalari"
+
+    def __str__(self):
+        return f"{self.profession.name}: {self.series_code or '—'} ({self.validity_years} yil)"
+
+    def generate_certificate_id(self):
+        """Yangi sertifikat raqamini yaratadi va hisoblagichni oshiradi."""
+        from django.utils import timezone as _tz
+        yy = _tz.localdate().strftime('%y')
+        cert_id = f"{self.series_code}-{yy}{self.next_number:03d}"
+        # Takrorlanmasligini kafolatlash
+        while Certificate.objects.filter(certificate_id=cert_id).exists():
+            self.next_number += 1
+            cert_id = f"{self.series_code}-{yy}{self.next_number:03d}"
+        self.next_number += 1
+        self.save(update_fields=['next_number', 'updated_at'])
+        return cert_id

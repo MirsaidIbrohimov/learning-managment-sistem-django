@@ -1,6 +1,6 @@
 {% extends 'accounts/yordamchi/base_yordamchi.html' %}
-{% block title %}Sertifikat so'rovlari{% endblock %}
-{% block page_title %}Sertifikat so'rovlari ({{ total_count }}){% endblock %}
+{% block title %}Sertifikatlar{% endblock %}
+{% block page_title %}Berilgan sertifikatlar ({{ total_count }}){% endblock %}
 
 {% block content %}
 <div class="card border-0 shadow-sm">
@@ -8,39 +8,53 @@
         <form method="get" class="d-flex gap-2">
             <select name="status" class="form-select form-select-sm" style="max-width:200px;">
                 <option value="">— Barchasi —</option>
-                <option value="pending" {% if status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
-                <option value="approved" {% if status == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
-                <option value="rejected" {% if status == 'rejected' %}selected{% endif %}>Rad etilgan</option>
+                <option value="active" {% if status == 'active' %}selected{% endif %}>Faol</option>
+                <option value="frozen" {% if status == 'frozen' %}selected{% endif %}>Muzlatilgan</option>
+                <option value="expired" {% if status == 'expired' %}selected{% endif %}>Muddati tugagan</option>
+                <option value="revoked" {% if status == 'revoked' %}selected{% endif %}>Bekor qilingan</option>
             </select>
             <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i></button>
         </form>
     </div>
     <div class="card-body p-0">
-        {% if requests %}
+        {% if certificates %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead style="background:rgba(250,204,21,0.08);">
-                    <tr><th>#</th><th>O'quvchi</th><th>Yo'nalish</th><th>Holat</th><th>Sana</th></tr>
+                    <tr>
+                        <th>Seriya</th>
+                        <th>O'quvchi</th>
+                        <th>Kurs</th>
+                        <th>Holat</th>
+                        <th>Berilgan</th>
+                        <th>Amal qiladi</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for r in requests %}
+                {% for c in certificates %}
                     <tr>
-                        <td>{{ r.id }}</td>
-                        <td><a href="{% url 'yordamchi_student_detail' r.student.pk %}" class="text-decoration-none">{{ r.student.full_name }}</a></td>
-                        <td>{{ r.profession.name|default:"—" }}</td>
+                        <td><code>{{ c.certificate_id }}</code></td>
                         <td>
-                            {% if r.status == 'pending' %}<span class="badge bg-warning text-dark">Kutilmoqda</span>
-                            {% elif r.status == 'approved' %}<span class="badge bg-success">Tasdiqlangan</span>
-                            {% else %}<span class="badge bg-danger">Rad etilgan</span>{% endif %}
+                            {% if c.student %}
+                            <a href="{% url 'yordamchi_student_detail' c.student.pk %}" class="text-decoration-none">{{ c.recipient_display }}</a>
+                            {% else %}{{ c.recipient_display }} <small class="text-muted">(qo'lda)</small>{% endif %}
                         </td>
-                        <td style="font-size:.78rem;color:#6b7280;">{{ r.created_at|date:"d.m.Y H:i" }}</td>
+                        <td>{{ c.profession.name|default:"—" }}</td>
+                        <td>
+                            {% if c.status == 'active' %}<span class="badge bg-success">Faol</span>
+                            {% elif c.status == 'frozen' %}<span class="badge bg-info">Muzlatilgan</span>
+                            {% elif c.status == 'expired' %}<span class="badge bg-warning text-dark">Muddati tugagan</span>
+                            {% else %}<span class="badge bg-danger">Bekor qilingan</span>{% endif %}
+                        </td>
+                        <td style="font-size:.78rem;color:#6b7280;">{{ c.valid_from|date:"d.m.Y" }}</td>
+                        <td style="font-size:.78rem;color:#6b7280;">{{ c.valid_until|date:"d.m.Y"|default:"—" }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
         {% include 'accounts/yordamchi/_pagination.html' with page_obj=page_obj %}
-        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-inbox" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">So'rovlar yo'q</p></div>{% endif %}
+        {% else %}<div class="text-center py-5 text-muted"><i class="bi bi-award" style="font-size:2.5rem;opacity:.4;"></i><p class="mt-2 mb-0">Sertifikatlar yo'q — ular yakuniy testdan o'tganda avtomatik beriladi</p></div>{% endif %}
     </div>
 </div>
 {% endblock %}

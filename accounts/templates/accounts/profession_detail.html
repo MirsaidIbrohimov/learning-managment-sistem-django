@@ -1673,40 +1673,18 @@
             <h5 class="fw-bold mb-1" style="color:#10b981;">🎓 Sertifikat berilgan!</h5>
             <p class="text-muted mb-2">Siz bu kursni muvaffaqiyatli tugatdingiz</p>
             <div style="background:var(--soft-bg);border-radius:12px;padding:1rem;display:inline-block;text-align:left;">
-                <div class="mb-1"><strong>ID:</strong> {{ certificate.certificate_id }}</div>
-                <div class="mb-1"><strong>Berilgan:</strong> {{ certificate.issued_at|date:"d.m.Y" }}</div>
+                <div class="mb-1"><strong>Seriya:</strong> {{ certificate.certificate_id }}</div>
+                <div class="mb-1"><strong>Berilgan:</strong> {{ certificate.valid_from|date:"d.m.Y" }}</div>
+                {% if certificate.valid_until %}
+                <div class="mb-1"><strong>Amal qiladi:</strong> {{ certificate.valid_until|date:"d.m.Y" }} gacha</div>
+                {% endif %}
                 <div><span class="badge" style="background:{{ certificate.status_color }};color:#fff;">{{ certificate.get_status_display }}</span></div>
             </div>
-            {% if certificate.file %}
             <div class="mt-3">
-                <a href="{{ certificate.file.url }}" target="_blank" class="cd-btn cd-btn-success" style="display:inline-flex;width:auto;">
+                <a href="{% url 'download_certificate' certificate.pk %}" class="cd-btn cd-btn-success" style="display:inline-flex;width:auto;">
                     <i class="bi bi-download"></i> Sertifikatni yuklab olish
                 </a>
             </div>
-            {% endif %}
-        </div>
-        {% elif certificate_request and certificate_request.status == 'pending' %}
-        <div class="text-center">
-            <div class="cd-cert-icon yellow"><i class="bi bi-hourglass-split"></i></div>
-            <h5 class="fw-bold mb-1" style="color:#f59e0b;">Sertifikat so'rovi yuborilgan</h5>
-            <p class="text-muted mb-0">Admin so'rovingizni ko'rib chiqmoqda. Iltimos kuting...</p>
-            <small class="text-muted">{{ certificate_request.created_at|date:"d.m.Y H:i" }}</small>
-        </div>
-        {% elif certificate_request and certificate_request.status == 'rejected' %}
-        <div class="text-center">
-            <div class="cd-cert-icon red"><i class="bi bi-x-circle-fill"></i></div>
-            <h5 class="fw-bold mb-1" style="color:#ef4444;">Sertifikat so'rovi rad etildi</h5>
-            {% if certificate_request.admin_message %}
-            <p class="text-muted mb-2">Sabab: {{ certificate_request.admin_message }}</p>
-            {% endif %}
-            {% if course_completed %}
-            <form method="POST" action="{% url 'request_certificate' profession.pk %}">
-                {% csrf_token %}
-                <button type="submit" class="cd-btn cd-btn-primary" style="display:inline-flex;width:auto;margin-top:.5rem;">
-                    <i class="bi bi-arrow-repeat"></i> Qayta so'rov yuborish
-                </button>
-            </form>
-            {% endif %}
         </div>
         {% elif has_empty_section %}
         <div class="text-center">
@@ -1718,11 +1696,11 @@
         <div class="text-center">
             <div class="cd-cert-icon purple"><i class="bi bi-mortarboard-fill"></i></div>
             <h5 class="fw-bold mb-2">🎉 Tabriklaymiz! Kursni tugatdingiz!</h5>
-            <p class="text-muted mb-3">Barcha darslarni muvaffaqiyatli bajardingiz. Sertifikat olish uchun so'rov yuboring.</p>
+            <p class="text-muted mb-3">Barcha darslarni bajardingiz. Sertifikatingiz avtomatik tayyorlanadi — tugmani bosing!</p>
             <form method="POST" action="{% url 'request_certificate' profession.pk %}">
                 {% csrf_token %}
                 <button type="submit" class="cd-btn cd-btn-primary" style="display:inline-flex;width:auto;font-size:1rem;padding:.75rem 1.5rem;">
-                    <i class="bi bi-mortarboard-fill"></i> Kursni tugatdim — Sertifikat olish
+                    <i class="bi bi-mortarboard-fill"></i> Sertifikatni olish
                 </button>
             </form>
         </div>

@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from accounts.models import (
     CustomUser, Profession, Lesson, Homework, HomeworkSubmission,
-    Test, TestResult, Certificate, CertificateRequest,
+    Test, TestResult, Certificate,
     Message, HelpRequest, CourseApplication,
     PasswordResetRequest, Parent, ParentMessage, ParentPasswordResetRequest,
     CourseEnrollmentRequest, CourseUnenrollRequest, PremiumRequest,
@@ -144,21 +144,22 @@ class TeacherAttendanceSerializer(serializers.ModelSerializer):
         ]
 
 
-# ------------------- SERTIFIKAT SO'ROVLARI -------------------
+# ------------------- SERTIFIKATLAR -------------------
 
-class CertificateRequestSerializer(serializers.ModelSerializer):
+class CertificateSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.full_name', read_only=True)
     profession_name = serializers.CharField(source='profession.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
-        model = CertificateRequest
+        model = Certificate
         fields = [
-            'id', 'student', 'student_name', 'profession', 'profession_name',
-            'status', 'status_display', 'admin_message',
-            'reviewed_by', 'reviewed_at', 'created_at',
+            'id', 'certificate_id', 'student', 'student_name',
+            'profession', 'profession_name',
+            'status', 'status_display',
+            'valid_from', 'valid_until', 'issued_at',
         ]
-        read_only_fields = ['reviewed_by', 'reviewed_at', 'created_at']
+        read_only_fields = ['certificate_id', 'issued_at']
 
 
 # ------------------- PAROL TIKLASH -------------------

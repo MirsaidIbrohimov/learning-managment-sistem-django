@@ -430,7 +430,7 @@
             <div class="cert-header-sub">O'quvchilarga berilgan sertifikatlar va ularni boshqarish</div>
         </div>
         <div>
-            <a href="{% url 'admin_certificate_issue' %}" class="cert-btn cert-btn-primary">
+            <a href="{% url 'admin_certificate_manual' %}" class="cert-btn cert-btn-primary">
                 <i class="bi bi-plus-lg"></i> Sertifikat berish
             </a>
         </div>
@@ -506,6 +506,74 @@
         </form>
     </div>
 
+    <!-- ⚙️ Kurslar bo'yicha seriya sozlamalari (avtomatik berish) -->
+    <div class="cert-table-card" style="margin-bottom:1.5rem;">
+        <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border-color,#e5e7eb);display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="document.getElementById('certSettingsBody').classList.toggle('d-none');document.getElementById('certSettingsChevron').classList.toggle('bi-chevron-down');document.getElementById('certSettingsChevron').classList.toggle('bi-chevron-up');">
+            <div style="font-weight:800;display:flex;align-items:center;gap:8px;">
+                <i class="bi bi-gear-fill" style="color:#6366f1;"></i> ⚙️ Sozlamalar — kurs seriyalari va amal qilish muddati
+            </div>
+            <i class="bi bi-chevron-up" id="certSettingsChevron"></i>
+        </div>
+        <div id="certSettingsBody" style="padding:0.5rem 1.25rem 1rem;">
+            <p style="font-size:0.8rem;color:var(--bs-secondary-color,#6c757d);margin:0.5rem 0 0.75rem;">
+                <i class="bi bi-info-circle"></i>
+                Seriya kodi yozilgan kurslarda sertifikat <b>yakuniy testdan o'tganda avtomatik</b> beriladi.
+                Format: <code>SERIYA-YYNNN</code> (masalan: <code>ZMT-PY-26038</code>).
+                Seriya bo'sh bo'lsa yoki kursda "Sertifikat" o'chirilgan bo'lsa — berilmaydi.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-sm align-middle" style="font-size:0.85rem;">
+                    <thead>
+                        <tr style="font-size:0.72rem;text-transform:uppercase;">
+                            <th>Kurs</th>
+                            <th style="width:170px;">Seriya kodi</th>
+                            <th style="width:120px;">Muddat (yil)</th>
+                            <th style="width:100px;" class="text-center">Berilgan</th>
+                            <th style="width:110px;">Sertifikat</th>
+                            <th style="width:90px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cs in course_settings %}
+                        <tr>
+                            <td style="font-weight:600;">{{ cs.profession.name }}</td>
+                            <td>
+                                <input type="text" name="series_code" value="{{ cs.series_code }}" placeholder="ZMT-PY"
+                                       maxlength="20" class="form-control form-control-sm" style="text-transform:uppercase;"
+                                       form="csForm{{ cs.profession.pk }}">
+                            </td>
+                            <td>
+                                <input type="number" name="validity_years" value="{{ cs.validity_years }}" min="1" max="50"
+                                       class="form-control form-control-sm" form="csForm{{ cs.profession.pk }}">
+                            </td>
+                            <td class="text-center">{{ cs.issued_count }} ta</td>
+                            <td>
+                                {% if cs.profession.has_certificate %}
+                                <span class="cert-badge active"><i class="bi bi-check-circle-fill"></i> Yoniq</span>
+                                {% else %}
+                                <span class="cert-badge revoked"><i class="bi bi-x-circle-fill"></i> O'chiq</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="submit" class="cert-action-btn" title="Saqlash"
+                                        style="width:auto;padding:0 10px;" form="csForm{{ cs.profession.pk }}">
+                                    <i class="bi bi-check-lg"></i> Saqlash
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% for cs in course_settings %}
+            <form id="csForm{{ cs.profession.pk }}" method="post" action="{% url 'admin_certificate_settings' %}">
+                {% csrf_token %}
+                <input type="hidden" name="profession_id" value="{{ cs.profession.pk }}">
+            </form>
+            {% endfor %}
+        </div>
+    </div>
+
     <!-- Table -->
     {% if certificates %}
     <div class="cert-table-card">
@@ -527,8 +595,8 @@
                     <tr>
                         <td><span class="cert-id">{{ cert.certificate_id }}</span></td>
                         <td>
-                            <span class="cert-user-name">{{ cert.student.full_name }}</span>
-                            <span class="cert-user-sub">@{{ cert.student.username }}</span>
+                            <span class="cert-user-name">{{ cert.recipient_display }}</span>
+                            <span class="cert-user-sub">{% if cert.student %}@{{ cert.student.username }}{% else %}qo'lda berilgan{% endif %}</span>
                         </td>
                         <td>{{ cert.profession.name }}</td>
                         <td>
@@ -543,11 +611,14 @@
                         </td>
                         <td><small>{{ cert.valid_from|date:"d.m.Y" }}</small></td>
                         <td>
-                            {% if cert.valid_until %}
-                            <small>{{ cert.valid_until|date:"d.m.Y" }}</small>
-                            {% else %}
-                            <small class="text-muted">Cheksiz</small>
-                            {% endif %}
+                            <form method="post" action="{% url 'admin_certificate_edit' cert.pk %}" style="display:flex;align-items:center;gap:0.3rem;">
+                                {% csrf_token %}
+                                <input type="date" name="valid_until" value="{{ cert.valid_until|date:'Y-m-d' }}"
+                                       class="cert-status-select" style="min-width:135px;">
+                                <button type="submit" class="cert-action-btn" title="Muddatni saqlash (PDF yangilanadi)">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
                         </td>
                         <td>
                             <div class="cert-actions">
@@ -565,6 +636,12 @@
                                     <i class="bi bi-download"></i>
                                 </a>
                                 {% endif %}
+                                <form method="post" action="{% url 'admin_certificate_regenerate' cert.pk %}" style="display:contents;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="cert-action-btn" title="PDF ni qayta yaratish">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </form>
                                 <form method="post" action="{% url 'admin_certificate_delete' cert.pk %}" onsubmit="return confirm('Sertifikatni o\'chirmoqchimisiz?')" style="display:contents;">
                                     {% csrf_token %}
                                     <button type="submit" class="cert-action-btn danger" title="O'chirish">
@@ -613,7 +690,7 @@
             <i class="bi bi-x-lg"></i> Filtrni tozalash
         </a>
         {% else %}
-        <a href="{% url 'admin_certificate_issue' %}" class="cert-btn cert-btn-primary">
+        <a href="{% url 'admin_certificate_manual' %}" class="cert-btn cert-btn-primary">
             <i class="bi bi-plus-lg"></i> Sertifikat berish
         </a>
         {% endif %}

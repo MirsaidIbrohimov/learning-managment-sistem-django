@@ -37,10 +37,10 @@ PERMISSIONS = {
         },
     },
     "certificate_requests": {
-        "label": "Sertifikat so'rovlari",
+        "label": "Sertifikatlar",
         "perms": {
             "certificate_requests.view": "Ko'rish",
-            "certificate_requests.review": "Tasdiqlash / rad etish",
+            "certificate_requests.review": "Boshqarish",
         },
     },
 
