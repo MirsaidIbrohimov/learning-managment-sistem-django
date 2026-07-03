@@ -1,0 +1,416 @@
+{% comment %}
+Video Mid-Quiz o'quvchi vidjeti — video_lesson.html ichiga include qilinadi.
+Video belgilangan soniyaga yetganda pauza qilib, premium modal chiqaradi.
+Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
+{% endcomment %}
+
+<style>
+/* ===== Video Mid-Quiz: o'quvchi modali ===== */
+.vqp-overlay {
+    display: none; position: fixed; inset: 0; z-index: 99990;
+    background: rgba(3, 7, 18, .62);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    align-items: center; justify-content: center; padding: 1rem;
+}
+.vqp-overlay.open { display: flex; }
+.vqp-box {
+    width: 100%; max-width: 560px; border-radius: 24px; overflow: hidden;
+    background: linear-gradient(165deg, #101828, #0b1120);
+    border: 1px solid rgba(129,140,248,.25);
+    box-shadow: 0 40px 100px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04);
+    color: #e2e8f0; position: relative;
+    animation: vqpIn .45s cubic-bezier(.2,.9,.3,1.12) both;
+}
+@keyframes vqpIn { from { transform: translateY(44px) scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+.vqp-box.shake { animation: vqpShake .55s cubic-bezier(.36,.07,.19,.97); }
+@keyframes vqpShake {
+    10%, 90% { transform: translateX(-2px); } 20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-7px); } 40%, 60% { transform: translateX(7px); }
+}
+.vqp-top {
+    padding: 1.15rem 1.5rem .9rem;
+    background: linear-gradient(90deg, rgba(99,102,241,.16), rgba(56,189,248,.08));
+    border-bottom: 1px solid rgba(129,140,248,.14);
+    display: flex; align-items: center; gap: 11px;
+}
+.vqp-top-ic {
+    width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0;
+    background: linear-gradient(135deg, #6366f1, #38bdf8);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.15rem;
+    box-shadow: 0 8px 22px -8px rgba(99,102,241,.8);
+    animation: vqpPulse 2s ease-in-out infinite;
+}
+@keyframes vqpPulse { 50% { transform: scale(1.08); } }
+.vqp-top b { font-size: .95rem; }
+.vqp-top small { display: block; color: rgba(148,163,184,.85); font-size: .72rem; font-weight: 600; }
+.vqp-coins { margin-left: auto; text-align: right; font-size: .7rem; font-weight: 800; }
+.vqp-coins .p { color: #34d399; } .vqp-coins .m { color: #f87171; }
+.vqp-progress { height: 3px; background: rgba(129,140,248,.15); }
+.vqp-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #6366f1, #38bdf8); transition: width .3s ease; }
+.vqp-body { padding: 1.3rem 1.5rem 1.5rem; }
+.vqp-q { font-size: 1.02rem; font-weight: 800; line-height: 1.45; margin-bottom: .4rem; }
+.vqp-desc { font-size: .8rem; color: rgba(148,163,184,.9); margin-bottom: 1rem; }
+.vqp-opts { display: grid; gap: .6rem; margin-bottom: 1.1rem; }
+.vqp-opt {
+    display: flex; align-items: center; gap: 12px; text-align: left;
+    padding: .8rem 1rem; border-radius: 14px; cursor: pointer;
+    background: rgba(255,255,255,.035); border: 1.5px solid rgba(129,140,248,.16);
+    color: #e2e8f0; font-size: .9rem; font-weight: 600; width: 100%;
+    transition: all .18s ease;
+}
+.vqp-opt:hover:not(:disabled) { border-color: rgba(129,140,248,.5); background: rgba(99,102,241,.1); transform: translateX(4px); }
+.vqp-opt.sel { border-color: #818cf8; background: rgba(99,102,241,.16); box-shadow: 0 0 0 3px rgba(129,140,248,.15); }
+.vqp-opt.correct { border-color: #34d399; background: rgba(52,211,153,.13); }
+.vqp-opt.wrong { border-color: #f87171; background: rgba(248,113,113,.12); }
+.vqp-opt:disabled { cursor: default; opacity: .85; }
+.vqp-letter {
+    width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+    background: rgba(129,140,248,.15); color: #a5b4fc;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .8rem;
+}
+.vqp-opt.correct .vqp-letter { background: rgba(52,211,153,.25); color: #34d399; }
+.vqp-opt.wrong .vqp-letter { background: rgba(248,113,113,.25); color: #f87171; }
+.vqp-submit {
+    width: 100%; padding: .9rem; border: none; border-radius: 14px; cursor: pointer;
+    font-weight: 800; font-size: .95rem; color: #fff;
+    background: linear-gradient(90deg, #6366f1, #38bdf8);
+    box-shadow: 0 14px 34px -12px rgba(99,102,241,.75);
+    transition: transform .15s ease, opacity .2s;
+}
+.vqp-submit:disabled { opacity: .45; cursor: not-allowed; }
+.vqp-submit:hover:not(:disabled) { transform: translateY(-2px); }
+.vqp-result { display: none; text-align: center; padding: .4rem 0 .2rem; }
+.vqp-result .big { font-size: 2.6rem; margin-bottom: .3rem; }
+.vqp-result h4 { font-weight: 900; margin: 0 0 .3rem; }
+.vqp-result .coin-fx { font-size: 1.15rem; font-weight: 900; }
+.vqp-result .coin-fx.p { color: #34d399; animation: coinUp 1s ease both; }
+.vqp-result .coin-fx.m { color: #f87171; }
+@keyframes coinUp { from { transform: translateY(16px) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.vqp-explain {
+    margin-top: .8rem; padding: .8rem 1rem; border-radius: 12px; text-align: left;
+    background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.25);
+    font-size: .82rem; color: #fde68a;
+}
+.vqp-continue {
+    margin-top: 1rem; width: 100%; padding: .85rem; border: none; border-radius: 14px;
+    cursor: pointer; font-weight: 800; color: #fff;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    box-shadow: 0 14px 34px -12px rgba(16,185,129,.7);
+}
+/* Konfeti */
+.vqp-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 99995; overflow: hidden; }
+.vqp-confetti i {
+    position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px;
+    animation: confFall linear both;
+}
+@keyframes confFall {
+    to { transform: translateY(105vh) rotate(720deg); opacity: .3; }
+}
+/* Toast */
+.vqp-toast {
+    position: fixed; top: 22px; left: 50%; transform: translate(-50%, -70px);
+    z-index: 99999; background: #0f172a; color: #fff; border: 1px solid rgba(129,140,248,.3);
+    padding: .7rem 1.4rem; border-radius: 999px; font-weight: 800; font-size: .95rem;
+    display: flex; align-items: center; gap: 8px; opacity: 0;
+    transition: all .4s cubic-bezier(.2,.9,.3,1.2);
+}
+.vqp-toast.show { transform: translate(-50%, 0); opacity: 1; }
+@media (max-width: 576px) { .vqp-body { padding: 1.1rem 1rem 1.2rem; } .vqp-top { padding: 1rem 1rem .8rem; } }
+</style>
+
+<div class="vqp-overlay" id="vqpOverlay">
+    <div class="vqp-box" id="vqpBox">
+        <div class="vqp-top">
+            <div class="vqp-top-ic"><i class="bi bi-lightning-charge-fill"></i></div>
+            <div>
+                <b>Video savol!</b>
+                <small>Davom etish uchun javob bering</small>
+            </div>
+            <div class="vqp-coins">
+                <span class="p">✓ +<span id="vqpRew">3</span> coin</span><br>
+                <span class="m">✗ -<span id="vqpPen">5</span> coin</span>
+            </div>
+        </div>
+        <div class="vqp-progress"><i id="vqpProg"></i></div>
+        <div class="vqp-body">
+            <div class="vqp-q" id="vqpQ"></div>
+            <div class="vqp-desc" id="vqpDesc"></div>
+            <div class="vqp-opts" id="vqpOpts"></div>
+            <button type="button" class="vqp-submit" id="vqpSubmit" disabled>
+                <i class="bi bi-send"></i> Javobni yuborish
+            </button>
+            <div class="vqp-result" id="vqpResult">
+                <div class="big" id="vqpResIcon"></div>
+                <h4 id="vqpResTitle"></h4>
+                <div class="coin-fx" id="vqpResCoin"></div>
+                <div class="vqp-explain" id="vqpExplain" style="display:none;"></div>
+                <button type="button" class="vqp-continue" id="vqpContinue">
+                    <i class="bi bi-play-fill"></i> Davom etish
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="vqp-toast" id="vqpToast"></div>
+
+<script>
+/* ================================================================
+   Video Mid-Quiz — o'quvchi pleer integratsiyasi
+   YouTube (window._vqYT) va Vimeo (vimeoPlayer) pleerlarini qo'llaydi.
+   ================================================================ */
+(function() {
+    'use strict';
+    const API_LIST = "{% url 'video_quiz:api_player_quizzes' video.pk %}";
+    const API_SUBMIT = "{% url 'video_quiz:api_player_submit' %}";
+    const CSRF = '{{ csrf_token }}';
+
+    let quizzes = [];
+    let current = null;
+    let openedAt = 0;
+    let modalOpen = false;
+    let selected = null;
+    let progTimer = null;
+
+    const overlay = document.getElementById('vqpOverlay');
+    const box = document.getElementById('vqpBox');
+
+    /* ---------- Pleer boshqaruvi ---------- */
+    function getTime(cb) {
+        try {
+            if (window._vqYT && typeof window._vqYT.getCurrentTime === 'function') {
+                cb(window._vqYT.getCurrentTime()); return;
+            }
+        } catch (e) {}
+        try {
+            if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
+                vimeoPlayer.getCurrentTime().then(cb).catch(function(){});
+            }
+        } catch (e) {}
+    }
+    function pauseVideo() {
+        try { if (window._vqYT && window._vqYT.pauseVideo) window._vqYT.pauseVideo(); } catch (e) {}
+        try { if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) vimeoPlayer.pause(); } catch (e) {}
+    }
+    function playVideo() {
+        try { if (window._vqYT && window._vqYT.playVideo) window._vqYT.playVideo(); } catch (e) {}
+        try { if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) vimeoPlayer.play(); } catch (e) {}
+    }
+
+    /* ---------- Fullscreen boshqaruvi ---------- */
+    // YouTube/Vimeo iframe fullscreen paytida modal iframe ostida qoladi
+    // (browserlar HTML5 fullscreen elementidan tashqaridagi hech nimani ko'rsatmaydi).
+    // Yechim: quiz ochilishidan oldin fullscreen'dan chiqamiz, davom etganda qaytaramiz.
+    let _wasFullscreen = false;
+    let _fsElement = null;
+
+    function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+                  document.mozFullScreenElement || document.msFullscreenElement);
+    }
+    function exitFullscreen() {
+        try {
+            if (document.exitFullscreen)            return document.exitFullscreen();
+            if (document.webkitExitFullscreen)      return document.webkitExitFullscreen();
+            if (document.mozCancelFullScreen)       return document.mozCancelFullScreen();
+            if (document.msExitFullscreen)          return document.msExitFullscreen();
+        } catch (e) {}
+    }
+    function requestFullscreen(el) {
+        if (!el) return;
+        try {
+            if (el.requestFullscreen)            return el.requestFullscreen();
+            if (el.webkitRequestFullscreen)      return el.webkitRequestFullscreen();
+            if (el.mozRequestFullScreen)         return el.mozRequestFullScreen();
+            if (el.msRequestFullscreen)          return el.msRequestFullscreen();
+        } catch (e) {}
+    }
+
+    /* ---------- Ovozlar (WebAudio — fayl kerak emas) ---------- */
+    function beep(freqs, dur) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            freqs.forEach(function(f, i) {
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.type = 'sine'; o.frequency.value = f;
+                g.gain.setValueAtTime(.16, ctx.currentTime + i * dur);
+                g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + (i + 1) * dur);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(ctx.currentTime + i * dur); o.stop(ctx.currentTime + (i + 1) * dur);
+            });
+        } catch (e) {}
+    }
+    const soundOk = () => beep([523, 659, 784], .16);
+    const soundNo = () => beep([196, 147], .22);
+
+    /* ---------- Konfeti ---------- */
+    function confetti() {
+        const wrap = document.createElement('div');
+        wrap.className = 'vqp-confetti';
+        const colors = ['#6366f1','#38bdf8','#34d399','#fbbf24','#f472b6','#a78bfa'];
+        for (let i = 0; i < 48; i++) {
+            const c = document.createElement('i');
+            c.style.left = Math.random() * 100 + '%';
+            c.style.background = colors[i % colors.length];
+            c.style.animationDuration = (1.4 + Math.random() * 1.4) + 's';
+            c.style.animationDelay = (Math.random() * .4) + 's';
+            wrap.appendChild(c);
+        }
+        document.body.appendChild(wrap);
+        setTimeout(function(){ wrap.remove(); }, 3200);
+    }
+
+    function toast(msg) {
+        const t = document.getElementById('vqpToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+    }
+
+    /* ---------- Modal ---------- */
+    function showQuiz(q) {
+        current = q; selected = null; modalOpen = true; openedAt = Date.now();
+        pauseVideo();
+        // Fullscreen'dan chiqamiz — aks holda modal iframe ostida qoladi
+        _wasFullscreen = isFullscreen();
+        _fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
+                     document.mozFullScreenElement || document.msFullscreenElement || null;
+        if (_wasFullscreen) exitFullscreen();
+        document.getElementById('vqpQ').textContent = q.question;
+        const d = document.getElementById('vqpDesc');
+        d.textContent = q.description || ''; d.style.display = q.description ? '' : 'none';
+        document.getElementById('vqpRew').textContent = q.reward_coin;
+        document.getElementById('vqpPen').textContent = q.penalty_coin;
+        document.getElementById('vqpResult').style.display = 'none';
+        document.getElementById('vqpSubmit').style.display = '';
+        document.getElementById('vqpSubmit').disabled = true;
+        const opts = document.getElementById('vqpOpts');
+        opts.innerHTML = '';
+        ['A','B','C','D'].forEach(function(letter) {
+            const btn = document.createElement('button');
+            btn.type = 'button'; btn.className = 'vqp-opt'; btn.dataset.letter = letter;
+            btn.innerHTML = '<span class="vqp-letter">' + letter + '</span><span>' +
+                String(q.options[letter]).replace(/[&<>]/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}) + '</span>';
+            btn.onclick = function() {
+                if (btn.disabled) return;
+                opts.querySelectorAll('.vqp-opt').forEach(function(b){ b.classList.remove('sel'); });
+                btn.classList.add('sel'); selected = letter;
+                document.getElementById('vqpSubmit').disabled = false;
+            };
+            opts.appendChild(btn);
+        });
+        // Progress chizig'i — o'ylash vaqti vizual
+        const prog = document.getElementById('vqpProg');
+        prog.style.width = '0';
+        clearInterval(progTimer);
+        let p = 0;
+        progTimer = setInterval(function(){ p = Math.min(100, p + 1.2); prog.style.width = p + '%'; }, 400);
+        overlay.classList.add('open');
+    }
+
+    async function submit() {
+        if (!selected || !current) return;
+        const btn = document.getElementById('vqpSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:vqpPulse .7s linear infinite;"></span> Tekshirilmoqda...';
+        let data;
+        try {
+            const res = await fetch(API_SUBMIT, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                body: JSON.stringify({
+                    quiz_id: current.id, selected: selected,
+                    answer_ms: Date.now() - openedAt,
+                }),
+            });
+            data = await res.json();
+        } catch (e) { data = {error: 'Tarmoq xatosi'}; }
+        btn.innerHTML = '<i class="bi bi-send"></i> Javobni yuborish';
+        clearInterval(progTimer);
+        document.getElementById('vqpProg').style.width = '100%';
+
+        if (data.error) {
+            // Xato (masalan, allaqachon javob berilgan) — davom etishga ruxsat
+            toast('⚠️ ' + data.error);
+            finishQuiz();
+            return;
+        }
+
+        const opts = document.querySelectorAll('.vqp-opt');
+        opts.forEach(function(b) {
+            b.disabled = true;
+            if (b.dataset.letter === data.correct_option) b.classList.add('correct');
+            else if (b.dataset.letter === selected && !data.correct) b.classList.add('wrong');
+        });
+        btn.style.display = 'none';
+        const res = document.getElementById('vqpResult');
+        res.style.display = 'block';
+        const exp = document.getElementById('vqpExplain');
+        if (data.correct) {
+            document.getElementById('vqpResIcon').textContent = '🎉';
+            document.getElementById('vqpResTitle').textContent = "To'g'ri javob!";
+            document.getElementById('vqpResCoin').className = 'coin-fx p';
+            document.getElementById('vqpResCoin').textContent = '🪙 +' + data.coins_change + ' coin (balans: ' + data.balance + ')';
+            exp.style.display = 'none';
+            confetti(); soundOk();
+            toast('🪙 +' + data.coins_change + ' Coin');
+        } else {
+            document.getElementById('vqpResIcon').textContent = '😔';
+            document.getElementById('vqpResTitle').textContent = "Noto'g'ri javob";
+            document.getElementById('vqpResCoin').className = 'coin-fx m';
+            document.getElementById('vqpResCoin').textContent = '🪙 ' + data.coins_change + ' coin (balans: ' + data.balance + ')';
+            if (data.explanation) { exp.textContent = '💡 ' + data.explanation; exp.style.display = 'block'; }
+            else { exp.style.display = 'none'; }
+            box.classList.add('shake');
+            setTimeout(function(){ box.classList.remove('shake'); }, 600);
+            soundNo();
+            toast('🪙 ' + data.coins_change + ' Coin');
+        }
+        current.answered = true;
+    }
+
+    function finishQuiz() {
+        if (current) current.answered = true;
+        modalOpen = false; current = null;
+        overlay.classList.remove('open');
+        clearInterval(progTimer);
+        playVideo();
+        // Fullscreen'ni tiklaymiz (user activation "Davom etish" tugmasi orqali kelgan)
+        if (_wasFullscreen && _fsElement) {
+            requestFullscreen(_fsElement);
+        }
+        _wasFullscreen = false; _fsElement = null;
+    }
+
+    document.getElementById('vqpSubmit').addEventListener('click', submit);
+    document.getElementById('vqpContinue').addEventListener('click', finishQuiz);
+
+    // ESC va tashqi bosish bilan YOPILMAYDI
+    document.addEventListener('keydown', function(e) {
+        if (modalOpen && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) { box.classList.add('shake'); setTimeout(function(){ box.classList.remove('shake'); }, 600); }
+    });
+
+    /* ---------- Kuzatuv sikli ---------- */
+    function check(t) {
+        if (modalOpen) return;
+        for (const q of quizzes) {
+            if (!q.answered && t >= q.trigger_second) { showQuiz(q); return; }
+        }
+    }
+    async function init() {
+        try {
+            const res = await fetch(API_LIST, {credentials: 'same-origin'});
+            const data = await res.json();
+            if (!data.is_student || !data.quizzes || !data.quizzes.length) return;
+            quizzes = data.quizzes.sort(function(a,b){ return a.trigger_second - b.trigger_second; });
+            setInterval(function(){ if (!modalOpen) getTime(check); }, 500);
+        } catch (e) { /* jim — pleer ishlayveradi */ }
+    }
+    init();
+})();
+</script>
+
+{# Bu fayl: o'quvchi video ko'rayotganda belgilangan soniyada pleerni pauza #}
+{# qilib premium savol modalini chiqaradi; coin, konfeti, ovoz va toast bilan. #}

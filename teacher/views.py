@@ -201,6 +201,13 @@ def teacher_dashboard(request):
                 'avg_score': round(score_map.get(p.pk) or 0, 1),
             })
 
+    # 🎥 Video Mid-Quiz daromadi (bugungi/haftalik/oylik/jami)
+    try:
+        from video_quiz.views import teacher_income_summary
+        vq_income = teacher_income_summary(user)
+    except Exception:
+        vq_income = {'today': 0, 'week': 0, 'month': 0, 'total': 0}
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -211,6 +218,7 @@ def teacher_dashboard(request):
         'recent_speakings': recent_speakings,
         'recent_tests': recent_tests,
         'certificates_count': certificates_count,
+        'vq_income': vq_income,
         # Kengaytirilgan analitika
         'avg_grade': avg_grade,
         'pass_rate': pass_rate,
@@ -1053,16 +1061,18 @@ def teacher_grade_homework(request, pk):
                 current_submission_pk=submission.pk
             )
             ai_warning = ""
-            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 75:
+            # Ustoz uchun ham ehtiyotkor: faqat 85%+ ishonchda ogohlantirish ko'rsatiladi
+            # (past ishonchli belgilar ko'p false-positive beradi va ustozni chalg'itadi).
+            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 85:
                 ai_warning = (
                     f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
                     f"(ishonch: {ai_check['confidence']}%).\n"
                     f"📋 Sabab: {ai_check['reason']}"
                 )
-            
-            # 2. O'xshashlik tekshirish
+
+            # 2. O'xshashlik tekshirish — faqat 90%+ o'xshashlikda ustozga ogohlantirish
             similarity_result = _check_similarity_with_others(hw, submission, student_answer)
-            if similarity_result and similarity_result['is_plagiat']:
+            if similarity_result and similarity_result['is_plagiat'] and similarity_result['similarity'] >= 90:
                 ai_warning += (
                     f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
                     f"{similarity_result['similarity']}% o'xshash.\n"
@@ -1973,6 +1983,9 @@ def teacher_earnings(request):
     VIDEO_PRICE = 25000
     TEST_PRICE = 10000
     HOMEWORK_PRICE = 10000
+    VIDEO_QUIZ_PRICE = 3000  # video ichidagi har bir test uchun
+
+    from video_quiz.models import VideoQuiz
 
     # Joriy oy va o'tgan oy
     current_month_start = date(now.year, now.month, 1)
@@ -2020,10 +2033,23 @@ def teacher_earnings(request):
         hw_count = hw_lessons.count()
         hw_list = list(hw_lessons.values('id', 'title', 'profession__name', 'created_at'))
 
+        # Video ichidagi testlar (har biri 3000 so'm)
+        video_quizzes = VideoQuiz.objects.filter(
+            created_by=user,
+            created_at__gte=month_start,
+            created_at__lt=month_end,
+        ).select_related('video__lesson__profession')
+        vq_count = video_quizzes.count()
+        vq_list = list(video_quizzes.values(
+            'id', 'question',
+            'video__lesson__title', 'video__lesson__profession__name', 'created_at',
+        ))
+        vq_total = vq_count * VIDEO_QUIZ_PRICE
+
         video_total = video_count * VIDEO_PRICE
         test_total = test_count * TEST_PRICE
         hw_total = hw_count * HOMEWORK_PRICE
-        grand_total = video_total + test_total + hw_total
+        grand_total = video_total + test_total + hw_total + vq_total
 
         return {
             'video_count': video_count,
@@ -2035,8 +2061,11 @@ def teacher_earnings(request):
             'hw_count': hw_count,
             'hw_list': hw_list,
             'hw_total': hw_total,
+            'vq_count': vq_count,
+            'vq_list': vq_list,
+            'vq_total': vq_total,
             'grand_total': grand_total,
-            'total_items': video_count + test_count + hw_count,
+            'total_items': video_count + test_count + hw_count + vq_count,
         }
 
     MONTH_NAMES = {
@@ -2077,6 +2106,7 @@ def teacher_earnings(request):
         'VIDEO_PRICE': VIDEO_PRICE,
         'TEST_PRICE': TEST_PRICE,
         'HOMEWORK_PRICE': HOMEWORK_PRICE,
+        'VIDEO_QUIZ_PRICE': VIDEO_QUIZ_PRICE,
         'paid_salaries': paid_salaries,
         'unpaid_salaries': unpaid_salaries,
         'total_paid_amount': total_paid_amount,

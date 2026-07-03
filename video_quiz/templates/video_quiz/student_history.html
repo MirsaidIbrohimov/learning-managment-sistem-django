@@ -1,0 +1,99 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Video Test Tarixi{% endblock %}
+
+{% block content %}
+<style>
+.vqh-wrap { max-width: 860px; margin: 0 auto; padding: 1rem 0 3rem; }
+.vqh-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 1.2rem; }
+.vqh-head h1 { font-size: 1.3rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 10px; }
+.vqh-head h1 i { color: var(--dash-accent, #6366f1); }
+.vqh-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 1.3rem; }
+.vqh-stat {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, rgba(15,23,42,.1));
+    border-radius: 16px; padding: 1rem; text-align: center;
+}
+.vqh-stat b { display: block; font-size: 1.35rem; font-weight: 800; }
+.vqh-stat span { font-size: .7rem; font-weight: 700; color: var(--text-muted, #64748b); text-transform: uppercase; }
+.vqh-row {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, rgba(15,23,42,.1));
+    border-radius: 16px; padding: .95rem 1.15rem; margin-bottom: .7rem;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    transition: transform .18s ease;
+}
+.vqh-row:hover { transform: translateX(4px); }
+.vqh-ic { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+.vqh-ic.ok { background: rgba(16,185,129,.12); color: #10b981; }
+.vqh-ic.no { background: rgba(239,68,68,.12); color: #ef4444; }
+.vqh-main { flex: 1; min-width: 200px; }
+.vqh-q { font-weight: 700; font-size: .9rem; }
+.vqh-sub { font-size: .74rem; color: var(--text-muted, #64748b); margin-top: 2px; }
+.vqh-coin { font-weight: 800; font-family: monospace; font-size: .95rem; }
+.vqh-coin.p { color: #10b981; } .vqh-coin.m { color: #ef4444; }
+.vqh-date { font-size: .72rem; color: var(--text-muted, #64748b); }
+.vqh-empty { text-align: center; padding: 3.5rem 1rem; color: var(--text-muted, #64748b); }
+.vqh-empty i { font-size: 2.6rem; opacity: .35; display: block; margin-bottom: .7rem; }
+</style>
+
+<div class="vqh-wrap">
+    <div class="vqh-head">
+        <h1><i class="bi bi-collection-play-fill"></i> Video Test Tarixi</h1>
+    </div>
+
+    <div class="vqh-stats">
+        <div class="vqh-stat"><b>{{ summary.total|default:0 }}</b><span>Jami javoblar</span></div>
+        <div class="vqh-stat"><b style="color:#10b981;">{{ summary.correct|default:0 }}</b><span>To'g'ri</span></div>
+        <div class="vqh-stat">
+            <b style="color:{% if summary.coins|default:0 >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+                {% if summary.coins|default:0 >= 0 %}+{% endif %}{{ summary.coins|default:0 }}
+            </b><span>Coin balansi ta'siri</span>
+        </div>
+    </div>
+
+    {% if page_obj.object_list %}
+    {% for a in page_obj.object_list %}
+    <div class="vqh-row">
+        <div class="vqh-ic {% if a.is_correct %}ok{% else %}no{% endif %}">
+            <i class="bi bi-{% if a.is_correct %}check-lg{% else %}x-lg{% endif %}"></i>
+        </div>
+        <div class="vqh-main">
+            <div class="vqh-q">{{ a.quiz.question|truncatechars:90 }}</div>
+            <div class="vqh-sub">
+                <i class="bi bi-camera-video"></i> {{ a.quiz.video.lesson.title|truncatechars:50 }}
+                &nbsp;·&nbsp; <i class="bi bi-mortarboard"></i> {{ a.quiz.video.lesson.profession.name }}
+                &nbsp;·&nbsp; ⏱ {{ a.quiz.trigger_label }}
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div class="vqh-coin {% if a.coins_change >= 0 %}p{% else %}m{% endif %}">
+                {% if a.coins_change >= 0 %}+{% endif %}{{ a.coins_change }} 🪙
+            </div>
+            <div class="vqh-date">{{ a.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-center gap-2 mt-3">
+        {% if page_obj.has_previous %}
+        <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}">&laquo; Oldingi</a>
+        {% endif %}
+        <span class="btn btn-sm disabled">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}">Keyingi &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="vqh-empty">
+        <i class="bi bi-play-circle"></i>
+        <h5 style="font-weight:800;">Hali video test yechmadingiz</h5>
+        <p>Video darslarni ko'rayotganingizda chiqadigan savollarga javob bering — coin yutib oling!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{# Bu fayl: o'quvchining video ichidagi testlarga bergan javoblari tarixi — #}
+{# video, savol, to'g'ri/noto'g'ri, coin o'zgarishi va sana bilan. #}

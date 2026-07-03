@@ -498,16 +498,138 @@ def register_view(request):
                 f"🎓 {user.get_role_display()}\n\n"
                 f"🚀 Xush kelibsiz!"
             )
-            messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz!")
-            return redirect('home')
+            messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi hujjatingizni tasdiqlab olishingiz mumkin.")
+            # Auto-login qilingan — endi hujjat tasdig'i sahifasiga o'tkazamiz.
+            # Foydalanuvchi "Keyinroq" tugmasini bosishi ham mumkin, lekin
+            # keyingi loginlarda ham qayta so'raladi (verify_gate middleware).
+            return redirect('verify_document')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{error}")
     else:
         form = RegisterForm()
-    
+
     return render(request, 'accounts/register.html', {'form': form})
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Hujjat tasdig'i (Pasport / Metrika)
+# ─────────────────────────────────────────────────────────────────────────────
+# Yangi ro'yxatdan o'tgan yoki hali `is_verified=False` bo'lgan foydalanuvchini
+# shu sahifaga yo'naltiramiz. Ikki hujjat turi bor:
+#   • Pasport / ID  — seriya (masalan AA) + raqam (7 xonali) + JSHSHIR (14 xonali)
+#   • Metrika       — seriya (masalan I-GZ) + raqam.   JSHSHIR SO'RALMAYDI.
+# Foydalanuvchi "Keyinroq" ham bosishi mumkin: bu safarga o'tkazamiz, ammo
+# keyingi loginda yana bir marta sahifa ochiladi (verify_gate middleware).
+# ─────────────────────────────────────────────────────────────────────────────
+@login_required
+def verify_document(request):
+    user = request.user
+    if user.is_verified:
+        # Allaqachon tasdiqlangan — bekor qilib home ga.
+        request.session.pop('verify_skipped', None)
+        return redirect('home')
+
+    if request.method == 'POST':
+        doc_type = (request.POST.get('document_type') or '').strip()
+
+        if doc_type == 'passport':
+            series = (request.POST.get('passport_series') or '').strip().upper()
+            number = (request.POST.get('passport_number') or '').strip()
+            jshshir = (request.POST.get('jshshir') or '').strip()
+
+            errors = {}
+            if not series or len(series) < 2:
+                errors['passport_series'] = "Seriyani kiriting (masalan: AA)"
+            if not number or not number.isdigit() or len(number) < 6:
+                errors['passport_number'] = "Raqamni kiriting (kamida 6 raqam)"
+            if not jshshir or not jshshir.isdigit() or len(jshshir) != 14:
+                errors['jshshir'] = "JSHSHIR aynan 14 raqamdan iborat bo'lishi kerak"
+
+            if errors:
+                return render(request, 'accounts/verify.html', {
+                    'active_tab': 'passport',
+                    'errors': errors,
+                    'values': {
+                        'passport_series': series,
+                        'passport_number': number,
+                        'jshshir': jshshir,
+                    },
+                })
+
+            user.document_type = 'passport'
+            user.passport_series = series
+            user.passport_number = number
+            user.jshshir = jshshir
+            # Metrika maydonlarini tozalaymiz (agar avval to'ldirilgan bo'lsa)
+            user.metrka_series = None
+            user.metrka_number = None
+            user.is_verified = True
+            user.save(update_fields=[
+                'document_type', 'passport_series', 'passport_number',
+                'jshshir', 'metrka_series', 'metrka_number', 'is_verified',
+            ])
+            request.session.pop('verify_skipped', None)
+            messages.success(request, "Hujjatingiz muvaffaqiyatli tasdiqlandi ✅")
+            return redirect('home')
+
+        elif doc_type == 'metrka':
+            series = (request.POST.get('metrka_series') or '').strip().upper()
+            number = (request.POST.get('metrka_number') or '').strip()
+
+            errors = {}
+            if not series:
+                errors['metrka_series'] = "Seriyani kiriting (masalan: I-GZ)"
+            if not number:
+                errors['metrka_number'] = "Raqamni kiriting"
+
+            if errors:
+                return render(request, 'accounts/verify.html', {
+                    'active_tab': 'metrka',
+                    'errors': errors,
+                    'values': {
+                        'metrka_series': series,
+                        'metrka_number': number,
+                    },
+                })
+
+            user.document_type = 'metrka'
+            user.metrka_series = series
+            user.metrka_number = number
+            # Pasport maydonlarini tozalaymiz — metrikada JSHSHIR yo'q.
+            user.passport_series = None
+            user.passport_number = None
+            user.jshshir = None
+            user.is_verified = True
+            user.save(update_fields=[
+                'document_type', 'metrka_series', 'metrka_number',
+                'passport_series', 'passport_number', 'jshshir', 'is_verified',
+            ])
+            request.session.pop('verify_skipped', None)
+            messages.success(request, "Hujjatingiz muvaffaqiyatli tasdiqlandi ✅")
+            return redirect('home')
+
+        else:
+            messages.error(request, "Iltimos hujjat turini tanlang")
+
+    return render(request, 'accounts/verify.html', {
+        'active_tab': 'passport',
+        'errors': {},
+        'values': {},
+    })
+
+
+@login_required
+def verify_document_skip(request):
+    """
+    "Keyinroq" tugmasi. Sessiya davomida foydalanuvchini ushbu sahifaga qaytadan
+    yo'naltirmaymiz — lekin logout/qayta login qilganda yana ochiladi.
+    """
+    if request.user.is_verified:
+        return redirect('home')
+    request.session['verify_skipped'] = True
+    return redirect('home')
 
 
 
@@ -989,6 +1111,18 @@ def login_view(request):
 
         # AI yordamchi reklama (har safar login qilganda)
         request.session['show_ai_ad'] = True
+
+        # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgilarini tozalaymiz
+        request.session.pop('profile_verify_skipped', None)
+        # Hujjat tasdig'i (verify) skip belgisini ham tozalaymiz — foydalanuvchi
+        # avvalgi sessiyada "Keyinroq" bosgan bo'lsa ham, endi yana bir marta
+        # so'ralishi kerak.
+        request.session.pop('verify_skipped', None)
+
+        # 🪪 Hujjat tasdig'i — yangi ro'yxatdan o'tgan yoki hali `is_verified=False`
+        # bo'lgan foydalanuvchini verify sahifasiga yo'naltiramiz.
+        if user.role == 'student' and not user.is_verified:
+            return redirect('verify_document')
 
         # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
         if user.role == 'student' and not user.is_profile_completed:
@@ -4213,30 +4347,44 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                     "content": (
                         "Siz o'quv platformasining AI tekshiruvchisisiz. "
                         "Boshlang'ich dasturlash o'quvchilarining javoblarini tekshirasiz.\n\n"
-                        "⚠️ MUHIM: Siz faqat ANIQ AI belgilari bo'lgandagina flaglashingiz kerak. "
-                        "Shubha bo'lsa — o'quvchi foydasiga hal qiling! "
-                        "Noto'g'ri flag qo'yish o'quvchini jarimaga tortadi — ehtiyot bo'ling!\n"
+                        "🛡️ AYBSIZLIK PREZUMPSIYASI: O'quvchi standart holatda HALOL deb qabul qilinadi. "
+                        "Faqat 4+ ta ANIQ AI belgisi bir vaqtda bo'lgandagina flag qo'ying. "
+                        "Bitta yoki ikki belgi — bu AI EMAS. Shubha bo'lsa — HAR DOIM o'quvchi foydasiga hal qiling.\n"
+                        "⚠️ Noto'g'ri flag qo'yish o'quvchini nohaqdan jarimaga tortadi va o'qish motivatsiyasini yo'q qiladi!\n"
                         f"{confidence_note}\n"
-                        "🔍 FAQAT shu hollarda AI deb belgilang (kamida 3 tasi bir vaqtda bo'lishi kerak):\n"
+                        "🔍 AI deb belgilash uchun quyidagi belgilardan KAMIDA 4 TASI bir vaqtda bo'lishi kerak:\n"
                         "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'I'd be happy to', "
-                        "'Let's break this down', 'Note that', 'Feel free' kabi iboralar\n"
-                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-baqadam raqamlangan tushuntirish\n"
-                        "3. PROFESSIONAL INGLIZCHA IZOHLAR: Har qatorga mukammal inglizcha comment yozilgan\n"
-                        "4. COPY-PASTE BELGILARI: Vazifaga aloqasi yo'q import yoki funksiyalar mavjud\n"
-                        "5. TO'LIQ KO'CHIRMA: Javob internet yoki AI dan to'liq ko'chirilgani aniq ko'rinadi\n\n"
-                        "✅ Bu AI EMAS — haqiqiy o'quvchi belgilari (bularni AI deb BELGILAMANG):\n"
-                        "- O'quvchi yaxshi kod yozgan — bu normal, o'rgangan bo'lishi mumkin\n"
-                        "- Javob qisqa va to'g'ri — bu AI degani emas\n"
-                        "- try/except, class ishlatgan — darsda o'rgangan bo'lishi mumkin\n"
-                        "- Izohlar yozgan — bu yaxshi odatni o'rgangan degani\n"
+                        "'Let's break this down', 'Note that', 'Feel free', 'In this solution' iboralari\n"
+                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-baqadam raqamlangan tushuntirish, "
+                        "kod bloki tashqarisidagi mukammal tuzilgan xatboshi\n"
+                        "3. PROFESSIONAL INGLIZCHA IZOHLAR: Deyarli HAR QATORGA mukammal grammatik "
+                        "inglizcha comment yozilgan (kichik xatosiz)\n"
+                        "4. COPY-PASTE BELGILARI: Vazifaga umuman aloqasi yo'q import, funksiyalar yoki "
+                        "boshqa tildagi bo'laklar mavjud\n"
+                        "5. TO'LIQ KO'CHIRMA: Javob aniq ko'rinib turgan tarzda AI'dan olingan "
+                        "(masalan, 'Sure! Here is a Python solution...' bilan boshlanadi)\n"
+                        "6. USLUB SAKRASHI: Oldingi javoblariga qaraganda til, murakkablik va sifat "
+                        "sezilarli darajada YUQORI, tabiiy rivojlanish sifatida tushuntirib bo'lmaydigan\n\n"
+                        "✅ Bu AI EMAS — HAQIQIY o'quvchi belgilari (BULARNI AI DEB BELGILAMANG):\n"
+                        "- O'quvchi yaxshi/toza kod yozgan — o'rgangan yoki qobiliyatli\n"
+                        "- Javob qisqa va to'g'ri — bu AI degani emas, aksincha oddiy va tabiiy\n"
+                        "- try/except, class, list comprehension ishlatgan — darsda o'rgangan bo'lishi mumkin\n"
+                        "- O'zbekcha yoki inglizcha izohlar yozgan — bu yaxshi amaliyot\n"
                         "- Oldingi javoblardan yaxshiroq yozgan — bu TABIIY rivojlanish\n"
-                        "- Kichik xatolar, typo bor — haqiqiy o'quvchi belgisi\n"
-                        "- O'zbekcha o'zgaruvchi nomlari ishlatgan\n\n"
+                        "- Kod stackoverflow'dan o'xshab ko'rinadi — bu keng tarqalgan pattern bo'lishi mumkin\n"
+                        "- Kichik xatolar, typo, notekis formatlash bor — HAQIQIY o'quvchi belgisi\n"
+                        "- O'zbekcha o'zgaruvchi nomlari ishlatgan — o'quvchining odati\n"
+                        "- f-string, dictionary, tuple ishlatgan — dasturlashning oddiy vositalari\n"
+                        "- Kod umumiy o'xshash, chunki vazifada bitta to'g'ri yechim bor\n\n"
                         "Faqat JSON formatda javob bering:\n"
                         '{"is_ai": true/false, "confidence": <0-100>, "reason": "<o\'zbek tilida sabab>", '
                         '"style_match": "<oldingi javoblar bilan solishtirish>"}\n\n'
-                        "- is_ai: faqat 3+ aniq belgi bo'lganda true\n"
-                        "- confidence: odatda 75 dan past bo'lsa is_ai: false bo'lishi KERAK\n"
+                        "CONFIDENCE QOIDALARI (juda muhim):\n"
+                        "- 0–60:  is_ai=false — belgi yo'q yoki juda kam\n"
+                        "- 61–84: is_ai=false — shubha bor, LEKIN aniq emas. Bu doim FALSE bo'lishi kerak\n"
+                        "- 85–94: is_ai=true — kuchli shubha bor, 4+ belgi mavjud\n"
+                        "- 95–100: is_ai=true — 5–6 ta belgi bilan yaqqol AI\n"
+                        "- Ikkilanayotgan bo'lsangiz — confidence ni PAST qiling va is_ai=false qo'ying\n"
                         "- reason: O'zbek tilida qisqa izoh\n"
                         "- style_match: Oldingi javoblar bilan solishtirish"
                     )
@@ -5864,28 +6012,41 @@ def student_test_result(request, token, result_pk):
 
 @login_required
 def complete_profile(request):
-    """Profilni to'ldirish - login dan keyin majburiy"""
+    """Profilni to'ldirish / akkauntni tasdiqlash (verify).
+
+    Foydalanuvchi pasport yoki metrika kiritib profilni tasdiqlaydi. Formani
+    o'tkazib yuborishi (skip) mumkin — bunda joriy sessiyada davom etadi, ammo
+    keyingi login'da yana so'raladi (skip belgisi login'da tozalanadi).
+    """
     from .forms import StudentProfileCompleteForm
-    
+
     # Agar profil allaqachon to'ldirilgan bo'lsa
     if request.user.is_profile_completed:
         return redirect('home')
-    
+
+    # ⏭️ "Keyinroq to'ldiraman" — shu sessiya uchun o'tkazib yuboriladi
+    if request.method == 'POST' and request.POST.get('action') == 'skip':
+        request.session['profile_verify_skipped'] = True
+        messages.info(request, "Profil to'ldirish keyinga qoldirildi. Keyingi kirishda yana so'raladi.")
+        return redirect('home')
+
     if request.method == 'POST':
         form = StudentProfileCompleteForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             user = form.save(commit=False)
             if user.check_profile_completed():
                 user.is_profile_completed = True
+                user.is_verified = True  # hujjat to'ldirildi — akkaunt tasdiqlandi
             user.save()
             if user.is_profile_completed:
-                messages.success(request, "Profilingiz muvaffaqiyatli to'ldirildi! ✅")
+                request.session.pop('profile_verify_skipped', None)
+                messages.success(request, "Profilingiz to'ldirildi va akkauntingiz tasdiqlandi! ✅")
                 return redirect('home')
             else:
                 messages.warning(request, "Iltimos, barcha majburiy maydonlarni to'ldiring!")
     else:
         form = StudentProfileCompleteForm(instance=request.user)
-    
+
     return render(request, 'accounts/complete_profile.html', {
         'form': form,
         'completion_percent': request.user.profile_completion_percent,

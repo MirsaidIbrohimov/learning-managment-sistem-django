@@ -513,6 +513,117 @@ class QuestionViewSet(viewsets.ModelViewSet):
             return Response({'errors': errors, 'questions': []}, status=400)
         return Response({'errors': [], 'questions': questions})
 
+    @action(detail=False, methods=['post'], url_path='ai-preview-transcript')
+    def ai_preview_transcript(self, request):
+        """Generate questions from the video transcripts of a section AND all
+        previous sections of the same course. No DB writes -- returns the same
+        preview shape as ai-preview so the UI reuses one renderer."""
+        user = request.user
+        if user.is_teacher and not user.is_admin and not user.is_assistant_admin:
+            if not getattr(user, 'ai_access_enabled', True):
+                from rest_framework.response import Response as _R
+                return _R({
+                    'detail': "AI funksiyasi sizga admin tomonidan bloklangan.",
+                    'ai_blocked': True,
+                }, status=403)
+
+        from .ai_generator import generate_questions, is_ai_configured
+        if not is_ai_configured():
+            raise ValidationError({'detail': "AI xizmati sozlanmagan (OPENAI_API_KEY topilmadi)."})
+
+        from accounts.models import Profession, Section, VideoLesson
+        from video_quiz.transcript import fetch_transcript_text
+
+        data = request.data or {}
+        try:
+            section_id = int(data.get('section_id'))
+        except (TypeError, ValueError):
+            raise ValidationError({'section_id': "Bo'lim tanlanmagan."})
+
+        section = get_object_or_404(
+            Section.objects.select_related('profession'), pk=section_id
+        )
+
+        # Ruxsat: admin/yordamchi hammasini; ustoz faqat o'z kurslarini
+        if not (user.is_admin or user.is_assistant_admin):
+            if not user.teaching_professions.filter(pk=section.profession_id).exists():
+                raise PermissionDenied("Bu kursga ruxsatingiz yo'q.")
+
+        # Shu va shungacha bo'lgan bo'limlar (order bo'yicha)
+        prev_sections = Section.objects.filter(
+            profession=section.profession,
+            order__lte=section.order,
+        ).order_by('order', 'created_at')
+
+        video_lessons = (
+            VideoLesson.objects
+            .filter(
+                lesson__section__in=prev_sections,
+                lesson__lesson_type='video',
+            )
+            .select_related('lesson__section')
+            .order_by('lesson__section__order', 'lesson__order')
+        )
+
+        if not video_lessons.exists():
+            return Response(
+                {'errors': ["Tanlangan (va oldingi) bo'limlarda video dars topilmadi."],
+                 'questions': []},
+                status=400,
+            )
+
+        # Har bir videodan transkript yig'amiz (jami hajmni cheklaymiz)
+        MAX_TOTAL = 14000
+        MAX_PER_VIDEO = 4000
+        parts = []
+        total = 0
+        used_videos = 0
+        skipped = 0
+        for vl in video_lessons:
+            if total >= MAX_TOTAL:
+                break
+            if not vl.is_youtube:
+                skipped += 1
+                continue
+            text, err, _snips = fetch_transcript_text(vl, max_chars=MAX_PER_VIDEO)
+            if err or not text:
+                skipped += 1
+                continue
+            remaining = MAX_TOTAL - total
+            chunk = text[:remaining]
+            parts.append(f"[{vl.lesson.title}]\n{chunk}")
+            total += len(chunk)
+            used_videos += 1
+
+        if not parts:
+            return Response(
+                {'errors': ["Videolardan transkript olib bo'lmadi (subtitr yo'q yoki YouTube emas)."],
+                 'questions': []},
+                status=400,
+            )
+
+        transcript = "\n\n".join(parts)
+        topic = f"{section.profession.name} — {section.title} (va oldingi bo'limlar) video darslari"
+
+        questions, errors = generate_questions(
+            topic=topic,
+            count=data.get('count', 5),
+            difficulty=data.get('difficulty', 'medium'),
+            options_per_question=data.get('options_per_question', 4),
+            question_type=data.get('question_type', 'single_choice'),
+            context=(
+                "Savollar FAQAT quyidagi video transkriptlari mazmuniga asoslansin. "
+                "Transkript matni:\n\n" + transcript
+            ),
+        )
+        if errors:
+            return Response({'errors': errors, 'questions': []}, status=400)
+        return Response({
+            'errors': [],
+            'questions': questions,
+            'meta': {'videos_used': used_videos, 'videos_skipped': skipped},
+        })
+
     @action(detail=False, methods=['post'], url_path='ai-commit')
     def ai_commit(self, request):
         """Persist a pre-approved AI batch + optionally attach to a quiz.

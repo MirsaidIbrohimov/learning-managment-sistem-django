@@ -9,32 +9,39 @@ from django.utils import timezone
 
 
 def _calculate_penalty(ai_check, similarity_result):
-    """Jarima coinlarini hisoblash (max 50)"""
+    """Jarima coinlarini hisoblash (max 30).
+
+    Muhim: jarima FAQAT juda yuqori ishonchda qo'llaniladi (>= 95%).
+    85–94% oralig'ida jarima QO'LLANMAYDI — ustozga xabar beriladi, tekshiradi.
+    Bu false-positive holatlarda o'quvchini nohaqdan jarimalashdan saqlaydi.
+    """
     penalty = 0
     reasons = []
 
-    if ai_check and ai_check.get('is_ai') and ai_check.get('confidence', 0) >= 75:
+    # AI belgilari — faqat 95%+ ishonchda jarima
+    if ai_check and ai_check.get('is_ai') and ai_check.get('confidence', 0) >= 95:
         confidence = ai_check['confidence']
-        if confidence >= 95:
-            penalty += 30
-        elif confidence >= 85:
-            penalty += 20
+        if confidence >= 98:
+            penalty += 15
         else:
             penalty += 10
         reasons.append(f"Suniy intellekt (AI) yordamida yozilgan ({confidence}% ishonch)")
 
+    # Plagiat — faqat 95%+ o'xshashlikda jarima
     if similarity_result and similarity_result.get('is_plagiat'):
         sim = similarity_result['similarity']
         similar_to = similarity_result.get('similar_to', 'boshqa o\'quvchi')
-        if sim >= 95:
-            penalty += 25
-        elif sim >= 90:
+        if sim >= 98:
             penalty += 15
-        else:
+        elif sim >= 95:
             penalty += 10
-        reasons.append(f"{similar_to} ning javobidan ko'chirilgan ({sim}% o'xshash)")
+        else:
+            # 90–94% — xabar bor, jarima yo'q
+            pass
+        if sim >= 95:
+            reasons.append(f"{similar_to} ning javobidan ko'chirilgan ({sim}% o'xshash)")
 
-    return min(penalty, 50), reasons
+    return min(penalty, 30), reasons
 
 
 class Command(BaseCommand):
@@ -96,29 +103,83 @@ class Command(BaseCommand):
                     academic_context=academic_ctx,
                 )
 
-                # Kuchli o'quvchilar uchun chegarani oshirish
-                ai_threshold = 85 if academic_ctx.get('is_strong_student') else 75
+                # Ikki bosqichli chegara (false-positive'ni sezilarli kamaytirish uchun):
+                #   • strong_gate: shu chegaradan past bo'lsa — AVTOMATIK ravishda
+                #     "shubha yo'q" hisoblanadi, o'quvchi hech qanday jarima olmaydi.
+                #   • hard_gate:  faqat shu chegaradan yuqori bo'lsa — vazifa qayta
+                #     ishlashga qaytariladi va coin jarimasi qo'llaniladi.
+                #   • oraliq (strong_gate ≤ conf < hard_gate): ustoz/adminga xabar
+                #     beriladi, lekin o'quvchining statusi va coini TEGILMAYDI.
+                is_strong = academic_ctx.get('is_strong_student')
+                strong_gate = 92 if is_strong else 85     # xabar boshlanadigan chegara
+                hard_gate   = 96 if is_strong else 95     # jarima boshlanadigan chegara
 
-                if ai_check_result and ai_check_result['is_ai'] and ai_check_result['confidence'] >= ai_threshold:
+                ai_confidence = 0
+                ai_is_suspect = False   # 85–95 oraliq: xabar bor, jarima yo'q
+                ai_is_penalty = False   # 95+ : real jarima
+                if ai_check_result and ai_check_result['is_ai']:
+                    ai_confidence = ai_check_result['confidence']
+                    if ai_confidence >= hard_gate:
+                        ai_is_penalty = True
+                    elif ai_confidence >= strong_gate:
+                        ai_is_suspect = True
+
+                if ai_is_penalty or ai_is_suspect:
                     has_suspicion = True
-                    confidence = ai_check_result['confidence']
                     ai_warning += (
                         f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
-                        f"(ishonch: {confidence}%).\n"
+                        f"(ishonch: {ai_confidence}%).\n"
                         f"📋 Sabab: {ai_check_result['reason']}"
                     )
 
                 # 2. Plagiat tekshirish
                 similarity_result = _check_similarity_with_others(hw, sub, student_answer)
+                sim_is_penalty = False
+                sim_is_suspect = False
                 if similarity_result and similarity_result['is_plagiat']:
-                    has_suspicion = True
-                    ai_warning += (
-                        f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
-                        f"{similarity_result['similarity']}% o'xshash.\n"
-                        f"📋 {similarity_result['reason']}"
-                    )
+                    sim = similarity_result['similarity']
+                    if sim >= 95:
+                        sim_is_penalty = True
+                    elif sim >= 90:
+                        sim_is_suspect = True
+                    if sim_is_penalty or sim_is_suspect:
+                        has_suspicion = True
+                        ai_warning += (
+                            f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
+                            f"{sim}% o'xshash.\n"
+                            f"📋 {similarity_result['reason']}"
+                        )
 
-                if has_suspicion:
+                # "Real" jarima kerakmi? Faqat yuqori ishonch bo'lsagina
+                is_hard_case = ai_is_penalty or sim_is_penalty
+
+                if has_suspicion and not is_hard_case:
+                    # 🟡 ORALIQ ZONA: xabar bor, jarima YO'Q, status ham o'zgarmaydi.
+                    # Ustoz o'zi qarab chiqadi — o'quvchini nohaqdan jazolamaymiz.
+                    teachers = hw.lesson.profession.teachers.all()
+                    for teacher in teachers:
+                        Message.objects.create(
+                            title="🟡 Vazifada shubha (jarima yo'q) — ustoz tekshirsin",
+                            content=(
+                                f"👤 O'quvchi: {sub.student.full_name}\n"
+                                f"📚 Kurs: {hw.lesson.profession.name}\n"
+                                f"📖 Vazifa: {hw.lesson.title}\n"
+                                f"{ai_warning}\n\n"
+                                f"⚠️ Ishonch chegarasi past — jarima QO'LLANMADI.\n"
+                                f"👀 Iltimos, o'zingiz tekshiring va qaror qiling."
+                            ),
+                            message_type='personal', recipient=teacher,
+                            sender=sub.student,
+                        )
+                    sub.ai_checked = True
+                    # ai_feedback'ga ichki eslatma yozamiz — o'quvchiga ko'rsatilmaydi,
+                    # ustoz submission oynasida ko'radi.
+                    sub.ai_feedback = f"🟡 Shubhali belgilar (past ishonch):{ai_warning}"
+                    sub.save(update_fields=['ai_checked', 'ai_feedback'])
+                    count += 1
+                    continue
+
+                if is_hard_case:
                     # Jarima hisoblash
                     penalty_coins, suspicion_reasons = _calculate_penalty(ai_check_result, similarity_result)
 

@@ -1,0 +1,874 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block title %}{{ video.lesson.title }} — Video testlar{% endblock %}
+{% block topbar_title %}Video testlarni boshqarish{% endblock %}
+
+{% block teacher_content %}
+<style>
+/* ===== Video Quiz Manager: timeline + modal (glassmorphism) ===== */
+.vm-head {
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 20px; padding: 1.2rem 1.4rem; margin-bottom: 1.4rem;
+}
+.vm-thumb {
+    width: 168px; height: 96px; border-radius: 14px; overflow: hidden; flex-shrink: 0;
+    background: linear-gradient(135deg, #0d9488, #10b981);
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem;
+}
+.vm-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.vm-head-info { flex: 1; min-width: 220px; }
+.vm-head-info h1 { font-size: 1.05rem; font-weight: 800; margin: 0 0 4px; }
+.vm-head-info .crs { font-size: .78rem; color: #0d9488; font-weight: 700; }
+.vm-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: .6rem; }
+.vm-chip {
+    font-size: .72rem; font-weight: 700; padding: .3rem .75rem; border-radius: 999px;
+    background: rgba(13,148,136,.1); color: #0d9488; border: 1px solid rgba(13,148,136,.2);
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.vm-back { text-decoration: none; font-size: .82rem; font-weight: 700; color: var(--bs-secondary-color); display: inline-flex; align-items: center; gap: 6px; margin-bottom: .8rem; }
+
+/* ---------- TIMELINE ---------- */
+.vm-tl-card {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 20px; padding: 1.4rem 1.5rem 1.9rem; margin-bottom: 1.4rem;
+    position: relative; overflow: visible;
+}
+.vm-tl-title { font-weight: 800; font-size: .95rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.vm-tl-title span i { color: #0d9488; }
+.vm-add-btn {
+    display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer;
+    padding: .6rem 1.2rem; border-radius: 12px; font-weight: 800; font-size: .85rem; color: #fff;
+    background: linear-gradient(90deg, #0d9488, #10b981);
+    box-shadow: 0 10px 24px -10px rgba(13,148,136,.6);
+    transition: transform .15s ease;
+}
+.vm-add-btn:hover { transform: translateY(-2px); }
+.vm-timeline { position: relative; height: 66px; margin: 0 8px; }
+.vm-track {
+    position: absolute; left: 0; right: 0; top: 26px; height: 8px; border-radius: 6px;
+    background: linear-gradient(90deg, rgba(13,148,136,.16), rgba(16,185,129,.28));
+    overflow: hidden;
+}
+.vm-track::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    transform: translateX(-100%); animation: tlSheen 3.4s ease-in-out infinite;
+}
+@keyframes tlSheen { 40%, 100% { transform: translateX(100%); } }
+.vm-tick { position: absolute; top: 40px; font-size: .66rem; font-weight: 700; color: var(--bs-secondary-color); transform: translateX(-50%); }
+.vm-tick::before { content: ''; position: absolute; left: 50%; top: -12px; width: 1.5px; height: 9px; background: var(--border-color, #d1d5db); }
+.vm-marker {
+    position: absolute; top: 14px; transform: translateX(-50%); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%; border: 3px solid #fff;
+    background: linear-gradient(135deg, #0d9488, #10b981);
+    box-shadow: 0 4px 14px -3px rgba(13,148,136,.7);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: .68rem; font-weight: 800;
+    transition: transform .18s ease; z-index: 2; animation: markerIn .5s ease both;
+}
+.vm-marker:hover { transform: translateX(-50%) scale(1.25); z-index: 3; }
+.vm-marker.off { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; opacity: .7; }
+.vm-marker .tip {
+    position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%);
+    background: #0f172a; color: #fff; font-size: .68rem; font-weight: 700;
+    padding: 4px 10px; border-radius: 8px; white-space: nowrap;
+    opacity: 0; pointer-events: none; transition: opacity .18s;
+}
+.vm-marker:hover .tip { opacity: 1; }
+@keyframes markerIn { from { transform: translateX(-50%) scale(0); } to { transform: translateX(-50%) scale(1); } }
+
+/* ---------- QUIZ RO'YXATI ---------- */
+.vm-list { display: grid; gap: .8rem; }
+.vm-qrow {
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px; padding: 1rem 1.2rem;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+    transition: border-color .2s ease, transform .18s ease;
+}
+.vm-qrow:hover { border-color: rgba(13,148,136,.45); transform: translateX(4px); }
+.vm-qtime {
+    min-width: 62px; text-align: center; font-family: monospace; font-weight: 800;
+    background: rgba(13,148,136,.1); color: #0d9488; padding: .45rem .5rem; border-radius: 10px;
+}
+.vm-qmain { flex: 1; min-width: 200px; }
+.vm-qq { font-weight: 700; font-size: .9rem; margin-bottom: 4px; }
+.vm-qstats { display: flex; gap: 12px; flex-wrap: wrap; font-size: .72rem; color: var(--bs-secondary-color); }
+.vm-qstats b { color: inherit; }
+.vm-qbar { width: 120px; height: 6px; border-radius: 3px; background: rgba(239,68,68,.25); overflow: hidden; }
+.vm-qbar i { display: block; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 3px; transition: width .8s ease; }
+.vm-qactions { display: flex; gap: 6px; }
+.vm-qbtn {
+    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border-color, #e5e7eb);
+    background: transparent; cursor: pointer; color: var(--bs-secondary-color);
+    display: flex; align-items: center; justify-content: center; transition: all .18s;
+}
+.vm-qbtn:hover { color: #0d9488; border-color: rgba(13,148,136,.45); background: rgba(13,148,136,.07); }
+.vm-qbtn.danger:hover { color: #ef4444; border-color: rgba(239,68,68,.4); background: rgba(239,68,68,.07); }
+.vm-qbadge { font-size: .68rem; font-weight: 800; padding: .25rem .65rem; border-radius: 999px; }
+.vm-qbadge.on { background: rgba(16,185,129,.12); color: #059669; }
+.vm-qbadge.off { background: rgba(148,163,184,.15); color: #64748b; }
+.vm-empty { text-align: center; padding: 2.4rem; color: var(--bs-secondary-color); }
+
+/* ---------- MODAL ---------- */
+.vm-modal {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(3,7,18,.55); backdrop-filter: blur(6px);
+    align-items: flex-start; justify-content: center; overflow-y: auto; padding: 4vh 1rem;
+}
+.vm-modal.open { display: flex; }
+.vm-modal-box {
+    width: 100%; max-width: 620px;
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 22px; padding: 1.6rem 1.7rem;
+    animation: modalIn .35s cubic-bezier(.2,.9,.3,1.15) both;
+}
+@keyframes modalIn { from { transform: translateY(30px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+.vm-modal-title { font-weight: 800; font-size: 1.02rem; margin-bottom: 1.1rem; display: flex; align-items: center; gap: 9px; }
+.vm-modal-title i { color: #0d9488; }
+.vm-f { margin-bottom: .85rem; }
+.vm-f label { font-size: .76rem; font-weight: 800; display: block; margin-bottom: .3rem; }
+.vm-f input, .vm-f textarea, .vm-f select {
+    width: 100%; padding: .6rem .8rem; border-radius: 11px; font-size: .87rem;
+    border: 1.5px solid var(--border-color, #d1d5db); background: transparent; color: inherit;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+}
+.vm-f input:focus, .vm-f textarea:focus, .vm-f select:focus {
+    border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,.14);
+}
+.vm-opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.vm-num-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .7rem; }
+.vm-modal-actions { display: flex; gap: .7rem; margin-top: 1.2rem; }
+.vm-btn-save {
+    flex: 1; border: none; cursor: pointer; padding: .75rem; border-radius: 12px;
+    font-weight: 800; color: #fff; background: linear-gradient(90deg, #0d9488, #10b981);
+}
+.vm-btn-cancel {
+    flex: 1; cursor: pointer; padding: .75rem; border-radius: 12px; font-weight: 700;
+    border: 1.5px solid var(--border-color, #d1d5db); background: transparent; color: inherit;
+}
+.vm-err { display: none; background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3); color: #dc2626; border-radius: 10px; padding: .6rem .9rem; font-size: .8rem; margin-bottom: .8rem; }
+
+/* Ustoz uchun faqat ko'rinadigan (o'zgarmas) mukofot chiplar */
+.vm-reward-info { display: flex; flex-wrap: wrap; gap: .5rem; margin: .2rem 0 .3rem; }
+.vm-reward-chip {
+    font-size: .74rem; font-weight: 700; padding: .4rem .8rem; border-radius: 999px;
+    background: rgba(16,185,129,.1); color: #059669; border: 1px solid rgba(16,185,129,.22);
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.vm-reward-chip.warn { background: rgba(239,68,68,.08); color: #dc2626; border-color: rgba(239,68,68,.2); }
+.vm-reward-chip.income { background: rgba(13,148,136,.1); color: #0d9488; border-color: rgba(13,148,136,.22); }
+
+/* ================= AI TRANSKRIPT MODAL (purple / premium) ================= */
+.vm-ai-box {
+    max-width: 560px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(124,58,237,.22);
+    box-shadow: 0 30px 80px -30px rgba(124,58,237,.55);
+}
+.vm-ai-hero {
+    position: relative;
+    padding: 1.6rem 1.7rem 1.3rem;
+    background:
+        radial-gradient(circle at 15% 15%, rgba(168,85,247,.35), transparent 55%),
+        radial-gradient(circle at 85% 90%, rgba(59,130,246,.28), transparent 55%),
+        linear-gradient(135deg, #6d28d9 0%, #7c3aed 55%, #a855f7 100%);
+    color: #fff;
+    overflow: hidden;
+}
+.vm-ai-hero::after {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.06'%3E%3Cpath d='M30 5v50M5 30h50'/%3E%3Ccircle cx='30' cy='30' r='18'/%3E%3C/g%3E%3C/svg%3E");
+    opacity: .35; pointer-events: none;
+}
+.vm-ai-hero-row { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+.vm-ai-hero-icon {
+    width: 54px; height: 54px; flex-shrink: 0; border-radius: 16px;
+    background: rgba(255,255,255,.18); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.55rem; color: #fff;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 8px 22px -8px rgba(0,0,0,.4);
+    animation: aiPulse 2.4s ease-in-out infinite;
+}
+@keyframes aiPulse {
+    0%, 100% { transform: scale(1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25), 0 8px 22px -8px rgba(0,0,0,.4); }
+    50%      { transform: scale(1.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4),  0 12px 30px -8px rgba(0,0,0,.55); }
+}
+.vm-ai-hero h3 { margin: 0; font-size: 1.12rem; font-weight: 800; letter-spacing: .2px; }
+.vm-ai-hero p  { margin: .25rem 0 0; font-size: .78rem; opacity: .88; line-height: 1.45; }
+.vm-ai-close {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    width: 30px; height: 30px; border-radius: 10px; border: 0;
+    background: rgba(255,255,255,.15); color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: .95rem;
+    transition: background .18s;
+}
+.vm-ai-close:hover { background: rgba(255,255,255,.28); }
+
+.vm-ai-body { padding: 1.3rem 1.7rem 1.5rem; position: relative; }
+.vm-ai-body .vm-err { margin-top: -.2rem; }
+
+.vm-ai-field { margin-bottom: 1.1rem; }
+.vm-ai-field:last-child { margin-bottom: 0; }
+.vm-ai-lbl {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: .78rem; font-weight: 800; margin-bottom: .5rem; letter-spacing: .2px;
+}
+.vm-ai-lbl small { font-weight: 600; color: var(--bs-secondary-color); font-size: .7rem; }
+
+/* --- Count stepper + chips --- */
+.vm-ai-count { display: flex; align-items: center; gap: .5rem; }
+.vm-ai-step {
+    width: 38px; height: 38px; border-radius: 11px; cursor: pointer;
+    border: 1.5px solid var(--border-color, #e5e7eb); background: transparent; color: inherit;
+    font-weight: 800; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+}
+.vm-ai-step:hover { border-color: #a855f7; color: #7c3aed; background: rgba(168,85,247,.06); }
+.vm-ai-count input {
+    width: 68px; text-align: center; font-weight: 800; font-size: 1rem;
+    padding: .55rem .3rem; border-radius: 11px;
+    border: 1.5px solid var(--border-color, #d1d5db); background: transparent; color: inherit;
+    outline: none; transition: border-color .2s, box-shadow .2s;
+    -moz-appearance: textfield;
+}
+.vm-ai-count input::-webkit-outer-spin-button,
+.vm-ai-count input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vm-ai-count input:focus {
+    border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.18);
+}
+.vm-ai-quick { display: flex; gap: .35rem; margin-left: auto; flex-wrap: wrap; }
+.vm-ai-quick button {
+    border: 1px solid var(--border-color, #e5e7eb); background: transparent;
+    color: var(--bs-secondary-color); cursor: pointer;
+    padding: .35rem .65rem; border-radius: 8px;
+    font-weight: 700; font-size: .74rem; transition: all .15s;
+}
+.vm-ai-quick button:hover { border-color: #a855f7; color: #7c3aed; }
+.vm-ai-quick button.on {
+    background: linear-gradient(90deg, #7c3aed, #a855f7); color: #fff;
+    border-color: transparent; box-shadow: 0 6px 14px -6px rgba(124,58,237,.6);
+}
+
+/* --- Difficulty pills --- */
+.vm-ai-diff { display: grid; grid-template-columns: repeat(3, 1fr); gap: .55rem; }
+.vm-ai-diff button {
+    cursor: pointer; text-align: left;
+    padding: .7rem .8rem; border-radius: 13px;
+    background: transparent; border: 1.5px solid var(--border-color, #e5e7eb); color: inherit;
+    display: flex; flex-direction: column; gap: 2px; position: relative;
+    transition: all .18s;
+}
+.vm-ai-diff button:hover { transform: translateY(-2px); border-color: rgba(124,58,237,.5); }
+.vm-ai-diff button .em { font-size: 1.15rem; line-height: 1; margin-bottom: 2px; }
+.vm-ai-diff button .nm { font-weight: 800; font-size: .82rem; }
+.vm-ai-diff button .dc { font-size: .68rem; color: var(--bs-secondary-color); }
+.vm-ai-diff button.on {
+    border-color: transparent; color: #fff;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    box-shadow: 0 10px 24px -10px rgba(124,58,237,.65);
+}
+.vm-ai-diff button.on .dc { color: rgba(255,255,255,.85); }
+.vm-ai-diff button.on::after {
+    content: '\2713'; position: absolute; top: 6px; right: 8px;
+    font-size: .78rem; font-weight: 800; color: #fff;
+    background: rgba(255,255,255,.22); width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* --- Steps info card --- */
+.vm-ai-steps {
+    margin-top: 1.1rem; padding: .85rem 1rem;
+    background: linear-gradient(135deg, rgba(124,58,237,.06), rgba(168,85,247,.06));
+    border: 1px dashed rgba(124,58,237,.28); border-radius: 13px;
+    font-size: .76rem;
+}
+.vm-ai-steps b { display: block; margin-bottom: .35rem; font-size: .74rem; color: #7c3aed; letter-spacing: .3px; text-transform: uppercase; }
+.vm-ai-steps ol { margin: 0; padding-left: 1.1rem; display: grid; gap: 3px; color: var(--bs-secondary-color); }
+.vm-ai-steps ol li::marker { color: #a855f7; font-weight: 800; }
+
+/* --- Footer actions --- */
+.vm-ai-actions {
+    display: flex; gap: .7rem; padding: 1rem 1.7rem 1.4rem;
+    border-top: 1px solid var(--border-color, #f1f5f9);
+    background: rgba(124,58,237,.03);
+}
+.vm-ai-cancel {
+    padding: .75rem 1.1rem; border-radius: 12px; cursor: pointer; font-weight: 700;
+    border: 1.5px solid var(--border-color, #d1d5db); background: transparent; color: inherit;
+}
+.vm-ai-run {
+    flex: 1; border: none; cursor: pointer; padding: .8rem 1rem; border-radius: 12px;
+    font-weight: 800; color: #fff; font-size: .92rem;
+    background: linear-gradient(90deg, #7c3aed, #a855f7);
+    box-shadow: 0 14px 30px -12px rgba(124,58,237,.7);
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform .15s, box-shadow .15s;
+}
+.vm-ai-run:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 36px -12px rgba(124,58,237,.75); }
+.vm-ai-run:disabled { opacity: .75; cursor: wait; }
+
+/* --- Loading overlay inside modal --- */
+.vm-ai-loader {
+    display: none; position: absolute; inset: 0; z-index: 3;
+    background: rgba(255,255,255,.86); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; flex-direction: column; gap: 1rem;
+    border-radius: inherit;
+}
+[data-bs-theme="dark"] .vm-ai-loader { background: rgba(15,23,42,.86); }
+.vm-ai-loader.show { display: flex; }
+.vm-ai-spinner {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: conic-gradient(from 0deg, #7c3aed, #a855f7, #7c3aed);
+    -webkit-mask: radial-gradient(circle 22px at center, transparent 98%, #000 100%);
+            mask: radial-gradient(circle 22px at center, transparent 98%, #000 100%);
+    animation: aiSpin 1.05s linear infinite;
+}
+@keyframes aiSpin { to { transform: rotate(360deg); } }
+.vm-ai-loader p { margin: 0; font-weight: 800; font-size: .95rem; }
+.vm-ai-loader small { color: var(--bs-secondary-color); font-size: .78rem; }
+.vm-ai-loader .vm-ai-progress {
+    width: 220px; height: 6px; border-radius: 4px; overflow: hidden;
+    background: rgba(124,58,237,.15);
+}
+.vm-ai-loader .vm-ai-progress i {
+    display: block; height: 100%; width: 40%; border-radius: 4px;
+    background: linear-gradient(90deg, #7c3aed, #a855f7);
+    animation: aiSlide 1.6s ease-in-out infinite;
+}
+@keyframes aiSlide {
+    0%   { margin-left: -40%; }
+    100% { margin-left: 100%; }
+}
+
+@media (max-width: 576px) {
+    .vm-ai-diff { grid-template-columns: 1fr; }
+    .vm-ai-quick { width: 100%; margin-left: 0; }
+}
+
+/* ---------- TOAST ---------- */
+.vm-toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 10000;
+    background: #0f172a; color: #fff; padding: .85rem 1.3rem; border-radius: 14px;
+    font-weight: 700; font-size: .88rem; display: flex; align-items: center; gap: 9px;
+    box-shadow: 0 18px 44px -14px rgba(0,0,0,.5);
+    transform: translateY(80px); opacity: 0; transition: all .35s cubic-bezier(.2,.9,.3,1.15);
+}
+.vm-toast.show { transform: none; opacity: 1; }
+.vm-toast.ok i { color: #34d399; } .vm-toast.err i { color: #f87171; }
+@media (max-width: 576px) { .vm-opt-grid, .vm-num-grid { grid-template-columns: 1fr; } }
+</style>
+
+<a href="{% url 'video_quiz:teacher_videos' %}" class="vm-back"><i class="bi bi-arrow-left"></i> Barcha videolar</a>
+
+<!-- ===== SARLAVHA ===== -->
+<div class="vm-head">
+    <div class="vm-thumb">
+        {% if thumb %}<img src="{{ thumb }}" alt="">{% else %}<i class="bi bi-camera-video"></i>{% endif %}
+    </div>
+    <div class="vm-head-info">
+        <h1>{{ video.lesson.title }}</h1>
+        <div class="crs"><i class="bi bi-mortarboard"></i> {{ video.lesson.profession.name }}</div>
+        <div class="vm-chips">
+            <span class="vm-chip"><i class="bi bi-clock"></i> {{ video.duration }} daqiqa</span>
+            <span class="vm-chip"><i class="bi bi-patch-question"></i> <b id="quizCountChip">{{ quiz_count }}</b>&nbsp;ta test</span>
+            <span class="vm-chip"><i class="bi bi-people"></i> {{ total_attempts }} urinish</span>
+            <span class="vm-chip"><i class="bi bi-cash-stack"></i> {{ total_income }} so'm daromad</span>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TIMELINE ===== -->
+<div class="vm-tl-card">
+    <div class="vm-tl-title">
+        <span><i class="bi bi-bezier2"></i> Video timeline — testlar joylashuvi</span>
+        <div style="display:flex;gap:.6rem;flex-wrap:wrap;">
+            {% if video.is_youtube %}
+            <button type="button" class="vm-add-btn" style="background:linear-gradient(90deg,#7c3aed,#a855f7);box-shadow:0 10px 24px -10px rgba(124,58,237,.6);" onclick="vqOpenAi()">
+                <i class="bi bi-stars"></i> AI: Transkriptdan test tuzish
+            </button>
+            {% endif %}
+            <button type="button" class="vm-add-btn" onclick="vqOpenCreate()">
+                <i class="bi bi-plus-lg"></i> Yangi Test Qo'shish
+            </button>
+        </div>
+    </div>
+    <div class="vm-timeline" id="vqTimeline">
+        <div class="vm-track"></div>
+    </div>
+</div>
+
+<!-- ===== TESTLAR RO'YXATI ===== -->
+<div class="vm-list" id="vqList"></div>
+<div class="vm-empty" id="vqEmpty" style="display:none;">
+    <i class="bi bi-magic" style="font-size:2rem;opacity:.4;"></i>
+    <p style="margin:.5rem 0 0;">Hali test qo'shilmagan. "Yangi Test Qo'shish" tugmasini bosing!</p>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div class="vm-modal" id="vqModal">
+    <div class="vm-modal-box">
+        <div class="vm-modal-title"><i class="bi bi-patch-question-fill"></i> <span id="vqModalTitle">Yangi test</span></div>
+        <div class="vm-err" id="vqErr"></div>
+        <form id="vqForm" onsubmit="return vqSave(event)">
+            <input type="hidden" id="fQuizId" value="">
+            <div class="vm-f">
+                <label>Video vaqti (mm:ss yoki soniya) — maks: <span id="vqMaxLabel"></span></label>
+                <input type="text" id="fTime" placeholder="05:00 yoki 300" required>
+            </div>
+            <div class="vm-f">
+                <label>Savol</label>
+                <textarea id="fQuestion" rows="2" placeholder="Savol matni..." required></textarea>
+            </div>
+            <div class="vm-f">
+                <label>Izoh / tavsif (ixtiyoriy)</label>
+                <input type="text" id="fDesc" placeholder="Qo'shimcha kontekst...">
+            </div>
+            <div class="vm-f">
+                <label>Variantlar</label>
+                <div class="vm-opt-grid">
+                    <input type="text" id="fOptA" placeholder="A variant" required>
+                    <input type="text" id="fOptB" placeholder="B variant" required>
+                    <input type="text" id="fOptC" placeholder="C variant" required>
+                    <input type="text" id="fOptD" placeholder="D variant" required>
+                </div>
+            </div>
+            <div class="vm-opt-grid">
+                <div class="vm-f">
+                    <label>To'g'ri javob</label>
+                    <select id="fCorrect" required>
+                        <option value="A">A</option><option value="B">B</option>
+                        <option value="C">C</option><option value="D">D</option>
+                    </select>
+                </div>
+                <div class="vm-f">
+                    <label>Tushuntirish (noto'g'ri javobda)</label>
+                    <input type="text" id="fExplain" placeholder="Nega bu javob to'g'ri...">
+                </div>
+            </div>
+            {% if is_teacher %}
+            <!-- Ustoz: mukofot qiymatlari faqat ko'rinadi, o'zgartirib bo'lmaydi -->
+            <div class="vm-reward-info">
+                <span class="vm-reward-chip"><i class="bi bi-coin"></i> Mukofot: <b>{{ reward_coin }}</b> coin</span>
+                <span class="vm-reward-chip warn"><i class="bi bi-dash-circle"></i> Jarima: <b>{{ penalty_coin }}</b> coin</span>
+                <span class="vm-reward-chip income"><i class="bi bi-cash-coin"></i> Video 5+ testga to'lsa: <b>{{ teacher_reward }}</b> so'm (bir marta)</span>
+            </div>
+            {% else %}
+            <div class="vm-num-grid">
+                <div class="vm-f"><label>Mukofot coin</label><input type="number" id="fReward" value="3" min="0" max="100"></div>
+                <div class="vm-f"><label>Jarima coin</label><input type="number" id="fPenalty" value="5" min="0" max="100"></div>
+                <div class="vm-f"><label>Ustoz mukofoti (so'm)</label><input type="number" id="fTReward" value="3000" min="0" step="500"></div>
+            </div>
+            {% endif %}
+            <div class="vm-modal-actions">
+                <button type="button" class="vm-btn-cancel" onclick="vqCloseModal()">Bekor qilish</button>
+                <button type="submit" class="vm-btn-save" id="vqSaveBtn"><i class="bi bi-check-lg"></i> Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ===== AI TRANSKRIPT MODALI ===== -->
+<div class="vm-modal" id="vqAiModal">
+    <div class="vm-modal-box vm-ai-box">
+        <!-- HERO -->
+        <div class="vm-ai-hero">
+            <button type="button" class="vm-ai-close" onclick="vqCloseAi()" aria-label="Yopish">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="vm-ai-hero-row">
+                <div class="vm-ai-hero-icon"><i class="bi bi-stars"></i></div>
+                <div>
+                    <h3>Transkriptdan test tuzish</h3>
+                    <p>YouTube subtitrlari asosida AI savollar tuzadi va ularni timeline bo'ylab avtomatik joylashtiradi.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BODY -->
+        <div class="vm-ai-body">
+            <div class="vm-err" id="vqAiErr"></div>
+
+            <!-- Test soni -->
+            <div class="vm-ai-field">
+                <div class="vm-ai-lbl">
+                    <span><i class="bi bi-hash"></i> Test soni</span>
+                    <small>1–20 oralig'ida</small>
+                </div>
+                <div class="vm-ai-count">
+                    <button type="button" class="vm-ai-step" onclick="vqAiStep(-1)" aria-label="Kamaytirish">−</button>
+                    <input type="number" id="fAiCount" value="5" min="1" max="20">
+                    <button type="button" class="vm-ai-step" onclick="vqAiStep(1)" aria-label="Ko'paytirish">+</button>
+                    <div class="vm-ai-quick" id="vqAiQuick">
+                        <button type="button" data-n="3">3</button>
+                        <button type="button" data-n="5" class="on">5</button>
+                        <button type="button" data-n="10">10</button>
+                        <button type="button" data-n="15">15</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Qiyinlik -->
+            <div class="vm-ai-field">
+                <div class="vm-ai-lbl">
+                    <span><i class="bi bi-speedometer2"></i> Qiyinlik darajasi</span>
+                </div>
+                <input type="hidden" id="fAiDifficulty" value="medium">
+                <div class="vm-ai-diff" id="vqAiDiff">
+                    <button type="button" data-v="easy">
+                        <span class="em">🌱</span>
+                        <span class="nm">Oson</span>
+                        <span class="dc">Yodda saqlash</span>
+                    </button>
+                    <button type="button" data-v="medium" class="on">
+                        <span class="em">⚡</span>
+                        <span class="nm">O'rta</span>
+                        <span class="dc">Tushunish</span>
+                    </button>
+                    <button type="button" data-v="hard">
+                        <span class="em">🔥</span>
+                        <span class="nm">Qiyin</span>
+                        <span class="dc">Tahlil qilish</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Nima bo'ladi -->
+            <div class="vm-ai-steps">
+                <b><i class="bi bi-info-circle"></i> Jarayon</b>
+                <ol>
+                    <li>Video transkripti o'qiladi</li>
+                    <li>AI 4 variantli test savollarini tuzadi</li>
+                    <li>Har bir savol tegishli vaqt belgisiga qo'yiladi</li>
+                </ol>
+            </div>
+
+            <!-- LOADER OVERLAY -->
+            <div class="vm-ai-loader" id="vqAiLoader">
+                <div class="vm-ai-spinner"></div>
+                <div style="text-align:center;">
+                    <p>AI test tuzmoqda…</p>
+                    <small>Bu 10–40 soniya davom etishi mumkin</small>
+                </div>
+                <div class="vm-ai-progress"><i></i></div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="vm-ai-actions">
+            <button type="button" class="vm-ai-cancel" onclick="vqCloseAi()">Bekor qilish</button>
+            <button type="button" class="vm-ai-run" id="vqAiBtn" onclick="vqRunAi()">
+                <i class="bi bi-magic"></i> <span>Yaratish</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="vm-toast" id="vqToast"><i class="bi bi-check-circle-fill"></i><span id="vqToastText"></span></div>
+
+<script>
+/* ================================================================
+   Video Quiz Manager — timeline, CRUD (fetch API orqali)
+   ================================================================ */
+const VQ = {
+    duration: {{ duration_seconds }},
+    quizzes: {{ quizzes_json|safe }},
+    csrf: '{{ csrf_token }}',
+    urls: {
+        create: "{% url 'video_quiz:api_quiz_create' video.pk %}",
+        aiGenerate: "{% url 'video_quiz:api_quiz_ai_generate' video.pk %}",
+        update: (id) => "{% url 'video_quiz:api_quiz_update' 0 %}".replace('/0/', '/' + id + '/'),
+        del:    (id) => "{% url 'video_quiz:api_quiz_delete' 0 %}".replace('/0/', '/' + id + '/'),
+        toggle: (id) => "{% url 'video_quiz:api_quiz_toggle' 0 %}".replace('/0/', '/' + id + '/'),
+        dup:    (id) => "{% url 'video_quiz:api_quiz_duplicate' 0 %}".replace('/0/', '/' + id + '/'),
+    },
+};
+
+function vqSetVal(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+}
+function fmt(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60;
+    return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+function parseTime(v) {
+    v = (v || '').trim();
+    if (/^\d+$/.test(v)) return parseInt(v, 10);
+    const m = v.match(/^(\d{1,3}):([0-5]?\d)$/);
+    return m ? parseInt(m[1],10)*60 + parseInt(m[2],10) : NaN;
+}
+function toast(msg, ok=true) {
+    const t = document.getElementById('vqToast');
+    t.className = 'vm-toast ' + (ok ? 'ok' : 'err');
+    t.querySelector('i').className = ok ? 'bi bi-check-circle-fill' : 'bi bi-x-circle-fill';
+    document.getElementById('vqToastText').textContent = msg;
+    requestAnimationFrame(() => t.classList.add('show'));
+    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 3200);
+}
+async function api(url, body) {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': VQ.csrf},
+        body: JSON.stringify(body || {}),
+    });
+    return res.json();
+}
+
+/* ---------- RENDER ---------- */
+function renderTimeline() {
+    const tl = document.getElementById('vqTimeline');
+    tl.querySelectorAll('.vm-marker, .vm-tick').forEach(el => el.remove());
+    // Vaqt belgilari (5 ta)
+    for (let i = 0; i <= 4; i++) {
+        const sec = Math.round(VQ.duration * i / 4);
+        const tick = document.createElement('div');
+        tick.className = 'vm-tick';
+        tick.style.left = (i * 25) + '%';
+        tick.textContent = fmt(sec);
+        tl.appendChild(tick);
+    }
+    // Markerlar
+    VQ.quizzes.sort((a,b) => a.trigger_second - b.trigger_second).forEach((q, idx) => {
+        const mk = document.createElement('div');
+        mk.className = 'vm-marker' + (q.is_active ? '' : ' off');
+        mk.style.left = Math.min(99, (q.trigger_second / VQ.duration * 100)) + '%';
+        mk.style.animationDelay = (idx * 0.07) + 's';
+        mk.innerHTML = '<i class="bi bi-question-lg"></i><span class="tip">🔵 ' + q.trigger_label + ' — bosib tahrirlang</span>';
+        mk.onclick = () => vqOpenEdit(q.id);
+        tl.appendChild(mk);
+    });
+}
+
+function renderList() {
+    const list = document.getElementById('vqList');
+    const empty = document.getElementById('vqEmpty');
+    document.getElementById('quizCountChip').textContent = VQ.quizzes.length;
+    list.innerHTML = '';
+    empty.style.display = VQ.quizzes.length ? 'none' : 'block';
+    VQ.quizzes.forEach(q => {
+        const row = document.createElement('div');
+        row.className = 'vm-qrow';
+        row.innerHTML = `
+            <div class="vm-qtime">${q.trigger_label}</div>
+            <div class="vm-qmain">
+                <div class="vm-qq">${escapeHtml(q.question)}</div>
+                <div class="vm-qstats">
+                    <span><b>${q.attempts}</b> urinish</span>
+                    <span style="color:#059669;"><b>${q.correct_pct}%</b> to'g'ri</span>
+                    <span>⏱ o'rtacha <b>${(q.avg_answer_ms/1000).toFixed(1)}s</b></span>
+                    <span>🪙 +${q.coins_given} / -${q.coins_removed}</span>
+                </div>
+            </div>
+            <div class="vm-qbar" title="To'g'ri javoblar ulushi"><i style="width:${q.correct_pct}%"></i></div>
+            <span class="vm-qbadge ${q.is_active ? 'on' : 'off'}">${q.is_active ? 'Faol' : "O'chiq"}</span>
+            <div class="vm-qactions">
+                <button class="vm-qbtn" title="Tahrirlash" onclick="vqOpenEdit(${q.id})"><i class="bi bi-pencil"></i></button>
+                <button class="vm-qbtn" title="Nusxalash" onclick="vqDuplicate(${q.id})"><i class="bi bi-copy"></i></button>
+                <button class="vm-qbtn" title="${q.is_active ? "O'chirish (disable)" : 'Yoqish'}" onclick="vqToggle(${q.id})">
+                    <i class="bi bi-${q.is_active ? 'pause-circle' : 'play-circle'}"></i>
+                </button>
+                <button class="vm-qbtn danger" title="Butunlay o'chirish" onclick="vqDelete(${q.id})"><i class="bi bi-trash"></i></button>
+            </div>`;
+        list.appendChild(row);
+    });
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function rerender() { renderTimeline(); renderList(); }
+
+/* ---------- MODAL ---------- */
+function vqOpenCreate() {
+    document.getElementById('vqForm').reset();
+    document.getElementById('fQuizId').value = '';
+    vqSetVal('fReward', 3);
+    vqSetVal('fPenalty', 5);
+    vqSetVal('fTReward', 3000);
+    document.getElementById('vqModalTitle').textContent = 'Yangi test qo\'shish';
+    document.getElementById('vqErr').style.display = 'none';
+    document.getElementById('vqModal').classList.add('open');
+}
+function vqOpenEdit(id) {
+    const q = VQ.quizzes.find(x => x.id === id);
+    if (!q) return;
+    document.getElementById('fQuizId').value = q.id;
+    document.getElementById('fTime').value = q.trigger_label;
+    document.getElementById('fQuestion').value = q.question;
+    document.getElementById('fDesc').value = q.description;
+    document.getElementById('fOptA').value = q.options.A;
+    document.getElementById('fOptB').value = q.options.B;
+    document.getElementById('fOptC').value = q.options.C;
+    document.getElementById('fOptD').value = q.options.D;
+    document.getElementById('fCorrect').value = q.correct_option;
+    document.getElementById('fExplain').value = q.explanation;
+    vqSetVal('fReward', q.reward_coin);
+    vqSetVal('fPenalty', q.penalty_coin);
+    vqSetVal('fTReward', q.teacher_reward);
+    document.getElementById('vqModalTitle').textContent = 'Testni tahrirlash — ' + q.trigger_label;
+    document.getElementById('vqErr').style.display = 'none';
+    document.getElementById('vqModal').classList.add('open');
+}
+function vqCloseModal() { document.getElementById('vqModal').classList.remove('open'); }
+document.getElementById('vqModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('vqModal')) vqCloseModal();
+});
+document.getElementById('vqMaxLabel').textContent = fmt(VQ.duration);
+
+/* ---------- CRUD ---------- */
+async function vqSave(e) {
+    e.preventDefault();
+    const err = document.getElementById('vqErr');
+    const trigger = parseTime(document.getElementById('fTime').value);
+    if (isNaN(trigger)) { err.textContent = "Vaqt formati noto'g'ri (mm:ss yoki soniya)."; err.style.display = 'block'; return false; }
+    const body = {
+        trigger_second: trigger,
+        question: document.getElementById('fQuestion').value,
+        description: document.getElementById('fDesc').value,
+        option_a: document.getElementById('fOptA').value,
+        option_b: document.getElementById('fOptB').value,
+        option_c: document.getElementById('fOptC').value,
+        option_d: document.getElementById('fOptD').value,
+        correct_option: document.getElementById('fCorrect').value,
+        explanation: document.getElementById('fExplain').value,
+    };
+    // Mukofot maydonlari faqat admin uchun mavjud (ustozda qat'iy, serverda belgilanadi)
+    const fR = document.getElementById('fReward');
+    if (fR) {
+        body.reward_coin = fR.value;
+        body.penalty_coin = document.getElementById('fPenalty').value;
+        body.teacher_reward = document.getElementById('fTReward').value;
+    }
+    const id = document.getElementById('fQuizId').value;
+    const data = await api(id ? VQ.urls.update(id) : VQ.urls.create, body);
+    if (data.error) { err.textContent = data.error; err.style.display = 'block'; return false; }
+    if (id) {
+        const i = VQ.quizzes.findIndex(x => x.id === parseInt(id));
+        if (i > -1) VQ.quizzes[i] = data.quiz;
+        toast('Test yangilandi ✏️');
+    } else {
+        VQ.quizzes.push(data.quiz);
+        toast('Quiz muvaffaqiyatli yaratildi 🎉');
+    }
+    vqCloseModal(); rerender();
+    return false;
+}
+async function vqDelete(id) {
+    if (!confirm("Testni butunlay o'chirmoqchimisiz?")) return;
+    const data = await api(VQ.urls.del(id));
+    if (data.error) return toast(data.error, false);
+    VQ.quizzes = VQ.quizzes.filter(x => x.id !== id);
+    toast("Test o'chirildi 🗑️"); rerender();
+}
+async function vqToggle(id) {
+    const data = await api(VQ.urls.toggle(id));
+    if (data.error) return toast(data.error, false);
+    const q = VQ.quizzes.find(x => x.id === id);
+    if (q) q.is_active = data.is_active;
+    toast(data.is_active ? 'Test yoqildi ✅' : "Test o'chirildi (disable) ⏸"); rerender();
+}
+async function vqDuplicate(id) {
+    const data = await api(VQ.urls.dup(id));
+    if (data.error) return toast(data.error, false);
+    VQ.quizzes.push(data.quiz);
+    toast('Nusxa yaratildi 📋 (o\'chiq holatda)'); rerender();
+}
+
+/* ---------- AI: TRANSKRIPTDAN TEST ---------- */
+function vqOpenAi() {
+    document.getElementById('vqAiErr').style.display = 'none';
+    document.getElementById('vqAiLoader').classList.remove('show');
+    document.getElementById('vqAiModal').classList.add('open');
+}
+function vqCloseAi() {
+    if (document.getElementById('vqAiBtn').disabled) return; // Yaratilayotgan paytda yopilmasin
+    document.getElementById('vqAiModal').classList.remove('open');
+}
+const _vqAiModal = document.getElementById('vqAiModal');
+if (_vqAiModal) {
+    _vqAiModal.addEventListener('click', e => {
+        if (e.target === _vqAiModal) vqCloseAi();
+    });
+}
+
+/* Stepper */
+function vqAiStep(delta) {
+    const inp = document.getElementById('fAiCount');
+    let v = (parseInt(inp.value, 10) || 5) + delta;
+    v = Math.max(1, Math.min(20, v));
+    inp.value = v;
+    vqAiSyncQuick();
+}
+/* Quick chip <-> input sync */
+function vqAiSyncQuick() {
+    const v = parseInt(document.getElementById('fAiCount').value, 10);
+    document.querySelectorAll('#vqAiQuick button').forEach(b => {
+        b.classList.toggle('on', parseInt(b.dataset.n, 10) === v);
+    });
+}
+document.getElementById('fAiCount').addEventListener('input', () => {
+    const inp = document.getElementById('fAiCount');
+    let v = parseInt(inp.value, 10);
+    if (isNaN(v)) return;
+    if (v > 20) inp.value = 20;
+    if (v < 1)  inp.value = 1;
+    vqAiSyncQuick();
+});
+document.querySelectorAll('#vqAiQuick button').forEach(b => {
+    b.addEventListener('click', () => {
+        document.getElementById('fAiCount').value = b.dataset.n;
+        vqAiSyncQuick();
+    });
+});
+
+/* Difficulty pills */
+document.querySelectorAll('#vqAiDiff button').forEach(b => {
+    b.addEventListener('click', () => {
+        document.querySelectorAll('#vqAiDiff button').forEach(x => x.classList.remove('on'));
+        b.classList.add('on');
+        document.getElementById('fAiDifficulty').value = b.dataset.v;
+    });
+});
+
+async function vqRunAi() {
+    const err = document.getElementById('vqAiErr');
+    const btn = document.getElementById('vqAiBtn');
+    const loader = document.getElementById('vqAiLoader');
+    err.style.display = 'none';
+    const count = parseInt(document.getElementById('fAiCount').value, 10) || 5;
+    const difficulty = document.getElementById('fAiDifficulty').value;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Yaratilmoqda…</span>';
+    loader.classList.add('show');
+    try {
+        const data = await api(VQ.urls.aiGenerate, { count, difficulty });
+        if (data.error) {
+            err.textContent = data.error;
+            err.style.display = 'block';
+            return;
+        }
+        (data.quizzes || []).forEach(q => VQ.quizzes.push(q));
+        btn.disabled = false;      // vqCloseAi ichidagi guard uchun
+        loader.classList.remove('show');
+        vqCloseAi();
+        rerender();
+        toast((data.created || 0) + ' ta test AI orqali yaratildi 🎉');
+        return;
+    } catch (e) {
+        err.textContent = "Xatolik yuz berdi. Qayta urinib ko'ring.";
+        err.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-magic"></i> <span>Yaratish</span>';
+        loader.classList.remove('show');
+    }
+}
+
+rerender();
+</script>
+{% endblock %}
+
+{# Bu fayl: bitta video uchun timeline boshqaruvi — animatsiyali marker'lar, #}
+{# yaratish/tahrirlash modali, nusxalash, yoqish/o'chirish, statistika. #}

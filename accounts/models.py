@@ -198,11 +198,29 @@ class CustomUser(AbstractUser):
     passport_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Pasport raqami")
     jshshir = models.CharField(max_length=14, blank=True, null=True, verbose_name="JSHSHIR (PINFL)")
     passport_issued_date = models.DateField(null=True, blank=True, verbose_name="Pasport berilgan sana")
+    # Hujjat turi: pasport (seriya+raqam+JSHSHIR) yoki metrika (seriya+raqam, JSHSHIRsiz).
+    # Metrika seriyasi "I-GZ" ko'rinishida bo'ladi va unda JSHSHIR bo'lmaydi.
+    DOCUMENT_TYPE_CHOICES = (
+        ('passport', 'Pasport / ID karta'),
+        ('metrka', 'Metrika (tug\'ilganlik guvohnomasi)'),
+    )
+    document_type = models.CharField(
+        max_length=10, choices=DOCUMENT_TYPE_CHOICES, blank=True, null=True,
+        verbose_name="Hujjat turi",
+    )
+    metrka_series = models.CharField(
+        max_length=10, blank=True, null=True, verbose_name="Metrika seriyasi",
+        help_text="Masalan: I-GZ",
+    )
+    metrka_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Metrika raqami",
+    )
     father_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Otasining telefon raqami")
     mother_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Onasining telefon raqami")
     father_deceased = models.BooleanField(default=False, verbose_name="Otasi vafot etgan")
     mother_deceased = models.BooleanField(default=False, verbose_name="Onasi vafot etgan")
     is_profile_completed = models.BooleanField(default=False, verbose_name="Profil to'ldirilgan")
+    is_verified = models.BooleanField(default=False, verbose_name="Tasdiqlangan (verified)")
 
     # ---------------- PROPERTIES ----------------
 
@@ -298,6 +316,17 @@ class CustomUser(AbstractUser):
         return f"{first}{last}".upper()
 
     @property
+    def has_identity_document(self):
+        """Shaxsni tasdiqlovchi hujjat to'ldirilganmi.
+
+        Pasport = seriya + raqam + JSHSHIR; Metrika = seriya + raqam (JSHSHIRsiz).
+        Ikkalasidan biri to'liq bo'lsa yetarli.
+        """
+        has_passport = bool(self.passport_series and self.passport_number and self.jshshir)
+        has_metrka = bool(self.metrka_series and self.metrka_number)
+        return has_passport or has_metrka
+
+    @property
     def profile_completion_percent(self):
         """Calculate profile completion percentage"""
         required_fields = [
@@ -305,7 +334,8 @@ class CustomUser(AbstractUser):
             self.gender, self.nationality,
             self.parent_phone,
             self.school_name, self.school_number, self.address,
-            self.passport_series, self.passport_number, self.jshshir,
+            # Hujjat (pasport yoki metrika) — bitta band sifatida hisoblanadi
+            self.has_identity_document,
         ]
         if not self.father_deceased:
             required_fields.append(self.father_name)
@@ -322,8 +352,9 @@ class CustomUser(AbstractUser):
             self.gender, self.nationality,
             self.parent_phone,
             self.school_name, self.school_number, self.address,
-            self.passport_series, self.passport_number, self.jshshir,
         ])
+        # Hujjat: pasport (seriya+raqam+JSHSHIR) YOKI metrika (seriya+raqam)
+        required = required and self.has_identity_document
         if not self.father_deceased:
             required = required and bool(self.father_name)
         if not self.mother_deceased:

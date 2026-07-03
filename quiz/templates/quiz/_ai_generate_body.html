@@ -1,9 +1,21 @@
 <meta name="csrf-token" content="{{ csrf_token }}">
 
+<style>
+#aiSourceToggle .qz-src-btn {
+    border: 1.5px solid var(--border-color, #d1d5db);
+    background: transparent; color: inherit; font-weight: 700; font-size: .8rem;
+    padding: .5rem .4rem;
+}
+#aiSourceToggle .qz-src-btn.active {
+    background: linear-gradient(90deg, #7c3aed, #a855f7); color: #fff; border-color: #7c3aed;
+}
+</style>
+
 <div class="qz-page" id="aiApp"
      data-quiz-id="{{ quiz_id|default:'' }}"
      data-quiz-title="{{ quiz_title|escapejs|default:'' }}"
-     data-lesson-title="{{ lesson_title|escapejs|default:'' }}">
+     data-lesson-title="{{ lesson_title|escapejs|default:'' }}"
+     data-courses="{{ transcript_courses_json|escape }}">
     {% if quiz_id %}
     <a href="{% url 'quizui:quiz_edit' quiz_id %}" class="qz-back">
         <i class="bi bi-arrow-left"></i> "{{ quiz_title }}" testiga qaytish
@@ -46,16 +58,57 @@
                     <div class="qz-surface-title"><i class="bi bi-sliders"></i> Sozlamalar</div>
                 </div>
                 <div class="qz-surface-body">
+                    <!-- Manba tanlash: mavzu bo'yicha yoki video transkriptidan -->
                     <div class="mb-3">
-                        <label class="form-label">Mavzu <span style="color:#ef4444;">*</span></label>
-                        <input type="text" class="form-control" id="aiTopic"
-                               placeholder="Masalan: Django ORM asoslari"
-                               {% if lesson_title %}value="{{ lesson_title }}"{% endif %}>
+                        <label class="form-label">Manba</label>
+                        <div class="btn-group w-100" role="group" id="aiSourceToggle">
+                            <button type="button" class="btn btn-sm qz-src-btn active" data-source="topic">
+                                <i class="bi bi-pencil-square"></i> Mavzu bo'yicha
+                            </button>
+                            <button type="button" class="btn btn-sm qz-src-btn" data-source="transcript">
+                                <i class="bi bi-camera-video"></i> Video transkriptidan
+                            </button>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Qo'shimcha kontekst <span class="text-muted">(ixtiyoriy)</span></label>
-                        <textarea class="form-control" id="aiContext" rows="3"
-                                  placeholder="Aniqlashtirish, qaysi qism, qaysi versiya, va h.k."></textarea>
+
+                    <!-- MAVZU BO'YICHA -->
+                    <div id="aiTopicPane">
+                        <div class="mb-3">
+                            <label class="form-label">Mavzu <span style="color:#ef4444;">*</span></label>
+                            <input type="text" class="form-control" id="aiTopic"
+                                   placeholder="Masalan: Django ORM asoslari"
+                                   {% if lesson_title %}value="{{ lesson_title }}"{% endif %}>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Qo'shimcha kontekst <span class="text-muted">(ixtiyoriy)</span></label>
+                            <textarea class="form-control" id="aiContext" rows="3"
+                                      placeholder="Aniqlashtirish, qaysi qism, qaysi versiya, va h.k."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- VIDEO TRANSKRIPTIDAN (bo'lim + oldingi bo'limlar) -->
+                    <div id="aiTranscriptPane" class="d-none">
+                        <div class="qz-surface mb-3" style="background:rgb(124 58 237 / 6%);border-color:rgb(124 58 237 / 20%);">
+                            <div class="qz-surface-body" style="padding:12px 14px;">
+                                <div class="small" style="color:#7c3aed;">
+                                    <i class="bi bi-info-circle"></i>
+                                    Tanlangan bo'lim <b>va undan oldingi barcha bo'limlar</b>dagi
+                                    video darslar transkriptidan test tuziladi.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kurs <span style="color:#ef4444;">*</span></label>
+                            <select class="form-select" id="aiCourse">
+                                <option value="">— Kursni tanlang —</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bo'lim (shu va oldingilar) <span style="color:#ef4444;">*</span></label>
+                            <select class="form-select" id="aiSection" disabled>
+                                <option value="">— Avval kursni tanlang —</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">

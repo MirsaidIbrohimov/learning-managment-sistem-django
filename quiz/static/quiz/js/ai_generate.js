@@ -16,6 +16,9 @@
     const quizId = app.dataset.quizId || null;
     const lessonTitle = app.dataset.lessonTitle || '';
 
+    let courses = [];
+    try { courses = JSON.parse(app.dataset.courses || '[]'); } catch (e) { courses = []; }
+
     const els = {
         topic: document.getElementById('aiTopic'),
         context: document.getElementById('aiContext'),
@@ -28,7 +31,54 @@
         previewWrap: document.getElementById('aiPreviewWrap'),
         saveBtn: document.getElementById('aiSaveBtn'),
         selectedSummary: document.getElementById('aiSelectedSummary'),
+        // Manba (source) toggle + video-transkript maydonlari
+        sourceToggle: document.getElementById('aiSourceToggle'),
+        topicPane: document.getElementById('aiTopicPane'),
+        transcriptPane: document.getElementById('aiTranscriptPane'),
+        course: document.getElementById('aiCourse'),
+        section: document.getElementById('aiSection'),
     };
+
+    let source = 'topic'; // 'topic' | 'transcript'
+
+    // ── Manba (source) toggle ──────────────────────────────────────────────
+    if (els.sourceToggle) {
+        els.sourceToggle.querySelectorAll('.qz-src-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                source = btn.dataset.source;
+                els.sourceToggle.querySelectorAll('.qz-src-btn').forEach((b) => {
+                    b.classList.toggle('active', b === btn);
+                });
+                const isTranscript = source === 'transcript';
+                els.topicPane.classList.toggle('d-none', isTranscript);
+                els.transcriptPane.classList.toggle('d-none', !isTranscript);
+            });
+        });
+    }
+
+    // Kurs dropdown'ini to'ldirish
+    if (els.course) {
+        courses.forEach((c) => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.name;
+            els.course.appendChild(opt);
+        });
+        els.course.addEventListener('change', () => {
+            const c = courses.find((x) => String(x.id) === els.course.value);
+            els.section.innerHTML = '';
+            if (!c || !c.sections.length) {
+                els.section.disabled = true;
+                els.section.innerHTML = '<option value="">— Bo\'lim yo\'q —</option>';
+                return;
+            }
+            els.section.disabled = false;
+            els.section.appendChild(new Option('— Bo\'limni tanlang —', ''));
+            c.sections.forEach((s) => {
+                els.section.appendChild(new Option(s.title, s.id));
+            });
+        });
+    }
     const cardTpl = document.getElementById('aiPreviewCardTpl');
     const optionTpl = document.getElementById('aiOptionRowTpl');
 
@@ -42,24 +92,47 @@
 
     // ── Generate ───────────────────────────────────────────────────────────
     els.generateBtn.addEventListener('click', async () => {
-        const topic = els.topic.value.trim();
-        if (!topic) {
-            QuizApi.toast('Mavzu kiritilmagan.', 'error');
-            els.topic.focus();
-            return;
+        let endpoint = 'questions/ai-preview/';
+        let payload;
+
+        if (source === 'transcript') {
+            const sectionId = els.section ? els.section.value : '';
+            if (!els.course.value) {
+                QuizApi.toast('Kursni tanlang.', 'error');
+                return;
+            }
+            if (!sectionId) {
+                QuizApi.toast("Bo'limni tanlang.", 'error');
+                return;
+            }
+            endpoint = 'questions/ai-preview-transcript/';
+            payload = {
+                section_id: parseInt(sectionId, 10),
+                count: parseInt(els.count.value, 10) || 5,
+                options_per_question: parseInt(els.optionsCount.value, 10) || 4,
+                question_type: els.type.value,
+                difficulty: els.difficulty.value,
+            };
+        } else {
+            const topic = els.topic.value.trim();
+            if (!topic) {
+                QuizApi.toast('Mavzu kiritilmagan.', 'error');
+                els.topic.focus();
+                return;
+            }
+            payload = {
+                topic,
+                context: els.context.value.trim(),
+                count: parseInt(els.count.value, 10) || 5,
+                options_per_question: parseInt(els.optionsCount.value, 10) || 4,
+                question_type: els.type.value,
+                difficulty: els.difficulty.value,
+            };
         }
-        const payload = {
-            topic,
-            context: els.context.value.trim(),
-            count: parseInt(els.count.value, 10) || 5,
-            options_per_question: parseInt(els.optionsCount.value, 10) || 4,
-            question_type: els.type.value,
-            difficulty: els.difficulty.value,
-        };
 
         setLoading(true);
         try {
-            const data = await QuizApi.post('questions/ai-preview/', payload);
+            const data = await QuizApi.post(endpoint, payload);
             drafts = (data.questions || []).map(normaliseDraft);
             if (!drafts.length) {
                 QuizApi.toast('AI bo\'sh natija qaytardi. Yana urinib ko\'ring.', 'error');

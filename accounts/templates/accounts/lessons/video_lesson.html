@@ -670,7 +670,7 @@
                         </div>
 
                         <div class="vl-status-hint" id="statusText">
-                            Videoni kamida {% widthratio video.duration 2 1 %} daqiqa ko'ring
+                            Videoning kamida 90% ini ko'ring
                         </div>
 
                         <button class="vl-btn-watched" id="markWatched" disabled>
@@ -800,7 +800,7 @@ if (placeholder) {
             document.getElementById('videoBox').appendChild(ytDiv);
 
             function onYouTubeIframeAPIReady() {
-                new YT.Player('ytPlayer', {
+                window._vqYT = new YT.Player('ytPlayer', {
                     videoId: videoId,
                     playerVars: { autoplay:1, rel:0, modestbranding:1 },
                     events: {
@@ -842,12 +842,34 @@ if (placeholder) {
 /* ── Timer ─────────────────────────────────────────── */
 {% if video.has_video and not progress.watched %}
 
-const videoMinutes = {{ video.duration|default:1 }};
-const requiredTime = Math.floor(videoMinutes * 60 / 2);
+/*
+ * Timer endi VIDEO POZITSIYASIGA bog'langan (wall-clock emas):
+ *   • watchedTime = pleerning currentTime bo'yicha maksimal yetilgan soniya
+ *   • Talab: video davomiyligining kamida 90% ko'rilishi
+ *   • Oldinga o'tkazish TAQIQLANGAN (seek forward -> orqaga qaytariladi),
+ *     orqaga (rewind) — bemalol.
+ *   • Modal quiz ochilganda video pauza qilinadi (player_widget.html),
+ *     shuning uchun watchedTime ham to'xtaydi.
+ */
+
+// DB'dagi `duration` (daqiqa) — HAR EHTIMOL uchun fallback (masalan pleer
+// getDuration()'ni bermay qolsa). Odatda pleer haqiqiy davomiylikni beradi
+// va biz UI'ni faqat SHUNDA yangilaymiz — sakrash bo'lmasligi uchun.
+const dbMinutes     = {{ video.duration|default:1 }};
+const DB_FALLBACK_DELAY_MS = 8000;   // pleer 8 sek ichida getDuration bermasa — DB'ga tushamiz
 const circumference = 2 * Math.PI * 18;
 
-let watchedTime = 0;
-let isPaused    = true;
+// totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
+let totalSeconds   = null;
+let requiredTime   = null;
+let durationLocked = false;   // haqiqiy (yoki fallback) davomiylik o'rnatildimi
+
+// Oldinga sakrash toleransi (playback + poll drift uchun).
+const FORWARD_SEEK_TOLERANCE = 2.0;
+
+let watchedTime = 0;      // erishilgan MAKS pleer sekundi
+let isReady     = false;  // 90% ga yetdi
+let seekLock    = false;  // dasturiy seek payti takroriy tetiklash bo'lmasin
 
 const countdownEl    = document.getElementById('countdown');
 const ringFill       = document.getElementById('ringFill');
@@ -858,8 +880,9 @@ const timerIconI     = document.getElementById('timerIconI');
 const timerLabel     = document.getElementById('timerLabel');
 
 function formatTime(s) {
-    const m = Math.floor(s/60);
-    return `${m}:${(s%60).toString().padStart(2,'0')}`;
+    s = Math.max(0, Math.round(s));
+    const m = Math.floor(s / 60);
+    return `${m}:${(s % 60).toString().padStart(2, '0')}`;
 }
 
 function setTimerState(state) {
@@ -870,36 +893,137 @@ function setTimerState(state) {
 }
 
 function pauseTimer(reason) {
-    if (timerIcon.classList.contains('ready')) return;
-    isPaused = true;
+    if (isReady) return;
     setTimerState('paused');
     timerLabel.textContent = reason || "To'xtatildi";
     statusText.textContent = reason || "To'xtatildi";
 }
 
 function resumeTimer() {
-    if (timerIcon.classList.contains('ready')) return;
-    if (document.hidden) return;
-    isPaused = false;
+    if (isReady) return;
     setTimerState('running');
     timerLabel.textContent = 'Qolgan vaqt';
-    statusText.textContent = 'Timer ishlayapti...';
+    statusText.textContent = 'Video ijro etilmoqda…';
 }
 
-function updateTimer() {
-    if (isPaused || !isVideoPlaying) return;
-    watchedTime++;
-    const remaining = Math.max(0, requiredTime - watchedTime);
-    const progress  = Math.min(1, watchedTime / requiredTime);
-    countdownEl.textContent = formatTime(remaining);
-    ringFill.style.strokeDashoffset = circumference * (1 - progress);
-    if (watchedTime >= requiredTime) {
-        setTimerState('ready');
-        countdownEl.textContent = '✓';
-        timerLabel.textContent  = 'Tayyor!';
-        statusText.textContent  = 'Tugmani bosishingiz mumkin';
-        markWatchedBtn.disabled = false;
+/* ── Pleer bilan aloqa (YouTube + Vimeo) ──────────── */
+function getPlayerTime(cb) {
+    try {
+        if (window._vqYT && typeof window._vqYT.getCurrentTime === 'function') {
+            cb(window._vqYT.getCurrentTime()); return;
+        }
+    } catch (e) {}
+    try {
+        if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
+            vimeoPlayer.getCurrentTime().then(cb).catch(() => cb(null));
+            return;
+        }
+    } catch (e) {}
+    cb(null);
+}
+
+function seekPlayerTo(seconds) {
+    try {
+        if (window._vqYT && typeof window._vqYT.seekTo === 'function') {
+            window._vqYT.seekTo(Math.max(0, seconds), true); return;
+        }
+    } catch (e) {}
+    try {
+        if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
+            vimeoPlayer.setCurrentTime(Math.max(0, seconds)).catch(() => {});
+        }
+    } catch (e) {}
+}
+
+/* Pleer haqiqiy davomiyligi. YouTube — sinxron, Vimeo — Promise. */
+function getPlayerDuration(cb) {
+    try {
+        if (window._vqYT && typeof window._vqYT.getDuration === 'function') {
+            cb(window._vqYT.getDuration()); return;
+        }
+    } catch (e) {}
+    try {
+        if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
+            vimeoPlayer.getDuration().then(cb).catch(() => cb(null));
+            return;
+        }
+    } catch (e) {}
+    cb(null);
+}
+
+/* Davomiylikni belgilash (pleerdan yoki DB fallback'dan) — bir marta. */
+function lockDuration(seconds) {
+    if (durationLocked) return;
+    totalSeconds   = Math.max(1, seconds);
+    requiredTime   = Math.max(1, Math.floor(totalSeconds * 0.9));
+    durationLocked = true;
+    // UI: countdown endi to'g'ri qiymatga to'ldiriladi (birinchi tikda ham darrov).
+    if (!isReady) {
+        const remaining = Math.max(0, requiredTime - watchedTime);
+        countdownEl.textContent = formatTime(remaining);
+        const progress = Math.min(1, watchedTime / requiredTime);
+        ringFill.style.strokeDashoffset = circumference * (1 - progress);
     }
+}
+
+/* Pleer bergan davomiylik bilan sinxronlash — ustuvor. */
+function resolveDuration() {
+    if (durationLocked) return;
+    getPlayerDuration(function(d) {
+        if (!d || !isFinite(d) || d < 2) return;   // hali tayyor emas
+        lockDuration(d);
+    });
+}
+
+// Fallback: agar pleer 8 sek ichida davomiylikni bermasa (masalan noma'lum
+// format yoki API tushmagan bo'lsa), DB qiymatiga tushamiz. Ilgari lock qilinsa —
+// bu setTimeout hech narsa qilmaydi (durationLocked=true tekshiruvi tufayli).
+setTimeout(function() {
+    if (!durationLocked) lockDuration(dbMinutes * 60);
+}, DB_FALLBACK_DELAY_MS);
+
+/* ── Har tikda: pleer soniyasini o'qib, timer va anti-seek ── */
+function tick() {
+    // Har tikda pleer davomiyligini so'raymiz — birinchi valid javobda LOCK.
+    if (!durationLocked) resolveDuration();
+
+    getPlayerTime(function(t) {
+        if (t == null || !isFinite(t)) return;
+
+        // Oldinga sakrash — orqaga qaytaramiz
+        if (!seekLock && t > watchedTime + FORWARD_SEEK_TOLERANCE) {
+            seekLock = true;
+            seekPlayerTo(watchedTime);
+            if (!isReady) {
+                statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
+            }
+            setTimeout(() => { seekLock = false; }, 900);
+            return;
+        }
+
+        // Odatiy o'ynatish: watchedTime faqat o'sib boradi (rewind uni pasaytirmaydi)
+        if (t > watchedTime) {
+            watchedTime = t;
+        }
+
+        // UI'ni faqat davomiylik lock qilinganidan keyin yangilaymiz —
+        // aks holda "9:00 -> 4:33" sakrashi bo'lardi.
+        if (!durationLocked) return;
+
+        const remaining = Math.max(0, requiredTime - watchedTime);
+        const progress  = Math.min(1, watchedTime / requiredTime);
+        countdownEl.textContent = formatTime(remaining);
+        ringFill.style.strokeDashoffset = circumference * (1 - progress);
+
+        if (!isReady && watchedTime >= requiredTime) {
+            isReady = true;
+            setTimerState('ready');
+            countdownEl.textContent = '✓';
+            timerLabel.textContent  = 'Tayyor!';
+            statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
+            markWatchedBtn.disabled = false;
+        }
+    });
 }
 
 document.addEventListener('visibilitychange', () => {
@@ -907,9 +1031,12 @@ document.addEventListener('visibilitychange', () => {
     else if (isVideoPlaying) resumeTimer();
 });
 
-countdownEl.textContent = formatTime(requiredTime);
+// Boshlang'ich UI: davomiylik lock qilinmaguncha "—:—" ko'rsatamiz. Bu bilan
+// countdown hech qachon noto'g'ri qiymatdan haqiqiy qiymatga sakramaydi.
+countdownEl.textContent = '—:—';
 ringFill.style.strokeDashoffset = circumference;
-setInterval(updateTimer, 1000);
+statusText.textContent = 'Video davomiyligi aniqlanmoqda…';
+setInterval(tick, 500);
 
 /* ── Celebration ───────────────────────────────────── */
 function launchConfetti() {
@@ -981,4 +1108,9 @@ markWatchedBtn.addEventListener('click', function() {
 
 {% endif %}
 </script>
+
+{# 🎯 Video Mid-Quiz: video ichidagi interaktiv testlar vidjeti #}
+{% if video.has_video %}
+{% include 'video_quiz/player_widget.html' %}
+{% endif %}
 {% endblock %}

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'quiz',
     'teacher',
     'telegram_bot',
+    'video_quiz',
 ]
 
 

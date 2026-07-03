@@ -258,6 +258,7 @@
     <span class="e-price-chip"><i class="bi bi-play-circle-fill" style="color: var(--e-video);"></i> Video dars <b>{{ VIDEO_PRICE|floatformat:0 }} so'm</b></span>
     <span class="e-price-chip"><i class="bi bi-clipboard-check-fill" style="color: var(--e-test);"></i> Test <b>{{ TEST_PRICE|floatformat:0 }} so'm</b></span>
     <span class="e-price-chip"><i class="bi bi-journal-text" style="color: var(--e-hw);"></i> Uyga vazifa <b>{{ HOMEWORK_PRICE|floatformat:0 }} so'm</b></span>
+    <span class="e-price-chip"><i class="bi bi-patch-question-fill" style="color: #0d9488;"></i> Video test <b>{{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</b></span>
 </div>
 
 <!-- Month comparison -->
@@ -287,6 +288,12 @@
                 <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div></div>
+            </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(13,148,136,.12); color: #0d9488;"><i class="bi bi-patch-question-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har biri {{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.vq_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.vq_total|floatformat:0 }}</div></div>
             </div>
         </div>
         <div class="e-stat-total">
@@ -320,6 +327,12 @@
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div></div>
             </div>
+            <div class="e-stat-row">
+                <div class="e-stat-icon-box" style="background: rgba(13,148,136,.12); color: #0d9488;"><i class="bi bi-patch-question-fill"></i></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video testlar</div><div class="e-stat-desc">Har biri {{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.vq_count }}</div><div class="e-stat-count-label">ta</div></div>
+                <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.vq_total|floatformat:0 }}</div></div>
+            </div>
         </div>
         <div class="e-stat-total">
             <span class="e-stat-total-label">Jami ({{ prev_data.total_items }} ta)</span>
@@ -334,7 +347,7 @@
         <i class="bi bi-list-ul"></i> {{ current_month_name }} — batafsil ro'yxat
         <span class="e-count-pill">{{ current_data.total_items }} ta</span>
     </div>
-    {% if current_data.video_list or current_data.test_list or current_data.hw_list %}
+    {% if current_data.video_list or current_data.test_list or current_data.hw_list or current_data.vq_list %}
     <div class="e-table-wrap">
         <table class="e-detail-table">
             <thead>
@@ -372,6 +385,15 @@
                     <td><span class="e-type-badge e-type-hw"><i class="bi bi-journal-text"></i> Vazifa</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
                     <td class="e-amount-cell" style="text-align:right;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</td>
+                </tr>
+                {% endfor %}
+                {% for item in current_data.vq_list %}
+                <tr>
+                    <td style="font-weight:600;">{{ item.question|truncatechars:60 }}</td>
+                    <td>{{ item.video__lesson__profession__name }}</td>
+                    <td><span class="e-type-badge" style="background:rgba(13,148,136,.12);color:#0d9488;"><i class="bi bi-patch-question"></i> Video test</span></td>
+                    <td>{{ item.created_at|date:"d.m.Y" }}</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
             </tbody>

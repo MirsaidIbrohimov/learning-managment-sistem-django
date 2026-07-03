@@ -164,6 +164,9 @@
             <a href="{% url 'quizui:quiz_retry_payment_list' %}" class="nav-link {% if 'quiz_retry_payment' in request.resolver_match.url_name %}active{% endif %}" data-title="Quiz to'lovlari">
                 <div class="nav-icon-wrap"><i class="bi bi-credit-card-2-front"></i></div><span>Quiz to'lovlari</span>
             </a>
+            <a href="{% url 'video_quiz:teacher_videos' %}" class="nav-link {% if request.resolver_match.namespace == 'video_quiz' %}active{% endif %}" data-title="Videodagi Testlar">
+                <div class="nav-icon-wrap"><i class="bi bi-play-circle-fill"></i></div><span>Videodagi Testlar</span>
+            </a>
             {% if user.ai_access_enabled %}
             <a href="{% url 'teacher:ai_checker' %}" class="nav-link {% if 'ai_checker' in request.resolver_match.url_name %}active{% endif %}" data-title="AI Tekshiruvchi">
                 <div class="nav-icon-wrap"><i class="bi bi-cpu"></i></div><span>AI Tekshiruvchi</span>

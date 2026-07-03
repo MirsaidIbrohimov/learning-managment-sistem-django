@@ -691,59 +691,114 @@
             </div>
         </div>
 
-        <!-- ======== SECTION 2: PASPORT ======== -->
+        <!-- ======== SECTION 2: HUJJAT (Pasport yoki Metrika) ======== -->
+        <style>
+            .cp-doc-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+            .cp-doc-opt { cursor: pointer; margin: 0; }
+            .cp-doc-opt input { position: absolute; opacity: 0; pointer-events: none; }
+            .cp-doc-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px;
+                border: 2px solid rgba(148,163,184,.3); border-radius: 16px;
+                background: rgba(148,163,184,.06); transition: all .2s ease; height: 100%; }
+            .cp-doc-card i { font-size: 1.6rem; color: #64748b; }
+            .cp-doc-card b { font-size: .95rem; }
+            .cp-doc-card small { font-size: .72rem; color: var(--bs-secondary-color, #94a3b8); }
+            .cp-doc-opt:hover .cp-doc-card { border-color: rgba(34,197,94,.5); transform: translateY(-2px); }
+            .cp-doc-opt.sel .cp-doc-card { border-color: #22c55e; background: rgba(34,197,94,.1);
+                box-shadow: 0 8px 24px -12px rgba(34,197,94,.6); }
+            .cp-doc-opt.sel .cp-doc-card i { color: #22c55e; }
+            .cp-doc-fields { animation: fadeInUp .35s ease both; }
+            .cp-doc-note { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: .8rem;
+                background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.22); color: #3b82f6; }
+            .cp-doc-empty { padding: 18px; text-align: center; border: 1.5px dashed rgba(148,163,184,.4);
+                border-radius: 14px; color: var(--bs-secondary-color, #94a3b8); font-size: .85rem; }
+            .cp-skip-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;
+                padding: 12px 22px; border-radius: 14px; font-weight: 700; cursor: pointer;
+                background: transparent; color: var(--bs-secondary-color, #94a3b8);
+                border: 1.5px solid rgba(148,163,184,.35); transition: all .2s ease; }
+            .cp-skip-btn:hover { border-color: rgba(148,163,184,.6); color: #64748b; }
+            @media (max-width: 480px) { .cp-doc-switch { grid-template-columns: 1fr; } }
+        </style>
         <div class="cp-section" id="section-passport">
             <div class="cp-section-header">
                 <div class="cp-section-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                    <i class="bi bi-credit-card-2-front-fill"></i>
+                    <i class="bi bi-patch-check-fill"></i>
                 </div>
-                <h3>Pasport ma'lumotlari<small>Hujjat seriya raqami va JSHSHIR</small></h3>
+                <h3>Hujjat ma'lumotlari<small>Pasport yoki metrika — bittasi yetarli</small></h3>
             </div>
             <div class="cp-section-body">
-                <div class="cp-passport-visual">
-                    <div class="cp-passport-icon-big">
-                        <i class="bi bi-credit-card-2-front"></i>
-                    </div>
-                    <div class="cp-passport-desc">
-                        Pasport yoki ID kartangizning <strong>seriya va raqamini</strong>,
-                        <strong>JSHSHIR (PINFL)</strong> hamda <strong>berilgan sanasini</strong> kiriting.
-                        Rasm yuklanmaydi — faqat ma'lumotlar kiritiladi.
-                    </div>
+                <!-- Hujjat turini tanlash -->
+                <div class="cp-doc-switch">
+                    <label class="cp-doc-opt" data-doc="passport">
+                        <input type="radio" name="document_type" value="passport" {% if form.document_type.value == 'passport' %}checked{% endif %}>
+                        <span class="cp-doc-card">
+                            <i class="bi bi-credit-card-2-front-fill"></i>
+                            <b>Pasport / ID karta</b>
+                            <small>Seriya, raqam va JSHSHIR</small>
+                        </span>
+                    </label>
+                    <label class="cp-doc-opt" data-doc="metrka">
+                        <input type="radio" name="document_type" value="metrka" {% if form.document_type.value == 'metrka' %}checked{% endif %}>
+                        <span class="cp-doc-card">
+                            <i class="bi bi-file-earmark-person-fill"></i>
+                            <b>Metrika (guvohnoma)</b>
+                            <small>Seriya (I-GZ) va raqam</small>
+                        </span>
+                    </label>
                 </div>
 
-                <div class="cp-passport-grid">
-                    <div class="cp-field">
-                        <label class="cp-label">
-                            <i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span>
-                        </label>
-                        {{ form.passport_series }}
-                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: AA</div>
-                    </div>
-                    <div class="cp-field">
-                        <label class="cp-label">
-                            <i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span>
-                        </label>
-                        {{ form.passport_number }}
-                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
-                    </div>
-                    <div class="cp-field">
-                        <label class="cp-label">
-                            <i class="bi bi-fingerprint"></i> JSHSHIR (PINFL) <span class="cp-required">Majburiy</span>
-                        </label>
-                        {{ form.jshshir }}
-                        <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
-                    </div>
-                </div>
-
-                <div class="row mt-3">
-                    <div class="col-md-4">
+                <!-- PASPORT maydonlari -->
+                <div class="cp-doc-fields" id="doc-passport" style="display:none;">
+                    <div class="cp-passport-grid">
                         <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-calendar-date"></i> Berilgan sana <span class="cp-optional">Ixtiyoriy</span>
-                            </label>
-                            {{ form.passport_issued_date }}
+                            <label class="cp-label"><i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span></label>
+                            {{ form.passport_series }}
+                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: AA</div>
+                        </div>
+                        <div class="cp-field">
+                            <label class="cp-label"><i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span></label>
+                            {{ form.passport_number }}
+                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
+                        </div>
+                        <div class="cp-field">
+                            <label class="cp-label"><i class="bi bi-fingerprint"></i> JSHSHIR (PINFL) <span class="cp-required">Majburiy</span></label>
+                            {{ form.jshshir }}
+                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
                         </div>
                     </div>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="cp-field">
+                                <label class="cp-label"><i class="bi bi-calendar-date"></i> Berilgan sana <span class="cp-optional">Ixtiyoriy</span></label>
+                                {{ form.passport_issued_date }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- METRIKA maydonlari (JSHSHIR yo'q) -->
+                <div class="cp-doc-fields" id="doc-metrka" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="cp-field">
+                                <label class="cp-label"><i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span></label>
+                                {{ form.metrka_series }}
+                                <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: I-GZ</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="cp-field">
+                                <label class="cp-label"><i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span></label>
+                                {{ form.metrka_number }}
+                                <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Guvohnoma raqami</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cp-doc-note"><i class="bi bi-info-circle-fill"></i> Metrikada JSHSHIR bo'lmaydi — faqat seriya (I-GZ) va raqam kiritiladi.</div>
+                </div>
+
+                <!-- Hech biri tanlanmagan -->
+                <div class="cp-doc-empty" id="doc-empty">
+                    <i class="bi bi-arrow-up-circle"></i> Yuqoridan hujjat turini tanlang — pasport yoki metrika.
                 </div>
             </div>
         </div>

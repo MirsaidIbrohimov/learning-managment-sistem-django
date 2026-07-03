@@ -139,7 +139,47 @@ class AIGenerateView(QuizStaffRequiredMixin, TemplateView):
                 context['quiz_title'] = quiz.title
                 context['lesson_title'] = quiz.lesson.title if quiz.lesson_id else ''
         context['ai_configured'] = is_ai_configured()
+        context['transcript_courses_json'] = self._build_transcript_courses_json()
         return context
+
+    def _build_transcript_courses_json(self):
+        """Bo'lim transkriptidan test yaratish uchun kurs+bo'lim ma'lumoti.
+
+        Ustoz faqat o'z kurslarini, admin/yordamchi barcha kurslarni ko'radi.
+        Har bir bo'lim uchun order saqlanadi (frontend "shu va oldingi" mantiqni
+        tushuntirish uchun ishlatishi mumkin)."""
+        import json
+
+        from accounts.models import Profession, Section
+
+        user = self.request.user
+        professions = Profession.objects.all().order_by('name')
+        if not (user.is_admin or getattr(user, 'is_assistant_admin', False)):
+            professions = professions.filter(teachers=user)
+
+        prof_ids = list(professions.values_list('id', flat=True))
+        sections = (
+            Section.objects
+            .filter(profession_id__in=prof_ids, is_active=True)
+            .order_by('order', 'created_at')
+            .values('id', 'title', 'order', 'profession_id')
+        )
+        sections_by_prof = {}
+        for s in sections:
+            sections_by_prof.setdefault(s['profession_id'], []).append({
+                'id': s['id'], 'title': s['title'], 'order': s['order'],
+            })
+
+        courses = [
+            {
+                'id': p.id,
+                'name': p.name,
+                'sections': sections_by_prof.get(p.id, []),
+            }
+            for p in professions
+            if sections_by_prof.get(p.id)
+        ]
+        return json.dumps(courses, ensure_ascii=False)
 
 
 class ImportView(QuizStaffRequiredMixin, TemplateView):

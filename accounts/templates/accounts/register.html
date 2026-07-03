@@ -192,7 +192,7 @@ html,body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:va
         </div>
       </div>
 
-      <form method="POST">
+      <form method="POST" id="rgForm" novalidate>
         {% csrf_token %}
         {{ form.role }}
 
@@ -308,8 +308,62 @@ html,body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:va
     document.getElementById('rgP'+n).classList.add('active');
   }
 
-  window.rgGo=function(n){showStep(n);window.scrollTo({top:0,behavior:'smooth'})};
+  /* ── Client-side validation ─────────────────────────
+     Multi-step form: step 1 hidden bo'lganida `required` bo'lgan email/username
+     inputiga brauzer fokus qila olmaydi va konsolga "not focusable" xatosi
+     tushadi. Shuning uchun step o'zgarishida va submit'dan oldin JS'da o'zimiz
+     tekshiramiz. */
+  function rgValidatePanel(panelId){
+    var pnl=document.getElementById(panelId);
+    if(!pnl) return true;
+    // Panel vaqtincha ko'rinadigan qilinadi — aks holda focus() ishlamaydi
+    var wasActive=pnl.classList.contains('active');
+    if(!wasActive) pnl.classList.add('active');
+    var inputs=pnl.querySelectorAll('input:not([type="hidden"]),select,textarea');
+    var firstInvalid=null;
+    inputs.forEach(function(el){
+      var g=el.closest('.rg-fg');
+      var errEl=g?g.querySelector('.rg-ferr'):null;
+      el.classList.remove('has-err');
+      if(!el.checkValidity()){
+        if(!firstInvalid) firstInvalid=el;
+        el.classList.add('has-err');
+        if(g&&!errEl){
+          var d=document.createElement('div');
+          d.className='rg-ferr rg-ferr-js';
+          d.innerHTML='<i class="bi bi-exclamation-circle"></i> '+(el.validationMessage||"Bu maydonni to'ldiring");
+          g.appendChild(d);
+        }
+      }else if(g){
+        // Oldingi JS xatolarini tozalaymiz
+        g.querySelectorAll('.rg-ferr-js').forEach(function(x){x.remove()});
+      }
+    });
+    if(!wasActive&&!firstInvalid) pnl.classList.remove('active');
+    if(firstInvalid){
+      firstInvalid.focus({preventScroll:false});
+      return false;
+    }
+    return true;
+  }
+
+  window.rgGo=function(n){
+    // Oldinga (2 ga) o'tishda step 1 ni tekshiramiz
+    if(n>1 && !rgValidatePanel('rgP1')) return;
+    showStep(n);
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
   showStep(INIT);
+
+  // Submit paytida — har ikkala panel tekshiriladi. Step 1 xato bo'lsa,
+  // avval step 1 ga qaytamiz va yuborishni to'xtatamiz.
+  var rgForm=document.getElementById('rgForm');
+  if(rgForm){
+    rgForm.addEventListener('submit',function(e){
+      if(!rgValidatePanel('rgP1')){ e.preventDefault(); showStep(1); return; }
+      if(!rgValidatePanel('rgP2')){ e.preventDefault(); showStep(2); return; }
+    });
+  }
 
   window.rgTogglePw=function(id,btn){
     var inp=document.getElementById(id);if(!inp)return;

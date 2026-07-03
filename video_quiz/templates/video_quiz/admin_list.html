@@ -1,0 +1,188 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Video Mid Quiz - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<style>
+.vqa-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 1.4rem; }
+.vqa-stat { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e7eb); border-radius: 16px; padding: 1rem 1.1rem; }
+.vqa-stat b { display: block; font-size: 1.3rem; font-weight: 800; }
+.vqa-stat span { font-size: .7rem; font-weight: 700; color: var(--bs-secondary-color); text-transform: uppercase; letter-spacing: .04em; }
+.vqa-card { background: var(--card-bg,#fff); border: 1px solid var(--border-color,#e5e7eb); border-radius: 18px; padding: 1.1rem 1.25rem; }
+.vqa-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem; }
+.vqa-filters select, .vqa-filters input { max-width: 200px; }
+.vqa-bar { width: 90px; height: 6px; border-radius: 3px; background: rgba(239,68,68,.25); overflow: hidden; display: inline-block; vertical-align: middle; }
+.vqa-bar i { display: block; height: 100%; background: linear-gradient(90deg,#10b981,#34d399); }
+</style>
+
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:1.2rem;">
+    <div>
+        <h4 style="font-weight:800;margin:0;"><i class="bi bi-play-circle-fill" style="color:#6366f1;"></i> Video Mid Quiz</h4>
+        <small style="color:var(--bs-secondary-color);">Video ichidagi barcha interaktiv testlar — {{ total_count }} ta</small>
+    </div>
+</div>
+
+<!-- Umumiy statistika -->
+<div class="vqa-stats">
+    <div class="vqa-stat"><b>{{ total_count }}</b><span>Jami testlar</span></div>
+    <div class="vqa-stat"><b>{{ agg.total|default:0 }}</b><span>Urinishlar</span></div>
+    <div class="vqa-stat"><b style="color:#10b981;">{{ agg.correct|default:0 }}</b><span>To'g'ri javoblar</span></div>
+    <div class="vqa-stat"><b style="color:#10b981;">+{{ agg.coins_plus|default:0 }}</b><span>Berilgan coin</span></div>
+    <div class="vqa-stat"><b style="color:#ef4444;">{{ agg.coins_minus|default:0 }}</b><span>Olingan coin</span></div>
+    <div class="vqa-stat"><b>{{ total_income }}</b><span>Ustoz daromadi (so'm)</span></div>
+</div>
+
+<!-- Analitika grafiklari (#8) — statistika vizual ko'rinishda -->
+<div class="vqa-card" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem;margin-bottom:1.4rem;">
+    <div>
+        <div style="font-weight:800;font-size:.85rem;margin-bottom:.6rem;">
+            <i class="bi bi-pie-chart-fill" style="color:#10b981;"></i> To'g'ri / Noto'g'ri javoblar
+        </div>
+        <div style="position:relative;height:220px;"><canvas id="vqaDonut"></canvas></div>
+    </div>
+    <div>
+        <div style="font-weight:800;font-size:.85rem;margin-bottom:.6rem;">
+            <i class="bi bi-bar-chart-fill" style="color:#6366f1;"></i> Coin harakati (berilgan / olingan)
+        </div>
+        <div style="position:relative;height:220px;"><canvas id="vqaBar"></canvas></div>
+    </div>
+</div>
+
+<div class="vqa-card">
+    <!-- Filtrlar -->
+    <form method="get" class="vqa-filters">
+        <select name="teacher" class="form-select form-select-sm">
+            <option value="">— Ustoz —</option>
+            {% for t in teachers %}
+            <option value="{{ t.pk }}" {% if f_teacher == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.get_full_name|default:t.username }}</option>
+            {% endfor %}
+        </select>
+        <select name="course" class="form-select form-select-sm">
+            <option value="">— Kurs —</option>
+            {% for p in professions %}
+            <option value="{{ p.pk }}" {% if f_course == p.pk|stringformat:"s" %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-select form-select-sm">
+            <option value="">— Holat —</option>
+            <option value="active" {% if f_status == 'active' %}selected{% endif %}>Faol</option>
+            <option value="inactive" {% if f_status == 'inactive' %}selected{% endif %}>O'chiq</option>
+        </select>
+        <input type="text" name="q" value="{{ f_q }}" placeholder="Qidirish: savol, video, ustoz..." class="form-control form-control-sm" style="max-width:260px;">
+        <button class="btn btn-sm btn-primary"><i class="bi bi-funnel"></i> Filtr</button>
+        {% if f_teacher or f_course or f_status or f_q %}
+        <a href="{% url 'video_quiz:admin_list' %}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+    </form>
+
+    <!-- Jadval -->
+    <div class="table-responsive">
+        <table class="table table-sm align-middle" style="font-size:.83rem;min-width:1000px;">
+            <thead>
+                <tr style="font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;">
+                    <th>ID</th><th>Video</th><th>Kurs</th><th>Ustoz</th><th>Savol</th>
+                    <th>Vaqt</th><th>Coin +/-</th>
+                    <th>Urinish</th><th>To'g'ri %</th><th>Holat</th><th>Sana</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td>#{{ r.quiz.pk }}</td>
+                    <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ r.quiz.video.lesson.title }}">{{ r.quiz.video.lesson.title }}</td>
+                    <td>{{ r.quiz.video.lesson.profession.name|truncatechars:22 }}</td>
+                    <td>{{ r.quiz.created_by.get_full_name|default:"—" }}</td>
+                    <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{{ r.quiz.question }}">{{ r.quiz.question }}</td>
+                    <td><code>{{ r.quiz.trigger_label }}</code></td>
+                    <td><span style="color:#10b981;">+{{ r.quiz.reward_coin }}</span> / <span style="color:#ef4444;">-{{ r.quiz.penalty_coin }}</span></td>
+                    <td class="text-center">{{ r.stats.attempts }}</td>
+                    <td>
+                        <span class="vqa-bar"><i style="width:{{ r.stats.correct_pct }}%"></i></span>
+                        <small style="font-weight:700;">{{ r.stats.correct_pct }}%</small>
+                    </td>
+                    <td>
+                        {% if r.quiz.is_active %}<span class="badge bg-success">Faol</span>
+                        {% else %}<span class="badge bg-secondary">O'chiq</span>{% endif %}
+                    </td>
+                    <td><small>{{ r.quiz.created_at|date:"d.m.Y" }}</small></td>
+                    <td>
+                        <a href="{% url 'video_quiz:teacher_manager' r.quiz.video_id %}" class="btn btn-sm btn-outline-primary" title="Boshqarish">
+                            <i class="bi bi-sliders"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="12" class="text-center py-4 text-muted">Testlar topilmadi</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="d-flex justify-content-center gap-2 mt-3">
+        {% if page_obj.has_previous %}
+        <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.previous_page_number }}&teacher={{ f_teacher }}&course={{ f_course }}&status={{ f_status }}&q={{ f_q }}">&laquo;</a>
+        {% endif %}
+        <span class="btn btn-sm disabled">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+        <a class="btn btn-sm btn-outline-secondary" href="?page={{ page_obj.next_page_number }}&teacher={{ f_teacher }}&course={{ f_course }}&status={{ f_status }}&q={{ f_q }}">&raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+<!-- Chart.js — loyihada allaqachon ishlatiladigan versiya (statistics.html bilan bir xil) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    'use strict';
+    // Chart.js yuklanmagan bo'lsa (CDN yo'q) — jimgina chiqamiz, sahifa buzilmaydi
+    if (typeof Chart === 'undefined') return;
+
+    // Agregat qiymatlar server tomonidan hisoblangan (N+1 siz)
+    var total   = {{ agg.total|default:0 }};
+    var correct = {{ agg.correct|default:0 }};
+    var wrong   = Math.max(0, total - correct);
+    var given   = {{ agg.coins_plus|default:0 }};
+    var removed = Math.abs({{ agg.coins_minus|default:0 }});
+
+    // Dark/Light mode uchun matn/panjara ranglari
+    var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    Chart.defaults.color = dark ? '#94a3b8' : '#475569';
+    var gridColor = dark ? 'rgba(148,163,184,.15)' : 'rgba(15,23,42,.08)';
+
+    var donut = document.getElementById('vqaDonut');
+    if (donut) {
+        new Chart(donut, {
+            type: 'doughnut',
+            data: {
+                labels: ["To'g'ri", "Noto'g'ri"],
+                datasets: [{ data: [correct, wrong], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }],
+            },
+            options: { cutout: '68%', plugins: { legend: { position: 'bottom' } } },
+        });
+    }
+
+    var bar = document.getElementById('vqaBar');
+    if (bar) {
+        new Chart(bar, {
+            type: 'bar',
+            data: {
+                labels: ['Berilgan', 'Olingan'],
+                datasets: [{ data: [given, removed], backgroundColor: ['#10b981', '#ef4444'], borderRadius: 8, barThickness: 54 }],
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor } },
+                    x: { grid: { display: false } },
+                },
+            },
+        });
+    }
+})();
+</script>
+{% endblock %}
+
+{# Bu fayl: admin uchun barcha video testlar — filtrlar, qidiruv, statistika #}
+{# ustunlari + analitika grafiklari (Chart.js: to'g'ri/noto'g'ri, coin harakati). #}

@@ -654,19 +654,27 @@ class StudentProfileCompleteForm(forms.ModelForm):
         label="Millati"
     )
     
-    # Passport fields
+    # ── Hujjat: pasport YOKI metrika (bittasi yetarli) ──
+    document_type = forms.ChoiceField(
+        required=False,
+        choices=[('', 'Tanlang...')] + list(CustomUser.DOCUMENT_TYPE_CHOICES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Hujjat turi",
+    )
+
+    # Passport fields (pasport tanlanganda majburiy — clean() da tekshiriladi)
     passport_series = forms.CharField(
-        max_length=10,
+        required=False, max_length=10,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA'}),
         label="Pasport seriyasi"
     )
     passport_number = forms.CharField(
-        max_length=20,
+        required=False, max_length=20,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1234567'}),
         label="Pasport raqami"
     )
     jshshir = forms.CharField(
-        max_length=14,
+        required=False, max_length=14,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '12345678901234'}),
         label="JSHSHIR (PINFL)"
     )
@@ -674,6 +682,18 @@ class StudentProfileCompleteForm(forms.ModelForm):
         required=False,
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
         label="Pasport berilgan sana"
+    )
+
+    # Metrika fields (metrika tanlanganda majburiy — JSHSHIR bo'lmaydi)
+    metrka_series = forms.CharField(
+        required=False, max_length=10,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'I-GZ'}),
+        label="Metrika seriyasi"
+    )
+    metrka_number = forms.CharField(
+        required=False, max_length=20,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '123456'}),
+        label="Metrika raqami"
     )
     
     # Parent fields
@@ -738,7 +758,9 @@ class StudentProfileCompleteForm(forms.ModelForm):
         model = CustomUser
         fields = [
             'first_name', 'last_name', 'birth_date', 'gender', 'nationality',
+            'document_type',
             'passport_series', 'passport_number', 'jshshir', 'passport_issued_date',
+            'metrka_series', 'metrka_number',
             'father_name', 'father_phone', 'father_deceased',
             'mother_name', 'mother_phone', 'mother_deceased',
             'parent_phone',
@@ -752,10 +774,37 @@ class StudentProfileCompleteForm(forms.ModelForm):
         return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
 
     def clean_jshshir(self):
-        jshshir = self.cleaned_data.get('jshshir', '').strip()
-        if not jshshir.isdigit() or len(jshshir) != 14:
+        # JSHSHIR faqat kiritilgan bo'lsa tekshiriladi (metrikada JSHSHIR bo'lmaydi).
+        jshshir = (self.cleaned_data.get('jshshir') or '').strip()
+        if jshshir and (not jshshir.isdigit() or len(jshshir) != 14):
             raise forms.ValidationError("JSHSHIR 14 ta raqamdan iborat bo'lishi kerak!")
         return jshshir
+
+    def clean(self):
+        """Hujjat turiga qarab (pasport yoki metrika) mos maydonlarni tekshiradi.
+
+        - Pasport: seriya + raqam + JSHSHIR majburiy.
+        - Metrika: seriya + raqam majburiy (JSHSHIR yo'q).
+        Hujjat turi tanlanmagan bo'lsa hujjat maydonlari majburiy emas — ammo
+        bunday holatda profil "to'ldirilmagan" bo'lib qoladi (foydalanuvchi skip qilishi mumkin).
+        """
+        cleaned = super().clean()
+        doc_type = cleaned.get('document_type')
+
+        if doc_type == 'passport':
+            if not cleaned.get('passport_series'):
+                self.add_error('passport_series', "Pasport seriyasi majburiy.")
+            if not cleaned.get('passport_number'):
+                self.add_error('passport_number', "Pasport raqami majburiy.")
+            if not cleaned.get('jshshir'):
+                self.add_error('jshshir', "Pasport uchun JSHSHIR majburiy.")
+        elif doc_type == 'metrka':
+            if not cleaned.get('metrka_series'):
+                self.add_error('metrka_series', "Metrika seriyasi majburiy (masalan: I-GZ).")
+            if not cleaned.get('metrka_number'):
+                self.add_error('metrka_number', "Metrika raqami majburiy.")
+
+        return cleaned
 
     def clean_parent_phone(self):
         phone = self.cleaned_data.get('parent_phone', '').strip()
