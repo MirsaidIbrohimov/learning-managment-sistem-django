@@ -1251,9 +1251,9 @@ function _computeAiMove() {
     } else {
         // QIYIN: super-grandmaster darajasi — insonni yengish deyarli imkonsiz.
         // LMR + check-extension + null-move R=4 bilan amalda cheksiz chuqurlik,
-        // 30 soniya byudjet. TT cache o'yindan o'yinga saqlanadi.
-        _qSearchDepth = 16;
-        const cfg = { maxDepth: 50, timeMs: 30000, window: 0 };
+        // ~11 soniya byudjet (o'yin ravon, kuch grandmaster darajasida). TT cache saqlanadi.
+        _qSearchDepth = 12;
+        const cfg = { maxDepth: 50, timeMs: 11000, window: 0 };
         chosen = _searchBestMove(board, color, enPassantTarget, cfg) || _orderMoves(board, moves)[0];
     }
 
