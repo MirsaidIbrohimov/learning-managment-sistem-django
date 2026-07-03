@@ -12,6 +12,7 @@ Dizayn:
 from __future__ import annotations
 
 import json
+import random
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -81,12 +82,36 @@ def generate_video_quizzes(
     for raw in items:
         q = _normalise(raw)
         if q is not None:
+            # AI ko'pincha to'g'ri javobni A ga qo'yib qo'yadi (position bias).
+            # Prompt'dagi ko'rsatmalarni kuchaytirish uchun mazmunni saqlab
+            # variantlarni tasodifiy joyga aralashtiramiz: correct_option ham
+            # unga mos yangi harfga o'tadi.
+            _shuffle_options(q)
             questions.append(q)
 
     if not questions:
         return [], "AI hech qanday yaroqli savol qaytarmadi. Qayta urinib ko'ring."
 
     return questions[:count], None
+
+
+def _shuffle_options(q: Dict[str, Any]) -> None:
+    """`q` lug'atidagi 4 variantni tasodifiy tartiblab, correct_option'ni
+    yangi joyiga mos yozadi. Joyida (in-place) ishlaydi.
+
+    Bir marta uniform shuffle: to'g'ri javob 25% ehtimol bilan har bir harfga
+    tushadi (A, B, C, D bir xil taqsimlanadi).
+    """
+    letters = ['A', 'B', 'C', 'D']
+    values = [q['option_a'], q['option_b'], q['option_c'], q['option_d']]
+    correct_val = values[letters.index(q['correct_option'])]
+
+    order = list(range(4))
+    random.shuffle(order)
+    new_values = [values[i] for i in order]
+
+    q['option_a'], q['option_b'], q['option_c'], q['option_d'] = new_values
+    q['correct_option'] = letters[new_values.index(correct_val)]
 
 
 # ── Prompt ──────────────────────────────────────────────────────────────────
@@ -119,6 +144,10 @@ def _build_prompt(transcript, count, difficulty, context) -> List[Dict[str, str]
         f"- Aynan {count} ta savol yarat (agar transkript yetarli bo'lsa).\n"
         f"- Har bir savolda 4 ta variant (A, B, C, D) va aynan BITTA to'g'ri javob.\n"
         f"- correct_option faqat 'A', 'B', 'C' yoki 'D' bo'lsin.\n"
+        f"- MUHIM: to'g'ri javobni har xil harflarga TAQSIMLA — A, B, C va D "
+        f"harflari taxminan teng miqdorda bo'lishi kerak. Har doim A ni "
+        f"tanlama! Savollar ro'yxatidagi correct_option qiymatlari aralash "
+        f"bo'lsin (masalan: B, D, A, C, B, ...).\n"
         f"- Variantlar bir-biridan farqli, takror matn yo'q.\n"
         f"- 'yuqoridagilarning barchasi' kabi tanbal variantlardan foydalanma.\n"
         f"- Savollar transkript mazmuniga asoslansin.\n"

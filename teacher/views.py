@@ -1983,9 +1983,9 @@ def teacher_earnings(request):
     VIDEO_PRICE = 25000
     TEST_PRICE = 10000
     HOMEWORK_PRICE = 10000
-    VIDEO_QUIZ_PRICE = 3000  # video ichidagi har bir test uchun
+    VIDEO_QUIZ_PRICE = 3000  # har bir video uchun (5+ test qo'shilganda bir marta)
 
-    from video_quiz.models import VideoQuiz
+    from video_quiz.models import TeacherVideoIncome
 
     # Joriy oy va o'tgan oy
     current_month_start = date(now.year, now.month, 1)
@@ -2033,18 +2033,20 @@ def teacher_earnings(request):
         hw_count = hw_lessons.count()
         hw_list = list(hw_lessons.values('id', 'title', 'profession__name', 'created_at'))
 
-        # Video ichidagi testlar (har biri 3000 so'm)
-        video_quizzes = VideoQuiz.objects.filter(
-            created_by=user,
+        # Video ichidagi testlar daromadi — VIDEO bo'yicha bir martalik
+        # (ustoz bitta videoga 5+ test qo'shganda 3000 so'm, har savolga emas).
+        # Manba: TeacherVideoIncome (haqiqiy hisoblangan daromad yozuvlari).
+        vq_incomes = TeacherVideoIncome.objects.filter(
+            teacher=user,
             created_at__gte=month_start,
             created_at__lt=month_end,
         ).select_related('video__lesson__profession')
-        vq_count = video_quizzes.count()
-        vq_list = list(video_quizzes.values(
-            'id', 'question',
+        vq_count = vq_incomes.count()
+        vq_list = list(vq_incomes.values(
+            'id', 'amount',
             'video__lesson__title', 'video__lesson__profession__name', 'created_at',
         ))
-        vq_total = vq_count * VIDEO_QUIZ_PRICE
+        vq_total = vq_incomes.aggregate(s=Sum('amount'))['s'] or 0
 
         video_total = video_count * VIDEO_PRICE
         test_total = test_count * TEST_PRICE

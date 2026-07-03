@@ -46,7 +46,24 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
 .vqp-coins { margin-left: auto; text-align: right; font-size: .7rem; font-weight: 800; }
 .vqp-coins .p { color: #34d399; } .vqp-coins .m { color: #f87171; }
 .vqp-progress { height: 3px; background: rgba(129,140,248,.15); }
-.vqp-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #6366f1, #38bdf8); transition: width .3s ease; }
+.vqp-progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #6366f1, #38bdf8); transition: width .3s linear; }
+.vqp-progress.warn i { background: linear-gradient(90deg,#fbbf24,#f97316); }
+.vqp-progress.danger i { background: linear-gradient(90deg,#f97316,#ef4444); }
+/* Countdown chip */
+.vqp-timer {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(129,140,248,.14); color: #a5b4fc;
+    padding: .35rem .7rem; border-radius: 999px;
+    font-size: .8rem; font-weight: 800; margin-left: 10px;
+    font-variant-numeric: tabular-nums;
+    transition: color .25s, background .25s, transform .2s;
+}
+.vqp-timer.warn { color: #fbbf24; background: rgba(251,191,36,.14); }
+.vqp-timer.danger {
+    color: #f87171; background: rgba(248,113,113,.16);
+    animation: vqpTimerPulse .7s ease-in-out infinite;
+}
+@keyframes vqpTimerPulse { 50% { transform: scale(1.08); } }
 .vqp-body { padding: 1.3rem 1.5rem 1.5rem; }
 .vqp-q { font-size: 1.02rem; font-weight: 800; line-height: 1.45; margin-bottom: .4rem; }
 .vqp-desc { font-size: .8rem; color: rgba(148,163,184,.9); margin-bottom: 1rem; }
@@ -130,6 +147,10 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
                 <span class="p">✓ +<span id="vqpRew">3</span> coin</span><br>
                 <span class="m">✗ -<span id="vqpPen">5</span> coin</span>
             </div>
+            <div class="vqp-timer" id="vqpTimer" title="Javob berish uchun qolgan vaqt">
+                <i class="bi bi-stopwatch-fill"></i>
+                <span id="vqpTimerTxt">0:35</span>
+            </div>
         </div>
         <div class="vqp-progress"><i id="vqpProg"></i></div>
         <div class="vqp-body">
@@ -163,13 +184,17 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     const API_LIST = "{% url 'video_quiz:api_player_quizzes' video.pk %}";
     const API_SUBMIT = "{% url 'video_quiz:api_player_submit' %}";
     const CSRF = '{{ csrf_token }}';
+    // Har savolga javob berish uchun beriladigan vaqt (soniya).
+    const ANSWER_LIMIT_SEC = 35;
 
     let quizzes = [];
     let current = null;
     let openedAt = 0;
     let modalOpen = false;
     let selected = null;
-    let progTimer = null;
+    let progTimer = null;      // 1 soniyalik countdown intervali
+    let secondsLeft = 0;       // qolgan vaqt (soniya)
+    let timedOut = false;      // shu savol vaqt tugab avtomatik yopilganmi
 
     const overlay = document.getElementById('vqpOverlay');
     const box = document.getElementById('vqpBox');
@@ -266,6 +291,93 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('show'); }, 2600);
     }
 
+    /* ---------- Countdown ---------- */
+    function fmtSec(s) {
+        s = Math.max(0, Math.floor(s));
+        const m = Math.floor(s / 60);
+        return m + ':' + (s % 60).toString().padStart(2, '0');
+    }
+    function updateTimerUI() {
+        const chip = document.getElementById('vqpTimer');
+        const txt = document.getElementById('vqpTimerTxt');
+        const prog = document.getElementById('vqpProg');
+        const progWrap = prog.parentElement;
+        if (txt) txt.textContent = fmtSec(secondsLeft);
+        chip.classList.remove('warn', 'danger');
+        progWrap.classList.remove('warn', 'danger');
+        if (secondsLeft <= 5) {
+            chip.classList.add('danger'); progWrap.classList.add('danger');
+        } else if (secondsLeft <= 15) {
+            chip.classList.add('warn'); progWrap.classList.add('warn');
+        }
+        // Progress bar 0 -> 100% ni to'ldirib boradi (kamayib emas)
+        const elapsed = ANSWER_LIMIT_SEC - secondsLeft;
+        prog.style.width = Math.min(100, (elapsed / ANSWER_LIMIT_SEC) * 100) + '%';
+    }
+    function startCountdown() {
+        clearInterval(progTimer);
+        timedOut = false;
+        secondsLeft = ANSWER_LIMIT_SEC;
+        updateTimerUI();
+        progTimer = setInterval(function() {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+                clearInterval(progTimer);
+                secondsLeft = 0;
+                updateTimerUI();
+                onTimeout();
+                return;
+            }
+            updateTimerUI();
+        }, 1000);
+    }
+    function stopCountdown() {
+        clearInterval(progTimer);
+    }
+
+    /* Vaqt tugadi — jarima qo'yib, modalni yopamiz. Serverga selected=null
+       yuboriladi; api_player_submit uni "noto'g'ri" deb qabul qilib penalty
+       oladi (agar backend qabul qilmasa ham, oldingi finishQuiz oqimi mavjud). */
+    async function onTimeout() {
+        if (!current || !modalOpen) return;
+        timedOut = true;
+        toast("⏰ Vaqt tugadi — javob berilmadi");
+        // Barcha variantlarni bloklab, to'g'risini ko'rsatamiz (server bilan solishtiramiz).
+        try {
+            const res = await fetch(API_SUBMIT, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json', 'X-CSRFToken': CSRF},
+                body: JSON.stringify({
+                    quiz_id: current.id, selected: null, timeout: true,
+                    answer_ms: Date.now() - openedAt,
+                }),
+            });
+            const data = await res.json();
+            if (!data.error) {
+                const opts = document.querySelectorAll('.vqp-opt');
+                opts.forEach(function(b) {
+                    b.disabled = true;
+                    if (b.dataset.letter === data.correct_option) b.classList.add('correct');
+                });
+                document.getElementById('vqpSubmit').style.display = 'none';
+                const r = document.getElementById('vqpResult');
+                r.style.display = 'block';
+                document.getElementById('vqpResIcon').textContent = '⏰';
+                document.getElementById('vqpResTitle').textContent = "Vaqt tugadi";
+                document.getElementById('vqpResCoin').className = 'coin-fx m';
+                document.getElementById('vqpResCoin').textContent = '🪙 ' + data.coins_change + ' coin (balans: ' + data.balance + ')';
+                const exp = document.getElementById('vqpExplain');
+                if (data.explanation) { exp.textContent = '💡 ' + data.explanation; exp.style.display = 'block'; }
+                else { exp.style.display = 'none'; }
+                soundNo();
+                current.answered = true;
+                return;
+            }
+        } catch (e) { /* fall through */ }
+        // Fallback: xato bo'lsa ham modalni yopib videoni davom ettiramiz
+        finishQuiz();
+    }
+
     /* ---------- Modal ---------- */
     function showQuiz(q) {
         current = q; selected = null; modalOpen = true; openedAt = Date.now();
@@ -298,17 +410,17 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             };
             opts.appendChild(btn);
         });
-        // Progress chizig'i — o'ylash vaqti vizual
-        const prog = document.getElementById('vqpProg');
-        prog.style.width = '0';
-        clearInterval(progTimer);
-        let p = 0;
-        progTimer = setInterval(function(){ p = Math.min(100, p + 1.2); prog.style.width = p + '%'; }, 400);
+        // 35 soniyalik countdown ishga tushiriladi
+        document.getElementById('vqpProg').style.width = '0';
+        document.getElementById('vqpProg').parentElement.classList.remove('warn','danger');
+        startCountdown();
         overlay.classList.add('open');
     }
 
     async function submit() {
         if (!selected || !current) return;
+        // Foydalanuvchi javob berdi — countdown to'xtaydi
+        stopCountdown();
         const btn = document.getElementById('vqpSubmit');
         btn.disabled = true;
         btn.innerHTML = '<span style="display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:vqpPulse .7s linear infinite;"></span> Tekshirilmoqda...';
@@ -372,7 +484,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         if (current) current.answered = true;
         modalOpen = false; current = null;
         overlay.classList.remove('open');
-        clearInterval(progTimer);
+        stopCountdown();
         playVideo();
         // Fullscreen'ni tiklaymiz (user activation "Davom etish" tugmasi orqali kelgan)
         if (_wasFullscreen && _fsElement) {

@@ -65,8 +65,10 @@ def _teacher_or_admin(user):
 def _maybe_award_video_income(user, video):
     """Ustoz shu videoga >=5 test qo'shsa, daromadni BIR MARTA yozadi.
 
-    Daromad endi har test uchun emas, balki VIDEO bo'yicha bir martalik beriladi.
-    (teacher, video) unikal cheklovi + IntegrityError bilan poyga (race) himoyasi.
+    Daromad har test uchun emas, balki VIDEO bo'yicha bir martalik beriladi.
+    Ikki xil himoya:
+      1) DB `UniqueConstraint(teacher, video)` — poyga (race) uchun;
+      2) `get_or_create` — DB'da constraint hali qo'llanmagan hollar uchun.
     Admin qo'shgan testlar uchun daromad yozilmaydi.
     """
     if getattr(user, 'role', None) != 'teacher':
@@ -74,17 +76,24 @@ def _maybe_award_video_income(user, video):
     count = VideoQuiz.objects.filter(video=video, created_by=user).count()
     if count < TEACHER_INCOME_MIN_QUIZZES:
         return
-    if TeacherVideoIncome.objects.filter(teacher=user, video=video).exists():
-        return  # allaqachon berilgan — takror bermaymiz
     try:
-        TeacherVideoIncome.objects.create(
-            teacher=user,
-            video=video,
-            amount=TEACHER_QUIZ_INCOME,
-            note=f"Video uchun {TEACHER_INCOME_MIN_QUIZZES}+ test: {video.lesson.title[:70]}",
-        )
+        # get_or_create — (teacher, video) juftligi mavjud bo'lsa hech nima
+        # yaratmaydi. Bu constraint bo'lmagan holatda ham dublikatni bloklaydi.
+        with transaction.atomic():
+            TeacherVideoIncome.objects.get_or_create(
+                teacher=user,
+                video=video,
+                defaults={
+                    'amount': TEACHER_QUIZ_INCOME,
+                    'note': (
+                        f"Video uchun {TEACHER_INCOME_MIN_QUIZZES}+ test: "
+                        f"{video.lesson.title[:70]}"
+                    ),
+                },
+            )
     except IntegrityError:
-        pass  # bir vaqtda ikki so'rov (race) — allaqachon yozilgan
+        # UniqueConstraint qo'llangan holatda parallel so'rov — allaqachon bor.
+        pass
 
 
 def _quiz_payload(q, stats=None):
@@ -417,7 +426,7 @@ def api_quiz_ai_generate(request, video_id):
     count = max(1, min(count, 20))
     difficulty = (data.get('difficulty') or 'medium').strip()
 
-    transcript, terr, _snips = fetch_transcript_text(video)
+    transcript, terr, snips = fetch_transcript_text(video)
     if terr:
         return JsonResponse({'error': terr}, status=400)
 
@@ -428,7 +437,17 @@ def api_quiz_ai_generate(request, video_id):
         return JsonResponse({'error': gerr}, status=400)
 
     # ── Timeline bo'ylab bo'sh soniyalarga taqsimlash ──
-    duration_seconds = max(60, int(video.duration or 0) * 60)
+    # Videoning HAQIQIY davomiyligini transkript snippetlaridan olamiz —
+    # oxirgi snippet'ning tugash vaqti (start + duration) videoning uzunligiga
+    # eng yaqin ko'rsatkich. DB'dagi `video.duration` (daqiqa) ustoz tomonidan
+    # noto'g'ri kiritilishi mumkin, shuning uchun u faqat fallback sifatida
+    # ishlatiladi (transkript bo'sh chiqqan hollar uchun).
+    real_seconds = 0
+    if snips:
+        last = snips[-1]
+        real_seconds = int(last.get('start', 0) + last.get('duration', 0))
+    fallback_seconds = int(video.duration or 0) * 60
+    duration_seconds = max(60, real_seconds or fallback_seconds)
     taken = set(video.mid_quizzes.values_list('trigger_second', flat=True))
     n = len(questions)
     slots = _distribute_slots(n, duration_seconds, taken)
@@ -640,9 +659,17 @@ def api_player_submit(request):
         quiz_id = int(data.get('quiz_id'))
     except (TypeError, ValueError):
         return JsonResponse({'error': "quiz_id noto'g'ri"}, status=400)
-    selected = (data.get('selected') or '').strip().upper()
-    if selected not in ('A', 'B', 'C', 'D'):
-        return JsonResponse({'error': "Javob tanlanmagan"}, status=400)
+    # `timeout=True` — vaqt tugab avtomatik yuborilgan urinish. Bu holatda
+    # `selected` bo'sh bo'ladi va urinish "noto'g'ri" deb hisoblanadi
+    # (35 soniya ichida javob berilmadi, penalty coin olinadi).
+    is_timeout = bool(data.get('timeout'))
+    raw_selected = (data.get('selected') or '').strip().upper()
+    if is_timeout:
+        selected = ''  # javob berilmadi
+    else:
+        if raw_selected not in ('A', 'B', 'C', 'D'):
+            return JsonResponse({'error': "Javob tanlanmagan"}, status=400)
+        selected = raw_selected
     try:
         answer_ms = max(0, min(3600000, int(data.get('answer_ms') or 0)))
     except (TypeError, ValueError):
@@ -653,7 +680,7 @@ def api_player_submit(request):
     if VideoQuizAttempt.objects.filter(quiz=quiz, student=request.user).exists():
         return JsonResponse({'error': "Siz bu savolga allaqachon javob bergansiz."}, status=400)
 
-    is_correct = selected == quiz.correct_option
+    is_correct = (not is_timeout) and selected == quiz.correct_option
     coins_change = quiz.reward_coin if is_correct else -quiz.penalty_coin
 
     try:
@@ -661,7 +688,7 @@ def api_player_submit(request):
             VideoQuizAttempt.objects.create(
                 quiz=quiz,
                 student=request.user,
-                selected_option=selected,
+                selected_option=selected,  # timeout uchun bo'sh string
                 is_correct=is_correct,
                 coins_change=coins_change,
                 answer_ms=answer_ms,
@@ -672,8 +699,9 @@ def api_player_submit(request):
                     quiz.reward_coin, f"Video test to'g'ri: {quiz.question[:60]}"
                 )
             elif not is_correct and quiz.penalty_coin > 0:
+                reason = "Video test vaqt tugadi" if is_timeout else "Video test noto'g'ri"
                 request.user.remove_coins(
-                    quiz.penalty_coin, f"Video test noto'g'ri: {quiz.question[:60]}"
+                    quiz.penalty_coin, f"{reason}: {quiz.question[:60]}"
                 )
     except IntegrityError:
         return JsonResponse({'error': "Siz bu savolga allaqachon javob bergansiz."}, status=400)
@@ -685,6 +713,7 @@ def api_player_submit(request):
         'correct_option': quiz.correct_option,
         'coins_change': coins_change,
         'balance': request.user.coins,
+        'timeout': is_timeout,
         'explanation': quiz.explanation if not is_correct else '',
     })
 
