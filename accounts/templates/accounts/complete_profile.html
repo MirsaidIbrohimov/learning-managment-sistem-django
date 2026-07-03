@@ -596,7 +596,7 @@
         </div>
         <div class="cp-step" onclick="scrollToSection('section-passport')">
             <div class="cp-step-num">2</div>
-            <div class="cp-step-text">Pasport<small>Seriya, JSHSHIR</small></div>
+            <div class="cp-step-text">Hujjat<small>Pasport yoki metrika</small></div>
         </div>
         <div class="cp-step" onclick="scrollToSection('section-parents')">
             <div class="cp-step-num">3</div>
@@ -629,7 +629,8 @@
         <i class="bi bi-info-circle-fill"></i>
         <div class="cp-alert-text">
             <strong>Eslatma:</strong> <span class="cp-required">Majburiy</span> belgilangan maydonlarni to'ldiring.
-            Pasport seriyasi, raqami va JSHSHIR to'g'ri kiritilganligiga ishonch hosil qiling.
+            Hujjat sifatida <strong>pasport</strong> (seriya, raqam, JSHSHIR) yoki <strong>metrika</strong> (seriya I-GZ, raqam) — bittasini kiriting.
+            Vaqtingiz bo'lmasa, <strong>"Keyinroq to'ldiraman"</strong> tugmasi orqali o'tkazib yuborishingiz mumkin.
         </div>
     </div>
 
@@ -931,8 +932,13 @@
         <!-- ======== SUBMIT ======== -->
         <div class="cp-submit">
             <button type="submit" class="cp-submit-btn">
-                <i class="bi bi-check-circle-fill"></i> Profilni saqlash
+                <i class="bi bi-check-circle-fill"></i> Profilni saqlash va tasdiqlash
             </button>
+            <div>
+                <button type="submit" name="action" value="skip" formnovalidate class="cp-skip-btn">
+                    <i class="bi bi-clock-history"></i> Keyinroq to'ldiraman
+                </button>
+            </div>
             <div class="cp-submit-hint">
                 <i class="bi bi-shield-check"></i> Ma'lumotlaringiz xavfsiz saqlanadi
             </div>
@@ -942,6 +948,25 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ===== Hujjat turi (pasport / metrika) toggle =====
+    (function() {
+        const radios = document.querySelectorAll('input[name="document_type"]');
+        const pass = document.getElementById('doc-passport');
+        const metr = document.getElementById('doc-metrka');
+        const empty = document.getElementById('doc-empty');
+        function upd() {
+            const v = document.querySelector('input[name="document_type"]:checked');
+            const val = v ? v.value : '';
+            if (pass) pass.style.display = (val === 'passport') ? '' : 'none';
+            if (metr) metr.style.display = (val === 'metrka') ? '' : 'none';
+            if (empty) empty.style.display = val ? 'none' : '';
+            document.querySelectorAll('.cp-doc-opt').forEach(function(o) { o.classList.remove('sel'); });
+            if (v) v.closest('.cp-doc-opt').classList.add('sel');
+        }
+        radios.forEach(function(r) { r.addEventListener('change', upd); });
+        upd();
+    })();
+
     // ===== Deceased toggles =====
     const fatherDeceased = document.getElementById('{{ form.father_deceased.id_for_label }}');
     const fatherWrapper = document.getElementById('father-fields-wrapper');

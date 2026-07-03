@@ -465,6 +465,19 @@
 </div>
 
 <script>
+/* UI TUZATISH: position:fixed modallar yordamchi panelidagi backdrop-filter /
+   transform / overflow'li ota-elementga "qamalib" qolib, qalamcha bosilganda
+   noto'g'ri joyda chiqadi (UI buziladi). Modallarni <body> ga ko'chiramiz — shunda
+   ular butun ekranga to'g'ri markazlashadi. */
+document.addEventListener('DOMContentLoaded', function () {
+    ['feeModal', 'topupModal', 'histModal'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.parentElement !== document.body) {
+            document.body.appendChild(el);
+        }
+    });
+});
+
 function fmtNum(n) {
     return String(parseInt(n) || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
