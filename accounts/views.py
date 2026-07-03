@@ -2379,7 +2379,7 @@ def professions_view(request):
     })
 
 
-def _homework_locked_lesson_ids(lessons, completed_lesson_ids):
+def _homework_locked_lesson_ids(lessons, completed_lesson_ids, submitted_homework_lesson_ids=None):
     """
     Given an ordered sequence of lessons (one section's lessons, dictionary
     type already excluded), returns (locked_ids, blocking_lesson): a
@@ -2400,13 +2400,18 @@ def _homework_locked_lesson_ids(lessons, completed_lesson_ids):
     The homework lesson itself is never locked by this -- a student must
     still be able to open it to submit or resubmit.
     """
+    # Vazifa TOPSHIRILGACH (baholanmasa ham) undan keyingi darslar — jumladan
+    # test — ochiladi. Faqat umuman topshirilmagan vazifa keyingilarni bloklaydi.
+    submitted_homework_lesson_ids = submitted_homework_lesson_ids or set()
     locked_ids = set()
     blocking_lesson = None
     for l in lessons:
         if blocking_lesson is not None:
             locked_ids.add(l.pk)
             continue
-        if l.lesson_type == 'homework' and l.pk not in completed_lesson_ids:
+        if (l.lesson_type == 'homework'
+                and l.pk not in completed_lesson_ids
+                and l.pk not in submitted_homework_lesson_ids):
             blocking_lesson = l
     return locked_ids, blocking_lesson
 
@@ -2564,7 +2569,9 @@ def profession_detail(request, pk):
             for hw in hw_submissions:
                 if hw.homework.lesson_id not in latest_hw_submissions:
                     latest_hw_submissions[hw.homework.lesson_id] = hw
-            
+            # Topshirilgan vazifa darslari — test blokidan chiqarish uchun
+            submitted_hw_lesson_ids = set(latest_hw_submissions.keys())
+
             for vid in watched_videos:
                 lesson_progress[vid] = {'completed': True, 'type': 'video'}
             
@@ -2728,7 +2735,7 @@ def profession_detail(request, pk):
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'daily'
             else:
-                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids)
+                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids, submitted_hw_lesson_ids)
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
 
@@ -3513,7 +3520,8 @@ def lesson_view(request, pk):
         # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
         # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
         # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
-        context['homework_approved'] = bool(submission and submission.status in ('accepted', 'graded'))
+        # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
+        context['homework_approved'] = bool(submission)
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
     
@@ -4990,6 +4998,8 @@ def student_course_view(request, token):
         for hw in hw_submissions:
             if hw.homework.lesson_id not in latest_hw:
                 latest_hw[hw.homework.lesson_id] = hw
+        # Topshirilgan vazifa darslari — test blokidan chiqarish uchun
+        submitted_hw_lesson_ids = set(latest_hw.keys())
         for lesson_id, hw in latest_hw.items():
             is_completed = hw.status in ('accepted', 'graded')
             lesson_progress[lesson_id] = {
@@ -5088,7 +5098,7 @@ def student_course_view(request, token):
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'daily'
             else:
-                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids)
+                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids, submitted_hw_lesson_ids)
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
 
@@ -5222,8 +5232,13 @@ def student_lesson_view(request, token):
                 section_lessons_ordered = list(
                     current_section.lessons.exclude(lesson_type='dictionary').order_by('order')
                 )
+                submitted_hw_lesson_ids = set(
+                    HomeworkSubmission.objects.filter(
+                        student=request.user, homework__lesson__profession=profession
+                    ).values_list('homework__lesson_id', flat=True)
+                )
                 homework_locked_ids, blocking_hw_lesson = _homework_locked_lesson_ids(
-                    section_lessons_ordered, completed_lesson_ids,
+                    section_lessons_ordered, completed_lesson_ids, submitted_hw_lesson_ids,
                 )
                 if lesson.pk in homework_locked_ids and blocking_hw_lesson:
                     messages.warning(
@@ -5328,7 +5343,8 @@ def student_lesson_view(request, token):
         # ko'rinmaydi, chunki server tomonida ham xuddi shu qoida
         # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
         # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
-        context['homework_approved'] = bool(submission and submission.status in ('accepted', 'graded'))
+        # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
+        context['homework_approved'] = bool(submission)
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
 
