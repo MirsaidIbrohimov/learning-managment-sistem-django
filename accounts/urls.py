@@ -10,10 +10,6 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
-    # Hujjat tasdig'i (metrika/pasport). "Keyinroq" ham qabul qilinadi,
-    # login qilinganda user ham to'ldirmaguncha yana ochiladi.
-    path('verify/', views.verify_document, name='verify_document'),
-    path('verify/skip/', views.verify_document_skip, name='verify_document_skip'),
     path('device-limit/', views.device_limit_view, name='device_limit'),
     path('device-limit/<int:pk>/force-logout/', views.force_logout_device, name='force_logout_device'),
     

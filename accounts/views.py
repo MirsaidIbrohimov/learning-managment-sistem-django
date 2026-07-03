@@ -498,11 +498,9 @@ def register_view(request):
                 f"🎓 {user.get_role_display()}\n\n"
                 f"🚀 Xush kelibsiz!"
             )
-            messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi hujjatingizni tasdiqlab olishingiz mumkin.")
-            # Auto-login qilingan — endi hujjat tasdig'i sahifasiga o'tkazamiz.
-            # Foydalanuvchi "Keyinroq" tugmasini bosishi ham mumkin, lekin
-            # keyingi loginlarda ham qayta so'raladi (verify_gate middleware).
-            return redirect('verify_document')
+            messages.success(request, "Ro'yxatdan muvaffaqiyatli o'tdingiz! Endi profilingizni to'ldiring.")
+            # Auto-login qilingan — profilni to'ldirish (hujjat tasdig'i bilan) sahifasiga.
+            return redirect('complete_profile')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -511,126 +509,6 @@ def register_view(request):
         form = RegisterForm()
 
     return render(request, 'accounts/register.html', {'form': form})
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Hujjat tasdig'i (Pasport / Metrika)
-# ─────────────────────────────────────────────────────────────────────────────
-# Yangi ro'yxatdan o'tgan yoki hali `is_verified=False` bo'lgan foydalanuvchini
-# shu sahifaga yo'naltiramiz. Ikki hujjat turi bor:
-#   • Pasport / ID  — seriya (masalan AA) + raqam (7 xonali) + JSHSHIR (14 xonali)
-#   • Metrika       — seriya (masalan I-GZ) + raqam.   JSHSHIR SO'RALMAYDI.
-# Foydalanuvchi "Keyinroq" ham bosishi mumkin: bu safarga o'tkazamiz, ammo
-# keyingi loginda yana bir marta sahifa ochiladi (verify_gate middleware).
-# ─────────────────────────────────────────────────────────────────────────────
-@login_required
-def verify_document(request):
-    user = request.user
-    if user.is_verified:
-        # Allaqachon tasdiqlangan — bekor qilib home ga.
-        request.session.pop('verify_skipped', None)
-        return redirect('home')
-
-    if request.method == 'POST':
-        doc_type = (request.POST.get('document_type') or '').strip()
-
-        if doc_type == 'passport':
-            series = (request.POST.get('passport_series') or '').strip().upper()
-            number = (request.POST.get('passport_number') or '').strip()
-            jshshir = (request.POST.get('jshshir') or '').strip()
-
-            errors = {}
-            if not series or len(series) < 2:
-                errors['passport_series'] = "Seriyani kiriting (masalan: AA)"
-            if not number or not number.isdigit() or len(number) < 6:
-                errors['passport_number'] = "Raqamni kiriting (kamida 6 raqam)"
-            if not jshshir or not jshshir.isdigit() or len(jshshir) != 14:
-                errors['jshshir'] = "JSHSHIR aynan 14 raqamdan iborat bo'lishi kerak"
-
-            if errors:
-                return render(request, 'accounts/verify.html', {
-                    'active_tab': 'passport',
-                    'errors': errors,
-                    'values': {
-                        'passport_series': series,
-                        'passport_number': number,
-                        'jshshir': jshshir,
-                    },
-                })
-
-            user.document_type = 'passport'
-            user.passport_series = series
-            user.passport_number = number
-            user.jshshir = jshshir
-            # Metrika maydonlarini tozalaymiz (agar avval to'ldirilgan bo'lsa)
-            user.metrka_series = None
-            user.metrka_number = None
-            user.is_verified = True
-            user.save(update_fields=[
-                'document_type', 'passport_series', 'passport_number',
-                'jshshir', 'metrka_series', 'metrka_number', 'is_verified',
-            ])
-            request.session.pop('verify_skipped', None)
-            messages.success(request, "Hujjatingiz muvaffaqiyatli tasdiqlandi ✅")
-            return redirect('home')
-
-        elif doc_type == 'metrka':
-            series = (request.POST.get('metrka_series') or '').strip().upper()
-            number = (request.POST.get('metrka_number') or '').strip()
-
-            errors = {}
-            if not series:
-                errors['metrka_series'] = "Seriyani kiriting (masalan: I-GZ)"
-            if not number:
-                errors['metrka_number'] = "Raqamni kiriting"
-
-            if errors:
-                return render(request, 'accounts/verify.html', {
-                    'active_tab': 'metrka',
-                    'errors': errors,
-                    'values': {
-                        'metrka_series': series,
-                        'metrka_number': number,
-                    },
-                })
-
-            user.document_type = 'metrka'
-            user.metrka_series = series
-            user.metrka_number = number
-            # Pasport maydonlarini tozalaymiz — metrikada JSHSHIR yo'q.
-            user.passport_series = None
-            user.passport_number = None
-            user.jshshir = None
-            user.is_verified = True
-            user.save(update_fields=[
-                'document_type', 'metrka_series', 'metrka_number',
-                'passport_series', 'passport_number', 'jshshir', 'is_verified',
-            ])
-            request.session.pop('verify_skipped', None)
-            messages.success(request, "Hujjatingiz muvaffaqiyatli tasdiqlandi ✅")
-            return redirect('home')
-
-        else:
-            messages.error(request, "Iltimos hujjat turini tanlang")
-
-    return render(request, 'accounts/verify.html', {
-        'active_tab': 'passport',
-        'errors': {},
-        'values': {},
-    })
-
-
-@login_required
-def verify_document_skip(request):
-    """
-    "Keyinroq" tugmasi. Sessiya davomida foydalanuvchini ushbu sahifaga qaytadan
-    yo'naltirmaymiz — lekin logout/qayta login qilganda yana ochiladi.
-    """
-    if request.user.is_verified:
-        return redirect('home')
-    request.session['verify_skipped'] = True
-    return redirect('home')
-
 
 
 def _login_render(request, form, login_mode):
@@ -1112,19 +990,11 @@ def login_view(request):
         # AI yordamchi reklama (har safar login qilganda)
         request.session['show_ai_ad'] = True
 
-        # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgilarini tozalaymiz
+        # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgisini tozalaymiz
         request.session.pop('profile_verify_skipped', None)
-        # Hujjat tasdig'i (verify) skip belgisini ham tozalaymiz — foydalanuvchi
-        # avvalgi sessiyada "Keyinroq" bosgan bo'lsa ham, endi yana bir marta
-        # so'ralishi kerak.
-        request.session.pop('verify_skipped', None)
-
-        # 🪪 Hujjat tasdig'i — yangi ro'yxatdan o'tgan yoki hali `is_verified=False`
-        # bo'lgan foydalanuvchini verify sahifasiga yo'naltiramiz.
-        if user.role == 'student' and not user.is_verified:
-            return redirect('verify_document')
 
         # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
+        # (hujjat tasdig'i — pasport yoki metrika — shu formaning ichida)
         if user.role == 'student' and not user.is_profile_completed:
             return redirect('complete_profile')
 
@@ -6853,9 +6723,20 @@ def admin_payments(request):
     )
     missing_records = all_student_ids - existing_record_ids
     if missing_records:
-        fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_records)}
+        # 🔁 Carryover: yangi oy summasi OLDINGI oy yozuvidan meros olinadi
+        # (bo'lmasa PaymentStatus.monthly_fee, u ham bo'lmasa 200000). Shunda
+        # ustoz/admin har oy oylik summani qayta kiritmaydi — sozlama o'zi ko'chadi.
+        _prev_m, _prev_y = (12, selected_year - 1) if selected_month == 1 else (selected_month - 1, selected_year)
+        prev_fees = dict(
+            PaymentRecord.objects.filter(month=_prev_m, year=_prev_y, user_id__in=missing_records)
+            .values_list('user_id', 'amount')
+        )
+        ps_fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_records)}
         PaymentRecord.objects.bulk_create([
-            PaymentRecord(user_id=uid, month=selected_month, year=selected_year, amount=fees.get(uid, 200000))
+            PaymentRecord(
+                user_id=uid, month=selected_month, year=selected_year,
+                amount=prev_fees.get(uid) or ps_fees.get(uid) or 200000,
+            )
             for uid in missing_records
         ], ignore_conflicts=True)
 
@@ -6883,6 +6764,26 @@ def admin_payments(request):
     students_list = list(qs.order_by('first_name', 'last_name'))
     for s in students_list:
         s.current_record = records_dict.get(s.pk)
+
+    # 🔝 Saralash: to'lovi belgilanmagan (to'lanmagan) va to'lov sanasi
+    # yaqinlashayotgan o'quvchilar avtomatik TEPA qatorlarda turadi;
+    # to'lagani belgilanganlar pastga tushadi.
+    from datetime import date as _date
+    from .models import StudentBalance as _SB
+    _today = _date.today()
+    _bal_dates = dict(
+        _SB.objects.filter(user_id__in=[s.pk for s in students_list])
+        .values_list('user_id', 'next_payment_date')
+    )
+
+    def _pay_sort_key(s):
+        rec = s.current_record
+        unpaid = 0 if not (rec and rec.is_paid) else 1  # to'lanmaganlar (0) tepada
+        npd = _bal_dates.get(s.pk)
+        days_left = (npd - _today).days if npd else 99999  # yaqin sana tepada
+        return (unpaid, days_left, (s.first_name or '').lower(), (s.last_name or '').lower())
+
+    students_list.sort(key=_pay_sort_key)
 
     paginator = Paginator(students_list, 30)
     students = paginator.get_page(request.GET.get('page'))
@@ -16201,11 +16102,18 @@ def yordamchi_payments(request):
     ).values_list('user_id', flat=True))
     missing_rec = all_ids - existing_rec_ids
     if missing_rec:
-        fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_rec)}
+        # 🔁 Carryover: yangi oy summasi OLDINGI oy yozuvidan meros olinadi
+        # (bo'lmasa PaymentStatus.monthly_fee, u ham bo'lmasa 200000).
+        _prev_m, _prev_y = (12, selected_year - 1) if selected_month == 1 else (selected_month - 1, selected_year)
+        prev_fees = dict(
+            PaymentRecord.objects.filter(month=_prev_m, year=_prev_y, user_id__in=missing_rec)
+            .values_list('user_id', 'amount')
+        )
+        ps_fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_rec)}
         PaymentRecord.objects.bulk_create([
             PaymentRecord(
                 user_id=uid, month=selected_month, year=selected_year,
-                amount=fees.get(uid, 200000)
+                amount=prev_fees.get(uid) or ps_fees.get(uid) or 200000,
             ) for uid in missing_rec
         ], ignore_conflicts=True)
 
@@ -16231,6 +16139,26 @@ def yordamchi_payments(request):
     students_list = list(qs.order_by('first_name', 'last_name'))
     for s in students_list:
         s.current_record = records_dict.get(s.pk)
+
+    # 🔝 Saralash: to'lovi belgilanmagan (to'lanmagan) va to'lov sanasi
+    # yaqinlashayotgan o'quvchilar avtomatik TEPA qatorlarda turadi;
+    # to'lagani belgilanganlar pastga tushadi.
+    from datetime import date as _date
+    from .models import StudentBalance as _SB
+    _today = _date.today()
+    _bal_dates = dict(
+        _SB.objects.filter(user_id__in=[s.pk for s in students_list])
+        .values_list('user_id', 'next_payment_date')
+    )
+
+    def _pay_sort_key(s):
+        rec = s.current_record
+        unpaid = 0 if not (rec and rec.is_paid) else 1  # to'lanmaganlar (0) tepada
+        npd = _bal_dates.get(s.pk)
+        days_left = (npd - _today).days if npd else 99999  # yaqin sana tepada
+        return (unpaid, days_left, (s.first_name or '').lower(), (s.last_name or '').lower())
+
+    students_list.sort(key=_pay_sort_key)
 
     paginator = Paginator(students_list, 30)
     students  = paginator.get_page(request.GET.get('page'))
