@@ -604,22 +604,20 @@ class VideoLesson(models.Model):
         # https://youtube.com/embed/VIDEO_ID
         if 'youtube.com' in url or 'youtu.be' in url:
             import re
-            # Try embed format first
-            if '/embed/' in url:
-                match = re.search(r'/embed/([a-zA-Z0-9_-]+)', url)
-                if match:
-                    return match.group(1)
-            # Try watch?v= format
-            if 'watch?v=' in url:
-                match = re.search(r'watch\?v=([a-zA-Z0-9_-]+)', url)
-                if match:
-                    return match.group(1)
-            # Try youtu.be format
-            if 'youtu.be/' in url:
-                match = re.search(r'youtu\.be/([a-zA-Z0-9_-]+)', url)
-                if match:
-                    return match.group(1)
-        
+            # Barcha keng tarqalgan YouTube formatlari (video ID — aynan 11 belgi):
+            # watch?v=, youtu.be/, /embed/, /shorts/, /live/, /v/, m.youtube.com ...
+            for pat in (
+                r'[?&]v=([a-zA-Z0-9_-]{11})',
+                r'youtu\.be/([a-zA-Z0-9_-]{11})',
+                r'/embed/([a-zA-Z0-9_-]{11})',
+                r'/shorts/([a-zA-Z0-9_-]{11})',
+                r'/live/([a-zA-Z0-9_-]{11})',
+                r'/v/([a-zA-Z0-9_-]{11})',
+            ):
+                m = re.search(pat, url)
+                if m:
+                    return m.group(1)
+
         return None
     
     def get_embed_url(self):
