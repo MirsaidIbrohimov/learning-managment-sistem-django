@@ -238,21 +238,68 @@ def _validate_quiz_input(video, data, exclude_pk=None, lock_rewards=False):
 
 @login_required
 def teacher_videos(request):
-    """Ustozning barcha videolari — kartalar ko'rinishida."""
+    """Kurs-avval oqim: avval ustozning kurslari, kursga kirganda o'sha kurs videolari.
+
+    Ko'p kursga biriktirilgan ustozda yuzlab video birdan chiqib noqulaylik
+    tug'dirmasligi uchun — avval kurslar ro'yxati, so'ng ?course=<id> bo'yicha videolar.
+    """
     if not _teacher_or_admin(request.user):
         return redirect('home')
 
+    from accounts.models import Profession
+    from django.db.models import Max
+
+    # Ustozga biriktirilgan kurslar (admin — hammasi)
     if request.user.is_admin:
-        videos_qs = VideoLesson.objects.all()
+        prof_qs = Profession.objects.all()
     else:
-        videos_qs = VideoLesson.objects.filter(
-            lesson__profession__teachers=request.user
+        prof_qs = Profession.objects.filter(teachers=request.user)
+    prof_qs = prof_qs.order_by('name')
+
+    course_id = (request.GET.get('course') or '').strip()
+    selected = prof_qs.filter(pk=course_id).first() if course_id.isdigit() else None
+
+    # ── 1) KURS TANLANMAGAN → kurslar ro'yxati ──
+    if selected is None:
+        professions = list(prof_qs)
+        prof_ids = [p.pk for p in professions]
+        video_counts = dict(
+            VideoLesson.objects.filter(lesson__profession_id__in=prof_ids)
+            .values_list('lesson__profession_id').annotate(c=Count('id'))
+            .values_list('lesson__profession_id', 'c')
         )
-    videos_qs = videos_qs.select_related('lesson__profession').order_by(
-        'lesson__profession__name', 'lesson__title'
+        c_quiz_counts = dict(
+            VideoQuiz.objects.filter(video__lesson__profession_id__in=prof_ids)
+            .values_list('video__lesson__profession_id').annotate(c=Count('id'))
+            .values_list('video__lesson__profession_id', 'c')
+        )
+        c_income_map = dict(
+            TeacherVideoIncome.objects.filter(video__lesson__profession_id__in=prof_ids)
+            .values_list('video__lesson__profession_id').annotate(s=Sum('amount'))
+            .values_list('video__lesson__profession_id', 's')
+        )
+        course_cards = [{
+            'profession': p,
+            'video_count': video_counts.get(p.pk, 0),
+            'quiz_count': c_quiz_counts.get(p.pk, 0),
+            'income': c_income_map.get(p.pk, 0) or 0,
+        } for p in professions]
+        return render(request, 'video_quiz/teacher_videos.html', {
+            'view_mode': 'courses',
+            'course_cards': course_cards,
+            'total_courses': len(course_cards),
+            'total_videos': sum(c['video_count'] for c in course_cards),
+            'total_quizzes': sum(c['quiz_count'] for c in course_cards),
+            'total_income': sum(c['income'] for c in course_cards),
+        })
+
+    # ── 2) KURS TANLANGAN → shu kursning videolari ──
+    videos_qs = (
+        VideoLesson.objects.filter(lesson__profession=selected)
+        .select_related('lesson__profession').order_by('lesson__title')
     )
 
-    videos = list(videos_qs[:200])
+    videos = list(videos_qs[:300])
     video_ids = [v.pk for v in videos]
 
     quiz_counts = dict(
@@ -270,7 +317,6 @@ def teacher_videos(request):
         .values_list('video_id').annotate(s=Sum('amount'))
         .values_list('video_id', 's')
     )
-    from django.db.models import Max
     updated_map = dict(
         VideoQuiz.objects.filter(video_id__in=video_ids)
         .values_list('video_id').annotate(u=Max('updated_at'))
@@ -290,6 +336,8 @@ def teacher_videos(request):
         })
 
     return render(request, 'video_quiz/teacher_videos.html', {
+        'view_mode': 'videos',
+        'profession': selected,
         'cards': cards,
         'total_quizzes': sum(c['quiz_count'] for c in cards),
         'total_attempts': sum(c['attempt_count'] for c in cards),

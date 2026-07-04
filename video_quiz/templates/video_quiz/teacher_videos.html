@@ -66,11 +66,62 @@
 .vq-empty { text-align: center; padding: 4rem 1rem; color: var(--bs-secondary-color); }
 .vq-empty i { font-size: 3rem; opacity: .35; display: block; margin-bottom: .8rem; }
 @media (max-width: 576px) { .vq-grid { grid-template-columns: 1fr; } }
+/* Kurs kartasi (bosiladigan) + orqaga havolasi */
+.vq-card.vq-course-card { text-decoration: none; color: inherit; cursor: pointer; }
+.vq-course-card .vq-thumb { background: linear-gradient(135deg, #0d9488, #14b8a6); }
+.vq-back { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 700;
+    color: #0d9488; text-decoration: none; margin-bottom: 6px; }
+.vq-back:hover { color: #0f766e; }
 </style>
 
+{% if view_mode == 'courses' %}
+<!-- ===== KURSLAR RO'YXATI ===== -->
 <div class="vq-hero">
     <div>
-        <h1><i class="bi bi-play-btn-fill"></i> Videodagi Testlar</h1>
+        <h1><i class="bi bi-collection-play-fill"></i> Videodagi Testlar — Kurslarim</h1>
+        <p>Kursni tanlang — o'sha kursning videolari va testlari ochiladi</p>
+    </div>
+    <div class="vq-hero-stats">
+        <div class="vq-hstat"><b>{{ total_courses }}</b><span>Kurslar</span></div>
+        <div class="vq-hstat"><b>{{ total_videos }}</b><span>Videolar</span></div>
+        <div class="vq-hstat"><b>{{ total_quizzes }}</b><span>Jami test</span></div>
+    </div>
+</div>
+
+{% if course_cards %}
+<div class="vq-grid">
+    {% for c in course_cards %}
+    <a href="?course={{ c.profession.pk }}" class="vq-card vq-course-card">
+        <div class="vq-thumb">
+            {% if c.profession.photo %}<img src="{{ c.profession.photo.url }}" alt="" loading="lazy">
+            {% else %}<i class="bi bi-mortarboard-fill ph"></i>{% endif %}
+            <span class="qbadge"><i class="bi bi-camera-video-fill"></i> {{ c.video_count }} video</span>
+        </div>
+        <div class="vq-body">
+            <div class="vq-title">{{ c.profession.name }}</div>
+            <div class="vq-meta">
+                <div><i class="bi bi-patch-question-fill"></i> {{ c.quiz_count }} test</div>
+                <div><i class="bi bi-cash-stack"></i> {{ c.income }} so'm</div>
+            </div>
+            <span class="vq-manage"><i class="bi bi-folder2-open"></i> Videolarni ochish</span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="vq-empty">
+    <i class="bi bi-mortarboard"></i>
+    <h5 style="font-weight:800;">Kurslar topilmadi</h5>
+    <p>Sizga hali kurs biriktirilmagan.</p>
+</div>
+{% endif %}
+
+{% else %}
+<!-- ===== TANLANGAN KURS VIDEOLARI ===== -->
+<div class="vq-hero">
+    <div>
+        <a href="{% url 'video_quiz:teacher_videos' %}" class="vq-back"><i class="bi bi-arrow-left"></i> Kurslarga qaytish</a>
+        <h1><i class="bi bi-play-btn-fill"></i> {{ profession.name }}</h1>
         <p>Video ichiga interaktiv testlar joylashtiring — o'quvchilar diqqati va daromadingiz oshadi</p>
     </div>
     <div class="vq-hero-stats">
@@ -111,8 +162,9 @@
 <div class="vq-empty">
     <i class="bi bi-camera-video-off"></i>
     <h5 style="font-weight:800;">Videolar topilmadi</h5>
-    <p>Sizga biriktirilgan kurslarda hali video darslar yo'q.</p>
+    <p>Bu kursda hali video darslar yo'q.</p>
 </div>
+{% endif %}
 {% endif %}
 {% endblock %}
 
