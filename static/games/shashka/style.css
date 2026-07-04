@@ -385,15 +385,17 @@ a#btn-back:hover { color: var(--txt); }
 .mode-card::before {
     content:'';
     position:absolute;
-    inset:0;
-    background: linear-gradient(135deg, transparent 60%, rgba(34,211,238,0.04));
+    top:0; left:0; right:0; height:4px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    opacity:0.85;
     pointer-events:none;
 }
 .mode-card:hover {
     border-color: var(--accent);
-    transform: translateY(-5px);
-    box-shadow: 0 0 0 1px var(--accent), 0 20px 50px rgba(0,0,0,0.3), 0 0 40px var(--glow);
+    transform: translateY(-6px);
+    box-shadow: 0 0 0 1px var(--accent), 0 24px 56px rgba(0,0,0,0.34), 0 0 46px var(--glow);
 }
+.mode-card:hover::before { opacity:1; height:5px; }
 .mode-icon {
     width: 72px; height: 72px;
     border-radius: 18px;
@@ -408,23 +410,48 @@ a#btn-back:hover { color: var(--txt); }
 .mode-card > p { color:var(--txt-2); font-size:0.9rem; margin-bottom:20px; }
 .mode-hint { font-size:0.8rem; color:var(--txt-3); margin-top:12px; }
 
-.difficulty-buttons { display:flex; flex-direction:column; gap:8px; }
+.difficulty-buttons { display:flex; flex-direction:column; gap:11px; }
 .diff-btn {
-    padding: 11px 18px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
+    padding: 13px 16px;
+    border-radius: 15px;
+    border: 1.5px solid var(--border);
     background: var(--bg-3);
     color: var(--txt);
     cursor: pointer;
-    font-size: 0.92rem;
-    font-weight: 600;
-    display: flex; align-items:center; justify-content:center; gap:8px;
-    transition: all 0.2s;
+    font-size: 0.98rem;
+    font-weight: 700;
+    display: flex; align-items:center; gap:13px;
+    text-align: left;
+    transition: transform 0.18s, border-color 0.18s, background 0.18s, box-shadow 0.18s;
 }
-.diff-btn:hover { background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 4px 16px var(--glow); transform:translateX(3px); }
-.diff-btn.easy:hover   { background:var(--win); border-color:var(--win); box-shadow:0 4px 16px rgba(34,197,94,0.35); }
-.diff-btn.medium:hover { background:var(--warning); border-color:var(--warning); box-shadow:0 4px 16px rgba(245,158,11,0.35); color:#0f172a; }
-.diff-btn.hard:hover   { background:var(--lose); border-color:var(--lose); box-shadow:0 4px 16px rgba(239,68,68,0.35); }
+/* Icon chip — har bir tugmada rang-kodli belgi */
+.diff-btn .diff-icon {
+    width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items:center; justify-content:center;
+    font-size: 1.15rem; background: var(--bg-4); color: var(--txt-2);
+    transition: transform 0.18s;
+}
+.diff-btn::after {
+    content: '\F285'; font-family: 'bootstrap-icons';
+    margin-left: auto; font-size: 0.9rem; color: var(--txt-3);
+    opacity: 0; transform: translateX(-6px); transition: all 0.18s;
+}
+.diff-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,0.3); }
+.diff-btn:hover::after { opacity: 1; transform: translateX(0); }
+.diff-btn:hover .diff-icon { transform: scale(1.08); }
+/* Rang-kodli standart holat (hover kutmasdan ham farqlanadi) */
+.diff-btn.easy   { border-color: rgba(34,197,94,0.32); }
+.diff-btn.easy   .diff-icon { background: rgba(34,197,94,0.16); color:#4ade80; }
+.diff-btn.easy:hover   { border-color: var(--win);     background:linear-gradient(135deg,rgba(34,197,94,0.16),transparent); }
+.diff-btn.medium { border-color: rgba(245,158,11,0.32); }
+.diff-btn.medium .diff-icon { background: rgba(245,158,11,0.16); color:#fbbf24; }
+.diff-btn.medium:hover { border-color: var(--warning); background:linear-gradient(135deg,rgba(245,158,11,0.16),transparent); }
+.diff-btn.hard   { border-color: rgba(239,68,68,0.36); }
+.diff-btn.hard   .diff-icon { background: rgba(239,68,68,0.16); color:#f87171; }
+.diff-btn.hard:hover   { border-color: var(--lose);    background:linear-gradient(135deg,rgba(239,68,68,0.18),transparent); }
+.diff-btn.casual .diff-icon { background: rgba(99,102,241,0.16); color:#a5b4fc; }
+.diff-btn.coin   { border-color: rgba(245,158,11,0.3); }
+.diff-btn.coin   .diff-icon { background: rgba(245,158,11,0.18); color:#fbbf24; }
 
 /* --- Stats --- */
 .menu-stats {
@@ -448,28 +475,37 @@ a#btn-back:hover { color: var(--txt); }
 
 /* --- Theme Picker --- */
 .theme-picker {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    margin-top: 24px;
-    padding: 20px 24px;
+    gap: 10px;
+    margin: 28px auto 0;
+    padding: 10px 16px;
     background: var(--bg-2);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 999px;                 /* pill ko'rinish */
+    box-shadow: 0 12px 34px rgba(0,0,0,0.24);
+    width: fit-content;
+    max-width: 100%;
     flex-wrap: wrap;
 }
-.theme-picker-label { font-size:0.82rem; color:var(--txt-3); font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+.theme-picker-label {
+    font-size:0.72rem; color:var(--txt-3); font-weight:700;
+    text-transform:uppercase; letter-spacing:0.6px;
+    padding-right: 6px; border-right: 1px solid var(--border);
+    display: inline-flex; align-items: center; gap: 6px;
+}
 .theme-swatch {
-    width: 40px; height: 40px;
-    border-radius: 10px;
+    width: 30px; height: 30px;
+    border-radius: 50%;                    /* dumaloq namunalar */
     border: 2px solid transparent;
     cursor: pointer;
-    transition: all 0.22s;
+    transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12);
 }
-.theme-swatch:hover { transform:scale(1.15); }
-.theme-swatch.active { border-color: var(--txt); box-shadow:0 0 0 3px rgba(255,255,255,0.15); transform:scale(1.12); }
+.theme-swatch:hover { transform:scale(1.18); }
+.theme-swatch.active { border-color: #fff; box-shadow:0 0 0 3px var(--glow), inset 0 0 0 1px rgba(0,0,0,0.2); transform:scale(1.12); }
 .theme-swatch-tip {
     position:absolute;
     bottom:calc(100% + 8px);
